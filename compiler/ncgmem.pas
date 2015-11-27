@@ -764,20 +764,22 @@ implementation
                firstpass(hightree);
                secondpass(hightree);
                { generate compares }
+{$ifndef cpuhighleveltarget}
                if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                  hreg:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_INT)
                else
+{$endif not cpuhighleveltarget}
                  begin
-                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hreg);
+                   hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ossinttype);
+                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,ossinttype,right.location,hreg);
                  end;
                current_asmdata.getjumplabel(neglabel);
                current_asmdata.getjumplabel(poslabel);
-               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_LT,0,hreg,poslabel);
-               cg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-               cg.a_label(current_asmdata.CurrAsmList,poslabel);
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RANGEERROR',false);
-               cg.a_label(current_asmdata.CurrAsmList,neglabel);
+               hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,ossinttype,OC_LT,0,hreg,poslabel);
+               hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,osuinttype,OC_BE,hightree.location,hreg,neglabel);
+               hlcg.a_label(current_asmdata.CurrAsmList,poslabel);
+               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_rangeerror',[],nil).resetiftemp;
+               hlcg.a_label(current_asmdata.CurrAsmList,neglabel);
                { release hightree }
                hightree.free;
              end;
