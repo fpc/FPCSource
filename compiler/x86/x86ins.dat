@@ -279,12 +279,12 @@ void                  \2\xDE\xC1                      8086,FPU
 fpureg                \1\xDE\10\xC0                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xC0                   8086,FPU
 
-[FBLD,fbldF]
+[FBLD,fbld]
 (Ch_Rop1, Ch_FPU, Ch_None)
 mem80                 \1\xDF\204                      8086,FPU
 mem                   \1\xDF\204                      8086,FPU
 
-[FBSTP,fbstpF]
+[FBSTP,fbstp]
 (Ch_Wop1, Ch_FPU, Ch_None)
 mem80                 \1\xDF\206                      8086,FPU
 mem                   \1\xDF\206                      8086,FPU
