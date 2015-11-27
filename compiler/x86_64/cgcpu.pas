@@ -189,9 +189,11 @@ unit cgcpu;
       procedure push_regs;
         var
           r: longint;
+          usedregs: tcpuregisterset;
         begin
+          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
           for r := low(saved_standard_registers) to high(saved_standard_registers) do
-            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            if saved_standard_registers[r] in usedregs then
               begin
                 inc(stackmisalignment,sizeof(pint));
                 push_one_reg(newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE));
@@ -263,7 +265,7 @@ unit cgcpu;
               begin
                 if target_info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
-                cg.g_stackpointer_alloc(list,localsize);
+                g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
