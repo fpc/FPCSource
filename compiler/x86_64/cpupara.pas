@@ -288,7 +288,7 @@ unit cpupara;
         else
           result:=class2;
         result.typ:=X86_64_SSE_CLASS;
-        result.def:=carraydef.getreusable_no_free(s32floattype,2)
+        result.def:=s64floattype;
       end;
 
 
