@@ -1293,12 +1293,11 @@ implementation
         a_loadfpu_ref_reg(list,fromsize,tosize,ref,reg)
       else
         begin
-          { todo }
-          if fromsize<>tosize then
-            internalerror(2013060220);
           href:=make_simple_ref(list,ref,fromsize);
+          if fromsize<>tosize then
+            g_ptrtypecast_ref(list,cpointerdef.create(fromsize),cpointerdef.create(tosize),href);
           { %reg = load size* %ref }
-          list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(fromsize),href));
+          list.concat(taillvm.op_reg_size_ref(la_load,reg,cpointerdef.getreusable(tosize),href));
         end;
     end;
 
