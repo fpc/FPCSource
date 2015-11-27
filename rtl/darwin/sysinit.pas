@@ -20,7 +20,7 @@ implementation
 
 {$ifndef ver2_6}
 
-procedure PascalMain; external name 'PASCALMAIN';
+procedure PascalMain; external name '_PASCALMAIN';
 procedure SysEntry(constref info: TEntryInformation); external name 'FPC_SysEntry';
 
 var
