@@ -2401,7 +2401,8 @@ MAKEINC=$(TEST_OUTPUTDIR)/MakeChunks-$(TEST_TARGETSUFFIX).inc
 $(GPARMAKE): $(COMPILER_UNITTARGETDIR) utils/gparmake.pp
 	$(FPC) $(FPCOPT) -FE. utils/gparmake.pp $(OPT)
 $(MAKEINC): $(GPARMAKE) $(TEST_OUTPUTDIR)
-	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) $(sort $(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+	$(MAKE) -s -f createlst.mak "TESTDIRS=$(TESTDIRS)" > testfilelist.lst
+	$(Q)$(GPARMAKE) $(MAKEINC) test 1 $(CHUNKSIZE) @testfilelist.lst
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbs 10000 $(CHUNKSIZE) $(sort $(wildcard tbs/t*.pp))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) tbf 15000 $(CHUNKSIZE) $(sort $(wildcard tbf/t*.pp))
 	$(Q)$(GPARMAKE) -a $(MAKEINC) webtbs 20000 $(CHUNKSIZE) $(sort $(wildcard webtbs/t*.pp))
