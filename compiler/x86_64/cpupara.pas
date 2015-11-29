@@ -1172,10 +1172,10 @@ unit cpupara;
                   end;
 
                 locidx:=1;
-                while (paralen>0) do
+                while (paralen>0) and
+                      (locidx<=2) and
+                      (loc[locidx].typ<>X86_64_NO_CLASS) do
                   begin
-                    if locidx>2 then
-                      internalerror(200501283);
                     { Allocate }
                     case loc[locidx].typ of
                       X86_64_INTEGER_CLASS,
@@ -1296,9 +1296,7 @@ unit cpupara;
                       else
                         internalerror(2010053113);
                     end;
-                    if (locidx<2) and
-                       (loc[locidx+1].typ<>X86_64_NO_CLASS) then
-                      inc(locidx);
+                    inc(locidx);
                   end;
               end
             else
