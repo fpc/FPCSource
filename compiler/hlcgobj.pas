@@ -542,7 +542,7 @@ unit hlcgobj;
             reference if necessary. fromdef needs to be a pointerdef because
             it may have to be passed as fromdef to a_loadaddr_ref_reg, which
             needs the "pointeddef" of fromdef }
-          procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); virtual;
+          procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tdef; var ref: treference); virtual;
 
           { update a reference pointing to the start address of a record/object/
             class (contents) so it refers to the indicated field }
@@ -3844,7 +3844,7 @@ implementation
       { nothing to do }
     end;
 
-  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
+  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tdef; var ref: treference);
     begin
       { nothing to do }
     end;

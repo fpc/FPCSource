@@ -62,6 +62,9 @@ uses
       procedure a_load_reg_reg(list : TAsmList;fromsize, tosize : tdef;reg1,reg2 : tregister);override;
       procedure a_load_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;register : tregister);override;
       procedure a_load_ref_ref(list: TAsmList; fromsize, tosize: tdef; const sref: treference; const dref: treference); override;
+     protected
+      procedure a_loadaddr_ref_reg_intern(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister; makefromsizepointer: boolean);
+     public
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
       procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
@@ -95,7 +98,7 @@ uses
       procedure g_overflowCheck_loc(List:TAsmList;const Loc:TLocation;def:TDef;var ovloc : tlocation); override;
 
       procedure g_ptrtypecast_reg(list: TAsmList; fromdef, todef: tdef; var reg: tregister); override;
-      procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); override;
+      procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tdef; var ref: treference); override;
 
       procedure g_set_addr_nonbitpacked_field_ref(list: TAsmList; recdef: tabstractrecorddef; field: tfieldvarsym; var recref: treference); override;
 
@@ -133,6 +136,9 @@ uses
 
       procedure g_external_wrapper(list: TAsmList; procdef: tprocdef; const externalname: string); override;
 
+     { def is a pointerdef or implicit pointer type (class, classref, procvar,
+       dynamic array, ...).  }
+     function make_simple_ref_ptr(list: TAsmList; const ref: treference; ptrdef: tdef): treference;
       { def is the type of the data stored in memory pointed to by ref, not
         a pointer to this type }
       function make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
@@ -706,15 +712,23 @@ implementation
     end;
 
 
-  procedure thlcgllvm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
+  procedure thlcgllvm.a_loadaddr_ref_reg_intern(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister; makefromsizepointer: boolean);
     var
       sref: treference;
     begin
       { can't take the address of a 'named register' }
       if ref.refaddr=addr_full then
         internalerror(2013102306);
-      sref:=make_simple_ref(list,ref,fromsize);
-      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,cpointerdef.getreusable(fromsize),sref,tosize));
+      if makefromsizepointer then
+        fromsize:=cpointerdef.getreusable(fromsize);
+      sref:=make_simple_ref_ptr(list,ref,fromsize);
+      list.concat(taillvm.op_reg_size_ref_size(la_bitcast,r,fromsize,sref,tosize));
+    end;
+
+
+  procedure thlcgllvm.a_loadaddr_ref_reg(list: TAsmList; fromsize, tosize: tdef; const ref: treference; r: tregister);
+    begin
+      a_loadaddr_ref_reg_intern(list,fromsize,tosize,ref,r,true);
     end;
 
 
@@ -1209,13 +1223,12 @@ implementation
     end;
 
 
-  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
+  procedure thlcgllvm.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tdef; var ref: treference);
     var
-      sref: treference;
       hreg: tregister;
     begin
       hreg:=getaddressregister(list,todef);
-      a_loadaddr_ref_reg(list,fromdef.pointeddef,todef,ref,hreg);
+      a_loadaddr_ref_reg_intern(list,fromdef,todef,ref,hreg,false);
       reference_reset_base(ref,todef,hreg,0,ref.alignment);
     end;
 
@@ -1569,12 +1582,18 @@ implementation
 
 
   function thlcgllvm.make_simple_ref(list: TAsmList; const ref: treference; def: tdef): treference;
+    begin
+      result:=make_simple_ref_ptr(list,ref,cpointerdef.create(def));
+    end;
+
+
+  function thlcgllvm.make_simple_ref_ptr(list: TAsmList; const ref: treference; ptrdef: tdef): treference;
     var
       ptrindex: tcgint;
       hreg1,
       hreg2: tregister;
       tmpref: treference;
-      defsize: asizeint;
+      pointedsize: asizeint;
     begin
       { already simple? }
       if (not assigned(ref.symbol) or
@@ -1585,24 +1604,36 @@ implementation
           result:=ref;
           exit;
         end;
-
-      hreg2:=getaddressregister(list,cpointerdef.getreusable(def));
-      defsize:=def.size;
-      { for voiddef/formaldef }
-      if defsize=0 then
-        defsize:=1;
+      case ptrdef.typ of
+        pointerdef:
+          begin
+            pointedsize:=tpointerdef(ptrdef).pointeddef.size;
+            { void, formaldef }
+            if pointedsize=0 then
+              pointedsize:=1;
+          end;
+        else
+          begin
+            { pointedsize is only used if the offset <> 0, to see whether we
+              can use getelementptr if it's an exact multiple -> set pointedsize
+              to a value that will never be a multiple as we can't "index" other
+              types }
+            pointedsize:=ref.offset+1;
+          end;
+      end;
+      hreg2:=getaddressregister(list,ptrdef);
       { symbol+offset or base+offset with offset a multiple of the size ->
         use getelementptr }
       if (ref.index=NR_NO) and
-         (ref.offset mod defsize=0) then
+         (ref.offset mod pointedsize=0) then
         begin
-          ptrindex:=ref.offset div defsize;
+          ptrindex:=ref.offset div pointedsize;
           if assigned(ref.symbol) then
             reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment)
           else
-            reference_reset_base(tmpref,cpointerdef.getreusable(def),ref.base,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,cpointerdef.getreusable(def),tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
-          reference_reset_base(result,cpointerdef.getreusable(def),hreg2,0,ref.alignment);
+            reference_reset_base(tmpref,ptrdef,ref.base,0,ref.alignment);
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg2,ptrdef,tmpref,ptruinttype,ptrindex,assigned(ref.symbol)));
+          reference_reset_base(result,ptrdef,hreg2,0,ref.alignment);
           exit;
         end;
       { for now, perform all calculations using plain pointer arithmetic. Later
@@ -1610,7 +1641,7 @@ implementation
         accesses (if only to prevent running out of virtual registers).
 
         Assumptions:
-          * symbol/base register: always type "def*"
+          * symbol/base register: always type "ptrdef"
           * index/offset: always type "ptruinttype" (llvm bitcode has no sign information, so sign doesn't matter) }
       hreg1:=getintregister(list,ptruinttype);
       if assigned(ref.symbol) then
@@ -1618,11 +1649,11 @@ implementation
           if ref.base<>NR_NO then
             internalerror(2012111301);
           reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
-          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,cpointerdef.getreusable(def),tmpref,ptruinttype,0,true));
+          list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg1,ptrdef,tmpref,ptruinttype,0,true));
         end
       else if ref.base<>NR_NO then
         begin
-          a_load_reg_reg(list,cpointerdef.getreusable(def),ptruinttype,ref.base,hreg1);
+          a_load_reg_reg(list,ptrdef,ptruinttype,ref.base,hreg1);
         end
       else
         { todo: support for absolute addresses on embedded platforms }
@@ -1640,9 +1671,9 @@ implementation
           a_op_const_reg_reg(list,OP_ADD,ptruinttype,ref.offset,hreg1,hreg2);
           hreg1:=hreg2;
         end;
-      hreg2:=getaddressregister(list,cpointerdef.getreusable(def));
-      a_load_reg_reg(list,ptruinttype,cpointerdef.getreusable(def),hreg1,hreg2);
-      reference_reset_base(result,cpointerdef.getreusable(def),hreg2,0,ref.alignment);
+      hreg2:=getaddressregister(list,ptrdef);
+      a_load_reg_reg(list,ptruinttype,ptrdef,hreg1,hreg2);
+      reference_reset_base(result,ptrdef,hreg2,0,ref.alignment);
     end;
 
 
