@@ -74,6 +74,7 @@ procedure tllvmloadnode.pass_generate_code;
     href, mpref: treference;
     field: tfieldvarsym;
     procreg, selfreg: tregister;
+    selfdef: tdef;
   begin
     inherited;
     case symtableentry.typ of
@@ -100,10 +101,18 @@ procedure tllvmloadnode.pass_generate_code;
                   procreg:=location.registerhi;
                   selfreg:=location.register
                 end;
+              { left can be a pointerdef when we take the address of a nested
+                procedure, as left will then be a pointer to the nestedfpstruct
+              }
+              if is_implicit_pointer_object_type(left.resultdef) or
+                  (left.resultdef.typ in [classrefdef,pointerdef]) then
+                selfdef:=left.resultdef
+              else
+                selfdef:=cpointerdef.getreusable(left.resultdef);
               mpref:=href;
               hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),mpref);
               hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef),trecorddef(methodpointertype),procreg,'proc',mpref);
-              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,left.resultdef,trecorddef(methodpointertype),selfreg,'self',mpref);
+              hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(methodpointertype),selfreg,'self',mpref);
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment);
               location.reference:=href;
             end;
