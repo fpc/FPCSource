@@ -799,7 +799,7 @@ implementation
                tmpreg2:=getintregister(list,opsize);
                tmpreg3:=getintregister(list,opsize);
                { tmpreg1 := tcgsize2size[size] - src1 }
-               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg1,opsize,opsize.size,src1));
+               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg1,opsize,opsize.size*8,src1));
                { tmpreg2 := src2 shr tmpreg1 }
                a_op_reg_reg_reg(list,OP_SHR,opsize,tmpreg1,src2,tmpreg2);
                { tmpreg3 := src2 shl src1 }
@@ -813,7 +813,7 @@ implementation
                tmpreg2:=getintregister(list,size);
                tmpreg3:=getintregister(list,size);
                { tmpreg1 := tcgsize2size[size] - src1 }
-               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg1,opsize,opsize.size,src1));
+               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg1,opsize,opsize.size*8,src1));
                { tmpreg2 := src2 shl tmpreg1 }
                a_op_reg_reg_reg(list,OP_SHL,opsize,tmpreg1,src2,tmpreg2);
                { tmpreg3 := src2 shr src1 }
