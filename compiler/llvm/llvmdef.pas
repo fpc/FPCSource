@@ -419,7 +419,8 @@ implementation
                   llvmaddencodedtype_intern(tarraydef(def).elementdef,[],encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
-              else if is_packed_array(def) then
+              else if is_packed_array(def) and
+                      (tarraydef(def).elementdef.typ in [enumdef,orddef]) then
                 begin
                   encodedstr:=encodedstr+'['+tostr(tarraydef(def).size div tarraydef(def).elementdef.packedbitsize)+' x ';
                   { encode as an array of integers with the size on which we
