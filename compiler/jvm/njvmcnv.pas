@@ -476,7 +476,7 @@ implementation
                      { get the class representing the primitive type }
                      fvs:=search_struct_member(tobjectdef(corrclass),'FTYPE');
                      newpara:=nil;
-                     if not handle_staticfield_access(fvs,false,newpara) then
+                     if not handle_staticfield_access(fvs,newpara) then
                        internalerror(2011072417);
                    end
                  else
