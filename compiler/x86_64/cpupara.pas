@@ -425,6 +425,7 @@ unit cpupara;
               exit(0);
           end;
 
+{$ifndef llvm}
           { FIXME: in case a record contains empty padding space, e.g. a
             "single" field followed by a "double", then we have a problem
             because the cgpara helpers cannot figure out that they should
@@ -460,7 +461,7 @@ unit cpupara;
                   classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
             end;
-
+{$endif not llvm}
           result:=words;
       end;
 
