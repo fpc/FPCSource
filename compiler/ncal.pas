@@ -1086,8 +1086,15 @@ implementation
 
              { Convert tp procvars, this is needs to be done
                here to make the change permanent. in the overload
-               choosing the changes are only made temporarily }
-             if (left.resultdef.typ=procvardef) and
+               choosing the changes are only made temporarily
+
+               Don't do this for parentfp parameters, as for calls to nested
+               procvars they are a copy of right, which is the procvar itself
+               and hence turning that into a call would result into endless
+               recursion. For regular nested calls, the parentfp node can
+               never be a procvar (it's a loadparentfpnode). }
+             if not(vo_is_parentfp in parasym.varoptions) and
+                (left.resultdef.typ=procvardef) and
                 not(parasym.vardef.typ in [procvardef,formaldef]) then
                begin
                  if maybe_call_procvar(left,true) then
@@ -3046,24 +3053,6 @@ implementation
                  if vo_is_syscall_lib in para.parasym.varoptions then
                    gen_syscall_para(para)
                 else
-                 if vo_is_parentfp in para.parasym.varoptions then
-                   begin
-                     if not assigned(right) then
-                       begin
-                         if assigned(procdefinition.owner.defowner) then
-                           para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara)
-                         { exceptfilters called from main level are not owned }
-                         else if procdefinition.proctypeoption=potype_exceptfilter then
-                           para.left:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
-                         else
-                           internalerror(200309287);
-                       end
-                     else if not(po_is_block in procdefinition.procoptions) then
-                       para.left:=gen_procvar_context_tree_parentfp
-                     else
-                       para.left:=gen_block_context
-                   end
-                else
                  if vo_is_range_check in para.parasym.varoptions then
                    begin
                      para.left:=cordconstnode.create(Ord(cs_check_range in current_settings.localswitches),pasbool8type,false);
@@ -3260,7 +3249,15 @@ implementation
                { Here we handle only the parameters that depend on
                  the types of the previous parameter. The typeconversion
                  can change the type in the next step. For example passing
-                 an array can be change to a pointer and a deref }
+                 an array can be change to a pointer and a deref.
+
+                 We also handle the generation of parentfp parameters, as they
+                 must all be created before pass_1 on targets that use explicit
+                 parentfp structs (rather than the frame pointer). The reason
+                 is that the necessary initialisation code for the these
+                 structures is attached to the procedure's nodetree after
+                 the resulttype pass.
+               }
                if vo_is_high_para in currpara.varoptions then
                 begin
                   if not assigned(pt) or (i=0) then
@@ -3289,6 +3286,26 @@ implementation
                       crttinode.create(Tstoreddef(pt.resultdef),fullrtti,rdt_normal)
                     );
                   end
+              else if vo_is_parentfp in currpara.varoptions then
+                begin
+                  if assigned(right) and (right.resultdef.typ=procvardef) and
+                     not tabstractprocdef(right.resultdef).is_addressonly then
+                    maybe_load_in_temp(right);
+                  if not assigned(right) then
+                    begin
+                      if assigned(procdefinition.owner.defowner) then
+                        hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner),lpf_forpara)
+                      { exceptfilters called from main level are not owned }
+                      else if procdefinition.proctypeoption=potype_exceptfilter then
+                        hiddentree:=cloadparentfpnode.create(current_procinfo.procdef,lpf_forpara)
+                      else
+                        internalerror(200309287);
+                    end
+                  else if not(po_is_block in procdefinition.procoptions) then
+                    hiddentree:=gen_procvar_context_tree_parentfp
+                  else
+                    hiddentree:=gen_block_context
+                end
               else
                 hiddentree:=cnothingnode.create;
               pt:=ccallparanode.create(hiddentree,oldppt^);
