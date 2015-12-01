@@ -66,6 +66,7 @@ implementation
     function tllvmsubscriptnode.handle_platform_subscript: boolean;
       var
         newbase: tregister;
+        fielddef: tdef;
       begin
         if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           internalerror(2014011905);
@@ -74,7 +75,20 @@ implementation
             { typecast the result to the expected type, but don't actually index
               (that still has to be done by the generic code, so return false) }
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference,newbase);
+            if is_ordinal(resultdef) and
+               (resultdef.packedbitsize mod 8<>0) then
+              fielddef:=
+                cgsize_orddef(
+                  int_cgsize(
+                    packedbitsloadsize(resultdef.packedbitsize)
+                  )
+                )
+            else
+              fielddef:=resultdef;
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,
+              left.resultdef,
+              cpointerdef.getreusable(fielddef),
+              location.reference,newbase);
             reference_reset_base(location.reference,newbase,0,location.reference.alignment);
             result:=false;
           end
