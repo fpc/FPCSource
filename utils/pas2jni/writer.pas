@@ -742,8 +742,11 @@ begin
           if s <> '' then
             Fps.WriteLn(s);
         end;
-        if UseTempObjVar then
+        if UseTempObjVar then begin
           Fps.WriteLn('__objvar: ' + d.Parent.Name + ';');
+          if Variable.VarType.DefType = dtProcType then
+            Fps.WriteLn('__mvar: TMethod;');
+        end;
         if TempRes <> '' then begin
           s:=TempRes + ': ';
           if IsObj and (ProcType in [ptConstructor, ptDestructor]) then
@@ -836,8 +839,8 @@ begin
         if ProcType = ptProcedure then begin
           ASSERT(Count = i + 1);
           if Variable.VarType.DefType = dtProcType then begin
-            Fps.WriteLn(Format('_RefMethodPtr(_env, TMethod(%s), False);', [s]));
-            ss:=Format('_RefMethodPtr(_env, TMethod(%s), True);', [s]);
+            Fps.WriteLn(Format('__mvar:=TMethod(%s);', [s]));
+            ss:=Format('_RefMethodPtr(_env, TMethod(%s), True); _RefMethodPtr(_env, __mvar, False);', [s]);
           end;
           s:=s + ':=' + JniToPasType(TVarDef(Items[i]).VarType, Items[i].Name, False);
         end;
@@ -1218,20 +1221,8 @@ begin
     Fps.WriteLn;
     Fps.WriteLn(Format('function %sGetHandler(env: PJNIEnv; jobj: jobject; const ci: _TJavaClassInfo): %s.%s;',
                        [GetClassPrefix(d), d.Parent.Name, d.Name]));
-    Fps.WriteLn('var mpi: _TMethodPtrInfo;');
     Fps.WriteLn('begin');
-    Fps.IncI;
-    Fps.WriteLn('Result:=nil;');
-    Fps.WriteLn('mpi:=_TMethodPtrInfo(_GetPasObj(env, jobj, ci, False));');
-    Fps.WriteLn('if mpi = nil then exit;');
-    Fps.WriteLn('if mpi.Index = 0 then');
-    Fps.WriteLn('TMethod(Result):=mpi.RealMethod', 1);
-    Fps.WriteLn('else');
-    Fps.WriteLn('with TMethod(Result) do begin', 1);
-    Fps.WriteLn('Data:=pointer(ptruint(-integer(mpi.Index)));', 2);
-    Fps.WriteLn(Format('Code:=@%s.Handler;', [hclass]), 2);
-    Fps.WriteLn('end;', 1);
-    Fps.DecI;
+    Fps.WriteLn(Format('TMethod(Result):=_GetMethodPtrHandler(env, jobj, @%s.Handler, %s);', [hclass, GetTypeInfoVar(d)]), 1);
     Fps.WriteLn('end;');
 
     exit;
@@ -1247,10 +1238,10 @@ begin
 
   Fjs.WriteLn(Format('public static class %s extends %s.system.MethodPtr {', [d.Name, JavaPackage]));
   Fjs.IncI;
-  Fjs.WriteLn(Format('private String HandlerSig = "%s";', [GetProcSignature(d)]));
-  Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { }', [d.Name]));
-  Fjs.WriteLn(Format('public %s(Object Obj, String MethodName) { Init(Obj, MethodName, HandlerSig); }', [d.Name]));
-  Fjs.WriteLn(Format('public %s() { Init(this, "Execute", HandlerSig); }', [d.Name]));
+  Fjs.WriteLn(Format('{ mSignature = "%s"; }', [GetProcSignature(d)]));
+  Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { _pasobj=objptr; }', [d.Name]));
+  Fjs.WriteLn(Format('public %s(Object Obj, String MethodName) { mObject=Obj; mName=MethodName; }', [d.Name]));
+  Fjs.WriteLn(Format('public %s() { mObject=this; mName="Execute"; }', [d.Name]));
   Fjs.WriteLn(Format('protected %s throws NoSuchMethodException { throw new NoSuchMethodException(); }', [GetJavaProcDeclaration(d, 'Execute')]));
   Fjs.DecI;
   Fjs.WriteLn('}');
@@ -1456,7 +1447,7 @@ begin
       Fps.DecI;
       Fps.WriteLn('end;');
 
-      AddNativeMethod(d, '_TMethodPtrInfo_Init', 'Init', Format('(Ljava/lang/Object;%s%s)V', [JNITypeSig[btString], JNITypeSig[btString]]));
+      AddNativeMethod(d, '_TMethodPtrInfo_Init', '__Init', Format('(Ljava/lang/Object;%s%s)V', [JNITypeSig[btString], JNITypeSig[btString]]));
 
       Fps.WriteLn;
       Fps.WriteLn('procedure _TMethodPtrInfo_Release(env: PJNIEnv; _self: JObject);' + JniCaliing);
@@ -1473,11 +1464,14 @@ begin
       Fjs.WriteLn;
       Fjs.WriteLn('public static class MethodPtr extends PascalObjectEx {');
       Fjs.IncI;
-
+      Fjs.WriteLn('private native void __Init(Object Obj, String MethodName, String MethodSignature);');
       Fjs.WriteLn('private native void __Destroy();');
-      Fjs.WriteLn('protected native void Init(Object Obj, String MethodName, String MethodSignature);');
-      Fjs.WriteLn('protected MethodPtr() { _cleanup=true; }');
-      Fjs.WriteLn('public void __Release() { if (_pasobj != 0) __Destroy(); }');
+      Fjs.WriteLn('protected Object mObject;');
+      Fjs.WriteLn('protected String mName;');
+      Fjs.WriteLn('protected String mSignature;');
+      Fjs.WriteLn('protected void Init() { __Init(mObject, mName, mSignature); }');
+      Fjs.WriteLn('protected MethodPtr() { _cleanup=true; _pasobj=-1; }');
+      Fjs.WriteLn('public void __Release() { if (_pasobj > 0) __Destroy(); }');
       Fjs.DecI;
       Fjs.WriteLn('}');
       Fjs.WriteLn;
@@ -2283,7 +2277,6 @@ begin
     Fps.WriteLn('var c: JClass;');
     Fps.WriteLn('begin');
     Fps.IncI;
-    Fps.WriteLn('RefCnt:=1;');
     Fps.WriteLn('if (JavaObj = nil) or (AMethodName = '''') then exit;');
     Fps.WriteLn('c:=env^^.GetObjectClass(env, JavaObj);');
     Fps.WriteLn('if c = nil then exit;');
@@ -2363,17 +2356,40 @@ begin
     Fps.WriteLn('i:=-integer(ptruint(m.Data));');
     Fps.WriteLn(Format('if (i > 0) and (i <= %d) then begin', [MaxMethodPointers]));
     Fps.WriteLn('mpi:=_MethodPointers[i - 1];', 1);
-    Fps.WriteLn('InterlockedIncrement(mpi.RefCnt);', 1);
     Fps.WriteLn('end');
     Fps.WriteLn('else begin');
     Fps.WriteLn('mpi:=_TMethodPtrInfo.Create(env, nil, '''', '''');', 1);
     Fps.WriteLn('mpi.RealMethod:=m;', 1);
+    Fps.WriteLn('InterlockedIncrement(mpi.RefCnt);', 1);
     Fps.WriteLn('end;');
     Fps.WriteLn('finally', -1);
     Fps.WriteLn('_MethodPointersCS.Leave;');
     Fps.DecI;
     Fps.WriteLn('end;');
     Fps.WriteLn('Result:=_CreateJavaObj(env, pointer(mpi), ci);');
+    Fps.DecI;
+    Fps.WriteLn('end;');
+
+    Fps.WriteLn;
+    Fps.WriteLn('function _GetMethodPtrHandler(env: PJNIEnv; jobj: jobject; hptr: pointer; const ci: _TJavaClassInfo): TMethod;');
+    Fps.WriteLn('var mpi: _TMethodPtrInfo;');
+    Fps.WriteLn('begin');
+    Fps.IncI;
+    Fps.WriteLn(  'Result.Data:=nil; Result.Code:=nil;');
+    Fps.WriteLn(  'mpi:=_TMethodPtrInfo(_GetPasObj(env, jobj, ci, False));');
+    Fps.WriteLn(  'if mpi = nil then exit;');
+    Fps.WriteLn(  'if pointer(mpi) = pointer(ptruint(-1)) then begin');
+    Fps.WriteLn(    'env^^.CallVoidMethodA(env, jobj, env^^.GetMethodID(env, ci.ClassRef, ''Init'', ''()V''), nil);', 1);
+    Fps.WriteLn(    'Result:=_GetMethodPtrHandler(env, jobj, hptr, ci);', 1);
+    Fps.WriteLn(    'exit;', 1);
+    Fps.WriteLn(  'end;');
+    Fps.WriteLn(  'if mpi.Index = 0 then');
+    Fps.WriteLn(    'TMethod(Result):=mpi.RealMethod', 1);
+    Fps.WriteLn(  'else');
+    Fps.WriteLn(    'with TMethod(Result) do begin', 1);
+    Fps.WriteLn(      'Data:=pointer(ptruint(-integer(mpi.Index)));', 2);
+    Fps.WriteLn(      'Code:=hptr;', 2);
+    Fps.WriteLn(    'end;', 1);
     Fps.DecI;
     Fps.WriteLn('end;');
 
