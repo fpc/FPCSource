@@ -260,9 +260,9 @@ var
           if s = 'class' then
             ct:=ctClass
           else
-//          if s = 'interface' then
-//            ct:=ctInterface
-//          else
+          if s = 'interface' then
+            ct:=ctInterface
+          else
           if s = 'object' then
             ct:=ctObject
           else

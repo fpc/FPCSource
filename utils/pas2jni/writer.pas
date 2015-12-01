@@ -505,15 +505,19 @@ var
 
   procedure WriteTypeCast(const AName: string; SecondPass: boolean);
   var
-    s: string;
+    s, ss: string;
   begin
     with TClassDef(d) do begin
       if HasReplacedItems and not SecondPass then
         s:='protected'
       else
         s:='public';
-      Fjs.WriteLn(Format('%s %s(PascalObject obj) { super(obj); }', [s, AName]));
-      Fjs.WriteLn(Format('%s %s(long objptr) { super(objptr); }', [s, AName]));
+      if (CType = ctInterface) and (AncestorClass = nil) then
+        ss:=' __Init();'
+      else
+        ss:='';
+      Fjs.WriteLn(Format('%s %s(PascalObject obj) { super(obj);%s }', [s, AName, ss]));
+      Fjs.WriteLn(Format('%s %s(long objptr) { super(objptr);%s }', [s, AName, ss]));
     end;
   end;
 
@@ -575,16 +579,33 @@ begin
       if d.CType in [ctObject, ctRecord] then
         s:=s + Format('%s.system.Record', [JavaPackage])
       else
-        s:=s + 'PascalObject';
+        if d.CType = ctInterface then
+          s:=s + 'PascalObjectEx'
+        else
+          s:=s + 'PascalObject';
   end;
   Fjs.WriteLn(s + ' {');
   Fjs.IncI;
-  if d.CType in [ctObject, ctRecord] then begin
-    Fjs.WriteLn('private native void __Destroy(long pasobj);');
-    Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { __Init(objptr, cleanup); }', [d.Name]));
-    Fjs.WriteLn(Format('public %s() { __Init(0, true); }', [d.Name]));
-    Fjs.WriteLn(Format('public void __Release() { __Destroy(_pasobj); super.__Release(); }', [d.Name]));
-    Fjs.WriteLn(Format('public int __Size() { return %d; }', [d.Size]));
+  case d.CType of
+    ctObject, ctRecord:
+      begin
+        Fjs.WriteLn('private native void __Destroy(long pasobj);');
+        Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { __Init(objptr, cleanup); }', [d.Name]));
+        Fjs.WriteLn(Format('public %s() { __Init(0, true); }', [d.Name]));
+        Fjs.WriteLn(Format('public void __Release() { __Destroy(_pasobj); _pasobj=0; }', [d.Name]));
+        Fjs.WriteLn(Format('public int __Size() { return %d; }', [d.Size]));
+      end;
+    ctInterface:
+      begin
+        if d.AncestorClass = nil then begin
+          Fjs.WriteLn('public void __Release() { if (_pasobj != 0) _Release(); _pasobj = 0; }');
+          Fjs.WriteLn('public void __Init() { _cleanup=true; if (_pasobj != 0) _AddRef(); }');
+          s:='_pasobj=objptr; __Init();';
+        end
+        else
+          s:='super(objptr, cleanup);';
+        Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { %s }', [d.Name, s]));
+      end;
   end;
 
   WriteTypeCast(n, False);
