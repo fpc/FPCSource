@@ -94,13 +94,14 @@ type
 
     procedure WriteClassInfoVar(d: TDef);
     procedure WriteComment(d: TDef; const AType: string);
-    procedure WriteClass(d: TDef; PreInfo: boolean);
+    procedure WriteClass(d: TClassDef; PreInfo: boolean);
     procedure WriteProc(d: TProcDef; Variable: TVarDef = nil; AParent: TDef = nil);
     procedure WriteVar(d: TVarDef; AParent: TDef = nil);
     procedure WriteConst(d: TConstDef);
     procedure WriteEnum(d: TDef);
     procedure WriteProcType(d: TProcDef; PreInfo: boolean);
     procedure WriteSet(d: TSetDef);
+    procedure WritePointer(d: TPointerDef);
     procedure WriteUnit(u: TUnitDef);
     procedure WriteOnLoad;
   public
@@ -123,13 +124,13 @@ implementation
 const
   JNIType: array[TBasicType] of string =
     ('', 'jshort', 'jbyte', 'jint', 'jshort', 'jlong', 'jint', 'jlong', 'jfloat', 'jdouble', 'jstring',
-     'jstring', 'jboolean', 'jchar', 'jchar', 'jint', 'jlong', 'jstring');
+     'jstring', 'jboolean', 'jchar', 'jchar', 'jint', 'jstring');
   JNITypeSig: array[TBasicType] of string =
     ('V', 'S', 'B', 'I', 'S', 'J', 'I', 'J', 'F', 'D', 'Ljava/lang/String;', 'Ljava/lang/String;',
-     'Z', 'C', 'C', 'I', 'J', 'Ljava/lang/String;');
+     'Z', 'C', 'C', 'I', 'Ljava/lang/String;');
   JavaType: array[TBasicType] of string =
     ('void', 'short', 'byte', 'int', 'short', 'long', 'int', 'long', 'float', 'double', 'String',
-     'String', 'boolean', 'char', 'char', 'int', 'long', 'String');
+     'String', 'boolean', 'char', 'char', 'int', 'String');
 
   TextIndent = 2;
 
@@ -254,7 +255,7 @@ begin
       case d.DefType of
         dtType:
           Result:=JNIType[TTypeDef(d).BasicType];
-        dtClass, dtRecord, dtEnum:
+        dtClass, dtEnum:
           Result:='jobject';
         dtProcType:
           if poMethodPtr in TProcDef(d).ProcOpt then
@@ -270,6 +271,11 @@ begin
             Result:=SUnsupportedType + ' ' + d.Name;
             err:=True;
           end;
+        dtPointer:
+          if TPointerDef(d).IsObjPtr then
+            Result:='jobject'
+          else
+            Result:='jlong';
         else begin
           Result:=SUnsupportedType + ' ' + d.Name;
           err:=True;
@@ -306,7 +312,7 @@ begin
     if ExcludeList.IndexOf(s) >= 0 then begin
       d.SetNotUsed;
     end;
-  if not (d.DefType in [dtUnit, dtClass, dtRecord]) then
+  if not (d.DefType in [dtUnit, dtClass]) then
     exit;
   s:=s + '.';
   for i:=0 to d.Count - 1 do
@@ -327,8 +333,13 @@ begin
     case d.DefType of
       dtType:
         Result:=JNITypeSig[TTypeDef(d).BasicType];
-      dtClass, dtRecord, dtProcType, dtSet, dtEnum:
+      dtClass, dtProcType, dtSet, dtEnum:
         Result:='L' + GetJavaClassPath(d) + ';';
+      dtPointer:
+        if TPointerDef(d).IsObjPtr then
+          Result:='L' + GetJavaClassPath(d) + ';'
+        else
+          Result:='J';
       else
         Result:=SUnsupportedType;
     end;
@@ -342,8 +353,13 @@ begin
     case d.DefType of
       dtType:
         Result:=JavaType[TTypeDef(d).BasicType];
-      dtClass, dtRecord, dtProcType, dtSet, dtEnum:
+      dtClass, dtProcType, dtSet, dtEnum:
         Result:=d.Name;
+      dtPointer:
+        if TPointerDef(d).IsObjPtr then
+          Result:=d.Name
+        else
+          Result:='long';
       else
         Result:=SUnsupportedType;
   end;
@@ -366,7 +382,7 @@ begin
     Result:=Result + d.Parent.AliasName + '$' + n;
 end;
 
-procedure TWriter.WriteClass(d: TDef; PreInfo: boolean);
+procedure TWriter.WriteClass(d: TClassDef; PreInfo: boolean);
 var
   WrittenItems: TList;
 
@@ -489,21 +505,15 @@ var
 
   procedure WriteTypeCast(const AName: string; SecondPass: boolean);
   var
-    s, ss: string;
+    s: string;
   begin
-    if d.DefType <> dtClass then
-      exit;
     with TClassDef(d) do begin
-      if (AncestorClass = nil) and not (SecondPass and HasReplacedItems) then
-        // TObject
-        s:='_pasobj=obj._pasobj'
-      else
-        s:='super(obj)';
       if HasReplacedItems and not SecondPass then
-        ss:='protected'
+        s:='protected'
       else
-        ss:='public';
-      Fjs.WriteLn(Format('%s %s(PascalObject obj) { %s; }', [ss, AName, s]))
+        s:='public';
+      Fjs.WriteLn(Format('%s %s(PascalObject obj) { super(obj); }', [s, AName]));
+      Fjs.WriteLn(Format('%s %s(long objptr) { super(objptr); }', [s, AName]));
     end;
   end;
 
@@ -514,7 +524,7 @@ begin
   if PreInfo then begin
     WriteClassInfoVar(d);
 
-    if d.DefType = dtRecord then begin
+    if d.CType in [ctObject, ctRecord] then begin
       s:=d.Parent.Name + '.' + d.Name;
       Fps.WriteLn;
       Fps.WriteLn(Format('function _%s_CreateObj(env: PJNIEnv; const r: %s): jobject;', [GetClassPrefix(d), s]));
@@ -535,43 +545,46 @@ begin
       Fps.WriteLn('Dispose(pr);', 1);
       Fps.WriteLn('end;');
 
-      AddNativeMethod(d, ss, 'Release', '(J)V');
+      AddNativeMethod(d, ss, '__Destroy', '(J)V');
     end;
     exit;
   end;
 
   // Java
-  case d.DefType of
-    dtClass:
-      s:='class';
-    dtRecord:
+  case d.CType of
+    ctInterface:
+      s:='interface';
+    ctObject:
+      s:='interface';
+    ctRecord:
       s:='record';
     else
-      s:='';
+      s:='class';
   end;
   WriteComment(d, s);
   n:=GetJavaClassName(d, nil);
   s:='public static class ' + n + ' extends ';
-  if d.DefType = dtClass then
-    with TClassDef(d) do begin
-      if AncestorClass <> nil then begin
-        ss:=AncestorClass.Name;
-        if ImplementsReplacedItems then
-          ss:='__' + ss;
-        s:=s + ss;
-      end
-      else
-        s:=s + 'PascalObject';
+  with d do begin
+    if AncestorClass <> nil then begin
+      ss:=AncestorClass.Name;
+      if ImplementsReplacedItems then
+        ss:='__' + ss;
+      s:=s + ss;
     end
     else
-      s:=s + Format('%s.system.Record', [JavaPackage]);
+      if d.CType in [ctObject, ctRecord] then
+        s:=s + Format('%s.system.Record', [JavaPackage])
+      else
+        s:=s + 'PascalObject';
+  end;
   Fjs.WriteLn(s + ' {');
   Fjs.IncI;
-  if d.DefType = dtRecord then begin
-    Fjs.WriteLn('private native void Release(long pasobj);');
-    Fjs.WriteLn(Format('public %s() { }', [d.Name]));
-    Fjs.WriteLn(Format('public void Free() { Release(_pasobj); super.Free(); }', [d.Name]));
-    Fjs.WriteLn(Format('public int Size() { return %d; }', [TRecordDef(d).Size]));
+  if d.CType in [ctObject, ctRecord] then begin
+    Fjs.WriteLn('private native void __Destroy(long pasobj);');
+    Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { __Init(objptr, cleanup); }', [d.Name]));
+    Fjs.WriteLn(Format('public %s() { __Init(0, true); }', [d.Name]));
+    Fjs.WriteLn(Format('public void __Release() { __Destroy(_pasobj); super.__Release(); }', [d.Name]));
+    Fjs.WriteLn(Format('public int __Size() { return %d; }', [d.Size]));
   end;
 
   WriteTypeCast(n, False);
@@ -616,14 +629,14 @@ end;
 procedure TWriter.WriteProc(d: TProcDef; Variable: TVarDef; AParent: TDef);
 var
   i, j, ClassIdx: integer;
-  s, ss: string;
+  s, ss, TempRes: string;
   err, tf: boolean;
   pi: TProcInfo;
   ci: TClassInfo;
   IsTObject: boolean;
   tempvars: TStringList;
   vd: TVarDef;
-  UseTempObjVar: boolean;
+  UseTempObjVar, IsObj: boolean;
   ItemDef: TDef;
 begin
   ASSERT(d.DefType = dtProc);
@@ -675,6 +688,10 @@ begin
         s:='procedure';
       s:=s + ' ' + pi.JniName + '(_env: PJNIEnv; _jobj: jobject';
 
+      IsObj:=(d.Parent.DefType = dtClass) and (TClassDef(d.Parent).CType = ctObject);
+      if IsObj and (ProcType in [ptConstructor, ptDestructor]) then
+        TempRes:='__tempres';
+
       UseTempObjVar:=(ProcType = ptProcedure) and (Variable <> nil) and (Variable.VarType <> nil) and (Variable.VarType.DefType = dtProcType) and (Variable.Parent.DefType <> dtUnit);
 
       for j:=0 to Count - 1 do begin
@@ -702,12 +719,13 @@ begin
       if err then begin
         d.SetNotUsed;
         s:='// ' + s;
+        Fjs.WriteLn('// NOT SUPPORTED: ' + GetJavaProcDeclaration(d));
       end;
       Fps.WriteLn;
       Fps.WriteLn(s);
       if err then
         exit;
-      if (tempvars <> nil) or UseTempObjVar then begin
+      if (tempvars <> nil) or UseTempObjVar or (TempRes <> '') then begin
         s:='';
         Fps.WriteLn('var');
         Fps.IncI;
@@ -726,6 +744,14 @@ begin
         end;
         if UseTempObjVar then
           Fps.WriteLn('__objvar: ' + d.Parent.Name + ';');
+        if TempRes <> '' then begin
+          s:=TempRes + ': ';
+          if IsObj and (ProcType in [ptConstructor, ptDestructor]) then
+            s:=s + '^' + GetPasType(d.Parent, True)
+          else
+            s:=s + GetPasType(d.ReturnType, True);
+          Fps.WriteLn(s + ';');
+        end;
         Fps.DecI;
       end;
       Fps.WriteLn('begin');
@@ -757,13 +783,14 @@ begin
       end;
 
       s:='';
-      if Parent.DefType = dtUnit then
-        s:=Parent.Name + '.'
-      else
-        if ProcType = ptConstructor then
-          s:=Parent.Parent.Name + '.' + Parent.Name + '.'
+      if not (IsObj and (ProcType in [ptConstructor, ptDestructor])) then
+        if Parent.DefType = dtUnit then
+          s:=Parent.Name + '.'
         else
-          s:=JniToPasType(d.Parent, '_jobj', True) + '.';
+          if ProcType = ptConstructor then
+            s:=Parent.Parent.Name + '.' + Parent.Name + '.'
+          else
+            s:=JniToPasType(d.Parent, '_jobj', True) + '.';
 
       if Variable = nil then begin
         // Regular proc
@@ -816,10 +843,24 @@ begin
         end;
       end;
 
-      if ProcType in [ptFunction, ptConstructor] then
-        s:='Result:=' + PasToJniType(ReturnType, s);
-      s:=s + ';';
-      Fps.WriteLn(s);
+      if IsObj and (ProcType = ptConstructor) then begin
+        s:=Format('system.New(%s, %s);', [TempRes, s]);
+        Fps.WriteLn(s);
+        s:=Format('Result:=_CreateJavaObj(_env, %s, %s, False);', [TempRes, GetTypeInfoVar(ReturnType)]);
+        Fps.WriteLn(s);
+      end
+      else
+      if IsObj and (ProcType = ptDestructor) then begin
+        Fps.WriteLn(TempRes + ':=@' + JniToPasType(d.Parent, '_jobj', True) + ';');
+        s:=Format('system.Dispose(%s, %s);', [TempRes, s]);
+        Fps.WriteLn(s);
+      end
+      else begin
+        if ProcType in [ptFunction, ptConstructor] then
+          s:='Result:=' + PasToJniType(ReturnType, s);
+        s:=s + ';';
+        Fps.WriteLn(s);
+      end;
 
       if (Variable <> nil) and UseTempObjVar then
         Fps.WriteLn(ss);
@@ -1049,6 +1090,11 @@ begin
     Fjs.WriteLn(s);
   end;
   Fjs.WriteLn;
+  for i:=0 to d.Count - 1 do begin
+    s:=Format('public final static %s %s() { return new %0:s(%1:s); }', [d.Name, d[i].Name]);
+    Fjs.WriteLn(s);
+  end;
+  Fjs.WriteLn;
   Fjs.WriteLn(Format('public %s(int v) { Value = v; }', [d.Name]));
   Fjs.WriteLn(Format('@Override public boolean equals(Object o) { return ((o instanceof %0:s) && Value == ((%0:s)o).Value) || super.equals(o); }', [d.Name]));
   Fjs.DecI;
@@ -1202,6 +1248,7 @@ begin
   Fjs.WriteLn(Format('public static class %s extends %s.system.MethodPtr {', [d.Name, JavaPackage]));
   Fjs.IncI;
   Fjs.WriteLn(Format('private String HandlerSig = "%s";', [GetProcSignature(d)]));
+  Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { }', [d.Name]));
   Fjs.WriteLn(Format('public %s(Object Obj, String MethodName) { Init(Obj, MethodName, HandlerSig); }', [d.Name]));
   Fjs.WriteLn(Format('public %s() { Init(this, "Execute", HandlerSig); }', [d.Name]));
   Fjs.WriteLn(Format('protected %s throws NoSuchMethodException { throw new NoSuchMethodException(); }', [GetJavaProcDeclaration(d, 'Execute')]));
@@ -1242,6 +1289,24 @@ begin
   Fjs.WriteLn;
 end;
 
+procedure TWriter.WritePointer(d: TPointerDef);
+begin
+  if not d.IsUsed or not d.IsObjPtr then
+    exit;
+  WriteComment(d, 'pointer');
+  RegisterPseudoClass(d);
+  WriteClassInfoVar(d);
+
+  Fjs.WriteLn(Format('public static class %s extends %s {', [d.Name, d.PtrType.Name]));
+  Fjs.IncI;
+  if TClassDef(d.PtrType).CType in [ctObject, ctRecord] then
+    Fjs.WriteLn(Format('protected %s(long objptr, boolean cleanup) { super(objptr, false); }', [d.Name]));
+  Fjs.WriteLn(Format('public %s(PascalObject obj) { super(obj); }', [d.Name]));
+  Fjs.WriteLn(Format('public %s(long objptr) { super(objptr); }', [d.Name]));
+  Fjs.DecI;
+  Fjs.WriteLn('}');
+end;
+
 procedure TWriter.WriteUnit(u: TUnitDef);
 
   procedure _ExcludeClasses(AAncestorClass: TClassDef);
@@ -1257,7 +1322,7 @@ procedure TWriter.WriteUnit(u: TUnitDef);
         s:=u.Name + '.' + d.Name;
         if AAncestorClass = nil then begin
           excl:=DoCheckItem(s) = crExclude;
-          if not excl then
+          if not excl and (TClassDef(d).AncestorClass <> nil) then
             with TClassDef(d).AncestorClass do
               excl:=DoCheckItem(Parent.Name + '.' + Name) = crExclude;
         end
@@ -1332,6 +1397,9 @@ begin
       Fjs.IncI;
       Fjs.WriteLn(Format('static { %s.system.InitJni(); }', [JavaPackage]));
       Fjs.WriteLn('protected long _pasobj = 0;');
+      Fjs.WriteLn('protected PascalObject() { }');
+      Fjs.WriteLn('protected PascalObject(PascalObject obj) { _pasobj=obj._pasobj; }');
+      Fjs.WriteLn('protected PascalObject(long objptr) { _pasobj=objptr; }');
       Fjs.WriteLn('@Override public boolean equals(Object o) { return ((o instanceof PascalObject) && _pasobj == ((PascalObject)o)._pasobj); }');
       Fjs.WriteLn('@Override public int hashCode() { return (int)_pasobj; }');
       Fjs.DecI;
@@ -1339,14 +1407,34 @@ begin
       Fjs.WriteLn;
       Fjs.WriteLn('public static long Pointer(PascalObject obj) { return (obj == null) ? 0 : obj._pasobj; }');
 
+      // Object with finalization
+      Fjs.WriteLn;
+      Fjs.WriteLn('public static class PascalObjectEx extends PascalObject {');
+      Fjs.IncI;
+      Fjs.WriteLn('protected boolean _cleanup = false;');
+      Fjs.WriteLn('protected void finalize() { ');
+{$ifdef DEBUG}
+      Fjs.WriteLn('String s = "finalize(): " + getClass().getName(); if (_cleanup) s=s+". Need __Release()."; System.out.println(s);', 1);
+{$endif DEBUG}
+      Fjs.WriteLn('if (_cleanup) __Release();', 1);
+      Fjs.WriteLn('}');
+      Fjs.WriteLn('protected PascalObjectEx() { }');
+      Fjs.WriteLn('protected PascalObjectEx(PascalObject obj) { super(obj); }');
+      Fjs.WriteLn('protected PascalObjectEx(long objptr) { super(objptr); }');
+      Fjs.WriteLn('public void __Release() { _pasobj = 0; }');
+      Fjs.DecI;
+      Fjs.WriteLn('}');
+
       // Record
       Fjs.WriteLn;
-      Fjs.WriteLn('public static class Record extends PascalObject {');
+      Fjs.WriteLn('public static class Record extends PascalObjectEx {');
       Fjs.IncI;
-      Fjs.WriteLn('protected void finalize() { Free(); }');
-      Fjs.WriteLn('public Record() { _pasobj = AllocMemory(Size()); }');
-      Fjs.WriteLn('public void Free() { _pasobj = 0; }');
-      Fjs.WriteLn('public int Size() { return 0; }');
+      Fjs.WriteLn('protected PascalObject _objref;');
+      Fjs.WriteLn('protected void __Init(long objptr, boolean cleanup) { _pasobj=objptr; _cleanup=cleanup; if (_pasobj==0 && __Size() != 0) _pasobj=AllocMemory(__Size()); }');
+      Fjs.WriteLn('protected Record(PascalObject obj) { super(obj); _objref=obj; }');
+      Fjs.WriteLn('protected Record(long objptr) { super(objptr); }');
+      Fjs.WriteLn('public Record() { }');
+      Fjs.WriteLn('public int __Size() { return 0; }');
       Fjs.DecI;
       Fjs.WriteLn('}');
 
@@ -1380,15 +1468,16 @@ begin
       Fps.DecI;
       Fps.WriteLn('end;');
 
-      AddNativeMethod(d, '_TMethodPtrInfo_Release', 'Release', '()V');
+      AddNativeMethod(d, '_TMethodPtrInfo_Release', '__Destroy', '()V');
 
       Fjs.WriteLn;
-      Fjs.WriteLn('public static class MethodPtr extends PascalObject {');
+      Fjs.WriteLn('public static class MethodPtr extends PascalObjectEx {');
       Fjs.IncI;
 
-      Fjs.WriteLn('private native void Release();');
-      Fjs.WriteLn('protected void finalize() { if (_pasobj != 0) Release(); }');
+      Fjs.WriteLn('private native void __Destroy();');
       Fjs.WriteLn('protected native void Init(Object Obj, String MethodName, String MethodSignature);');
+      Fjs.WriteLn('protected MethodPtr() { _cleanup=true; }');
+      Fjs.WriteLn('public void __Release() { if (_pasobj != 0) __Destroy(); }');
       Fjs.DecI;
       Fjs.WriteLn('}');
       Fjs.WriteLn;
@@ -1446,8 +1535,8 @@ begin
       case d.DefType of
         dtSet, dtEnum:
           WriteClassInfoVar(d);
-        dtClass, dtRecord:
-          WriteClass(d, True);
+        dtClass:
+          WriteClass(TClassDef(d), True);
         dtProcType:
           WriteProcType(TProcDef(d), True);
       end;
@@ -1459,8 +1548,8 @@ begin
       if not d.IsUsed then
         continue;
       case d.DefType of
-        dtClass, dtRecord:
-          WriteClass(d, False);
+        dtClass:
+          WriteClass(TClassDef(d), False);
         dtProc:
           WriteProc(TProcDef(d));
         dtVar, dtProp:
@@ -1473,6 +1562,8 @@ begin
           WriteSet(TSetDef(d));
         dtConst:
           WriteConst(TConstDef(d));
+        dtPointer:
+          WritePointer(TPointerDef(d));
       end;
     end;
 
@@ -1529,6 +1620,10 @@ begin
   Fps.IncI;
   Fps.WriteLn('ci^.ClassRef:=env^^.NewGlobalRef(env, c);');
   Fps.WriteLn('Result:=ci^.ClassRef <> nil;');
+  Fps.WriteLn('if Result and (env^^.ExceptionCheck(env) = 0) then begin');
+  Fps.WriteLn('ci^.ConstrId:=env^^.GetMethodID(env, ci^.ClassRef, ''<init>'', ''(JZ)V'');', 1);
+  Fps.WriteLn('env^^.ExceptionClear(env);', 1);
+  Fps.WriteLn('end;');
   Fps.WriteLn('if Result and (FieldName <> '''') then begin');
   Fps.WriteLn('ci^.ObjFieldId:=env^^.GetFieldID(env, ci^.ClassRef, PAnsiChar(FieldName), PAnsiChar(FieldSig));', 1);
   Fps.WriteLn('Result:=ci^.ObjFieldId <> nil;', 1);
@@ -1603,29 +1698,38 @@ begin
             Result:=Format('char(widechar(%s))', [Result]);
           btWideChar:
             Result:=Format('widechar(%s)', [Result]);
-          btPointer:
-            Result:=Format('pointer(ptruint(%s))', [Result]);
           btGuid:
             Result:=Format('StringToGUID(ansistring(_StringFromJString(_env, %s)))', [Result]);
           else
-            Result:=Format('%s(%s)', [d.Name, Result]);
+            Result:=Format('%s.%s(%s)', [d.Parent.Name, d.Name, Result]);
         end;
     dtClass:
       begin
-        if CheckNil then
+        if TClassDef(d).CType = ctRecord then
           n:='True'
         else
-          n:='False';
-        Result:=Format('%s.%s(_GetPasObj(_env, %s, %s, %s))', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d), n]);
+          if CheckNil then
+            n:='True'
+          else
+            n:='False';
+        Result:=Format('_GetPasObj(_env, %s, %s, %s)', [Result, GetTypeInfoVar(d), n]);
+        if TClassDef(d).CType in [ctObject, ctRecord] then
+          Result:=Result + '^';
+        Result:=Format('%s.%s(%s)', [d.Parent.Name, d.Name, Result]);
       end;
-    dtRecord:
-      Result:=Format('%s.%s(_GetPasObj(_env, %s, %s, True)^)', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d)]);
     dtProcType:
       Result:=Format('%sGetHandler(_env, %s, %s)', [GetClassPrefix(d), Result, GetTypeInfoVar(d)]);
     dtEnum:
       Result:=Format('%s.%s(_GetIntObjValue(_env, %s, %s))', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d)]);
     dtSet:
       Result:=Format('%s.%s(%s(_GetIntObjValue(_env, %s, %s)))', [d.Parent.Name, d.Name, GetPasIntType(TSetDef(d).Size), Result, GetTypeInfoVar(d)]);
+    dtPointer:
+      begin
+        if TPointerDef(d).IsObjPtr then
+          Result:=Format('%s.%s(_GetPasObj(_env, %s, %s, True))', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d)])
+        else
+          Result:=Format('pointer(ptruint(%s))', [Result]);
+      end;
   end;
 end;
 
@@ -1648,21 +1752,25 @@ begin
             Result:=Format('jchar(%s)', [Result]);
           btEnum:
             Result:=Format('jint(%s)', [Result]);
-          btPointer:
-            Result:=Format('ptruint(pointer(%s))', [Result]);
           btGuid:
             Result:=Format('_StringToJString(_env, _JNIString(GUIDToString(%s)))', [Result]);
         end;
     dtClass:
-      Result:=Format('_CreateJavaObj(_env, %s, %s)', [Result, GetTypeInfoVar(d)]);
-    dtRecord:
-      Result:=Format('_%s_CreateObj(_env, %s)', [GetClassPrefix(d), Result]);
+      if TClassDef(d).CType in [ctObject, ctRecord] then
+        Result:=Format('_%s_CreateObj(_env, %s)', [GetClassPrefix(d), Result])
+      else
+        Result:=Format('_CreateJavaObj(_env, %s, %s)', [Result, GetTypeInfoVar(d)]);
     dtProcType:
       Result:=Format('_CreateMethodPtrObject(_env, TMethod(%s), %s)', [Result, GetTypeInfoVar(d)]);
     dtEnum:
       Result:=Format('_CreateIntObj(_env, longint(%s), %s)', [Result, GetTypeInfoVar(d)]);
     dtSet:
       Result:=Format('_CreateIntObj(_env, %s(%s), %s)', [GetPasIntType(TSetDef(d).Size), Result, GetTypeInfoVar(d)]);
+    dtPointer:
+      if TPointerDef(d).IsObjPtr then
+        Result:=Format('_CreateJavaObj(_env, %s, %s)', [Result, GetTypeInfoVar(d)])
+      else
+        Result:=Format('ptruint(pointer(%s))', [Result]);
   end;
 end;
 
@@ -1922,7 +2030,7 @@ begin
   Fps.WriteLn;
   Fps.WriteLn(Format('{ %s }', [d.Name]));
 
-  Fjs.WriteLn(Format('/* %s %s */', [AType, d.Name]));
+  Fjs.WriteLn(Format('/* %s */', [Trim(AType + ' ' + d.Name)]));
 {$ifdef DEBUG}
   Fjs.WriteLn(Format('/* Ref count: %d */', [d.RefCnt]));
 {$endif}
@@ -2058,6 +2166,7 @@ begin
     Fps.WriteLn;
     Fps.WriteLn('_TJavaClassInfo = record');
     Fps.WriteLn('ClassRef: JClass;', 1);
+    Fps.WriteLn('ConstrId: JMethodId;', 1);
     Fps.WriteLn('ObjFieldId: JFieldId;', 1);
     Fps.WriteLn('end;');
     Fps.WriteLn('_PJavaClassInfo = ^_TJavaClassInfo;');
@@ -2092,14 +2201,21 @@ begin
     Fps.WriteLn('end;');
 
     Fps.WriteLn;
-    Fps.WriteLn('function _CreateJavaObj(env: PJNIEnv; PasObj: pointer; const ci: _TJavaClassInfo): jobject;');
+    Fps.WriteLn('function _CreateJavaObj(env: PJNIEnv; PasObj: pointer; const ci: _TJavaClassInfo; cleanup: boolean = True): jobject;');
+    Fps.WriteLn('var v: array [0..1] of jvalue;');
     Fps.WriteLn('begin');
     Fps.IncI;
     Fps.WriteLn('Result:=nil;');
     Fps.WriteLn('if PasObj = nil then exit;');
-    Fps.WriteLn('Result:=env^^.AllocObject(env, ci.ClassRef);');
-    Fps.WriteLn('if Result = nil then exit;');
-    Fps.WriteLn('env^^.SetLongField(env, Result, ci.ObjFieldId, Int64(ptruint(PasObj)));');
+    Fps.WriteLn('v[0].J:=Int64(ptruint(PasObj));');
+    Fps.WriteLn('if ci.ConstrId = nil then begin');
+    Fps.WriteLn('Result:=env^^.AllocObject(env, ci.ClassRef);', 1);
+    Fps.WriteLn('if Result = nil then exit;', 1);
+    Fps.WriteLn('env^^.SetLongField(env, Result, ci.ObjFieldId, v[0].J);', 1);
+    Fps.WriteLn('end else begin');
+    Fps.WriteLn('v[1].Z:=byte(cleanup) and 1;', 1);
+    Fps.WriteLn('Result:=env^^.NewObjectA(env, ci.ClassRef, ci.ConstrId, @v);', 1);
+    Fps.WriteLn('end;');
     Fps.DecI;
     Fps.WriteLn('end;');
 
@@ -2290,7 +2406,13 @@ begin
     WriteOnLoad;
 
     Fps.WriteLn;
+    Fps.WriteLn('procedure ___doexit;');
     Fps.WriteLn('begin');
+    Fps.WriteLn('_MethodPointersCS.Free;', 1);
+    Fps.WriteLn('end;');
+    Fps.WriteLn;
+    Fps.WriteLn('begin');
+    Fps.WriteLn('ExitProc:=@___doexit;', 1);
     Fps.WriteLn('IsMultiThread:=True;', 1);
     Fps.WriteLn('_MethodPointersCS:=TCriticalSection.Create;', 1);
     Fps.WriteLn('end.');

@@ -29,8 +29,8 @@ uses
   Classes, SysUtils, contnrs;
 
 type
-  TDefType = (dtNone, dtUnit, dtClass, dtRecord, dtProc, dtField, dtProp, dtParam, dtVar,
-              dtType, dtConst, dtProcType, dtEnum, dtSet);
+  TDefType = (dtNone, dtUnit, dtClass, dtProc, dtField, dtProp, dtParam, dtVar,
+              dtType, dtConst, dtProcType, dtEnum, dtSet, dtPointer);
 
   TDefClass = class of TDef;
   { TDef }
@@ -77,6 +77,8 @@ type
     property AliasName: string read GetAliasName write FAliasName;
   end;
 
+  TClassType = (ctClass, ctInterface, ctObject, ctRecord);
+
   { TClassDef }
 
   TClassDef = class(TDef)
@@ -85,20 +87,17 @@ type
   protected
     procedure SetIsUsed(const AValue: boolean); override;
   public
+    CType: TClassType;
     AncestorClass: TClassDef;
     HasAbstractMethods: boolean;
     HasReplacedItems: boolean;
     ImplementsReplacedItems: boolean;
+    Size: integer;
     procedure ResolveDefs; override;
   end;
 
-  TRecordDef = class(TDef)
-  public
-    Size: integer;
-  end;
-
   TBasicType = (btVoid, btByte, btShortInt, btWord, btSmallInt, btLongWord, btLongInt, btInt64,
-                btSingle, btDouble, btString, btWideString, btBoolean, btChar, btWideChar, btEnum, btPointer,
+                btSingle, btDouble, btString, btWideString, btBoolean, btChar, btWideChar, btEnum,
                 btGuid);
 
   { TTypeDef }
@@ -108,6 +107,19 @@ type
     procedure SetIsUsed(const AValue: boolean); override;
   public
     BasicType: TBasicType;
+  end;
+
+  { TPointerDef }
+
+  TPointerDef = class(TDef)
+  private
+    FHasPtrRef: boolean;
+  protected
+    procedure SetIsUsed(const AValue: boolean); override;
+  public
+    PtrType: TDef;
+    procedure ResolveDefs; override;
+    function IsObjPtr: boolean;
   end;
 
   { TReplDef }
@@ -208,6 +220,32 @@ begin
   if t1.DefType <> dtType then
     exit;
   Result:=TTypeDef(t1).BasicType = TTypeDef(t2).BasicType;
+end;
+
+{ TPointerDef }
+
+procedure TPointerDef.SetIsUsed(const AValue: boolean);
+begin
+  if IsObjPtr then begin
+    inherited SetIsUsed(AValue);
+    SetExtUsed(PtrType, AValue, FHasPtrRef);
+  end
+  else
+    if AValue then
+      AddRef
+    else
+      DecRef;
+end;
+
+procedure TPointerDef.ResolveDefs;
+begin
+  inherited ResolveDefs;
+  PtrType:=ResolveDef(PtrType);
+end;
+
+function TPointerDef.IsObjPtr: boolean;
+begin
+  Result:=(PtrType <> nil) and (PtrType.DefType in [dtClass]);
 end;
 
 { TReplDef }
@@ -456,14 +494,15 @@ end;
 
 function TDef.ResolveDef(d: TDef; ExpectedClass: TDefClass): TDef;
 begin
-  if (d = nil) or (d.DefType <> dtNone) then begin
-    Result:=d;
-    exit;
+  if (d = nil) or (d.DefType <> dtNone) then
+    Result:=d
+  else begin
+    Result:=d.Parent.FindDef(d.DefId);
+    if (ExpectedClass <> nil) and (Result <> nil) then
+      if not (Result is ExpectedClass) then
+        raise Exception.CreateFmt('Unexpected class. Expected: %s, got: %s', [ExpectedClass.ClassName, Result.ClassName]);
+
   end;
-  Result:=d.Parent.FindDef(d.DefId);
-  if (ExpectedClass <> nil) and (Result <> nil) then
-    if not (Result is ExpectedClass) then
-      raise Exception.CreateFmt('Unexpected class. Expected: %s, got: %s', [ExpectedClass.ClassName, Result.ClassName]);
 end;
 
 procedure TDef.AddRef;

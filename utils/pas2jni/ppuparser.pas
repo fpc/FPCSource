@@ -245,6 +245,7 @@ var
     d: TDef;
     it: TJSONObject;
     jarr, arr: TJSONArray;
+    ct: TClassType;
   begin
     jarr:=jobj.Get(ItemsName, TJSONArray(nil));
     if jarr = nil then
@@ -255,9 +256,19 @@ var
         CurObjName:=it.Get('Name', '');
         jt:=it.Strings['Type'];
         if jt = 'obj' then begin
-          if it.Strings['ObjType'] <> 'class' then
+          s:=it.Strings['ObjType'];
+          if s = 'class' then
+            ct:=ctClass
+          else
+//          if s = 'interface' then
+//            ct:=ctInterface
+//          else
+          if s = 'object' then
+            ct:=ctObject
+          else
             continue;
           d:=TClassDef.Create(CurDef, dtClass);
+          TClassDef(d).CType:=ct;
         end
         else
         if jt = 'rec' then begin
@@ -265,8 +276,10 @@ var
             d:=TTypeDef.Create(CurDef, dtType);
             TTypeDef(d).BasicType:=btGuid;
           end
-          else
-            d:=TRecordDef.Create(CurDef, dtRecord);
+          else begin
+            d:=TClassDef.Create(CurDef, dtClass);
+            TClassDef(d).CType:=ctRecord;
+          end;
         end
         else
         if jt = 'proc' then
@@ -364,8 +377,7 @@ var
           d:=TSetDef.Create(CurDef, dtSet)
         else
         if jt = 'ptr' then begin
-          d:=TTypeDef.Create(CurDef, dtType);
-          TTypeDef(d).BasicType:=btPointer;
+          d:=TPointerDef.Create(CurDef, dtPointer);
         end
         else
         if jt = 'const' then
@@ -391,12 +403,10 @@ var
         case d.DefType of
           dtClass:
             with TClassDef(d) do begin
-              AncestorClass:=TClassDef(_GetRef(it.Get('Ancestor', TJSONObject(nil)), TClassDef));
-              _ReadDefs(d, it, 'Fields');
-            end;
-          dtRecord:
-            with TRecordDef(d) do begin
-              Size:=it.Integers['Size'];
+              if CType <> ctRecord then
+                AncestorClass:=TClassDef(_GetRef(it.Get('Ancestor', TJSONObject(nil)), TClassDef));
+              if CType in [ctObject, ctRecord] then
+                Size:=it.Integers['Size'];
               _ReadDefs(d, it, 'Fields');
             end;
           dtProc, dtProcType:
@@ -505,6 +515,10 @@ var
               end
               else
                 FreeAndNil(d);
+            end;
+          dtPointer:
+            with TPointerDef(d) do begin
+              PtrType:=_GetRef(it.Get('Ptr', TJSONObject(nil)));;
             end;
         end;
       end;
