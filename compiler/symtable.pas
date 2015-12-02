@@ -1835,8 +1835,7 @@ implementation
               { after the previous one, or at the next byte boundary. }
               if (curroffset<>fieldoffset) then
                 internalerror(2008051002);
-              if is_ordinal(vardef) and
-                 (vardef.packedbitsize mod 8 <> 0) then
+              if is_ordinal(vardef) then
                 begin
                   tmpsize:=vardef.packedbitsize;
                   sizectr:=((curroffset+tmpsize+7) shr 3)-((curroffset+7) shr 3);

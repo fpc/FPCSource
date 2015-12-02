@@ -75,8 +75,7 @@ implementation
             { typecast the result to the expected type, but don't actually index
               (that still has to be done by the generic code, so return false) }
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-            if is_ordinal(resultdef) and
-               (resultdef.packedbitsize mod 8<>0) then
+            if is_ordinal(resultdef) then
               fielddef:=
                 cgsize_orddef(
                   int_cgsize(
