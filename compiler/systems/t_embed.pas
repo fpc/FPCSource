@@ -606,7 +606,13 @@ begin
          with embedded_controllers[current_settings.controllertype] do
           with linkres do
             begin
-              Add('ENTRY(_START)');
+              if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
+                Add('ENTRY(_LOWLEVELSTART)')
+              else
+                Add('ENTRY(_START)');
               Add('MEMORY');
               Add('{');
               if flashsize<>0 then

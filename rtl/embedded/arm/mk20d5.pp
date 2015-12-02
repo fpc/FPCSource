@@ -1106,13 +1106,43 @@ procedure SWI_interrupt; external name 'SWI_interrupt';
 
 {$i cortexm4f_start.inc}
 
+procedure FlashConfiguration; assembler; nostackframe;
+label flash_conf;
+asm
+  .section ".flash_config.flash_conf"
+flash_conf:
+  .byte 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF
+
+  .text
+end;
+
+procedure LowLevelStartup; assembler; nostackframe; [public, alias: '_LOWLEVELSTART'];
+asm
+  // Unlock watchdog
+  ldr r0, .LWDOG_BASE
+  movw        r1, #50464
+  strh        r1, [r0, #0xE]
+  movw        r1, #55592
+  strh        r1, [r0, #0xE]
+  nop
+  nop
+  // Disable watchdog for now
+  movs r1, #0
+  strh r1, [r0, #0]
+
+  b Startup
+
+.LWDOG_BASE:
+  .long 0x40052000
+end;
+
 procedure Vectors; assembler; nostackframe;
 label interrupt_vectors;
 asm
   .section ".init.interrupt_vectors"
   interrupt_vectors:
   .long _stack_top
-  .long Startup
+  .long LowLevelStartup
   .long NonMaskableInt_interrupt
   .long 0
   .long MemoryManagement_interrupt
