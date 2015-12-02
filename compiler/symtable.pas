@@ -1841,12 +1841,12 @@ implementation
                   tmpsize:=vardef.packedbitsize;
                   sizectr:=((curroffset+tmpsize+7) shr 3)-((curroffset+7) shr 3);
                   inc(curroffset,tmpsize);
-                  curroffset:=0;
+                  tmpsize:=0;
                   while sizectr<>0 do
                     begin
-                      symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,fieldoffset+curroffset*8));
+                      symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,fieldoffset+tmpsize*8));
                       dec(sizectr);
-                      inc(curroffset);
+                      inc(tmpsize);
                     end;
                 end
               else
