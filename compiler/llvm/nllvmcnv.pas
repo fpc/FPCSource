@@ -270,8 +270,9 @@ procedure tllvmtypeconvnode.second_nothing;
   begin
     if left.resultdef<>resultdef then
       begin
-        { handle sometype(voidptr^) }
+        { handle sometype(voidptr^) and "absolute" }
         if not is_void(left.resultdef) and
+           not(nf_absolute in flags) and
            (left.resultdef.typ<>formaldef) and
           (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);
