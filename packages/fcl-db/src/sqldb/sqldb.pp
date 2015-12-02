@@ -1228,11 +1228,11 @@ begin
   if not ATransaction.Active then
     ATransaction.MaybeStartTransaction;
 
-  try
-    SQL := TrimRight(SQL);
-    if SQL = '' then
-      DatabaseError(SErrNoStatement);
+  SQL := TrimRight(SQL);
+  if SQL = '' then
+    DatabaseError(SErrNoStatement);
 
+  try
     Cursor := AllocateCursorHandle;
     Cursor.FStatementType := stUnknown;
     If LogEvent(detPrepare) then
