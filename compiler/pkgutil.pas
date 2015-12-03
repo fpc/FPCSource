@@ -90,7 +90,8 @@ implementation
                   (symtable.symtabletype=staticsymtable) and
                   ([po_public,po_has_public_name]*pd.procoptions<>[])
                 )
-              ) then
+              ) and
+              not pd.is_generic then
             begin
               exportallprocdefnames(tprocsym(sym),pd,[]);
             end;
@@ -157,6 +158,8 @@ implementation
               objectdef:
                 begin
                   def:=tabstractrecorddef(ttypesym(sym).typedef);
+                  if def.is_generic then
+                    exit;
                   def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
                   if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
                     begin

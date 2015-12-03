@@ -1736,7 +1736,8 @@ implementation
     {$endif state_tracking}
 
          { allocate the symbol for this procedure }
-         alloc_proc_symbol(procdef);
+         if not (df_generic in procdef.defoptions) then
+           alloc_proc_symbol(procdef);
 
          { add parast/localst to symtablestack }
          add_to_symtablestack;
@@ -2119,7 +2120,8 @@ implementation
          { treated as references to external symbols, needed for darwin.   }
 
          { make sure we don't change the binding of real external symbols }
-         if not(po_external in pd.procoptions) and (pocall_internproc<>pd.proccalloption)  then
+         if not(po_external in pd.procoptions) and (pocall_internproc<>pd.proccalloption)
+             and not (df_generic in pd.defoptions) then
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in current_settings.moduleswitches) then

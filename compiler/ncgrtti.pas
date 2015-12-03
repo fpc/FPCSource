@@ -1353,6 +1353,12 @@ implementation
         { only write rtti of definitions from the current module }
         if not findunitsymtable(def.owner).iscurrentunit then
           exit;
+        if (df_generic in def.defoptions) or
+           (
+             (def.typ=undefineddef) and
+             (sp_generic_dummy in def.typesym.symoptions)
+           ) then
+          exit;
         { check if separate initrtti is actually needed }
         if (rt=initrtti) and (not def.needs_separate_initrtti) then
           rt:=fullrtti;
