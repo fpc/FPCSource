@@ -249,7 +249,7 @@ implementation
 
     procedure tcgloadnode.generate_absaddr_access(vs: tabsolutevarsym);
       begin
-        location.reference.offset:=aint(vs.addroffset);
+        location.reference.offset:=asizeint(vs.addroffset);
       end;
 
 
