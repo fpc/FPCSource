@@ -383,9 +383,12 @@ var
         if jt = 'const' then
           d:=TConstDef.Create(CurDef, dtConst)
         else
+        if jt = 'array' then
+          d:=TArrayDef.Create(CurDef, dtArray)
+        else
           continue;
 
-        if (CurObjName = '') and (d.DefType <> dtEnum) then begin
+        if (CurObjName = '') and not (d.DefType in [dtEnum, dtArray]) then begin
           d.Free;
           continue;
         end;
@@ -519,6 +522,14 @@ var
           dtPointer:
             with TPointerDef(d) do begin
               PtrType:=_GetRef(it.Get('Ptr', TJSONObject(nil)));;
+            end;
+          dtArray:
+            with TArrayDef(d) do begin
+              _ReadDefs(d, it, 'Types');
+              RangeLow:=it.Get('Low', -1);
+              RangeHigh:=it.Get('High', -1);
+              RangeType:=_GetRef(it.Get('RangeType', TJSONObject(nil)));
+              ElType:=_GetRef(it.Get('ElType', TJSONObject(nil)));
             end;
         end;
       end;

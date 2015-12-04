@@ -63,6 +63,7 @@ type
     FPkgDir: string;
     FUniqueCnt: integer;
     FThisUnit: TUnitDef;
+    FIntegerType: TDef;
 
     function DoCheckItem(const ItemName: string): TCheckItemResult;
 
@@ -844,11 +845,13 @@ begin
           s:='__objvar.';
         end;
         s:=s + Variable.Name;
-        if Variable.Count > 0 then begin
-          ASSERT(Count >= 1);
-          i:=Variable.Count;
+        j:=Count;
+        if ProcType = ptProcedure then
+          Dec(j);
+        if j > 0 then begin
+          i:=j;
           ss:='';
-          for j:=0 to Variable.Count - 1 do begin
+          for j:=0 to j - 1 do begin
             if ss <> '' then
               ss:=ss + ', ';
             ss:=ss + JniToPasType(TVarDef(Items[j]).VarType, Items[j].Name, False);
@@ -968,11 +971,36 @@ begin
 end;
 
 procedure TWriter.WriteVar(d: TVarDef; AParent: TDef);
+
+  function _WriteArrayIndex(pd: TProcDef): TDef;
+  var
+    ad: TArrayDef;
+    i: integer;
+  begin
+    ad:=TArrayDef(d.VarType);
+    i:=1;
+    repeat
+      with TVarDef.Create(pd, dtParam) do begin
+        Name:='Index';
+        if i > 1 then
+          Name:=Name + IntToStr(i);
+        VarType:=ad.RangeType;
+        if (VarType.DefType = dtType) and (TTypeDef(VarType).BasicType in [btByte, btShortInt, btSmallInt]) then
+          VarType:=FIntegerType;
+        VarOpt:=[voRead];
+      end;
+      Result:=ad.ElType;
+      ad:=TArrayDef(Result);
+      Inc(i);
+    until Result.DefType <> dtArray;
+  end;
+
 var
   pd: TProcDef;
   vd: TVarDef;
   t: TTypeDef;
-  s: string;
+  vt: TDef;
+  s, ss: string;
   i: integer;
 begin
   if not d.IsUsed then
@@ -989,7 +1017,11 @@ begin
     s:=Trim(s + ' ' + d.Name);
     if d.Count > 0 then
       s:=s + '[]';
-    Fjs.WriteLn(Format('// %s: %s', [s, d.VarType.Name]));
+    ss:=d.VarType.Name;
+    if ss = '' then
+      if d.VarType.DefType = dtArray then
+        ss:='array';
+    Fjs.WriteLn(Format('// %s: %s', [s, ss]));
   end;
 
   if voRead in d.VarOpt then begin
@@ -999,14 +1031,19 @@ begin
       pd.Parent:=d.Parent;
       pd.ProcType:=ptFunction;
       pd.Name:='get' + d.Name;
-      pd.ReturnType:=d.VarType;
-      if d.DefType = dtProp then begin
-        for i:=0 to d.Count - 1 do begin
-          vd:=TVarDef(d.Items[i]);
-          with TVarDef.Create(pd, dtParam) do begin
-            Name:=vd.Name;
-            VarType:=vd.VarType;
-            VarOpt:=[voRead];
+      if (d.VarType <> nil) and (d.VarType.DefType = dtArray) then
+        // Array var
+        pd.ReturnType:=_WriteArrayIndex(pd)
+      else begin
+        pd.ReturnType:=d.VarType;
+        if d.DefType = dtProp then begin
+          for i:=0 to d.Count - 1 do begin
+            vd:=TVarDef(d.Items[i]);
+            with TVarDef.Create(pd, dtParam) do begin
+              Name:=vd.Name;
+              VarType:=vd.VarType;
+              VarOpt:=[voRead];
+            end;
           end;
         end;
       end;
@@ -1023,34 +1060,38 @@ begin
       pd.Parent:=d.Parent;
       pd.ProcType:=ptProcedure;
       pd.Name:='set' + d.Name;
+      vt:=d.VarType;;
+      if (d.VarType <> nil) and (d.VarType.DefType = dtArray) then
+        // Array var
+        vt:=_WriteArrayIndex(pd)
+      else
+        if d.DefType = dtProp then begin
+          for i:=0 to d.Count - 1 do begin
+            vd:=TVarDef(d.Items[i]);
+            with TVarDef.Create(pd, dtParam) do begin
+              Name:=vd.Name;
+              VarType:=vd.VarType;
+              VarOpt:=[voRead];
+            end;
+          end;
+        end;
 
       s:='Value';
-      if d.DefType = dtProp then begin
-        for i:=0 to d.Count - 1 do begin
-          vd:=TVarDef(d.Items[i]);
-          with TVarDef.Create(pd, dtParam) do begin
-            Name:=vd.Name;
-            VarType:=vd.VarType;
-            VarOpt:=[voRead];
-          end;
+      // Check if the name of value parameter is unique
+      i:=0;
+      while i < d.Count do begin
+        if AnsiCompareText(s, d.Items[i].Name) = 0 then begin
+          i:=0;
+          s:='_' + s;
+          continue;
         end;
-
-        // Check if the name of value parameter is unique
-        i:=0;
-        while i < d.Count do begin
-          if AnsiCompareText(s, d.Items[i].Name) = 0 then begin
-            i:=0;
-            s:='_' + s;
-            continue;
-          end;
-          Inc(i);
-        end;
+        Inc(i);
       end;
 
       with TVarDef.Create(pd, dtParam) do begin
         Name:='_' + s;
         AliasName:=s;
-        VarType:=d.VarType;
+        VarType:=vt;
         VarOpt:=[voRead];
       end;
       t:=TTypeDef.Create(nil, dtType);
@@ -1391,6 +1432,15 @@ begin
     Fjs.WriteLn('public class ' + u.Name + ' {');
     Fjs.IncI;
     if u.Name = 'system' then begin
+
+      for i:=0 to u.Count - 1 do begin
+        d:=u[i];
+        if (d.DefType = dtType) and (TTypeDef(d).BasicType = btLongInt) then begin
+          FIntegerType:=d;
+          break;
+        end;
+      end;
+
       Fjs.WriteLn('static private boolean _JniLibLoaded = false;');
       Fjs.WriteLn('public static void InitJni() {');
       Fjs.WriteLn('if (!_JniLibLoaded) {', 1);

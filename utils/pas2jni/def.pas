@@ -30,7 +30,7 @@ uses
 
 type
   TDefType = (dtNone, dtUnit, dtClass, dtProc, dtField, dtProp, dtParam, dtVar,
-              dtType, dtConst, dtProcType, dtEnum, dtSet, dtPointer);
+              dtType, dtConst, dtProcType, dtEnum, dtSet, dtPointer, dtArray);
 
   TDefClass = class of TDef;
   { TDef }
@@ -205,6 +205,20 @@ type
     ElType: TTypeDef;
   end;
 
+  { TArrayDef }
+
+  TArrayDef = class(TDef)
+  private
+    FHasElTypeRef: boolean;
+    FHasRTypeRef: boolean;
+  protected
+    procedure SetIsUsed(const AValue: boolean); override;
+  public
+    ElType: TDef;
+    RangeType: TDef;
+    RangeLow, RangeHigh: integer;
+  end;
+
 const
   ReplDefs  = [dtField, dtProp, dtProc];
 
@@ -220,6 +234,15 @@ begin
   if t1.DefType <> dtType then
     exit;
   Result:=TTypeDef(t1).BasicType = TTypeDef(t2).BasicType;
+end;
+
+{ TArrayDef }
+
+procedure TArrayDef.SetIsUsed(const AValue: boolean);
+begin
+  inherited SetIsUsed(AValue);
+  SetExtUsed(ElType, AValue, FHasElTypeRef);
+  SetExtUsed(RangeType, AValue, FHasRTypeRef);
 end;
 
 { TPointerDef }
