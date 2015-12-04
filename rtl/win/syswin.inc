@@ -380,6 +380,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      FPCResStrInitTables:=info.ResStrInitTables;
      FPCResourceStringTables:=info.ResourceStringTables;
      FPCSysInstance:=info.Platform.SysInstanceAddr^;
+     FPCTlsKey:=info.Platform.TlsKeyAddr;
      WStrInitTablesTable:=info.WideInitTables;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
@@ -421,7 +422,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if TlsGetValue(TLSKey)<>nil then
+           if TlsGetValue(TLSKey^)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
        DLL_PROCESS_DETACH :

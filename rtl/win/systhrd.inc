@@ -91,31 +91,15 @@ var
                              Threadvar support
 *****************************************************************************}
 
-    {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-    function GetTLSKey: DWord; inline;
-      begin
-        if not Assigned(EntryInformation.Platform.TLSKeyAddr) then
-          { this is the case during application startup, as the tlsentry is called first }
-          Result:=$ffffffff
-        else
-          Result:=EntryInformation.Platform.TLSKeyAddr^;
-      end;
-
-    procedure SetTLSKey(value : DWord); inline;
-      begin
-        if Assigned(EntryInformation.Platform.TLSKeyAddr) then
-          EntryInformation.Platform.TLSKeyAddr^:=value;
-      end;
-    {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-
     var
       // public names are used by heaptrc unit
       threadvarblocksize : dword; public name '_FPC_TlsSize';
       {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-      property TLSKey : DWord read GetTLSKey write SetTLSKey;
-      {$else}
-      TLSKey : DWord = $ffffffff; public name '_FPC_TlsKey';
-      {$endif}
+      TLSKey : PDword; external name '_FPC_TlsKey';
+      {$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+      TLSKeyVar : DWord = $ffffffff;
+      TLSKey : PDWord = @TLSKey; public name '_FPC_TlsKey';
+      {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
 
     var
@@ -143,15 +127,15 @@ var
         { these aren't allocated yet ...            }
         { allocate room on the heap for the thread vars }
         errorsave:=GetLastError;
-        if tlskey=$ffffffff then
+        if tlskey^=$ffffffff then
           RunError(226);
-        dataindex:=TlsGetValue(tlskey);
+        dataindex:=TlsGetValue(tlskey^);
         if dataindex=nil then
           begin
             dataindex:=pointer(LocalAlloc(LMEM_FIXED or LMEM_ZEROINIT,threadvarblocksize));
             if dataindex=nil then
               RunError(226);
-            TlsSetValue(tlskey,dataindex);
+            TlsSetValue(tlskey^,dataindex);
           end;
         SetLastError(errorsave);
       end;
@@ -163,10 +147,10 @@ var
         { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
 
         { the thread attach/detach code uses locks to avoid multiple calls of this }
-        if TLSKey=$ffffffff then
+        if TLSKey^=$ffffffff then
          begin
            { We're still running in single thread mode, setup the TLS }
-           TLSKey:=TlsAlloc;
+           TLSKey^:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
 
            IsMultiThread:=true;
@@ -176,9 +160,9 @@ var
 
     procedure SysFiniMultithreading;
       begin
-        if TLSKey<>$ffffffff then
-          TlsFree(TLSKey);
-        TLSKey:=$ffffffff;
+        if TLSKey^<>$ffffffff then
+          TlsFree(TLSKey^);
+        TLSKey^:=$ffffffff;
       end;
 
     function SysRelocateThreadvar(offset : dword) : pointer;
@@ -187,11 +171,11 @@ var
         errorsave : dword;
       begin
         errorsave:=GetLastError;
-        dataindex:=TlsGetValue(tlskey);
+        dataindex:=TlsGetValue(tlskey^);
         if dataindex=nil then
           begin
             SysAllocateThreadVars;
-            dataindex:=TlsGetValue(tlskey);
+            dataindex:=TlsGetValue(tlskey^);
             InitThread($1000000);
           end;
         SetLastError(errorsave);
@@ -203,12 +187,12 @@ var
       var
         p: pointer;
       begin
-        if TLSKey<>$ffffffff then
+        if TLSKey^<>$ffffffff then
           begin
-            p:=TlsGetValue(tlskey);
+            p:=TlsGetValue(tlskey^);
             if Assigned(p) then
               LocalFree(p);
-            TlsSetValue(tlskey, nil);
+            TlsSetValue(tlskey^, nil);
           end;
       end;
 

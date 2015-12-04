@@ -16,7 +16,7 @@
 
    var
       SysInstance : Longint;
-      TlsKeyVar: DWord = $ffffffff; public name '_FPC_TlsKey';
+      TlsKeyVar: DWord = $ffffffff;
 
       InitFinalTable : record end; external name 'INITFINAL';
       ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
