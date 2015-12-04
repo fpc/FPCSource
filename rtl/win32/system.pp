@@ -109,7 +109,7 @@ Const
 implementation
 
 var
-  //SysInstance : Longint;public name '_FPC_SysInstance';
+  FPCSysInstance : Longint;public name '_FPC_SysInstance';
   FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
   FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
 const
@@ -212,6 +212,7 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
      EntryInformation:=info;
      FPCResStrInitTables:=info.ResStrInitTables;
      FPCResourceStringTables:=info.ResourceStringTables;
+     FPCSysInstance:=info.Platform.SysInstanceAddr^;
      WStrInitTablesTable:=info.WideInitTables;
      IsLibrary:=false;
      { install the handlers for exe only ?

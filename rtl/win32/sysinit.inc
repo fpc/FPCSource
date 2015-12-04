@@ -15,7 +15,7 @@
  **********************************************************************}
 
    var
-      SysInstance : Longint; public name '_FPC_SysInstance'; //external name '_FPC_SysInstance';
+      SysInstance : Longint;
       TlsKeyVar: DWord = $ffffffff; public name '_FPC_TlsKey';
 
       InitFinalTable : record end; external name 'INITFINAL';

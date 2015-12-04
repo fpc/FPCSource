@@ -379,6 +379,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      EntryInformation:=info;
      FPCResStrInitTables:=info.ResStrInitTables;
      FPCResourceStringTables:=info.ResourceStringTables;
+     FPCSysInstance:=info.Platform.SysInstanceAddr^;
      WStrInitTablesTable:=info.WideInitTables;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
