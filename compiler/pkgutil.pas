@@ -688,6 +688,9 @@ implementation
           item : TCmdStrListItem;
         begin
           item := TCmdStrListItem(pd.aliasnames.first);
+          if not assigned(item) then
+            { at least import the mangled name }
+            current_module.addexternalimport(pkg.pplfilename,pd.mangledname,pd.mangledname,0,false,false);
           while assigned(item) do
             begin
               current_module.addexternalimport(pkg.pplfilename,item.str,item.str,0,false,false);
