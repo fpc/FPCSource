@@ -578,6 +578,12 @@ implementation
                   result.sym:=tasmsymbol(tmodule(unitentry^.module).globalasmsyms.find(symname));
                   if assigned(result.sym) then
                     begin
+                      { completely ignore other external symbols }
+                      if result.sym.bind in [ab_external,ab_weak_external] then
+                        begin
+                          result.sym:=nil;
+                          continue;
+                        end;
                       { only accept global symbols of the used unit }
                       if result.sym.bind<>ab_global then
                         begin
