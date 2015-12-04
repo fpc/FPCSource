@@ -504,7 +504,8 @@ implementation
       i : longint;
       pkgname : tpathstr;
     begin
-      if not (target_info.system in systems_indirect_var_imports) then
+      if target_info.system in systems_indirect_var_imports then
+        { we're using import libraries anyway }
         exit;
       for i:=0 to packagelist.count-1 do
         begin
@@ -817,6 +818,7 @@ implementation
       alreadyloaded.free;
       for i:=0 to cache.count-1 do
         dispose(pcacheentry(cache[i]));
+      cache.free;
     end;
 
 end.
