@@ -263,7 +263,8 @@ implementation
       result:=
         ((paraloc^.loc=LOC_REFERENCE) and
          llvmaggregatetype(paraloc^.def)) or
-        (paraloc^.shiftval<>0)
+        ((paraloc^.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+         (paraloc^.shiftval<>0))
     end;
 
 
