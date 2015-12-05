@@ -540,12 +540,12 @@ implementation
                else
                 begin
 {$ifdef i8086}
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_CX);
                   if TCGSize2Size[left.location.size] > 2 then
                     left.location.size := OS_16;
                   cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_16,left.location,NR_CX);
 
-                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
                   if (tcgsize2size[right.location.size] < 2) or
                      (right.location.loc = LOC_CONSTANT) then
                     hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u16inttype,true);
