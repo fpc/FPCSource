@@ -115,7 +115,9 @@ implementation
             { Generate frame pointer. It can't be put in a register since it
               must be accessable from nested routines }
             if not(target_info.system in systems_fpnestedstruct) or
-               { in case of errors, prevent invalid type cast }
+               { in case of errors or declared procvardef types, prevent invalid
+                 type cast and possible nil pointer dereference }
+               not assigned(pd.owner.defowner) or
                (pd.owner.defowner.typ<>procdef) then
               begin
                 vs:=cparavarsym.create('$parentfp',paranr,vs_value
