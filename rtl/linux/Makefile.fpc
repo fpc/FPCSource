@@ -125,6 +125,14 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put $(SYSTEMUNIT) unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
+# Set PIC_OPT to 1 if -Cg or -fPIC is used
+ifneq ($(findstring -Cg ,$(COMPILER)),)
+  PIC_OPT=1
+endif
+ifneq ($(findstring -fPIC ,$(COMPILER)),)
+  PIC_OPT=1
+endif
+
 # Select 32/64 mode
 ifeq ($(ARCH),i386)
   ASTARGET=--32
@@ -137,19 +145,22 @@ ifeq ($(ARCH),powerpc64)
 endif
 # Select 32/64 mode
 ifeq ($(ARCH),mips)
-  ASTARGET=-32 -mips32 -EB
+  ASTARGET=-32 -mabi=32 -mips2 -EB
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+= -KPIC
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
-  ASTARGET=-32 -mips32 -EL
+  ASTARGET=-32 -mabi=32 -mips2 -EL
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+= -KPIC
+  endif
   ASSHAREDOPT=-KPIC
 endif
 
 ifeq ($(ARCH),sparc)
-  ifneq ($(findstring -Cg ,$(COMPILER)),)
-    ASTARGET+=-K PIC --defsym PIC=1
-  endif
-  ifneq ($(findstring -fPIC ,$(COMPILER)),)
+  ifeq ($(PIC_OPT),1)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
 endif
