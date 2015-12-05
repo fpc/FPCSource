@@ -553,6 +553,11 @@ unit hlcgobj;
          public
           procedure g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
           procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; a: tcgint; const name: TIDString; const recref: treference);
+          { laod a named field into a register }
+          procedure g_load_field_reg_by_name(list: TAsmList; recdef: trecorddef; regsize: tdef; const name: TIDString; const recref: treference; reg: tregister);
+          { same as above, but allocates the register and determines the def
+            based on the type of the field }
+          procedure g_force_field_reg_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out regdef: tdef; out reg: tregister);
 
           { routines migrated from ncgutil }
 
@@ -3889,6 +3894,26 @@ implementation
     begin
       g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
       a_load_const_ref(list,fielddef,a,fref);
+    end;
+
+
+  procedure thlcgobj.g_load_field_reg_by_name(list: TAsmList; recdef: trecorddef; regsize: tdef; const name: TIDString; const recref: treference; reg: tregister);
+    var
+      fref: treference;
+      fielddef: tdef;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
+      a_load_ref_reg(list,fielddef,regsize,fref,reg);
+    end;
+
+
+  procedure thlcgobj.g_force_field_reg_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out regdef: tdef; out reg: tregister);
+    var
+      fref: treference;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,regdef);
+      reg:=getregisterfordef(list,regdef);
+      a_load_ref_reg(list,regdef,regdef,fref,reg);
     end;
 
 
