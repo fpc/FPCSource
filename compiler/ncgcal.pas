@@ -109,7 +109,7 @@ interface
           { loads the procvar code pointer into a register with type def }
           procedure load_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef);
 
-          procedure load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);virtual;
+          procedure load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);
 
           function get_call_reg(list: TAsmList): tregister; virtual;
           procedure unget_call_reg(list: TAsmList; reg: tregister); virtual;
@@ -439,20 +439,13 @@ implementation
     procedure tcgcallnode.load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);
       var
         href: treference;
-        srsym: tsym;
-        srsymtable: tsymtable;
         literaldef: trecorddef;
       begin
         literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef),true);
         { load the invoke pointer }
         hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
-        if not searchsym_in_record(literaldef,'INVOKE',srsym,srsymtable) or
-           (srsym.typ<>fieldvarsym) or
-           (tfieldvarsym(srsym).vardef<>voidpointertype) then
-          internalerror(2014071506);
-        href.offset:=tfieldvarsym(srsym).fieldoffset;
-        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(srsym).vardef,procdefinition,href,toreg);
+        hlcg.g_load_field_reg_by_name(current_asmdata.CurrAsmList,literaldef,procdefinition,'INVOKE',href,toreg);
         callprocdef:=procdefinition;
       end;
 
