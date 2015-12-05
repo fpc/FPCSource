@@ -517,6 +517,8 @@ interface
       var
         href: treference;
         tmpreg: tregister;
+        procvarrectype: trecorddef;
+        procvarselfname: TIDString;
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
@@ -574,14 +576,24 @@ interface
                 location_reset_ref(location,LOC_REFERENCE,int_cgsize(resultdef.size),sizeof(pint));
                 tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
                 href:=location.reference;
-                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
+                if is_nested_pd(tabstractprocdef(resultdef)) then
+                  begin
+                    procvarrectype:=trecorddef(nestedprocpointertype);
+                    procvarselfname:='parentfp';
+                  end
+                else
+                  begin
+                    procvarrectype:=trecorddef(methodpointertype);
+                    procvarselfname:='self';
+                  end;
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(procvarrectype),href);
                 tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
                 hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tprocdef(left.resultdef),voidcodepointertype,left.location.reference,tmpreg);
-                hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,voidcodepointertype,trecorddef(methodpointertype),tmpreg,'proc',href);
+                hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,voidcodepointertype,trecorddef(procvarrectype),tmpreg,'proc',href);
                 { setting the frame pointer to nil is not strictly necessary
                   since the global procedure won't use it, but it can help with
                   debugging }
-                hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'self',0,href);
+                hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(procvarrectype),procvarselfname,0,href);
               end;
           end;
       end;
