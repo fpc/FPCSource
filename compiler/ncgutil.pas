@@ -71,7 +71,7 @@ interface
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
     procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation);
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
@@ -485,7 +485,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
       var
         tmpreg: tregister;
       begin
@@ -497,14 +497,14 @@ implementation
             case l.loc of
               LOC_CREGISTER:
                 begin
-                  tmpreg := cg.getintregister(list,l.size);
-                  cg.a_op_const_reg_reg(list,OP_SUB,l.size,setbase,l.register,tmpreg);
+                  tmpreg := hlcg.getintregister(list,opdef);
+                  hlcg.a_op_const_reg_reg(list,OP_SUB,opdef,setbase,l.register,tmpreg);
                   l.loc:=LOC_REGISTER;
                   l.register:=tmpreg;
                 end;
               LOC_REGISTER:
                 begin
-                  cg.a_op_const_reg(list,OP_SUB,l.size,setbase,l.register);
+                  hlcg.a_op_const_reg(list,OP_SUB,opdef,setbase,l.register);
                 end;
             end;
           end;

@@ -194,7 +194,7 @@ implementation
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
              left.resultdef, opdef, true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, left.location,
+            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, opdef, left.location,
              setbase);
             hlcg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList, opdef,
               right.resultdef, resultdef, left.location.register, right.location,
@@ -395,7 +395,7 @@ implementation
 
                      { load left in register }
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,uopdef,true);
-                     register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                     register_maybe_adjust_setbase(current_asmdata.CurrAsmList,uopdef,left.location,setbase);
                      { emit bit test operation -- warning: do not use
                        location_force_reg() to force a set into a register, except
                        to a register of the same size as the set. The reason is
@@ -434,7 +434,7 @@ implementation
                  else
                    begin
                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,true);
-                     register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                     register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,left.location,setbase);
                      pleftreg := left.location.register;
 
                      if (opsize >= OS_S8) or { = if signed }
