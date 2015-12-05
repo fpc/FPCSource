@@ -179,8 +179,8 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
     location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment);
     location.reference:=href;
     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
-    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'proc',0,href);
-    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'self',0,href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'proc',href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'self',href);
   end;
 
 

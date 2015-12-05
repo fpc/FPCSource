@@ -552,7 +552,7 @@ unit hlcgobj;
           procedure g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
          public
           procedure g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
-          procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
+          procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; a: tcgint; const name: TIDString; const recref: treference);
 
           { routines migrated from ncgutil }
 
@@ -3882,7 +3882,7 @@ implementation
     end;
 
 
-  procedure thlcgobj.g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
+  procedure thlcgobj.g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; a: tcgint; const name: TIDString; const recref: treference);
     var
       fref: treference;
       fielddef: tdef;
