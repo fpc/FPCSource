@@ -90,7 +90,7 @@ procedure tllvmloadnode.pass_generate_code;
               { on little endian, location.register contains proc and
                 location.registerhi contains self; on big endian, it's the
                 other way around }
-              tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,href);
+              tg.gethltemp(current_asmdata.CurrAsmList,pvdef,pvdef.size,tt_normal,href);
               if target_info.endian=endian_little then
                 begin
                   procreg:=location.register;
@@ -110,7 +110,7 @@ procedure tllvmloadnode.pass_generate_code;
               else
                 selfdef:=cpointerdef.getreusable(left.resultdef);
               mpref:=href;
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),mpref);
+              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(pvdef),cpointerdef.getreusable(methodpointertype),mpref);
               hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef),trecorddef(methodpointertype),procreg,'proc',mpref);
               hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,selfdef,trecorddef(methodpointertype),selfreg,'self',mpref);
               location_reset_ref(location,LOC_REFERENCE,location.size,href.alignment);
