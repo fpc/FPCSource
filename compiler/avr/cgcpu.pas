@@ -1599,17 +1599,17 @@ unit cgcpu;
             end;
 
             if swapped then
-              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1))
+              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
             else
-              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg));
+              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
 
             for i:=2 to tcgsize2size[size] do
               begin
                 reg:=GetNextReg(reg);
                 if swapped then
-                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1))
+                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
                 else
-                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg));
+                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
               end;
 
             a_jmp_cond(list,cmp_op,l);
