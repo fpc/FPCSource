@@ -1853,10 +1853,14 @@ begin
             Result:=Format('_StringToJString(_env, _JNIString(GUIDToString(%s)))', [Result]);
         end;
     dtClass:
-      if TClassDef(d).CType in [ctObject, ctRecord] then
-        Result:=Format('_%s_CreateObj(_env, %s)', [GetClassPrefix(d), Result])
-      else
-        Result:=Format('_CreateJavaObj(_env, %s, %s)', [Result, GetTypeInfoVar(d)]);
+      case TClassDef(d).CType of
+        ctObject, ctRecord:
+          Result:=Format('_%s_CreateObj(_env, %s)', [GetClassPrefix(d), Result]);
+        ctInterface:
+          Result:=Format('_CreateJavaObj(_env, pointer(%s), %s)', [Result, GetTypeInfoVar(d)]);
+        else
+          Result:=Format('_CreateJavaObj(_env, %s, %s)', [Result, GetTypeInfoVar(d)]);
+      end;
     dtProcType:
       Result:=Format('_CreateMethodPtrObject(_env, TMethod(%s), %s)', [Result, GetTypeInfoVar(d)]);
     dtEnum:
