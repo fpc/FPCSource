@@ -1022,9 +1022,19 @@ var
   vt: TDef;
   s, ss: string;
   i: integer;
+  isarray, isdynarray: boolean;
 begin
   if not d.IsUsed then
     exit;
+
+  isarray:=(d.VarType <> nil) and (d.VarType.DefType = dtArray);
+  isdynarray:=isarray and (TArrayDef(d.VarType).RangeHigh < TArrayDef(d.VarType).RangeLow);
+  if isdynarray then
+    if not (voRead in d.VarOpt) then
+      exit
+    else
+      d.VarOpt:=d.VarOpt + [voWrite];
+
   if d.VarType <> nil then begin
     case d.DefType of
       dtVar:
@@ -1051,7 +1061,7 @@ begin
       pd.Parent:=d.Parent;
       pd.ProcType:=ptFunction;
       pd.Name:='get' + d.Name;
-      if (d.VarType <> nil) and (d.VarType.DefType = dtArray) then
+      if isarray then
         // Array var
         pd.ReturnType:=_WriteArrayIndex(pd)
       else begin
@@ -1081,9 +1091,12 @@ begin
       pd.ProcType:=ptProcedure;
       pd.Name:='set' + d.Name;
       vt:=d.VarType;;
-      if (d.VarType <> nil) and (d.VarType.DefType = dtArray) then
+      if isarray then begin
         // Array var
-        vt:=_WriteArrayIndex(pd)
+        if (d.DefType = dtProp) and not isdynarray then
+          exit;
+        vt:=_WriteArrayIndex(pd);
+      end
       else
         if d.DefType = dtProp then begin
           for i:=0 to d.Count - 1 do begin
