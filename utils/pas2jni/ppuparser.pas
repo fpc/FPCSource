@@ -540,6 +540,7 @@ var
 var
   i, j: integer;
   s: string;
+  chkres: TCheckItemResult;
 begin
   Result:=nil;
   for i:=0 to Units.Count - 1 do
@@ -548,12 +549,14 @@ begin
       exit;
     end;
 
-  AMainUnit:=FOnCheckItem(AUnitName) = crInclude;
-
-  if not AMainUnit and ( (CompareText(AUnitName, 'windows') = 0) or (CompareText(AUnitName, 'unix') = 0) ) then begin
-    Result:=nil;
+  chkres:=FOnCheckItem(AUnitName);
+  if chkres = crExclude then
     exit;
-  end;
+
+  AMainUnit:=chkres = crInclude;
+
+  if not AMainUnit and ( (CompareText(AUnitName, 'windows') = 0) or (CompareText(AUnitName, 'unix') = 0) ) then
+    exit;
 
   s:=ReadUnit(AUnitName);
   try

@@ -304,6 +304,12 @@ var
   i: integer;
   s: string;
 begin
+  if d.DefType = dtClass then
+    with TClassDef(d) do
+      if (AncestorClass = nil) and (CType in [ctClass, ctInterface]) and (CompareText(Parent.Name, 'system') <> 0) then begin
+        SetNotUsed;
+        exit;
+      end;
   s:=Prefix + d.Name;
   i:=IncludeList.IndexOf(s);
   if i >= 0 then begin
