@@ -1073,6 +1073,10 @@ implementation
          { Read first the _ASM statement }
          consume(_ASM);
 
+         { Force an empty register list for pure assembler routines,
+           so that pass2 won't allocate volatile registers for them. }
+         asmstat.has_registerlist:=(po_assembler in current_procinfo.procdef.procoptions);
+
          { END is read, got a list of changed registers? }
          if try_to_consume(_LECKKLAMMER) then
            begin
