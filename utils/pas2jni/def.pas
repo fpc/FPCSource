@@ -499,7 +499,7 @@ begin
     f:=FRefCnt = 0;
   end;
   if f then begin
-    // Update userd mark of children only once
+    // Update used mark of children only once
     FInSetUsed:=True;
     try
       for i:=0 to Count - 1 do

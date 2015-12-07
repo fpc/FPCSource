@@ -79,7 +79,7 @@ type
     function GetClassPrefix(ClassDef: TDef; const AClassName: string = ''): string;
     function IsJavaSimpleType(d: TDef): boolean;
     function IsJavaVarParam(ParamDef: TVarDef): boolean;
-    function GetProcDeclaration(d: TProcDef; const ProcName: string = ''; FullTypeNames: boolean = False): string;
+    function GetProcDeclaration(d: TProcDef; const ProcName: string = ''; FullTypeNames: boolean = False; InternalParaNames: boolean = False): string;
     function GetJavaProcDeclaration(d: TProcDef; const ProcName: string = ''): string;
     function GetJniFuncType(d: TDef): string;
     function GetJavaClassName(cls: TDef; it: TDef): string;
@@ -361,21 +361,24 @@ begin
   if d = nil then
     Result:=SUnsupportedType
   else
-    case d.DefType of
-      dtType:
-        Result:=JavaType[TTypeDef(d).BasicType];
-      dtClass, dtProcType, dtSet, dtEnum:
-        Result:=d.Name;
-      dtPointer:
-        if TPointerDef(d).IsObjPtr then
-          Result:=d.Name
+    if not d.IsUsed and (d.DefType <> dtType) then
+      Result:='<excluded type> ' + d.Name
+    else
+      case d.DefType of
+        dtType:
+          Result:=JavaType[TTypeDef(d).BasicType];
+        dtClass, dtProcType, dtSet, dtEnum:
+          Result:=d.Name;
+        dtPointer:
+          if TPointerDef(d).IsObjPtr then
+            Result:=d.Name
+          else
+            Result:='long';
+        dtJniObject:
+          Result:='Object';
         else
-          Result:='long';
-      dtJniObject:
-        Result:='Object';
-      else
-        Result:=SUnsupportedType;
-    end;
+          Result:=SUnsupportedType;
+      end;
 end;
 
 function TWriter.GetJavaClassPath(d: TDef; const AClassName: string): string;
@@ -730,10 +733,9 @@ begin
 
       for j:=0 to Count - 1 do begin
         vd:=TVarDef(Items[j]);
+        if vd.DefType <> dtParam then
+          continue;
         with vd do begin
-          ss:=Name;
-          Name:=Format('p%d', [j + 1]);
-          AliasName:=ss;
           if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
             continue;
           s:=s + '; ' + Name + ': ';
@@ -756,9 +758,9 @@ begin
         s:=s + ': ' + DefToJniType(ReturnType, err);
       s:=s + '; ' + JniCaliing;
       if err then begin
-        d.SetNotUsed;
         s:='// ' + s;
-        Fjs.WriteLn('// NOT SUPPORTED: ' + GetJavaProcDeclaration(d));
+        Fjs.WriteLn('// NOT PROCESSED: ' + GetJavaProcDeclaration(d));
+        d.SetNotUsed;
       end;
       Fps.WriteLn;
       Fps.WriteLn(s);
@@ -841,6 +843,8 @@ begin
           s:=s + '(';
           for j:=0 to Count - 1 do begin
             vd:=TVarDef(Items[j]);
+            if vd.DefType <> dtParam then
+              continue;
             if vd.VarType.DefType = dtJniEnv then
               ss:='_env'
             else
@@ -1230,10 +1234,10 @@ begin
     hclass:=GetClassPrefix(d) + 'Class';
     Fps.WriteLn;
     Fps.WriteLn(Format('type %s = class', [hclass]));
-    Fps.WriteLn(Format('private %s;', [ GetProcDeclaration(d, 'Handler', True)]), 1);
+    Fps.WriteLn(Format('private %s;', [ GetProcDeclaration(d, 'Handler', True, True)]), 1);
     Fps.WriteLn('end;');
     Fps.WriteLn;
-    Fps.WriteLn(GetProcDeclaration(d, Format('%s.Handler', [hclass]), True) + ';');
+    Fps.WriteLn(GetProcDeclaration(d, Format('%s.Handler', [hclass]), True, True) + ';');
 
     Fps.WriteLn('var');
     Fps.IncI;
@@ -1243,6 +1247,8 @@ begin
       Fps.WriteLn(Format('_args: array[0..%d] of jvalue;', [d.Count - 1]));
       for i:=0 to d.Count - 1 do begin
         vd:=TVarDef(d[i]);
+        if vd.DefType <> dtParam then
+          continue;
         with vd do
           if IsJavaVarParam(vd) and IsJavaSimpleType(VarType) then
             Fps.WriteLn(Format('_tmp_%s: P%s;', [Name, DefToJniType(VarType, err)]));
@@ -1261,6 +1267,8 @@ begin
 
     for i:=0 to d.Count - 1 do begin
       vd:=TVarDef(d[i]);
+      if vd.DefType <> dtParam then
+        continue;
       with vd do begin
         if not IsJavaVarParam(vd) then begin
           s:='L';
@@ -1298,6 +1306,8 @@ begin
     // Processing var/out parameters
     for i:=0 to d.Count - 1 do begin
       vd:=TVarDef(d[i]);
+      if vd.DefType <> dtParam then
+        continue;
       with vd do
         if IsJavaVarParam(vd) then
           if IsJavaSimpleType(VarType) then
@@ -1394,33 +1404,24 @@ end;
 
 procedure TWriter.WriteUnit(u: TUnitDef);
 
-  procedure _ExcludeClasses(AAncestorClass: TClassDef);
+  procedure _ProcessExcludedProcParams(d: TDef);
   var
     i: integer;
-    d: TDef;
-    s: string;
-    excl: boolean;
   begin
-    for i:=0 to u.Count - 1 do begin
-      d:=u[i];
-      if d.DefType = dtClass then begin
-        s:=u.Name + '.' + d.Name;
-        if AAncestorClass = nil then begin
-          excl:=DoCheckItem(s) = crExclude;
-          if not excl and (TClassDef(d).AncestorClass <> nil) then
-            with TClassDef(d).AncestorClass do
-              excl:=DoCheckItem(Parent.Name + '.' + Name) = crExclude;
-        end
-        else
-          excl:=TClassDef(d).AncestorClass = AAncestorClass;
-
-        if excl then begin
-          d.SetNotUsed;
-          ExcludeList.Add(s);
-          _ExcludeClasses(TClassDef(d));
-        end;
-      end;
-    end;
+    if not d.IsUsed then
+      exit;
+    if d.DefType in [dtProc, dtProcType] then begin
+      for i:=0 to d.Count - 1 do
+        if d[i].DefType = dtParam then
+          with TVarDef(d[i]) do
+            if (VarType <> nil) and not VarType.IsUsed then begin
+              d.SetNotUsed;
+              break;
+            end;
+    end
+    else
+      for i:=0 to d.Count - 1 do
+        _ProcessExcludedProcParams(d[i]);
   end;
 
 var
@@ -1435,8 +1436,7 @@ begin
   if not u.IsUsed then
     exit;
 
-  if AnsiCompareText(u.Name, 'system') <> 0 then
-    _ExcludeClasses(nil);
+  _ProcessExcludedProcParams(u);
 
   for i:=0 to High(u.UsedUnits) do
     WriteUnit(u.UsedUnits[i]);
@@ -1905,7 +1905,7 @@ begin
     Result:=VarOpt * [voVar, voOut] <> [];
 end;
 
-function TWriter.GetProcDeclaration(d: TProcDef; const ProcName: string; FullTypeNames: boolean): string;
+function TWriter.GetProcDeclaration(d: TProcDef; const ProcName: string; FullTypeNames: boolean; InternalParaNames: boolean): string;
 var
   s, ss: string;
   j: integer;
@@ -1917,6 +1917,8 @@ begin
       s:='';
     for j:=0 to Count - 1 do
       with TVarDef(Items[j]) do begin
+        if DefType <> dtParam then
+          continue;
         if j > 0 then
           s:=s + '; ';
         if voVar in VarOpt then
@@ -1927,7 +1929,11 @@ begin
         else
         if voConst in VarOpt then
           s:=s + 'const ';
-        s:=s + AliasName + ': ' + GetPasType(VarType, FullTypeNames);
+        if InternalParaNames then
+          s:=s + Name
+        else
+          s:=s + AliasName;
+        s:=s + ': ' + GetPasType(VarType, FullTypeNames);
       end;
 
     if Count > 0 then
@@ -1970,6 +1976,8 @@ begin
     s:='';
     for j:=0 to Count - 1 do begin
       vd:=TVarDef(Items[j]);
+      if vd.DefType <> dtParam then
+        continue;
       with vd do begin
         if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
           continue;
@@ -2094,6 +2102,8 @@ begin
   Result:='(';
   for j:=0 to d.Count - 1 do begin
     vd:=TVarDef(d[j]);
+    if vd.DefType <> dtParam then
+      continue;
     with vd do begin
       if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
         continue;
@@ -2199,6 +2209,36 @@ begin
 end;
 
 procedure TWriter.ProcessUnits;
+
+  procedure _ExcludeClasses(u: TDef; AAncestorClass: TClassDef);
+  var
+    i: integer;
+    d: TDef;
+    s: string;
+    excl: boolean;
+  begin
+    for i:=0 to u.Count - 1 do begin
+      d:=u[i];
+      if d.DefType = dtClass then begin
+        s:=u.Name + '.' + d.Name;
+        if AAncestorClass = nil then begin
+          excl:=DoCheckItem(s) = crExclude;
+          if not excl and (TClassDef(d).AncestorClass <> nil) then
+            with TClassDef(d).AncestorClass do
+              excl:=DoCheckItem(Parent.Name + '.' + Name) = crExclude;
+        end
+        else
+          excl:=TClassDef(d).AncestorClass = AAncestorClass;
+
+        if excl then begin
+          d.SetNotUsed;
+          ExcludeList.Add(s);
+          _ExcludeClasses(u, TClassDef(d));
+        end;
+      end;
+    end;
+  end;
+
 var
   p: TPPUParser;
   i: integer;
@@ -2241,6 +2281,8 @@ begin
     ForceDirectories(FPkgDir);
     Fps:=TTextOutStream.Create(OutPath + LibName + '.pas', fmCreate);
 
+    Fps.WriteLn('// This file was automatically generated by the pas2jni utility.');
+    Fps.WriteLn('// Creation time: ' + DateTimeToStr(Now));
     Fps.WriteLn('library '+ LibName + ';');
     Fps.WriteLn('{$ifdef fpc} {$mode objfpc} {$H+} {$endif}');
 
@@ -2520,6 +2562,12 @@ begin
     Fps.WriteLn('env^^.SetIntField(env, Result, ci.ObjFieldId, Value);');
     Fps.DecI;
     Fps.WriteLn('end;');
+
+    // Preprocess units
+    for i:=0 to p.Units.Count - 1 do begin
+      if AnsiCompareText(p.Units[i].Name, 'system') <> 0 then
+        _ExcludeClasses(p.Units[i], nil);
+    end;
 
     // Write units
     for i:=0 to p.Units.Count - 1 do

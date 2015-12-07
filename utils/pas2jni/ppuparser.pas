@@ -457,6 +457,15 @@ var
                   Name:='Int';
 
               _ReadDefs(d, it, 'Params');
+
+              for j:=0 to d.Count - 1 do
+                with d[j] do begin
+                  if DefType <> dtParam then
+                    continue;
+                  s:=Name;
+                  Name:=Format('p%d', [j + 1]);
+                  AliasName:=s;
+                end;
               // Check for user exception handler proc
               if AMainUnit and (Parent = CurUnit) and (OnExceptionProc = nil) and (AnsiCompareText(Name, OnExceptionProcName) = 0) then
                 OnExceptionProc:=TProcDef(d);
