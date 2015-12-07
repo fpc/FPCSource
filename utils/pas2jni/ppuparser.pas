@@ -522,6 +522,8 @@ var
           dtPointer:
             with TPointerDef(d) do begin
               PtrType:=_GetRef(it.Get('Ptr', TJSONObject(nil)));;
+              if AMainUnit and (Parent = CurUnit) and (CompareText(Name, 'TJavaObject') = 0) then
+                DefType:=dtJniObject;
             end;
           dtArray:
             with TArrayDef(d) do begin
@@ -595,6 +597,13 @@ begin
       _ReadDefs(CurUnit, junit, 'Interface');
 
       Result.ResolveDefs;
+
+      if CompareText(AUnitName, 'jni') = 0 then begin
+        for i:=0 to Result.Count - 1 do
+          with Result[i] do
+            if CompareText(Name, 'PJNIEnv') = 0 then
+              DefType:=dtJniEnv;
+      end;
 
       if AMainUnit then
         Result.IsUsed:=True;

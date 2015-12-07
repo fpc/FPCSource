@@ -30,7 +30,8 @@ uses
 
 type
   TDefType = (dtNone, dtUnit, dtClass, dtProc, dtField, dtProp, dtParam, dtVar,
-              dtType, dtConst, dtProcType, dtEnum, dtSet, dtPointer, dtArray);
+              dtType, dtConst, dtProcType, dtEnum, dtSet, dtPointer, dtArray,
+              dtJniObject, dtJniEnv);
 
   TDefClass = class of TDef;
   { TDef }

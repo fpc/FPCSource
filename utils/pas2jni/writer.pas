@@ -277,6 +277,8 @@ begin
             Result:='jobject'
           else
             Result:='jlong';
+        dtJniObject:
+          Result:='jobject';
         else begin
           Result:=SUnsupportedType + ' ' + d.Name;
           err:=True;
@@ -341,6 +343,8 @@ begin
           Result:='L' + GetJavaClassPath(d) + ';'
         else
           Result:='J';
+      dtJniObject:
+        Result:='Ljava/lang/Object;';
       else
         Result:=SUnsupportedType;
     end;
@@ -361,9 +365,11 @@ begin
           Result:=d.Name
         else
           Result:='long';
+      dtJniObject:
+        Result:='Object';
       else
         Result:=SUnsupportedType;
-  end;
+    end;
 end;
 
 function TWriter.GetJavaClassPath(d: TDef; const AClassName: string): string;
@@ -680,7 +686,7 @@ begin
     pi.JniName:=s;
     pi.JniSignature:=GetProcSignature(d);
     if AParent = nil then begin
-      // Checking duplicate name and duplicate params
+      // Checking duplicate proc name and duplicate param types
       ClassIdx:=FClasses.IndexOf(GetJavaClassName(d.Parent, ItemDef));
       if ClassIdx >= 0 then begin
         ci:=TClassInfo(FClasses.Objects[ClassIdx]);
@@ -719,6 +725,11 @@ begin
       for j:=0 to Count - 1 do begin
         vd:=TVarDef(Items[j]);
         with vd do begin
+          ss:=Name;
+          Name:=Format('p%d', [j + 1]);
+          AliasName:=ss;
+          if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
+            continue;
           s:=s + '; ' + Name + ': ';
           if not IsJavaVarParam(vd) then
             s:=s + DefToJniType(VarType, err)
@@ -824,12 +835,15 @@ begin
           s:=s + '(';
           for j:=0 to Count - 1 do begin
             vd:=TVarDef(Items[j]);
-            if vd.Tag <> 0 then
-              ss:=tempvars[vd.Tag - 1]
-            else begin
-              ss:=Items[j].Name;
-              ss:=JniToPasType(vd.VarType, ss, False);
-            end;
+            if vd.VarType.DefType = dtJniEnv then
+              ss:='_env'
+            else
+              if vd.Tag <> 0 then
+                ss:=tempvars[vd.Tag - 1]
+              else begin
+                ss:=Items[j].Name;
+                ss:=JniToPasType(vd.VarType, ss, False);
+              end;
             if j <> 0 then
               s:=s + ', ';
             s:=s + ss;
@@ -1080,7 +1094,7 @@ begin
       // Check if the name of value parameter is unique
       i:=0;
       while i < d.Count do begin
-        if AnsiCompareText(s, d.Items[i].Name) = 0 then begin
+        if AnsiCompareText(s, d.Items[i].AliasName) = 0 then begin
           i:=0;
           s:='_' + s;
           continue;
@@ -1089,8 +1103,7 @@ begin
       end;
 
       with TVarDef.Create(pd, dtParam) do begin
-        Name:='_' + s;
-        AliasName:=s;
+        Name:=s;
         VarType:=vt;
         VarOpt:=[voRead];
       end;
@@ -1895,7 +1908,7 @@ begin
         else
         if voConst in VarOpt then
           s:=s + 'const ';
-        s:=s + Name + ': ' + GetPasType(VarType, FullTypeNames);
+        s:=s + AliasName + ': ' + GetPasType(VarType, FullTypeNames);
       end;
 
     if Count > 0 then
@@ -1925,20 +1938,23 @@ end;
 
 function TWriter.GetJavaProcDeclaration(d: TProcDef; const ProcName: string): string;
 var
-  s: string;
+  s, ss: string;
   j: integer;
   vd: TVarDef;
 begin
   with d do begin
     if ProcName <> '' then
-      s:=ProcName
+      ss:=ProcName
     else
-      s:=AliasName;
-    s:=DefToJavaType(ReturnType) + ' ' + s + '(';
+      ss:=AliasName;
+    ss:=DefToJavaType(ReturnType) + ' ' + ss + '(';
+    s:='';
     for j:=0 to Count - 1 do begin
       vd:=TVarDef(Items[j]);
       with vd do begin
-        if j > 0 then
+        if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
+          continue;
+        if s <> '' then
           s:=s + ', ';
         s:=s + DefToJavaType(VarType);
         if IsJavaVarParam(vd) then
@@ -1946,9 +1962,9 @@ begin
         s:=s + ' ' + AliasName;
       end;
     end;
-    s:=s + ')';
+    ss:=ss + s + ')';
   end;
-  Result:=s;
+  Result:=ss;
 end;
 
 function TWriter.GetJniFuncType(d: TDef): string;
@@ -2060,6 +2076,8 @@ begin
   for j:=0 to d.Count - 1 do begin
     vd:=TVarDef(d[j]);
     with vd do begin
+      if (VarType <> nil) and (VarType.DefType = dtJniEnv) then
+        continue;
       if IsJavaVarParam(vd) then
         Result:=Result + '[';
       Result:=Result + DefToJniSig(VarType);
