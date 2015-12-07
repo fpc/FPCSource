@@ -227,6 +227,7 @@ unit rgobj;
         constrained_moves : Tlinkedlist;
         extended_backwards,
         backwards_was_first : tbitset;
+        has_usedmarks: boolean;
 
         { Disposes of the reginfo array.}
         procedure dispose_reginfo;
@@ -522,7 +523,7 @@ unit rgobj;
 
     function trgobj.uses_registers:boolean;
       begin
-        result:=(maxreg>first_imaginary);
+        result:=(maxreg>first_imaginary) or has_usedmarks;
       end;
 
 
@@ -1733,7 +1734,10 @@ unit rgobj;
                           end;
                         ra_markused :
                           if (supreg<first_imaginary) then
-                            include(used_in_proc,supreg);
+                            begin
+                              include(used_in_proc,supreg);
+                              has_usedmarks:=true;
+                            end;
                       end;
                       { constraints needs always to be updated }
                       add_constraints(reg);
