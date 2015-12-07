@@ -184,6 +184,7 @@ type
    ttypedconstplaceholder = class abstract
      def: tdef;
      constructor create(d: tdef);
+     { same usage as ttai_typedconstbuilder.emit_tai }
      procedure replace(ai: tai; d: tdef); virtual; abstract;
    end;
 
@@ -364,10 +365,11 @@ type
        useful in case you have table preceded by the number of elements, and
        you cound the elements while building the table }
      function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
+    protected
      { common code to check whether a placeholder can be added at the current
        position }
      procedure check_add_placeholder(def: tdef);
-
+    public
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
        outer to inner, so that is also the order in which they should be
@@ -423,7 +425,7 @@ type
        over the symtables of the entire inheritance tree }
      property next_field: tfieldvarsym write set_next_field;
      { set the name of the next field that will be emitted for an anonymous
-       record (or the next of the next started anonymous record) }
+       record (also if that field is a nested anonymous record) }
      property next_field_name: TIDString write set_next_field_name;
     protected
      { this one always return the actual offset, called by the above (and
