@@ -102,7 +102,7 @@ type
     procedure WriteEnum(d: TDef);
     procedure WriteProcType(d: TProcDef; PreInfo: boolean);
     procedure WriteSet(d: TSetDef);
-    procedure WritePointer(d: TPointerDef);
+    procedure WritePointer(d: TPointerDef; PreInfo: boolean);
     procedure WriteUnit(u: TUnitDef);
     procedure WriteOnLoad;
   public
@@ -937,7 +937,7 @@ begin
           for i:=0 to tempvars.Count - 1 do begin
             vd:=TVarDef(tempvars.Objects[i]);
             if IsJavaSimpleType(vd.VarType) then
-              Fps.WriteLn(Format('_env^^.Release%sArrayElements(_env, %s, %s_arr, 0);', [JavaType[TTypeDef(vd.VarType).BasicType], vd.Name, tempvars[i]]));
+              Fps.WriteLn(Format('_env^^.Release%sArrayElements(_env, %s, %s_arr, 0);', [GetJniFuncType(vd.VarType), vd.Name, tempvars[i]]));
           end;
         end;
 
@@ -1192,7 +1192,7 @@ begin
   end;
   Fjs.WriteLn;
   for i:=0 to d.Count - 1 do begin
-    s:=Format('public final static %s %s() { return new %0:s(%1:s); }', [d.Name, d[i].Name]);
+    s:=Format('public static %s %s() { return new %0:s(%1:s); }', [d.Name, d[i].Name]);
     Fjs.WriteLn(s);
   end;
   Fjs.WriteLn;
@@ -1384,13 +1384,16 @@ begin
   Fjs.WriteLn;
 end;
 
-procedure TWriter.WritePointer(d: TPointerDef);
+procedure TWriter.WritePointer(d: TPointerDef; PreInfo: boolean);
 begin
   if not d.IsUsed or not d.IsObjPtr then
     exit;
-  WriteComment(d, 'pointer');
-  RegisterPseudoClass(d);
-  WriteClassInfoVar(d);
+  if PreInfo then begin
+    WriteComment(d, 'pointer');
+    RegisterPseudoClass(d);
+    WriteClassInfoVar(d);
+    exit;
+  end;
 
   Fjs.WriteLn(Format('public static class %s extends %s {', [d.Name, d.PtrType.Name]));
   Fjs.IncI;
@@ -1636,6 +1639,8 @@ begin
           WriteClass(TClassDef(d), True);
         dtProcType:
           WriteProcType(TProcDef(d), True);
+        dtPointer:
+          WritePointer(TPointerDef(d), True);
       end;
     end;
 
@@ -1660,7 +1665,7 @@ begin
         dtConst:
           WriteConst(TConstDef(d));
         dtPointer:
-          WritePointer(TPointerDef(d));
+          WritePointer(TPointerDef(d), False);
       end;
     end;
 
@@ -1823,7 +1828,7 @@ begin
     dtPointer:
       begin
         if TPointerDef(d).IsObjPtr then
-          Result:=Format('%s.%s(_GetPasObj(_env, %s, %s, True))', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d)])
+          Result:=Format('%s.%s(_GetPasObj(_env, %s, %s, False))', [d.Parent.Name, d.Name, Result, GetTypeInfoVar(d)])
         else
           Result:=Format('pointer(ptruint(%s))', [Result]);
       end;
@@ -1900,7 +1905,16 @@ end;
 
 function TWriter.IsJavaSimpleType(d: TDef): boolean;
 begin
-  Result:=(d <> nil) and (d.DefType = dtType) and (Length(JNITypeSig[TTypeDef(d).BasicType]) = 1);
+  Result:=d <> nil;
+  if Result then
+    case d.DefType of
+      dtType:
+        Result:=Length(JNITypeSig[TTypeDef(d).BasicType]) = 1;
+      dtPointer:
+        Result:=not TPointerDef(d).IsObjPtr;
+      else
+        Result:=False;
+    end;
 end;
 
 function TWriter.IsJavaVarParam(ParamDef: TVarDef): boolean;
@@ -2001,8 +2015,12 @@ end;
 function TWriter.GetJniFuncType(d: TDef): string;
 begin
   if IsJavaSimpleType(d) then begin
-    Result:=JavaType[TTypeDef(d).BasicType];
-    Result[1]:=UpCase(Result[1]);
+    if d.DefType = dtPointer then
+      Result:='Long'
+    else begin
+      Result:=JavaType[TTypeDef(d).BasicType];
+      Result[1]:=UpCase(Result[1]);
+    end;
   end
   else
     Result:='Object';
