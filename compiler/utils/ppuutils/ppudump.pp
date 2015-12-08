@@ -2395,7 +2395,9 @@ begin
                  end;
                conststring,
                constresourcestring :
-                 begin
+               begin
+                   write ([space,'   StringType : ']);
+                   readderef('',constdef.TypeRef);
                    len:=getlongint;
                    getmem(pc,len+1);
                    getdata(pc^,len);
@@ -2465,7 +2467,8 @@ begin
                  end;
                constnil:
                  begin
-                   writeln([space,' NIL pointer.']);
+                   write([space,'   NIL pointer :']);
+                   readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctPtr;
                    constdef.VInt:=0;
                  end;
@@ -2519,8 +2522,10 @@ begin
                  end;
                constguid:
                  begin
+                    write ([space,'     IntfType : ']);
+                    readderef('',constdef.TypeRef);
                     getdata(guid,sizeof(guid));
-                    write ([space,'     IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-']);
+                    write ([space,'    IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-']);
                     for i:=0 to 7 do
                       begin
                          write(hexstr(guid.d4[i],2));

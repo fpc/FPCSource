@@ -2385,6 +2385,7 @@ implementation
            conststring,
            constresourcestring :
              begin
+               ppufile.getderef(constdefderef);
                value.len:=ppufile.getlongint;
                getmem(pc,value.len+1);
                ppufile.getdata(pc^,value.len);
@@ -2407,6 +2408,7 @@ implementation
              end;
            constguid :
              begin
+               ppufile.getderef(constdefderef);
                new(pguid(value.valueptr));
                ppufile.getdata(value.valueptr^,sizeof(tguid));
              end;
@@ -2440,15 +2442,27 @@ implementation
     procedure tconstsym.buildderef;
       begin
         inherited;
-        if consttyp in [constord,constreal,constpointer,constset] then
-          constdefderef.build(constdef);
+        case consttyp  of
+          constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constguid:
+            constdefderef.build(constdef);
+          constwstring:
+            ;
+          else
+            internalerror(2015120802);
+        end;
       end;
 
 
     procedure tconstsym.deref;
       begin
-        if consttyp in [constord,constreal,constpointer,constset] then
-          constdef:=tdef(constdefderef.resolve);
+        case consttyp of
+          constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constguid:
+            constdef:=tdef(constdefderef.resolve);
+          constwstring:
+            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pcompilerwidestring(value.valueptr)));
+          else
+            internalerror(2015120801);
+        end
       end;
 
 
@@ -2457,7 +2471,8 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(consttyp));
          case consttyp of
-           constnil : ;
+           constnil :
+             ppufile.putderef(constdefderef);
            constord :
              begin
                ppufile.putderef(constdefderef);
@@ -2470,12 +2485,14 @@ implementation
              end;
            constwstring :
              begin
+               { no need to store the def, we can reconstruct it }
                ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
                ppufile.putdata(pcompilerwidestring(value.valueptr)^.data^,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
              end;
            conststring,
            constresourcestring :
              begin
+               ppufile.putderef(constdefderef);
                ppufile.putlongint(value.len);
                ppufile.putdata(pchar(value.valueptr)^,value.len);
              end;
@@ -2490,7 +2507,10 @@ implementation
                ppufile.putnormalset(value.valueptr^);
              end;
            constguid :
-             ppufile.putdata(value.valueptr^,sizeof(tguid));
+             begin
+               ppufile.putderef(constdefderef);
+               ppufile.putdata(value.valueptr^,sizeof(tguid));
+             end;
          else
            internalerror(13);
          end;
