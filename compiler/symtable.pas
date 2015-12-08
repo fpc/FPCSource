@@ -1469,8 +1469,8 @@ implementation
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
-              if (tsym(symlist[i]).typ=fieldvarsym) and
-                 not(sp_static in tsym(symlist[i]).symoptions) then
+              if (tsym(currentsymlist[i]).typ=fieldvarsym) and
+                 not(sp_static in tsym(currentsymlist[i]).symoptions) then
                 begin
                   if result then
                     begin
@@ -1478,7 +1478,7 @@ implementation
                       exit;
                     end;
                   result:=true;
-                  sym:=tfieldvarsym(symlist[i])
+                  sym:=tfieldvarsym(currentsymlist[i])
                 end;
             end;
           if assigned(sym) then
