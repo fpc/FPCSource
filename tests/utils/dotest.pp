@@ -1405,9 +1405,15 @@ begin
       if Config.NeedLibrary then
         begin
           if RemoteShellNeedsExport then
-            execcmd:=execcmd+' LD_LIBRARY_PATH=.; export LD_LIBRARY_PATH;'
+            if CompilerTarget='darwin' then
+              execcmd:=execcmd+' DYLD_LIBRARY_PATH=.; export DYLD_LIBRARY_PATH;'
+            else
+              execcmd:=execcmd+' LD_LIBRARY_PATH=.; export LD_LIBRARY_PATH;'
           else
-            execcmd:=execcmd+' setenv LD_LIBRARY_PATH=.; ';
+            if CompilerTarget='darwin' then
+              execcmd:=execcmd+' setenv DYLD_LIBRARY_PATH=.; '
+            else
+              execcmd:=execcmd+' setenv LD_LIBRARY_PATH=.; '
         end;
 
 

@@ -409,8 +409,7 @@ implementation
           end;
 
         { both are int constants }
-        if (
-            (
+        if  (
              is_constintnode(left) and
              is_constintnode(right)
             ) or
@@ -422,7 +421,7 @@ implementation
             (
              is_constenumnode(left) and
              is_constenumnode(right) and
-             allowenumop(nodetype))
+             (allowenumop(nodetype) or (nf_internal in flags))
             ) or
             (
              (lt = pointerconstn) and
@@ -2140,7 +2139,7 @@ implementation
          { enums }
          else if (ld.typ=enumdef) and (rd.typ=enumdef) then
           begin
-            if allowenumop(nodetype) then
+            if allowenumop(nodetype) or (nf_internal in flags) then
               inserttypeconv(right,left.resultdef)
             else
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
