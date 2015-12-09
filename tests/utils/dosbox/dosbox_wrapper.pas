@@ -115,6 +115,9 @@ begin
     Process.Executable := ADosBoxBinaryPath;
     Process.Parameters.Add('-conf');
     Process.Parameters.Add(ADosBoxDir + 'dosbox.conf');
+{$ifdef MSWINDOWS}
+    Process.ShowWindow := swoHIDE;
+{$endif MSWINDOWS}
     Process.Execute;
     repeat
       Inc(Time);
