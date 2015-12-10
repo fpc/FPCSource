@@ -24,7 +24,7 @@ programs=dbdigest dbconfig
 [prerules]
 
 ifneq ($(findstring dosbox_wrapper,$(EMULATOR)),)
-  MSDOSPROG=dosbox/dosbox_wrapper$(SRCEXEEXT)
+  MSDOSPROG=dosbox/dosbox_wrapper
 else
   MSDOSPROG=
 endif
