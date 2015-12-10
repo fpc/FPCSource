@@ -2238,8 +2238,8 @@ function UCS4StringToWideString(const s : UCS4String) : WideString;
 
 {$ifndef FPC_HAS_BUILTIN_WIDESTR_MANAGER}
 const
-  SNoUnicodestrings = 'This binary has no unicodestrings support compiled in.';
-  SRecompileWithUnicodestrings = 'Recompile the application with a unicodestrings-manager in the program uses clause.';
+  SNoUnicodestrings = 'This binary has no string conversion support compiled in.';
+  SRecompileWithUnicodestrings = 'Recompile the application with a unit that installs a unicodestring manager in the program uses clause.';
 
 procedure unimplementedunicodestring;
   begin
