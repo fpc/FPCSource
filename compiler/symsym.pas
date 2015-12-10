@@ -2412,7 +2412,8 @@ implementation
                new(pguid(value.valueptr));
                ppufile.getdata(value.valueptr^,sizeof(tguid));
              end;
-           constnil : ;
+           constnil :
+             ppufile.getderef(constdefderef);
            else
              Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
          end;
