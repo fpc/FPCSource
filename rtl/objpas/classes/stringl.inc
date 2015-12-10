@@ -708,8 +708,8 @@ Procedure TStrings.AddStrings(TheStrings: TStrings);
 Var Runner : longint;
 
 begin
+  beginupdate;
   try
-    beginupdate;
     For Runner:=0 to TheStrings.Count-1 do
       self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
   finally
@@ -815,8 +815,8 @@ Var
   Str : String;
 
 begin
+  beginUpdate;
   Try
-    beginUpdate;
     Obj:=Objects[Index1];
     Str:=Strings[Index1];
     Objects[Index1]:=Objects[Index2];
@@ -923,8 +923,8 @@ Var
   I,BufDelta     : Longint;
 begin
   // reread into a buffer
+  beginupdate;
   try
-    beginupdate;
     Buffer:='';
     BufLen:=0;
     I:=1;
