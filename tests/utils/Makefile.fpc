@@ -13,7 +13,7 @@ fpcdir=../..
 nortl=y
 
 [target]
-programs=dotest fptime fail testfail digest concat $(DBDIGEST)
+programs=dotest fptime fail testfail digest concat $(DBDIGEST) $(MSDOSPROG)
 programs_win32=prepup
 programs_win64=prepup
 programs_go32v2=prepup
@@ -21,12 +21,20 @@ programs_go32v2=prepup
 [clean]
 programs=dbdigest dbconfig
 
+[prerules]
+
+ifneq ($(findstring dosbox_wrapper,$(EMULATOR)),)
+  MSDOSPROG=dosbox/dosbox_wrapper$(SRCEXEEXT)
+else
+  MSDOSPROG=
+endif
+
 [rules]
 .NOTPARALLEL:
 
 utils: all
 
-dosbox_wrapper$(SRCEXEEXT): dosbox/dosbox_wrapper.pas  
+dosbox/dosbox_wrapper$(SRCEXEEXT): dosbox/dosbox_wrapper.pas  
 	$(COMPILER) -FE./dosbox $<
 
 utilsdb:
