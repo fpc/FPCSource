@@ -114,6 +114,9 @@ implementation
                   { don't export generics or their nested types }
                   if df_generic in def.defoptions then
                     exit;
+                  { for cross unit type aliases this might happen }
+                  if def.owner<>tsymtable(arg) then
+                    exit;
                   def.symtable.symlist.foreachcall(@exportabstractrecordsymproc,def.symtable);
                 end;
             end;
@@ -159,6 +162,9 @@ implementation
                 begin
                   def:=tabstractrecorddef(ttypesym(sym).typedef);
                   if def.is_generic then
+                    exit;
+                  { for cross unit type aliases this might happen }
+                  if def.owner<>tsymtable(arg) then
                     exit;
                   def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
                   if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
