@@ -1637,7 +1637,7 @@ SysCall MOS_DOSBase 348;
 
 function VFPrintf(fh      : BPTR location 'd1';
                   format  : PChar   location 'd2';
-                  argarray: Pointer location 'd3'): LongInt;
+                  argarray: PLongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 354;
 
 function dosFlush(fh: BPTR location 'd1'): LongInt;
@@ -2085,8 +2085,7 @@ procedure VWritef(format: PChar; argv: Pointer); Inline;
   * }
 
 function CreateNewProcTags(tags: array of dword): PProcess; Inline;
-
-
+function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
 
 implementation
 
@@ -2156,6 +2155,11 @@ end;
 function CreateNewProcTags(tags: array of DWord): PProcess; Inline;
 begin
   CreateNewProcTags:=CreateNewProc(@tags);
+end;
+
+function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
+begin
+  AllocDosObjectTags := AllocDosObject(type1, @Tags);
 end;
 
 

@@ -1767,7 +1767,7 @@ Type
  tDrawInfo = record
     dri_Version : Word;    { will be  DRI_VERSION                 }
     dri_NumPens : Word;    { guaranteed to be >= numDrIPens       }
-    dri_Pens    : Pointer;  { pointer to pen array                 }
+    dri_Pens    : PWord;  { pointer to pen array                 }
 
     dri_Font    : pTextFont;      { screen default font          }
     dri_Depth   : Word;            { (initial) depth of screen bitmap     }
@@ -4466,6 +4466,11 @@ function ITEMNUM( n : Word): Word;
 function MENUNUM( n : Word): Word;
 function SUBNUM( n : Word): Word;
 
+function SetAttrs(object1 : POINTER; tags : array of dword) : CARDINAL; inline;
+function SetGadgetAttrs(gadget:  pGadget; window : pWindow; requester : pRequester; tags : array of dword) : CARDINAL; inline;
+function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT; inline;
+procedure SetWindowPointer(win : pWindow; tags: array of DWord); inline;
+
 {
 FUNCTION DisplayAlert(alertNumber : Cardinal;string_ : string; height : Cardinal) : BOOLEAN;
 FUNCTION LockPubScreen(name : string) : pScreen;
@@ -4667,6 +4672,25 @@ begin
 end;
 }
 
+function SetAttrs(object1 : POINTER; tags : array of dword) : CARDINAL; inline;
+begin
+  SetAttrs := SetAttrsA(object1, @tags);
+end;
+
+function SetGadgetAttrs(gadget:  pGadget; window : pWindow; requester : pRequester; tags : array of dword) : CARDINAL; inline;
+begin
+  SetGadgetAttrs := SetGadgetAttrsA(gadget, window, requester, @tags);
+end;
+
+function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT; inline;
+begin
+  EasyRequest := EasyRequestArgs(window, easystruct, idcmpptr, @args);
+end;
+
+procedure SetWindowPointer(win : pWindow; tags: array of DWord); inline;
+begin
+  SetWindowPointerA(win, @tags);
+end;
 
 const
   { Change VERSION and LIBVERSION to proper values }

@@ -2704,15 +2704,18 @@ procedure ON_SPRITE (cust: pCustom);
 procedure OFF_VBLANK (cust: pCustom);
 procedure ON_VBLANK (cust: pCustom);
 
+procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt); inline;
+function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
+
 function RasSize(w, h: Word): Integer;
+
+function ObtainBestPen(cm : pColorMap; r, g, b: CARDINAL; Tags: array of DWord) : LongInt; inline;
+function BestModeID(Tags: array of DWord) : CARDINAL; inline;
 
 { unit/library initialization }
 function InitGraphicsLibrary : boolean;
 
-
-
 implementation
-
 
 procedure BNDRYOFF (w: pRastPort);
 begin
@@ -2807,6 +2810,26 @@ end;
 function RasSize(w, h: Word): Integer; inline;
 begin
   RasSize := h * (((w + 15) shr 3) and $FFFE);
+end;
+
+procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt); inline;
+begin
+  DrawEllipse(Rp, xCenter, yCenter, r, r);
+end;
+
+function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
+begin
+  AreaCircle := AreaEllipse(Rp, xCenter, yCenter, r, r);
+end;
+
+function ObtainBestPen(cm : pColorMap; r, g, b: CARDINAL; Tags: array of DWord) : LongInt;
+begin
+  ObtainBestPen := ObtainBestPenA(cm, r, g, b, @Tags);
+end;
+
+function BestModeID(Tags: array of DWord) : CARDINAL;
+begin
+  BestModeID := BestModeIDA(@Tags);
 end;
 
 const

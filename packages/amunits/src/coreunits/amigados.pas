@@ -1639,7 +1639,7 @@ FUNCTION FindSegment(const name : pCHAR location 'd1';const seg : pSegment locat
 FUNCTION FindVar(const name : pCHAR location 'd1'; type_ : ULONG location 'd2') : pLocalVar; syscall _DOSBase 918;
 FUNCTION Format(const filesystem : pCHAR location 'd1';const volumename : pCHAR location 'd2'; dostype : ULONG location 'd3') : LongBool; syscall _DOSBase 714;
 FUNCTION FPutC(fh : BPTR location 'd1'; ch : LONGINT location 'd2') : LONGINT; syscall _DOSBase 312;
-FUNCTION FPuts(fh : BPTR location 'd1';const str : pCHAR location 'd2') : LongBool; syscall _DOSBase 342;
+FUNCTION FPuts(fh : BPTR location 'd1';const str : pCHAR location 'd2') : LongInt; syscall _DOSBase 342;
 FUNCTION FRead(fh : BPTR location 'd1'; block : POINTER location 'd2'; blocklen : ULONG location 'd3'; number : ULONG location 'd4') : LONGINT; syscall _DOSBase 324;
 PROCEDURE FreeArgs(args : pRDArgs location 'd1'); syscall _DOSBase 858;
 PROCEDURE FreeDeviceProc(dp : pDevProc location 'd1'); syscall _DOSBase 648;
@@ -1730,9 +1730,9 @@ PROCEDURE UnLock(lock : BPTR location 'd1'); syscall _DOSBase 090;
 PROCEDURE UnLockDosList(flags : ULONG location 'd1'); syscall _DOSBase 660;
 FUNCTION UnLockRecord(fh : BPTR location 'd1'; offset : ULONG location 'd2'; length : ULONG location 'd3') : LongBool; syscall _DOSBase 282;
 FUNCTION UnLockRecords(recArray : pRecordLock location 'd1') : LongBool; syscall _DOSBase 288;
-FUNCTION VFPrintf(fh : BPTR location 'd1';const format : pCHAR location 'd2';const argarray : POINTER location 'd3') : LONGINT; syscall _DOSBase 354;
+FUNCTION VFPrintf(fh : BPTR location 'd1';const format : pCHAR location 'd2';const argarray : PLongInt location 'd3') : LONGINT; syscall _DOSBase 354;
 PROCEDURE VFWritef(fh : BPTR location 'd1';const format : pCHAR location 'd2';const argarray : pLONGINT location 'd3'); syscall _DOSBase 348;
-FUNCTION VPrintf(const format : pCHAR location 'd1'; const argarray : POINTER location 'd2') : LONGINT; syscall _DOSBase 954;
+FUNCTION VPrintf(const format : pCHAR location 'd1'; const argarray : PLongInt location 'd2') : LONGINT; syscall _DOSBase 954;
 FUNCTION WaitForChar(file_ : BPTR location 'd1'; timeout : LONGINT location 'd2') : LongBool; syscall _DOSBase 204;
 FUNCTION WaitPkt : pDosPacket; syscall _DOSBase 252;
 FUNCTION WriteChars(const buf : pCHAR location 'd1'; buflen : ULONG location 'd2') : LONGINT; syscall _DOSBase 942;
@@ -1772,7 +1772,7 @@ FUNCTION FindVar(const name : string; type_ : ULONG) : pLocalVar;
 FUNCTION Format(const filesystem : string;const volumename : pCHAR; dostype : ULONG) : BOOLEAN;
 FUNCTION Format(const filesystem : pCHAR;const volumename : string; dostype : ULONG) : BOOLEAN;
 FUNCTION Format(const filesystem : string;const volumename : string; dostype : ULONG) : BOOLEAN;
-FUNCTION FPuts(fh : LONGINT;const str : string) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : string) : LongInt;
 FUNCTION GetDeviceProc(const name : string; dp : pDevProc) : pDevProc;
 FUNCTION GetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
 FUNCTION Inhibit(const name : string; onoff : LONGINT) : BOOLEAN;
@@ -1974,7 +1974,7 @@ begin
     Format := Format(PChar(RawByteString(filesystem)),PChar(RawByteString(volumename)),dostype);
 end;
 
-FUNCTION FPuts(fh : LONGINT;const str : string) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : string) : LongInt;
 begin
     FPuts := FPuts(fh,PChar(RawByteString(str)));
 end;

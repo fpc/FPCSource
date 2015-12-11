@@ -1793,7 +1793,7 @@ Type
  tDrawInfo = record
     dri_Version : Word;    { will be  DRI_VERSION                 }
     dri_NumPens : Word;    { guaranteed to be >= numDrIPens       }
-    dri_Pens    : Pointer;  { pointer to pen array                 }
+    dri_Pens    : PWord;  { pointer to pen array                 }
 
     dri_Font    : pTextFont;      { screen default font          }
     dri_Depth   : Word;            { (initial) depth of screen bitmap     }
@@ -4081,7 +4081,7 @@ PROCEDURE ChangeWindowBox(window : pWindow location 'a0'; left : LONGINT locatio
 FUNCTION ClearDMRequest(window : pWindow location 'a0') : LongBool; syscall _IntuitionBase 048;
 PROCEDURE ClearMenuStrip(window : pWindow location 'a0'); syscall _IntuitionBase 054;
 PROCEDURE ClearPointer(window : pWindow location 'a0'); syscall _IntuitionBase 060;
-PROCEDURE CloseScreen(screen : pScreen location 'a0'); syscall _IntuitionBase 066;
+function CloseScreen(screen : pScreen location 'a0'): LongBool; syscall _IntuitionBase 066;
 PROCEDURE CloseWindow(window : pWindow location 'a0'); syscall _IntuitionBase 072;
 FUNCTION CloseWorkBench : LongBool; syscall _IntuitionBase 078;
 PROCEDURE CurrentTime(VAR seconds : ULONG location 'a0'; VAR micros : ULONG location 'a1'); syscall _IntuitionBase 084;
