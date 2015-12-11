@@ -1895,10 +1895,10 @@ function CompareDates(date1: PDateStamp location 'd1';
                       date2: PDateStamp location 'd2'): LongInt;
 SysCall MOS_DOSBase 738;
 
-function DateToStr(datetime: _PDateTime location 'd1'): LongBool;
+function DOSDateToStr(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 744;
 
-function StrToDate(datetime: _PDateTime location 'd1'): LongBool;
+function DOSStrToDate(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 750;
 
 function InternalLoadSeg(fh           : BPTR location 'd0';

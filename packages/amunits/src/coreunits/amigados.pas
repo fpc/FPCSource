@@ -327,8 +327,8 @@ CONST
 
 {--------- String/Date structures etc }
 Type
-       pDateTime = ^tDateTime;
-       tDateTime = record
+       _pDateTime = ^_tDateTime;
+       _tDateTime = record
         dat_Stamp   : tDateStamp;      { DOS DateStamp }
         dat_Format,                    { controls appearance of dat_StrDate }
         dat_Flags   : Byte;           { see BITDEF's below }
@@ -1597,7 +1597,7 @@ FUNCTION CreateNewProcTagList(const tags : pTagItem location 'd1') : pProcess; s
 FUNCTION CreateProc(const name : pCHAR location 'd1'; pri : LONGINT location 'd2'; segList : BPTR location 'd3'; stackSize : LONGINT location 'd4') : pMsgPort; syscall _DOSBase 138;
 FUNCTION CurrentDir(lock : BPTR location 'd1') : BPTR; syscall _DOSBase 126;
 PROCEDURE DateStamp(date : pDateStamp location 'd1'); syscall _DOSBase 192;
-FUNCTION DateToStr(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 744;
+FUNCTION DOSDateToStr(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 744;
 FUNCTION DOSDeleteFile(const name : pCHAR location 'd1') : LongBool; syscall _DOSBase 072;
 FUNCTION DeleteVar(const name : pCHAR location 'd1'; flags : ULONG location 'd2') : LongBool; syscall _DOSBase 912;
 FUNCTION DeviceProc(const name : pCHAR location 'd1') : pMsgPort; syscall _DOSBase 174;
@@ -1720,7 +1720,7 @@ FUNCTION SetVar(const name : pCHAR location 'd1'; buffer : pCHAR location 'd2'; 
 FUNCTION SetVBuf(fh : BPTR location 'd1'; buff : pCHAR location 'd2'; type_ : LONGINT location 'd3'; size : LONGINT location 'd4') : LongBool; syscall _DOSBase 366;
 FUNCTION SplitName(const name : pCHAR location 'd1'; seperator : ULONG location 'd2'; buf : pCHAR location 'd3'; oldpos : LONGINT location 'd4'; size : LONGINT location 'd5') : smallint; syscall _DOSBase 414;
 FUNCTION StartNotify(notify : pNotifyRequest location 'd1') : LongBool; syscall _DOSBase 888;
-FUNCTION StrToDate(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 750;
+FUNCTION DOSStrToDate(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 750;
 FUNCTION StrToLong(const string_ : pCHAR location 'd1'; VAR value : LONGINT location 'd2') : LONGINT; syscall _DOSBase 816;
 FUNCTION SystemTagList(const command : pCHAR location 'd1';const tags : pTagItem location 'd2') : LONGINT; syscall _DOSBase 606;
 FUNCTION DOSSystem(const command : pCHAR location 'd1';const tags : pTagItem location 'd2') : LONGINT; syscall _DOSBase 606;
