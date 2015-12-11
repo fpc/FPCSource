@@ -1059,7 +1059,7 @@ Type
 { ======================================================================== }
 
 Type
-
+    pScreen = ^tScreen;
     pWindow = ^tWindow;
     tWindow = record
         NextWindow      : pWindow;      { for the linked list in a screen }
@@ -1089,7 +1089,7 @@ Type
 
         ReqCount        : smallint;        { count of reqs blocking Window }
 
-        WScreen         : Pointer;      { this Window's Screen }
+        WScreen         : PScreen;      { this Window's Screen }
         RPort           : pRastPort;  { this Window's very own RastPort }
 
     { the border variables describe the window border.   If you specify
@@ -1192,6 +1192,72 @@ Type
     {**** Data beyond this point are Intuition Private.  DO NOT USE ****}
 
     end;
+
+{ ======================================================================== }
+{ === Screen ============================================================= }
+{ ======================================================================== }
+
+    tScreen = record
+        NextScreen      : pScreen;      { linked list of screens }
+        FirstWindow     : pWindow;      { linked list Screen's Windows }
+
+        LeftEdge,
+        TopEdge         : smallint;        { parameters of the screen }
+        Width,
+        Height          : smallint;        { parameters of the screen }
+
+        MouseY,
+        MouseX          : smallint;        { position relative to upper-left }
+
+        Flags           : Word;        { see definitions below }
+
+        Title           : PChar;       { null-terminated Title text }
+        DefaultTitle    : PChar;       { for Windows without ScreenTitle }
+
+    { Bar sizes for this Screen and all Window's in this Screen }
+        BarHeight,
+        BarVBorder,
+        BarHBorder,
+        MenuVBorder,
+        MenuHBorder     : Shortint;
+        WBorTop,
+        WBorLeft,
+        WBorRight,
+        WBorBottom      : Shortint;
+
+        Font            : pTextAttr;  { this screen's default font       }
+
+    { the display data structures for this Screen (note the prefix S)}
+        ViewPort        : tViewPort;     { describing the Screen's display }
+        RastPort        : tRastPort;     { describing Screen rendering      }
+        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
+        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
+
+    { You supply a linked-list of Gadgets for your Screen.
+     *  This list DOES NOT include system Gadgets.  You get the standard
+     *  system Screen Gadgets by default
+     }
+
+        FirstGadget     : pGadget;
+
+        DetailPen,
+        BlockPen        : Byte;         { for bar/border/gadget rendering }
+
+    { the following variable(s) are maintained by Intuition to support the
+     * DisplayBeep() color flashing technique
+     }
+        SaveColor0      : Word;
+
+    { This layer is for the Screen and Menu bars }
+        BarLayer        : pLayer;
+
+        ExtData         : Pointer;
+        UserData        : Pointer;
+                        { general-purpose pointer to User data extension }
+    {**** Data below this point are SYSTEM PRIVATE ****}
+
+    end;
+
 
 CONST
 { --- Flags requested at OpenWindow() time by the application --------- }
@@ -1818,73 +1884,6 @@ CONST
  PEN_C1        =  $FEFE;          { Complement of color 1 }
  PEN_C0        =  $FEFF;          { Complement of color 0 }
 
-{ ======================================================================== }
-{ === Screen ============================================================= }
-{ ======================================================================== }
-
-Type
-
-    pScreen = ^tScreen;
-    tScreen = record
-        NextScreen      : pScreen;      { linked list of screens }
-        FirstWindow     : pWindow;      { linked list Screen's Windows }
-
-        LeftEdge,
-        TopEdge         : smallint;        { parameters of the screen }
-        Width,
-        Height          : smallint;        { parameters of the screen }
-
-        MouseY,
-        MouseX          : smallint;        { position relative to upper-left }
-
-        Flags           : Word;        { see definitions below }
-
-        Title           : PChar;       { null-terminated Title text }
-        DefaultTitle    : PChar;       { for Windows without ScreenTitle }
-
-    { Bar sizes for this Screen and all Window's in this Screen }
-        BarHeight,
-        BarVBorder,
-        BarHBorder,
-        MenuVBorder,
-        MenuHBorder     : Shortint;
-        WBorTop,
-        WBorLeft,
-        WBorRight,
-        WBorBottom      : Shortint;
-
-        Font            : pTextAttr;  { this screen's default font       }
-
-    { the display data structures for this Screen (note the prefix S)}
-        ViewPort        : tViewPort;     { describing the Screen's display }
-        RastPort        : tRastPort;     { describing Screen rendering      }
-        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
-        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
-
-    { You supply a linked-list of Gadgets for your Screen.
-     *  This list DOES NOT include system Gadgets.  You get the standard
-     *  system Screen Gadgets by default
-     }
-
-        FirstGadget     : pGadget;
-
-        DetailPen,
-        BlockPen        : Byte;         { for bar/border/gadget rendering }
-
-    { the following variable(s) are maintained by Intuition to support the
-     * DisplayBeep() color flashing technique
-     }
-        SaveColor0      : Word;
-
-    { This layer is for the Screen and Menu bars }
-        BarLayer        : pLayer;
-
-        ExtData         : Pointer;
-        UserData        : Pointer;
-                        { general-purpose pointer to User data extension }
-    {**** Data below this point are SYSTEM PRIVATE ****}
-
-    end;
 
 Const
 
