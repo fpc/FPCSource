@@ -356,11 +356,12 @@ type
     addr: PPointer;
     data: Pointer;
   end;
+  PPWStrInitEntry = ^PWStrInitEntry;
 
   PWStrInitTablesTable = ^TWStrInitTablesTable;
   TWStrInitTablesTable = packed record
     count  : {$ifdef VER2_6}longint{$else}sizeint{$endif};
-    tables : packed array [1..32767] of PWStrInitEntry;
+    tables : packed array [1..32767] of {$ifndef ver2_6}PPWStrInitEntry{$else}PWStrInitEntry{$endif};
   end;
 
 {$if not(defined(VER2_2) or defined(VER2_4))}
@@ -686,7 +687,7 @@ procedure InitWin32Widestrings;
     { assign initial values to global Widestring typed consts }
     for i:=1 to WStrInitTablesTable^.count do
       begin
-        ptable:=WStrInitTablesTable^.tables[i];
+        ptable:=WStrInitTablesTable^.tables[i]{$ifndef ver2_6}^{$endif};
         while Assigned(ptable^.addr) do
           begin
             fpc_widestr_assign(ptable^.addr^, ptable^.data);

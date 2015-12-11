@@ -328,10 +328,11 @@ Type
      Addr: PPointer;
      Data: PResourceStringRecord;
    end;
+   PPResStrInitEntry = ^PResStrInitEntry;
 
    TResStrInitTable = packed record
      Count: {$ifdef VER2_6}longint{$else}sizeint{$endif};
-     Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
+     Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of {$ifndef ver2_6}PPResStrInitEntry{$else}PResStrInitEntry{$endif};
    end;
    PResStrInitTable = ^TResStrInitTable;
 
@@ -350,7 +351,7 @@ var
 begin
   for i:=1 to ResStrInitTable^.Count do
     begin
-      ptable:=ResStrInitTable^.Tables[i];
+      ptable:=ResStrInitTable^.Tables[i]{$ifndef ver2_6}^{$endif};
       while Assigned(ptable^.Addr) do
         begin
           AnsiString(ptable^.Addr^):=ptable^.Data^.CurrentValue;
