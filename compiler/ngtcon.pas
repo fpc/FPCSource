@@ -461,7 +461,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       var
         strlength : aint;
         strval    : pchar;
-        strch     : char;
         ll        : tasmlabofs;
         ca        : pchar;
         winlike   : boolean;
@@ -470,7 +469,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         strval:='';
         { load strval and strlength of the constant tree }
         if (node.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(node) or
-          ((node.nodetype=typen) and is_interfacecorba(ttypenode(node).typedef)) then
+          ((node.nodetype=typen) and is_interfacecorba(ttypenode(node).typedef)) or
+          is_constcharnode(node) then
           begin
             { convert to the expected string type so that
               for widestrings strval is a pcompilerwidestring }
@@ -496,14 +496,6 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if not codegenerror then
                   CGMessage(parser_e_widestring_to_ansi_compile_time);
               end;
-          end
-        else if is_constcharnode(node) then
-          begin
-            { strval:=pchar(@tordconstnode(node).value);
-              THIS FAIL on BIG_ENDIAN MACHINES PM }
-            strch:=chr(tordconstnode(node).value.svalue and $ff);
-            strval:=@strch;
-            strlength:=1
           end
         else if is_constresourcestringnode(node) then
           begin
