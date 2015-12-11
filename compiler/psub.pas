@@ -2071,7 +2071,7 @@ implementation
           begin
             pd.forwarddef:=true;
             { set also the interface flag, for better error message when the
-              implementation doesn't much this header }
+              implementation doesn't match this header }
             pd.interfacedef:=true;
             include(pd.procoptions,po_global);
             pdflags:=[pd_interface];

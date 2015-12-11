@@ -86,10 +86,10 @@ interface
 
     procedure insert_record_hidden_paras(astruct: trecorddef);
 
-    { helper functions - they insert nested objects hierarcy to the symtablestack
+    { helper functions - they insert nested objects hierarchy to the symtablestack
       with object hierarchy
     }
-    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function push_child_hierarchy(obj:tabstractrecorddef):integer;
     function pop_child_hierarchy(obj:tabstractrecorddef):integer;
     function push_nested_hierarchy(obj:tabstractrecorddef):integer;
     function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
@@ -125,7 +125,7 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function push_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
       begin
@@ -153,7 +153,7 @@ implementation
         result:=0;
         if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
           inc(result,push_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
-        inc(result,push_child_hierarcy(obj));
+        inc(result,push_child_hierarchy(obj));
       end;
 
     function pop_child_hierarchy(obj:tabstractrecorddef):integer;
@@ -1600,7 +1600,7 @@ implementation
             parse_record_proc_directives(result);
 
             { since records have no inheritance, don't allow non-static
-              class methods. Selphi does the same. }
+              class methods. Delphi does the same. }
             if (result.proctypeoption<>potype_operator) and
                is_classdef and
                not (po_staticmethod in result.procoptions) then
