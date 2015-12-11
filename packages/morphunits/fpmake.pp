@@ -55,6 +55,7 @@ begin
     T:=P.Targets.AddUnit('diskfont.pas');
     T:=P.Targets.AddUnit('cybergraphics.pas');
     T:=P.Targets.AddUnit('cgxvideo.pas');
+    T:=P.Targets.AddUnit('gadtools.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

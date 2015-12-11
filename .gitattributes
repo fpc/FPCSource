@@ -5812,6 +5812,7 @@ packages/morphunits/src/cybergraphics.pas svneol=native#text/plain
 packages/morphunits/src/datatypes.pas svneol=native#text/plain
 packages/morphunits/src/diskfont.pas svneol=native#text/plain
 packages/morphunits/src/exec.pas svneol=native#text/plain
+packages/morphunits/src/gadtools.pas svneol=native#text/pascal
 packages/morphunits/src/get9.pas svneol=native#text/plain
 packages/morphunits/src/hardware.pas svneol=native#text/plain
 packages/morphunits/src/iffparse.pas svneol=native#text/plain
