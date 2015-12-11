@@ -48,7 +48,9 @@ implementation
     aasmbase,aasmdata,aasmtai,
     symtype,symconst,symsym,symdef,symbase,symtable,
     ppu,entfile,fpcp,
+    psub,pdecsub,
     ncgutil,
+    ogbase,
     export;
 
   procedure procexport(const s : string);
@@ -646,7 +648,11 @@ implementation
                       for k:=0 to tprocsym(psym).procdeflist.count-1 do
                         begin
                           pd:=tprocdef(tprocsym(psym).procdeflist[k]);
-                          if has_alias_name(pd,symname) then
+                          if has_alias_name(pd,symname) or
+                              (
+                                ([po_external,po_has_importdll]*pd.procoptions=[po_external,po_has_importdll]) and
+                                (symname=proc_get_importname(pd))
+                              ) then
                             begin
                               found:=true;
                               break;
@@ -717,6 +723,7 @@ implementation
           labind : tasmsymbol;
           pd : tprocdef;
           list : tasmlist;
+          centry : pcacheentry;
         begin
           for i:=0 to syms.count-1 do
             begin
@@ -766,7 +773,18 @@ implementation
                                 for l:=0 to tprocsym(sym).procdeflist.count-1 do
                                   begin
                                     pd:=tprocdef(tprocsym(sym).procdeflist[l]);
-                                    import_proc_symbol(pd,pkgentry^.package);
+                                    if [po_external,po_has_importdll]*pd.procoptions=[po_external,po_has_importdll] then
+                                      begin
+                                        { if we use an external procedure of another unit we
+                                          need to import it ourselves from the correct library }
+                                        import_external_proc(pd);
+                                        New(centry);
+                                        centry^.sym:=nil;
+                                        centry^.pkg:=pkgentry^.package;
+                                        cache.add(proc_get_importname(pd),centry);
+                                      end
+                                    else
+                                      import_proc_symbol(pd,pkgentry^.package);
                                   end;
                               end;
                             else
