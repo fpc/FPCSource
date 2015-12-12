@@ -133,18 +133,22 @@ end;
 Procedure FillChar(var x;count:SizeInt;value:byte);
 var
   pdest,pend : pbyte;
-  v : ptruint;
+  v : ALUUInt;
 begin
   if count <= 0 then
     exit;
   pdest:=@x;
   if Count>4*sizeof(ptruint)-1 then
     begin
+{$if sizeof(v)>=2}
       v:=(value shl 8) or value;
+{$endif sizeof(v)>=2}
+{$if sizeof(v)>=4}
       v:=(v shl 16) or v;
-{$ifdef CPU64}
+{$endif sizeof(v)>=4}
+{$if sizeof(v)=8}
       v:=(v shl 32) or v;
-{$endif CPU64}
+{$endif sizeof(v)=8}
       { Align on native pointer size }
       pend:=pbyte(align(pdest,sizeof(PtrUInt)));
       dec(count,pend-pdest);
@@ -177,17 +181,19 @@ procedure fillword(var x;count : SizeInt;value : word);
 var
   aligncount : sizeint;
   pdest,pend : pword;
-  v : ptruint;
+  v : ALUUInt;
 begin
   if count <= 0 then
     exit;
   pdest:=@x;
   if Count>4*sizeof(ptruint)-1 then
     begin
+{$if sizeof(v)>=4}
       v:=(value shl 16) or value;
-{$ifdef CPU64}
+{$endif sizeof(v)>=4}
+{$if sizeof(v)=8}
       v:=(v shl 32) or v;
-{$endif CPU64}
+{$endif sizeof(v)=8}
       { Align on native pointer size }
       aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 1;
       dec(count,aligncount);
@@ -221,7 +227,7 @@ procedure filldword(var x;count : SizeInt;value : dword);
 var
   aligncount : sizeint;
   pdest,pend : pdword;
-  v : ptruint;
+  v : ALUUInt;
 begin
   if count <= 0 then
     exit;
@@ -229,9 +235,9 @@ begin
   if Count>4*sizeof(ptruint)-1 then
     begin
       v:=value;
-{$ifdef CPU64}
+{$if sizeof(v)=8}
       v:=(v shl 32) or v;
-{$endif CPU64}
+{$endif sizeof(v)=8}
       { Align on native pointer size }
       aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 2;
       dec(count,aligncount);
