@@ -661,6 +661,7 @@
 'aesdeclast',
 'aesimc',
 'aeskeygenassist',
+'rdtscp',
 'stosq',
 'lodsq',
 'cmpsq',

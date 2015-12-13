@@ -8534,6 +8534,13 @@
     flags   : if_sse4 or if_sb or if_ar2
   ),
   (
+    opcode  : A_RDTSCP;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #3#15#1#249;
+    flags   : if_sse4 or if_sm
+  ),
+  (
     opcode  : A_STOSQ;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
