@@ -81,6 +81,9 @@ endif
 ifeq ($(SUBARCH),armv7a)
 CPU_UNITS=allwinner_a20
 endif
+ifeq ($(CPU_UNITS),)
+$(error Invalid value set for SUBARCH)
+endif
 endif
 
 ifeq ($(ARCH),avr)
@@ -116,17 +119,26 @@ endif
 ifeq ($(SUBARCH),avr6)
 CPU_UNITS=atmega2561 atmega2560
 endif
+ifeq ($(CPU_UNITS),)
+$(error Invalid value set for SUBARCH)
+endif
 endif
 
 ifeq ($(ARCH),i386)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=multiboot
+ifeq ($(CPU_UNITS),)
+$(error Invalid value set for SUBARCH)
+endif
 endif
 
 ifeq ($(ARCH),mipsel)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
   CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
+endif
+ifeq ($(CPU_UNITS),)
+$(error Invalid value set for SUBARCH)
 endif
 endif
 
