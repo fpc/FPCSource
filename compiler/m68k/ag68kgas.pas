@@ -176,7 +176,7 @@ interface
               for i:=RS_FP0 to RS_FP7 do
                 begin
                   if i in o.fpuregset^ then
-                   hs:=hs+gas_regname(newreg(R_FPUREGISTER,i,R_SUBWHOLE))+'/';
+                   hs:=hs+gas_regname(newreg(R_FPUREGISTER,i,R_SUBNONE))+'/';
                 end;
               delete(hs,length(hs),1);
               getopstr := hs;
@@ -204,19 +204,20 @@ interface
                   hs:=o.ref^.symbol.name
                 else
                   hs:='';
-                  if o.ref^.offset>0 then
-                   hs:=hs+'+'+tostr(o.ref^.offset)
-                  else
-                   if o.ref^.offset<0 then
+                if o.ref^.offset>0 then
+                  hs:=hs+'+'+tostr(o.ref^.offset)
+                else
+                  if o.ref^.offset<0 then
                     hs:=hs+tostr(o.ref^.offset)
                   else
-                   if not(assigned(o.ref^.symbol)) then
-                     hs:=hs+'0';
+                    if not(assigned(o.ref^.symbol)) then
+                      hs:=hs+'0';
                 getopstr_jmp:=hs;
               end;
           top_const:
             getopstr_jmp:=tostr(o.val);
-          else internalerror(200405022);
+          else 
+            internalerror(200405022);
         end;
       end;
 
@@ -228,35 +229,24 @@ interface
     function getopcodestring(hp : tai) : string;
       var
         op : tasmop;
-        s : string;
       begin
         op:=taicpu(hp).opcode;
         { old versions of GAS don't like PEA.L and LEA.L }
         if (op in [
-         A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
-         A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
-         A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
-         A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
-         s:=gas_op2str[op]
+          A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
+          A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
+          A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
+          A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
+          result:=gas_op2str[op]
         else
-        if op in [A_SXX, A_FSXX] then
-         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
+        { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
+        if op in [A_SXX, A_FSXX, A_DBXX, A_DBRA] then
+          result:=gas_op2str[op]+cond2str[taicpu(hp).condition]
         else
-        { size of DBRA is always WORD, doesn't need opsize (KB) }
-        if op = A_DBRA then
-         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
+        if op in [a_bxx,a_fbxx] then
+          result:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
-        if op in [a_dbxx,a_bxx,a_fbxx] then
-         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
-        else
-         s:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
-        if op = A_FMOVE then
-          begin
-{$ifdef DEBUG_CHARLIE}
-            writeln('fmove! opsize:',dword(taicpu(hp).opsize));
-{$endif DEBUG_CHARLIE}
-          end;
-        getopcodestring:=s;
+          result:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
       end;
 
 
