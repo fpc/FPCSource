@@ -448,14 +448,14 @@ type
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
                  (oper[1]^.typ=top_reg) and
-                 (oper[0]^.reg=oper[1]^.reg)
+                 (isregoverlap(oper[0]^.reg,oper[1]^.reg))
                 ) or
                 (((opcode=A_MOVE) or (opcode=A_EXG) or (opcode=A_MOVEA)) and
                  (regtype = R_ADDRESSREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
                  (oper[1]^.typ=top_reg) and
-                 (oper[0]^.reg=oper[1]^.reg)
+                 (isregoverlap(oper[0]^.reg,oper[1]^.reg))
                 ) or
                 ((opcode=A_FMOVE) and
                  (regtype = R_FPUREGISTER) and
