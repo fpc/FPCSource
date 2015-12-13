@@ -205,8 +205,7 @@ const
     function tm68kmotreader.is_register(const s:string):boolean;
       begin
         result:=false;
-        // FIX ME!!! '%'+ is ugly, needs a proper fix (KB)
-        actasmregister:=gas_regnum_search('%'+lower(s));
+        actasmregister:=std_regnum_search(lower(s));
         if actasmregister<>NR_NO then
           begin
             result:=true;
