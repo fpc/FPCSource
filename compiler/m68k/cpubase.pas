@@ -115,7 +115,6 @@ unit cpubase;
       {$i r68ksup.inc}
       RS_SP = RS_A7;
 
-      { ? whatever... }
       R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
@@ -137,8 +136,8 @@ unit cpubase;
 
       maxfpuregs = 8;
 
-{ TODO: FIX BSSTART}
-      regnumber_count_bsstart = 16;
+      { include regnumber_count_bsstart }
+      {$i r68kbss.inc}
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i r68knum.inc}
@@ -357,6 +356,7 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
     function isintregister(reg : tregister) : boolean;
+    function isregoverlap(reg1: tregister; reg2: tregister): boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -511,16 +511,23 @@ implementation
       end;
 
 
-    function isaddressregister(reg : tregister) : boolean;
+    function isaddressregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=getregtype(reg)=R_ADDRESSREGISTER;
       end;
 
-    function isintregister(reg : tregister) : boolean;
+    function isintregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=getregtype(reg)=R_INTREGISTER;
       end;
 
+    // the function returns true, if the registers overlap (subreg of the same superregister and same type)
+    function isregoverlap(reg1: tregister; reg2: tregister): boolean;
+      begin
+        tregisterrec(reg1).subreg:=R_SUBNONE;
+        tregisterrec(reg2).subreg:=R_SUBNONE;
+        result:=reg1=reg2;
+      end;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
