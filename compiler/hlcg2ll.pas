@@ -1026,7 +1026,6 @@ implementation
 {$else}
                hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
 {$endif}
-               cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
              end
             else
              hregister:=cg.getintregister(list,OS_32);
