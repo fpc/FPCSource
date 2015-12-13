@@ -373,6 +373,7 @@ compiler/m68k/n68kcnv.pas svneol=native#text/plain
 compiler/m68k/n68kinl.pas svneol=native#text/plain
 compiler/m68k/n68kmat.pas svneol=native#text/plain
 compiler/m68k/n68kmem.pas svneol=native#text/plain
+compiler/m68k/r68kbss.inc svneol=native#text/plain
 compiler/m68k/r68kcon.inc svneol=native#text/plain
 compiler/m68k/r68kgas.inc svneol=native#text/plain
 compiler/m68k/r68kgri.inc svneol=native#text/plain
