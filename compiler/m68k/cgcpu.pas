@@ -1960,11 +1960,11 @@ unit cgcpu;
               end;
 
         if uses_registers(R_FPUREGISTER) then
-          for r:=low(saved_address_registers) to high(saved_address_registers) do
+          for r:=low(saved_fpu_registers) to high(saved_fpu_registers) do
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
                 inc(fsize,12{sizeof(extended)});
-                hfreg:=newreg(R_FPUREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBWHOLE);
                 { Allocate register so the optimizer does not remove the load }
                 a_reg_alloc(list,hfreg);
                 fpuregs:=fpuregs + [saved_fpu_registers[r]];
