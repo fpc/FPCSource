@@ -227,7 +227,7 @@ implementation
                  end;
              end;
            else
-             internalerror(200402021);
+             { nothing to prefetch };
          end;
        end;
 

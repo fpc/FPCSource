@@ -983,6 +983,7 @@ implementation
                 { Give a note when the unit is not referenced, skip
                   this is for units with an initialization/finalization }
                 if (unitmap[pu.u.moduleid].refs=0) and
+                   pu.in_uses and
                    ((pu.u.flags and (uf_init or uf_finalize))=0) then
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
