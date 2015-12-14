@@ -310,7 +310,9 @@ unit aoptcpu;
 
   function TCpuAsmOptimizer.TryRemoveMovToRefIndex(var p: tai; next: taicpu): boolean;
     begin
-      result:=(next.oper[1]^.typ=top_ref) and
+      result:=(next.ops>1) and
+        (next.oper[1]^.typ=top_ref) and
+        (next.oper[1]^.ref^.refaddr<>addr_full) and
         (next.oper[1]^.ref^.base=taicpu(p).oper[0]^.reg) and
         (not RegModifiedBetween(taicpu(p).oper[1]^.reg,p,next)) and
         Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next)));
