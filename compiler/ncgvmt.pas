@@ -246,9 +246,9 @@ implementation
            writestrentry(list,p^.l);
 
          { write name label }
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          list.concat(Tai_const.Create_sym(p^.nl));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          list.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
@@ -271,11 +271,11 @@ implementation
 
          { now start writing of the message string table }
          current_asmdata.getlabel(result,alt_data);
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          list.concat(Tai_label.Create(result));
-         list.concat(cai_align.create(const_align(sizeof(longint))));
+         list.concat(cai_align.create(sizeof(longint)));
          list.concat(Tai_const.Create_32bit(count));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          if assigned(root) then
            begin
               writestrentry(list,root);
@@ -290,9 +290,9 @@ implementation
            writeintentry(list,p^.l);
 
          { write name label }
-         list.concat(cai_align.create(const_align(sizeof(longint))));
+         list.concat(cai_align.create(sizeof(longint)));
          list.concat(Tai_const.Create_32bit(p^.data.messageinf.i));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          list.concat(Tai_const.Createname(p^.data.mangledname,AT_FUNCTION,0));
 
          if assigned(p^.r) then
@@ -312,12 +312,12 @@ implementation
 
          { now start writing of the message string table }
          current_asmdata.getlabel(r,alt_data);
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          list.concat(Tai_label.Create(r));
          genintmsgtab:=r;
-         list.concat(cai_align.create(const_align(sizeof(longint))));
+         list.concat(cai_align.create(sizeof(longint)));
          list.concat(Tai_const.Create_32bit(count));
-         list.concat(cai_align.create(const_align(sizeof(pint))));
+         list.concat(cai_align.create(sizeof(pint)));
          if assigned(root) then
            begin
               writeintentry(list,root);

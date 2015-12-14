@@ -163,6 +163,10 @@ implementation
        exit;
 
       case left.location.loc of
+        LOC_SUBSETREG,
+        LOC_CSUBSETREG,
+        LOC_SUBSETREF,
+        LOC_CSUBSETREF,
         LOC_CREFERENCE,
         LOC_REFERENCE,
         LOC_REGISTER,

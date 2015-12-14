@@ -110,6 +110,10 @@ implementation
          if (opsize in [OS_64,OS_S64]) then
            opsize:=OS_32;
 {$endif not cpu64bitalu}
+
+        if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER :
               begin

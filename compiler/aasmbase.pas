@@ -197,7 +197,7 @@ interface
     function EncodeUleb128(a: qword;out buf) : byte;
     function EncodeSleb128(a: int64;out buf) : byte;
 
-    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
+    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
 
     { dummy default noop callback }
     procedure default_global_used;
@@ -348,7 +348,7 @@ implementation
       end;
 
 
-    function ReplaceForbiddenAsmSymbolChars(const s: string): string;
+    function ReplaceForbiddenAsmSymbolChars(const s: ansistring): ansistring;
       var
         i : longint;
         rchar: char;

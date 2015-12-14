@@ -314,6 +314,10 @@ implementation
 
          { Load left node into flag F_NE/F_E }
          resflags:=F_NE;
+
+         if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+           hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
          case left.location.loc of
             LOC_CREFERENCE,
             LOC_REFERENCE :
