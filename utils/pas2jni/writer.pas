@@ -1542,18 +1542,19 @@ begin
       WriteClassInfoVar(d);
 
       Fps.WriteLn;
-      Fps.WriteLn('procedure _TMethodPtrInfo_Init(env: PJNIEnv; _self, JavaObj: JObject; AMethodName, AMethodSig: jstring);' + JniCaliing);
+      Fps.WriteLn('procedure _TMethodPtrInfo_Init(env: PJNIEnv; _self, JavaObj: JObject; AMethodName, AMethodSig: jstring; IncRef: jboolean);' + JniCaliing);
       Fps.WriteLn('var mpi: _TMethodPtrInfo;');
       Fps.WriteLn('begin');
       Fps.IncI;
       EHandlerStart;
       Fps.WriteLn('mpi:=_TMethodPtrInfo.Create(env, JavaObj, ansistring(_StringFromJString(env, AMethodName)), ansistring(_StringFromJString(env, AMethodSig)));');
+      Fps.WriteLn('if IncRef <> 0 then InterlockedIncrement(mpi.RefCnt);');
       Fps.WriteLn(Format('env^^.SetLongField(env, _self, %s.ObjFieldId, Int64(ptruint(mpi)));', [GetTypeInfoVar(d)]));
       EHandlerEnd('env');
       Fps.DecI;
       Fps.WriteLn('end;');
 
-      AddNativeMethod(d, '_TMethodPtrInfo_Init', '__Init', Format('(Ljava/lang/Object;%s%s)V', [JNITypeSig[btString], JNITypeSig[btString]]));
+      AddNativeMethod(d, '_TMethodPtrInfo_Init', '__Init', Format('(Ljava/lang/Object;%s%sZ)V', [JNITypeSig[btString], JNITypeSig[btString]]));
 
       Fps.WriteLn;
       Fps.WriteLn('procedure _TMethodPtrInfo_Release(env: PJNIEnv; _self: JObject);' + JniCaliing);
@@ -1570,12 +1571,12 @@ begin
       Fjs.WriteLn;
       Fjs.WriteLn('public static class MethodPtr extends PascalObjectEx {');
       Fjs.IncI;
-      Fjs.WriteLn('private native void __Init(Object Obj, String MethodName, String MethodSignature);');
+      Fjs.WriteLn('private native void __Init(Object Obj, String MethodName, String MethodSignature, boolean IncRef);');
       Fjs.WriteLn('private native void __Destroy();');
       Fjs.WriteLn('protected Object mObject;');
       Fjs.WriteLn('protected String mName;');
       Fjs.WriteLn('protected String mSignature;');
-      Fjs.WriteLn('protected void Init() { __Init(mObject, mName, mSignature); }');
+      Fjs.WriteLn('protected void Init() { __Init(mObject, mName, mSignature, this != mObject); }');
       Fjs.WriteLn('protected MethodPtr() { _cleanup=true; _pasobj=-1; }');
       Fjs.WriteLn('public void __Release() { if (_pasobj > 0) __Destroy(); }');
       Fjs.DecI;
@@ -2481,10 +2482,9 @@ begin
     Fps.WriteLn('_MethodPointersCS.Enter;');
     Fps.WriteLn('try');
     Fps.IncI;
-    Fps.WriteLn('Dec(Index);');
-    Fps.WriteLn('_MethodPointers[Index]:=nil;');
-    Fps.WriteLn('Index:=Length(_MethodPointers);');
-    Fps.WriteLn('while (Index > 0) and (_MethodPointers[Index] = nil) do Dec(Index);');
+    Fps.WriteLn('_MethodPointers[Index-1]:=nil;');
+    Fps.WriteLn('Index:=High(_MethodPointers);');
+    Fps.WriteLn('while (Index >= 0) and (_MethodPointers[Index] = nil) do Dec(Index);');
     Fps.WriteLn('SetLength(_MethodPointers, Index + 1);');
     Fps.WriteLn('finally', -1);
     Fps.WriteLn('_MethodPointersCS.Leave;');
