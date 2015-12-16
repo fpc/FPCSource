@@ -168,6 +168,7 @@ unit cgcpu;
     procedure tcgx86_64.g_proc_entry(list : TAsmList;localsize:longint;nostackframe:boolean);
       var
         hitem: tlinkedlistitem;
+        seh_proc: tai_seh_directive;
         r: integer;
         href: treference;
         templist: TAsmList;
@@ -291,7 +292,11 @@ unit cgcpu;
         if not (pi_has_unwind_info in current_procinfo.flags) then
           exit;
         { Generate unwind data for x86_64-win64 }
-        list.insertafter(cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname),hitem);
+        seh_proc:=cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname);
+        if assigned(hitem) then
+          list.insertafter(seh_proc,hitem)
+        else
+          list.insert(seh_proc);
         templist:=TAsmList.Create;
 
         { We need to record postive offsets from RSP; if registers are saved
