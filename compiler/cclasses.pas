@@ -2924,7 +2924,7 @@ end;
         i: Integer;
         e, n: PHashSetItem;
       begin
-        p := AllocMem(NewCapacity * SizeOfItem);
+        p := AllocMem(NewCapacity * SizeOf(PHashSetItem));
         for i := 0 to FBucketCount-1 do
           begin
             e := FBucket[i];

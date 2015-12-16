@@ -155,7 +155,7 @@ begin
          end;
        end;
     end;
-  OutStream := TFileStream.Create(Project.OutputFileName, fmCreate, fmOpenWrite);
+  OutStream := TFileStream.Create(Project.OutputFileName, fmCreate);
   Project.WriteChm(OutStream);
   if Project.ScanHtmlContents then
     Project.ShowUndefinedAnchors;

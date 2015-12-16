@@ -2137,7 +2137,8 @@ implementation
             cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
             { overloaded operators require calls, which is not possible inside
               a constant declaration }
-            if block_type<>bt_const then
+            if (block_type<>bt_const) and
+               not(nf_internal in flags) then
               include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
@@ -2551,8 +2552,12 @@ implementation
             end;
           typeconvn:
             begin
-              n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
+              { may change the type conversion, e.g. if the old conversion was
+                from 64 bit to a 64 bit, and now becomes 64 bit to 32 bit }
+              n.resultdef:=nil;
+              ttypeconvnode(n).convtype:=tc_none;
+              typecheckpass(n);
             end;
           else
             inserttypeconv_internal(n,todef);

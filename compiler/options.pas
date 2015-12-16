@@ -2644,6 +2644,7 @@ begin
                if (s='WRITE') then
                 begin
                   Delete(opts,1,1);
+                  DefaultReplacements(opts);
                   WriteLn(opts);
                   Option_read:=true;
                 end
@@ -2651,6 +2652,7 @@ begin
                if (s='INCLUDE') then
                 begin
                   Delete(opts,1,1);
+                  DefaultReplacements(opts);
                   Interpret_file(opts);
                   Option_read:=true;
                 end

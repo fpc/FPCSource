@@ -3347,6 +3347,12 @@ implementation
       begin
         { this function will always terminate the lineinfo block }
         generated_lineinfo := true;
+        { if this unit only contains code without debug info (implicit init
+          or final etc), make sure the file table contains at least one entry
+          (the main source of the unit), because normally this table gets
+          populated via calls to get_file_index and that won't happen in this
+          case }
+        get_file_index(current_module.sourcefiles.get_file(1));
         FillChar(lastfileinfo,sizeof(lastfileinfo),0);
         currfuncname:=nil;
         currsectype:=sec_code;

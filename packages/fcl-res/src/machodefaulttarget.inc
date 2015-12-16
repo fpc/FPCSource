@@ -26,6 +26,9 @@
   {$IFDEF CPUX86_64}
   fMachineType:=mmtx86_64;
   {$ENDIF}
+  {$IFDEF CPUARM}
+  fMachineType:=mmtarm;
+  {$ENDIF}
 
   fBits:=MACH_ERRBIT;
   {$IFDEF CPU32}

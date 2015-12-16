@@ -324,17 +324,33 @@ _restvr_31: addi r12,r0,-16
  * Main program entry point for dynamic executables.
  *
  * r7 contains the function pointer that needs to be registered for calling at exit.
+ * r3/r4/r5 contain argc/argv/envp
  */
 FUNCTION_PROLOG _dynamic_start
   LOAD_64BIT_VAL 11, __dl_fini
   std      7,0(11)
-  LOAD_64BIT_VAL 11, _start
-  /* do not bother loading the actual function address of _start. We can directly jump to it */
-  /* set up GOT pointer from original start function */
+  LOAD_64BIT_VAL 11, PASCALMAIN
+  /* set up GOT pointer from PASCALMAIN */
   ld       2,8(11)
   /* and environment pointer */
   ld      11,16(11)
-  b       _start
+  /* store argument count */
+  LOAD_64BIT_VAL 10,operatingsystem_parameter_argc
+  stw     3,0(10)
+  /* store argument address */
+  LOAD_64BIT_VAL 10,operatingsystem_parameter_argv
+  std     4,0(10)
+  /* store environment pointer */
+  std     5,0(10)
+
+  LOAD_64BIT_VAL 8,__stkptr
+  std     1,0(8)
+
+  bl      PASCALMAIN
+  nop
+
+  /* we should not reach here. Crash horribly */
+  trap
 .long 0
 .byte 0, 12, 64, 0, 0, 0, 0, 0
 

@@ -782,7 +782,8 @@ begin
   derefdatalen:=ppufile.entrysize;
   if derefdatalen=0 then
     begin
-      WriteError('!! Error: derefdatalen=0');
+      Writeln(['No Derefdata length=0']);
+      derefdata:=nil;
       exit;
     end;
   Writeln(['Derefdata length: ',derefdatalen]);
