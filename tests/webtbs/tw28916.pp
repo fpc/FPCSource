@@ -4,7 +4,7 @@ program Project1;
 {$mode delphi}
 {$asmmode intel}
 
-function RDTSCP: Int64; assembler;
+function RDTSCP: Int64; assembler; nostackframe;
 asm
   RDTSCP
 end;
