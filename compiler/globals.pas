@@ -272,8 +272,6 @@ interface
        autoloadunits      : string;
 
        { linking }
-       usegnubinutils : boolean;
-       forceforwardslash : boolean;
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
