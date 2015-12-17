@@ -1439,7 +1439,7 @@ void                  \324\1\x61                      186,NOX86_64
 
 [POPF]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \327\1\x9D                      186,NOX86_64
+void                  \327\1\x9D                      8086,NOX86_64
 void                  \326\1\x9D                      X86_64
 
 [POPFD,popfl]
@@ -1448,7 +1448,7 @@ void                  \325\1\x9D                      386,NOX86_64
 
 [POPFW]
 (Ch_RWESP, Ch_WFLAGS, Ch_None)
-void                  \324\1\x9D                      186,NOX86_64
+void                  \324\1\x9D                      8086,NOX86_64
 void                  \1\x9D                          X86_64
 
 [POPFQ]
@@ -1626,7 +1626,7 @@ void                  \324\1\x60                      186,NOX86_64
 
 [PUSHF]
 (Ch_RWESP, Ch_RFlags, Ch_None)
-void                  \327\1\x9C                      186
+void                  \327\1\x9C                      8086
 
 [PUSHFD,pushfl]
 (Ch_RWESP, Ch_RFlags, Ch_None)
@@ -1634,7 +1634,7 @@ void                  \325\1\x9C                      386,NOX86_64
 
 [PUSHFW]
 (Ch_RWESP, Ch_RFLAGS, Ch_None)
-void                  \324\1\x9C                      186
+void                  \324\1\x9C                      8086
 
 [PUSHFQ]
 (Ch_RWESP, Ch_RFlags, Ch_None)

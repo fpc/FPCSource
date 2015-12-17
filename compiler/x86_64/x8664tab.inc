@@ -4436,14 +4436,14 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #215#1#156;
-    flags   : if_186
+    flags   : if_8086
   ),
   (
     opcode  : A_PUSHFW;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #212#1#156;
-    flags   : if_186
+    flags   : if_8086
   ),
   (
     opcode  : A_PUSHFQ;
