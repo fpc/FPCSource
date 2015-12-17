@@ -1315,7 +1315,7 @@ implementation
           begin
             include(flags,pi_do_call);
             { the main program never returns due to the do_exit call }
-            if not(DLLsource) then
+            if not(current_module.islibrary) then
               include(procdef.procoptions,po_noreturn);
           end;
 

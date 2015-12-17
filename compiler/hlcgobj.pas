@@ -4652,7 +4652,7 @@ implementation
           look up procdef, use hlcgobj.a_call_name()) }
 
       { call __EXIT for main program }
-      if (not DLLsource) and
+      if (not current_module.islibrary) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
         g_call_system_proc(list,'fpc_do_exit',[],nil);
     end;

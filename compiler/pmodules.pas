@@ -1977,7 +1977,6 @@ type
          i : Longint;
          sysinitmod: tmodule;
       begin
-         DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
          Status.IsExe:=true;
@@ -2448,7 +2447,7 @@ type
                  if not needsymbolinfo then
                    unloaded_units.Clear;
                  { finally we can create a executable }
-                 if DLLSource then
+                 if current_module.islibrary then
                    linker.MakeSharedLibrary
                  else
                    linker.MakeExecutable;

@@ -344,8 +344,6 @@ interface
        prop_auto_setter_prefix : string;
 
     const
-       DLLsource : boolean = false;
-
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
@@ -1362,7 +1360,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         codegenerror:=false;
-        DLLsource:=false;
 
         { Output }
         OutputFileName:='';

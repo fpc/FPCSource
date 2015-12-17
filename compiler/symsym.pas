@@ -1852,7 +1852,7 @@ implementation
           (owner.symtabletype=globalsymtable) or
           (create_smartlink and
            not(tf_smartlink_sections in target_info.flags)) or
-          DLLSource or
+          current_module.islibrary or
           (assigned(current_procinfo) and
            ((po_inline in current_procinfo.procdef.procoptions) or
             { globalasmsym is called normally before the body of a subroutine is parsed
