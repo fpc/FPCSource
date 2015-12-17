@@ -173,7 +173,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    procedure AddUnit(const s:string);
+    function AddUnit(const s:string): tppumodule;
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -193,6 +193,7 @@ implementation
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
+        result:=hp;
       end;
 
 
@@ -1974,6 +1975,7 @@ type
          textsym : ttypesym;
          sc : array of TProgramParam;
          i : Longint;
+         sysinitmod: tmodule;
       begin
          DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
@@ -2328,8 +2330,10 @@ type
          if target_info.system in systems_internal_sysinit then
          begin
            { add start/halt unit }
-           AddUnit(linker.sysinitunit);
-         end;
+           sysinitmod:=AddUnit(linker.sysinitunit);
+         end
+         else
+           sysinitmod:=nil;
 
 {$ifdef arm}
          { Insert .pdata section for arm-wince.
@@ -2419,13 +2423,18 @@ type
                  { write .def file }
                  if (cs_link_deffile in current_settings.globalswitches) then
                   deffile.writefile;
+                 { link SysInit (if any) first, to have behavior consistent with
+                   assembler startup files }
+                 if assigned(sysinitmod) then
+                   linker.AddModuleFiles(sysinitmod);
                  { insert all .o files from all loaded units and
                    unload the units, we don't need them anymore.
                    Keep the current_module because that is still needed }
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    linker.AddModuleFiles(hp);
+                    if (hp<>sysinitmod) then
+                      linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
