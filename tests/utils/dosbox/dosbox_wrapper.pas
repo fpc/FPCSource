@@ -177,7 +177,10 @@ begin
       Sleep(100);
     until not Process.Running;
     if Process.Running then
+    begin
+      Writeln('Timeout exceeded. Killing dosbox...');
       Process.Terminate(254);
+    end;
   finally
     Process.Free;
     EchoOutput;
