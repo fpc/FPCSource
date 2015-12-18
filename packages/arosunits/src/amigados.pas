@@ -2270,7 +2270,7 @@ function CreateNewProcTagList(const Tags: PTagItem): PProcess; syscall AOS_DOSBa
 function CreateProc(const Name: STRPTR; Pri: LongInt; SegList: BPTR; StackSize: LongInt): PMsgPort; syscall AOS_DOSBase 23;
 function CurrentDir(Lock: BPTR): BPTR; syscall AOS_DOSBase 21;
 function DateStamp(Date: PDateStamp): PDateStamp; syscall AOS_DOSBase 32;
-function DOSDateToStr(Datetime: PDateTime): LongBool; syscall AOS_DOSBase 124;
+function DOSDateToStr(Datetime: _PDateTime): LongBool; syscall AOS_DOSBase 124;
 function DOSDeleteFile(const Name: STRPTR): LongBool; syscall AOS_DOSBase 12;
 function DeleteVar(const Name: STRPTR; Flags: LongWord): LongInt; syscall AOS_DOSBase 152;
 function DeviceProc(const Name: STRPTR): PMsgPort; syscall AOS_DOSBase 29;
@@ -2396,7 +2396,7 @@ function SetVar(const Name: STRPTR; Buffer: PChar; Size: LongInt; Flags: LongInt
 function SetVBuf(File_: BPTR; Buff: STRPTR; Type_: LongInt; Size: LongInt): LongInt; syscall AOS_DOSBase 61;
 function SplitName(const Name: STRPTR; Seperator: LongWord; Buf: STRPTR; OldPos: LongInt; Size: LongInt): LongInt; syscall AOS_DOSBase 69;
 function StartNotify(Notify: PNotifyRequest): LongBool; syscall AOS_DOSBase 148;
-function DOSStrToDate(DateTime: PDateTime): LongBool; syscall AOS_DOSBase 125;
+function DOSStrToDate(DateTime: _PDateTime): LongBool; syscall AOS_DOSBase 125;
 function StrToLong(const String_: STRPTR; var Value: LongInt): LongInt; syscall AOS_DOSBase 136;
 function SystemTagList(const Command: STRPTR; const Tags: PTagItem): LongInt; syscall AOS_DOSBase 101;
 function DOSSystem(const Command: STRPTR; const Tags: PTagItem): LongInt; syscall AOS_DOSBase 101;
