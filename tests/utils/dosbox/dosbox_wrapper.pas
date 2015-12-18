@@ -143,8 +143,8 @@ var
   F: TextFile;
 begin
   AssignFile(F, ADosBoxDir + 'EXITCODE.TXT');
-  Reset(F);
   try
+    Reset(F);
     Readln(F, Result);
     if Result <> 0 then
       Writeln('ExitCode=',Result);
