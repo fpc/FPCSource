@@ -566,8 +566,8 @@ const
 type
   PMemChunk = ^TMemChunk;
   TMemChunk = packed record
-    nc_Next : PMemChunk;
-    nc_Bytes: DWord;
+    mc_Next : PMemChunk;
+    mc_Bytes: DWord;
   end;
 
 type
@@ -2457,41 +2457,41 @@ end;
 
 function REG_A0: Pointer; assembler; nostackframe;
 asm
-  lwz r3,32(r2) 
+  lwz r3,32(r2)
 end;
 
 function REG_A1: Pointer; assembler; nostackframe;
 asm
-  lwz r3,36(r2) 
+  lwz r3,36(r2)
 end;
 function REG_A2: Pointer; assembler; nostackframe;
 asm
-  lwz r3,40(r2) 
+  lwz r3,40(r2)
 end;
 
 function REG_A3: Pointer; assembler; nostackframe;
 asm
-  lwz r3,44(r2) 
+  lwz r3,44(r2)
 end;
 
 function REG_A4: Pointer; assembler; nostackframe;
 asm
-  lwz r3,48(r2) 
+  lwz r3,48(r2)
 end;
 
 function REG_A5: Pointer; assembler; nostackframe;
 asm
-  lwz r3,52(r2) 
+  lwz r3,52(r2)
 end;
 
 function REG_A6: Pointer; assembler; nostackframe;
 asm
-  lwz r3,56(r2) 
+  lwz r3,56(r2)
 end;
 
 function REG_A7: Pointer; assembler; nostackframe;
 asm
-  lwz r3,60(r2) 
+  lwz r3,60(r2)
 end;
 
 

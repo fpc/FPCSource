@@ -2086,6 +2086,7 @@ procedure VWritef(format: PChar; argv: Pointer); Inline;
 
 function CreateNewProcTags(tags: array of dword): PProcess; Inline;
 function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
+function SystemTags(command: PChar; Tags: array of DWord): LongInt; Inline;
 
 implementation
 
@@ -2162,6 +2163,10 @@ begin
   AllocDosObjectTags := AllocDosObject(type1, @Tags);
 end;
 
+function SystemTags(command: PChar; Tags: array of DWord): LongInt;
+begin
+  SystemTags := SystemTagList(Command, @Tags);
+end;
 
 begin
   DosBase:=MOS_DOSBase;
