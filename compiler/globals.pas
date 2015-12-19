@@ -742,10 +742,10 @@ implementation
      get the current time in a string HH:MM:SS
    }
       var
-        hour,min,sec,hsec : word;
+        st: TSystemTime;
       begin
-        DecodeTime(Time,hour,min,sec,hsec);
-        gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
+        GetLocalTime(st);
+        gettimestr:=L0(st.Hour)+':'+L0(st.Minute)+':'+L0(st.Second);
       end;
 
 
@@ -754,10 +754,10 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
-        Year,Month,Day: Word;
+        st: TSystemTime;
       begin
-        DecodeDate(Date,year,month,day);
-        getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
+        GetLocalTime(st);
+        getdatestr:=L0(st.Year)+'/'+L0(st.Month)+'/'+L0(st.Day);
       end;
 
 
@@ -785,10 +785,10 @@ implementation
 
    function getrealtime : real;
      var
-       h,m,s,s1000 : word;
+       st:TSystemTime;
      begin
-       DecodeTime(Time,h,m,s,s1000);
-       result:=h*3600.0+m*60.0+s+s1000/1000.0;
+       GetLocalTime(st);
+       result:=st.Hour*3600.0+st.Minute*60.0+st.Second+st.MilliSecond/1000.0;
      end;
 
 {****************************************************************************
