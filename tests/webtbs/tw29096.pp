@@ -10,6 +10,7 @@ program asm_bug;
 {$CODEALIGN VARMAX=1}
 {$CODEALIGN CONSTMIN=1}
 {$CODEALIGN CONSTMAX=1}
+{$PIC off}
 {$ENDIF}
 
 {$ALIGN 1}
@@ -117,7 +118,7 @@ ASM
   mov [c2] , 2
   mov [c1] , 1
   mov [c0] , 0
-end;
+end ['eax'];
    writeln(c0:3,c1:3,c2:3,c3:3, '    must be:[0 1 2 3] glo');  //___
    if (c0<>0) or
       (c1<>1) or
