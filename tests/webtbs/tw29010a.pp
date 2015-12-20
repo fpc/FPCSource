@@ -1,4 +1,7 @@
 { %cpu=i386 }
+{ %skiptarget=darwin}
+
+{ darwin is skipped because the stack must always be 16 byte aligned before a call }
 program tw29010a;
 
 {$ifdef fpc}
@@ -71,7 +74,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_dword
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word [global_proc]');
   asm
@@ -83,7 +86,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
   
   Writeln('testing push/pop word ptr global_proc');
   asm
@@ -95,7 +98,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr [global_proc]');
   asm
@@ -107,7 +110,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop global_word');
   asm
@@ -119,7 +122,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop global_longint');
   asm
@@ -131,7 +134,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_dword
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word [global_longint]');
   asm
@@ -143,7 +146,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr global_longint');
   asm
@@ -155,7 +158,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr [global_longint]');
   asm
@@ -167,7 +170,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 {$endif FPC_PIC}
 
   Writeln('testing push/pop local_proc');
@@ -180,7 +183,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_dword
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word [local_proc]');
   asm
@@ -192,7 +195,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr local_proc');
   asm
@@ -204,7 +207,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr [local_proc]');
   asm
@@ -216,7 +219,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop local_word');
   asm
@@ -228,7 +231,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop local_longint');
   asm
@@ -240,7 +243,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_dword
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word [local_longint]');
   asm
@@ -252,7 +255,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr local_longint');
   asm
@@ -264,7 +267,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 
   Writeln('testing push/pop word ptr [local_longint]');
   asm
@@ -276,7 +279,7 @@ begin
     mov [ebx + TEspStruct.esp_final], esp
     mov esp, [ebx + TEspStruct.esp_initial]
     call check_word
-  end;
+  end ['ebx'];
 end;
 
 begin
