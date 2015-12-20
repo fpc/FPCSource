@@ -117,7 +117,7 @@ implementation
       verbose,version,globals,cutils,constexp,
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmtai,aasmcnst,
-      symbase,symtable,defutil,
+      symbase,symtable,defutil,symcreat,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
       ppu,
       pass_1;
@@ -313,7 +313,8 @@ implementation
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
-      block: tnode;
+      block,
+      target: tnode;
       psym: tsym;
     begin
       result:=maybe_insert_trashing(pd,n);
@@ -383,6 +384,31 @@ implementation
                 end;
             end;
           end;
+        end;
+      if target_info.system in systems_fpnestedstruct then
+        begin
+          { if the funcretsym was moved to the parentfpstruct, move its value
+            back into the funcretsym now, as the code generator is hardcoded
+            to use the funcretsym when loading the value to be returned;
+            replacing it with an absolutevarsym that redirects to the field in
+            the parentfpstruct doesn't work, as the code generator cannot deal
+            with such symbols }
+          if assigned(pd.funcretsym) and
+             tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
+            begin
+              block:=internalstatements(stat);
+              addstatement(stat,result);
+              target:=cloadnode.create(pd.funcretsym,pd.funcretsym.owner);
+              { ensure the target of this assignment doesn't translate the
+                funcretsym also to its alias in the parentfpstruct }
+              include(target.flags,nf_internal);
+              addstatement(stat,
+                cassignmentnode.create(
+                  target,cloadnode.create(pd.funcretsym,pd.funcretsym.owner)
+                )
+              );
+              result:=block;
+            end;
         end;
     end;
 
