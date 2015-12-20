@@ -342,12 +342,7 @@ WININC=../win/wininc
 WINDIR=../win
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
-LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
-DLLS=
-else
 DLLS=fpcmemdll
-endif
 OBJPASDIR=$(RTL)/objpas
 include $(WININC)/makefile.inc
 WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
@@ -3053,10 +3048,6 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
-wprt0$(OEXT) : wprt0.as
-gprt0$(OEXT) : gprt0.as
-wdllprt0$(OEXT) : wdllprt0.as
-wcygprt0$(OEXT) : wcygprt0.as
 system$(PPUEXT) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp -Fi../win
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
