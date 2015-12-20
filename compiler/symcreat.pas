@@ -1184,9 +1184,23 @@ implementation
       nestedvarsst: tsymtable;
       initcode: tnode;
       old_filepos: tfileposinfo;
+      symname,
+      symrealname: TSymStr;
     begin
       nestedvarsdef:=tlocalvarsym(pd.parentfpstruct).vardef;
-      result:=search_struct_member(trecorddef(nestedvarsdef),sym.name);
+      { redirect all aliases for the function result also to the function
+        result }
+      if vo_is_funcret in tabstractvarsym(sym).varoptions then
+        begin
+          symname:='result';
+          symrealname:='$result'
+        end
+      else
+        begin
+          symname:=sym.name;
+          symrealname:=sym.realname;
+        end;
+      result:=search_struct_member(trecorddef(nestedvarsdef),symname);
       if not assigned(result) then
         begin
           { mark that this symbol is mirrored in the parentfpstruct }
@@ -1199,7 +1213,7 @@ implementation
             fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[],true);
+          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[],true);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
