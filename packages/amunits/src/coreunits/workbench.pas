@@ -867,15 +867,15 @@ FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppW
 FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 108;
 
 { overlays }
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
-PROCEDURE WBInfo(lock : BPTR; name : string; screen : pScreen);
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
+PROCEDURE WBInfo(lock : BPTR; const name : RawByteString; screen : pScreen);
 
-FUNCTION ChangeWorkbenchSelectionA(name : string; hook : pHook;const tags : pTagItem) : BOOLEAN;
-FUNCTION CloseWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
-FUNCTION MakeWorkbenchObjectVisibleA(name : string;const tags : pTagItem) : BOOLEAN;
-FUNCTION OpenWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
-FUNCTION WorkbenchControlA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION ChangeWorkbenchSelectionA(const name : RawByteString; hook : pHook; const tags : pTagItem) : BOOLEAN;
+FUNCTION CloseWorkbenchObjectA(const name : RawByteString; const tags : pTagItem) : BOOLEAN;
+FUNCTION MakeWorkbenchObjectVisibleA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+FUNCTION OpenWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 
 {Here we read how to compile this unit}
 {You can remove this include and use a define instead}
@@ -890,50 +890,49 @@ var
 
 IMPLEMENTATION
 
-uses
 {$ifndef dont_use_openlib}
-amsgbox,
+uses
+  amsgbox;
 {$endif dont_use_openlib}
-pastoc;
 
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
 begin
-       AddAppIconA := AddAppIconA(id,userdata,pas2c(text_),msgport,lock,diskobj,taglist);
+       AddAppIconA := AddAppIconA(id,userdata,PChar(text_),msgport,lock,diskobj,taglist);
 end;
 
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
 begin
-       AddAppMenuItemA := AddAppMenuItemA(id,userdata,pas2c(text_),msgport,taglist);
+       AddAppMenuItemA := AddAppMenuItemA(id,userdata,PChar(text_),msgport,taglist);
 end;
 
-PROCEDURE WBInfo(lock : BPTR; name : string; screen : pScreen);
+PROCEDURE WBInfo(lock : BPTR; const name : RawByteString; screen : pScreen);
 begin
-       WBInfo(lock,pas2c(name),screen);
+       WBInfo(lock,PChar(name),screen);
 end;
 
-FUNCTION ChangeWorkbenchSelectionA(name : string; hook : pHook;const tags : pTagItem) : BOOLEAN;
+FUNCTION ChangeWorkbenchSelectionA(const name : RawByteString; hook : pHook;const tags : pTagItem) : BOOLEAN;
 begin
-       ChangeWorkbenchSelectionA := ChangeWorkbenchSelectionA(pas2c(name),hook,tags);
+       ChangeWorkbenchSelectionA := ChangeWorkbenchSelectionA(PChar(name),hook,tags);
 end;
 
-FUNCTION CloseWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION CloseWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       CloseWorkbenchObjectA := CloseWorkbenchObjectA(pas2c(name),tags);
+       CloseWorkbenchObjectA := CloseWorkbenchObjectA(PChar(name),tags);
 end;
 
-FUNCTION MakeWorkbenchObjectVisibleA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION MakeWorkbenchObjectVisibleA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       MakeWorkbenchObjectVisibleA := MakeWorkbenchObjectVisibleA(pas2c(name),tags);
+       MakeWorkbenchObjectVisibleA := MakeWorkbenchObjectVisibleA(PChar(name),tags);
 end;
 
-FUNCTION OpenWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION OpenWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       OpenWorkbenchObjectA := OpenWorkbenchObjectA(pas2c(name),tags);
+       OpenWorkbenchObjectA := OpenWorkbenchObjectA(PChar(name),tags);
 end;
 
-FUNCTION WorkbenchControlA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       WorkbenchControlA := WorkbenchControlA(pas2c(name),tags);
+       WorkbenchControlA := WorkbenchControlA(PChar(name),tags);
 end;
 
 const
