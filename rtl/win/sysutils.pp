@@ -221,7 +221,7 @@ begin
         rc := WNetGetUniversalNameW (pwidechar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
       end;
     if rc = NO_ERROR then
-      Result := PRemoteNameInfo(buf)^.lpUniversalName
+      Result := PRemoteNameInfoW(buf)^.lpUniversalName
     else if rc = ERROR_NOT_CONNECTED then
       Result := filename
     else
