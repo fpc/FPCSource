@@ -7,6 +7,7 @@ const
   use_temp_dir : boolean = true;
   hide_execution : boolean = true;
   do_exit : boolean =true;
+  dosbox_timeout : integer = 15;  { 15 seconds by default }
 var
   OutputFileName : String;
 
@@ -156,8 +157,6 @@ begin
 end;
 
 procedure ExecuteDosBox(const ADosBoxBinaryPath, ADosBoxDir: string);
-const
-  Timeout = 10*15;  { 15 seconds }
 var
   Process: TProcess;
   Time: Integer = 0;
@@ -172,7 +171,7 @@ begin
     Process.Execute;
     repeat
       Inc(Time);
-      if (Time > Timeout) and do_exit then
+      if (Time > 10*dosbox_timeout) and do_exit then
         break;
       Sleep(100);
     until not Process.Running;
@@ -225,12 +224,18 @@ begin
       do_exit:=false;
       Writeln('do_exit set to false');
     end;
+  if GetEnvironmentVariable('DOSBOX_TIMEOUT')<>'' then
+    begin
+      dosbox_timeout:=StrToInt(GetEnvironmentVariable('DOSBOX_TIMEOUT'));
+      Writeln('dosbox_timeout set to ', dosbox_timeout, ' seconds');
+    end;
   if ParamCount = 0 then
   begin
     Writeln('Usage: ' + ParamStr(0) + ' <executable>');
     Writeln('Set DOSBOX_NO_TEMPDIR env variable to 1 to avoid using a temporary directory');
     Writeln('Set DOSBOX_NO_HIDE to avoid running dosbox in an hidden window');
     Writeln('Set DOSBOX_NO_EXIT to avoid exiting dosbox after test has been run');
+    Writeln('Set DOSBOX_TIMEOUT to set the timeout in seconds before killing the dosbox process, assuming the test has hanged');
     halt(1);
   end;
   DosBoxBinaryPath := GetEnvironmentVariable('DOSBOX');
