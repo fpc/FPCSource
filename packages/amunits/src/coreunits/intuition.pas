@@ -4189,9 +4189,9 @@ PROCEDURE ZipWindow(window : pWindow location 'a0'); syscall _IntuitionBase 504;
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 function SIZEOF_INSTANCE (cl: pIClass): Longint;
 function BASEOBJECT (o: p_Object): Pointer;
-function _OBJ(o: p_Object): p_Object;
-function __OBJECT (o: Pointer): p_Object;
-function OCLASS (o: Pointer): pIClass;
+function _OBJ(o: p_Object): p_Object; inline;
+function __OBJECT (o: Pointer): p_Object; inline;
+function OCLASS (o: Pointer): pIClass; inline;
 function SHIFTITEM (n: smallint): word;
 function SHIFTMENU (n: smallint): word;
 function SHIFTSUB (n: smallint): word;
@@ -4243,11 +4243,8 @@ begin
 end;
 
 function OCLASS (o: Pointer): pIClass; inline;
-var
-    obj: p_Object;
 begin
-    obj := p_Object(Longint(o) - sizeof(t_Object));
-    OCLASS := obj^.o_Class;
+    OCLASS := p_Object(o - sizeof(t_Object))^.o_Class;
 end;
 
 function SHIFTITEM (n: smallint): word; inline;

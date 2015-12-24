@@ -3367,9 +3367,9 @@ function Is_Children(Win: PWindow): Boolean;
 function INST_DATA(Cl: PIClass; O: P_Object): Pointer;
 function SIZEOF_INSTANCE(Cl: PIClass): LongInt;
 function BASEOBJECT(O: P_Object): Pointer;
-function _OBJ(O: Pointer): P_Object;
-function __OBJECT(O: Pointer): P_Object;
-function OCLASS(O: Pointer): PIClass;
+function _OBJ(O: Pointer): P_Object; inline;
+function __OBJECT(O: Pointer): P_Object; inline;
+function OCLASS(O: Pointer): PIClass; inline;
 function SHIFTITEM(N: SmallInt): Word;
 function SHIFTMENU(N: SmallInt): Word;
 function SHIFTSUB(N: SmallInt): Word;
@@ -3567,22 +3567,19 @@ begin
   BASEOBJECT := Pointer(PtrUInt(O) + SizeOf(T_Object));
 end;
 
-function _OBJ(O: Pointer): P_Object;
+function _OBJ(O: Pointer): P_Object; inline;
 begin
  _OBJ := P_Object(O);
 end;
 
-function __OBJECT(O: Pointer): P_Object;
+function __OBJECT(O: Pointer): P_Object; inline;
 begin
   __OBJECT := P_Object(PtrUInt(O) - SizeOf(T_Object))
 end;
 
-function OCLASS(O: Pointer): PIClass;
-var
-  Obj: P_Object;
+function OCLASS(O: Pointer): PIClass; inline;
 begin
-  Obj := P_Object(PtrUInt(O) - SizeOf(T_Object));
-  OCLASS := Obj^.o_Class;
+  OCLASS := P_Object(PtrUInt(O) - SizeOf(T_Object))^.o_Class;
 end;
 
 function SHIFTITEM(N: SmallInt): Word;
