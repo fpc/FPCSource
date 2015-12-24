@@ -2076,7 +2076,7 @@ function WriteChar(ch: Char): LongInt; Inline;
 function UnReadChar(ch: Char): LongInt; Inline;
 function ReadChars(buf: Pointer; num: LongInt): LongInt; Inline;
 function dosReadLn(buf: PChar; num: LongInt): PChar; Inline;
-function WriteStr(str: PChar): LongInt; Inline;
+function dosWriteStr(str: PChar): LongInt; Inline;
 procedure VWritef(format: PChar; argv: Pointer); Inline;
 
 
@@ -2120,9 +2120,9 @@ begin
   dosReadLn:=FGets(dosInput,buf,num);
 end;
 
-function WriteStr(str: PChar): LongInt; Inline;
+function dosWriteStr(str: PChar): LongInt; Inline;
 begin
-  WriteStr:=FPuts(dosOutput,str);
+  dosWriteStr:=FPuts(dosOutput,str);
 end;
 
 procedure VWritef(format: PChar; argv: Pointer); Inline;
