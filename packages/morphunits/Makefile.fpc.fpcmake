@@ -7,9 +7,9 @@ name=morphunits
 version=3.1.1
 
 [target]
-units= aboxlib agraphics ahi amigados asl clipboard datatypes exec get9 \
-       hardware inputevent intuition keymap kvm layers mui muihelper timer \
-       tinygl utility iffparse diskfont cybergraphics cgxvideo
+units= amigalib agraphics ahi amigados asl clipboard datatypes exec get9 \
+       hardware inputevent intuition keymap layers mui muihelper timer \
+       tinygl utility iffparse diskfont cybergraphics cgxvideo gadtools
 
 [compiler]
 includedir=src

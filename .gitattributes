@@ -5820,7 +5820,6 @@ packages/morphunits/src/iffparse.pas svneol=native#text/plain
 packages/morphunits/src/inputevent.pas svneol=native#text/plain
 packages/morphunits/src/intuition.pas svneol=native#text/plain
 packages/morphunits/src/keymap.pas svneol=native#text/plain
-packages/morphunits/src/kvm.pas svneol=native#text/plain
 packages/morphunits/src/layers.pas svneol=native#text/plain
 packages/morphunits/src/mui.pas svneol=native#text/plain
 packages/morphunits/src/muihelper.pas svneol=native#text/plain
