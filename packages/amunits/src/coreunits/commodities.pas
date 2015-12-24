@@ -234,7 +234,7 @@ FUNCTION ActivateCxObj(co : pCxObj location 'a0'; tru : LONGINT location 'd0') :
 PROCEDURE AddIEvents(events : pInputEvent location 'a0'); syscall CxBase 180;
 PROCEDURE AttachCxObj(headObj : pCxObj location 'a0'; co : pCxObj location 'a1'); syscall CxBase 084;
 PROCEDURE ClearCxObjError(co : pCxObj location 'a0'); syscall CxBase 072;
-FUNCTION CreateCxObj(typ : ULONG location 'd0'; arg1 : LONGINT location 'a1'; arg2 : LONGINT location 'a2') : pCxObj; syscall CxBase 030;
+FUNCTION CreateCxObj(typ : ULONG location 'd0'; arg1 : LONGINT location 'a0'; arg2 : LONGINT location 'a1') : pCxObj; syscall CxBase 030;
 FUNCTION CxBroker(nb : pNewBroker location 'a0'; error : pCxObj location 'd0') : pCxObj; syscall CxBase 036;
 FUNCTION CxMsgData(cxm : pCxMsg location 'a0') : POINTER; syscall CxBase 144;
 FUNCTION CxMsgID(cxm : pCxMsg location 'a0') : LONGINT; syscall CxBase 150;
