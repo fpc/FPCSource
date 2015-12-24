@@ -9,7 +9,8 @@ version=3.1.1
 [target]
 units= amigalib agraphics ahi amigados asl clipboard datatypes exec get9 \
        hardware inputevent intuition keymap layers mui muihelper timer \
-       tinygl utility iffparse diskfont cybergraphics cgxvideo gadtools
+       tinygl utility iffparse diskfont cybergraphics cgxvideo gadtools \
+       akeyboard input
 
 [compiler]
 includedir=src

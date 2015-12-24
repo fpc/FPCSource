@@ -34,6 +34,8 @@ begin
     T:=P.Targets.AddUnit('exec.pas');
     T:=P.Targets.AddUnit('timer.pas');
     T:=P.Targets.AddUnit('utility.pas');
+    T:=P.Targets.AddUnit('akeyboard.pas');
+    T:=P.Targets.AddUnit('input.pas');
     T:=P.Targets.AddUnit('intuition.pas');
     T:=P.Targets.AddUnit('agraphics.pas');
     T:=P.Targets.AddUnit('amigalib.pas');
