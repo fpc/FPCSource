@@ -362,14 +362,9 @@ begin
 end;
 
 function DoMethodA(obj : pObject_; msg : APTR): ulong;
-//var
-//    o : p_Object;
 begin
     if assigned(obj) then begin
-       //o := p_Object(obj);
-       DoMethodA := CallHookPkt(PHook(OCLASS(obj)), obj, msg);
-       //TODO: Investigate why this call crashes and the other work, both do the same in principle
-       //DoMethodA := CallHookPkt(@o^.o_Class^.cl_Dispatcher, obj,msg);
+       DoMethodA := CallHookPkt(@THook(OCLASS(obj)^.cl_Dispatcher), obj, msg);
     end else DoMethodA := 0;
 end;
 
