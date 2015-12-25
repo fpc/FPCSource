@@ -299,6 +299,7 @@ type
     protected
      procedure maybe_emit_tail_padding(def: tdef); virtual;
      function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel):tasmlabofs;
+     function get_dynstring_def_for_type(stringtype: tstringtype; winlikewidestring: boolean): tstringdef;
      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      { when building an anonymous record, we cannot immediately insert the
@@ -1280,6 +1281,21 @@ implementation
      end;
 
 
+   function ttai_typedconstbuilder.get_dynstring_def_for_type(stringtype: tstringtype; winlikewidestring: boolean): tstringdef;
+     begin
+       if stringtype=st_ansistring then
+         result:=tstringdef(cansistringtype)
+       else if (stringtype=st_unicodestring) or
+               ((stringtype=st_widestring) and
+                not winlikewidestring) then
+         result:=tstringdef(cunicodestringtype)
+       else if stringtype=st_widestring then
+         result:=tstringdef(cwidestringtype)
+       else
+         internalerror(2015122101);
+     end;
+
+
    procedure ttai_typedconstbuilder.begin_aggregate_internal(def: tdef; anonymous: boolean);
      var
        info: taggregateinformation;
@@ -1468,7 +1484,7 @@ implementation
 
    procedure ttai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
      begin
-       emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),charptrdef);
+       emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),get_dynstring_def_for_type(st,winlikewidestring));
      end;
 
 

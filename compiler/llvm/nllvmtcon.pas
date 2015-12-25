@@ -322,6 +322,7 @@ implementation
       srsym     : tsym;
       srsymtable: tsymtable;
       strrecdef : trecorddef;
+      strdef: tdef;
       offset: pint;
       field: tfieldvarsym;
       dataptrdef: tdef;
@@ -349,7 +350,10 @@ implementation
           field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
           { pointerdef to the string data array }
           dataptrdef:=cpointerdef.getreusable(field.vardef);
-          queue_init(charptrdef);
+          { the fields of the resourcestring record are declared as ansistring }
+          strdef:=get_dynstring_def_for_type(st,winlikewidestring);
+          queue_init(strdef);
+          queue_typeconvn(charptrdef,strdef);
           queue_subscriptn(strrecdef,field);
           queue_emit_asmsym(ll.lab,strrecdef);
         end

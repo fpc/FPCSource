@@ -147,8 +147,8 @@ uses
         tcb.maybe_begin_aggregate(resstrdef);
         namelab:=tcb.emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),getansistringcodepage);
         tcb.emit_string_offset(namelab,length(current_module.localsymtable.name^),st_ansistring,false,charpointertype);
-        tcb.emit_tai(tai_const.create_nil_dataptr,voidpointertype);
-        tcb.emit_tai(tai_const.create_nil_dataptr,voidpointertype);
+        tcb.emit_tai(tai_const.create_nil_dataptr,cansistringtype);
+        tcb.emit_tai(tai_const.create_nil_dataptr,cansistringtype);
         tcb.emit_ord_const(0,u32inttype);
         tcb.maybe_end_aggregate(resstrdef);
         current_asmdata.asmlists[al_resourcestrings].concatList(
