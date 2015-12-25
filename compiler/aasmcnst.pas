@@ -133,7 +133,6 @@ type
     private
      fnextfieldname: TIDString;
      function getcuroffset: asizeint;
-     function getfieldoffset(l: longint): asizeint;
      procedure setnextfieldname(AValue: TIDString);
     protected
      { type of the aggregate }
@@ -173,7 +172,6 @@ type
      property curfield: tfieldvarsym read fcurfield write fcurfield;
      property nextfield: tfieldvarsym read fnextfield write fnextfield;
      property nextfieldname: TIDString write setnextfieldname;
-     property fieldoffset[l: longint]: asizeint read getfieldoffset;
      property curoffset: asizeint read getcuroffset;
      property anonrecord: boolean read fanonrecord write fanonrecord;
    end;
@@ -489,15 +487,6 @@ implementation
       end;
 
 
-    function taggregateinformation.getfieldoffset(l: longint): asizeint;
-      var
-        field: tfieldvarsym;
-      begin
-        field:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[l]);
-        result:=field.fieldoffset;
-      end;
-
-
     procedure taggregateinformation.setnextfieldname(AValue: TIDString);
       begin
         if (fnextfieldname<>'') or
@@ -518,6 +507,7 @@ implementation
 
     function taggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
       var
+        sym: tsym;
         currentoffset,nextoffset: asizeint;
         i: longint;
       begin
@@ -546,14 +536,16 @@ implementation
               end
             else if fnextfieldname<>'' then
               internalerror(2015071501);
+            currentoffset:=curoffset;
             { find next field }
             i:=curindex;
             repeat
               inc(i);
-            until (tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym) and
-              not(sp_static in tsym(tabstractrecorddef(def).symtable.symlist[i]).symoptions);
-            nextoffset:=fieldoffset[i];
-            currentoffset:=curoffset;
+              sym:=tsym(tabstractrecorddef(def).symtable.symlist[i]);
+            until (sym.typ=fieldvarsym) and
+              not(sp_static in sym.symoptions);
+            curfield:=tfieldvarsym(sym);
+            nextoffset:=curfield.fieldoffset;
             curindex:=i;
           end;
         { need padding? }
