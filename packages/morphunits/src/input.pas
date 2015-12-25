@@ -14,7 +14,6 @@
 **********************************************************************}
 
 {$MODE FPC}
-{$PACKRECORDS 2}
 unit input;
 
 {
@@ -28,8 +27,8 @@ unit input;
 
 interface
 
-uses 
-  exec, utility;
+uses
+  exec;
 
 const
   IND_ADDHANDLER    = CMD_NONSTD + 0;
@@ -41,34 +40,6 @@ const
   IND_SETMTYPE      = CMD_NONSTD + 6;
   IND_SETMTRIG      = CMD_NONSTD + 7;
 
-type
-  TInputDeviceData = record
-    Device  : PChar;
-    unit_   : ULONG;
-    flags   : ULONG;
-  end;
-
-  {
-  * GetInputEventAttr(),SetInputEventAttr() attributes of functons that
-  * doesn't seem to exist.. !?
-  *
-  * This may be a mistake in the comment in the MorphOS SDK. Since
-  * InputEvents are BOOPSI objects in MorphOS, it's possible that you
-  * can use GetAttr/SetAttrs in theory..? 
-  * This is pending for answer by the MorphOS Team. (KB)
-  }
-const
-  INPUTEVENTATTR_TagBase    = TAG_USER + $8000000;
-  INPUTEVENTATTR_NEXTEVENT  = (INPUTEVENTATTR_TagBase + 0);
-  INPUTEVENTATTR_CLASS      = (INPUTEVENTATTR_TagBase + 1);
-  INPUTEVENTATTR_SUBCLASS   = (INPUTEVENTATTR_TagBase + 2);
-  INPUTEVENTATTR_CODE       = (INPUTEVENTATTR_TagBase + 3);
-  INPUTEVENTATTR_QUALIFIER  = (INPUTEVENTATTR_TagBase + 4);
-  INPUTEVENTATTR_X          = (INPUTEVENTATTR_TagBase + 5);
-  INPUTEVENTATTR_Y          = (INPUTEVENTATTR_TagBase + 6);
-  INPUTEVENTATTR_ADDR       = (INPUTEVENTATTR_TagBase + 7);
-  INPUTEVENTATTR_DOWNKEYS   = (INPUTEVENTATTR_TagBase + 8);
-  INPUTEVENTATTR_TIMESTAMP  = (INPUTEVENTATTR_TagBase + 9);
 
 var
   InputBase: pDevice;
