@@ -162,6 +162,8 @@ interface
 
          constructor create(st: tabstractrecordsymtable);
          destructor destroy; override;
+
+         property items[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
         private
          // generate the table
          procedure generate;
@@ -171,7 +173,6 @@ interface
          procedure addalignmentpadding(finalsize: aint);
          procedure buildmapping(variantstarts: tfplist);
          procedure buildtable(variantstarts: tfplist);
-         property items[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
        end;
 {$endif llvm}
 
