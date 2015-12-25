@@ -754,12 +754,7 @@ implementation
             tck_record:
               begin
                 writer.AsmWrite(defstr);
-                writer.AsmWrite(' ');
-                if (hp.def.typ in [objectdef,recorddef]) and
-                   (tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment) then
-                  writer.AsmWrite('<{')
-                else
-                  writer.AsmWrite('{');
+                writer.AsmWrite(' <{');
                 first:=true;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
@@ -769,11 +764,7 @@ implementation
                       first:=false;
                     WriteTypedConstData(p);
                   end;
-                if (hp.def.typ in [recorddef,objectdef]) and
-                   (tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment) then
-                  writer.AsmWrite('}>')
-                else
-                  writer.AsmWrite('}');
+                writer.AsmWrite('}>');
               end;
             tck_array:
               begin

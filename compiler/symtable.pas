@@ -1819,9 +1819,6 @@ implementation
         tmpsize: aint;
       begin
         case equivst.usefieldalignment of
-          C_alignment:
-            { default for llvm, don't add explicit padding }
-            symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
           bit_alignment:
             begin
               { curoffset: bit address after the previous field.      }
@@ -1857,7 +1854,7 @@ implementation
                     inc(curroffset,tobjectsymtable(tobjectdef(vardef).symtable).datasize*8);
                end;
             end
-          else
+          else if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
             begin
               { curoffset: address right after the previous field }
               while (fieldoffset>curroffset) do
@@ -1871,6 +1868,9 @@ implementation
               else
                 inc(curroffset,tobjectsymtable(tobjectdef(vardef).symtable).datasize);
             end
+          else
+            { default for llvm, don't add explicit padding }
+            symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
         end
       end;
 
@@ -1879,11 +1879,9 @@ implementation
       begin
         case equivst.usefieldalignment of
           { already correct in this case }
-          bit_alignment,
-          { handled by llvm }
-          C_alignment:
+          bit_alignment:
             ;
-          else
+          else if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
             begin
               { add padding fields }
               while (finalsize>curroffset) do

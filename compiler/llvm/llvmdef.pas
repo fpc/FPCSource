@@ -459,12 +459,12 @@ implementation
                 end
               else
                 begin
-                  encodedstr:=encodedstr+'{';
+                  encodedstr:=encodedstr+'<{';
                   { code pointer }
                   llvmaddencodedproctype(tabstractprocdef(def),'',lpd_procvar,encodedstr);
                   { data pointer (maybe todo: generate actual layout if
                     available) }
-                  encodedstr:=encodedstr+'*, i8*}';
+                  encodedstr:=encodedstr+'*, i8*}>';
                 end;
             end;
           objectdef :
@@ -535,13 +535,16 @@ implementation
         st: tllvmshadowsymtable;
         symdeflist: tfpobjectlist;
         i: longint;
+        nopacked: boolean;
       begin
         st:=tabstractrecordsymtable(def.symtable).llvmst;
         symdeflist:=st.symdeflist;
 
-        if tabstractrecordsymtable(def.symtable).usefieldalignment<>C_alignment then
-          encodedstr:=encodedstr+'<';
-        encodedstr:=encodedstr+'{ ';
+        nopacked:=df_llvm_no_struct_packing in def.defoptions;
+        if nopacked then
+          encodedstr:=encodedstr+'{ '
+        else
+          encodedstr:=encodedstr+'<{ ';
         if symdeflist.count>0 then
           begin
             i:=0;
@@ -563,9 +566,10 @@ implementation
                 inc(i);
               end;
           end;
-        encodedstr:=encodedstr+' }';
-        if tabstractrecordsymtable(def.symtable).usefieldalignment<>C_alignment then
-          encodedstr:=encodedstr+'>';
+        if nopacked then
+          encodedstr:=encodedstr+' }'
+        else
+          encodedstr:=encodedstr+' }>';
       end;
 
 
@@ -830,6 +834,7 @@ implementation
         result:=llvmgettemprecorddef(retdeflist,C_alignment,
           targetinfos[target_info.system]^.alignment.recordalignmin,
           targetinfos[target_info.system]^.alignment.maxCrecordalign);
+        include(result.defoptions,df_llvm_no_struct_packing);
       end;
 
 

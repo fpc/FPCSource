@@ -117,13 +117,14 @@ implementation
        fanonrecalignpos:=-1;
      end;
 
+
    function tllvmaggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
-    begin
-      result:=inherited;
-      { in case of C/ABI alignment, the padding gets added by LLVM }
-      if tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment then
-        result:=0;
-    end;
+     begin
+       result:=inherited;
+       { in case we let LLVM align, don't add padding ourselves }
+       if df_llvm_no_struct_packing in def.defoptions then
+         result:=0;
+     end;
 
 
    { tllvmtypedconstplaceholder }
@@ -301,10 +302,8 @@ implementation
 
   procedure tllvmtai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
     begin
-      { in case of C/ABI alignment, the padding gets added by LLVM }
-      if (is_record(def) or
-          is_object(def)) and
-         (tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment) then
+      { in case we let LLVM align, don't add padding ourselves }
+      if df_llvm_no_struct_packing in def.defoptions then
         exit;
       inherited;
     end;

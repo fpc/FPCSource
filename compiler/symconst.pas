@@ -219,6 +219,11 @@ type
       across units) -- never stored to ppu, because in that case the def would
       be registered }
     df_not_registered_no_free
+{$ifdef llvm}
+    { can't do this via symllvm because we have to access it in symtable }
+    ,
+    df_llvm_no_struct_packing
+{$endif llvm}
   );
   tdefoptions=set of tdefoption;
 
