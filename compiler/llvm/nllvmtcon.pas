@@ -36,6 +36,13 @@ interface
      private
       faggai: tai_aggregatetypedconst;
       fanonrecalignpos: longint;
+      { if this is a non-anonymous record, keep track of the current field at
+        the llvm level that gets emitted, so we know when the data types of the
+        Pascal and llvm representation don't match up (because of variant
+        records, or because not all fields are defined at the Pascal level and
+        the rest is zeroed) }
+      fllvmnextfieldindex: longint;
+      fdoesnotmatchllvmdef: boolean;
      public
       constructor create(_def: tdef; _typ: ttypedconstkind); override;
 
@@ -43,6 +50,8 @@ interface
 
       property aggai: tai_aggregatetypedconst read faggai write faggai;
       property anonrecalignpos: longint read fanonrecalignpos write fanonrecalignpos;
+      property llvmnextfieldindex: longint read fllvmnextfieldindex write fllvmnextfieldindex;
+      property doesnotmatchllvmdef: boolean read fdoesnotmatchllvmdef write fdoesnotmatchllvmdef;
     end;
 
     tllvmtypedconstplaceholder = class(ttypedconstplaceholder)
@@ -58,6 +67,8 @@ interface
        { set the default value for caggregateinformation (= tllvmaggregateinformation) }
        class constructor classcreate;
      protected
+      foverriding_def: tdef;
+
       fqueued_tai,
       flast_added_tai: tai;
       fqueued_tai_opidx: longint;
@@ -82,6 +93,11 @@ interface
       function get_internal_data_section_internal_label: tasmlabel; override;
 
       procedure do_emit_extended_in_aggregate(p: tai);
+
+      { mark the current agginfo, and hence also all the ones higher up in ther
+        aggregate hierarchy, as not matching our canonical llvm definition for
+        their def }
+      procedure mark_aggregate_hierarchy_llvmdef_mismatch(new_current_level_def: trecorddef);
      public
       destructor destroy; override;
       procedure emit_tai(p: tai; def: tdef); override;
@@ -107,7 +123,7 @@ implementation
     verbose,systems,
     aasmdata,
     cpubase,cpuinfo,llvmbase,
-    symbase,symtable,llvmdef,defutil;
+    symbase,symtable,llvmdef,defutil,defcmp;
 
   { tllvmaggregateinformation }
 
@@ -115,6 +131,7 @@ implementation
      begin
        inherited;
        fanonrecalignpos:=-1;
+       fllvmnextfieldindex:=0;
      end;
 
 
@@ -164,6 +181,8 @@ implementation
       decl: taillvmdecl;
     begin
       newasmlist:=tasmlist.create;
+      if assigned(foverriding_def) then
+        def:=foverriding_def;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
       decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
@@ -269,7 +288,22 @@ implementation
            internalerror(2014052906);
         end;
       if assigned(info) then
-        info.aggai.addvalue(stc)
+        begin
+          { are we emitting data that does not match the equivalent data in
+            the llvm structure? If so, record this so that we know we have to
+            use a custom recorddef to emit this data }
+          if not(info.anonrecord) and
+             (info.def.typ<>procvardef) and
+             (aggregate_kind(info.def)=tck_record) then
+            begin
+              if not info.doesnotmatchllvmdef and
+                 (info.llvmnextfieldindex<tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) and
+                 not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
+                info.doesnotmatchllvmdef:=true;
+              info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
+            end;
+          info.aggai.addvalue(stc);
+        end
       else
         inherited do_emit_tai(stc,def);
     end;
@@ -301,11 +335,44 @@ implementation
     end;
 
   procedure tllvmtai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
+    var
+      info: tllvmaggregateinformation;
+      constdata: tai_abstracttypedconst;
+      newdef: trecorddef;
     begin
       { in case we let LLVM align, don't add padding ourselves }
       if df_llvm_no_struct_packing in def.defoptions then
         exit;
       inherited;
+      { we can only check here whether the aggregate does not match our
+        cononical llvm definition, as the tail padding may cause a mismatch
+        (in case not all fields have been defined), and we can't do it inside
+        end_aggregate_internal as its inherited method (which calls this
+        method) frees curagginfo before it returns }
+      info:=tllvmaggregateinformation(curagginfo);
+      if info.doesnotmatchllvmdef then
+        begin
+          { create a new recorddef representing this mismatched def; this can
+            even replace an array in case it contains e.g. variant records }
+          case info.def.typ of
+            arraydef:
+              { in an array, all elements come right after each other ->
+                replace with a packed record }
+              newdef:=crecorddef.create_global_internal('',1,1,1);
+            recorddef,
+            objectdef:
+              newdef:=crecorddef.create_global_internal('',
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment,
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin,
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).maxCrecordalign);
+            else
+              internalerror(2015122401);
+          end;
+          for constdata in tai_aggregatetypedconst(info.aggai) do
+            newdef.add_field_by_def('',constdata.def);
+          tai_aggregatetypedconst(info.aggai).changetorecord(newdef);
+          mark_aggregate_hierarchy_llvmdef_mismatch(newdef);
+        end;
     end;
 
 
@@ -397,15 +464,31 @@ implementation
   procedure tllvmtai_typedconstbuilder.end_aggregate_internal(def: tdef; anonymous: boolean);
     var
       info: tllvmaggregateinformation;
+      was_aggregate: boolean;
     begin
+      was_aggregate:=false;
       if aggregate_kind(def)<>tck_simple then
         begin
+          was_aggregate:=true;
           info:=tllvmaggregateinformation(curagginfo);
           if not assigned(info) then
             internalerror(2014060101);
           info.aggai.finish;
         end;
       inherited;
+      info:=tllvmaggregateinformation(curagginfo);
+      if assigned(info) and
+         was_aggregate then
+        begin
+          { are we emitting data that does not match the equivalent data in
+            the llvm structure? If so, record this so that we know we have to
+            use a custom recorddef to emit this data }
+          if not info.anonrecord and
+             (aggregate_kind(info.def)=tck_record) and
+             not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
+            info.doesnotmatchllvmdef:=true;
+          info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
+        end;
     end;
 
 
@@ -452,6 +535,30 @@ implementation
       maybe_end_aggregate(arrdef);
       { free the original constant, since we didn't emit it }
       p.free;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.mark_aggregate_hierarchy_llvmdef_mismatch(new_current_level_def: trecorddef);
+    var
+      aggregate_level,
+      i: longint;
+      info: tllvmaggregateinformation;
+    begin
+      if assigned(faggregateinformation) then
+        begin
+          aggregate_level:=faggregateinformation.count;
+          { the top element, at aggregate_level-1, is already marked, since
+            that's why we are marking the rest }
+          for i:=aggregate_level-2 downto 0 do
+            begin
+              info:=tllvmaggregateinformation(faggregateinformation[i]);
+              if info.doesnotmatchllvmdef then
+                break;
+              info.doesnotmatchllvmdef:=true;
+            end;
+          if aggregate_level=1 then
+            foverriding_def:=new_current_level_def;
+        end;
     end;
 
 

@@ -157,13 +157,19 @@ interface
          curroffset: aint;
          recordalignmin: shortint;
          function get(f: tfieldvarsym): tllvmshadowsymtableentry;
+         function get_by_llvm_index(index: longint): tllvmshadowsymtableentry;
         public
          symdeflist: TFPObjectList;
 
          constructor create(st: tabstractrecordsymtable);
          destructor destroy; override;
 
-         property items[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
+         property entries[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
+         { warning: do not call this with field.llvmfieldnr, as
+             field.llvmfieldnr will only be initialised when the llvm shadow
+             symtable is accessed for the first time. Use the default/entries
+             property instead in this case }
+         property entries_by_llvm_index[index: longint]: tllvmshadowsymtableentry read get_by_llvm_index;
         private
          // generate the table
          procedure generate;
@@ -1795,8 +1801,14 @@ implementation
 
    function tllvmshadowsymtable.get(f: tfieldvarsym): tllvmshadowsymtableentry;
       begin
-        result:=tllvmshadowsymtableentry(symdeflist[f.llvmfieldnr])
+        result:=get_by_llvm_index(f.llvmfieldnr)
       end;
+
+
+   function tllvmshadowsymtable.get_by_llvm_index(index: longint): tllvmshadowsymtableentry;
+     begin
+       result:=tllvmshadowsymtableentry(symdeflist[index]);
+     end;
 
 
     constructor tllvmshadowsymtable.create(st: tabstractrecordsymtable);
