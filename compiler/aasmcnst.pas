@@ -93,6 +93,9 @@ type
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
      function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     { change the type to a record, regardless of how the aggregate was created;
+       the size of the original type and the record must match }
+     procedure changetorecord(_def: trecorddef);
      procedure finish;
      destructor destroy; override;
    end;
@@ -744,6 +747,17 @@ implementation
      begin
        result:=tai_abstracttypedconst(fvalues[pos]);
        fvalues[pos]:=val;
+     end;
+
+
+   procedure tai_aggregatetypedconst.changetorecord(_def: trecorddef);
+     begin
+       { must be a record of the same size as the current data }
+       if assigned(fdef) and
+          (fdef.size<>_def.size) then
+         internalerror(2015122402);
+       fdef:=_def;
+       fadetyp:=tck_record;
      end;
 
 
