@@ -1860,7 +1860,7 @@ implementation
               { curoffset: address right after the previous field }
               while (fieldoffset>curroffset) do
                 begin
-                  symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
+                  symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,curroffset));
                   inc(curroffset);
                 end;
               symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
@@ -1887,7 +1887,7 @@ implementation
               { add padding fields }
               while (finalsize>curroffset) do
                 begin
-                  symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
+                  symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,curroffset));
                   inc(curroffset);
                 end;
             end;
