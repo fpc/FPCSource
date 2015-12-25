@@ -787,7 +787,8 @@ implementation
           begin
             res^.Data:=crecorddef.create_global_internal(typename,packrecords,
               recordalignmin,maxcrecordalign);
-            trecorddef(res^.Data).add_fields_from_deflist(fieldtypes);
+            for i:=0 to fieldtypes.count-1 do
+              trecorddef(res^.Data).add_field_by_def('F'+tostr(i),tdef(fieldtypes[i]));
           end;
         trecordsymtable(trecorddef(res^.Data).symtable).addalignmentpadding;
         result:=trecorddef(res^.Data);

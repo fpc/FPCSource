@@ -189,16 +189,13 @@ implementation
   procedure thlcgllvm.a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara);
     var
       tmpref, initialref, ref: treference;
+      fielddef,
       orgsize: tdef;
-      tmpreg: tregister;
-      hloc: tlocation;
       location: pcgparalocation;
-      orgsizeleft,
       sizeleft,
       totaloffset: asizeint;
       paralocidx: longint;
-      userecord,
-      reghasvalue: boolean;
+      userecord: boolean;
     begin
       location:=cgpara.location;
       sizeleft:=cgpara.intsize;
@@ -213,12 +210,10 @@ implementation
         begin
           if userecord then
             begin
-              { llvmparadef is a record in this case, with every field corresponding
-                to a single paraloc }
-              paraloctoloc(location,hloc);
-              tmpreg:=getaddressregister(list,cpointerdef.getreusable(location^.def));
-              list.concat(taillvm.getelementptr_reg_size_ref_size_const(tmpreg,cpointerdef.getreusable(size),initialref,s32inttype,paralocidx,true));
-              reference_reset_base(tmpref,cpointerdef.getreusable(location^.def),tmpreg,0,newalignment(initialref.alignment,totaloffset));
+              { llvmparadef is a record in this case, with every field
+                corresponding to a single paraloc (fielddef is unused, because
+                it will be equivalent to location^.def -- see below) }
+              g_setup_load_field_by_name(list,trecorddef(size),'F'+tostr(paralocidx),initialref,tmpref,fielddef);
             end
           else
             tmpref:=initialref;
@@ -1446,6 +1441,7 @@ implementation
       hloc        : tlocation;
       href, href2 : treference;
       hreg        : tregister;
+      fielddef,
       llvmparadef : tdef;
       index       : longint;
       offset      : pint;
@@ -1479,15 +1475,11 @@ implementation
               reference_reset_base(href,cpointerdef.getreusable(llvmparadef),hreg,0,destloc.reference.alignment);
             end;
           index:=0;
-          offset:=0;
           ploc:=para.location;
           repeat
             paraloctoloc(ploc,hloc);
-            hreg:=getaddressregister(list,cpointerdef.getreusable(ploc^.def));
-            list.concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(llvmparadef),href,s32inttype,index,true));
-            reference_reset_base(href2,cpointerdef.getreusable(ploc^.def),hreg,0,newalignment(href.alignment,offset));
-            a_load_loc_ref(list,ploc^.def,ploc^.def,hloc,href2);
-            inc(offset,ploc^.def.size);
+            g_setup_load_field_by_name(list,trecorddef(llvmparadef),'F'+tostr(index),href,href2,fielddef);
+            a_load_loc_ref(list,ploc^.def,fielddef,hloc,href2);
             inc(index);
             ploc:=ploc^.next;
           until not assigned(ploc);
