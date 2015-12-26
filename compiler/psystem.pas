@@ -141,13 +141,8 @@ implementation
         sinttype:=s8inttype;
 {$endif cpu8bitalu}
 
-{$ifndef avr}
         osuinttype:=uinttype;
         ossinttype:=sinttype;
-{$else avr}
-        osuinttype:=u16inttype;
-        ossinttype:=s16inttype;
-{$endif avr}
       end;
 
 
