@@ -1166,13 +1166,16 @@ implementation
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
       pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
-      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
-      pd.localst.insert(nestedvars);
-      pd.parentfpstruct:=nestedvars;
+      if not(po_assembler in pd.procoptions) then
+        begin
+          nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
+          pd.localst.insert(nestedvars);
+          pd.parentfpstruct:=nestedvars;
+          pd.parentfpinitblock:=cblocknode.create(nil);
+        end;
+      symtablestack.free;
       pd.parentfpstructptrtype:=pnestedvarsdef;
 
-      pd.parentfpinitblock:=cblocknode.create(nil);
-      symtablestack.free;
       symtablestack:=old_symtablestack;
     end;
 
