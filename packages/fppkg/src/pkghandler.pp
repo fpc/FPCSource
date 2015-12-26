@@ -159,13 +159,22 @@ end;
 
 
 function PackageLocalArchive(APackage:TFPPackage): String;
+var
+  S: String;
 begin
   if APackage.Name=CurrentDirPackageName then
     Error(SErrNoPackageSpecified)
   else if APackage.Name=CmdLinePackageName then
     Result:=APackage.LocalFileName
   else
-    Result:=GlobalOptions.ArchivesDir+APackage.FileName;
+    begin
+      S:=APackage.FileName;
+      if S='' then
+        begin
+          S:=ChangeFileExt(APackage.Name,'.zip');
+        end;
+      Result:=GlobalOptions.ArchivesDir+S;
+    end;
 end;
 
 
