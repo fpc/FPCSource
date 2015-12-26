@@ -384,6 +384,13 @@ begin
       begin
       // TODO : Better checking on ErrorCode
       R.FKeepConnectionAfterRequest:=False;
+
+{$ifdef windowspipe}
+      case ErrorCode of
+        ERROR_BROKEN_PIPE, ERROR_NO_DATA : Exit; //No error here. Server cancel pipe
+      end;
+{$endif}
+
       TFCgiHandler.DoError(SErrWritingSocket,[ErrorCode]);
       end;
     Inc(P,BytesWritten);
