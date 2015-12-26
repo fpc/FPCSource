@@ -574,6 +574,7 @@ begin
     try
       jp:=TJSONParser.Create(s, [joUTF8]);
       try
+        s:='';
         jdata:=jp.Parse;
         junit:=TJSONObject(jdata.Items[0]);
       finally
@@ -681,24 +682,28 @@ end;
 
 function TPPUParser.ReadProcessOutput(const AExeName, AParams: string; var AOutput, AError: string): integer;
 
-  procedure _ReadOutput(o: TInputPipeStream; var s: string);
+  procedure _ReadOutput(o: TInputPipeStream; var s: string; var idx: integer);
   var
-    i, j: integer;
+    i: integer;
   begin
     with o do
       while NumBytesAvailable > 0 do begin
         i:=NumBytesAvailable;
-        j:=Length(s);
-        SetLength(s, j + i);
-        ReadBuffer(s[j + 1], i);
+        if idx + i > Length(s) then
+          SetLength(s, idx + i*10 + idx div 10);
+        ReadBuffer(s[idx + 1], i);
+        Inc(idx, i);
       end;
   end;
 
 var
   p: TProcess;
+  oidx, eidx: integer;
 begin
   AOutput:='';
   AError:='';
+  oidx:=0;
+  eidx:=0;
   p:=TProcess.Create(nil);
   try
     p.Executable:=AExeName;
@@ -712,9 +717,13 @@ begin
       raise Exception.CreateFmt('Unable to run "%s".'+LineEnding+'%s', [p.Executable, Exception(ExceptObject).Message]);
     end;
     repeat
-      _ReadOutput(p.Output, AOutput);
-      _ReadOutput(p.Stderr, AError);
+      if p.Output.NumBytesAvailable = 0 then
+        TThread.Yield;
+      _ReadOutput(p.Output, AOutput, oidx);
+      _ReadOutput(p.Stderr, AError, eidx);
     until not p.Running and (p.Output.NumBytesAvailable = 0) and (p.Stderr.NumBytesAvailable = 0);
+    SetLength(AOutput, oidx);
+    SetLength(AError, eidx);
     Result:=p.ExitStatus;
   finally
     p.Free;
