@@ -1442,6 +1442,9 @@ Implementation
                            (not GenerateThumb2Code)
                          )
                        ) and
+                       { Only fold if both registers are used. Otherwise we are folding p with itself }
+                       (taicpu(hp1).oper[1]^.ref^.index<>NR_NO) and
+                       (taicpu(hp1).oper[1]^.ref^.base<>NR_NO) and
                        { Only fold if there isn't another shifterop already, and offset is zero. }
                        (taicpu(hp1).oper[1]^.ref^.offset = 0) and
                        (taicpu(hp1).oper[1]^.ref^.shiftmode = SM_None) and
