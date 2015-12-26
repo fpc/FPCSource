@@ -517,9 +517,10 @@ implementation
           la_type for a procvardef (unless it's a procedure of object/record),
           which means that recursive references should become plain "procedure"
           types that are then casted to the real type when they are used }
+        def.init_paraloc_info(callerside);
         for i:=0 to def.paras.count-1 do
-          appenddef(list,tparavarsym(def.paras[i]).vardef);
-        appenddef(list,def.returndef);
+          appenddef(list,llvmgetcgparadef(tparavarsym(def.paras[i]).paraloc[callerside],true));
+        appenddef(list,llvmgetcgparadef(def.funcretloc[callerside],true));
         if assigned(def.typesym) and
            not def.is_addressonly then
           list.concat(taillvm.op_size(LA_TYPE,record_def(def)));
