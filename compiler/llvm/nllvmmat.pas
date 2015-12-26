@@ -44,7 +44,7 @@ type
 implementation
 
 uses
-  globtype, systems,
+  globtype, systems, constexp,
   cutils, verbose, globals,
   symconst, symdef,
   aasmbase, aasmllvm, aasmtai, aasmdata,
@@ -62,6 +62,10 @@ uses
 procedure tllvmmoddivnode.pass_generate_code;
   var
     op: tllvmop;
+    hl: tasmlabel;
+    tmpovreg1,
+    tmpovreg2: tregister;
+    ovloc: tlocation;
   begin
     secondpass(left);
     secondpass(right);
@@ -76,7 +80,35 @@ procedure tllvmmoddivnode.pass_generate_code;
       op:=la_urem;
     hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
     if right.location.loc<>LOC_CONSTANT then
-      hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+      begin
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,resultdef,true);
+        { in llvm, div-by-zero is undefined on all platforms -> need explicit
+          check }
+        current_asmdata.getjumplabel(hl);
+        hlcg.a_cmp_const_loc_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,right.location,hl);
+        hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_divbyzero',[],nil).resetiftemp;
+        hlcg.a_label(current_asmdata.CurrAsmList,hl);
+      end;
+    if (cs_check_overflow in current_settings.localswitches) and
+       is_signed(left.resultdef) and
+       ((right.nodetype<>ordconstn) or
+        (tordconstnode(right).value=-1)) then
+      begin
+        current_asmdata.getjumplabel(hl);
+        location_reset(ovloc,LOC_REGISTER,OS_8);
+        ovloc.register:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
+        if right.nodetype=ordconstn then
+          current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,ovloc.register,OC_EQ,resultdef,left.location.register,low(int64)))
+        else
+          begin
+            tmpovreg1:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
+            tmpovreg2:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
+            current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg1,OC_EQ,resultdef,left.location.register,low(int64)));
+            current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,tmpovreg2,OC_EQ,resultdef,right.location.register,-1));
+            hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_AND,pasbool8type,tmpovreg1,tmpovreg2,ovloc.register);
+          end;
+        hlcg.g_overflowCheck_loc(current_asmdata.CurrAsmList,location,resultdef,ovloc);
+      end;
     location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
     location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
     if right.location.loc=LOC_CONSTANT then
