@@ -2119,7 +2119,7 @@ implementation
                 begin
                   maybe_load_in_temp(p);
                   hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,p.getcopy),
-                                            cordconstnode.create(1,sinttype,false));
+                                            cordconstnode.create(1,ptrsinttype,false));
                   loadconst:=false;
                 end;
            end;
@@ -2127,13 +2127,13 @@ implementation
           len:=0;
         end;
         if loadconst then
-          hightree:=cordconstnode.create(len,sinttype,true)
+          hightree:=cordconstnode.create(len,ptrsinttype,true)
         else
           begin
             if not assigned(hightree) then
               internalerror(200304071);
             { Need to use explicit, because it can also be a enum }
-            hightree:=ctypeconvnode.create_internal(hightree,sinttype);
+            hightree:=ctypeconvnode.create_internal(hightree,ptrsinttype);
           end;
         result:=hightree;
       end;
