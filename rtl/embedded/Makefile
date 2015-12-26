@@ -374,7 +374,7 @@ ifeq ($(SUBARCH),armv7a)
 CPU_UNITS=allwinner_a20
 endif
 ifeq ($(CPU_UNITS),)
-$(error Invalid value set for SUBARCH)
+$(warning No CPUs enabled for given SUBARCH)
 endif
 endif
 ifeq ($(ARCH),avr)
