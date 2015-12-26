@@ -59,7 +59,7 @@ var
 
 implementation
 
-uses process, pipes, fpjson, jsonparser;
+uses process, pipes, fpjson, jsonparser, jsonscanner;
 
 const
   OnExceptionProcName = 'JNI_OnException';
@@ -119,7 +119,7 @@ constructor TPPUParser.Create(const ASearchPath: string);
 begin
   SearchPath:=TStringList.Create;
   AddSearchPath(ASearchPath);
-  Units:=TDef.Create(nil, dtNone);
+  Units:=TDef.Create;
 end;
 
 destructor TPPUParser.Destroy;
@@ -188,7 +188,6 @@ end;
 function TPPUParser.InternalParse(const AUnitName: string): TUnitDef;
 var
   junit: TJSONObject;
-  jp: TJSONParser;
   deref: array of TUnitDef;
   CurUnit: TUnitDef;
   IsSystemUnit: boolean;
@@ -550,6 +549,8 @@ var
   i, j: integer;
   s: string;
   chkres: TCheckItemResult;
+  jp: TJSONParser;
+  jdata: TJSONData;
 begin
   Result:=nil;
   for i:=0 to Units.Count - 1 do
@@ -569,11 +570,12 @@ begin
 
   s:=ReadUnit(AUnitName);
   try
-    junit:=nil;
+    jdata:=nil;
     try
-      jp:=TJSONParser.Create(s);
+      jp:=TJSONParser.Create(s, [joUTF8]);
       try
-        junit:=TJSONObject(jp.Parse.Items[0]);
+        jdata:=jp.Parse;
+        junit:=TJSONObject(jdata.Items[0]);
       finally
         jp.Free;
       end;
@@ -590,6 +592,9 @@ begin
       if AnsiLowerCase(Copy(Result.OS, Length(Result.OS) - j, j + 1)) =  AnsiLowerCase('-' + Result.CPU) then
         Result.OS:=Copy(Result.OS, 1, Length(Result.OS) - j - 1);
       Result.IntfCRC:=junit.Strings['InterfaceCRC'];
+
+      if IsSystemUnit then
+        Result.IsUsed:=True;
 
       if not FDefaultSearchPathAdded then begin
         FDefaultSearchPathAdded:=True;
@@ -631,7 +636,7 @@ begin
         end;
       SetLength(Result.UsedUnits, j);
     finally
-      junit.Free;
+      jdata.Free;
     end;
   except
     if CurObjName <> '' then
