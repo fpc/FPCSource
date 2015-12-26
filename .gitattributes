@@ -14898,6 +14898,7 @@ tests/webtbs/tw29153.pp svneol=native#text/plain
 tests/webtbs/tw2916.pp svneol=native#text/plain
 tests/webtbs/tw2920.pp svneol=native#text/plain
 tests/webtbs/tw2923.pp svneol=native#text/plain
+tests/webtbs/tw29250.pp svneol=native#text/pascal
 tests/webtbs/tw2926.pp svneol=native#text/plain
 tests/webtbs/tw2927.pp svneol=native#text/plain
 tests/webtbs/tw2942a.pp svneol=native#text/plain
