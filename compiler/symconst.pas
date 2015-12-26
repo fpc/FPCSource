@@ -218,12 +218,10 @@ type
       it was used to set the type of a paraloc, since paralocs are reused
       across units) -- never stored to ppu, because in that case the def would
       be registered }
-    df_not_registered_no_free
-{$ifdef llvm}
-    { can't do this via symllvm because we have to access it in symtable }
-    ,
+    df_not_registered_no_free,
+    { don't pack this record at the llvm level -- can't do this via symllvm
+      because we have to access this information in the symtable unit }
     df_llvm_no_struct_packing
-{$endif llvm}
   );
   tdefoptions=set of tdefoption;
 
@@ -259,8 +257,8 @@ type
   { base types for orddef }
   tordtype = (
     uvoid,
-    u8bit,u16bit,u32bit,u64bit,
-    s8bit,s16bit,s32bit,s64bit,
+    u8bit,u16bit,u32bit,u64bit,u128bit,
+    s8bit,s16bit,s32bit,s64bit,s128bit,
     pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency

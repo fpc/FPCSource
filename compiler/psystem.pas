@@ -229,6 +229,12 @@ implementation
         s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true);
         u64inttype:=corddef.create(u64bit,low(qword),high(qword),true);
         s64inttype:=corddef.create(s64bit,low(int64),high(int64),true);
+        { upper/lower bound not yet properly set for 128 bit types, as we don't
+          support them yet at the Pascal level (nor for tconstexprint); they're
+          only used internally by the high level code generator for LLVM to
+          implement overflow checking }
+        u128inttype:=corddef.create(u128bit,0,0,true);
+        s128inttype:=corddef.create(s128bit,0,0,true);
         pasbool8type:=corddef.create(pasbool8,0,1,true);
         pasbool16type:=corddef.create(pasbool16,0,1,true);
         pasbool32type:=corddef.create(pasbool32,0,1,true);
@@ -435,6 +441,8 @@ implementation
         addtype('$longint',s32inttype);
         addtype('$qword',u64inttype);
         addtype('$int64',s64inttype);
+        addtype('$uint128',u128inttype);
+        addtype('$int128',s128inttype);
         addtype('$char',cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
@@ -559,6 +567,8 @@ implementation
         loadtype('longint',s32inttype);
         loadtype('qword',u64inttype);
         loadtype('int64',s64inttype);
+        loadtype('uint128',u128inttype);
+        loadtype('int128',s128inttype);
         loadtype('undefined',cundefinedtype);
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);

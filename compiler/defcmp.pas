@@ -193,8 +193,8 @@ implementation
       const
         basedeftbl:array[tordtype] of tbasedef =
           (bvoid,
-           bint,bint,bint,bint,
-           bint,bint,bint,bint,
+           bint,bint,bint,bint,bint,
+           bint,bint,bint,bint,bint,
            bbool,bbool,bbool,bbool,
            bbool,bbool,bbool,bbool,
            bchar,bchar,bint);

@@ -1035,6 +1035,8 @@ interface
        s32inttype,                { 32-Bit signed integer }
        u64inttype,                { 64-bit unsigned integer }
        s64inttype,                { 64-bit signed integer }
+       u128inttype,               { 128-bit unsigned integer }
+       s128inttype,               { 128-bit signed integer }
        s32floattype,              { 32 bit floating point number }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
@@ -2763,8 +2765,8 @@ implementation
       const
         sizetbl : array[tordtype] of longint = (
           0,
-          1,2,4,8,
-          1,2,4,8,
+          1,2,4,8,16,
+          1,2,4,8,16,
           1,2,4,8,
           1,2,4,8,
           1,2,8
@@ -2813,8 +2815,8 @@ implementation
       const
         basetype2vardef : array[tordtype] of longint = (
           varUndefined,
-          varbyte,varword,varlongword,varqword,
-          varshortint,varsmallint,varinteger,varint64,
+          varbyte,varword,varlongword,varqword,varUndefined,
+          varshortint,varsmallint,varinteger,varint64,varUndefined,
           varboolean,varboolean,varboolean,varboolean,
           varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
@@ -2843,8 +2845,8 @@ implementation
       const
         names : array[tordtype] of string[20] = (
           'untyped',
-          'Byte','Word','DWord','QWord',
-          'ShortInt','SmallInt','LongInt','Int64',
+          'Byte','Word','DWord','QWord','UInt128',
+          'ShortInt','SmallInt','LongInt','Int64','Int128',
           'Boolean','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
@@ -5952,15 +5954,15 @@ implementation
 {$ifdef NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[2] = (
              '',
-             'Uc','Us','Ui','Us',
-             'Sc','s','i','x',
+             'Uc','Us','Ui','Us','',
+             'Sc','s','i','x','',
              'b','b','b','b','b',
              'c','w','x');
 {$else NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[1] = (
              'v',
-             'h','t','j','y',
-             'a','s','i','x',
+             'h','t','j','y','',
+             'a','s','i','x','',
              'b','b','b','b',
              'b','b','b','b',
              'c','w','x');
