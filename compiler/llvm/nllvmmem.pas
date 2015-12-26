@@ -106,6 +106,7 @@ implementation
       locref: preference;
       hreg: tregister;
       arrptrelementdef: tdef;
+      indirect: boolean;
 
     procedure getarrelementptrdef;
       begin
@@ -137,17 +138,24 @@ implementation
       locref:=nil;
       { avoid uninitialised warning }
       arrptrelementdef:=nil;
-      if not arraytopointerconverted and
-         not is_dynamicstring(left.resultdef) and
-         not is_dynamic_array(left.resultdef) then
+      indirect:=
+        not is_dynamicstring(left.resultdef) and
+        not is_dynamic_array(left.resultdef);
+      if (not arraytopointerconverted and
+          indirect) or
+         (constarrayoffset<>0) then
         begin
           { the result is currently a pointer to left.resultdef (the array type)
              -> convert it into a pointer to an element inside this array }
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
           locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
-            locref^,ptruinttype,constarrayoffset,true));
+          if indirect then
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
+              locref^,ptruinttype,constarrayoffset,true))
+          else
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
+              locref^,ptruinttype,constarrayoffset,false));
           reference_reset_base(locref^,hreg,0,locref^.alignment);
         end;
 
@@ -175,6 +183,7 @@ implementation
           hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
           hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,ptruinttype,constarrayoffset,maybe_const_reg,hreg);
           maybe_const_reg:=hreg;
+          constarrayoffset:=0;
         end;
       hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
       location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
@@ -226,6 +235,7 @@ implementation
       sref.ref:=location.reference;
       hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
       hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,ptruinttype,tarraydef(left.resultdef).lowrange-constarrayoffset,maybe_const_reg,hreg);
+      constarrayoffset:=0;
 
       { keep alignment for index }
       sref.ref.alignment:=left.resultdef.alignment;
