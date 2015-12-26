@@ -1642,7 +1642,7 @@ IMPLEMENTATION
 {$else}
       BCD.Places := 4;
 {$endif}
-      if Decimals <> 4 then
+      if (Decimals <> 4) or (Decimals > BCD.Precision) then
         Result := NormalizeBCD ( BCD, BCD, Precision, Decimals )
       else
         Result := True;
@@ -2010,15 +2010,14 @@ IMPLEMENTATION
 
     var
       bh : tBCD_helper;
-      tm : {$ifopt r+} 1..maxfmtbcdfractionsize - 1 {$else} Integer {$endif};
+      tm : {$ifopt r+} __lo_bh..__hi_bh {$else} Integer {$endif};
 
     begin
 {$ifopt r+}
       if ( Precision < 0 ) OR ( Precision > MaxFmtBCDFractionSize ) then RangeError;
       if ( Places < 0 ) OR ( Precision >= MaxFmtBCDFractionSize ) then RangeError;
 {$endif}
-      NormalizeBCD := True;
-      if BCDScale ( InBCD ) > Places then
+      if (BCDScale(InBCD) > Places) or (BCDPrecision(InBCD) < Places) then
         begin
         unpack_BCD ( InBCD, bh );
         tm := bh.Plac - Places;
@@ -2027,12 +2026,15 @@ IMPLEMENTATION
         bh.Prec := bh.Prec - tm;
 {       dec ( LDig, tm );   Dec/Inc error? }
         bh.LDig := bh.LDig - tm;
-        NormalizeBCD := False;
+        NormalizeBCD := tm <= 0;
         if NOT pack_BCD ( bh, OutBCD ) then
           RAISE eBCDOverflowException.Create ( 'in NormalizeBCD' );
         end
       else
+        begin
         OutBCD := InBCD;
+        NormalizeBCD := True;
+        end
     end;
 
   procedure BCDMultiply ( const BCDin1,
