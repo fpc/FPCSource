@@ -108,7 +108,8 @@ procedure tllvmtypeconvnode.second_int_to_int;
     tosize:=resultdef.size;
     location_copy(location,left.location);
     if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) or
-       (fromsize<>tosize) then
+       ((fromsize<>tosize) and
+        not is_void(left.resultdef)) then
       begin
         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,left.location.loc=LOC_CREGISTER);
       end
