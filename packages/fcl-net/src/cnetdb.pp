@@ -194,11 +194,11 @@ type
 {$if defined(LINUX) or defined(OPENBSD)}
 {$define FIRST_ADDR_THEN_CANONNAME}
 {$endif}
-{$if defined(FREEBSD) or defined(NETBSD) or defined(DRAGONFLY)}
+{$if defined(FREEBSD) or defined(NETBSD) or defined(DRAGONFLY) or defined(SOLARIS)}
 {$define FIRST_CANONNAME_THEN_ADDR}
 {$endif}
 {$if not defined(FIRST_CANONNAME_THEN_ADDR) and not defined(FIRST_ADDR_THEN_CANONNAME)}
-{$error fatal 'Please consult the netdh.h file for your system to determine the order of ai_addr and ai_canonname'}
+{$error fatal 'Please consult the netdb.h file for your system to determine the order of ai_addr and ai_canonname'}
 {$endif} 
 
   PAddrInfo = ^addrinfo;
