@@ -1233,7 +1233,7 @@ implementation
             LOC_MMREGISTER:
               begin
                 resloc.check_simple_location;
-                list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,resloc.location^.def));
+                list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true)));
               end;
             else
               internalerror(2015042301);
