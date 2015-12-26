@@ -832,26 +832,78 @@ implementation
 
 
   procedure thlcgllvm.a_op_const_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; a: tcgint; src, dst: tregister; setflags: boolean; var ovloc: tlocation);
+    var
+      hreg: tregister;
     begin
       if not setflags then
         begin
           inherited;
           exit;
         end;
-      { use xxx.with.overflow intrinsics }
-      internalerror(2012111102);
+      hreg:=getintregister(list,size);
+      a_load_const_reg(list,size,a,hreg);
+      a_op_reg_reg_reg_checkoverflow(list,op,size,hreg,src,dst,setflags,ovloc);
     end;
 
 
   procedure thlcgllvm.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: TOpCg; size: tdef; src1, src2, dst: tregister; setflags: boolean; var ovloc: tlocation);
+    var
+      calcsize: tdef;
+      tmpsrc1,
+      tmpsrc2,
+      tmpdst: tregister;
+      signed,
+      docheck: boolean;
     begin
-      if not setflags then
+      docheck:=size.size>=ossinttype.size;
+      if not setflags or
+         not docheck then
         begin
-          inherited;
+          inherited a_op_reg_reg_reg_checkoverflow(list,op,size,src1,src2,dst,false,ovloc);
           exit;
         end;
-      { use xxx.with.overflow intrinsics }
-      internalerror(2012111103);
+      { extend values to twice their original width (one bit extra is enough,
+        but adding support for 9/17/33/65 bit types just for this is overkill) }
+      signed:=is_signed(size);
+      case size.size of
+        1:
+          if signed then
+            calcsize:=s16inttype
+          else
+            calcsize:=u16inttype;
+        2:
+          if signed then
+            calcsize:=s32inttype
+          else
+            calcsize:=u32inttype;
+        4:
+          if signed then
+            calcsize:=s64inttype
+          else
+            calcsize:=u64inttype;
+        8:
+          if signed then
+            calcsize:=s128inttype
+          else
+            calcsize:=u128inttype;
+        else
+          internalerror(2015122503);
+      end;
+      tmpsrc1:=getintregister(list,calcsize);
+      a_load_reg_reg(list,size,calcsize,src1,tmpsrc1);
+      tmpsrc2:=getintregister(list,calcsize);
+      a_load_reg_reg(list,size,calcsize,src2,tmpsrc2);
+      tmpdst:=getintregister(list,calcsize);
+      { perform the calculation with twice the width }
+      a_op_reg_reg_reg(list,op,calcsize,tmpsrc1,tmpsrc2,tmpdst);
+      { signed/unsigned overflow occurs if signed/unsigned truncation of the
+        result is different from the actual result -> extend again and compare }
+      a_load_reg_reg(list,calcsize,size,tmpdst,dst);
+      tmpsrc1:=getintregister(list,calcsize);
+      a_load_reg_reg(list,size,calcsize,dst,tmpsrc1);
+      location_reset(ovloc,LOC_REGISTER,OS_8);
+      ovloc.register:=getintregister(list,pasbool8type);
+      list.concat(taillvm.op_reg_cond_size_reg_reg(la_icmp,ovloc.register,OC_NE,calcsize,tmpsrc1,tmpdst));
     end;
 
 
@@ -1198,9 +1250,17 @@ implementation
 
 
   procedure thlcgllvm.g_overflowCheck_loc(List: TAsmList; const Loc: TLocation; def: TDef; var ovloc: tlocation);
+    var
+      hl: tasmlabel;
     begin
-      { todo }
-      internalerror(2012111108);
+      if not(cs_check_overflow in current_settings.localswitches) then
+        exit;
+      if ovloc.size<>OS_8 then
+        internalerror(2015122504);
+      current_asmdata.getjumplabel(hl);
+      a_cmp_const_loc_label(list,pasbool8type,OC_EQ,0,ovloc,hl);
+      g_call_system_proc(list,'fpc_overflow',[],nil);
+      a_label(list,hl);
     end;
 
 
