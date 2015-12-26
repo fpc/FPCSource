@@ -906,7 +906,7 @@ begin
 {$else windowspipe}
   if Not fIsWinPipe then
     Result:=fpaccept(Socket,Nil,Nil);
-  If FIsWinPipe or ((Result<0) and (socketerror=10038)) then
+  If FIsWinPipe or ((Result<0) and ((socketerror=10038) or (socketerror = 10022))) then
     begin
     Result:=-1;
     B:=ConnectNamedPipe(Socket,Nil);
