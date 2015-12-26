@@ -1868,8 +1868,17 @@ implementation
 
              if assigned(procdef.parentfpinitblock) then
                begin
-                 tblocknode(code).left:=cstatementnode.create(procdef.parentfpinitblock,tblocknode(code).left);
-                 do_typecheckpass(tblocknode(code).left);
+                 if assigned(tblocknode(procdef.parentfpinitblock).left) then
+                   begin
+                     { could be an asmn in case of a pure assembler procedure,
+                       but those shouldn't access nested variables }
+                     if code.nodetype<>blockn then
+                       internalerror(2015122601);
+                     tblocknode(code).left:=cstatementnode.create(procdef.parentfpinitblock,tblocknode(code).left);
+                     do_typecheckpass(tblocknode(code).left);
+                   end
+                 else
+                   procdef.parentfpinitblock.free;
                  procdef.parentfpinitblock:=nil;
                end;
 
