@@ -1004,7 +1004,7 @@ Unit raarmgas;
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
-              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM,A_VLDM,A_VSTM]) then
+              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM,A_VLDM,A_VSTM,A_SRS,A_RFE]) then
                 begin
                   consume(AS_NOT);
                   oper.opr.typ:=OPR_REFERENCE;
