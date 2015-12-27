@@ -5,7 +5,7 @@ unit fpjsonrtti;
 interface
 
 uses
-  Classes, SysUtils, typinfo, fpjson, rttiutils, jsonparser;
+  Classes, SysUtils, contnrs, typinfo, fpjson, rttiutils, jsonparser;
 
 Type
 
@@ -62,6 +62,8 @@ Type
     Function ObjectToJSON(Const AObject : TObject) : TJSONObject;
     // Stream a collection - always returns an array
     function StreamCollection(Const ACollection: TCollection): TJSONArray;
+    // Stream an objectlist - always returns an array
+    function StreamObjectList(Const AnObjectList: TObjectList): TJSONArray;
     // Stream a TStrings instance as an array
     function StreamTStringsArray(Const AStrings: TStrings): TJSONArray;
     // Stream a TStrings instance as an object
@@ -669,6 +671,8 @@ begin
       Result.Add('Strings',StreamTStrings(Tstrings(AObject)))
     else If AObject is TCollection then
       Result.Add('Items',StreamCollection(TCollection(AObject)))
+    else If AObject is TObjectList then
+      Result.Add('Objects',StreamObjectList(TObjectList(AObject)))
     else
       begin
       PIL:=TPropInfoList.Create(AObject,tkProperties);
@@ -889,7 +893,24 @@ begin
   end;
 end;
 
-Function TJSONStreamer.StreamClassProperty(Const AObject : TObject): TJSONData;
+function TJSONStreamer.StreamObjectList(const AnObjectList: TObjectList): TJSONArray;
+Var
+  I : Integer;
+
+begin
+  if not Assigned(AnObjectList) then
+    Result:=Nil;
+  Result:=TJSONArray.Create;
+  try
+    For I:=0 to AnObjectList.Count-1 do
+      Result.Add(ObjectToJSON(AnObjectList.Items[i]));
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+function TJSONStreamer.StreamClassProperty(const AObject: TObject): TJSONData;
 
 Var
   C : TCollection;
@@ -910,6 +931,8 @@ begin
     Result:=StreamTStrings(TStrings(AObject))
   else if (AObject is TCollection) then
     Result:=StreamCollection(TCollection(Aobject))
+  else If AObject is TObjectList then
+    Result:=StreamObjectList(TObjectList(AObject))
   else // Normally, this is only TPersistent.
     Result:=ObjectToJSON(AObject);
 end;
@@ -980,7 +1003,8 @@ begin
       Result:=TJSONInt64Number.Create(GetOrdProp(AObject,PropertyInfo));
     tkQWord :
       Result:=TJSONFloatNumber.Create(GetOrdProp(AObject,PropertyInfo));
-    tkObject,
+    tkObject :
+      Result:=ObjectToJSON(GetObjectProp(AObject,PropertyInfo));
     tkArray,
     tkRecord,
     tkInterface,
