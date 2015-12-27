@@ -1355,17 +1355,6 @@ begin
       end;
     end;
 
-    if CurToken = tkDotDot then begin
-      NextToken;
-      b:=TBinaryExpr.CreateRange(AParent,x, DoParseExpression(AParent));
-      if not Assigned(b.right) then
-        begin
-        b.free;
-        Exit; // error
-        end;
-      x:=b;
-    end;
-
     Result:=x;
   finally
     if not Assigned(Result) then x.Free;
@@ -1439,11 +1428,16 @@ const
     t       : TToken;
     xright  : TPasExpr;
     xleft   : TPasExpr;
+    bin     : TBinaryExpr;
   begin
     t:=PopOper;
     xright:=PopExp;
     xleft:=PopExp;
-    expstack.Add(TBinaryExpr.Create(AParent,xleft, xright, TokenToExprOp(t)));
+    if t=tkDotDot then
+      bin := TBinaryExpr.CreateRange(AParent,xleft, xright)
+    else
+      bin := TBinaryExpr.Create(AParent,xleft, xright, TokenToExprOp(t));
+    expstack.Add(bin);
   end;
 
 begin

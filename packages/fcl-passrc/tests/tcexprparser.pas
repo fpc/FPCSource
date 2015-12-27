@@ -258,15 +258,18 @@ end;
 procedure TTestExpressions.TestRange;
 
 Var
+  P : TParamsExpr;
   B : TBinaryExpr;
 
 begin
   DeclareVar('boolean','a');
   DeclareVar('byte','b');
-  ParseExpression('b in 0..10');
+  ParseExpression('b in [0..10]');
   AssertBinaryExpr('Simple binary In',eopIn,FLeft,FRight);
   AssertExpression('Left is b',TheLeft,pekIdent,'b');
-  B:=TBinaryExpr(AssertExpression('Right is range',TheRight,pekRange,TBinaryExpr));
+  P:=TParamsExpr(AssertExpression('Right is set',TheRight,pekSet,TParamsExpr));
+  AssertEquals('Number of items',1,Length(P.Params));
+  B:=TBinaryExpr(AssertExpression('First element is range',P.Params[0],pekRange,TBinaryExpr));
   AssertExpression('Left is 0',B.Left,pekNumber,'0');
   AssertExpression('Right is 10',B.Right,pekNumber,'10');
 end;
