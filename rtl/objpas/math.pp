@@ -364,8 +364,10 @@ operator ** (bas,expo : int64) i: int64; inline;
 
 { rounds x towards positive infinity }
 function ceil(x : float) : Integer;
+function ceil64(x: float): Int64;
 { rounds x towards negative infinity }
 function floor(x : float) : Integer;
+function floor64(x: float): Int64;
 
 { misc. functions }
 
@@ -1045,11 +1047,25 @@ function ceil(x : float) : integer;
       Ceil:=Ceil+1;
   end;
 
+function ceil64(x: float): Int64;
+  begin
+    Ceil64:=Trunc(x);
+    if Frac(x)>0 then
+      Ceil64:=Ceil64+1;
+  end;
+
 function floor(x : float) : integer;
   begin
      Floor:=Trunc(x);
      If Frac(x)<0 then
        Floor := Floor-1;
+  end;
+
+function floor64(x: float): Int64;
+  begin
+    Floor64:=Trunc(x);
+    if Frac(x)<0 then
+      Floor64:=Floor64-1;
   end;
 
 
