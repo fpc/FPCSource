@@ -599,7 +599,7 @@ Var
 begin
   S:='';
   Result:=False;
-  If ((Length(Value)-P)<=0) then
+  If ((Length(Value)-P)<0) then
     exit;
   PS:=@Value[P];
   PC:=PS;
