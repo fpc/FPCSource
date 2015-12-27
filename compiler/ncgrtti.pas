@@ -356,6 +356,7 @@ implementation
         sym : tsym;
         proctypesinfo : byte;
         propnameitem  : tpropnamelistitem;
+        propdefname : string;
 
         procedure writeaccessproc(pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
@@ -460,10 +461,17 @@ implementation
             if (sym.typ=propertysym) and
                (sym.visibility=vis_published) then
               begin
+                { we can only easily reuse defs if the property is not stored,
+                  because otherwise the rtti layout depends on how the "stored"
+                  is defined (field, indexed expression, virtual method, ...) }
+                if not(ppo_stored in tpropertysym(sym).propoptions) then
+                  propdefname:=internaltypeprefixName[itp_rtti_prop]+tostr(length(tpropertysym(sym).realname))
+                else
+                  propdefname:='';
                 { TPropInfo is a packed record (even on targets that require
                   alignment), but it starts aligned }
                 tcb.begin_anonymous_record(
-                  internaltypeprefixName[itp_rtti_prop]+tostr(length(tpropertysym(sym).realname)),
+                  propdefname,
                   1,reqalign,
                   targetinfos[target_info.system]^.alignment.recordalignmin,
                   targetinfos[target_info.system]^.alignment.maxCrecordalign);
