@@ -237,7 +237,7 @@ begin
       AType := ftString;
 	  DataSize := DefaultStringSize;
     end;
-    FieldDefs.Add(String(sqlite3_column_name(vm, i)), AType, DataSize);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(String(sqlite3_column_name(vm, i))), AType, DataSize);
     //Set the pchar2sql function
     case AType of
       ftString:

@@ -184,7 +184,7 @@ begin
     begin
       AType := ftString;
     end;
-    FieldDefs.Add(String(ColumnNames[i]), AType, DataSize);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(String(ColumnNames[i])), AType, DataSize);
     //Set the pchar2sql function
     if AType in [ftString, ftMemo] then
       FGetSqlStr[i] := @Char2SQLStr
