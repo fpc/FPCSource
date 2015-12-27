@@ -123,6 +123,7 @@ begin
       AddUnit('contnrs');
       end;
     T:=P.Targets.addUnit('advancedipc.pp');
+      T.ResourceStrings:=true;
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*', P.Directory);
     // Install windows resources
