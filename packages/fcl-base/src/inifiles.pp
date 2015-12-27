@@ -143,7 +143,9 @@ type
     FEscapeLineFeeds: boolean;
     FCaseSensitive : Boolean;
     FStripQuotes : Boolean;
+    FFormatSettingsActive: Boolean;
   public
+    FormatSettings: TFormatSettings;
     constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
     destructor Destroy; override;
     function SectionExists(const Section: string): Boolean; virtual;
@@ -176,6 +178,7 @@ type
     property EscapeLineFeeds: boolean read FEscapeLineFeeds;
     Property CaseSensitive : Boolean Read FCaseSensitive Write FCaseSensitive;
     Property StripQuotes : Boolean Read FStripQuotes Write FStripQuotes;
+    Property FormatSettingsActive: Boolean Read FFormatSettingsActive write FFormatSettingsActive;
   end;
 
   { TIniFile }
@@ -512,6 +515,17 @@ begin
   FFileName := AFileName;
   FSectionList := TIniFileSectionList.Create;
   FEscapeLineFeeds := AEscapeLineFeeds;
+  FormatSettings := DefaultFormatSettings;
+  with FormatSettings do begin
+    DecimalSeparator := '.';
+    ThousandSeparator := ',';
+    ListSeparator := ';';
+    DateSeparator := '/';
+    TimeSeparator := ':';
+    ShortDateFormat := 'yyyy/mm/dd';
+    ShortTimeFormat := 'hh:nn';
+    LongTimeFormat := 'hh:nn:ss';
+  end;
 end;
 
 destructor TCustomIniFile.Destroy;
@@ -570,45 +584,71 @@ end;
 function TCustomIniFile.ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime;
 
 begin
-  Result := StrToDateDef(ReadString(Section, Ident, ''),Default);
+  if FFormatSettingsActive then begin
+    if not TryStrToDate(ReadString(Section, Ident, ''), Result, FormatSettings) then
+      Result := Default;
+  end else
+    Result := StrToDateDef(ReadString(Section, Ident, ''),Default);
 end;
 
 function TCustomIniFile.ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime;
 
 begin
-  Result := StrToDateTimeDef(ReadString(Section, Ident, ''),Default);
+  if FFormatSettingsActive then begin
+    if not TryStrToDateTime(ReadString(Section, Ident, ''), Result, FormatSettings) then
+      Result := Default;
+  end else
+    Result := StrToDateTimeDef(ReadString(Section, Ident, ''),Default);
 end;
 
 function TCustomIniFile.ReadFloat(const Section, Ident: string; Default: Double): Double;
 
 begin
-  Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default);
+  if FFormatSettingsActive then
+    Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default, FormatSettings)
+  else
+    Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default);
 end;
 
 function TCustomIniFile.ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime;
 
 begin
-  Result := StrToTimeDef(ReadString(Section, Ident, ''),Default);
+  if FFormatSettingsActive then
+    Result := StrToTimeDef(ReadString(Section, Ident, ''),Default, FormatSettings.TimeSeparator)
+  else
+    Result := StrToTimeDef(ReadString(Section, Ident, ''),Default);
 end;
 
 procedure TCustomIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
 begin
-  WriteString(Section, Ident, DateToStr(Value));
+  if FFormatSettingsActive then
+    WriteString(Section, Ident, DateToStr(Value, FormatSettings))
+  else
+    WriteString(Section, Ident, DateToStr(Value));
 end;
 
 procedure TCustomIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime);
 begin
-  WriteString(Section, Ident, DateTimeToStr(Value));
+  if FFormatSettingsActive then
+    WriteString(Section, Ident, DateTimeToStr(Value, FormatSettings))
+  else
+    WriteString(Section, Ident, DateTimeToStr(Value));
 end;
 
 procedure TCustomIniFile.WriteFloat(const Section, Ident: string; Value: Double);
 begin
-  WriteString(Section, Ident, FloatToStr(Value));
+  if FFormatSettingsActive then
+    WriteString(Section, Ident, FloatToStr(Value, FormatSettings))
+  else
+    WriteString(Section, Ident, FloatToStr(Value));
 end;
 
 procedure TCustomIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
 begin
-  WriteString(Section, Ident, TimeToStr(Value));
+  if FFormatSettingsActive then
+    WriteString(Section, Ident, TimeToStr(Value, FormatSettings))
+  else
+    WriteString(Section, Ident, TimeToStr(Value));
 end;
 
 function TCustomIniFile.ValueExists(const Section, Ident: string): Boolean;
