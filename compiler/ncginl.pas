@@ -208,74 +208,9 @@ implementation
 
     { second_handle_ the sizeof and typeof routines }
     procedure tcginlinenode.second_SizeOfTypeOf;
-      var
-         href,
-         hrefvmt   : treference;
-         hregister : tregister;
       begin
-        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        { for both cases load vmt }
-        if left.nodetype=typen then
-          begin
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname,AT_DATA),0,voidpointertype.size);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister);
-          end
-        else
-          begin
-            secondpass(left);
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-
-            { handle self inside a method of a class }
-            case left.location.loc of
-              LOC_CREGISTER,
-              LOC_REGISTER :
-                begin
-                  if (left.resultdef.typ=classrefdef) or
-                     (po_staticmethod in current_procinfo.procdef.procoptions) then
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,left.location.register,hregister)
-                  else
-                   begin
-                     { load VMT pointer }
-                     hlcg.reference_reset_base(hrefvmt,voidpointertype,left.location.register,tobjectdef(left.resultdef).vmt_offset,voidpointertype.size);
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hrefvmt,hregister);
-                   end
-                end;
-              LOC_REFERENCE,
-              LOC_CREFERENCE :
-                begin
-                  if is_class(left.resultdef) then
-                   begin
-                     { deref class }
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,left.location.reference,hregister);
-                     hlcg.g_maybe_testself(current_asmdata.CurrAsmList,left.resultdef,hregister);
-                     { load VMT pointer }
-                     hlcg.reference_reset_base(hrefvmt,voidpointertype,hregister,tobjectdef(left.resultdef).vmt_offset,voidpointertype.size);
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hrefvmt,hregister);
-                   end
-                  else
-                   begin
-                     { load VMT pointer, but not for classrefdefs }
-                     if (left.resultdef.typ=objectdef) then
-                       begin
-                         inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
-                         left.location.reference.alignment:=newalignment(left.location.reference.alignment,tobjectdef(left.resultdef).vmt_offset);
-                       end;
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,left.location.reference,hregister);
-                   end;
-                end;
-              else
-                internalerror(200301301);
-            end;
-          end;
-        { in sizeof load size }
-        if inlinenumber=in_sizeof_x then
-           begin
-             hlcg.reference_reset_base(href,voidpointertype,hregister,0,voidpointertype.size);
-             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
-           end;
-        location.register:=hregister;
+        { handled in pass 1 }
+        internalerror(2015122701);
      end;
 
 
