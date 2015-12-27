@@ -227,15 +227,15 @@ begin
         SQLITE_FLOAT:
           AType := ftFloat;
       else
-	    begin
+        begin
           AType := ftString;
-		  DataSize := DefaultStringSize;
-		end;  		
+          DataSize := DefaultStringSize;
+        end;
       end;
     end else
     begin
       AType := ftString;
-	  DataSize := DefaultStringSize;
+      DataSize := DefaultStringSize;
     end;
     FieldDefs.Add(FieldDefs.MakeNameUnique(String(sqlite3_column_name(vm, i))), AType, DataSize);
     //Set the pchar2sql function
