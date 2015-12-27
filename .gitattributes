@@ -2378,6 +2378,7 @@ packages/fcl-fpcunit/src/exampletests/Makefile.fpc svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/fpcunittests.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/money.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/moneytest.pp svneol=native#text/plain
+packages/fcl-fpcunit/src/exampletests/needassert.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/testmockobject.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/fpcunit.pp svneol=native#text/plain
 packages/fcl-fpcunit/src/fpcunitreport.pp svneol=native#text/plain
