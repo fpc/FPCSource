@@ -1557,6 +1557,24 @@ implementation
                 ]);
               finish_entry;
             end;
+          u128bit:
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Int128'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
+                DW_AT_byte_size,DW_FORM_data1,16
+                ]);
+              finish_entry;
+            end;
+          s128bit:
+            begin
+              append_entry(DW_TAG_base_type,false,[
+                DW_AT_name,DW_FORM_string,'Int128'#0,
+                DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
+                DW_AT_byte_size,DW_FORM_data1,16
+                ]);
+              finish_entry;
+            end;
           else
             internalerror(200601287);
         end;
