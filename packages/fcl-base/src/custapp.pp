@@ -79,6 +79,7 @@ Type
     Procedure GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
     Procedure GetEnvironmentList(List : TStrings);
     Procedure Log(EventType : TEventType; const Msg : String);
+    Procedure Log(EventType : TEventType; const Fmt : String; const Args : array of const);
     // Delphi properties
     property ExeName: string read GetExeName;
     property HelpFile: string read FHelpFile write FHelpFile;
@@ -263,6 +264,17 @@ procedure TCustomApplication.Log(EventType: TEventType; const Msg: String);
 begin
   If (FEventLogFilter=[]) or (EventType in FEventLogFilter) then
     DoLog(EventType,Msg);
+end;
+
+procedure TCustomApplication.Log(EventType: TEventType; const Fmt: String;
+  const Args: array of const);
+begin
+  try
+    Log(EventType, Format(Fmt, Args));
+  except
+    On E : Exception do
+      Log(etError,Format('Error formatting message "%s" with %d arguments: %s',[Fmt,Length(Args),E.Message]));
+  end  
 end;
 
 constructor TCustomApplication.Create(AOwner: TComponent);
