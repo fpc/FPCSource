@@ -58,6 +58,7 @@ function PackageBuildPath(APackage:TFPPackage):String;
 function PackageRemoteArchive(APackage:TFPPackage): String;
 function PackageLocalArchive(APackage:TFPPackage): String;
 function PackageManifestFile(APackage:TFPPackage): String;
+procedure ClearExecutedAction;
 
 
 Implementation
@@ -174,7 +175,10 @@ begin
   Result:=ManifestFileName;
 end;
 
-
+procedure ClearExecutedAction;
+begin
+  ExecutedActions.Clear;
+end;
 
 { TPackageHandler }
 
