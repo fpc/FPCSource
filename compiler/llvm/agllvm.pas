@@ -199,7 +199,7 @@ implementation
       begin
         result:='';
         if assigned(ref.relsymbol) or
-           (assigned(ref.symbol) =
+           (assigned(ref.symbol) and
             (ref.base<>NR_NO)) or
            (ref.index<>NR_NO) or
            (ref.offset<>0) then
@@ -215,13 +215,15 @@ implementation
               result:=result+'index<>NR_NO, ';
             if ref.offset<>0 then
               result:=result+'offset='+tostr(ref.offset);
-            result:=result+')**'
-//            internalerror(2013060225);
+            result:=result+')**';
+            internalerror(2013060225);
           end;
          if ref.base<>NR_NO then
            result:=result+getregisterstring(ref.base)
+         else if assigned(ref.symbol) then
+           result:=result+LlvmAsmSymName(ref.symbol)
          else
-           result:=result+LlvmAsmSymName(ref.symbol);
+           result:=result+'null';
          if withalign then
            result:=result+getreferencealignstring(ref);
       end;
