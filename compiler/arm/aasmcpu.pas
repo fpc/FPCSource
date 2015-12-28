@@ -1416,6 +1416,32 @@ implementation
               ait_instruction:
                 begin
                   case taicpu(curtai).opcode of
+                    A_STM:
+                      begin
+                        if (taicpu(curtai).ops=2) and
+                           (taicpu(curtai).oper[0]^.typ=top_ref) and
+                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) then
+                          begin
+                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
+                            taicpu(curtai).ops:=1;
+                            taicpu(curtai).opcode:=A_PUSH;
+                          end;
+                      end;
+
+                    A_LDM:
+                      begin
+                        if (taicpu(curtai).ops=2) and
+                           (taicpu(curtai).oper[0]^.typ=top_ref) and
+                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) then
+                          begin
+                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
+                            taicpu(curtai).ops:=1;
+                            taicpu(curtai).opcode:=A_POP;
+                          end;
+                      end;
+
                     A_ADD,
                     A_AND,A_EOR,A_ORR,A_BIC,
                     A_LSL,A_LSR,A_ASR,A_ROR,
@@ -4487,11 +4513,9 @@ implementation
               bytes:=bytes or (ord(insentry^.code[1]) shl 8);
               bytes:=bytes or ord(insentry^.code[2]);
 
-
               case opcode of
                 A_SUB:
                   begin
-                    bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
                     if (ops=3) and
                        (oper[2]^.typ=top_const) then
                       bytes:=bytes or ((oper[2]^.val shr 2) and $7F)
@@ -4651,7 +4675,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
@@ -4662,7 +4686,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
