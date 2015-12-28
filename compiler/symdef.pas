@@ -1870,6 +1870,7 @@ implementation
 
     function tstoreddef.fullownerhierarchyname: TSymStr;
       var
+        lastowner: tsymtable;
         tmp: tdef;
       begin
 {$ifdef symansistr}
@@ -1884,11 +1885,12 @@ implementation
         tmp:=self;
         result:='';
         repeat
+          lastowner:=tmp.owner;
           { can be not assigned in case of a forwarddef }
-          if not assigned(tmp.owner) then
+          if not assigned(lastowner) then
             break
           else
-            tmp:=tdef(tmp.owner.defowner);
+            tmp:=tdef(lastowner.defowner);
           if not assigned(tmp) then
             break;
           if tmp.typ in [recorddef,objectdef] then
@@ -1897,6 +1899,10 @@ implementation
             if tmp.typ=procdef then
               result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
         until tmp=nil;
+        { add the unit name }
+        if assigned(lastowner) and
+           assigned(lastowner.realname) then
+          result:=lastowner.realname^+'.'+result;
 {$ifdef symansistr}
         _fullownerhierarchyname:=result;
 {$else symansistr}
