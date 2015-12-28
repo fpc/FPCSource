@@ -246,6 +246,8 @@ implementation
              LOC_FPUREGISTER,
              LOC_MMREGISTER:
                result:=result+' '+getregisterstring(para^.reg);
+             LOC_CONSTANT:
+               result:=result+' '+tostr(int64(para^.value));
              else
                internalerror(2014010801);
            end;

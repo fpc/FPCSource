@@ -185,6 +185,7 @@ interface
         LOC_REGISTER,
         LOC_FPUREGISTER,
         LOC_MMREGISTER: (reg: tregister);
+        LOC_CONSTANT: (value: tcgint);
     end;
 
 

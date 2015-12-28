@@ -42,6 +42,7 @@ uses
       procedure temp_to_ref(p: ptemprecord; out ref: treference); override;
 
       procedure a_load_ref_cgpara(list: TAsmList; size: tdef; const r: treference; const cgpara: TCGPara); override;
+      procedure a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara); override;
      protected
        procedure a_load_ref_cgpara_init_src(list: TAsmList; const para: tcgpara; const initialref: treference; var refsize: tdef; out newref: treference);
      public
@@ -278,6 +279,22 @@ implementation
     end;
 
 
+  procedure thlcgllvm.a_load_const_cgpara(list: TAsmList; tosize: tdef; a: tcgint; const cgpara: TCGPara);
+    begin
+      if is_ordinal(cgpara.def) then
+        begin
+          cgpara.check_simple_location;
+          paramanager.alloccgpara(list,cgpara);
+          if cgpara.location^.shiftval<0 then
+            a:=a shl -cgpara.location^.shiftval;
+          cgpara.location^.llvmloc.loc:=LOC_CONSTANT;
+          cgpara.location^.llvmloc.value:=a;
+        end
+      else
+        inherited;
+    end;
+
+
   procedure thlcgllvm.a_load_ref_cgpara_init_src(list: TAsmList; const para: tcgpara; const initialref: treference; var refsize: tdef; out newref: treference);
     var
       newrefsize: tdef;
@@ -379,36 +396,44 @@ implementation
             new(callpara);
             callpara^.def:=paraloc^.def;
             llvmextractvalueextinfo(paras[i]^.def, callpara^.def, callpara^.valueext);
-            callpara^.loc:=paraloc^.loc;
-            case callpara^.loc of
-              LOC_REFERENCE:
-                begin
-                  if paraloc^.llvmvalueloc then
-                    internalerror(2014012307)
+            if paraloc^.llvmloc.loc=LOC_CONSTANT then
+              begin
+                callpara^.loc:=LOC_CONSTANT;
+                callpara^.value:=paraloc^.llvmloc.value;
+              end
+            else
+              begin
+                callpara^.loc:=paraloc^.loc;
+                case callpara^.loc of
+                  LOC_REFERENCE:
+                    begin
+                      if paraloc^.llvmvalueloc then
+                        internalerror(2014012307)
+                      else
+                        begin
+                          reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
+                          res:=getregisterfordef(list, paraloc^.def);
+                          load_ref_anyreg(callpara^.def, href, res, callpara);
+                        end;
+                      callpara^.reg:=res
+                    end;
+                  LOC_REGISTER,
+                  LOC_FPUREGISTER,
+                  LOC_MMREGISTER:
+                    begin
+                      { undo explicit value extension }
+                      if callpara^.valueext<>lve_none then
+                        begin
+                          res:=getregisterfordef(list, callpara^.def);
+                          a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
+                          paraloc^.register:=res;
+                        end;
+                        callpara^.reg:=paraloc^.register
+                    end;
                   else
-                    begin
-                      reference_reset_base(href, cpointerdef.getreusable(callpara^.def), paraloc^.reference.index, paraloc^.reference.offset, paraloc^.def.alignment);
-                      res:=getregisterfordef(list, paraloc^.def);
-                      load_ref_anyreg(callpara^.def, href, res, callpara);
-                    end;
-                  callpara^.reg:=res
+                    internalerror(2014010605);
                 end;
-              LOC_REGISTER,
-              LOC_FPUREGISTER,
-              LOC_MMREGISTER:
-                begin
-                  { undo explicit value extension }
-                  if callpara^.valueext<>lve_none then
-                    begin
-                      res:=getregisterfordef(list, callpara^.def);
-                      a_load_reg_reg(list, paraloc^.def, callpara^.def, paraloc^.register, res);
-                      paraloc^.register:=res;
-                    end;
-                    callpara^.reg:=paraloc^.register
-                end;
-              else
-                internalerror(2014010605);
-            end;
+              end;
             callparas.add(callpara);
             paraloc:=paraloc^.next;
           end;
