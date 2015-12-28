@@ -82,7 +82,7 @@ Var
 
 begin
   Data:=Nil;
-  P:=TJSONParser.Create(AStream,AUseUTF8);
+  P:=TJSONParser.Create(AStream,[joUTF8]);
   try
     Data:=P.Parse;
   finally
@@ -138,7 +138,10 @@ begin
       tkNull  : Result:=CreateJSON;
       tkTrue,
       tkFalse : Result:=CreateJSON(t=tkTrue);
-      tkString : Result:=CreateJSON(CurrentTokenString);
+      tkString : if joUTF8 in Options then
+                   Result:=CreateJSON(UTF8Decode(CurrentTokenString))
+                     else
+                       Result:=CreateJSON(CurrentTokenString);
       tkCurlyBraceOpen : Result:=ParseObject;
       tkCurlyBraceClose : DoError(SErrUnexpectedToken);
       tkSQuaredBraceOpen : Result:=ParseArray;
@@ -320,15 +323,17 @@ end;
 constructor TJSONParser.Create(Source: TStream; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
-  FScanner:=TJSONScanner.Create(Source);
-  UseUTF8:=AUseUTF8;
+  FScanner:=TJSONScanner.Create(Source,[joUTF8]);
+  if AUseUTF8 then
+   Options:=Options + [joUTF8];
 end;
 
 constructor TJSONParser.Create(Source: TJSONStringType; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
-  FScanner:=TJSONScanner.Create(Source);
-  UseUTF8:=AUseUTF8;
+  FScanner:=TJSONScanner.Create(Source,[joUTF8]);
+  if AUseUTF8 then
+   Options:=Options + [joUTF8];
 end;
 
 constructor TJSONParser.Create(Source: TStream; AOptions: TJSONOptions);

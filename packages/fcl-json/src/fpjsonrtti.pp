@@ -400,7 +400,7 @@ begin
     tkAString:
       SetStrProp(AObject,PI,PropData.AsString);
     tkWString :
-      SetWideStrProp(AObject,PI,PropData.AsString);
+      SetWideStrProp(AObject,PI,PropData.AsUnicodeString);
     tkVariant:
       SetVariantProp(AObject,PI,JSONToVariant(PropData));
     tkClass:
@@ -425,7 +425,7 @@ begin
     tkMethod :
       Error(SErrUnsupportedPropertyKind,[PI^.Name]);
     tkUString :
-      SetUnicodeStrProp(AObject,PI,PropData.AsString);
+      SetUnicodeStrProp(AObject,PI,PropData.AsUnicodeString);
     tkUChar:
       begin
       JS:=PropData.asString;

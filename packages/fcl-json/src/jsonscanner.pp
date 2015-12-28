@@ -247,7 +247,7 @@ begin
     '"','''':
       begin
         C:=TokenStr[0];
-        If (C='''') and Strict then
+        If (C='''') and (joStrict in Options) then
           Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
         Inc(TokenStr);
         TokenStart := TokenStr;
@@ -284,7 +284,7 @@ begin
                       end;
                       end;
                     // WideChar takes care of conversion...  
-                    if UseUTF8 then
+                    if (joUTF8 in Options) then
                       S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))))
                     else
                       S:=WideChar(StrToInt('$'+S));  
@@ -442,7 +442,7 @@ begin
             FCurToken := Result;
             exit;
             end;
-        if Strict then
+        if (joStrict in Options) then
           Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]])
         else
           Result:=tkIdentifier;
