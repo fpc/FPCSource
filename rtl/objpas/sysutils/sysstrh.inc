@@ -103,7 +103,7 @@ function AnsiDequotedStr(const S: string; AQuote: Char): string;
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
-function IsValidIdent(const Ident: string): boolean;
+function IsValidIdent(const Ident: string; AllowDots : Boolean = False): boolean;
 function IntToStr(Value: Longint): string;
 function IntToStr(Value: Int64): string;
 function IntToStr(Value: QWord): string;
