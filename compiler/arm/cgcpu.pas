@@ -646,11 +646,13 @@ unit cgcpu;
         sym : TAsmSymbol;
       begin
         { check not really correct: should only be used for non-Thumb cpus }
-        if (CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype]) and
-          { WinCE GNU AS (not sure if this applies in general) does not support BLX imm }
-          (target_info.system<>system_arm_wince) then
-          branchopcode:=A_BLX
-        else
+        // if (CPUARM_HAS_BLX_LABEL in cpu_capabilities[current_settings.cputype]) and
+        //   { WinCE GNU AS (not sure if this applies in general) does not support BLX imm }
+        // (target_info.system<>system_arm_wince) then
+        //   branchopcode:=A_BLX
+        // else
+        { use always BL as newer binutils do not translate blx apparently
+          generating BL is also what clang and gcc do by default }
           branchopcode:=A_BL;
         if not(weak) then
           sym:=current_asmdata.RefAsmSymbol(s)
