@@ -1,4 +1,4 @@
-{ %OPT=-Onofastmath }
+{ %OPT=-Oonofastmath }
 
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
