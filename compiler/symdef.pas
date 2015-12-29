@@ -1059,7 +1059,7 @@ interface
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
-       { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
+       { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype,
        uinttype,
        { integer types corresponding to OS_SINT/OS_INT }

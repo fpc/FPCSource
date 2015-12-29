@@ -113,14 +113,14 @@ implementation
     procedure set_default_int_types;
       begin
 {$ifdef cpu64bitaddr}
+        uinttype:=u64inttype;
+        sinttype:=s64inttype;
         ptruinttype:=u64inttype;
         ptrsinttype:=s64inttype;
 {$endif cpu64bitaddr}
-{$ifdef cpu64bitalu}
-        uinttype:=u64inttype;
-        sinttype:=s64inttype;
-{$endif cpu64bitalu}
 {$ifdef cpu32bitaddr}
+        uinttype:=u32inttype;
+        sinttype:=s32inttype;
         ptruinttype:=u32inttype;
         ptrsinttype:=s32inttype;
 {$endif cpu32bitaddr}
