@@ -1421,8 +1421,10 @@ implementation
                         if (taicpu(curtai).ops=2) and
                            (taicpu(curtai).oper[0]^.typ=top_ref) and
                            (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
-                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) then
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                           (taicpu(curtai).oppostfix in [PF_FD,PF_DB]) then
                           begin
+                            taicpu(curtai).oppostfix:=PF_None;
                             taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
                             taicpu(curtai).ops:=1;
                             taicpu(curtai).opcode:=A_PUSH;
@@ -1434,8 +1436,10 @@ implementation
                         if (taicpu(curtai).ops=2) and
                            (taicpu(curtai).oper[0]^.typ=top_ref) and
                            (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
-                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) then
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                           (taicpu(curtai).oppostfix in [PF_FD,PF_IA]) then
                           begin
+                            taicpu(curtai).oppostfix:=PF_None;
                             taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
                             taicpu(curtai).ops:=1;
                             taicpu(curtai).opcode:=A_POP;
