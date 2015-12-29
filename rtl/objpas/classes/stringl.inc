@@ -80,6 +80,20 @@ begin
     end;
 end;
 
+Function TStrings.GetSkipLastLineBreak : Boolean;
+
+begin
+  CheckSpecialChars;
+  Result:=FSkipLastLineBreak;
+end;
+
+procedure TStrings.SetSkipLastLineBreak(const AValue : Boolean);
+
+begin
+  CheckSpecialChars;
+  FSkipLastLineBreak:=AValue;
+end;
+
 Function TStrings.GetLBS : TTextLineBreakStyle;
 begin
   CheckSpecialChars;
@@ -512,6 +526,8 @@ begin
   NLS:=Length(NL);
   For I:=0 to count-1 do
     L:=L+Length(Strings[I])+NLS;
+  if SkipLastLineBreak then
+    Dec(L,NLS);
   Setlength(Result,L);
   P:=Pointer(Result);
   For i:=0 To count-1 do
@@ -521,11 +537,12 @@ begin
     if L<>0 then
       System.Move(Pointer(S)^,P^,L);
     P:=P+L;
-    For L:=1 to NLS do
-      begin
-      P^:=NL[L];
-      inc(P);
-      end;
+    if (I<Count-1) or Not SkipLastLineBreak then
+      For L:=1 to NLS do
+        begin
+        P^:=NL[L];
+        inc(P);
+        end;
     end;
 end;
 
