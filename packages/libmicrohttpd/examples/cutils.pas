@@ -22,6 +22,14 @@ const
   SEEK_END = 2;
 {$IFDEF MSWINDOWS}
   DELTA_EPOCH_IN_MICROSECS: culonglong = 11644473600000000;
+
+  SIGINT = 2;
+  SIGILL = 4;
+  SIGFPE = 8;
+  SIGSEGV = 11;
+  SIGTERM = 15;
+  SIGBREAK = 21;
+  SIGABRT = 22;
 {$ENDIF}
 
 type
@@ -33,6 +41,7 @@ type
   FILEptr = ^File;
   seek_mode = longint;
   open_mode = (fopenread, fopenwrite, fappendwrite);
+  signal_func = procedure(sig: cint); cdecl;
 
 {$IFDEF MSWINDOWS}
 function fpgettimeofday(tv: PTimeVal; tz: PTimeZone): cint;
@@ -59,6 +68,7 @@ function strerror(errnum: cint): Pchar; cdecl; external LIB_NAME name 'strerror'
 function strncat(a, b: Pcchar; sz: size_t): Pchar; cdecl; external LIB_NAME name 'strncat';
 function strcpy(a, b: Pcchar): Pchar; cdecl; external LIB_NAME name 'strcpy';
 function strncmp(a, b: Pcchar; sz: size_t): cint; cdecl;  external LIB_NAME name 'strncmp';
+function signal(sig: cint; func: signal_func): signal_func; cdecl; external LIB_NAME Name 'signal';
 
 function fopen(filename: PAnsiChar; mode: open_mode): FILEptr;
 procedure fclose(fp: FILEptr);
