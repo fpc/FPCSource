@@ -313,7 +313,10 @@ var
   A: array[0..4] of Cardinal absolute Digest1;
   B: array[0..4] of Cardinal absolute Digest2;
 begin
+{$push}
+{$B+}
   Result := (A[0] = B[0]) and (A[1] = B[1]) and (A[2] = B[2]) and (A[3] = B[3]) and (A[4] = B[4]);
+{$pop}
 end;
 
 end.
