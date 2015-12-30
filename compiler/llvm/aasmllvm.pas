@@ -153,7 +153,8 @@ interface
     (
       ldf_definition,   { definition as opposed to (an external) declaration }
       ldf_tls,          { tls definition }
-      ldf_unnamed_addr  { address doesn't matter, only content }
+      ldf_unnamed_addr, { address doesn't matter, only content }
+      ldf_vectorized   { vectorized, dead-strippable data }
     );
     taillvmdeclflags = set of taillvmdeclflag;
 

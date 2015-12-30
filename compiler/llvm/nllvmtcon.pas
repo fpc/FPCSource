@@ -28,7 +28,7 @@ interface
   uses
     cclasses,constexp,globtype,
     aasmbase,aasmtai,aasmcnst,aasmllvm,
-    symconst,symtype,symdef,symsym,
+    symconst,symbase,symtype,symdef,symsym,
     ngtcon;
 
   type
@@ -111,6 +111,8 @@ interface
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
+      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean; override;
+
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
@@ -123,7 +125,7 @@ implementation
     verbose,systems,
     aasmdata,
     cpubase,cpuinfo,llvmbase,
-    symbase,symtable,llvmdef,defutil,defcmp;
+    symtable,llvmdef,defutil,defcmp;
 
   { tllvmaggregateinformation }
 
@@ -190,6 +192,10 @@ implementation
         decl.setsecname(secname);
       if tcalo_is_lab in options then
         include(decl.flags,ldf_unnamed_addr);
+      if ([tcalo_vectorized_dead_strip_start,
+           tcalo_vectorized_dead_strip_item,
+           tcalo_vectorized_dead_strip_end]*options)<>[] then
+        include(decl.flags,ldf_vectorized);
       { TODO: tcalo_no_dead_strip: add to @llvm.user meta-variable }
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
@@ -723,6 +729,22 @@ implementation
       if fqueue_offset<>0 then
         internalerror(2015030702);
       inherited;
+    end;
+
+
+  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean;
+    begin
+      result:=inherited;
+      if result then
+        exit;
+      { put all of the resource strings in a single section: it doesn't hurt,
+        and this avoids problems with Darwin/mach-o's limitation of 255
+        sections }
+      secname:=basename;
+      { Darwin requires specifying a segment name too }
+      if target_info.system in systems_darwin then
+        secname:='__DATA,'+secname;
+      result:=true;
     end;
 
 
