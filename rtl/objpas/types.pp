@@ -120,6 +120,10 @@ type
           class operator <> (const apt1, apt2 : TPointF): Boolean;
           class operator + (const apt1, apt2 : TPointF): TPointF;
           class operator - (const apt1, apt2 : TPointF): TPointF;
+          class operator - (const apt1 : TPointF): TPointF;
+          class operator * (const apt1, apt2: TPointF): Single; // scalar product
+          class operator * (const apt1: TPointF; afactor: single): TPointF;
+          class operator * (afactor: single; const apt1: TPointF): TPointF;
        end;
   { TRectF }
 
@@ -600,6 +604,21 @@ begin
   result:=NOT (SameValue(apt1.x,apt2.x) and Samevalue(apt1.y,apt2.y));
 end;
 
+class operator TPointF. * (const apt1, apt2: TPointF): Single;
+begin
+  result:=apt1.x*apt2.x + apt1.y*apt2.y;
+end;
+
+class operator TPointF. * (afactor: single; const apt1: TPointF): TPointF;
+begin
+  result:=apt1.Scale(afactor);
+end;
+
+class operator TPointF. * (const apt1: TPointF; afactor: single): TPointF;
+begin
+  result:=apt1.Scale(afactor);
+end;
+
 class operator TPointF.+ (const apt1, apt2 : TPointF): TPointF;
 begin
   result.x:=apt1.x+apt2.x;
@@ -610,6 +629,12 @@ class operator TPointF.- (const apt1, apt2 : TPointF): TPointF;
 begin
   result.x:=apt1.x-apt2.x;
   result.y:=apt1.y-apt2.y;
+end;
+
+class operator TPointF. - (const apt1: TPointF): TPointF;
+begin
+  Result.x:=-apt1.x;
+  Result.y:=-apt1.y;
 end;
 
 procedure TPointF.SetLocation(const apt :TPointF);
