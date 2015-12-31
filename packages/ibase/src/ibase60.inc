@@ -1193,6 +1193,8 @@ type
      isc_spb_res_page_size = 10;
      isc_spb_res_length = 11;
      isc_spb_res_access_mode = 12;
+     isc_spb_res_fix_fss_data = 13;
+     isc_spb_res_fix_fss_metadata = 14;
      isc_spb_res_deactivate_idx = $0100;
      isc_spb_res_no_shadow = $0200;
      isc_spb_res_no_validity = $0400;
