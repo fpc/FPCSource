@@ -369,6 +369,11 @@ begin
       FCreator.Options.BackendOptions.Add(Arg);
       end;
     end;
+  // Set defaults
+  if FCreator.Options.BackEnd='' then
+    FCreator.Options.BackEnd:='html';
+  if SelectedPackage.Output='' then
+    SelectedPackage.Output:=SelectedPackage.Name;
 end;
 
 Procedure TFPDocApplication.DoRun;
