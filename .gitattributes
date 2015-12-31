@@ -6960,6 +6960,7 @@ packages/rtl-objpas/src/inc/varerror.inc svneol=native#text/plain
 packages/rtl-objpas/src/inc/variants.pp svneol=native#text/plain
 packages/rtl-objpas/src/inc/varutilh.inc svneol=native#text/plain
 packages/rtl-objpas/src/inc/varutils.inc svneol=native#text/plain
+packages/rtl-objpas/src/inc/widestrutils.pp svneol=native#text/plain
 packages/rtl-objpas/src/morphos/varutils.pp svneol=native#text/plain
 packages/rtl-objpas/src/msdos/varutils.pp svneol=native#text/plain
 packages/rtl-objpas/src/nativent/varutils.pp svneol=native#text/pascal
