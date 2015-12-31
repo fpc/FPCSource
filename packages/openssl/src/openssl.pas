@@ -429,6 +429,134 @@ type
 
   Ppem_password_cb = Pointer;
 
+  // PKCS7
+
+  PPKCS7  = ^PKCS7;
+  PPKCS7_DIGEST  = ^PKCS7_DIGEST;
+  PPKCS7_ENC_CONTENT  = ^PKCS7_ENC_CONTENT;
+  PPKCS7_ENCRYPT  = ^TPKCS7_ENCRYPT;
+  PPKCS7_ENVELOPE  = ^PKCS7_ENVELOPE;
+  PPKCS7_ISSUER_AND_SERIAL  = ^PKCS7_ISSUER_AND_SERIAL;
+  PPKCS7_RECIP_INFO  = ^PKCS7_RECIP_INFO;
+  PPKCS7_SIGN_ENVELOPE  = ^PKCS7_SIGN_ENVELOPE;
+  PPKCS7_SIGNED  = ^PKCS7_SIGNED;
+  PPKCS7_SIGNER_INFO  = ^PKCS7_SIGNER_INFO;
+  Pstack_st_X509  = Pointer;
+  Pstack_st_X509_ALGOR  = Pointer;
+  Pstack_st_X509_ATTRIBUTE  = Pointer;
+  ppkcs7_st = ^pkcs7_st;
+
+    pkcs7_issuer_and_serial_st = record
+        issuer : ^X509_NAME;
+        serial : PASN1_INTEGER;
+      end;
+    PKCS7_ISSUER_AND_SERIAL = pkcs7_issuer_and_serial_st;
+
+    pkcs7_signer_info_st = record
+        version : PASN1_INTEGER;
+        issuer_and_serial : PPKCS7_ISSUER_AND_SERIAL;
+        digest_alg : pointer;
+        auth_attr : pointer;
+        digest_enc_alg : pointer;
+        enc_digest : pointer;
+        unauth_attr : pointer;
+        pkey : ^EVP_PKEY;
+      end;
+    PKCS7_SIGNER_INFO = pkcs7_signer_info_st;
+
+    stack_st_PKCS7_SIGNER_INFO = record
+      stack : Pointer;
+    end;
+
+
+    pkcs7_recip_info_st = record
+        version : PASN1_INTEGER;
+        issuer_and_serial : PPKCS7_ISSUER_AND_SERIAL;
+        key_enc_algor : Pointer;
+        enc_key : Pointer;
+        cert : PX509;
+      end;
+    PKCS7_RECIP_INFO = pkcs7_recip_info_st;
+    stack_st_PKCS7_RECIP_INFO = record
+        stack : Pointer;
+      end;
+
+
+    pkcs7_signed_st = record
+        version : PASN1_INTEGER;
+        md_algs : Pointer;
+        cert : pointer;
+        crl : pointer;
+        signer_info : pointer;
+        contents : Pointer;
+      end;
+    PKCS7_SIGNED = pkcs7_signed_st;
+(* Const before type ignored *)
+
+    pkcs7_enc_content_st = record
+        content_type : Pointer;
+        algorithm : Pointer;
+        enc_data : Pointer;
+        cipher : PEVP_CIPHER;
+      end;
+    PKCS7_ENC_CONTENT = pkcs7_enc_content_st;
+
+    pkcs7_enveloped_st = record
+        version : PASN1_INTEGER;
+        recipientinfo : ^stack_st_PKCS7_RECIP_INFO;
+        enc_data : ^PKCS7_ENC_CONTENT;
+      end;
+    PKCS7_ENVELOPE = pkcs7_enveloped_st;
+
+    pkcs7_signedandenveloped_st = record
+        version : PASN1_INTEGER;
+        md_algs : Pstack_st_X509_ALGOR;
+        cert : Pstack_st_X509;
+        crl : Pointer;
+        signer_info : pointer;
+        enc_data : PPKCS7_ENC_CONTENT;
+        recipientinfo : ^stack_st_PKCS7_RECIP_INFO;
+      end;
+    PKCS7_SIGN_ENVELOPE = pkcs7_signedandenveloped_st;
+
+    pkcs7_digest_st = record
+        version : PASN1_INTEGER;
+        md : POinter;
+        contents : ppkcs7_st;
+        digest : Pointer;
+      end;
+    PKCS7_DIGEST = pkcs7_digest_st;
+
+    pkcs7_encrypted_st = record
+      version : PASN1_INTEGER;
+      enc_data : ^PKCS7_ENC_CONTENT;
+      end;
+    TPKCS7_ENCRYPT = pkcs7_encrypted_st;
+
+    pkcs7_st = record
+        asn1 : ^byte;
+        length : longint;
+        state : longint;
+        detached : longint;
+        _type : Pointer;
+        d : record
+            case longint of
+              0 : ( ptr : pchar );
+              1 : ( data : Pointer);
+              2 : ( sign : PPKCS7_SIGNED );
+              3 : ( enveloped : ^PKCS7_ENVELOPE );
+              4 : ( signed_and_enveloped : ^PKCS7_SIGN_ENVELOPE );
+              5 : ( digest : ^PKCS7_DIGEST );
+              6 : ( encrypted : ^TPKCS7_ENCRYPT );
+              7 : ( other : PASN1_TYPE );
+            end;
+      end;
+    pkcs7 = pkcs7_st;
+    stack_st_PKCS7 = record
+      stack : Pointer;
+      end;
+    PPPKCS7_ISSUER_AND_SERIAL = ^PPKCS7_ISSUER_AND_SERIAL;
+
 const
   SSL_ERROR_NONE = 0;
   SSL_ERROR_SSL = 1;
@@ -960,6 +1088,71 @@ var
   procedure CRYPTOcleanupAllExData;
   procedure OPENSSLaddallalgorithms;
 
+  // PKCS7 functions
+  function PKCS7_ISSUER_AND_SERIAL_new : PPKCS7_ISSUER_AND_SERIAL;
+  procedure PKCS7_ISSUER_AND_SERIAL_free (a:PPKCS7_ISSUER_AND_SERIAL);
+  function PKCS7_ISSUER_AND_SERIAL_digest(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;
+  function PKCS7_dup(p7:PPKCS7):PPKCS7;
+  function PEM_write_bio_PKCS7_stream(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;
+  function PKCS7_SIGNER_INFO_new:PPKCS7_SIGNER_INFO;
+  procedure PKCS7_SIGNER_INFO_free(a:PPKCS7_SIGNER_INFO);
+  function PKCS7_RECIP_INFO_new:PPKCS7_RECIP_INFO;
+  procedure PKCS7_RECIP_INFO_free(a:PPKCS7_RECIP_INFO);
+  function PKCS7_SIGNED_new:PPKCS7_SIGNED;
+  procedure PKCS7_SIGNED_free(a:PPKCS7_SIGNED);
+  function PKCS7_ENC_CONTENT_new:PPKCS7_ENC_CONTENT;
+  procedure PKCS7_ENC_CONTENT_free(a:PPKCS7_ENC_CONTENT);
+  function PKCS7_ENVELOPE_new:PPKCS7_ENVELOPE;
+  procedure PKCS7_ENVELOPE_free(a:PPKCS7_ENVELOPE);
+  function PKCS7_SIGN_ENVELOPE_new:PPKCS7_SIGN_ENVELOPE;
+  procedure PKCS7_SIGN_ENVELOPE_free(a:PPKCS7_SIGN_ENVELOPE);
+  function PKCS7_DIGEST_new:PPKCS7_DIGEST;
+  procedure PKCS7_DIGEST_free(a:PPKCS7_DIGEST);
+  function PKCS7_ENCRYPT_new:PPKCS7_ENCRYPT;
+  procedure PKCS7_ENCRYPT_free(a:PPKCS7_ENCRYPT);
+  function PKCS7_new:PPKCS7;
+  procedure PKCS7_free(a:PPKCS7);
+  function PKCS7_print_ctx(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;
+  function PKCS7_ctrl(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;
+  function PKCS7_set_type(p7:PPKCS7; _type:longint):longint;
+  function PKCS7_set0_type_other(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;
+  function PKCS7_set_content(p7:PPKCS7; p7_data:PPKCS7):longint;
+  function PKCS7_SIGNER_INFO_set(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;
+  function PKCS7_SIGNER_INFO_sign(si:PPKCS7_SIGNER_INFO):longint;
+  function PKCS7_add_signer(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;
+  function PKCS7_add_certificate(p7:PPKCS7; x509:PX509):longint;
+  function PKCS7_add_crl(p7:PPKCS7; x509: Pointer):longint;
+  function PKCS7_content_new(p7:PPKCS7; nid:longint):longint;
+  function PKCS7_add_signature(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;
+  function PKCS7_cert_from_signer_info(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;
+  function PKCS7_set_digest(p7:PPKCS7; md:PEVP_MD):longint;
+  function PKCS7_add_recipient(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;
+  function PKCS7_add_recipient_info(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;
+  function PKCS7_RECIP_INFO_set(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;
+  function PKCS7_set_cipher(p7:PPKCS7; cipher:PEVP_CIPHER):longint;
+  function PKCS7_get_issuer_and_serial(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;
+  function PKCS7_digest_from_attributes(sk:Pstack_st_X509_ATTRIBUTE):Pointer;
+  function PKCS7_add_signed_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;
+  function PKCS7_add_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;
+  function PKCS7_get_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+  function PKCS7_get_signed_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+  function PKCS7_set_signed_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+  function PKCS7_set_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+  function PKCS7_sign(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;
+  function PKCS7_sign_add_signer(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;
+  function PKCS7_final(p7:PPKCS7; data:PBIO; flags:longint):longint;
+  function PKCS7_verify(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;
+  function PKCS7_encrypt(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;
+  function PKCS7_decrypt(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;
+  function PKCS7_add_attrib_smimecap(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;
+  function PKCS7_simple_smimecap(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;
+  function PKCS7_add_attrib_content_type(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;
+  function PKCS7_add0_attrib_signing_time(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;
+  function PKCS7_add1_attrib_digest(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;
+  function BIO_new_PKCS7(_out:PBIO; p7:PPKCS7):PBIO;
+  procedure ERR_load_PKCS7_strings;
+
+
 function IsSSLloaded: Boolean;
 function InitSSLInterface: Boolean; overload;
 function DestroySSLInterface: Boolean;
@@ -1479,6 +1672,82 @@ var
   _BIO_new_file: TBIO_new_file = nil;
   _BIO_new_mem_buf: TBIO_new_mem_buf = nil;
 
+  //  PKCS7 functions
+{  PKCS7_ISSUER_AND_SERIAL_it : ASN1_ITEM;cvar;external;
+  PKCS7_SIGNER_INFO_it : ASN1_ITEM;cvar;external;
+  PKCS7_RECIP_INFO_it : ASN1_ITEM;cvar;external;
+  PKCS7_SIGNED_it : ASN1_ITEM;cvar;external;
+  PKCS7_ENC_CONTENT_it : ASN1_ITEM;cvar;external;
+  PKCS7_ENVELOPE_it : ASN1_ITEM;cvar;external;
+  PKCS7_SIGN_ENVELOPE_it : ASN1_ITEM;cvar;external;
+  PKCS7_DIGEST_it : ASN1_ITEM;cvar;external;
+  PKCS7_ENCRYPT_it : ASN1_ITEM;cvar;external;
+  PKCS7_it : ASN1_ITEM;cvar;external;
+  PKCS7_ATTR_SIGN_it : ASN1_ITEM;cvar;external;
+  PKCS7_ATTR_VERIFY_it : ASN1_ITEM;cvar;external;
+}
+  _PKCS7_ISSUER_AND_SERIAL_new : function: PPKCS7_ISSUER_AND_SERIAL;
+  _PKCS7_ISSUER_AND_SERIAL_free : procedure(a:PPKCS7_ISSUER_AND_SERIAL);
+  _PKCS7_ISSUER_AND_SERIAL_digest : function(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;
+  _PKCS7_dup : function(p7:PPKCS7):PPKCS7;
+  _PEM_write_bio_PKCS7_stream : function(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;
+  _PKCS7_SIGNER_INFO_new : function:PPKCS7_SIGNER_INFO;
+  _PKCS7_SIGNER_INFO_free : procedure(a:PPKCS7_SIGNER_INFO);
+  _PKCS7_RECIP_INFO_new : function:PPKCS7_RECIP_INFO;
+  _PKCS7_RECIP_INFO_free : procedure(a:PPKCS7_RECIP_INFO);
+  _PKCS7_SIGNED_new : function:PPKCS7_SIGNED;
+  _PKCS7_SIGNED_free : procedure(a:PPKCS7_SIGNED);
+  _PKCS7_ENC_CONTENT_new : function:PPKCS7_ENC_CONTENT;
+  _PKCS7_ENC_CONTENT_free : procedure(a:PPKCS7_ENC_CONTENT);
+  _PKCS7_ENVELOPE_new : function:PPKCS7_ENVELOPE;
+  _PKCS7_ENVELOPE_free : procedure(a:PPKCS7_ENVELOPE);
+  _PKCS7_SIGN_ENVELOPE_new : function:PPKCS7_SIGN_ENVELOPE;
+  _PKCS7_SIGN_ENVELOPE_free : procedure(a:PPKCS7_SIGN_ENVELOPE);
+  _PKCS7_DIGEST_new : function:PPKCS7_DIGEST;
+  _PKCS7_DIGEST_free : procedure(a:PPKCS7_DIGEST);
+  _PKCS7_ENCRYPT_new : function:PPKCS7_ENCRYPT;
+  _PKCS7_ENCRYPT_free : procedure(a:PPKCS7_ENCRYPT);
+  _PKCS7_new : function:PPKCS7;
+  _PKCS7_free : procedure(a:PPKCS7);
+  _PKCS7_print_ctx : function(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;
+  _PKCS7_ctrl : function(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;
+  _PKCS7_set_type : function(p7:PPKCS7; _type:longint):longint;
+  _PKCS7_set0_type_other : function(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;
+  _PKCS7_set_content : function(p7:PPKCS7; p7_data:PPKCS7):longint;
+  _PKCS7_SIGNER_INFO_set : function(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;
+  _PKCS7_SIGNER_INFO_sign : function(si:PPKCS7_SIGNER_INFO):longint;
+  _PKCS7_add_signer : function(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;
+  _PKCS7_add_certificate : function(p7:PPKCS7; x509:PX509):longint;
+  _PKCS7_add_crl : function(p7:PPKCS7; x509: Pointer):longint;
+  _PKCS7_content_new : function(p7:PPKCS7; nid:longint):longint;
+  _PKCS7_add_signature : function(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;
+  _PKCS7_cert_from_signer_info : function(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;
+  _PKCS7_set_digest : function(p7:PPKCS7; md:PEVP_MD):longint;
+  _PKCS7_add_recipient : function(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;
+  _PKCS7_add_recipient_info : function(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;
+  _PKCS7_RECIP_INFO_set : function(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;
+  _PKCS7_set_cipher : function(p7:PPKCS7; cipher:PEVP_CIPHER):longint;
+  _PKCS7_get_issuer_and_serial : function(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;
+  _PKCS7_digest_from_attributes : function(sk:Pstack_st_X509_ATTRIBUTE):Pointer;
+  _PKCS7_add_signed_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;
+  _PKCS7_add_attribute : function(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;
+  _PKCS7_get_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+  _PKCS7_get_signed_attribute : function(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+  _PKCS7_set_signed_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+  _PKCS7_set_attributes : function(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+  _PKCS7_sign : function(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;
+  _PKCS7_sign_add_signer : function(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;
+  _PKCS7_final : function(p7:PPKCS7; data:PBIO; flags:longint):longint;
+  _PKCS7_verify : function(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;
+  _PKCS7_encrypt : function(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;
+  _PKCS7_decrypt : function(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;
+  _PKCS7_add_attrib_smimecap : function(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;
+  _PKCS7_simple_smimecap : function(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;
+  _PKCS7_add_attrib_content_type : function(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;
+  _PKCS7_add0_attrib_signing_time : function(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;
+  _PKCS7_add1_attrib_digest : function(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;
+  _BIO_new_PKCS7 : function(_out:PBIO; p7:PPKCS7):PBIO;
+  _ERR_load_PKCS7_strings : procedure;
 
 // libssl.dll
 
@@ -2882,6 +3151,552 @@ begin
     Result := nil;
 end;
 
+// PKCS7 Functions
+
+
+function PKCS7_ISSUER_AND_SERIAL_new : PPKCS7_ISSUER_AND_SERIAL;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ISSUER_AND_SERIAL_new) then
+    Result := _PKCS7_ISSUER_AND_SERIAL_new
+  else
+    Result := nil;
+end;
+
+procedure PKCS7_ISSUER_AND_SERIAL_free (a:PPKCS7_ISSUER_AND_SERIAL);
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ISSUER_AND_SERIAL_free) then
+    _PKCS7_ISSUER_AND_SERIAL_free(a)
+end;
+
+function PKCS7_ISSUER_AND_SERIAL_digest(data:PPKCS7_ISSUER_AND_SERIAL; _type:PEVP_MD; md:Pbyte; len:Pdword):longint;
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ISSUER_AND_SERIAL_digest) then
+    Result:=_PKCS7_ISSUER_AND_SERIAL_digest(data,_type,md,len)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_dup(p7:PPKCS7):PPKCS7;
+begin
+  if InitSSLInterface and Assigned(_PKCS7_dup) then
+    Result:=_PKCS7_dup(p7)
+  else
+    Result:=Nil;
+end;
+
+function PEM_write_bio_PKCS7_stream(_out:PBIO; p7:PPKCS7; _in:PBIO; flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PEM_write_bio_PKCS7_stream) then
+    Result:=_PEM_write_bio_PKCS7_stream(_out,p7,_in,flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_SIGNER_INFO_new:PPKCS7_SIGNER_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_new) then
+    Result:=_PKCS7_SIGNER_INFO_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_SIGNER_INFO_free(a:PPKCS7_SIGNER_INFO);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_free) then
+    _PKCS7_SIGNER_INFO_free(a);
+end;
+
+
+function PKCS7_RECIP_INFO_new:PPKCS7_RECIP_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_RECIP_INFO_new) then
+    Result:=_PKCS7_RECIP_INFO_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_RECIP_INFO_free(a:PPKCS7_RECIP_INFO);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_RECIP_INFO_free) then
+    _PKCS7_RECIP_INFO_free(a);
+end;
+
+
+function PKCS7_SIGNED_new:PPKCS7_SIGNED;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNED_new) then
+    Result:=_PKCS7_SIGNED_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_SIGNED_free(a:PPKCS7_SIGNED);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNED_free) then
+    _PKCS7_SIGNED_free(a)
+end;
+
+
+function PKCS7_ENC_CONTENT_new:PPKCS7_ENC_CONTENT;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENC_CONTENT_new) then
+    Result:=_PKCS7_ENC_CONTENT_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_ENC_CONTENT_free(a:PPKCS7_ENC_CONTENT);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENC_CONTENT_free) then
+    _PKCS7_ENC_CONTENT_free(a)
+end;
+
+
+function PKCS7_ENVELOPE_new:PPKCS7_ENVELOPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENVELOPE_new) then
+    Result:=_PKCS7_ENVELOPE_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_ENVELOPE_free(a:PPKCS7_ENVELOPE);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENVELOPE_free) then
+    _PKCS7_ENVELOPE_free(a)
+end;
+
+
+function PKCS7_SIGN_ENVELOPE_new:PPKCS7_SIGN_ENVELOPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGN_ENVELOPE_new) then
+    Result:=_PKCS7_SIGN_ENVELOPE_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_SIGN_ENVELOPE_free(a:PPKCS7_SIGN_ENVELOPE);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGN_ENVELOPE_free) then
+    _PKCS7_SIGN_ENVELOPE_free(a)
+end;
+
+
+function PKCS7_DIGEST_new:PPKCS7_DIGEST;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_DIGEST_new) then
+    Result:=_PKCS7_DIGEST_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_DIGEST_free(a:PPKCS7_DIGEST);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_DIGEST_free) then
+    _PKCS7_DIGEST_free(a)
+end;
+
+
+function PKCS7_ENCRYPT_new:PPKCS7_ENCRYPT;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENCRYPT_new) then
+    Result:=_PKCS7_ENCRYPT_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_ENCRYPT_free(a:PPKCS7_ENCRYPT);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ENCRYPT_free) then
+    _PKCS7_ENCRYPT_free(a)
+end;
+
+
+function PKCS7_new:PPKCS7;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_new) then
+    Result:=_PKCS7_new
+  else
+    Result:=Nil;
+end;
+
+procedure PKCS7_free(a:PPKCS7);
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_free) then
+    _PKCS7_free(a)
+end;
+
+
+function PKCS7_print_ctx(_out:PBIO; x:PPKCS7; indent:longint; pctx:Pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_print_ctx) then
+    Result:=PKCS7_print_ctx(_out,x,indent,pctx)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_ctrl(p7:PPKCS7; cmd:longint; larg:longint; parg:Pchar):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_ctrl) then
+    Result:=_PKCS7_ctrl(p7,cmd,larg,parg)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_type(p7:PPKCS7; _type:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_type) then
+    Result:=_PKCS7_set_type(p7,_type)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set0_type_other(p7:PPKCS7; _type:longint; other:PASN1_TYPE):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set0_type_other) then
+    Result:=_PKCS7_set0_type_other(p7,_type,other)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_content(p7:PPKCS7; p7_data:PPKCS7):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_content) then
+    Result:=_PKCS7_set_content(p7,p7_Data)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_SIGNER_INFO_set(p7i:PPKCS7_SIGNER_INFO; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_set) then
+    Result:=_PKCS7_SIGNER_INFO_set(p7i,x509,pkey,dgst)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_SIGNER_INFO_sign(si:PPKCS7_SIGNER_INFO):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_SIGNER_INFO_sign) then
+    Result:=_PKCS7_SIGNER_INFO_sign(si)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_signer(p7:PPKCS7; p7i:PPKCS7_SIGNER_INFO):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_signer) then
+    Result:=_PKCS7_add_signer(p7,p7i)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_certificate(p7:PPKCS7; x509:PX509):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_certificate) then
+    Result:=_PKCS7_add_certificate(p7,x509)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_crl(p7:PPKCS7; x509: Pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_crl) then
+    Result:=PKCS7_add_crl(p7,x509)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_content_new(p7:PPKCS7; nid:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_content_new) then
+    Result:=_PKCS7_content_new(p7,nid)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_signature(p7:PPKCS7; x509:PX509; pkey:PEVP_PKEY; dgst:PEVP_MD):PPKCS7_SIGNER_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_signature) then
+    Result:=PKCS7_add_signature(p7,x509,pkey,dgst)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_cert_from_signer_info(p7:PPKCS7; si:PPKCS7_SIGNER_INFO):PX509;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_cert_from_signer_info) then
+    Result:=_PKCS7_cert_from_signer_info(p7,si)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_set_digest(p7:PPKCS7; md:PEVP_MD):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_digest) then
+    Result:=_PKCS7_set_digest(p7,md)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_recipient(p7:PPKCS7; x509:PX509):PPKCS7_RECIP_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_recipient) then
+    Result:=_PKCS7_add_recipient(p7,x509)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_add_recipient_info(p7:PPKCS7; ri:PPKCS7_RECIP_INFO):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_recipient_info) then
+    Result:=_PKCS7_add_recipient_info(p7,ri)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_RECIP_INFO_set(p7i:PPKCS7_RECIP_INFO; x509:PX509):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_RECIP_INFO_set) then
+    Result:=_PKCS7_RECIP_INFO_set(p7i,x509)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_cipher(p7:PPKCS7; cipher:PEVP_CIPHER):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_cipher) then
+    Result:=_PKCS7_set_cipher(p7,cipher)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_get_issuer_and_serial(p7:PPKCS7; idx:longint):PPKCS7_ISSUER_AND_SERIAL;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_get_issuer_and_serial) then
+    Result:=_PKCS7_get_issuer_and_serial(P7,idx)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_digest_from_attributes(sk:Pstack_st_X509_ATTRIBUTE):Pointer;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_digest_from_attributes) then
+    Result:=_PKCS7_digest_from_attributes(sk)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_add_signed_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; _type:longint; data:pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_signed_attribute) then
+    Result:=_PKCS7_add_signed_attribute(p7si,nid,_type,data)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_attribute(p7si:PPKCS7_SIGNER_INFO; nid:longint; atrtype:longint; value:pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_attribute) then
+    Result:=_PKCS7_add_attribute(p7si,nid,atrtype,value)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_get_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_get_attribute) then
+    Result:=_PKCS7_get_attribute(si,nid)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_get_signed_attribute(si:PPKCS7_SIGNER_INFO; nid:longint):PASN1_TYPE;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_get_signed_attribute) then
+    Result:=_PKCS7_get_signed_attribute(si,nid)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_set_signed_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_signed_attributes) then
+    Result:=_PKCS7_set_signed_attributes(p7si,sk)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_set_attributes(p7si:PPKCS7_SIGNER_INFO; sk:Pstack_st_X509_ATTRIBUTE):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_set_attributes) then
+    Result:=_PKCS7_set_attributes(p7si,sk)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_sign(signcert:PX509; pkey:PEVP_PKEY; certs:Pstack_st_X509; data:PBIO; flags:longint):PPKCS7;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_sign) then
+    Result:=_PKCS7_sign(signcert,pkey,certs,data,flags)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_sign_add_signer(p7:PPKCS7; signcert:PX509; pkey:PEVP_PKEY; md:PEVP_MD; flags:longint):PPKCS7_SIGNER_INFO;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_sign_add_signer) then
+    Result:=_PKCS7_sign_add_signer(p7,signcert,pkey,md,flags)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_final(p7:PPKCS7; data:PBIO; flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_final) then
+    Result:=_PKCS7_final(p7,data,Flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_verify(p7:PPKCS7; certs:Pstack_st_X509; store: Pointer; indata:PBIO; _out:PBIO;  flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_verify) then
+    Result:=_PKCS7_verify(p7,certs,store,indata,_out,flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_encrypt(certs:Pstack_st_X509; _in:PBIO; cipher:PEVP_CIPHER; flags:longint):PPKCS7;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_encrypt) then
+    Result:=_PKCS7_encrypt(certs,_in,cipher,flags)
+  else
+    Result:=Nil;
+end;
+
+function PKCS7_decrypt(p7:PPKCS7; pkey:PEVP_PKEY; cert:PX509; data:PBIO; flags:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_decrypt) then
+    Result:=_PKCS7_decrypt(P7,pkey,cert,data,flags)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_attrib_smimecap(si:PPKCS7_SIGNER_INFO; cap:Pstack_st_X509_ALGOR):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_attrib_smimecap) then
+    Result:=_PKCS7_add_attrib_smimecap(si,cap)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_simple_smimecap(sk:Pstack_st_X509_ALGOR; nid:longint; arg:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_simple_smimecap) then
+    Result:=_PKCS7_simple_smimecap(sk,nid,arg)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add_attrib_content_type(si:PPKCS7_SIGNER_INFO; coid:Pointer):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add_attrib_content_type) then
+    Result:=_PKCS7_add_attrib_content_type(si,coid)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add0_attrib_signing_time(si:PPKCS7_SIGNER_INFO; t:PASN1_TIME):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add0_attrib_signing_time) then
+    Result:=_PKCS7_add0_attrib_signing_time(si,t)
+  else
+    Result:=-1;
+end;
+
+function PKCS7_add1_attrib_digest(si:PPKCS7_SIGNER_INFO; md:Pbyte; mdlen:longint):longint;
+
+begin
+  if InitSSLInterface and Assigned(_PKCS7_add1_attrib_digest) then
+    Result:=_PKCS7_add1_attrib_digest(si,md,mdlen)
+  else
+    Result:=-1;
+end;
+
+function BIO_new_PKCS7(_out:PBIO; p7:PPKCS7):PBIO;
+
+begin
+  if InitSSLInterface and Assigned(_BIO_new_PKCS7) then
+    Result:=_BIO_new_PKCS7(_out,p7)
+  else
+    Result:=Nil;
+end;
+
+procedure ERR_load_PKCS7_strings;
+
+begin
+  if InitSSLInterface and Assigned(_ERR_load_PKCS7_strings) then
+    _ERR_load_PKCS7_strings
+end;
+
+
 procedure CRYPTOcleanupAllExData;
 begin
   if InitSSLInterface and Assigned(_CRYPTOcleanupAllExData) then
@@ -3144,6 +3959,70 @@ begin
   _BIO_new_mem_buf := GetProcAddr(SSLUtilHandle, 'BIO_new_mem_buf');
   // Crypto Functions
   _SSLeay_version := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
+  // PKCS7
+  _PKCS7_ISSUER_AND_SERIAL_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_new');
+  _PKCS7_ISSUER_AND_SERIAL_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_free');
+  _PKCS7_ISSUER_AND_SERIAL_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_ISSUER_AND_SERIAL_digest');
+  _PKCS7_dup:=GetProcAddr(SSLUtilHandle,'PKCS7_dup');
+  _PEM_write_bio_PKCS7_stream:=GetProcAddr(SSLUtilHandle,'PEM_write_bio_PKCS7_stream');
+  _PKCS7_SIGNER_INFO_new:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_new');
+  _PKCS7_SIGNER_INFO_free:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_free');
+  _PKCS7_RECIP_INFO_new:=GetProcAddr(SSLUtilHandle,'PKCS7_RECIP_INFO_new');
+  _PKCS7_RECIP_INFO_free:=GetProcAddr(SSLUtilHandle,'PKCS7_RECIP_INFO_free');
+  _PKCS7_SIGNED_new:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNED_new');
+  _PKCS7_SIGNED_free:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNED_free');
+  _PKCS7_ENC_CONTENT_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ENC_CONTENT_new');
+  _PKCS7_ENC_CONTENT_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ENC_CONTENT_free');
+  _PKCS7_ENVELOPE_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ENVELOPE_new');
+  _PKCS7_ENVELOPE_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ENVELOPE_free');
+  _PKCS7_SIGN_ENVELOPE_new:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGN_ENVELOPE_new');
+  _PKCS7_SIGN_ENVELOPE_free:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGN_ENVELOPE_free');
+  _PKCS7_DIGEST_new:=GetProcAddr(SSLUtilHandle,'PKCS7_DIGEST_new');
+  _PKCS7_DIGEST_free:=GetProcAddr(SSLUtilHandle,'PKCS7_DIGEST_free');
+  _PKCS7_ENCRYPT_new:=GetProcAddr(SSLUtilHandle,'PKCS7_ENCRYPT_new');
+  _PKCS7_ENCRYPT_free:=GetProcAddr(SSLUtilHandle,'PKCS7_ENCRYPT_free');
+  _PKCS7_new:=GetProcAddr(SSLUtilHandle,'PKCS7_new');
+  _PKCS7_free:=GetProcAddr(SSLUtilHandle,'PKCS7_free');
+  _PKCS7_print_ctx:=GetProcAddr(SSLUtilHandle,'PKCS7_print_ctx');
+  _PKCS7_ctrl:=GetProcAddr(SSLUtilHandle,'PKCS7_ctrl');
+  _PKCS7_set_type:=GetProcAddr(SSLUtilHandle,'PKCS7_set_type');
+  _PKCS7_set0_type_other:=GetProcAddr(SSLUtilHandle,'PKCS7_set0_type_other');
+  _PKCS7_set_content:=GetProcAddr(SSLUtilHandle,'PKCS7_set_content');
+  _PKCS7_SIGNER_INFO_set:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_set');
+  _PKCS7_SIGNER_INFO_sign:=GetProcAddr(SSLUtilHandle,'PKCS7_SIGNER_INFO_sign');
+  _PKCS7_add_signer:=GetProcAddr(SSLUtilHandle,'PKCS7_add_signer');
+  _PKCS7_add_certificate:=GetProcAddr(SSLUtilHandle,'PKCS7_add_certificate');
+  _PKCS7_add_crl:=GetProcAddr(SSLUtilHandle,'PKCS7_add_crl');
+  _PKCS7_content_new:=GetProcAddr(SSLUtilHandle,'PKCS7_content_new');
+  _PKCS7_add_signature:=GetProcAddr(SSLUtilHandle,'PKCS7_add_signature');
+  _PKCS7_cert_from_signer_info:=GetProcAddr(SSLUtilHandle,'PKCS7_cert_from_signer_info');
+  _PKCS7_set_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_set_digest');
+  _PKCS7_add_recipient:=GetProcAddr(SSLUtilHandle,'PKCS7_add_recipient');
+  _PKCS7_add_recipient_info:=GetProcAddr(SSLUtilHandle,'PKCS7_add_recipient_info');
+  _PKCS7_RECIP_INFO_set:=GetProcAddr(SSLUtilHandle,'PKCS7_RECIP_INFO_set');
+  _PKCS7_set_cipher:=GetProcAddr(SSLUtilHandle,'PKCS7_set_cipher');
+  _PKCS7_get_issuer_and_serial:=GetProcAddr(SSLUtilHandle,'PKCS7_get_issuer_and_serial');
+  _PKCS7_digest_from_attributes:=GetProcAddr(SSLUtilHandle,'PKCS7_digest_from_attributes');
+  _PKCS7_add_signed_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_add_signed_attribute');
+  _PKCS7_add_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_add_attribute');
+  _PKCS7_get_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_get_attribute');
+  _PKCS7_get_signed_attribute:=GetProcAddr(SSLUtilHandle,'PKCS7_get_signed_attribute');
+  _PKCS7_set_signed_attributes:=GetProcAddr(SSLUtilHandle,'PKCS7_set_signed_attributes');
+  _PKCS7_set_attributes:=GetProcAddr(SSLUtilHandle,'PKCS7_set_attributes');
+  _PKCS7_sign:=GetProcAddr(SSLUtilHandle,'PKCS7_sign');
+  _PKCS7_sign_add_signer:=GetProcAddr(SSLUtilHandle,'PKCS7_sign_add_signer');
+  _PKCS7_final:=GetProcAddr(SSLUtilHandle,'PKCS7_final');
+  _PKCS7_verify:=GetProcAddr(SSLUtilHandle,'PKCS7_verify');
+  _PKCS7_encrypt:=GetProcAddr(SSLUtilHandle,'PKCS7_encrypt');
+  _PKCS7_decrypt:=GetProcAddr(SSLUtilHandle,'PKCS7_decrypt');
+  _PKCS7_add_attrib_smimecap:=GetProcAddr(SSLUtilHandle,'PKCS7_add_attrib_smimecap');
+  _PKCS7_simple_smimecap:=GetProcAddr(SSLUtilHandle,'PKCS7_simple_smimecap');
+  _PKCS7_add_attrib_content_type:=GetProcAddr(SSLUtilHandle,'PKCS7_add_attrib_content_type');
+  _PKCS7_add0_attrib_signing_time:=GetProcAddr(SSLUtilHandle,'PKCS7_add0_attrib_signing_time');
+  _PKCS7_add1_attrib_digest:=GetProcAddr(SSLUtilHandle,'PKCS7_add1_attrib_digest');
+  _BIO_new_PKCS7:=GetProcAddr(SSLUtilHandle,'BIO_new_PKCS7');
+  _ERR_load_PKCS7_strings:=GetProcAddr(SSLUtilHandle,'ERR_load_PKCS7_strings');
+
 end;
 
 Function LoadUtilLibrary : Boolean;
@@ -3202,6 +4081,69 @@ begin
   _SslCipherGetName := nil;
   _SslCipherGetBits := nil;
   _SslGetVerifyResult := nil;
+
+  _PKCS7_ISSUER_AND_SERIAL_new:=nil;
+  _PKCS7_ISSUER_AND_SERIAL_free:=nil;
+  _PKCS7_ISSUER_AND_SERIAL_digest:=nil;
+  _PKCS7_dup:=nil;
+  _PEM_write_bio_PKCS7_stream:=nil;
+  _PKCS7_SIGNER_INFO_new:=nil;
+  _PKCS7_SIGNER_INFO_free:=nil;
+  _PKCS7_RECIP_INFO_new:=nil;
+  _PKCS7_RECIP_INFO_free:=nil;
+  _PKCS7_SIGNED_new:=nil;
+  _PKCS7_SIGNED_free:=nil;
+  _PKCS7_ENC_CONTENT_new:=nil;
+  _PKCS7_ENC_CONTENT_free:=nil;
+  _PKCS7_ENVELOPE_new:=nil;
+  _PKCS7_ENVELOPE_free:=nil;
+  _PKCS7_SIGN_ENVELOPE_new:=nil;
+  _PKCS7_SIGN_ENVELOPE_free:=nil;
+  _PKCS7_DIGEST_new:=nil;
+  _PKCS7_DIGEST_free:=nil;
+  _PKCS7_ENCRYPT_new:=nil;
+  _PKCS7_ENCRYPT_free:=nil;
+  _PKCS7_new:=nil;
+  _PKCS7_free:=nil;
+  _PKCS7_print_ctx:=nil;
+  _PKCS7_ctrl:=nil;
+  _PKCS7_set_type:=nil;
+  _PKCS7_set0_type_other:=nil;
+  _PKCS7_set_content:=nil;
+  _PKCS7_SIGNER_INFO_set:=nil;
+  _PKCS7_SIGNER_INFO_sign:=nil;
+  _PKCS7_add_signer:=nil;
+  _PKCS7_add_certificate:=nil;
+  _PKCS7_add_crl:=nil;
+  _PKCS7_content_new:=nil;
+  _PKCS7_add_signature:=nil;
+  _PKCS7_cert_from_signer_info:=nil;
+  _PKCS7_set_digest:=nil;
+  _PKCS7_add_recipient:=nil;
+  _PKCS7_add_recipient_info:=nil;
+  _PKCS7_RECIP_INFO_set:=nil;
+  _PKCS7_set_cipher:=nil;
+  _PKCS7_get_issuer_and_serial:=nil;
+  _PKCS7_digest_from_attributes:=nil;
+  _PKCS7_add_signed_attribute:=nil;
+  _PKCS7_add_attribute:=nil;
+  _PKCS7_get_attribute:=nil;
+  _PKCS7_get_signed_attribute:=nil;
+  _PKCS7_set_signed_attributes:=nil;
+  _PKCS7_set_attributes:=nil;
+  _PKCS7_sign:=nil;
+  _PKCS7_sign_add_signer:=nil;
+  _PKCS7_final:=nil;
+  _PKCS7_verify:=nil;
+  _PKCS7_encrypt:=nil;
+  _PKCS7_decrypt:=nil;
+  _PKCS7_add_attrib_smimecap:=nil;
+  _PKCS7_simple_smimecap:=nil;
+  _PKCS7_add_attrib_content_type:=nil;
+  _PKCS7_add0_attrib_signing_time:=nil;
+  _PKCS7_add1_attrib_digest:=nil;
+  _BIO_new_PKCS7:=nil;
+  _ERR_load_PKCS7_strings:=nil;
 end;
 
 Procedure UnloadSSLLib;
