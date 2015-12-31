@@ -9385,6 +9385,7 @@ rtl/objpas/sysutils/sysint.inc svneol=native#text/plain
 rtl/objpas/sysutils/sysinth.inc svneol=native#text/plain
 rtl/objpas/sysutils/syspch.inc svneol=native#text/plain
 rtl/objpas/sysutils/syspchh.inc svneol=native#text/plain
+rtl/objpas/sysutils/syssr.inc svneol=native#text/plain
 rtl/objpas/sysutils/sysstr.inc svneol=native#text/plain
 rtl/objpas/sysutils/sysstrh.inc svneol=native#text/plain
 rtl/objpas/sysutils/systhrdh.inc svneol=native#text/plain

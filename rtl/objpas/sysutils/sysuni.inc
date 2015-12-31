@@ -532,3 +532,14 @@ function ByteLength(const S: UnicodeString): Integer;
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
 end;
+
+{$macro on}
+{$define INUNICODESTRINGREPLACE}
+{$define SRString:=UnicodeString}
+{$define SRUpperCase:=WideUppercase}
+function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
+{$i syssr.inc}
+
+{$undef INUNICODESTRINGREPLACE}
+{$undef SRString}
+{$undef SRUpperCase}

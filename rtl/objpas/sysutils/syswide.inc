@@ -179,3 +179,14 @@ Function CharInSet(Ch:WideChar;Const CSet : TSysCharSet) : Boolean;
 begin
   result:=(Ch<=#$FF) and (ansichar(byte(ch)) in CSet);
 end;
+
+{$macro on}
+{$define INWIDESTRINGREPLACE}
+{$define SRString:=WideString}
+{$define SRUpperCase:=WideUppercase}
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags): WideString;
+{$i syssr.inc}
+
+{$undef INWIDESTRINGREPLACE}
+{$undef SRString}
+{$undef SRUpperCase}
