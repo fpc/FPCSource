@@ -25,6 +25,13 @@ uses SysUtils, Classes, DB, bufdataset, sqlscript;
 type
   TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata, stSequences);
 
+const
+  TSchemaObjectNames: array[TSchemaType] of String = ('???', 'table_name',
+      '???', 'procedure_name', 'column_name', 'param_name',
+      'index_name', 'package_name', 'schema_name','sequence');
+
+type
+
   TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
@@ -135,6 +142,33 @@ type
     procedure Update; override;
   end;
 
+
+  TSqlObjectIdentifierList = class;
+
+  { TSqlObjectIdenfier }
+
+  TSqlObjectIdenfier = class(TCollectionItem)
+  private
+    FObjectName: String;
+    FSchemaName: String;
+  public
+    constructor Create(ACollection: TSqlObjectIdentifierList; Const AObjectName: String; Const ASchemaName: String = '');
+    property SchemaName: String read FSchemaName write FSchemaName;
+    property ObjectName: String read FObjectName write FObjectName;
+  end;
+
+  { TSqlObjectIdentifierList }
+
+  TSqlObjectIdentifierList = class(TCollection)
+  private
+    function GetIdentifier(Index: integer): TSqlObjectIdenfier;
+    procedure SetIdentifier(Index: integer; AValue: TSqlObjectIdenfier);
+  public
+    function AddIdentifier: TSqlObjectIdenfier; overload;
+    function AddIdentifier(Const AObjectName: String; Const ASchemaName: String = ''): TSqlObjectIdenfier; overload;
+    property Identifiers[Index: integer]: TSqlObjectIdenfier read GetIdentifier write SetIdentifier; default;
+  end;
+
 type
 
   { TSQLConnection }
@@ -221,6 +255,7 @@ type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; virtual;
 
+    function GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual;
     Procedure MaybeConnect;
 
     Property Statements : TFPList Read FStatements;
@@ -783,6 +818,31 @@ begin
   Result := Format('%.2d:%.2d:%.2d.%.3d',[hour,minute,second,millisecond]);
 end;
 
+
+{ TSqlObjectIdentifierList }
+
+function TSqlObjectIdentifierList.GetIdentifier(Index: integer): TSqlObjectIdenfier;
+begin
+  Result := Items[Index] as TSqlObjectIdenfier;
+end;
+
+procedure TSqlObjectIdentifierList.SetIdentifier(Index: integer; AValue: TSqlObjectIdenfier);
+begin
+  Items[Index] := AValue;
+end;
+
+function TSqlObjectIdentifierList.AddIdentifier: TSqlObjectIdenfier;
+begin
+  Result:=Add as TSqlObjectIdenfier;
+end;
+
+function TSqlObjectIdentifierList.AddIdentifier(Const AObjectName: String;
+  Const ASchemaName: String = ''): TSqlObjectIdenfier;
+begin
+  Result:=AddIdentifier();
+  Result.SchemaName:=ASchemaName;
+  Result.ObjectName:=AObjectName;
+end;
 
 { TSQLDBFieldDefs }
 
@@ -1352,6 +1412,43 @@ end;
 procedure TSQLConnection.GetSequenceNames(List: TStrings);
 begin
   GetDBInfo(stSequences,'','SEQUENCE_NAME',List);
+end;
+
+Function TSQLConnection.GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList) : Integer; 
+var
+  qry : TCustomSQLQuery;
+  vSchemaName, vObjectName: String;
+  f: TField;
+begin
+  Result:=0;
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := TCustomSQLQuery.Create(nil);
+  try
+    qry.transaction := Transaction;
+    qry.database := Self;
+    with qry do
+      begin
+      ParseSQL := False;
+      SetSchemaInfo(ASchemaType,TSchemaObjectNames[ASchemaType],'');
+      open;
+      f:=FindField(TSchemaObjectNames[stSchemata]);
+      while not eof do
+        begin
+        vSchemaName:='';
+        if Assigned(f) then
+           vSchemaName:=f.AsString;
+        vObjectName:=FieldByName(FSchemaObjectName).AsString;
+        AList.AddIdentifier(vObjectName, vSchemaName);
+        Next;
+        Inc(Result);
+        end;
+      end;
+  finally
+    qry.free;
+  end;
+
 end;
 
 function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
@@ -3548,6 +3645,16 @@ begin
     TCustomSQLQuery(Dataset).UpdateServerIndexDefs;
     updated := True;
     end;
+end;
+
+{ TSqlObjectIdenfier }
+
+constructor TSqlObjectIdenfier.Create(ACollection: TSqlObjectIdentifierList;
+  const AObjectName: String; Const ASchemaName: String = '');
+begin
+  inherited Create(ACollection);
+  FSchemaName:=ASchemaName;
+  FObjectName:=AObjectName;
 end;
 
 Initialization
