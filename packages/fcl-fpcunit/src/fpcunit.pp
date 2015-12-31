@@ -208,10 +208,10 @@ type
     procedure SetTestName(const Value: string); virtual;
     procedure SetEnableIgnores(Value: boolean); override;
     procedure RunBare; virtual;
+    Class function SingleInstanceForSuite : Boolean; virtual;
   Public
-    Class Var CheckAssertCalled : Boolean;   
+    Class Var CheckAssertCalled : Boolean;
   public
-  
     constructor Create; virtual;
     constructor CreateWith(const ATestName: string; const ATestSuiteName: string); virtual;
     constructor CreateWithName(const AName: string); virtual;
@@ -232,6 +232,8 @@ type
 
   TTestCaseClass = class of TTestCase;
 
+  { TTestSuite }
+
   TTestSuite = class(TTest)
   private
     FTests: TFPList;
@@ -240,6 +242,7 @@ type
     FEnableIgnores: boolean;
     function GetTest(Index: integer): TTest;
   protected
+    Function DoAddTest(ATest : TTest) : Integer;
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
     function GetEnableIgnores: boolean; override;
@@ -1005,6 +1008,11 @@ begin
   FLastStep := stNothing;
 end;
 
+class function TTestCase.SingleInstanceForSuite: Boolean;
+begin
+  Result:=False;
+end;
+
 
 procedure TTestCase.RunTest;
 var
@@ -1070,6 +1078,38 @@ begin
   { do nothing }
 end;
 
+Type
+
+  { TTestItem }
+
+  TTestItem = Class(TObject)
+  private
+    FName: String;
+    FOwnsTest: Boolean;
+    FTest: TTest;
+  public
+    Constructor Create(T : TTest);
+    Destructor Destroy; override;
+    Property Test : TTest Read FTest;
+    Property TestName : String Read FName;
+    Property OwnsTest : Boolean Read FOwnsTest Write FOwnstest;
+  end;
+
+{ TTestItem }
+
+constructor TTestItem.Create(T: TTest);
+begin
+  FTest:=T;
+  FName:=T.TestName;
+  FOwnsTest:=True;
+end;
+
+destructor TTestItem.Destroy;
+begin
+  if FOwnsTest then
+    FreeAndNil(FTest);
+  inherited Destroy;
+end;
 
 constructor TTestSuite.Create(AClass: TClass; AName: string);
 begin
@@ -1081,8 +1121,11 @@ end;
 constructor TTestSuite.Create(AClass: TClass);
 var
   ml: TStringList;
-  i: integer;
+  i,j: integer;
   tc: TTestCaseClass;
+  C : TTestCase;
+  SN : String;
+
 begin
   TAssert.AssertNotNull(AClass);
   Create(AClass.ClassName);
@@ -1092,10 +1135,20 @@ begin
     ml := TStringList.Create;
     try
       GetMethodList(AClass, ml);
-      for i := 0 to ml.Count -1 do
-      begin
-        AddTest(tc.CreateWith(ml.Strings[i], tc.ClassName));
-      end;
+      SN:=tc.ClassName;
+      if tc.SingleInstanceForSuite then
+        begin
+        c:=tc.CreateWith('',SN);
+        for i := 0 to ml.Count -1 do
+          begin
+          C.TestName:=ml[i];
+          J:=DoAddTest(C);
+          TTestItem(FTests[J]).OwnsTest:=(I=0);
+          end;
+        end
+      else
+        for i := 0 to ml.Count -1 do
+          AddTest(tc.CreateWith(ml.Strings[i], SN));
     finally
       ml.Free;
     end;
@@ -1107,7 +1160,7 @@ begin
 end;
 
 
-constructor TTestSuite.Create(AClassArray: Array of TClass);
+constructor TTestSuite.Create(AClassArray: array of TClass);
 var
   i: integer;
 begin
@@ -1143,7 +1196,15 @@ end;
 
 function TTestSuite.GetTest(Index: integer): TTest;
 begin
-  Result := TTest(FTests[Index]);
+  Result := TTestItem(FTests[Index]).Test;
+end;
+
+function TTestSuite.DoAddTest(ATest: TTest): Integer;
+begin
+  Result:=FTests.Add(TTestItem.Create(ATest));
+  if ATest.TestSuiteName = '' then
+    ATest.TestSuiteName := Self.TestName;
+  ATest.EnableIgnores := Self.EnableIgnores;
 end;
 
 
@@ -1186,7 +1247,7 @@ begin
   begin
     FEnableIgnores := Value;
     for i := 0 to FTests.Count - 1 do
-      TTest(FTests[i]).EnableIgnores := Value;
+      TTestItem(FTests[i]).Test.EnableIgnores := Value;
   end
 end;
 
@@ -1197,7 +1258,7 @@ begin
   Result := 0;
   for i := 0 to FTests.Count - 1 do
   begin
-    Result := Result + TTest(FTests[i]).CountTestCases;
+    Result := Result + TTestItem(FTests[i]).Test.CountTestCases;
   end;
 end;
 
@@ -1225,13 +1286,20 @@ end;
 procedure TTestSuite.Run(AResult: TTestResult);
 var
   i: integer;
+  ti : TTestItem;
+
 begin
   if FTests.Count > 0 then
     AResult.StartTestSuite(self);
     
   for i := 0 to FTests.Count - 1 do
-    RunTest(TTest(FTests[i]), AResult);
-    
+    begin
+    ti:=TTestItem(FTests[i]);
+    if Ti.Test.InheritsFrom(TTestCase) and TTestCase(Ti.Test).SingleInstanceForSuite then
+      TTestCase(Ti.Test).SetTestName(Ti.TestName);
+    RunTest(TI.Test, AResult);
+    end;
+
   if FTests.Count > 0 then
     AResult.EndTestSuite(self);
 end;
@@ -1245,10 +1313,7 @@ end;
 
 procedure TTestSuite.AddTest(ATest: TTest);
 begin
-  FTests.Add(ATest);
-  if ATest.TestSuiteName = '' then
-    ATest.TestSuiteName := Self.TestName;
-  ATest.EnableIgnores := Self.EnableIgnores;
+  DoAddTest(ATest);
 end;
 
 
