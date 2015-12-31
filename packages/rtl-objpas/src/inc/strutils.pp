@@ -55,6 +55,8 @@ Function AnsiReverseString(const AText: AnsiString): AnsiString;inline;
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 Function RandomFrom(const AValues: array of string): string; overload;
 Function IfThen(AValue: Boolean; const ATrue: string; const AFalse: string = ''): string; overload;
+function NaturalCompareText (const S1 , S2 : string ): Integer ;
+function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: Char): Integer;
 
 { ---------------------------------------------------------------------
     VB emulations.
@@ -432,6 +434,160 @@ begin
     result:=atrue
   else
     result:=afalse;
+end;
+
+function NaturalCompareText(const Str1, Str2: string; const ADecSeparator, AThousandSeparator: Char): Integer;
+{
+ NaturalCompareBase compares strings in a collated order and
+ so numbers are sorted too. It sorts like this:
+
+ 01
+ 001
+ 0001
+
+ and
+
+ 0
+ 00
+ 000
+ 000_A
+ 000_B
+
+ in a intuitive order.
+ }
+var
+  Num1, Num2: double;
+  pStr1, pStr2: PChar;
+  Len1, Len2: integer;
+  TextLen1, TextLen2: integer;
+  TextStr1: string = '';
+  TextStr2: string = '';
+  i: integer;
+  j: integer;
+  
+  function Sign(const AValue: Integer): integer;inline;
+
+  begin
+    If Avalue<0 then
+      Result:=-1
+    else If Avalue>0 then
+      Result:=1
+    else
+      Result:=0;
+  end;
+
+  function IsNumber(ch: char): boolean;
+  begin
+    Result := ch in ['0'..'9'];
+  end;
+
+  function GetInteger(var pch: PChar; var Len: integer): double;
+  begin
+    Result := 0;
+    while (pch^ <> #0) and IsNumber(pch^) do
+    begin
+      Result := Result * 10 + Ord(pch^) - Ord('0');
+      Inc(Len);
+      Inc(pch);
+    end;
+  end;
+
+  procedure GetChars;
+  begin
+    TextLen1 := 0;
+    while not ((pStr1 + TextLen1)^ in ['0'..'9']) and ((pStr1 + TextLen1)^ <> #0) do
+      Inc(TextLen1);
+    SetLength(TextStr1, TextLen1);
+    i := 1;
+    j := 0;
+    while i <= TextLen1 do
+    begin
+      TextStr1[i] := (pStr1 + j)^;
+      Inc(i);
+      Inc(j);
+    end;
+
+    TextLen2 := 0;
+    while not ((pStr2 + TextLen2)^ in ['0'..'9']) and ((pStr2 + TextLen2)^ <> #0) do
+      Inc(TextLen2);
+    SetLength(TextStr2, TextLen2);
+    i := 1;
+    j := 0;
+    while i <= TextLen2 do
+    begin
+      TextStr2[i] := (pStr2 + j)^;
+      Inc(i);
+      Inc(j);
+    end;
+  end;
+
+begin
+  if (Str1 <> '') and (Str2 <> '') then
+  begin
+    pStr1 := PChar(Str1);
+    pStr2 := PChar(Str2);
+    Result := 0;
+    while not ((pStr1^ = #0) or (pStr2^ = #0)) do
+    begin
+      TextLen1 := 1;
+      TextLen2 := 1;
+      Len1 := 0;
+      Len2 := 0;
+      while (pStr1^ = ' ') do
+      begin
+        Inc(pStr1);
+        Inc(Len1);
+      end;
+      while (pStr2^ = ' ') do
+      begin
+        Inc(pStr2);
+        Inc(Len2);
+      end;
+      if IsNumber(pStr1^) and IsNumber(pStr2^) then
+      begin
+         Num1 := GetInteger(pStr1, Len1);
+         Num2 := GetInteger(pStr2, Len2);
+        if Num1 < Num2 then
+          Result := -1
+        else if Num1 > Num2 then
+          Result := 1
+        else
+        begin
+          Result := Sign(Len1 - Len2);
+        end;
+        Dec(pStr1);
+        Dec(pStr2);
+      end
+      else
+      begin
+        GetChars;
+        if TextStr1 <> TextStr2 then
+          Result := WideCompareText(UTF8Decode(TextStr1), UTF8Decode(TextStr2))
+        else
+          Result := 0;
+      end;
+      if Result <> 0 then
+        Break;
+      Inc(pStr1, TextLen1);
+      Inc(pStr2, TextLen2);
+    end;
+  end;
+  Num1 := Length(Str1);
+  Num2 := Length(Str2);
+  if (Result = 0) and (Num1 <> Num2) then
+  begin
+    if Num1 < Num2 then
+      Result := -1
+    else
+      Result := 1;
+  end;
+end;
+
+function NaturalCompareText (const S1 , S2 : string ): Integer ;
+begin
+  Result := NaturalCompareText(S1, S2,
+                               DefaultFormatSettings.DecimalSeparator,
+                               DefaultFormatSettings.ThousandSeparator);
 end;
 
 { ---------------------------------------------------------------------
