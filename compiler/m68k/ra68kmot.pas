@@ -237,7 +237,6 @@ const
   var
    token: tasmtoken;
    forcelabel: boolean;
-   s : string;
   begin
     forcelabel := FALSE;
     actasmpattern :='';
@@ -525,10 +524,7 @@ const
                             actasmtoken:=AS_SEPARATOR;
                            end;
             else
-             begin
-               s:=c;
-               Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
-             end;
+             current_scanner.illegal_char(c);
 
       end; { end case }
     end; { end else if }
