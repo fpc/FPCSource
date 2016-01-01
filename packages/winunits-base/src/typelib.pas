@@ -455,7 +455,7 @@ var
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
   s,sl,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3:string;
+  sPropParam,sPropParam2,sPropParam3,tmp: string;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -808,10 +808,14 @@ begin
               sParam:=sPropParam;
               sDefault:=sl;
               end;
-            if bPropHasParam then
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sPropParam3,sType,sConv])
+            if sType='OleVariant' then
+              tmp:='   procedure Set_%s(%s:%s); %s;'#13#10
             else
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sVarName,sType,sConv]);
+              tmp:='   procedure Set_%s(Const %s:%s); %s;'#13#10;
+            if bPropHasParam then
+              s:=s+format(tmp,[sMethodName,sPropParam3,sType,sConv])
+            else
+              s:=s+format(tmp,[sMethodName,sVarName,sType,sConv]);
             end;
           end;
         end;
