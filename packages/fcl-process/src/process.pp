@@ -173,12 +173,12 @@ Var
   Function DetectXTerm : String;
 {$endif unix}
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string):boolean;
-function RunCommandInDir(const curdir,cmdline:string;var outputstring:string):boolean; deprecated;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; out exitstatus:integer):integer;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string ):boolean;
+function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
 
-function RunCommand(const exename:string;const commands:array of string;var outputstring:string):boolean;
-function RunCommand(const cmdline:string;var outputstring:string):boolean; deprecated;
+function RunCommand(const exename:string;const commands:array of string;out outputstring:string):boolean;
+function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
 
 
 implementation
@@ -475,8 +475,8 @@ Const
 // helperfunction that does the bulk of the work.
 // We need to also collect stderr output in order to avoid
 // lock out if the stderr pipe is full.
-function internalRuncommand(p:TProcess;var outputstring:string;
-                            var stderrstring:string; var exitstatus:integer):integer;
+function internalRuncommand(p:TProcess;out outputstring:string;
+                            out stderrstring:string; out exitstatus:integer):integer;
 var
     numbytes,bytesread,available : integer;
     outputlength, stderrlength : integer;
@@ -570,7 +570,7 @@ end;
 
 { Functions without StderrString }
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string;out exitstatus:integer):integer;
 Var
     p : TProcess;
     i : integer;
@@ -586,7 +586,7 @@ begin
   result:=internalruncommand(p,outputstring,errorstring,exitstatus);
 end;
 
-function RunCommandInDir(const curdir,cmdline:string;var outputstring:string):boolean; deprecated;
+function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
 Var
     p : TProcess;
     exitstatus : integer;
@@ -600,7 +600,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string):boolean;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string):boolean;
 Var
     p : TProcess;
     i,
@@ -618,7 +618,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const cmdline:string;var outputstring:string):boolean; deprecated;
+function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
 Var
     p : TProcess;
     exitstatus : integer;
@@ -630,7 +630,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const exename:string;const commands:array of string;var outputstring:string):boolean;
+function RunCommand(const exename:string;const commands:array of string;out outputstring:string):boolean;
 Var
     p : TProcess;
     i,
