@@ -299,17 +299,13 @@ type
   end;
 
   IStream = interface(ISequentialStream) ['{0000000C-0000-0000-C000-000000000046}']
-     function Seek(dlibMove : LargeInt; dwOrigin : Longint;
-       out libNewPosition : LargeInt) : HResult;stdcall;
-     function SetSize(libNewSize : LargeInt) : HRESULT;stdcall;
-     function CopyTo(stm: IStream;cb : LargeInt;out cbRead : LargeInt;
-       out cbWritten : LargeInt) : HRESULT;stdcall;
+     function Seek(dlibMove : LargeUInt; dwOrigin : Longint; out libNewPosition : LargeUInt) : HResult;stdcall;
+     function SetSize(libNewSize : LargeUInt) : HRESULT;stdcall;
+     function CopyTo(stm: IStream;cb : LargeUInt;out cbRead : LargeUInt; out cbWritten : LargeUInt) : HRESULT;stdcall;
      function Commit(grfCommitFlags : Longint) : HRESULT;stdcall;
      function Revert : HRESULT;stdcall;
-     function LockRegion(libOffset : LargeInt;cb : LargeInt;
-       dwLockType : Longint) : HRESULT;stdcall;
-     function UnlockRegion(libOffset : LargeInt;cb : LargeInt;
-       dwLockType : Longint) : HRESULT;stdcall;
+     function LockRegion(libOffset : LargeUInt;cb : LargeUInt; dwLockType : Longint) : HRESULT;stdcall;
+     function UnlockRegion(libOffset : LargeUInt;cb : LargeUInt; dwLockType : Longint) : HRESULT;stdcall;
      Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
