@@ -136,7 +136,6 @@ interface
 
           comment_level,
           yylexcount     : longint;
-          lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           replaystack    : treplaystack;
@@ -221,7 +220,6 @@ interface
           procedure skipoldtpcomment;
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
-          function  asmgetcharstart : char;
           function  asmgetchar:char;
        end;
 
@@ -2650,7 +2648,6 @@ type
         nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
-        lastasmgetchar:=#0;
         ignoredirectives:=TFPHashList.Create;
         in_asm_string:=false;
       end;
@@ -5498,24 +5495,9 @@ exit_label:
       end;
 
 
-    function tscannerfile.asmgetcharstart : char;
-      begin
-        { return first the character already
-          available in c }
-        lastasmgetchar:=c;
-        result:=asmgetchar;
-      end;
-
-
     function tscannerfile.asmgetchar : char;
       begin
-         if lastasmgetchar<>#0 then
-          begin
-            c:=lastasmgetchar;
-            lastasmgetchar:=#0;
-          end
-         else
-          readchar;
+         readchar;
          if in_asm_string then
            begin
              asmgetchar:=c;
@@ -5523,62 +5505,12 @@ exit_label:
            end;
          repeat
            case c of
-             // the { ... } is used in ARM assembler to define register sets,  so we can't used
-             // it as comment, either (* ... *), /* ... */ or // ... should be used instead.
-             // But compiler directives {$...} are allowed in ARM assembler.
-             '{' :
-               begin
-{$ifdef arm}
-                 readchar;
-                 dec(inputpointer);
-                 if c<>'$' then
-                   begin
-                     asmgetchar:='{';
-                     exit;
-                   end
-                 else
-{$endif arm}
-                   skipcomment;
-               end;
-             #10,#13 :
-               begin
-                 linebreak;
-                 asmgetchar:=c;
-                 exit;
-               end;
              #26 :
                begin
                  reload;
                  if (c=#26) and not assigned(inputfile.next) then
                    end_of_file;
                  continue;
-               end;
-             '/' :
-               begin
-                  readchar;
-                  if c='/' then
-                   skipdelphicomment
-                  else
-                   begin
-                     asmgetchar:='/';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
-               end;
-             '(' :
-               begin
-                  readchar;
-                  if c='*' then
-                   begin
-                     c:=#0;{Signal skipoldtpcomment to reload a char }
-                     skipoldtpcomment;
-                   end
-                  else
-                   begin
-                     asmgetchar:='(';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
                end;
              else
                begin

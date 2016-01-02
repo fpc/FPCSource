@@ -238,6 +238,7 @@ const
    token: tasmtoken;
    forcelabel: boolean;
   begin
+    c:=scanner.c;
     forcelabel := FALSE;
     actasmpattern :='';
     {* INIT TOKEN TO NOTHING *}
@@ -246,11 +247,11 @@ const
     while c in [' ',#9] do
      c:=current_scanner.asmgetchar;
 
-    if not (c in [#10,#13,'{',';']) then
+    if not (c in [#10,#13,'{',';','(','/']) then
      current_scanner.gettokenpos;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
-    if firsttoken and not (c in [#10,#13,'{',';']) then
+    if firsttoken and not (c in [#10,#13,'{',';','(','/']) then
     begin
 
       firsttoken := FALSE;
@@ -414,8 +415,15 @@ const
                    exit;
                  end;
            '(' : begin
-                   actasmtoken := AS_LPAREN;
                    c:=current_scanner.asmgetchar;
+                   if c='*' then
+                     begin
+                       scanner.c:=#0;{Signal skipoldtpcomment to reload a char }
+                       current_scanner.skipoldtpcomment;
+                       GetToken;
+                     end
+                   else
+                     actasmtoken:=AS_LPAREN;
                    exit;
                  end;
            ')' : begin
@@ -449,8 +457,14 @@ const
                    exit;
                  end;
            '/' : begin
-                   actasmtoken := AS_SLASH;
                    c:=current_scanner.asmgetchar;
+                   if c='/' then
+                     begin
+                       current_scanner.skipdelphicomment;
+                       GetToken;
+                     end
+                   else
+                     actasmtoken := AS_SLASH;
                    exit;
                  end;
            '<' : begin
@@ -518,7 +532,13 @@ const
                   actasmtoken:=AS_SEPARATOR;
                end;
 
-         '{',#13,#10 : begin
+         '{' : begin
+                 current_scanner.skipcomment;
+                 GetToken;
+               end;
+
+         #13,#10 : begin
+                            current_scanner.linebreak;
                             c:=current_scanner.asmgetchar;
                             firsttoken := TRUE;
                             actasmtoken:=AS_SEPARATOR;
@@ -1749,7 +1769,6 @@ const
             _asmsorted := TRUE;
           end;
         curlist:=TAsmList.Create;
-        c:=current_scanner.asmgetchar;
         gettoken;
         while actasmtoken<>AS_END do
           begin
