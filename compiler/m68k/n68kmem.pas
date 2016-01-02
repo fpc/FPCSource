@@ -72,7 +72,6 @@ implementation
         if l<>1 then
           begin
             //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: l <> 1')));
-            hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
             { if we have a possibility, setup a scalefactor instead of the MUL }
             if (location.reference.index<>NR_NO) or
                (current_settings.cputype in [cpu_mc68000]) or
@@ -80,15 +79,15 @@ implementation
                not (l in [2,4,8]) then
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: mul')));
+                hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
                 cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
+                maybe_const_reg:=hreg;
               end
             else
               begin
                 //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('updref: scale')));
-                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,maybe_const_reg,hreg);
                 scaled:=true;
               end;
-            maybe_const_reg:=hreg;
           end;
 
         if (location.reference.base=NR_NO) and not (scaled) then
