@@ -425,7 +425,6 @@ Unit Rax86int;
              '''' : { string or character }
                begin
                  actasmpattern:='';
-                 current_scanner.in_asm_string:=true;
                  repeat
                    if c = '''' then
                     begin
@@ -467,14 +466,12 @@ Unit Rax86int;
                    else
                     break; { end if }
                  until false;
-                 current_scanner.in_asm_string:=false;
                  actasmtoken:=AS_STRING;
                  exit;
                end;
 
              '"' : { string or character }
                begin
-                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    if c = '"' then
@@ -517,7 +514,6 @@ Unit Rax86int;
                    else
                     break; { end if }
                  until false;
-                 current_scanner.in_asm_string:=false;
                  actasmtoken:=AS_STRING;
                  exit;
                end;
@@ -575,8 +571,7 @@ Unit Rax86int;
                  c:=current_scanner.asmgetchar;
                  if c='*' then
                    begin
-                     scanner.c:=#0;{Signal skipoldtpcomment to reload a char }
-                     current_scanner.skipoldtpcomment;
+                     current_scanner.skipoldtpcomment(true);
                      GetToken;
                    end
                  else
@@ -725,7 +720,7 @@ Unit Rax86int;
 
              '{':
                begin
-                 current_scanner.skipcomment;
+                 current_scanner.skipcomment(true);
                  GetToken;
                end;
 

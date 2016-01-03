@@ -417,8 +417,7 @@ const
                    c:=current_scanner.asmgetchar;
                    if c='*' then
                      begin
-                       scanner.c:=#0;{Signal skipoldtpcomment to reload a char }
-                       current_scanner.skipoldtpcomment;
+                       current_scanner.skipoldtpcomment(true);
                        GetToken;
                      end
                    else
@@ -532,7 +531,7 @@ const
                end;
 
          '{' : begin
-                 current_scanner.skipcomment;
+                 current_scanner.skipcomment(true);
                  GetToken;
                end;
 

@@ -139,7 +139,6 @@ interface
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           replaystack    : treplaystack;
-          in_asm_string  : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
@@ -215,9 +214,9 @@ interface
           function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
-          procedure skipcomment;
+          procedure skipcomment(read_first_char:boolean);
           procedure skipdelphicomment;
-          procedure skipoldtpcomment;
+          procedure skipoldtpcomment(read_first_char:boolean);
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
           function  asmgetchar:char;
@@ -2649,7 +2648,6 @@ type
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         ignoredirectives:=TFPHashList.Create;
-        in_asm_string:=false;
       end;
 
 
@@ -4373,7 +4371,7 @@ type
                         end
                        else
                         begin
-                          skipoldtpcomment;
+                          skipoldtpcomment(false);
                           next_char_loaded:=true;
                         end;
                      end
@@ -4410,10 +4408,11 @@ type
                              Comment Handling
 ****************************************************************************}
 
-    procedure tscannerfile.skipcomment;
+    procedure tscannerfile.skipcomment(read_first_char:boolean);
       begin
         current_commentstyle:=comment_tp;
-        readchar;
+        if read_first_char then
+          readchar;
         inc_comment_level;
       { handle compiler switches }
         if (c='$') then
@@ -4458,7 +4457,7 @@ type
       end;
 
 
-    procedure tscannerfile.skipoldtpcomment;
+    procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
       var
         found : longint;
       begin
@@ -4466,7 +4465,7 @@ type
         inc_comment_level;
         { only load a char if last already processed,
           was cause of bug1634 PM }
-        if c=#0 then
+        if read_first_char then
           readchar;
       { this is now supported }
         if (c='$') then
@@ -4574,7 +4573,7 @@ type
         repeat
           case c of
             '{' :
-              skipcomment;
+              skipcomment(true);
             #26 :
               begin
                 reload;
@@ -4813,8 +4812,7 @@ type
                  case c of
                    '*' :
                      begin
-                       c:=#0;{Signal skipoldtpcomment to reload a char }
-                       skipoldtpcomment;
+                       skipoldtpcomment(true);
                        readtoken(false);
                        exit;
                      end;
@@ -5498,11 +5496,6 @@ exit_label:
     function tscannerfile.asmgetchar : char;
       begin
          readchar;
-         if in_asm_string then
-           begin
-             asmgetchar:=c;
-             exit;
-           end;
          repeat
            case c of
              #26 :
