@@ -34,6 +34,7 @@ Type
 Const
   CmdLinePackageName='<cmdline>';
   CurrentDirPackageName='<currentdir>';
+  URLPackageName='<url>';
 
   // Dependencies for compiling the fpmkunit unit
   FPMKUnitDepDefaultCount=5;

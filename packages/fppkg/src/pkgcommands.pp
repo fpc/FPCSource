@@ -319,7 +319,7 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if (PackageName=CmdLinePackageName) then
+      if (PackageName=CmdLinePackageName) or (PackageName=URLPackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
@@ -347,7 +347,7 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if (PackageName=CmdLinePackageName) then
+      if (PackageName=CmdLinePackageName) or (PackageName=URLPackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
@@ -436,7 +436,8 @@ begin
     begin
       ExecuteAction(PackageName,'build');
       ExecuteAction(PackageName,'fpmakeinstall');
-      if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
+      if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) or
+         (PackageName=URLPackageName) then
         begin
           // Load package name from manifest
           if not FileExists(ManifestFileName) then
@@ -496,7 +497,8 @@ begin
     Error(SErrNoPackageSpecified);
   ManifestPackages:=nil;
   // Load dependencies for local packages
-  if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
+  if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) or
+     (PackageName=URLPackageName) then
     begin
       ExecuteAction(PackageName,'fpmakemanifest');
       ManifestPackages:=TFPPackages.Create(TFPPackage);

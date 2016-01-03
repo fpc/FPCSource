@@ -137,7 +137,7 @@ begin
       else
         Result:=CurrentDir;
     end
-  else if APackage.Name=CmdLinePackageName then
+  else if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
     Result:=GlobalOptions.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
   else if (APackage.RecompileBroken) and (APackage.SourcePath<>'') then
     Result:=APackage.SourcePath
