@@ -827,7 +827,18 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[tosize],hreg,href));
           end
         else
-          list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[tosize],longint(a),href));
+          { loading via a register is almost always faster if the value is small.
+            (with the 68040 being the only notable exception, so maybe disable
+            this on a '040? but the difference is minor) it also results in shorter
+            code. (KB) }
+          if isvalue8bit(a) and (tcgsize2opsize[tosize] = S_L) then
+            begin
+              hreg:=getintregister(list,OS_INT);
+              a_load_const_reg(list,OS_INT,a,hreg); // this will use moveq et.al.
+              list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[tosize],hreg,href));
+            end
+          else
+            list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[tosize],longint(a),href));
       end;
 
 
