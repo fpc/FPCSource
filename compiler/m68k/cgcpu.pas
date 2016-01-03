@@ -317,7 +317,7 @@ unit cgcpu;
 
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
-            list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[pushsize],a,ref));
+            a_load_const_ref(list, pushsize, a, ref);
           end
         else
           inherited a_load_const_cgpara(list,size,a,cgpara);
