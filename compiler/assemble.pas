@@ -1557,6 +1557,9 @@ Implementation
 {$ifdef ARM}
                    asd_thumb_func:
                      ObjData.ThumbFunc:=true;
+                   asd_code:
+                     { ai_directive(hp).name can be only 16 or 32, this is checked by the reader }
+                     ObjData.ThumbFunc:=tai_directive(hp).name='16';
 {$endif ARM}
                    else
                      internalerror(2010011101);
@@ -1698,6 +1701,9 @@ Implementation
                      { ignore for now, but should be added}
                      ;
                    asd_thumb_func:
+                     { ignore for now, but should be added}
+                     ;
+                   asd_code:
                      { ignore for now, but should be added}
                      ;
                    else
