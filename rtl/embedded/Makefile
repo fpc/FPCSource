@@ -357,24 +357,30 @@ ifeq ($(ARCH),arm)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),armv7m)
 CPU_UNITS=lm3fury lm3tempest stm32f10x_ld stm32f10x_md stm32f10x_hd stm32f10x_xl stm32f10x_conn stm32f10x_cl lpc13xx lpc1768 lm4f120 sam3x8e xmc4500 cortexm3 cortexm4 # thumb2_bare
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7em)
 CPU_UNITS=lm4f120 xmc4500 mk20d5 mk20d7 mk22f51212 mk64f12 stm32f401xx stm32f407xx stm32f411xe stm32f429xx stm32f446xx stm32f745 stm32f746 stm32f756 cortexm3 cortexm4 cortexm7 # thumb2_bare
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv4t)
 CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv4)
 CPU_UNITS=lpc21x4 at91sam7x256 sc32442b
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv6m)
 CPU_UNITS=lpc8xx lpc11xx lpc122x stm32f0xx cortexm0
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),armv7a)
 CPU_UNITS=allwinner_a20
+CPU_UNITS_DEFINED=1
 endif
-ifeq ($(CPU_UNITS),)
-$(warning No CPUs enabled for given SUBARCH)
+ifeq ($(CPU_UNITS_DEFINED),)
+$(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
 ifeq ($(ARCH),avr)
@@ -383,13 +389,16 @@ CPU_UNITS=attiny44a attiny26 attiny48 attiny10 attiny84a attiny2313 attiny461 at
 	  attiny24a attiny88 attiny40 attiny861 attiny85 attiny20 attiny24 attiny9 \
 	  attiny87 attiny84 attiny13a attiny45 attiny5 attiny828 attiny4313 attiny13 attiny261 \
 	  attiny861a attiny28 attiny4 attiny44 attiny2313a attiny461a attiny261a attiny25
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr35)
 CPU_UNITS=at90usb82 at90usb162 attiny167 atmega8u2 atmega8a atmega16u2 atmega32u2 attiny1634
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr4)
 CPU_UNITS=at90pwm161 atmega88p at90pwm3b atmega48a atmega48 atmega88a at90pwm81 atmega8 atmega8515 \
 	  atmega88pa atmega88 atmega48p atmega8535 at90pwm1 at90pwm2b atmega48pa ata6285 ata6286
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr5)
 CPU_UNITS=atmega645 atmega165a atmega649a atmega32u4 atmega168p atmega3250pa atmega3290a \
@@ -403,31 +412,36 @@ CPU_UNITS=atmega645 atmega165a atmega649a atmega32u4 atmega168p atmega3250pa atm
 	  atmega168 atmega6490a atmega32m1 atmega64c1 atmega644pa atmega325pa atmega6450a \
 	  atmega329pa atmega6450p atmega64 atmega165pa atmega16a atmega649 atmega649p \
 	  atmega3250p atmega325 atmega169pa avrsim
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr51)
 CPU_UNITS=at90usb1287 atmega1284 atmega1281 atmega128rfa1 atmega1284p at90can128 atmega128 at90usb1286 atmega128a atmega1280
+CPU_UNITS_DEFINED=1
 endif
 ifeq ($(SUBARCH),avr6)
 CPU_UNITS=atmega2561 atmega2560
+CPU_UNITS_DEFINED=1
 endif
-ifeq ($(CPU_UNITS),)
-$(error Invalid value set for SUBARCH)
+ifeq ($(CPU_UNITS_DEFINED),)
+$(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
 ifeq ($(ARCH),i386)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 CPU_UNITS=multiboot
-ifeq ($(CPU_UNITS),)
-$(error Invalid value set for SUBARCH)
+CPU_UNITS_DEFINED=1
+ifeq ($(CPU_UNITS_DEFINED),)
+$(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
 ifeq ($(ARCH),mipsel)
 CPU_SPECIFIC_COMMON_UNITS=sysutils math classes fgl macpas typinfo types rtlconsts getopts lineinfo
 ifeq ($(SUBARCH),pic32mx)
-  CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
+CPU_UNITS=pic32mx1xxfxxxb pic32mx2xxfxxxb pic32mx1xxfxxxc pic32mx2xxfxxxc pic32mx1xxfxxxd pic32mx2xxfxxxd pic32mx7x5fxxxl pic32mx7x5fxxxh
+CPU_UNITS_DEFINED=1
 endif
-ifeq ($(CPU_UNITS),)
-$(error Invalid value set for SUBARCH)
+ifeq ($(CPU_UNITS_DEFINED),)
+$(error No CPUs enabled for given SUBARCH, pass either a SUBARCH or set CPU_UNITS_DEFINED=1 if you know what you are doing)
 endif
 endif
 OBJPASDIR=$(RTL)/objpas
