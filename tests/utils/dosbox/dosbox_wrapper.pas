@@ -7,7 +7,7 @@ const
   use_temp_dir : boolean = true;
   hide_execution : boolean = true;
   do_exit : boolean =true;
-  dosbox_timeout : integer = 90;  { 90 seconds by default }
+  dosbox_timeout : integer = 100;  { default timeout in seconds }
 var
   OutputFileName : String;
 
