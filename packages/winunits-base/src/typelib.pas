@@ -821,7 +821,7 @@ begin
                   sDefault:=sl;
                 end;
               end;
-            tmp:='  procedure Set_%s(%s %s:%s); %s;'#13#10;
+            tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
             if not bParamByRef then 
               Modifier:='const'
             else
