@@ -472,7 +472,7 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('mssqlconn');
         end;
-    T:=P.Targets.AddUnit('fpddregstd.pp', DatadictOSes-SqldbWithoutOracleOSes);
+    T:=P.Targets.AddUnit('fpddregstd.pp', (DatadictOSes*MSSQLOses)-SqldbWithoutOracleOSes);
       with T.Dependencies do
         begin
           AddUnit('fpdatadict');
