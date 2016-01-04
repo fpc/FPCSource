@@ -990,11 +990,16 @@ implementation
                                       eq:=te_convert_l1;
                                     end
                                   else
-                                   if (subeq>te_incompatible) then
-                                    begin
-                                      doconv:=hct;
-                                      eq:=te_convert_l2;
-                                    end;
+                                    { an array constructor is not an open array, so
+                                      use a lower level of compatibility than that one of
+                                      of the elements }
+                                    if subeq>te_convert_l6 then
+                                     begin
+                                       doconv:=hct;
+                                       eq:=pred(subeq);
+                                     end
+                                   else
+                                     eq:=subeq;
                                 end;
                              end
                             else
