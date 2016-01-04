@@ -362,6 +362,7 @@ begin
   if (sym.bind=AB_LOCAL) then
     begin
       href.refaddr:=addr_low;
+      href.base:=NR_NO;
       list.concat(taicpu.op_reg_ref(A_ADDIU,NR_PIC_FUNC,href));
     end;
   list.concat(taicpu.op_reg(A_JALR,NR_PIC_FUNC));
