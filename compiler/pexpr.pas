@@ -2369,12 +2369,13 @@ implementation
                            end;
                        end
                      else
-                       begin
-                         Message(parser_e_invalid_qualifier);
-                         p1.destroy;
-                         p1:=cerrornode.create;
-                         consume(_ID);
-                       end;
+                       if (token<>_ID) or not try_type_helper(p1,nil) then
+                         begin
+                           Message(parser_e_invalid_qualifier);
+                           p1.destroy;
+                           p1:=cerrornode.create;
+                           consume(_ID);
+                         end;
                    end;
                   variantdef:
                     begin
