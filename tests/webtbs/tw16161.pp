@@ -11,9 +11,9 @@ uses
 var
   Stream1: TMemoryStream;
   _Stream1, _Stream2: IStream;
-  cbRead, cbWritten: LargeInt;
+  cbRead, cbWritten: LargeUInt;
   cbRead1: DWord;
-  NewPos: Int64;
+  NewPos: LargeUInt;
   buf: array[0..3] of char;
 begin
   Stream1 := TMemoryStream.Create;
