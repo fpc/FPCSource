@@ -37,6 +37,7 @@ begin
     P.Dependencies.add('morphunits',[morphos]);
     P.Dependencies.add('arosunits',[aros]);
     P.Dependencies.add('amunits',[amiga]);
+    P.Dependencies.add('fcl-base');
 
     T:=P.Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');
