@@ -68,7 +68,7 @@ Function GetCreationFlags(P : TProcess) : Cardinal;
 begin
   With P do
     begin
-    Result:=0;
+    Result:=CREATE_UNICODE_ENVIRONMENT;
     if poNoConsole in FProcessOptions then
       Result:=Result or Detached_Process;
     if poNewConsole in FProcessOptions then
@@ -87,10 +87,19 @@ begin
     end;
 end;
 
-Function StringsToPChars(List : TStrings): pointer;
+function WStrAsUniquePWideChar(var s: UnicodeString): PWideChar;
+begin
+  UniqueString(s);
+  if s<>'' then
+    Result:=PWideChar(s)
+  else
+    Result:=nil;
+end;
+
+Function StringsToWChars(List : TStrings): pointer;
 
 var
-  EnvBlock: string;
+  EnvBlock: UnicodeString;
   I: Integer;
 
 begin
@@ -98,8 +107,8 @@ begin
   For I:=0 to List.Count-1 do
     EnvBlock := EnvBlock + List[i] + #0;
   EnvBlock := EnvBlock + #0;
-  GetMem(Result, Length(EnvBlock));
-  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock));
+  GetMem(Result, Length(EnvBlock)*2);
+  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
 end;
 
 Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
@@ -116,7 +125,7 @@ begin
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOA);
+Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -179,7 +188,7 @@ begin
 end;
 
 
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoA; CE : Boolean; APipeBufferSize : Cardinal);
+Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoW; CE : Boolean; APipeBufferSize : Cardinal);
 
 begin
   CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
@@ -215,44 +224,45 @@ begin
      Result:=S;
 end;
 
+
 Procedure TProcess.Execute;
 Var
   i : Integer;
-  PName,PDir,PCommandLine : PChar;
+  WName,WDir,WCommandLine : UnicodeString;
+  PWName,PWDir,PWCommandLine : PWideChar;
   FEnv: pointer;
   FCreationFlags : Cardinal;
   FProcessAttributes : TSecurityAttributes;
   FThreadAttributes : TSecurityAttributes;
   FProcessInformation : TProcessInformation;
-  FStartupInfo : STARTUPINFOA;
+  FStartupInfo : STARTUPINFOW;
   HI,HO,HE : THandle;
   Cmd : String;
-  
-begin
-  PName:=Nil;
-  PCommandLine:=Nil;
-  PDir:=Nil;
-    
+
+ begin
+  WName:='';
+  WCommandLine:='';
+  WDir:='';
   if (FApplicationName='') and (FCommandLine='') and (FExecutable='') then
     Raise EProcess.Create(SNoCommandline);
   if (FApplicationName<>'') then
     begin
-    PName:=Pchar(FApplicationName);
-    PCommandLine:=Pchar(FCommandLine);
+    WName:=FApplicationName;
+    WCommandLine:=FCommandLine;
     end
   else If (FCommandLine<>'') then
-    PCommandLine:=Pchar(FCommandLine)
-  else if (Fexecutable<>'') then
+    WCommandLine:=FCommandLine
+  else if (FExecutable<>'') then
     begin
     Cmd:=MaybeQuoteIfNotQuoted(Executable);
     For I:=0 to Parameters.Count-1 do
       Cmd:=Cmd+' '+MaybeQuoteIfNotQuoted(Parameters[i]);
-    PCommandLine:=PChar(Cmd);
+    WCommandLine:=Cmd;
     end;
   If FCurrentDirectory<>'' then
-    PDir:=Pchar(FCurrentDirectory);
+    WDir:=FCurrentDirectory;
   if FEnvironment.Count<>0 then
-    FEnv:=StringsToPChars(FEnvironment)
+    FEnv:=StringsToWChars(FEnvironment)
   else
     FEnv:=Nil;
   Try
@@ -263,8 +273,13 @@ begin
     If poUsePipes in FProcessOptions then
       CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions), FPipeBufferSize);
     Try
-      If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
-                   FInheritHandles,FCreationFlags,FEnv,PDir,FStartupInfo,
+      // Beware: CreateProcess can alter the strings
+      // Beware: nil is not the same as a pointer to a #0
+      PWName:=WStrAsUniquePWideChar(WName);
+      PWCommandLine:=WStrAsUniquePWideChar(WCommandLine);
+      PWDir:=WStrAsUniquePWideChar(WDir);
+      If Not CreateProcessW (PWName,PWCommandLine,@FProcessAttributes,@FThreadAttributes,
+                   FInheritHandles,FCreationFlags,FEnv,PWDir,FStartupInfo,
                    fProcessInformation) then
         Raise EProcess.CreateFmt(SErrCannotExecute,[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
