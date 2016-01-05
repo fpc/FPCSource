@@ -80,6 +80,7 @@ interface
 {$endif i8086}
 {$ifdef arm}
          RELOC_RELATIVE_24,
+         RELOC_RELATIVE_CALL,
          RELOC_RELATIVE_24_THUMB,
          RELOC_RELATIVE_CALL_THUMB,
          RELOC_GOT32,
