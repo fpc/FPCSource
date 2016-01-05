@@ -393,10 +393,9 @@ implementation
 
     function is_calljmp(o:tasmop):boolean;
       begin
-        is_calljmp := false;
-        if o in [A_BXX,A_FBXX,A_DBXX,A_BCC..A_BVS,A_DBCC..A_DBVS,A_FBEQ..A_FSNGLE,
-          A_JSR,A_BSR,A_JMP] then
-           is_calljmp := true;
+        is_calljmp :=
+          o in [A_BXX,A_FBXX,A_DBXX,A_BCC..A_BVS,A_DBCC..A_DBVS,A_FBEQ..A_FSNGLE,
+                A_JSR,A_BSR,A_JMP];
       end;
 
 
