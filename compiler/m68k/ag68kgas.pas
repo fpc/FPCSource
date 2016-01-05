@@ -133,9 +133,8 @@ interface
       end;
 
 
-    function getopstr(const o:toper) : string;
+    function getopstr(var o:toper) : string;
       var
-        hs : string;
         i : tsuperregister;
       begin
         case o.typ of
@@ -145,41 +144,39 @@ interface
             if o.ref^.refaddr=addr_full then
               begin
                 if assigned(o.ref^.symbol) then
-                  hs:=o.ref^.symbol.name
+                  getopstr:=o.ref^.symbol.name
                 else
-                  hs:='#';
+                  getopstr:='#';
                 if o.ref^.offset>0 then
-                  hs:=hs+'+'+tostr(o.ref^.offset)
+                  getopstr:=getopstr+'+'+tostr(o.ref^.offset)
                 else
                   if o.ref^.offset<0 then
-                    hs:=hs+tostr(o.ref^.offset)
+                    getopstr:=getopstr+tostr(o.ref^.offset)
                   else
                     if not(assigned(o.ref^.symbol)) then
-                      hs:=hs+'0';
-                getopstr:=hs;
+                      getopstr:=getopstr+'0';
               end
             else
               getopstr:=getreferencestring(o.ref^);
           top_regset:
             begin
-              hs:='';
+              getopstr:='';
               for i:=RS_D0 to RS_D7 do
                 begin
                   if i in o.dataregset^ then
-                   hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
+                   getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_A0 to RS_SP do
                 begin
                   if i in o.addrregset^ then
-                   hs:=hs+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
+                   getopstr:=getopstr+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_FP0 to RS_FP7 do
                 begin
                   if i in o.fpuregset^ then
-                   hs:=hs+gas_regname(newreg(R_FPUREGISTER,i,R_SUBNONE))+'/';
+                   getopstr:=getopstr+gas_regname(newreg(R_FPUREGISTER,i,R_SUBNONE))+'/';
                 end;
-              delete(hs,length(hs),1);
-              getopstr := hs;
+              delete(getopstr,length(getopstr),1);
             end;
           top_const:
             getopstr:='#'+tostr(longint(o.val));
@@ -188,9 +185,7 @@ interface
       end;
 
 
-    function getopstr_jmp(const o:toper) : string;
-      var
-        hs : string;
+    function getopstr_jmp(var o:toper) : string;
       begin
         case o.typ of
           top_reg:
@@ -201,18 +196,17 @@ interface
             else
               begin
                 if assigned(o.ref^.symbol) then
-                  hs:=o.ref^.symbol.name
+                  getopstr_jmp:=o.ref^.symbol.name
                 else
-                  hs:='';
+                  getopstr_jmp:='';
                 if o.ref^.offset>0 then
-                  hs:=hs+'+'+tostr(o.ref^.offset)
+                  getopstr_jmp:=getopstr_jmp+'+'+tostr(o.ref^.offset)
                 else
                   if o.ref^.offset<0 then
-                    hs:=hs+tostr(o.ref^.offset)
+                    getopstr_jmp:=getopstr_jmp+tostr(o.ref^.offset)
                   else
                     if not(assigned(o.ref^.symbol)) then
-                      hs:=hs+'0';
-                getopstr_jmp:=hs;
+                      getopstr_jmp:=getopstr_jmp+'0';
               end;
           top_const:
             getopstr_jmp:=tostr(o.val);
@@ -255,12 +249,10 @@ interface
         op       : tasmop;
         s        : string;
         sep      : char;
-        calljmp  : boolean;
         i        : integer;
        begin
          if hp.typ <> ait_instruction then exit;
          op:=taicpu(hp).opcode;
-         calljmp:=is_calljmp(op);
          { call maybe not translated to call }
          s:=#9+getopcodestring(hp);
          { process operands }
@@ -269,10 +261,9 @@ interface
              { call and jmp need an extra handling                          }
              { this code is only called if jmp isn't a labeled instruction  }
              { quick hack to overcome a problem with manglednames=255 chars }
-             if calljmp then
+             if is_calljmp(op) then
                 begin
-                  owner.writer.AsmWrite(s+#9);
-                  s:=getopstr_jmp(taicpu(hp).oper[0]^);
+                  s:=s+#9+getopstr_jmp(taicpu(hp).oper[0]^);
                   { dbcc dx,<sym> has two operands! (KB) }
                   if (taicpu(hp).ops>1) then
                     s:=s+','+getopstr_jmp(taicpu(hp).oper[1]^);
@@ -286,17 +277,12 @@ interface
                       if i=0 then
                         sep:=#9
                       else
-                      if ((op = A_DIVSL) or
-                         (op = A_DIVUL) or
-                         (op = A_MULU) or
-                         (op = A_MULS) or
-                         (op = A_DIVS) or
-                         (op = A_DIVU)) and (i=2) then
-                      begin
+                      if (i=2) and
+                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU]) then
                         sep:=':'
-                      end else
+                      else
                         sep:=',';
-                      s:=s+sep+getopstr(taicpu(hp).oper[i]^)
+                      s:=s+sep+getopstr(taicpu(hp).oper[i]^);
                     end;
                 end;
            end;
