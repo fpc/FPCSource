@@ -197,7 +197,13 @@ begin
     32: size := OS_M256;
   end;
 
-  opsize:=TCGSize2Opsize[size];
+{$ifdef i8086}
+  { allows e.g. using 32-bit registers in i8086 inline asm }
+  if size in [OS_32,OS_S32] then
+    opsize:=S_L
+  else
+{$endif i8086}
+    opsize:=TCGSize2Opsize[size];
 end;
 
 
