@@ -2974,16 +2974,15 @@ implementation
               else
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
-                  if (currsym.bind<>AB_LOCAL) or (currsym.objsection<>objdata.CurrObjSec) then
-                    begin
-                      if (opcode<>A_BL) or (condition<>C_None) then
-                        objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24)
-                      else
-                        objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_CALL);
-                      bytes:=bytes or $fffffe; // TODO: Not sure this is right, but it matches the output of gas
-                    end
+
+                  bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
+
+                  if (opcode<>A_BL) or (condition<>C_None) then
+                    objdata.writereloc(bytes,4,currsym,RELOC_RELATIVE_24)
                   else
-                    bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
+                    objdata.writereloc(bytes,4,currsym,RELOC_RELATIVE_CALL);
+
+                  exit;
                 end;
             end;
           #$02:

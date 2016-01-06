@@ -914,7 +914,8 @@ const pemagic : array[0..3] of byte = (
                     inc(address,relocval);
                   end;
 {$ifdef arm}
-                RELOC_RELATIVE_24:
+                RELOC_RELATIVE_24,
+                RELOC_RELATIVE_CALL:
                   begin
                     addend:=sarlongint(((address and $ffffff) shl 8),6); // Sign-extend while shifting left twice
                     relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
@@ -923,7 +924,8 @@ const pemagic : array[0..3] of byte = (
                     if (relocval<>$3f) and (relocval<>0) then
                       internalerror(200606085);  { offset overflow }
                   end;
-                RELOC_RELATIVE_24_THUMB:
+                RELOC_RELATIVE_24_THUMB,
+                RELOC_RELATIVE_CALL_THUMB:
                   begin
                     addend:=sarlongint(((address and $ffffff) shl 8),6); // Sign-extend while shifting left twice, the assembler never sets the H bit
                     relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 1;
@@ -1119,6 +1121,13 @@ const pemagic : array[0..3] of byte = (
                       //inc(data,symaddr-len-CurrObjSec.Size);
                       data:=data+symaddr-len-CurrObjSec.Size;
                     end;
+{$ifdef ARM}
+                  RELOC_RELATIVE_24,
+                  RELOC_RELATIVE_CALL:
+                    begin
+                      data:=(data and $ff000000) or (((((data and $ffffff) shl 2)+(symaddr-CurrObjSec.Size)) shr 2) and $FFFFFF); // TODO: Check overflow
+                    end;
+{$endif ARM}
                   RELOC_RVA,
                   RELOC_SECREL32 :
                     begin
@@ -1298,8 +1307,10 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_ARM_SECREL;
               RELOC_RELATIVE_24 :
                 rel.reloctype:=IMAGE_REL_ARM_BRANCH24;
-              RELOC_RELATIVE_24_THUMB:
+              RELOC_RELATIVE_CALL :
                 rel.reloctype:=IMAGE_REL_ARM_BLX24;
+              RELOC_RELATIVE_24_THUMB:
+                rel.reloctype:=IMAGE_REL_ARM_BLX23T;
 {$endif arm}
 {$ifdef i386}
               RELOC_RELATIVE :
@@ -1616,9 +1627,11 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RVA;
              IMAGE_REL_ARM_BRANCH24:
                rel_type:=RELOC_RELATIVE_24;
+             IMAGE_REL_ARM_BLX24:
+               rel_type:=RELOC_RELATIVE_CALL;
              IMAGE_REL_ARM_SECREL:
                rel_type:=RELOC_SECREL32;
-             IMAGE_REL_ARM_BLX24:
+             IMAGE_REL_ARM_BLX23T:
                rel_type:=RELOC_RELATIVE_24_THUMB;
 {$endif arm}
 {$ifdef i386}
