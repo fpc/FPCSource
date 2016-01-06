@@ -342,8 +342,8 @@ const
 
 { Typinfo unit Variant routines have been moved here, so as not to make TypInfo dependent on variants }
 
-Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
-Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant);
+Function  GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant; overload;
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant); overload;
 Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
 Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
 Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
