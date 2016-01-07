@@ -238,8 +238,10 @@ Var
   T : TJSONtoken;
   E : TJSONData;
   N : String;
-  
+  LastComma : Boolean;
+
 begin
+  LastComma:=False;
   Result:=CreateJSONObject([]);
   Try
     T:=GetNextToken;
@@ -257,8 +259,13 @@ begin
       If Not (T in [tkComma,tkCurlyBraceClose]) then
         DoError(SExpectedCommaorBraceClose);
       If T=tkComma then
+        begin
         T:=GetNextToken;
+        LastComma:=(t=tkCurlyBraceClose);
+        end;
       end;
+    If LastComma and ((joStrict in Options) or not (joIgnoreTrailingComma in Options))  then // Test for ,} case
+      DoError(SErrUnExpectedToken);
   Except
     FreeAndNil(Result);
     Raise;
@@ -272,7 +279,7 @@ Var
   T : TJSONtoken;
   E : TJSONData;
   LastComma : Boolean;
-  
+  S : TJSONOPTions;
 begin
   Result:=CreateJSONArray([]);
   LastComma:=False;
@@ -292,7 +299,8 @@ begin
         LastComma:=(t=TkComma);
         end;
     Until (T=tkSquaredBraceClose);
-    If LastComma then // Test for ,] case
+    S:=Options;
+    If LastComma and ((joStrict in S) or not (joIgnoreTrailingComma in S))  then // Test for ,] case
       DoError(SErrUnExpectedToken);
   Except
     FreeAndNil(Result);

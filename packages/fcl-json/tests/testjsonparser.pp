@@ -28,15 +28,20 @@ type
 
   TTestParser = class(TTestJSON)
   private
+    FOptions : TJSONOptions;
     procedure CallNoHandlerStream;
     procedure DoTestError(S: String);
     procedure DoTestFloat(F: TJSONFloat); overload;
     procedure DoTestFloat(F: TJSONFloat; S: String); overload;
     procedure DoTestObject(S: String; const ElNames: array of String; DoJSONTest : Boolean = True);
     procedure DoTestString(S : String);
-    procedure DoTestArray(S: String; ACount: Integer; HaveComments : Boolean=False);
+    procedure DoTestArray(S: String; ACount: Integer; IgnoreJSON: Boolean=False);
     Procedure DoTestClass(S : String; AClass : TJSONDataClass);
     procedure CallNoHandler;
+    procedure DoTrailingCommaErrorArray;
+    procedure DoTrailingCommaErrorObject;
+  Protected
+    Procedure Setup; override;
   published
     procedure TestEmpty;
     procedure TestNull;
@@ -48,6 +53,9 @@ type
     procedure TestString;
     procedure TestArray;
     procedure TestObject;
+    procedure TestTrailingComma;
+    procedure TestTrailingCommaErrorArray;
+    procedure TestTrailingCommaErrorObject;
     procedure TestMixed;
     Procedure TestComment;
     procedure TestErrors;
@@ -206,7 +214,6 @@ procedure TTestParser.TestArray;
 Var
   S1,S2,S3 : String;
 
-
 begin
   DoTestArray('[]',0);
   DoTestArray('[null]',1);
@@ -224,9 +231,9 @@ begin
   Delete(S2,1,1);
   Str(34/10,S3);
   Delete(S3,1,1);
-  DoTestArray('['+S1+']',1);
-  DoTestArray('['+S1+', '+S2+']',2);
-  DoTestArray('['+S1+', '+S2+', '+S3+']',3);
+  DoTestArray('['+S1+']',1,true);
+  DoTestArray('['+S1+', '+S2+']',2,true);
+  DoTestArray('['+S1+', '+S2+', '+S3+']',3,true);
   DoTestArray('["A string"]',1);
   DoTestArray('["A string", "Another string"]',2);
   DoTestArray('["A string", "Another string", "Yet another string"]',3);
@@ -238,6 +245,33 @@ begin
   DoTestArray('[1, [1, 2]]',2);
 end;
 
+procedure TTestParser.TestTrailingComma;
+begin
+  FOptions:=[joIgnoreTrailingComma];
+  DoTestArray('[1, 2,]',2,True);
+  DoTestObject('{ "a" : 1, }',['a'],False);
+end;
+
+procedure TTestParser.TestTrailingCommaErrorArray;
+begin
+  AssertException('Need joIgnoreTrailingComma in options to allow trailing comma',EJSONParser,@DoTrailingCommaErrorArray) ;
+end;
+
+procedure TTestParser.TestTrailingCommaErrorObject;
+begin
+  AssertException('Need joIgnoreTrailingComma in options to allow trailing comma',EJSONParser,@DoTrailingCommaErrorObject);
+end;
+
+procedure TTestParser.DoTrailingCommaErrorArray;
+begin
+  DoTestArray('[1, 2,]',2,True);
+end;
+
+procedure TTestParser.DoTrailingCommaErrorObject;
+begin
+  DoTestObject('{ "a" : 1, }',['a'],False);
+end;
+
 procedure TTestParser.TestMixed;
 
 Const
@@ -246,7 +280,7 @@ Const
          '  "address": {'+
          '      "street": "5 Main Street",'+LineEnding+
          '        "city": "San Diego, CA",'+LineEnding+
-         '        "zip": 91912,'+LineEnding+
+         '        "zip": 91912'+LineEnding+
          '    },'+LineEnding+
          '    "phoneNumbers": [  '+LineEnding+
          '        "619 332-3452",'+LineEnding+
@@ -266,6 +300,7 @@ end;
 
 procedure TTestParser.TestComment;
 begin
+  FOptions:=[joComments];
   DoTestArray('/* */ [1, {}]',2,True);
   DoTestArray('//'+sLineBreak+'[1, { "a" : 1 }]',2,True);
   DoTestArray('/* '+sLineBreak+' */ [1, {}]',2,True);
@@ -302,8 +337,10 @@ Var
   I : Integer;
 
 begin
+  J:=Nil;
   P:=TJSONParser.Create(S);
   Try
+    P.Options:=FOptions;
     J:=P.Parse;
     If (J=Nil) then
       Fail('Parse of object "'+S+'" fails');
@@ -322,21 +359,23 @@ begin
 end;
 
 
-procedure TTestParser.DoTestArray(S : String; ACount : Integer; HaveComments : Boolean = False);
+procedure TTestParser.DoTestArray(S : String; ACount : Integer; IgnoreJSON : Boolean = False);
 
 Var
   P : TJSONParser;
   J : TJSONData;
 
 begin
+  J:=Nil;
   P:=TJSONParser.Create(S,[joComments]);
   Try
+    P.Options:=FOptions;
     J:=P.Parse;
     If (J=Nil) then
       Fail('Parse of array "'+S+'" fails');
     TestJSONType(J,jtArray);
     TestItemCount(J,ACount);
-    if not HaveComments then
+    if not IgnoreJSON then
       TestJSON(J,S);
   Finally
     FreeAndNil(J);
@@ -401,6 +440,12 @@ procedure TTestParser.CallNoHandler;
 
 begin
   GetJSON('1',True).Free;
+end;
+
+procedure TTestParser.Setup;
+begin
+  inherited Setup;
+  FOptions:=[];
 end;
 
 procedure TTestParser.CallNoHandlerStream;
