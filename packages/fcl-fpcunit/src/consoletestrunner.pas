@@ -340,7 +340,7 @@ procedure TTestRunner.DoRun;
         if (test is ttestsuite) then
           begin
           for I := 0 to TTestSuite(test).Tests.Count - 1 do
-             CheckTestRegistry (TTest((test as TTestSuite).Tests[I]), c, res)
+             CheckTestRegistry ((test as TTestSuite).Test[I], c, res)
           end
         else if (test is TTestDecorator) then
           begin
