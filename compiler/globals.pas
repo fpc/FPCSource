@@ -44,6 +44,9 @@ interface
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+      llvminfo,
+{$endif LLVM and not GENERIC_CPU}
       globtype,version,systems;
 
     const
@@ -166,6 +169,10 @@ interface
 {$if defined(ARM)}
          instructionset : tinstructionset;
 {$endif defined(ARM)}
+
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+         llvmversion: tllvmversion;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
          controllertype   : tcontrollertype;
@@ -490,6 +497,9 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+        llvmversion    : llvmver_3_6_0;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
         controllertype : ct_none;
         pmessage : nil;
       );
