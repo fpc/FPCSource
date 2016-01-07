@@ -2502,6 +2502,7 @@ packages/fcl-json/src/jsonconf.pp svneol=native#text/plain
 packages/fcl-json/src/jsonparser.pp svneol=native#text/plain
 packages/fcl-json/src/jsonscanner.pp svneol=native#text/plain
 packages/fcl-json/tests/jsonconftest.pp svneol=native#text/plain
+packages/fcl-json/tests/testcomps.pp svneol=native#text/plain
 packages/fcl-json/tests/testjson.lpi svneol=native#text/plain
 packages/fcl-json/tests/testjson.pp svneol=native#text/plain
 packages/fcl-json/tests/testjsonconf.lpi svneol=native#text/plain
