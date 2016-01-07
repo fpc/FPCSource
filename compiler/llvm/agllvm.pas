@@ -87,7 +87,7 @@ implementation
       fmodule,verbose,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,aasmllvm,itllvm,llvmdef,
-      cgbase,cgutils,cpubase;
+      cgbase,cgutils,cpubase,llvminfo;
 
     const
       line_length = 70;
@@ -727,6 +727,32 @@ implementation
 
     procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
 
+      procedure WriteLinkageVibilityFlags(bind: TAsmSymBind);
+        begin
+          case bind of
+             AB_EXTERNAL:
+               writer.AsmWrite(' external');
+             AB_COMMON:
+               writer.AsmWrite(' common');
+             AB_LOCAL:
+               writer.AsmWrite(' internal');
+             AB_GLOBAL:
+               writer.AsmWrite('');
+             AB_WEAK_EXTERNAL:
+               writer.AsmWrite(' extern_weak');
+             AB_PRIVATE_EXTERN:
+               begin
+                 if not(llvmflag_linker_private in llvmversion_properties[current_settings.llvmversion]) then
+                   writer.AsmWrite(' hidden')
+                 else
+                   writer.AsmWrite(' linker_private');
+               end
+             else
+               internalerror(2014020104);
+           end;
+        end;
+
+
       procedure WriteFunctionFlags(pd: tprocdef);
         begin
           if (pos('FPC_SETJMP',upper(pd.mangledname))<>0) or
@@ -950,6 +976,7 @@ implementation
                   else
                     begin
                       writer.AsmWrite('define');
+                      WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
                       writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_def));
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       writer.AsmWriteln(' {');
@@ -958,22 +985,9 @@ implementation
               else
                 begin
                   writer.AsmWrite(LlvmAsmSymName(taillvmdecl(hp).namesym));
-                  case taillvmdecl(hp).namesym.bind of
-                    AB_EXTERNAL:
-                      writer.AsmWrite(' = external ');
-                    AB_COMMON:
-                      writer.AsmWrite(' = common ');
-                    AB_LOCAL:
-                      writer.AsmWrite(' = internal ');
-                    AB_GLOBAL:
-                      writer.AsmWrite(' = ');
-                    AB_WEAK_EXTERNAL:
-                      writer.AsmWrite(' = extern_weak ');
-                    AB_PRIVATE_EXTERN:
-                      writer.AsmWrite('= linker_private ');
-                    else
-                      internalerror(2014020104);
-                  end;
+                  writer.AsmWrite(' =');
+                  WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
+                  writer.AsmWrite(' ');
                   if (ldf_tls in taillvmdecl(hp).flags) then
                     writer.AsmWrite('thread_local ');
                   if ldf_unnamed_addr in taillvmdecl(hp).flags then
