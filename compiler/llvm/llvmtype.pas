@@ -697,7 +697,9 @@ implementation
     procedure TLLVMTypeInfo.appenddef_classref(list: TAsmList; def: tclassrefdef);
       begin
         record_def(def);
-        record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
+        { can also be an objcclass, which doesn't have a vmt }
+        if is_class(tclassrefdef(def).pointeddef) then
+          record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
       end;
 
 

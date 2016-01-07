@@ -384,8 +384,13 @@ implementation
             end;
           classrefdef :
             begin
-              llvmaddencodedtype_intern(tobjectdef(tclassrefdef(def).pointeddef).vmt_def,flags,encodedstr);
-              encodedstr:=encodedstr+'*';
+              if is_class(tclassrefdef(def).pointeddef) then
+                begin
+                  llvmaddencodedtype_intern(tobjectdef(tclassrefdef(def).pointeddef).vmt_def,flags,encodedstr);
+                  encodedstr:=encodedstr+'*';
+                end
+              else
+                encodedstr:=encodedstr+'i8*'
             end;
           setdef :
             begin
