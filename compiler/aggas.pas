@@ -113,7 +113,7 @@ implementation
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
-      cpubase;
+      cpubase,objcasm;
 
     const
       line_length = 70;
@@ -460,7 +460,7 @@ implementation
          system_powerpc_aix,
          system_powerpc64_aix:
            begin
-             if (atype in [sec_stub,sec_objc_data,sec_objc_const,sec_data_coalesced]) then
+             if (atype in [sec_stub]) then
                writer.AsmWrite('.section ');
            end
          else
@@ -1671,128 +1671,10 @@ implementation
                 result:='.section __DATA, __mod_term_func, mod_term_funcs';
                 exit;
               end;
-            sec_objc_protocol_ext:
+            low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
               begin
-                result:='.section __OBJC, __protocol_ext, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_class_ext:
-              begin
-                result:='.section __OBJC, __class_ext, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_property:
-              begin
-                result:='.section __OBJC, __property, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_image_info:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  result:='.section __DATA,__objc_imageinfo,regular,no_dead_strip'
-                else
-                  result:='.section __OBJC, __image_info, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_cstring_object:
-              begin
-                result:='.section __OBJC, __cstring_object, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_sel_fixup:
-              begin
-                result:='.section __OBJC, __sel_fixup, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_message_refs:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_selrefs, literal_pointers, no_dead_strip';
-                    exit;
-                  end;
-              end;
-            sec_objc_cls_refs:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_clsrefs, regular, no_dead_strip';
-                    exit;
-                  end;
-              end;
-            sec_objc_meth_var_types:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __TEXT,__objc_methtype,cstring_literals';
-                    exit
-                  end;
-              end;
-            sec_objc_meth_var_names:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __TEXT,__objc_methname,cstring_literals';
-                    exit
-                  end;
-              end;
-            sec_objc_class_names:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __TEXT,__objc_classname,cstring_literals';
-                    exit
-                  end;
-              end;
-            sec_objc_inst_meth,
-            sec_objc_cls_meth,
-            sec_objc_cat_inst_meth,
-            sec_objc_cat_cls_meth:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_const';
-                    exit;
-                  end;
-              end;
-            sec_objc_meta_class,
-            sec_objc_class:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_data';
-                    exit;
-                  end;
-              end;
-            sec_objc_sup_refs:
-              begin
-                result:='.section __DATA, __objc_superrefs, regular, no_dead_strip';
+                result:='.section '+objc_section_name(atype);
                 exit
-              end;
-            sec_objc_classlist:
-              begin
-                result:='.section __DATA, __objc_classlist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_nlclasslist:
-              begin
-                result:='.section __DATA, __objc_nlclasslist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_catlist:
-              begin
-                result:='.section __DATA, __objc_catlist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_nlcatlist:
-              begin
-                result:='.section __DATA, __objc_nlcatlist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_protolist:
-              begin
-                result:='.section __DATA, __objc_protolist, coalesced, no_dead_strip';
-                exit;
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
