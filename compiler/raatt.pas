@@ -1275,7 +1275,11 @@ unit raatt;
              begin
                Consume(AS_WEAK);
                BuildConstSymbolExpression(true,false,false, l1,symname,symtyp);
-               curList.concat(tai_weak.create(symname));
+               { ideally, we should look up the symbol here (or later) and
+                 depending on whether it's external or net, generate
+                 asd_weak_reference or asd_weak_definition -- this is different
+                 on some targets) }
+               curList.concat(tai_directive.create(asd_weak_definition,symname));
              end;
 
            AS_SECTION:

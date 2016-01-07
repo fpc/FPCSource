@@ -1922,10 +1922,21 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-             ait_weak:
+             ait_directive :
                begin
-                 objsym:=ObjData.symbolref(tai_weak(hp).sym^);
-                 objsym.bind:=AB_WEAK_EXTERNAL;
+                 case tai_directive(hp).directive of
+                   asd_weak_definition,
+                   asd_weak_reference:
+                     begin
+                       objsym:=ObjData.symbolref(tai_directive(hp).name);
+                       if objsym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL] then
+                         objsym.bind:=AB_WEAK_EXTERNAL
+                       else
+                         { TODO: should become a weak definition; for now, do
+                             the same as what was done for ait_weak }
+                         objsym.bind:=AB_WEAK_EXTERNAL;
+                     end
+                 end
                end;
              ait_symbolpair:
                begin

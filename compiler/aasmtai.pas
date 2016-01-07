@@ -73,7 +73,6 @@ interface
           ait_labeled_instruction,
 {$endif m68k}
           ait_symbolpair,
-          ait_weak,
           { used to split into tiny assembler files }
           ait_cutobject,
           ait_regalloc,
@@ -204,7 +203,6 @@ interface
           'labeled_instr',
 {$endif m68k}
           'symbolpair',
-          'weak',
           'cut',
           'regalloc',
           'tempalloc',
@@ -298,7 +296,7 @@ interface
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_varloc,ait_align,ait_section,ait_comment,
                      ait_const,ait_directive,
-                     ait_symbolpair,ait_weak,
+                     ait_symbolpair,
                      ait_realconst,
                      ait_symbol,
 {$ifdef JVM}
@@ -375,7 +373,7 @@ interface
       directivestr : array[TAsmDirective] of string[23]=(
         'indirect_symbol',
         'extern','nasm_import', 'tc', 'reference',
-        'no_dead_strip','weak_reference','lazy_reference','weak_definition',
+        'no_dead_strip','weak','lazy_reference','weak',
         { for Jasmin }
         'class','interface','super','field','limit','line',
         { .ent/.end for MIPS }
@@ -899,14 +897,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
         end;
 
-        tai_weak = class(tai)
-          sym: pshortstring;
-          constructor create(const asym: string);
-          destructor destroy;override;
-          constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-        end;
-
     var
       { array with all class types for tais }
       aiclass : taiclassarray;
@@ -1018,31 +1008,6 @@ implementation
          ppufile.putbyte(byte(ait_none));
       end;
 
-
-    constructor tai_weak.create(const asym: string);
-      begin
-        inherited create;
-        typ:=ait_weak;
-        sym:=stringdup(asym);
-      end;
-
-    destructor tai_weak.destroy;
-      begin
-        stringdispose(sym);
-        inherited destroy;
-      end;
-
-    constructor tai_weak.ppuload(t: taitype; ppufile: tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        sym:=stringdup(ppufile.getstring);
-      end;
-
-    procedure tai_weak.ppuwrite(ppufile: tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.putstring(sym^);
-      end;
 
     constructor tai_symbolpair.create(akind: TSymbolPairKind; const asym, avalue: string);
       begin

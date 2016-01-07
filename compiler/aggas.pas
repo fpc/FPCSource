@@ -52,7 +52,7 @@ interface
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
-        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
+        procedure WriteWeakSymbolRef(s: tasmsymbol); virtual;
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
         procedure WriteUnalignedIntConst(hp: tai_const);
@@ -91,8 +91,8 @@ interface
       TAppleGNUAssembler=class(TGNUAssembler)
        protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-        procedure WriteWeakSymbolDef(s: tasmsymbol); override;
-
+        procedure WriteWeakSymbolRef(s: tasmsymbol); override;
+        procedure WriteDirectiveName(dir: TAsmDirective); override;
        end;
 
 
@@ -1206,13 +1206,6 @@ implementation
                    writer.AsmWriteLn(tai_symbolpair(hp).value^);
                  end;
              end;
-           ait_weak:
-             begin
-               if replaceforbidden then
-                 writer.AsmWriteLn(#9'.weak '+ReplaceForbiddenAsmSymbolChars(tai_weak(hp).sym^))
-               else
-                 writer.AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
-             end;
            ait_symbol_end :
              begin
                if tf_needs_symbol_size in target_info.flags then
@@ -1378,7 +1371,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+    procedure TGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
       begin
         writer.AsmWriteLn(#9'.weak '+s.name);
       end;
@@ -1572,7 +1565,7 @@ implementation
       { add weak symbol markers }
       for i:=0 to current_asmdata.asmsymboldict.count-1 do
         if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
-          writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
+          WriteWeakSymbolRef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
          (target_info.system in systems_darwin) then
@@ -1806,9 +1799,21 @@ implementation
       end;
 
 
-    procedure TAppleGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+    procedure TAppleGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
       begin
         writer.AsmWriteLn(#9'.weak_reference '+s.name);
+      end;
+
+    procedure TAppleGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
+      begin
+        case dir of
+          asd_weak_reference:
+            writer.AsmWrite('.weak_reference ');
+          asd_weak_definition:
+            writer.AsmWrite('.weak_definition ');
+          else
+            inherited;
+        end;
       end;
 
 

@@ -1047,12 +1047,6 @@ implementation
               internalerror(2013010708);
             end;
 
-          ait_weak:
-            begin
-              { should be emitted as part of the symbol def }
-              internalerror(2013010709);
-            end;
-
           ait_symbol_end :
             begin
               if tai_symbol_end(hp).sym.typ=AT_FUNCTION then
