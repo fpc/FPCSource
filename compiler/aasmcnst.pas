@@ -935,10 +935,10 @@ implementation
          end;
 
        if not(tcalo_is_lab in options) then
-         if sym.bind=AB_GLOBAL then
-           prelist.concat(tai_symbol.Create_Global(sym,0))
-         else
+         if sym.bind=AB_LOCAL then
            prelist.concat(tai_symbol.Create(sym,0))
+         else
+           prelist.concat(tai_symbol.Create_Global(sym,0))
        else
          prelist.concat(tai_label.Create(tasmlabel(sym)));
        { insert the symbol information before the data }
