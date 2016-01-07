@@ -2626,6 +2626,10 @@ implementation
          const
            b66: Byte=$66;
          begin
+{$ifdef i8086}
+           if current_settings.cputype<cpu_386 then
+             Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
            objdata.writebytes(b66,1);
          end;
 
@@ -2633,6 +2637,10 @@ implementation
          const
            b67: Byte=$67;
          begin
+{$ifdef i8086}
+           if current_settings.cputype<cpu_386 then
+             Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
            objdata.writebytes(b67,1);
          end;
 

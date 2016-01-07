@@ -2772,7 +2772,7 @@ asmr_e_invalid_code_value=07129_E_Invalid value of .code directive constant
 #
 # Assembler/binary writers
 #
-# 08031 is the last used one
+# 08032 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Too many assembler files
 % With smartlinking enabled, there are too many assembler
@@ -2825,6 +2825,7 @@ asmw_h_changing_bind_type=08028_H_Change of bind type of symbol $1 from $2 to $3
 asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit references not supported
 asmw_f_code_segment_too_large=08030_F_Code segment too large
 asmw_f_data_segment_too_large=08031_F_Data segment too large
+asmw_e_instruction_not_supported_by_cpu=08032_E_Instruction not supported by the selected instruction set
 #
 # Executing linker/assembler
 #
