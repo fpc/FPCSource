@@ -2621,6 +2621,21 @@ implementation
             end;
         end;
 {$endif x86_64}
+
+       procedure write0x66prefix;
+         const
+           b66: Byte=$66;
+         begin
+           objdata.writebytes(b66,1);
+         end;
+
+       procedure write0x67prefix;
+         const
+           b67: Byte=$67;
+         begin
+           objdata.writebytes(b67,1);
+         end;
+
        procedure objdata_writereloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
          begin
 {$ifdef i386}
@@ -2684,10 +2699,7 @@ implementation
         { Force word push/pop for registers }
         if (opsize={$ifdef i8086}S_L{$else}S_W{$endif}) and ((codes[0]=#4) or (codes[0]=#6) or
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
-        begin
-          bytes[0]:=$66;
-          objdata.writebytes(bytes,1);
-        end;
+          write0x66prefix;
 
         // needed VEX Prefix (for AVX etc.)
 
@@ -3056,10 +3068,7 @@ implementation
               begin
 {$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
-                  begin
-                    bytes[0]:=$67;
-                    objdata.writebytes(bytes,1);
-                  end;
+                  write0x67prefix;
 {$endif x86_64 or i8086}
               end;
             &310 :   { fixed 16-bit addr }
@@ -3067,21 +3076,15 @@ implementation
               { every insentry having code 0310 must be marked with NOX86_64 }
               InternalError(2011051302);
 {$elseif defined(i386)}
-              begin
-                bytes[0]:=$67;
-                objdata.writebytes(bytes,1);
-              end;
+              write0x67prefix;
 {$elseif defined(i8086)}
               {nothing};
 {$endif}
             &311 :   { fixed 32-bit addr }
 {$if defined(x86_64) or defined(i8086)}
-              begin
-                bytes[0]:=$67;
-                objdata.writebytes(bytes,1);
-              end
+              write0x67prefix
 {$endif x86_64 or i8086}
-               ;
+              ;
             &320,&321,&322 :
               begin
                 case oper[c-&320]^.ot and OT_SIZE_MASK of
@@ -3090,10 +3093,7 @@ implementation
 {$elseif defined(i8086)}
                   OT_BITS32 :
 {$endif}
-                    begin
-                      bytes[0]:=$66;
-                      objdata.writebytes(bytes,1);
-                    end;
+                    write0x66prefix;
 {$ifndef x86_64}
                   OT_BITS64 :
                       Message(asmw_e_64bit_not_supported);
@@ -3108,10 +3108,7 @@ implementation
               begin
 {$ifndef i8086}
                 if not(needed_VEX) then
-                begin
-                  bytes[0]:=$66;
-                  objdata.writebytes(bytes,1);
-                end;
+                  write0x66prefix;
 {$endif not i8086}
               end;
             &326 :
