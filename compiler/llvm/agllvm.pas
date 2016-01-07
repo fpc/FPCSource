@@ -988,6 +988,8 @@ implementation
                   writer.AsmWrite(' =');
                   WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
                   writer.AsmWrite(' ');
+                  if ldf_weak in taillvmdecl(hp).flags then
+                    writer.AsmWrite('weak ');
                   if (ldf_tls in taillvmdecl(hp).flags) then
                     writer.AsmWrite('thread_local ');
                   if ldf_unnamed_addr in taillvmdecl(hp).flags then

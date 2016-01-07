@@ -126,7 +126,9 @@ type
      { item in the above list }
      tcalo_vectorized_dead_strip_item,
      { end of the above list }
-     tcalo_vectorized_dead_strip_end
+     tcalo_vectorized_dead_strip_end,
+     { symbol should be weakle defined }
+     tcalo_weak
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -941,6 +943,9 @@ implementation
            prelist.concat(tai_symbol.Create_Global(sym,0))
        else
          prelist.concat(tai_label.Create(tasmlabel(sym)));
+
+       if tcalo_weak in options then
+         prelist.concat(tai_directive.Create(asd_weak_definition,sym.name));
        { insert the symbol information before the data }
        fasmlist.insertlist(prelist);
        { end of the symbol }
