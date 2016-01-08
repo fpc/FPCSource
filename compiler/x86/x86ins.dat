@@ -128,6 +128,9 @@ rm16|32|64,imm        \320\2\x0F\xBA\205\25           386,SB
 ; Compiler emits CALL/JMP with opsize=S_NO which matches any size,
 ; and will match the first entry in sequence.
 ; Therefore rm16 must be placed after rm32/rm64
+; However, on i8086, rm16 must be first, so it's repeated in the beginning
+; with a 16BITONLY flag
+rm16                  \324\1\xFF\202                  8086,16BITONLY
 rm32                  \325\1\xFF\202                  386,NOX86_64
 rm64                  \335\1\xFF\202                  X86_64
 rm16                  \324\1\xFF\202                  8086
@@ -887,8 +890,11 @@ imm                   \1\xE3\50                       X86_64
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
 ; rm16 should be after rm32/rm64, see comments for CALL.
+; However, on i8086, rm16 must be first, so it's repeated in the beginning
+; with a 16BITONLY flag
 imm8                  \1\xEB\50                       8086,PASS2
 imm16|32              \320\1\xE9\64                   8086,PASS2
+rm16                  \324\1\xFF\204                  8086,16BITONLY
 rm32                  \325\1\xFF\204                  386,NOX86_64
 rm64                  \335\1\xFF\204                  X86_64
 rm16                  \324\1\xFF\204                  8086

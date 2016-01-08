@@ -381,6 +381,13 @@
   (
     opcode  : A_CALL;
     ops     : 1;
+    optypes : (ot_rm_gpr or ot_bits16,ot_none,ot_none,ot_none);
+    code    : #212#1#255#130;
+    flags   : if_8086 or if_16bitonly
+  ),
+  (
+    opcode  : A_CALL;
+    ops     : 1;
     optypes : (ot_rm_gpr or ot_bits32,ot_none,ot_none,ot_none);
     code    : #213#1#255#130;
     flags   : if_386 or if_nox86_64
@@ -2540,6 +2547,13 @@
     optypes : (ot_immediate or ot_bits16 or ot_bits32,ot_none,ot_none,ot_none);
     code    : #208#1#233#52;
     flags   : if_8086 or if_pass2
+  ),
+  (
+    opcode  : A_JMP;
+    ops     : 1;
+    optypes : (ot_rm_gpr or ot_bits16,ot_none,ot_none,ot_none);
+    code    : #212#1#255#132;
+    flags   : if_8086 or if_16bitonly
   ),
   (
     opcode  : A_JMP;
