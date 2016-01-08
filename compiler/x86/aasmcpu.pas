@@ -2699,6 +2699,48 @@ implementation
         currrelreloc:=RELOC_NONE;
         currval:=0;
 
+        { check instruction's processor level }
+        { todo: maybe adapt and enable this code for i386 and x86_64 as well }
+{$ifdef i8086}
+        case insentry^.flags and IF_PLEVEL of
+          IF_8086:
+            ;
+          IF_186:
+            if current_settings.cputype<cpu_186 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_286:
+            if current_settings.cputype<cpu_286 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_386:
+            if current_settings.cputype<cpu_386 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_486,
+          IF_PENT:
+            if current_settings.cputype<cpu_Pentium then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_P6:
+            if current_settings.cputype<cpu_Pentium2 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_KATMAI:
+            if current_settings.cputype<cpu_Pentium3 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_WILLAMETTE,
+          IF_PRESCOTT:
+            if current_settings.cputype<cpu_Pentium4 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
+          IF_NEC:
+            if current_settings.cputype>=cpu_386 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          { todo: handle these properly }
+          IF_CYRIX,
+          IF_AMD,
+          IF_CENTAUR,
+          IF_SANDYBRIDGE:
+            ;
+        end;
+{$endif i8086}
+
         { load data to write }
         codes:=insentry^.code;
 {$ifdef x86_64}
