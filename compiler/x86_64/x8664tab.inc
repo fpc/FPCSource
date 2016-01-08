@@ -2238,28 +2238,28 @@
     ops     : 3;
     optypes : (ot_reg32 or ot_bits64,ot_rm_gpr,ot_immediate or ot_bits8 or ot_signed,ot_none);
     code    : #208#1#107#72#14;
-    flags   : if_286 or if_sm
+    flags   : if_386 or if_sm
   ),
   (
     opcode  : A_IMUL;
     ops     : 3;
     optypes : (ot_reg32 or ot_bits64,ot_rm_gpr,ot_immediate,ot_none);
     code    : #208#1#105#72#34;
-    flags   : if_286 or if_sm or if_sd or if_ar2
+    flags   : if_386 or if_sm or if_sd or if_ar2
   ),
   (
     opcode  : A_IMUL;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_immediate or ot_bits8 or ot_signed,ot_none,ot_none);
     code    : #208#1#107#64#13;
-    flags   : if_286
+    flags   : if_386
   ),
   (
     opcode  : A_IMUL;
     ops     : 2;
     optypes : (ot_reg32,ot_immediate,ot_none,ot_none);
     code    : #213#1#105#64#33;
-    flags   : if_286 or if_sd
+    flags   : if_386 or if_sd
   ),
   (
     opcode  : A_IMUL;

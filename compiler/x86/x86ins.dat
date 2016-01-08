@@ -790,10 +790,10 @@ rm8                   \1\xF6\207                      8086
 (Ch_RWEAX, Ch_WEDX, Ch_WFlags)
 reg16|32|64,regmem    \320\2\x0F\xAF\110              386,SM
 rm16|32|64            \320\1\xF7\205                  8086
-reg32|64,regmem,imm8  \320\1\x6B\110\16               286,SM
-reg32|64,regmem,imm   \320\1\x69\110\42               286,SM,SD,AR2
-reg32|64,imm8         \320\1\x6B\100\15               286
-reg32,imm             \325\1\x69\100\41               286,SD
+reg32|64,regmem,imm8  \320\1\x6B\110\16               386,SM
+reg32|64,regmem,imm   \320\1\x69\110\42               386,SM,SD,AR2
+reg32|64,imm8         \320\1\x6B\100\15               386
+reg32,imm             \325\1\x69\100\41               386,SD
 reg64,imm             \326\1\x69\100\255              X86_64
 reg16,regmem,imm8     \324\1\x6B\110\16               286,SM
 reg16,regmem,imm      \324\1\x69\110\32               286,SM,SW,AR2
