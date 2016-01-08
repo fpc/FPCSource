@@ -2575,6 +2575,11 @@ packages/fcl-passrc/tests/testpassrc.lpr svneol=native#text/plain
 packages/fcl-process/Makefile svneol=native#text/plain
 packages/fcl-process/Makefile.fpc svneol=native#text/plain
 packages/fcl-process/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-process/examples/demoproject.ico -text
+packages/fcl-process/examples/demoproject.lpi svneol=native#text/plain
+packages/fcl-process/examples/demoproject.pp svneol=native#text/plain
+packages/fcl-process/examples/demoproject.res -text
+packages/fcl-process/examples/echoparams.pp svneol=native#text/plain
 packages/fcl-process/fpmake.pp svneol=native#text/plain
 packages/fcl-process/src/amicommon/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/amicommon/process.inc svneol=native#text/plain
