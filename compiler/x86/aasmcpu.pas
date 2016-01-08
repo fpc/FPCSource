@@ -2336,9 +2336,14 @@ implementation
               end;
             &312,
             &323,
-            &325,
             &327,
             &331,&332: ;
+            &325:
+{$ifdef i8086}
+              inc(len)
+{$endif i8086}
+              ;
+
             &333:
               begin
                 inc(len);
@@ -3150,8 +3155,13 @@ implementation
 {$endif x86_64}
                 end;
               end;
-            &323,
-            &325 : {no action needed};
+            &323 : {no action needed};
+            &325:
+{$ifdef i8086}
+              write0x66prefix;
+{$else i8086}
+              {no action needed};
+{$endif i8086}
 
             &324,
             &361:
