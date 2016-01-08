@@ -173,11 +173,12 @@ Var
   Function DetectXTerm : String;
 {$endif unix}
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; out exitstatus:integer):integer;
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string ):boolean;
-function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; out exitstatus:integer; Options : TProcessOptions = []):integer;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
 
-function RunCommand(const exename:string;const commands:array of string;out outputstring:string):boolean;
+
+function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
 function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
 
 
@@ -485,7 +486,7 @@ begin
   result:=-1;
   try
     try
-    p.Options :=  [poUsePipes];
+    p.Options := p.Options + [poUsePipes];
     bytesread:=0;
     outputlength:=0;
     stderrbytesread:=0;
@@ -570,13 +571,18 @@ end;
 
 { Functions without StderrString }
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string;out exitstatus:integer):integer;
+Const
+  ForbiddenOptions = [poRunSuspended,poWaitOnExit];
+
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string;out exitstatus:integer; Options : TProcessOptions = []):integer;
 Var
     p : TProcess;
     i : integer;
     ErrorString : String;
 begin
   p:=TProcess.create(nil);
+  if Options<>[] then
+    P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
@@ -600,7 +606,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string):boolean;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
 Var
     p : TProcess;
     i,
@@ -608,6 +614,8 @@ Var
     ErrorString : String;
 begin
   p:=TProcess.create(nil);
+  if Options<>[] then
+    P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
@@ -630,7 +638,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const exename:string;const commands:array of string;out outputstring:string):boolean;
+function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
 Var
     p : TProcess;
     i,
@@ -638,6 +646,8 @@ Var
     ErrorString : String;
 begin
   p:=TProcess.create(nil);
+  if Options<>[] then
+    P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
   if high(commands)>=0 then
    for i:=low(commands) to high(commands) do
