@@ -178,16 +178,20 @@ end;
 
 procedure TFPDocApplication.ParseCommandLine;
 
+Const
+  SOptProject = '--project=';
+  SOptPackage = '--package=';
+  
   Function ProjectOpt(Const s : string) : boolean;
 
   begin
-    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,10)='--project=');
+    Result:=(Copy(s,1,3)='-p=') or (Copy(s,1,Length(SOptProject))=SOptProject);
   end;
 
   Function PackageOpt(Const s : string) : boolean;
 
   begin
-    Result:=((Copy(s,1,3)='-a=') or (Copy(s,1,10)='--package='));
+    Result:=((Copy(s,1,3)='-a=') or (Copy(s,1,Length(SOptPackage))=SOptPackage));
   end;
 
 var
@@ -195,17 +199,18 @@ var
   s : string;
 
 begin
+
   // Check project
   for i := 1 to ParamCount do
     begin
     s:=ParamStr(I);
     If ProjectOpt(S) then
       ParseOption(s);
-    If (FCreator.Packages.Count=1) then
-      FPackage:=FCreator.Packages[0]
-    else if (FCreator.Options.DefaultPackageName<>'') then
-      Fpackage:=FCreator.Packages.FindPackage(FCreator.Options.DefaultPackageName);
     end;
+  If (FCreator.Packages.Count=1) then
+    FPackage:=FCreator.Packages[0]
+  else if (FCreator.Options.DefaultPackageName<>'') then
+    Fpackage:=FCreator.Packages.FindPackage(FCreator.Options.DefaultPackageName);
   If FCreator.Project.Packages.Count=0 then
     begin // Add default package if none defined
     FPackage:=FCreator.Packages.Add as TFPDocPackage;
@@ -224,6 +229,11 @@ begin
       ParseOption(s);
     end;
   SelectedPackage; // Will print error if none available.
+  // Set defaults
+  if FCreator.Options.BackEnd='' then
+    FCreator.Options.BackEnd:='html';
+  if SelectedPackage.Output='' then
+    SelectedPackage.Output:=SelectedPackage.Name;
 end;
 
 procedure TFPDocApplication.ParseOption(Const S : String);
@@ -369,11 +379,6 @@ begin
       FCreator.Options.BackendOptions.Add(Arg);
       end;
     end;
-  // Set defaults
-  if FCreator.Options.BackEnd='' then
-    FCreator.Options.BackEnd:='html';
-  if SelectedPackage.Output='' then
-    SelectedPackage.Output:=SelectedPackage.Name;
 end;
 
 Procedure TFPDocApplication.DoRun;
