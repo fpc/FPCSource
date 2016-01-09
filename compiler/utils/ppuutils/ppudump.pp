@@ -2718,8 +2718,8 @@ procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
 { type tordtype is in symconst unit }
 {
     uvoid,
-    u8bit,u16bit,u32bit,u64bit,
-    s8bit,s16bit,s32bit,s64bit,
+    u8bit,u16bit,u32bit,u64bit,u128bit,
+    s8bit,s16bit,s32bit,s64bit,s128bit,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
   ); }
@@ -2819,6 +2819,12 @@ begin
                    orddef.OrdType:=otUInt;
                    orddef.Size:=8;
                  end;
+               u128bit:
+                 begin
+                   writeln('u128bit');
+                   orddef.OrdType:=otUInt;
+                   orddef.Size:=16;
+                 end;
                s8bit:
                  begin
                    writeln('s8bit');
@@ -2842,6 +2848,12 @@ begin
                    writeln('s64bit');
                    orddef.OrdType:=otSInt;
                    orddef.Size:=8;
+                 end;
+               s128bit:
+                 begin
+                   writeln('s128bit');
+                   orddef.OrdType:=otSInt;
+                   orddef.Size:=16;
                  end;
                pasbool8:
                  begin
