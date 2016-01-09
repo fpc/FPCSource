@@ -134,6 +134,7 @@ Type
     Function SplitLine (ALine : String): String; virtual;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Class Function FileNameExtension : String; override;
+    class procedure Usage(List: TStrings); override;
   end;
 
 
@@ -793,6 +794,26 @@ begin
      ImageDir:=Arg
   else
     Result:=False;
+end;
+
+Resourcestring
+  SLatexHighlightDocs = 'Use the syntax highlighter for declarations.';
+  SLatexExtensionDocs = 'Specify the extension for the latex files.';
+  SLatexVerbatimLengthDocs = 'Specify maximum line length for verbatim environments (default 64).';
+  SLatexImageDirDocs = 'Specify the directory where the images are stored.';
+
+class procedure TLaTeXWriter.Usage(List: TStrings); 
+
+begin
+  Inherited;
+  List.Add('--latex-highlight');
+  List.Add(SLatexHighlightDocs);
+  List.Add('--latex-extension=ext');
+  List.Add(SLatexExtensionDocs);
+  List.Add('--latex-verbatim-length=len');
+  List.Add(SLatexVerbatimLengthDocs);
+  List.Add('--image-dir=dir');
+  List.Add(SLatexImageDirDocs);
 end;
 
 initialization
