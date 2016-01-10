@@ -690,7 +690,20 @@ type
     itp_rtti_normal_array,
     itp_rtti_dyn_array,
     itp_rtti_proc_param,
-    itp_threadvar_record
+    itp_threadvar_record,
+    itp_objc_method_list,
+    itp_objc_proto_list,
+    itp_objc_cat_methods,
+    itb_objc_nf_ivars,
+    itb_objc_nf_category,
+    itb_obcj_nf_class_ro_part,
+    itb_objc_nf_meta_class,
+    itb_objc_nf_class,
+    itb_objc_fr_protocol_ext,
+    itb_objc_fr_protocol,
+    itb_objc_fr_category,
+    itb_objc_fr_meta_class,
+    itb_objc_fr_class
   );
 
   { The order is from low priority to high priority,
@@ -813,7 +826,20 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_normal_array$',
        '$rtti_dyn_array$',
        '$rtti_proc_param$',
-       '$threadvar_record$'
+       '$threadvar_record$',
+       '$objc_method_list$',
+       '$objc_proto_list$',
+       '$objc_cat_methods$',
+       '$objc_nf_ivars$',
+       '$objc_nf_category$',
+       '$obcj_nf_class_ro_part$',
+       '$objc_nf_meta_class$',
+       '$objc_nf_class$',
+       '$objc_fr_protocol_ext$',
+       '$objc_fr_protocol$',
+       '$objc_fr_category$',
+       '$objc_fr_meta_class$',
+       '$objc_fr_class$'
      );
 
 
