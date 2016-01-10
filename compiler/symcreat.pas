@@ -1396,7 +1396,7 @@ implementation
       newpd.import_name:=orgpd.import_name;
       orgpd.import_name:=nil;
       newpd.import_dll:=orgpd.import_dll;
-      newpd.import_dll:=nil;
+      orgpd.import_dll:=nil;
       newpd.import_nr:=orgpd.import_nr;
       orgpd.import_nr:=0;
       newpd.setmangledname(newname);
