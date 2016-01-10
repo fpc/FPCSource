@@ -331,6 +331,8 @@ type
 
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
+     { emit a pchar string constant (the characters, not a pointer to them), and return its def }
+     function emit_pchar_const(str: pchar; len: pint): tdef;
      { emit a guid constant }
      procedure emit_guid_const(const guid: tguid);
      { emit a procdef constant }
@@ -1518,6 +1520,18 @@ implementation
        emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
        if str<>'' then
          emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str)));
+       maybe_end_aggregate(result);
+     end;
+
+
+   function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint): tdef;
+     begin
+       result:=carraydef.getreusable(cansichartype,len+1);
+       maybe_begin_aggregate(result);
+       if len=0 then
+         emit_tai(Tai_const.Create_8bit(0),cansichartype)
+       else
+         emit_tai(Tai_string.Create_pchar(str,len+1),result);
        maybe_end_aggregate(result);
      end;
 
