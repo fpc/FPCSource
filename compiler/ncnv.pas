@@ -65,6 +65,10 @@ interface
             replace this explicit type conversion with a different node, or to
             reject it after all }
           function target_specific_explicit_typeconv: boolean;virtual;
+
+          { called when inserttypeconv is used to convert to a def that is equal
+            according to compare_defs() }
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; virtual;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -326,7 +330,8 @@ implementation
           still expects the resultdef of the node to be a stringdef) }
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
-           not is_bitpacked_access(p) then
+           not is_bitpacked_access(p) and
+           not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def) then
           begin
             { don't replace encoded string constants to rawbytestring encoding.
               preserve the codepage }
@@ -1983,6 +1988,12 @@ implementation
 
 
     function ttypeconvnode.target_specific_explicit_typeconv: boolean;
+      begin
+        result:=false;
+      end;
+
+
+    class function ttypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
       begin
         result:=false;
       end;

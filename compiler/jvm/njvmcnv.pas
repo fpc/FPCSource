@@ -30,6 +30,8 @@ interface
 
     type
        tjvmtypeconvnode = class(tcgtypeconvnode)
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; override;
+
           function typecheck_dynarray_to_openarray: tnode; override;
           function typecheck_string_to_chararray: tnode; override;
           function typecheck_string_to_string: tnode;override;
@@ -146,6 +148,19 @@ implementation
           docheck(fromdef,todef) or
           docheck(todef,fromdef);
       end;
+
+
+   class function tjvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+     begin
+       result:=
+         (fromdef<>todef) and
+         { two procdefs that are structurally the same but semantically different
+           still need a convertion }
+         (
+          ((fromdef.typ=procvardef) and
+           (todef.typ=procvardef))
+         );
+     end;
 
 
    function tjvmtypeconvnode.typecheck_dynarray_to_openarray: tnode;

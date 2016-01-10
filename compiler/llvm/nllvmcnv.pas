@@ -26,10 +26,13 @@ unit nllvmcnv;
 interface
 
     uses
+      symtype,
       node,ncnv,ncgcnv,defcmp;
 
     type
        tllvmtypeconvnode = class(tcgtypeconvnode)
+         public
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; override;
          protected
           function first_int_to_real: tnode; override;
           function first_int_to_bool: tnode; override;
@@ -64,10 +67,24 @@ uses
   aasmbase,aasmdata,
   llvmbase,aasmllvm,
   procinfo,
-  symconst,symtype,symdef,defutil,
+  symconst,symdef,defutil,
   cgbase,cgutils,tgobj,hlcgobj,pass_2;
 
 { tllvmtypeconvnode }
+
+
+class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+  begin
+    result:=
+      (fromdef<>todef) and
+      { two procdefs that are structurally the same but semantically different
+        still need a convertion }
+      (
+       ((fromdef.typ=procvardef) and
+        (todef.typ=procvardef))
+      );
+  end;
+
 
 function tllvmtypeconvnode.first_int_to_real: tnode;
   begin
