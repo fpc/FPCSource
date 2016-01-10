@@ -196,6 +196,8 @@ implementation
            tcalo_vectorized_dead_strip_item,
            tcalo_vectorized_dead_strip_end]*options)<>[] then
         include(decl.flags,ldf_vectorized);
+      if tcalo_weak in options then
+        include(decl.flags,ldf_weak);
       { TODO: tcalo_no_dead_strip: add to @llvm.user meta-variable }
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
