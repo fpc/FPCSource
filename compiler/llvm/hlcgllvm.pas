@@ -821,12 +821,14 @@ implementation
                tmpreg1:=getintregister(list,opsize);
                tmpreg2:=getintregister(list,opsize);
                tmpreg3:=getintregister(list,opsize);
-               { tmpreg1 := tcgsize2size[size] - src1 }
-               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg1,opsize,opsize.size*8,src1));
-               { tmpreg2 := src2 shr tmpreg1 }
-               a_op_reg_reg_reg(list,OP_SHR,opsize,tmpreg1,src2,tmpreg2);
-               { tmpreg3 := src2 shl src1 }
-               a_op_reg_reg_reg(list,OP_SHL,opsize,src1,src2,tmpreg3);
+               { tmpreg1 := (tcgsize2size[size]*8 - (src1 and (tcgsize2size[size]*8-1) }
+               list.concat(taillvm.op_reg_size_const_reg(la_and,tmpreg1,opsize,opsize.size*8-1,src1));
+               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg2,opsize,opsize.size*8,tmpreg1));
+               { tmpreg3 := src2 shr tmpreg2 }
+               a_op_reg_reg_reg(list,OP_SHR,opsize,tmpreg2,src2,tmpreg3);
+               { tmpreg2:= src2 shl tmpreg1 }
+               tmpreg2:=getintregister(list,opsize);
+               a_op_reg_reg_reg(list,OP_SHL,opsize,tmpreg1,src2,tmpreg2);
                { dst := tmpreg2 or tmpreg3 }
                a_op_reg_reg_reg(list,OP_OR,opsize,tmpreg2,tmpreg3,dst);
              end;
@@ -835,12 +837,14 @@ implementation
                tmpreg1:=getintregister(list,size);
                tmpreg2:=getintregister(list,size);
                tmpreg3:=getintregister(list,size);
-               { tmpreg1 := tcgsize2size[size] - src1 }
-               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg1,opsize,opsize.size*8,src1));
-               { tmpreg2 := src2 shl tmpreg1 }
-               a_op_reg_reg_reg(list,OP_SHL,opsize,tmpreg1,src2,tmpreg2);
-               { tmpreg3 := src2 shr src1 }
-               a_op_reg_reg_reg(list,OP_SHR,opsize,src1,src2,tmpreg3);
+               { tmpreg1 := (tcgsize2size[size]*8 - (src1 and (tcgsize2size[size]*8-1) }
+               list.concat(taillvm.op_reg_size_const_reg(la_and,tmpreg1,opsize,opsize.size*8-1,src1));
+               list.concat(taillvm.op_reg_size_const_reg(la_sub,tmpreg2,opsize,opsize.size*8,tmpreg1));
+               { tmpreg3 := src2 shl tmpreg2 }
+               a_op_reg_reg_reg(list,OP_SHL,opsize,tmpreg2,src2,tmpreg3);
+               { tmpreg2:= src2 shr tmpreg1 }
+               tmpreg2:=getintregister(list,opsize);
+               a_op_reg_reg_reg(list,OP_SHR,opsize,tmpreg1,src2,tmpreg2);
                { dst := tmpreg2 or tmpreg3 }
                a_op_reg_reg_reg(list,OP_OR,opsize,tmpreg2,tmpreg3,dst);
              end;
