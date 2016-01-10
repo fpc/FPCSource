@@ -2654,14 +2654,17 @@ implementation
           remove the typeconv node }
         case left.nodetype of
           stringconstn :
-            if (convtype=tc_string_2_string) and
-               (resultdef.typ=stringdef) and
-              (
-                ((not is_widechararray(left.resultdef) and
-                  not is_wide_or_unicode_string(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+            if (resultdef.typ=stringdef) and
+               ((convtype=tc_equal) or
+                ((convtype=tc_string_2_string) and
+                 (
+                  ((not is_widechararray(left.resultdef) and
+                    not is_wide_or_unicode_string(left.resultdef)) or
+                   (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+                  )
+                 )
                 )
-              ) then
+               ) then
               begin
                 { output string consts in local ansistring encoding }
                 if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
