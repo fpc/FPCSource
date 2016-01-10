@@ -428,7 +428,8 @@ implementation
                 if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) or
                    is_objectpascal_helper(tprocdef(propaccesslist.procdef).struct) then
                   begin
-                    tcb.emit_procdef_const(tprocdef(propaccesslist.procdef));
+                    tcb.queue_init(codeptruinttype);
+                    tcb.queue_emit_proc(tprocdef(propaccesslist.procdef));
                     typvalue:=1;
                   end
                 else
