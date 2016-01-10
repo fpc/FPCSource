@@ -1260,7 +1260,6 @@ implementation
             LOC_FPUREGISTER,
             LOC_MMREGISTER:
               begin
-                resloc.check_simple_location;
                 list.concat(taillvm.op_reg_size_undef(la_bitcast,resloc.location^.register,llvmgetcgparadef(resloc,true)));
               end;
             { for empty record returns }
