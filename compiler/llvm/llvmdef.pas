@@ -389,6 +389,8 @@ implementation
                   llvmaddencodedtype_intern(tobjectdef(tclassrefdef(def).pointeddef).vmt_def,flags,encodedstr);
                   encodedstr:=encodedstr+'*';
                 end
+              else if is_objcclass(tclassrefdef(def).pointeddef) then
+                llvmaddencodedtype_intern(objc_idtype,flags,encodedstr)
               else
                 encodedstr:=encodedstr+'i8*'
             end;
