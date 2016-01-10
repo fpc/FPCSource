@@ -85,6 +85,7 @@ implementation
       SysUtils,
       cutils,cfileutl,
       fmodule,verbose,
+      objcasm,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,aasmllvm,itllvm,llvmdef,
       cgbase,cgutils,cpubase,llvminfo;
@@ -994,8 +995,6 @@ implementation
                     writer.AsmWrite('thread_local ');
                   if ldf_unnamed_addr in taillvmdecl(hp).flags then
                     writer.AsmWrite('unnamed_addr ');
-                  { todo: handle more different section types (mainly
-                      Objective-C }
                   if taillvmdecl(hp).sec in [sec_rodata,sec_rodata_norel] then
                     writer.AsmWrite('constant ')
                   else
@@ -1023,12 +1022,20 @@ implementation
                       dec(fdecllevel);
                     end;
                   { custom section name? }
-                  if taillvmdecl(hp).sec=sec_user then
-                    begin
-                      writer.AsmWrite(', section "');
-                      writer.AsmWrite(taillvmdecl(hp).secname);
-                      writer.AsmWrite('"');
-                    end;
+                  case taillvmdecl(hp).sec of
+                    sec_user:
+                      begin
+                        writer.AsmWrite(', section "');
+                        writer.AsmWrite(taillvmdecl(hp).secname);
+                        writer.AsmWrite('"');
+                      end;
+                    low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
+                      begin
+                        writer.AsmWrite(', section "');
+                        writer.AsmWrite(objc_section_name(taillvmdecl(hp).sec));
+                        writer.AsmWrite('"');
+                      end;
+                  end;
                   { alignment }
                   writer.AsmWrite(', align ');
                   writer.AsmWriteln(tostr(taillvmdecl(hp).alignment));
