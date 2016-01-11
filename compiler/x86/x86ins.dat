@@ -1823,11 +1823,11 @@ void                  \1\x26                          8086,PRE
 
 [SEGFS,fs]
 (Ch_None, Ch_None, Ch_None)
-void                  \1\x64                          8086,PRE
+void                  \1\x64                          386,PRE
 
 [SEGGS,gs]
 (Ch_None, Ch_None, Ch_None)
-void                  \1\x65                          8086,PRE
+void                  \1\x65                          386,PRE
 
 [SEGSS,ss]
 (Ch_None, Ch_None, Ch_None)

@@ -5129,14 +5129,14 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #1#100;
-    flags   : if_8086 or if_pre
+    flags   : if_386 or if_pre
   ),
   (
     opcode  : A_SEGGS;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #1#101;
-    flags   : if_8086 or if_pre
+    flags   : if_386 or if_pre
   ),
   (
     opcode  : A_SEGSS;
