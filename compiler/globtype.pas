@@ -644,7 +644,12 @@ interface
          { set if the stack frame of the procedure is estimated }
          pi_estimatestacksize,
          { the routine calls a C-style varargs function }
-         pi_calls_c_varargs
+         pi_calls_c_varargs,
+         { the routine has an open array parameter,
+           for i8086 cpu huge memory model,
+           as this changes SP register it requires special handling
+           to restore DS segment register  }
+         pi_has_open_array_parameter
        );
        tprocinfoflags=set of tprocinfoflag;
 

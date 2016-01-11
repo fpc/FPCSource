@@ -1281,7 +1281,9 @@ const
          (mask:pi_estimatestacksize;
          str:' stack size is estimated before subroutine is compiled '),
          (mask:pi_calls_c_varargs;
-         str:' calls function with C-style varargs ')
+         str:' calls function with C-style varargs '),
+         (mask:pi_has_open_array_parameter;
+         str:' has open array parameter ')
   );
 var
   procinfooptions : tprocinfoflags;

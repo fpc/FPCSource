@@ -3685,6 +3685,7 @@ implementation
       { because some abis don't support dynamic stack allocation properly
         open array value parameters are copied onto the heap
       }
+      include(current_procinfo.flags, pi_has_open_array_parameter);
 
       { calculate necessary memory }
 
