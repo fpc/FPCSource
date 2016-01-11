@@ -1611,6 +1611,11 @@ implementation
         { Segment override }
         if (segprefix>=NR_ES) and (segprefix<=NR_GS) then
          begin
+{$ifdef i8086}
+           if (current_settings.cputype<cpu_386) and
+              ((segprefix=NR_FS) or (segprefix=NR_GS)) then
+             Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
            objdata.writebytes(segprefixes[segprefix],1);
            { fix the offset for GenNode }
            inc(InsOffset);
