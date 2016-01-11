@@ -71,6 +71,8 @@ interface
          RELOC_RELATIVE32,
          RELOC_FARPTR,
          RELOC_FARPTR_RELATIVEOFFSET,
+         RELOC_FARPTR48,
+         RELOC_FARPTR48_RELATIVEOFFSET,
          RELOC_SEG,
          RELOC_SEGREL,
          RELOC_DGROUP,
