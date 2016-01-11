@@ -1551,9 +1551,9 @@ implementation
               fltOffset:
                 case Fixup.Mode of
                   fmSegmentRelative:
-                    RelocType:=RELOC_ABSOLUTE;
+                    RelocType:=RELOC_ABSOLUTE16;
                   fmSelfRelative:
-                    RelocType:=RELOC_RELATIVE;
+                    RelocType:=RELOC_RELATIVE16;
                 end;
               fltBase:
                 case Fixup.Mode of
@@ -1602,9 +1602,9 @@ implementation
               fltOffset:
                 case Fixup.Mode of
                   fmSegmentRelative:
-                    RelocType:=RELOC_ABSOLUTE;
+                    RelocType:=RELOC_ABSOLUTE16;
                   fmSelfRelative:
-                    RelocType:=RELOC_RELATIVE;
+                    RelocType:=RELOC_RELATIVE16;
                 end;
               fltBase:
                 case Fixup.Mode of
@@ -1653,9 +1653,9 @@ implementation
               fltOffset:
                 case Fixup.Mode of
                   fmSegmentRelative:
-                    RelocType:=RELOC_ABSOLUTE;
+                    RelocType:=RELOC_ABSOLUTE16;
                   fmSelfRelative:
-                    RelocType:=RELOC_RELATIVE;
+                    RelocType:=RELOC_RELATIVE16;
                 end;
               fltBase:
                 case Fixup.Mode of
@@ -2437,16 +2437,16 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.symbol.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
+                  RELOC_ABSOLUTE16,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
+                  RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082402);
                 end;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,
-                  RELOC_RELATIVE:
+                  RELOC_ABSOLUTE16,
+                  RELOC_RELATIVE16:
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
@@ -2469,16 +2469,16 @@ implementation
                 else
                   framebase:=TOmfObjSection(objreloc.objsection).MZExeUnifiedLogicalSegment.MemBasePos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
+                  RELOC_ABSOLUTE16,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
+                  RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015082405);
                 end;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,
-                  RELOC_RELATIVE:
+                  RELOC_ABSOLUTE16,
+                  RELOC_RELATIVE16:
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:
@@ -2502,16 +2502,16 @@ implementation
                 else
                   framebase:=target_group.MemPos;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,RELOC_SEG,RELOC_FARPTR:
+                  RELOC_ABSOLUTE16,RELOC_SEG,RELOC_FARPTR:
                     fixupamount:=target-framebase;
-                  RELOC_RELATIVE,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
+                  RELOC_RELATIVE16,RELOC_SEGREL,RELOC_FARPTR_RELATIVEOFFSET:
                     fixupamount:=target-(omfsec.MemPos+objreloc.DataOffset)-2;
                   else
                     internalerror(2015111202);
                 end;
                 case objreloc.typ of
-                  RELOC_ABSOLUTE,
-                  RELOC_RELATIVE:
+                  RELOC_ABSOLUTE16,
+                  RELOC_RELATIVE16:
                     FixupOffset;
                   RELOC_SEG,
                   RELOC_SEGREL:

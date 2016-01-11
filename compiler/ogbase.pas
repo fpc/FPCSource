@@ -106,10 +106,16 @@ interface
          RELOC_RAW
       );
 
-{$if not defined(x86_64) and not defined(i8086)}
+{$if defined(x86_64)}
+    { no special aliases for x86_64 }
+{$elseif defined(i8086)}
+    const
+      RELOC_ABSOLUTE16 = RELOC_ABSOLUTE;
+      RELOC_RELATIVE16 = RELOC_RELATIVE;
+{$else}
     const
       RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
-{$endif x86_64}
+{$endif}
 
     const
       { stab types }
