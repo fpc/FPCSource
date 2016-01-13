@@ -194,7 +194,7 @@ begin
     P.Options.Add('-Fi../compiler/'+CPUToString(CompilerTarget));
     P.Options.Add('-Fi../compiler');
 
-    if CompilerTarget in [x86_64, i386] then
+    if CompilerTarget in [x86_64, i386, i8086] then
       P.Options.Add('-Fu../compiler/x86');
     if CompilerTarget in [powerpc, powerpc64] then
       P.Options.Add('-Fu../compiler/ppcgen');

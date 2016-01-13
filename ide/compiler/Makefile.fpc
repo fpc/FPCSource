@@ -5,6 +5,9 @@
 [package]
 main=ide
 
+[require]
+packages=rtl-extra
+
 [target]
 units=compunit
 
@@ -50,6 +53,9 @@ override FPCOPT+= -Fu$(COMPILERDIR)/x86
 endif
 ifeq ($(PPC_TARGET),x86_64)
 override FPCOPT+= -Fu$(COMPILERDIR)/x86 -dNOOPT
+endif
+ifeq ($(PPC_TARGET),i8086)
+override FPCOPT+= -Fu$(COMPILERDIR)/x86
 endif
 ifeq ($(PPC_TARGET),powerpc)
 override FPCOPT+= -Fu$(COMPILERDIR)/ppcgen
