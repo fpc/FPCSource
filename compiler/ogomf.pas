@@ -569,12 +569,21 @@ implementation
         objreloc: TOmfRelocation;
         symaddr: AWord;
       begin
-        { RELOC_FARPTR = RELOC_ABSOLUTE+RELOC_SEG }
+        { RELOC_FARPTR = RELOC_ABSOLUTE16+RELOC_SEG }
         if Reloctype=RELOC_FARPTR then
           begin
             if len<>4 then
               internalerror(2015041502);
-            writeReloc(Data,2,p,RELOC_ABSOLUTE);
+            writeReloc(Data,2,p,RELOC_ABSOLUTE16);
+            writeReloc(0,2,p,RELOC_SEG);
+            exit;
+          end
+        { RELOC_FARPTR48 = RELOC_ABSOLUTE16+RELOC_SEG }
+        else if Reloctype=RELOC_FARPTR48 then
+          begin
+            if len<>6 then
+              internalerror(2015041502);
+            writeReloc(Data,4,p,RELOC_ABSOLUTE32);
             writeReloc(0,2,p,RELOC_SEG);
             exit;
           end;
