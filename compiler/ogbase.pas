@@ -307,6 +307,14 @@ interface
        Owner: TObjData;
      end;
 
+{$ifdef i8086}
+     { on i8086 we use a longint, to support 32-bit relocations as well (e.g.
+       for allowing 386+ instructions with 32-bit addresses in inline asm code) }
+     TRelocDataInt = longint;
+{$else i8086}
+     TRelocDataInt = aint;
+{$endif i8086}
+
      TObjData = class(TLinkedListItem)
      private
        FCurrObjSec : TObjSection;
@@ -357,7 +365,7 @@ interface
        procedure alloc(len:aword);
        procedure allocalign(len:shortint);
        procedure writebytes(const Data;len:aword);
-       procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
+       procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
        procedure afteralloc;virtual;

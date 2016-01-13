@@ -105,7 +105,7 @@ interface
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         function createsection(atype:TAsmSectionType;const aname:string='';aorder:TAsmSectionOrder=secorder_default):TObjSection;override;
         function reffardatasection:TObjSection;
-        procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
+        procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);override;
       end;
 
       { TOmfObjOutput }
@@ -358,21 +358,23 @@ implementation
         if ObjSection<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_RELATIVE16] then
               FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_ABSOLUTE32,RELOC_RELATIVE32] then
+              FOmfFixup.LocationType:=fltOffset32
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
               internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
+            else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
-            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_RELATIVE16,RELOC_RELATIVE32] then
               begin
                 FOmfFixup.TargetMethod:=ftmSegmentIndexNoDisp;
                 FOmfFixup.TargetDatum:=ObjSection.Index;
@@ -402,17 +404,19 @@ implementation
         else if symbol<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_RELATIVE16] then
               FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_ABSOLUTE32,RELOC_RELATIVE32] then
+              FOmfFixup.LocationType:=fltOffset32
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
               internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
+            else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
@@ -423,17 +427,19 @@ implementation
         else if group<>nil then
           begin
             FOmfFixup.LocationOffset:=DataOffset;
-            if typ in [RELOC_ABSOLUTE,RELOC_RELATIVE] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_RELATIVE16] then
               FOmfFixup.LocationType:=fltOffset
+            else if typ in [RELOC_ABSOLUTE32,RELOC_RELATIVE32] then
+              FOmfFixup.LocationType:=fltOffset32
             else if typ in [RELOC_SEG,RELOC_SEGREL] then
               FOmfFixup.LocationType:=fltBase
             else
               internalerror(2015041501);
             FOmfFixup.FrameDeterminedByThread:=False;
             FOmfFixup.TargetDeterminedByThread:=False;
-            if typ in [RELOC_ABSOLUTE,RELOC_SEG] then
+            if typ in [RELOC_ABSOLUTE16,RELOC_ABSOLUTE32,RELOC_SEG] then
               FOmfFixup.Mode:=fmSegmentRelative
-            else if typ in [RELOC_RELATIVE,RELOC_SEGREL] then
+            else if typ in [RELOC_RELATIVE16,RELOC_RELATIVE32,RELOC_SEGREL] then
               FOmfFixup.Mode:=fmSelfRelative
             else
               internalerror(2015041401);
@@ -564,7 +570,7 @@ implementation
           end;
       end;
 
-    procedure TOmfObjData.writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
+    procedure TOmfObjData.writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
       var
         objreloc: TOmfRelocation;
         symaddr: AWord;

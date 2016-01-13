@@ -2654,7 +2654,7 @@ implementation
            objdata.writebytes(b67,1);
          end;
 
-       procedure objdata_writereloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
+       procedure objdata_writereloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
          begin
 {$ifdef i386}
                { Special case of '_GLOBAL_OFFSET_TABLE_'
