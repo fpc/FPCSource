@@ -805,6 +805,8 @@ type
      isc_tpb_no_rec_version = 18;
      isc_tpb_restart_requests = 19;
      isc_tpb_no_auto_undo = 20;
+     isc_tpb_lock_timeout = 21;
+
   {                       }
   { Blob Parameter Block  }
   {                       }
