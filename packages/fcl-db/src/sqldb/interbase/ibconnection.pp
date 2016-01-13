@@ -54,6 +54,7 @@ type
 
   TIBConnection = class (TSQLConnection)
   private
+    FCheckTransactionParams: Boolean;
     FSQLDatabaseHandle     : pointer;
     FStatus                : array [0..19] of ISC_STATUS;
     FDatabaseInfo          : TDatabaseInfo;
@@ -66,6 +67,7 @@ type
 
     // Metadata:
     procedure GetDatabaseInfo; //Queries for various information from server once connected
+    function InterpretTransactionParam(S: String; var TPB: AnsiChar; out AValue: String): Boolean;
     procedure ResetDatabaseInfo; //Useful when disconnecting
     function GetDialect: integer;
     function GetODSMajorVersion: integer;
@@ -122,6 +124,8 @@ type
   published
     property DatabaseName;
     property Dialect : integer read GetDialect write FDialect stored IsDialectStored default DEFDIALECT;
+    // Set this to true to have starttransaction check transaction parameters. If False, unknown parameters are ignored.
+    Property CheckTransactionParams : Boolean Read FCheckTransactionParams write FCheckTransactionParams;
     property KeepConnection;
     property LoginPrompt;
     property Params;
@@ -209,59 +213,129 @@ begin
   else result := true;
 end;
 
-function TIBConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
-  ): boolean;
-var
-  DBHandle : pointer;
-  tr       : TIBTrans;
-  i        : integer;
-  s        : string;
+function TIBConnection.InterpretTransactionParam(S: String; var TPB: AnsiChar;
+  out AValue: String): Boolean;
+
+Const
+  Prefix    = 'isc_tpb_';
+  PrefixLen = Length(Prefix);
+  maxParam  = 21;
+  TPBNames : Array[1..maxParam] Of String =
+     // 5 on a line. Lowercase
+    ('consistency','concurrency','shared','protected','exclusive',
+     'wait','nowait','read','','lock_read',
+     'lock_','verb_time','commit_time','ignore_limbo','read_committed',
+     'autocommit','rec_version','no_rec_version','restart_requests','no_auto_undo',
+     'lock_timeout');
+
+Var
+  P : Integer;
+
 begin
-  result := false;
-
-  DBHandle := GetHandle;
-  tr := trans as TIBtrans;
-  with tr do
+  TPB:=#0;
+  Result:=False;
+  P:=Pos('=',S);
+  If P<>0 then
     begin
-    TPB := chr(isc_tpb_version3);
-
-    i := 1;
-    s := ExtractSubStr(AParams,i,stdWordDelims);
-    while s <> '' do
-      begin
-      if s='isc_tpb_write' then TPB := TPB + chr(isc_tpb_write)
-      else if s='isc_tpb_read' then TPB := TPB + chr(isc_tpb_read)
-      else if s='isc_tpb_consistency' then TPB := TPB + chr(isc_tpb_consistency)
-      else if s='isc_tpb_concurrency' then TPB := TPB + chr(isc_tpb_concurrency)
-      else if s='isc_tpb_read_committed' then TPB := TPB + chr(isc_tpb_read_committed)
-      else if s='isc_tpb_rec_version' then TPB := TPB + chr(isc_tpb_rec_version)
-      else if s='isc_tpb_no_rec_version' then TPB := TPB + chr(isc_tpb_no_rec_version)
-      else if s='isc_tpb_wait' then TPB := TPB + chr(isc_tpb_wait)
-      else if s='isc_tpb_nowait' then TPB := TPB + chr(isc_tpb_nowait)
-      else if s='isc_tpb_shared' then TPB := TPB + chr(isc_tpb_shared)
-      else if s='isc_tpb_protected' then TPB := TPB + chr(isc_tpb_protected)
-      else if s='isc_tpb_exclusive' then TPB := TPB + chr(isc_tpb_exclusive)
-      else if s='isc_tpb_lock_read' then TPB := TPB + chr(isc_tpb_lock_read)
-      else if s='isc_tpb_lock_write' then TPB := TPB + chr(isc_tpb_lock_write)
-      else if s='isc_tpb_verb_time' then TPB := TPB + chr(isc_tpb_verb_time)
-      else if s='isc_tpb_commit_time' then TPB := TPB + chr(isc_tpb_commit_time)
-      else if s='isc_tpb_ignore_limbo' then TPB := TPB + chr(isc_tpb_ignore_limbo)
-      else if s='isc_tpb_autocommit' then TPB := TPB + chr(isc_tpb_autocommit)
-      else if s='isc_tpb_restart_requests' then TPB := TPB + chr(isc_tpb_restart_requests)
-      else if s='isc_tpb_no_auto_undo' then TPB := TPB + chr(isc_tpb_no_auto_undo);
-      s := ExtractSubStr(AParams,i,stdWordDelims);
-
-      end;
-
-    TransactionHandle := nil;
-
-    if isc_start_transaction(@Status[0], @TransactionHandle, 1,
-       [@DBHandle, Length(TPB), @TPB[1]]) <> 0 then
-      CheckError('StartTransaction',Status)
-    else Result := True;
+    AValue:=Copy(S,P+1,Length(S)-P);
+    S:=Copy(S,1,P-1);
+    end;
+  S:=LowerCase(S);
+  P:=Pos(Prefix,S);
+  if P<>0 then
+    Delete(S,1,P+PrefixLen-1);
+  Result:=(Copy(S,1,7)='version') and (Length(S)=8);
+  if Result then
+    TPB:=S[8]
+  else
+    begin
+    P:=MaxParam;
+    While (P>0) and (S<>TPBNames[P]) do
+      Dec(P);
+    Result:=P>0;
+    if Result then
+      TPB:=Char(P);
     end;
 end;
 
+function TIBConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
+  ): boolean;
+
+Var
+  DBHandle:pointer;
+  I,T :integer;
+  S :string;
+  tpbv,version : ansichar;
+  prVal :String;
+  pInt :^Int32;
+  LTPB : String; // Local TPB
+  IBTrans : TIBTrans;
+
+Begin
+  Result:=False;
+  DBHandle:=GetHandle;
+  Version:=#0;
+  I:=1;
+  IBTrans:=(Trans as TIBTrans);
+  LTPB:='';
+  S:=ExtractSubStr(AParams,I,stdWordDelims);
+  While (S<>'') do
+    begin
+    If Not InterpretTransactionParam(S,tpbv,prVal) then
+      begin
+      If CheckTransactionParams then
+        DatabaseError('Invalid parameter for transaction: "'+S+'"',Self);
+      end
+    else
+      begin
+      // Check Version
+      if (tpbv>='1') then
+        begin
+        Version:=tpbv;
+        // Check value
+        if Not (Version in [#0,'1','3']) then
+          DatabaseError('Invalid version specified for transaction: "'+Version+'"',Self);
+        end
+      else
+        begin
+        LTPB:=LTPB+tpbv;
+        Case Ord(tpbv) Of
+          isc_tpb_lock_read,
+          isc_tpb_lock_write:
+            Begin
+            If prVal='' Then
+              DatabaseErrorFmt('Table name must be specified for "%s"',[S],Self);
+            LTPB:=LTPB+Char(Length(prVal))+prVal;
+            End;
+          isc_tpb_lock_timeout:
+            Begin
+            //In case of using lock timeout we need add timeout
+            If prVal='' Then
+              DatabaseErrorFmt('Timeout must be specified for "%s"',[S],Self);
+            LTPB:=LTPB+Char(SizeOf(ISC_LONG));
+            SetLength(LTPB,Length(LTPB)+SizeOf(ISC_LONG));
+            pInt:=@LTPB[Length(LTPB)-SizeOf(ISC_LONG)+1];
+            pInt^:=StrToInt(prVal);
+            End;
+        End;
+        end;
+      end;
+    S:=ExtractSubStr(AParams,I,stdWordDelims);
+    end;
+  // Default version.
+  If Version=#0 then
+    Version:='3';
+  // Construct block.
+  With IBTrans do
+    begin
+    TPB:=Char(Ord(Version)-Ord('0'))+LTPB;
+    TransactionHandle:=Nil;
+    If isc_start_transaction(@Status[0],@TransactionHandle,1,[@DBHandle,Length(TPB),@TPB[1]])<>0 Then
+      CheckError('StartTransaction',Status)
+    Else
+      Result := True
+    End
+End;
 
 procedure TIBConnection.CommitRetaining(trans : TSQLHandle);
 begin
