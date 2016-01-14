@@ -1707,31 +1707,16 @@ implementation
         end;
       end;
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,index,scalefactor,
         o     : longint;
         ir,br : Tregister;
         isub,bsub : tsubregister;
       begin
-        process_ea:=false;
-        fillchar(output,sizeof(output),0);
-        {Register ?}
-        if (input.typ=top_reg) then
-          begin
-            rv:=regval(input.reg);
-            output.modrm:=$c0 or (rfield shl 3) or rv;
-            output.size:=1;
-            output.rex:=output.rex or (rexbits(input.reg) and $F1);
-            process_ea:=true;
-
-            exit;
-         end;
-        {No register, so memory reference.}
-        if input.typ<>top_ref then
-          internalerror(200409263);
+        result:=false;
         ir:=input.ref^.index;
         br:=input.ref^.base;
         isub:=getsubreg(ir);
@@ -1783,7 +1768,7 @@ implementation
             exit;
 
            output.rex:=output.rex or (rexbits(br) and $F1) or (rexbits(ir) and $F2);
-           process_ea:=true;
+           result:=true;
 
 
            { base }
@@ -1929,36 +1914,22 @@ implementation
             end;
          end;
         output.size:=1+ord(output.sib_present)+output.bytes;
-        process_ea:=true;
+        result:=true;
       end;
 
 
 {$elseif defined(i386)}
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,index,scalefactor,
         o     : longint;
         ir,br : Tregister;
         isub,bsub : tsubregister;
       begin
-        process_ea:=false;
-        fillchar(output,sizeof(output),0);
-        {Register ?}
-        if (input.typ=top_reg) then
-          begin
-            rv:=regval(input.reg);
-            output.modrm:=$c0 or (rfield shl 3) or rv;
-            output.size:=1;
-            process_ea:=true;
-            exit;
-         end;
-        {No register, so memory reference.}
-        if (input.typ<>top_ref) then
-          internalerror(200409262);
-
+        result:=false;
         if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)=R_MMREGISTER) and (input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) or // vector memory (AVX2)
            ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER) and (getregtype(input.ref^.index)<>R_MMREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
@@ -2100,7 +2071,7 @@ implementation
          output.size:=2+output.bytes
         else
          output.size:=1+output.bytes;
-        process_ea:=true;
+        result:=true;
       end;
 {$elseif defined(i8086)}
 
@@ -2117,7 +2088,7 @@ implementation
           end;
       end;
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s,rv  : byte;
@@ -2126,21 +2097,7 @@ implementation
         ir,br : Tregister;
         isub,bsub : tsubregister;
       begin
-        process_ea:=false;
-        fillchar(output,sizeof(output),0);
-        {Register ?}
-        if (input.typ=top_reg) then
-          begin
-            rv:=regval(input.reg);
-            output.modrm:=$c0 or (rfield shl 3) or rv;
-            output.size:=1;
-            process_ea:=true;
-            exit;
-          end;
-        {No register, so memory reference.}
-        if (input.typ<>top_ref) then
-          internalerror(200409262);
-
+        result:=false;
         if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
           internalerror(200301081);
@@ -2201,9 +2158,33 @@ implementation
           end;
         output.size:=1+output.bytes;
         output.sib_present:=false;
-        process_ea:=true;
+        result:=true;
       end;
 {$endif}
+
+    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+      var
+        rv  : byte;
+      begin
+        result:=false;
+        fillchar(output,sizeof(output),0);
+        {Register ?}
+        if (input.typ=top_reg) then
+          begin
+            rv:=regval(input.reg);
+            output.modrm:=$c0 or (rfield shl 3) or rv;
+            output.size:=1;
+{$ifdef x86_64}
+            output.rex:=output.rex or (rexbits(input.reg) and $F1);
+{$endif x86_64}
+            result:=true;
+            exit;
+          end;
+        {No register, so memory reference.}
+        if input.typ<>top_ref then
+          internalerror(200409263);
+        result:=process_ea_ref(input,output,rfield);
+      end;
 
     function taicpu.calcsize(p:PInsEntry):shortint;
       var
