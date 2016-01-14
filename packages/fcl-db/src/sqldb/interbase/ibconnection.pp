@@ -223,8 +223,8 @@ Const
   TPBNames : Array[1..maxParam] Of String =
      // 5 on a line. Lowercase
     ('consistency','concurrency','shared','protected','exclusive',
-     'wait','nowait','read','','lock_read',
-     'lock_','verb_time','commit_time','ignore_limbo','read_committed',
+     'wait','nowait','read','write','lock_read',
+     'lock_write','verb_time','commit_time','ignore_limbo','read_committed',
      'autocommit','rec_version','no_rec_version','restart_requests','no_auto_undo',
      'lock_timeout');
 
@@ -293,7 +293,7 @@ Begin
         begin
         Version:=tpbv;
         // Check value
-        if Not (Version in [#0,'1','3']) then
+        if Not (Version in ['1','3']) then
           DatabaseError('Invalid version specified for transaction: "'+Version+'"',Self);
         end
       else
