@@ -213,7 +213,619 @@ function TrimLeftSet(const S: String;const CSet:TSysCharSet): String;
 Function TrimRightSet(const S: String;const CSet:TSysCharSet): String;
 function TrimSet(const S: String;const CSet:TSysCharSet): String;
 
+
+type
+  SizeIntArray = array of SizeInt;
+
+procedure FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
+procedure FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
+
+procedure FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: PChar; const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
+procedure FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean);
+
+Type
+  TStringReplaceAlgorithm = (sraDefault,    // Default algoritm as used in StringUtils.
+                             sraManySmall,       // Algorithm optimized for many small replacements.
+                             sraBoyerMoore  // Algorithm optimized for long replacements.
+                            );
+
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm : TStringReplaceAlgorithm = sraDefault): string; overload;
+{ We need these for backwards compatibility:
+  The compiler will stop searching and convert to ansistring if the widestring version of stringreplace is used.
+  They currently simply refer to sysutils, till the new mechanisms are proven to work with unicode.}
+Function StringReplace(const S, OldPattern, NewPattern: unicodestring; Flags: TReplaceFlags): unicodestring; overload;
+Function StringReplace(const S, OldPattern, NewPattern: widestring; Flags: TReplaceFlags): widestring; overload;
+
 implementation
+
+(*
+  FindMatchesBoyerMooreCaseSensitive
+
+  Finds one or many ocurrences of an ansistring in another ansistring.
+  It is case sensitive.
+
+  * Parameters:
+  S: The PChar to be searched in. (Read only).
+  OldPattern: The PChar to be searched. (Read only).
+  SSize: The size of S in Chars. (Read only).
+  OldPatternSize: The size of OldPatter in chars. (Read only).
+  aMatches: SizeInt array where match indexes are returned (zero based) (write only).
+  aMatchAll: Finds all matches, not just the first one. (Read only).
+
+  * Returns:
+    Nothing, information returned in aMatches parameter.
+
+  The function is based in the Boyer-Moore algorithm.
+*)
+
+procedure FindMatchesBoyerMooreCaseSensitive(const S, OldPattern: PChar;
+  const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
+  const aMatchAll: Boolean);
+const
+  ALPHABET_LENGHT=256;
+  MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
+var
+  //Stores the amount of replaces that will take place
+  MatchesCount: SizeInt;
+  //Currently allocated space for matches.
+  MatchesAllocatedLimit: SizeInt;
+type
+  AlphabetArray=array [0..ALPHABET_LENGHT-1] of SizeInt;
+
+  function Max(const a1,a2: SizeInt): SizeInt;
+  begin
+    if a1>a2 then Result:=a1 else Result:=a2;
+  end;
+
+  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  var
+    i: SizeInt;
+  begin
+    for i := 0 to ALPHABET_LENGHT-1 do begin
+      DeltaJumpTable1[i]:=aPatternSize;
+    end;
+    //Last char do not enter in the equation
+    for i := 0 to aPatternSize - 1 - 1 do begin
+      DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize -1 - i;
+    end;
+  end;
+
+  function IsPrefix(const aPattern: PChar; const aPatternSize, aPos: SizeInt): Boolean;
+  var
+    i: SizeInt;
+    SuffixLength: SizeInt;
+  begin
+    SuffixLength:=aPatternSize-aPos;
+    for i := 0 to SuffixLength-1 do begin
+      if (aPattern[i] <> aPattern[aPos+i]) then begin
+          exit(false);
+      end;
+    end;
+    Result:=true;
+  end;
+
+  function SuffixLength(const aPattern: PChar; const aPatternSize, aPos: SizeInt): SizeInt;
+  var
+    i: SizeInt;
+  begin
+    i:=0;
+    while (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) and (i < aPos) do begin
+      inc(i);
+    end;
+    Result:=i;
+  end;
+
+  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  var
+    Position: SizeInt;
+    LastPrefixIndex: SizeInt;
+    SuffixLengthValue: SizeInt;
+  begin
+    LastPrefixIndex:=aPatternSize-1;
+    Position:=aPatternSize-1;
+    while Position>=0 do begin
+      if IsPrefix(aPattern,aPatternSize,Position+1) then begin
+        LastPrefixIndex := Position+1;
+      end;
+      DeltaJumpTable2[Position] := LastPrefixIndex + (aPatternSize-1 - Position);
+      Dec(Position);
+    end;
+    Position:=0;
+    while Position<aPatternSize-1 do begin
+      SuffixLengthValue:=SuffixLength(aPattern,aPatternSize,Position);
+      if aPattern[Position-SuffixLengthValue] <> aPattern[aPatternSize-1 - SuffixLengthValue] then begin
+        DeltaJumpTable2[aPatternSize - 1 - SuffixLengthValue] := aPatternSize - 1 - Position + SuffixLengthValue;
+      end;
+      Inc(Position);
+    end;
+  end;
+
+  //Resizes the allocated space for replacement index
+  procedure ResizeAllocatedMatches;
+  begin
+    MatchesAllocatedLimit:=MatchesCount+MATCHESCOUNTRESIZER;
+    SetLength(aMatches,MatchesAllocatedLimit);
+  end;
+
+  //Add a match to be replaced
+  procedure AddMatch(const aPosition: SizeInt); inline;
+  begin
+    if MatchesCount = MatchesAllocatedLimit then begin
+      ResizeAllocatedMatches;
+    end;
+    aMatches[MatchesCount]:=aPosition;
+    inc(MatchesCount);
+  end;
+var
+  i,j: SizeInt;
+  DeltaJumpTable1: array [0..ALPHABET_LENGHT-1] of SizeInt;
+  DeltaJumpTable2: SizeIntArray;
+begin
+  MatchesCount:=0;
+  MatchesAllocatedLimit:=0;
+  SetLength(aMatches,MatchesCount);
+  if OldPatternSize=0 then begin
+    Exit;
+  end;
+  SetLength(DeltaJumpTable2,OldPatternSize);
+
+  MakeDeltaJumpTable1(DeltaJumpTable1,OldPattern,OldPatternSize);
+  MakeDeltaJumpTable2(DeltaJumpTable2,OldPattern,OldPatternSize);
+
+  i:=OldPatternSize-1;
+  while i < SSize do begin
+    j:=OldPatternSize-1;
+    while (j>=0) and (S[i] = OldPattern[j]) do begin
+      dec(i);
+      dec(j);
+    end;
+    if (j<0) then begin
+      AddMatch(i+1);
+      //Only first match ?
+      if not aMatchAll then break;
+      inc(i,OldPatternSize);
+      inc(i,OldPatternSize);
+    end else begin
+      i:=i + Max(DeltaJumpTable1[ord(s[i])],DeltaJumpTable2[j]);
+    end;
+  end;
+  SetLength(aMatches,MatchesCount);
+end;
+
+procedure FindMatchesBoyerMooreCaseINSensitive(const S, OldPattern: PChar;
+  const SSize, OldPatternSize: SizeInt; out aMatches: SizeIntArray;
+  const aMatchAll: Boolean);
+const
+  ALPHABET_LENGHT=256;
+  MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
+var
+  //Lowercased OldPattern
+  lPattern: string;
+  //Array of lowercased alphabet
+  lCaseArray: array [0..ALPHABET_LENGHT-1] of char;
+  //Stores the amount of replaces that will take place
+  MatchesCount: SizeInt;
+  //Currently allocated space for matches.
+  MatchesAllocatedLimit: SizeInt;
+type
+  AlphabetArray=array [0..ALPHABET_LENGHT-1] of SizeInt;
+
+  function Max(const a1,a2: SizeInt): SizeInt;
+  begin
+    if a1>a2 then Result:=a1 else Result:=a2;
+  end;
+
+  procedure MakeDeltaJumpTable1(out DeltaJumpTable1: AlphabetArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  var
+    i: SizeInt;
+  begin
+    for i := 0 to ALPHABET_LENGHT-1 do begin
+      DeltaJumpTable1[i]:=aPatternSize;
+    end;
+    //Last char do not enter in the equation
+    for i := 0 to aPatternSize - 1 - 1 do begin
+      DeltaJumpTable1[Ord(aPattern[i])]:=aPatternSize - 1 - i;
+    end;
+  end;
+
+  function IsPrefix(const aPattern: PChar; const aPatternSize, aPos: SizeInt): Boolean; inline;
+  var
+    i: SizeInt;
+    SuffixLength: SizeInt;
+  begin
+    SuffixLength:=aPatternSize-aPos;
+    for i := 0 to SuffixLength-1 do begin
+      if (aPattern[i+1] <> aPattern[aPos+i]) then begin
+        exit(false);
+      end;
+    end;
+    Result:=true;
+  end;
+
+  function SuffixLength(const aPattern: PChar; const aPatternSize, aPos: SizeInt): SizeInt; inline;
+  var
+    i: SizeInt;
+  begin
+    i:=0;
+    while (aPattern[aPos-i] = aPattern[aPatternSize-1-i]) and (i < aPos) do begin
+      inc(i);
+    end;
+    Result:=i;
+  end;
+
+  procedure MakeDeltaJumpTable2(var DeltaJumpTable2: SizeIntArray; const aPattern: PChar; const aPatternSize: SizeInt);
+  var
+    Position: SizeInt;
+    LastPrefixIndex: SizeInt;
+    SuffixLengthValue: SizeInt;
+  begin
+    LastPrefixIndex:=aPatternSize-1;
+    Position:=aPatternSize-1;
+    while Position>=0 do begin
+      if IsPrefix(aPattern,aPatternSize,Position+1) then begin
+        LastPrefixIndex := Position+1;
+      end;
+      DeltaJumpTable2[Position] := LastPrefixIndex + (aPatternSize-1 - Position);
+      Dec(Position);
+    end;
+    Position:=0;
+    while Position<aPatternSize-1 do begin
+      SuffixLengthValue:=SuffixLength(aPattern,aPatternSize,Position);
+      if aPattern[Position-SuffixLengthValue] <> aPattern[aPatternSize-1 - SuffixLengthValue] then begin
+        DeltaJumpTable2[aPatternSize - 1 - SuffixLengthValue] := aPatternSize - 1 - Position + SuffixLengthValue;
+      end;
+      Inc(Position);
+    end;
+  end;
+
+  //Resizes the allocated space for replacement index
+  procedure ResizeAllocatedMatches;
+  begin
+    MatchesAllocatedLimit:=MatchesCount+MATCHESCOUNTRESIZER;
+    SetLength(aMatches,MatchesAllocatedLimit);
+  end;
+
+  //Add a match to be replaced
+  procedure AddMatch(const aPosition: SizeInt); inline;
+  begin
+    if MatchesCount = MatchesAllocatedLimit then begin
+      ResizeAllocatedMatches;
+    end;
+    aMatches[MatchesCount]:=aPosition;
+    inc(MatchesCount);
+  end;
+var
+  i,j: SizeInt;
+  DeltaJumpTable1: array [0..ALPHABET_LENGHT-1] of SizeInt;
+  DeltaJumpTable2: SizeIntArray;
+  //Pointer to lowered OldPattern
+  plPattern: PChar;
+begin
+  MatchesCount:=0;
+  MatchesAllocatedLimit:=0;
+  SetLength(aMatches,MatchesCount);
+  if OldPatternSize=0 then begin
+    Exit;
+  end;
+
+  //Build an internal array of lowercase version of every possible char.
+  for j := 0 to Pred(ALPHABET_LENGHT) do begin
+    lCaseArray[j]:=AnsiLowerCase(char(j))[1];
+  end;
+
+  //Create the new lowercased pattern
+  SetLength(lPattern,OldPatternSize);
+  for j := 0 to Pred(OldPatternSize) do begin
+    lPattern[j+1]:=lCaseArray[ord(OldPattern[j])];
+  end;
+
+  SetLength(DeltaJumpTable2,OldPatternSize);
+
+  MakeDeltaJumpTable1(DeltaJumpTable1,@lPattern[1],OldPatternSize);
+  MakeDeltaJumpTable2(DeltaJumpTable2,@lPattern[1],OldPatternSize);
+
+  plPattern:=@lPattern[1];
+  i:=OldPatternSize-1;
+  while i < SSize do begin
+    j:=OldPatternSize-1;
+    while (j>=0) and (lCaseArray[Ord(S[i])] = plPattern[j]) do begin
+      dec(i);
+      dec(j);
+    end;
+    if (j<0) then begin
+      AddMatch(i+1);
+      //Only first match ?
+      if not aMatchAll then break;
+      inc(i,OldPatternSize);
+      inc(i,OldPatternSize);
+    end else begin
+      i:=i + Max(DeltaJumpTable1[Ord(lCaseArray[Ord(s[i])])],DeltaJumpTable2[j]);
+    end;
+  end;
+  SetLength(aMatches,MatchesCount);
+end;
+
+function StringReplaceFast(const S, OldPattern, NewPattern: string;
+  Flags: TReplaceFlags): string;
+const
+  MATCHESCOUNTRESIZER=100; //Arbitrary value. Memory used = MATCHESCOUNTRESIZER * sizeof(SizeInt)
+var
+  //Stores where a replace will take place
+  Matches: array of SizeInt;
+  //Stores the amount of replaces that will take place
+  MatchesCount: SizeInt;
+  //Currently allocated space for matches.
+  MatchesAllocatedLimit: SizeInt;
+  //Uppercase version of pattern
+  PatternUppercase: string;
+  //Lowercase version of pattern
+  PatternLowerCase: string;
+  //Index
+  MatchIndex: SizeInt;
+  MatchLimit: SizeInt;
+  MatchInternal: SizeInt;
+  MatchTarget: SizeInt;
+  AdvanceIndex: SizeInt;
+
+  //Miscelanous variables
+  OldPatternSize: SizeInt;
+  NewPatternSize: SizeInt;
+
+  //Resizes the allocated space for replacement index
+  procedure ResizeAllocatedMatches;
+  begin
+    MatchesAllocatedLimit:=MatchesCount+MATCHESCOUNTRESIZER;
+    SetLength(Matches,MatchesAllocatedLimit);
+  end;
+
+  //Add a match to be replaced
+  procedure AddMatch(const aPosition: SizeInt); inline;
+  begin
+    if MatchesCount = MatchesAllocatedLimit then begin
+      ResizeAllocatedMatches;
+    end;
+    Matches[MatchesCount]:=aPosition;
+    inc(MatchesCount);
+  end;
+begin
+  if (OldPattern='') or (Length(OldPattern)>Length(S)) then begin
+    //This cases will never match nothing.
+    Result:=S;
+    exit;
+  end;
+  Result:='';
+  OldPatternSize:=Length(OldPattern);
+  MatchesCount:=0;
+  MatchesAllocatedLimit:=0;
+  if rfIgnoreCase in Flags then begin
+    //Different algorithm for case sensitive and insensitive
+    //This is insensitive, so 2 new ansistrings are created for search pattern, one upper and one lower case.
+    //It is easy, usually, to create 2 versions of the match pattern than uppercased and lowered case each
+    //character in the "to be matched" string.
+    PatternUppercase:=AnsiUpperCase(OldPattern);
+    PatternLowerCase:=AnsiLowerCase(OldPattern);
+    MatchIndex:=Length(OldPattern);
+    MatchLimit:=Length(S);
+    NewPatternSize:=Length(NewPattern);
+    while MatchIndex <= MatchLimit do begin
+      if (S[MatchIndex]=PatternLowerCase[OldPatternSize]) or (S[MatchIndex]=PatternUppercase[OldPatternSize]) then begin
+        //Match backwards...
+        MatchInternal:=OldPatternSize-1;
+        MatchTarget:=MatchIndex-1;
+        while MatchInternal>=1 do begin
+          if (S[MatchTarget]=PatternLowerCase[MatchInternal]) or (S[MatchTarget]=PatternUppercase[MatchInternal]) then begin
+            dec(MatchInternal);
+            dec(MatchTarget);
+          end else begin
+            break;
+          end;
+        end;
+        if MatchInternal=0 then begin
+          //Match found, all char meet the sequence
+          //MatchTarget points to char before, so matching is +1
+          AddMatch(MatchTarget+1);
+          inc(MatchIndex,OldPatternSize);
+          if not (rfReplaceAll in Flags) then begin
+            break;
+          end;
+        end else begin
+          //Match not found
+          inc(MatchIndex);
+        end;
+      end else begin
+        inc(MatchIndex);
+      end;
+    end;
+  end else begin
+    //Different algorithm for case sensitive and insensitive
+    //This is sensitive, so just 1 binary comprare
+    MatchIndex:=Length(OldPattern);
+    MatchLimit:=Length(S);
+    NewPatternSize:=Length(NewPattern);
+    while MatchIndex <= MatchLimit do begin
+      if (S[MatchIndex]=OldPattern[OldPatternSize]) then begin
+        //Match backwards...
+        MatchInternal:=OldPatternSize-1;
+        MatchTarget:=MatchIndex-1;
+        while MatchInternal>=1 do begin
+          if (S[MatchTarget]=OldPattern[MatchInternal]) then begin
+            dec(MatchInternal);
+            dec(MatchTarget);
+          end else begin
+            break;
+          end;
+        end;
+        if MatchInternal=0 then begin
+          //Match found, all char meet the sequence
+          //MatchTarget points to char before, so matching is +1
+          AddMatch(MatchTarget+1);
+          inc(MatchIndex,OldPatternSize);
+          if not (rfReplaceAll in Flags) then begin
+            break;
+          end;
+        end else begin
+          //Match not found
+          inc(MatchIndex);
+        end;
+      end else begin
+        inc(MatchIndex);
+      end;
+    end;
+  end;
+  //Create room enougth for the result string
+  SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
+  MatchIndex:=1;
+  MatchTarget:=1;
+  //Matches[x] are 1 based offsets
+  for MatchInternal := 0 to Pred(MatchesCount) do begin
+    //Copy information up to next match
+    AdvanceIndex:=Matches[MatchInternal]-MatchIndex;
+    if AdvanceIndex>0 then begin
+      move(S[MatchIndex],Result[MatchTarget],AdvanceIndex);
+      inc(MatchTarget,AdvanceIndex);
+      inc(MatchIndex,AdvanceIndex);
+    end;
+    //Copy the new replace information string
+    if NewPatternSize>0 then begin
+      move(NewPattern[1],Result[MatchTarget],NewPatternSize);
+      inc(MatchTarget,NewPatternSize);
+    end;
+    inc(MatchIndex,OldPatternSize);
+  end;
+  if MatchTarget<=Length(Result) then begin
+    //Add remain data at the end of source.
+    move(S[MatchIndex],Result[MatchTarget],Length(Result)-MatchTarget+1);
+  end;
+end;
+
+(*
+  StringReplaceBoyerMoore
+
+  Replaces one or many ocurrences of an ansistring in another ansistring by a new one.
+  It can perform the compare ignoring case (ansi).
+
+  * Parameters (Read only):
+  S: The string to be searched in.
+  OldPattern: The string to be searched.
+  NewPattern: The string to replace OldPattern matches.
+  Flags:
+    rfReplaceAll: Replace all occurrences.
+    rfIgnoreCase: Ignore case in OldPattern matching.
+
+  * Returns:
+    The modified string (if needed).
+
+  It is memory conservative, just sizeof(SizeInt) per match in blocks off 100 matches
+  plus Length(OldPattern)*2 in the case of ignoring case.
+  Memory copies are the minimun necessary.
+  Algorithm based in the Boyer-Moore string search algorithm.
+
+  It is faster when the "S" string is very long and the OldPattern is also
+  very big. As much big the OldPattern is, faster the search is too.
+
+  It uses 2 different helper versions of Boyer-Moore algorithm, one for case
+  sensitive and one for case INsensitive for speed reasons.
+
+*)
+
+function StringReplaceBoyerMoore(const S, OldPattern, NewPattern: string;Flags: TReplaceFlags): string;
+var
+  Matches: SizeIntArray;
+  OldPatternSize: SizeInt;
+  NewPatternSize: SizeInt;
+  MatchesCount: SizeInt;
+  MatchIndex: SizeInt;
+  MatchTarget: SizeInt;
+  MatchInternal: SizeInt;
+  AdvanceIndex: SizeInt;
+begin
+  OldPatternSize:=Length(OldPattern);
+  NewPatternSize:=Length(NewPattern);
+  if (OldPattern='') or (Length(OldPattern)>Length(S)) then begin
+    Result:=S;
+    exit;
+  end;
+
+  if rfIgnoreCase in Flags then begin
+    FindMatchesBoyerMooreCaseINSensitive(@s[1],@OldPattern[1],Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
+  end else begin
+    FindMatchesBoyerMooreCaseSensitive(@s[1],@OldPattern[1],Length(S),Length(OldPattern),Matches, rfReplaceAll in Flags);
+  end;
+
+  MatchesCount:=Length(Matches);
+
+  //Create room enougth for the result string
+  SetLength(Result,Length(S)-OldPatternSize*MatchesCount+NewPatternSize*MatchesCount);
+  MatchIndex:=1;
+  MatchTarget:=1;
+  //Matches[x] are 0 based offsets
+  for MatchInternal := 0 to Pred(MatchesCount) do begin
+    //Copy information up to next match
+    AdvanceIndex:=Matches[MatchInternal]+1-MatchIndex;
+    if AdvanceIndex>0 then begin
+      move(S[MatchIndex],Result[MatchTarget],AdvanceIndex);
+      inc(MatchTarget,AdvanceIndex);
+      inc(MatchIndex,AdvanceIndex);
+    end;
+    //Copy the new replace information string
+    if NewPatternSize>0 then begin
+      move(NewPattern[1],Result[MatchTarget],NewPatternSize);
+      inc(MatchTarget,NewPatternSize);
+    end;
+    inc(MatchIndex,OldPatternSize);
+  end;
+  if MatchTarget<=Length(Result) then begin
+    //Add remain data at the end of source.
+    move(S[MatchIndex],Result[MatchTarget],Length(Result)-MatchTarget+1);
+  end;
+end;
+
+Function StringReplace(const S, OldPattern, NewPattern: string; Flags: TReplaceFlags; Algorithm : TStringReplaceAlgorithm = sraDefault): string;
+
+begin
+  Case Algorithm of
+    sraDefault    : Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+    sraManySmall  : Result:=StringReplaceFast(S,OldPattern,NewPattern,Flags);
+    sraBoyerMoore : Result:=StringReplaceBoyerMoore(S,OldPattern,NewPattern,Flags);
+  end;
+end;
+
+
+Function StringReplace(const S, OldPattern, NewPattern: unicodestring; Flags: TReplaceFlags): unicodestring; overload;
+
+begin
+  Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+end;
+
+Function StringReplace(const S, OldPattern, NewPattern: widestring; Flags: TReplaceFlags): widestring; overload;
+
+begin
+  Result:=sysutils.StringReplace(S,OldPattern,NewPattern,Flags);
+end;
+
+
+procedure FindMatchesBoyerMooreCaseSensitive(const S,OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean); 
+
+Var
+  I : Integer;
+
+begin
+  FindMatchesBoyerMooreCaseSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+  For I:=0 to Length(AMatches) do
+    Inc(AMatches[i]);
+end;
+
+procedure FindMatchesBoyerMooreCaseInSensitive(const S, OldPattern: String; out aMatches: SizeIntArray; const aMatchAll: Boolean);
+
+Var
+  I : Integer;
+
+begin
+  FindMatchesBoyerMooreCaseInSensitive(PChar(S),Pchar(OldPattern),Length(S),Length(OldPattern),aMatches,aMatchAll);
+  For I:=0 to Length(AMatches) do
+    Inc(AMatches[i]);
+end;
+
 
 { ---------------------------------------------------------------------
    Possibly Exception raising functions
