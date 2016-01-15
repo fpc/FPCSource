@@ -429,7 +429,7 @@ Const
           lpfn : BFFCALLBACK;
           lParam : LPARAM;
           iImage : longint;
-       end deprecated 'Use shlobj version. Will be removed in 2.8'; 
+       end deprecated 'Use shlobj version. Will be removed in the future'; 
      LPBROWSEINFO = ^BROWSEINFO deprecated;
      _browseinfo = BROWSEINFO deprecated;
      Tbrowseinfo = BROWSEINFO deprecated;
@@ -765,7 +765,7 @@ Const
           nShow : longint;
           dwHotKey : DWORD;
           hIcon : HANDLE;
-       end deprecated 'Use shlobj version. Will be removed in 2.8';
+       end deprecated 'Use shlobj version. Will be removed in the future';
      LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO deprecated;
      _CMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
      TCMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
