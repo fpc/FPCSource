@@ -160,7 +160,6 @@ begin
       begin
         OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('custapache24');
-        ResourceStrings:=true;
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;
