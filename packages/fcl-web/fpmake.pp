@@ -136,7 +136,7 @@ begin
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
-    with P.Targets.AddUnit('fpapache.pp') do
+    with P.Targets.AddUnit('custapache.pp') do
       begin
         OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('httpprotocol');
@@ -144,11 +144,22 @@ begin
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
-    with P.Targets.AddUnit('fpapache24.pp') do
+    with P.Targets.AddUnit('fpapache.pp') do
+      begin
+        OSes:=AllOses-[amiga,aros,morphos];
+        Dependencies.AddUnit('custapache');
+      end;
+    with P.Targets.AddUnit('custapache24.pp') do
       begin
         OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
+        ResourceStrings:=true;
+      end;
+    with P.Targets.AddUnit('fpapache24.pp') do
+      begin
+        OSes:=AllOses-[amiga,aros,morphos];
+        Dependencies.AddUnit('custapache24');
         ResourceStrings:=true;
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
