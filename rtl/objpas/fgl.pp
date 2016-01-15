@@ -305,7 +305,8 @@ type
     function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
-    function TryGetValue(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
@@ -1482,7 +1483,7 @@ begin
   Result := inherited Find(@AKey, Index);
 end;
 
-function TFPGMap.TryGetValue(const AKey: TKey; out AData: TData): Boolean;
+function TFPGMap.TryGetData(const AKey: TKey; out AData: TData): Boolean;
 var
   I: Integer;
 begin
@@ -1491,6 +1492,11 @@ begin
     AData := TData(inherited GetData(I)^)
   else
     AData := Default(TData);
+end;
+
+procedure TFPGMap.AddOrSetData(const AKey: TKey; const AData: TData);
+begin
+  inherited PutKeyData(@AKey, @AData);
 end;
 
 function TFPGMap.IndexOf(const AKey: TKey): Integer;
