@@ -651,12 +651,12 @@ implementation
 
     procedure TExportLibWin.exportprocedure(hp : texported_item);
       begin
-        if ((hp.options and eo_index)<>0) and ((hp.index<=0) or (hp.index>$ffff)) then
+        if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin
            message1(parser_e_export_invalid_index,tostr(hp.index));
            exit;
           end;
-        if hp.options and eo_index=eo_index then
+        if eo_index in hp.options then
           EList_indexed.Add(hp)
         else
           EList_nonindexed.Add(hp);
@@ -830,7 +830,7 @@ implementation
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-              if (hp.options and eo_name)<>0 then
+              if eo_name in hp.options then
                 begin
                    current_asmdata.getjumplabel(name_label);
                    name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));

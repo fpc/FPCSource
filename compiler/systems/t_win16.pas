@@ -127,7 +127,7 @@ end;
 
 procedure TExportLibWin16.exportprocedure(hp: texported_item);
 begin
-  if ((hp.options and eo_index)<>0) and ((hp.index<=0) or (hp.index>$ffff)) then
+  if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
     begin
      message1(parser_e_export_invalid_index,tostr(hp.index));
      exit;
@@ -172,9 +172,9 @@ begin
       DllExport_COMENT:=TOmfRecord_COMENT.Create;
       DllExport_COMENT.CommentClass:=CC_OmfExtension;
       expflag:=0;
-      if (hp.options and eo_index)<>0 then
+      if eo_index in hp.options then
         expflag:=expflag or $80;
-      if (hp.options and eo_resident)<>0 then
+      if eo_resident in hp.options then
         expflag:=expflag or $40;
       if assigned(hp.sym) then
         case hp.sym.typ of
@@ -188,7 +188,7 @@ begin
       else
         internal_name:=hp.name^;
       DllExport_COMENT.CommentString:=#2+Chr(expflag)+Chr(Length(hp.name^))+hp.name^+Chr(Length(internal_name))+internal_name;
-      if (hp.options and eo_index)<>0 then
+      if eo_index in hp.options then
         DllExport_COMENT.CommentString:=DllExport_COMENT.CommentString+Chr(Byte(hp.index))+Chr(Byte(hp.index shr 8));
       DllExport_COMENT.EncodeTo(RawRecord);
       RawRecord.WriteTo(ObjWriter);

@@ -165,16 +165,16 @@ var
   hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp.options and eo_index)<>0 then
+  if eo_index in hp.options then
    begin
      Comment(V_Error,'can''t export with index under netware');
      exit;
    end;
   { use pascal name is none specified }
-  if (hp.options and eo_name)=0 then
+  if not (eo_name in hp.options) then
     begin
        hp.name:=stringdup(hp.sym.name);
-       hp.options:=hp.options or eo_name;
+       include(hp.options,eo_name);
     end;
   { now place in correct order }
   hp2:=texported_item(current_module._exports.first);

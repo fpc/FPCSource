@@ -31,18 +31,20 @@ uses
   symtype,symdef,symsym,
   aasmbase,aasmdata;
 
-const
-   { export options }
-   eo_resident = $1;
-   eo_index    = $2;
-   eo_name     = $4;
-
 type
+   { export options }
+   texportoption=(eo_none,
+     eo_resident,
+     eo_index,
+     eo_name
+   );
+   texportoptions=set of texportoption;
+
    texported_item = class(TLinkedListItem)
       sym : tsym;
       index : longint;
       name : pshortstring;
-      options : word;
+      options : texportoptions;
       is_var : boolean;
       constructor create;
       destructor destroy;override;
@@ -71,14 +73,14 @@ type
    TExportLibClass=class of TExportLib;
 
 
-  procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
-  procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+  procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
+  procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   { to export symbols not directly related to a tsym (e.g., the Objective-C
     rtti) }
-  procedure exportname(const s : string; options: word);
+  procedure exportname(const s : string; options: texportoptions);
 
-  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
-  procedure exportallprocsymnames(ps: tprocsym; options: word);
+  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
+  procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
 
 
 var
@@ -98,20 +100,20 @@ uses
                            TExported_procedure
 ****************************************************************************}
 
-procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
+procedure exportprocsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
     hp:=texported_item.create;
     hp.name:=stringdup(s);
     hp.sym:=sym;
-    hp.options:=options or eo_name;
+    hp.options:=options+[eo_name];
     hp.index:=index;
     exportlib.exportprocedure(hp);
   end;
 
 
-procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+procedure exportvarsym(sym: tsym; const s : string; index: longint; options: texportoptions);
   var
     hp : texported_item;
   begin
@@ -119,19 +121,19 @@ procedure exportvarsym(sym: tsym; const s : string; index: longint; options: wor
     hp.name:=stringdup(s);
     hp.sym:=sym;
     hp.is_var:=true;
-    hp.options:=options or eo_name;
+    hp.options:=options+[eo_name];
     hp.index:=index;
     exportlib.exportvar(hp);
   end;
 
 
-procedure exportname(const s : string; options: word);
+procedure exportname(const s : string; options: texportoptions);
   begin
     exportvarsym(nil,s,0,options);
   end;
 
 
-  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
+  procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: texportoptions);
     var
       item: TCmdStrListItem;
     begin
@@ -148,7 +150,7 @@ procedure exportname(const s : string; options: word);
     end;
     
 
-  procedure exportallprocsymnames(ps: tprocsym; options: word);
+  procedure exportallprocsymnames(ps: tprocsym; options: texportoptions);
     var
       i: longint;
     begin
@@ -167,7 +169,7 @@ begin
   sym:=nil;
   index:=-1;
   name:=nil;
-  options:=0;
+  options:=[];
   is_var:=false;
 end;
 
