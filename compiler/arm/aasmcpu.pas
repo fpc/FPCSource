@@ -275,7 +275,7 @@ uses
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
-         procedure BuildArmMasks;
+         procedure BuildArmMasks(objdata:TObjData);
          function  InsEnd:longint;
          procedure create_ot(objdata:TObjData);
          function  Matches(p:PInsEntry):longint;
@@ -2124,7 +2124,7 @@ implementation
       end;
 
 
-    procedure taicpu.BuildArmMasks;
+    procedure taicpu.BuildArmMasks(objdata:TObjData);
       const
         Masks: array[tcputype] of longint =
           (
@@ -2165,7 +2165,8 @@ implementation
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
 
-        if current_settings.instructionset=is_thumb then
+        if objdata.ThumbFunc then
+        //if current_settings.instructionset=is_thumb then
           begin
             fArmMask:=IF_THUMB;
             if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
@@ -2666,7 +2667,7 @@ implementation
            { create the .ot fields }
            create_ot(objdata);
 
-           BuildArmMasks;
+           BuildArmMasks(objdata);
            { set the file postion }
            current_filepos:=fileinfo;
          end
