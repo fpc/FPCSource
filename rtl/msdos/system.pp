@@ -13,6 +13,14 @@ interface
   systemh.inc is included otherwise the
   $mode switch is not effective }
 
+{ Use Ansi Char for files }
+{$define FPC_ANSI_TEXTFILEREC}
+
+{$ifdef NO_WIDESTRINGS}
+  { Do NOT use wide Char for files }
+  {$undef FPC_HAS_FEATURE_WIDESTRINGS}
+{$endif NO_WIDESTRINGS}
+
 {$I systemh.inc}
 {$I tnyheaph.inc}
 
@@ -452,7 +460,7 @@ begin
     if openfiles[h] then
       begin
 {$ifdef SYSTEMDEBUG}
-         writeln(stderr,'file ',opennames[h],' not closed at exit');
+         writeln(stderr,'file ',h,' "',opennames[h],'" not closed at exit');
 {$endif SYSTEMDEBUG}
          if h>=5 then
            do_close(h);
@@ -543,6 +551,7 @@ begin
 { Setup environment and arguments }
   Setup_Environment;
   Setup_Arguments;
+{$ifndef RTLLITE}
 { Use LFNSupport LFN }
   LFNSupport:=CheckLFN;
   if LFNSupport then
@@ -551,6 +560,7 @@ begin
     AllFilesMask := '*';
    end
   else
+{$endif ndef RTLLITE}
    AllFilesMask := '*.*';
 { Reset IO Error }
   InOutRes:=0;
