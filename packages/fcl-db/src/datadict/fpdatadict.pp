@@ -2870,7 +2870,7 @@ begin
     T:=TypeInfo(TIndexOptions);
     O:=StringToSet(T,S);
     OP:=TIndexOptions(O);
-    Options:=OP;
+    Self.Options:=OP;
     end;
 end;
 
