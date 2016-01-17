@@ -1491,7 +1491,11 @@ begin
   if Result then
     AData := TData(inherited GetData(I)^)
   else
+{$IFDEF VER2_6}  
+    FillChar(AData,SizeOf(TData),0);
+{$ELSE}
     AData := Default(TData);
+{$ENDIF}    
 end;
 
 procedure TFPGMap.AddOrSetData(const AKey: TKey; const AData: TData);
