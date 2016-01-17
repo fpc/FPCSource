@@ -134,19 +134,31 @@ type
     property Items[Index: integer]: TIniFileSection read GetItem; default;
   end;
 
+  TIniFileOption = (ifoStripComments,    // Strip comments when reading file
+                    ifoStripInvalid,     // Strip invalid lines when reading file.
+                    ifoEscapeLineFeeds, // Escape linefeeds when reading file.
+                    ifoCaseSensitive,   // Use Case sensitive section/key names
+                    ifoStripQuotes,     // Strip quotes when reading string values.
+                    ifoFormatSettingsActive); // Use format settings when writing date/float etc.
+  TIniFileOptions = Set of TIniFileOption;
+
+  TSectionValuesOption = (svoIncludeComments,svoIncludeInvalid, svoIncludeQuotes);
+  TSectionValuesOptions = set of TSectionValuesOption;
+
   { TCustomIniFile }
 
   TCustomIniFile = class
   Private
     FFileName: string;
+    FOptions: TIniFileOptions;
     FSectionList: TIniFileSectionList;
-    FEscapeLineFeeds: boolean;
-    FCaseSensitive : Boolean;
-    FStripQuotes : Boolean;
-    FFormatSettingsActive: Boolean;
+    function GetOption(AIndex: TIniFileOption): Boolean;
+    procedure SetOption(AIndex: TIniFileOption; AValue: Boolean);
+    procedure SetOptions(AValue: TIniFileOptions);
   public
     FormatSettings: TFormatSettings;
-    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
+    constructor Create(const AFileName: string; AOptions : TIniFileOptions = []); virtual;
+    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean); virtual;
     destructor Destroy; override;
     function SectionExists(const Section: string): Boolean; virtual;
     function ReadString(const Section, Ident, Default: string): string; virtual; abstract;
@@ -169,16 +181,18 @@ type
     procedure WriteBinaryStream(const Section, Name: string; Value: TStream); virtual;
     procedure ReadSection(const Section: string; Strings: TStrings); virtual; abstract;
     procedure ReadSections(Strings: TStrings); virtual; abstract;
-    procedure ReadSectionValues(const Section: string; Strings: TStrings); virtual; abstract;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings; Options : TSectionValuesOptions); virtual;    overload;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings); virtual;overload;
     procedure EraseSection(const Section: string); virtual; abstract;
     procedure DeleteKey(const Section, Ident: String); virtual; abstract;
     procedure UpdateFile; virtual; abstract;
     function ValueExists(const Section, Ident: string): Boolean; virtual;
     property FileName: string read FFileName;
-    property EscapeLineFeeds: boolean read FEscapeLineFeeds;
-    Property CaseSensitive : Boolean Read FCaseSensitive Write FCaseSensitive;
-    Property StripQuotes : Boolean Read FStripQuotes Write FStripQuotes;
-    Property FormatSettingsActive: Boolean Read FFormatSettingsActive write FFormatSettingsActive;
+    Property Options : TIniFileOptions Read FOptions Write SetOptions;
+    property EscapeLineFeeds: boolean index ifoEscapeLineFeeds Read GetOption ;deprecated 'Use options instead';
+    Property CaseSensitive : Boolean index ifoCaseSensitive Read GetOption Write SetOption; deprecated  'Use options instead';
+    Property StripQuotes : Boolean index ifoStripQuotes Read GetOption Write SetOption; deprecated 'Use options instead';
+    Property FormatSettingsActive : Boolean index ifoFormatSettingsActive Read GetOption Write SetOption;deprecated  'Use options instead';
   end;
 
   { TIniFile }
@@ -197,15 +211,16 @@ type
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
   public
-    constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); overload; override;
-    constructor Create(AStream: TStream; AEscapeLineFeeds : Boolean = False); overload;
+    constructor Create(const AFileName: string; AOptions : TIniFileoptions = []); overload; override;
+    constructor Create(AStream: TStream; AOptions : TIniFileoptions = []); overload;
+    constructor Create(AStream: TStream; AEscapeLineFeeds : Boolean); overload; deprecated 'Use Options argument instead';
     destructor Destroy; override;
     function ReadString(const Section, Ident, Default: string): string; override;
     procedure WriteString(const Section, Ident, Value: String); override;
     procedure ReadSection(const Section: string; Strings: TStrings); override;
     procedure ReadSectionRaw(const Section: string; Strings: TStrings);
     procedure ReadSections(Strings: TStrings); override;
-    procedure ReadSectionValues(const Section: string; Strings: TStrings); override;
+    procedure ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = []); overload; override;
     procedure EraseSection(const Section: string); override;
     procedure DeleteKey(const Section, Ident: String); override;
     procedure UpdateFile; override;
@@ -510,11 +525,34 @@ end;
 
 { TCustomIniFile }
 
-constructor TCustomIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
+
+function TCustomIniFile.GetOption(AIndex: TIniFileOption): Boolean;
+begin
+  Result:=AIndex in FOptions;
+end;
+
+
+procedure TCustomIniFile.SetOption(AIndex: TIniFileOption; AValue: Boolean);
+begin
+  if AIndex in [ifoStripComments,ifoStripInvalid] then
+    Raise Exception.Create('Flags ifoStripComments or ifoStripInvalid must be set/unset in the constructor');
+  if AValue then
+    Include(FOptions,AIndex)
+  else
+    Exclude(FOptions,AIndex)
+end;
+
+procedure TCustomIniFile.SetOptions(AValue: TIniFileOptions);
+begin
+  if FOptions=AValue then Exit;
+  FOptions:=AValue;
+end;
+
+constructor TCustomIniFile.Create(const AFileName: string; AOptions : TIniFileOptions = []);
 begin
   FFileName := AFileName;
   FSectionList := TIniFileSectionList.Create;
-  FEscapeLineFeeds := AEscapeLineFeeds;
+  FOptions:=AOptions;
   FormatSettings := DefaultFormatSettings;
   with FormatSettings do begin
     DecimalSeparator := '.';
@@ -526,6 +564,15 @@ begin
     ShortTimeFormat := 'hh:nn';
     LongTimeFormat := 'hh:nn:ss';
   end;
+end;
+
+constructor TCustomIniFile.Create(const AFileName: string;
+  AEscapeLineFeeds: Boolean);
+begin
+  if AEscapeLineFeeds then
+    Create(AFileName,[ifoEscapeLineFeeds])
+  else
+    Create(AFileName,[])
 end;
 
 destructor TCustomIniFile.Destroy;
@@ -584,7 +631,7 @@ end;
 function TCustomIniFile.ReadDate(const Section, Ident: string; Default: TDateTime): TDateTime;
 
 begin
-  if FFormatSettingsActive then begin
+  if FormatSettingsActive then begin
     if not TryStrToDate(ReadString(Section, Ident, ''), Result, FormatSettings) then
       Result := Default;
   end else
@@ -594,7 +641,7 @@ end;
 function TCustomIniFile.ReadDateTime(const Section, Ident: string; Default: TDateTime): TDateTime;
 
 begin
-  if FFormatSettingsActive then begin
+  if FormatSettingsActive then begin
     if not TryStrToDateTime(ReadString(Section, Ident, ''), Result, FormatSettings) then
       Result := Default;
   end else
@@ -604,7 +651,7 @@ end;
 function TCustomIniFile.ReadFloat(const Section, Ident: string; Default: Double): Double;
 
 begin
-  if FFormatSettingsActive then
+  if FormatSettingsActive then
     Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default, FormatSettings)
   else
     Result:=StrToFloatDef(ReadString(Section, Ident, ''),Default);
@@ -613,7 +660,7 @@ end;
 function TCustomIniFile.ReadTime(const Section, Ident: string; Default: TDateTime): TDateTime;
 
 begin
-  if FFormatSettingsActive then
+  if FormatSettingsActive then
     Result := StrToTimeDef(ReadString(Section, Ident, ''),Default, FormatSettings.TimeSeparator)
   else
     Result := StrToTimeDef(ReadString(Section, Ident, ''),Default);
@@ -621,7 +668,7 @@ end;
 
 procedure TCustomIniFile.WriteDate(const Section, Ident: string; Value: TDateTime);
 begin
-  if FFormatSettingsActive then
+  if FormatSettingsActive then
     WriteString(Section, Ident, DateToStr(Value, FormatSettings))
   else
     WriteString(Section, Ident, DateToStr(Value));
@@ -629,7 +676,7 @@ end;
 
 procedure TCustomIniFile.WriteDateTime(const Section, Ident: string; Value: TDateTime);
 begin
-  if FFormatSettingsActive then
+  if FormatSettingsActive then
     WriteString(Section, Ident, DateTimeToStr(Value, FormatSettings))
   else
     WriteString(Section, Ident, DateTimeToStr(Value));
@@ -637,7 +684,7 @@ end;
 
 procedure TCustomIniFile.WriteFloat(const Section, Ident: string; Value: Double);
 begin
-  if FFormatSettingsActive then
+  if FormatSettingsActive then
     WriteString(Section, Ident, FloatToStr(Value, FormatSettings))
   else
     WriteString(Section, Ident, FloatToStr(Value));
@@ -645,7 +692,7 @@ end;
 
 procedure TCustomIniFile.WriteTime(const Section, Ident: string; Value: TDateTime);
 begin
-  if FFormatSettingsActive then
+  if FormatSettingsActive then
     WriteString(Section, Ident, TimeToStr(Value, FormatSettings))
   else
     WriteString(Section, Ident, TimeToStr(Value));
@@ -698,7 +745,8 @@ begin
     end;
 end;
 
-procedure TCustomInifile.WriteBinaryStream(const Section, Name: string; Value: TStream);
+procedure TCustomIniFile.WriteBinaryStream(const Section, Name: string;
+  Value: TStream);
 
 
 Var
@@ -733,16 +781,54 @@ begin
   end;
 end;
 
+procedure TCustomIniFile.ReadSectionValues(const Section: string; Strings: TStrings; Options: TSectionValuesOptions);
+
+type
+  TOldSectionValues = Procedure (const Section: string; Strings: TStrings) of object;
+
+var
+  CurrSV,
+  TCustomSV: TOldSectionValues;
+  CurrClass   : TClass;
+
+begin
+  if (Options<>[]) then
+    Raise Exception.Create('Options not supported, options must be empty');
+  // Redirect calls to old implementation, if it is overridden.
+  CurrSV:=nil;
+  CurrClass:=Classtype;
+  while (CurrClass<>nil) and (CurrClass<>TCustomIniFile) do
+   CurrClass:=CurrClass.Classparent;
+  if CurrClass<>nil then
+    begin
+    CurrSV:=@Self.ReadSectionValues;
+    TCustomSV:=@TCustomIniFile(@CurrClass).ReadSectionValues;
+    if TMethod(TCustomSV).Code=TMethod(CurrSV).Code then
+      CurrSV:=nil;
+   end;
+  if Assigned(CurrSV) then
+    ReadSectionValues(Section,Strings)
+  else
+    Raise Exception.Create('ReadSectionValues not overridden');
+end;
+
+procedure TCustomIniFile.ReadSectionValues(const Section: string;
+  Strings: TStrings);
+begin
+  ReadSectionValues(Section,Strings,[]);
+end;
+
 { TIniFile }
 
-constructor TIniFile.Create(const AFileName: string; AEscapeLineFeeds : Boolean = False);
+
+constructor TIniFile.Create(const AFileName: string; AOptions : TIniFileOptions = []);
 var
   slLines: TStringList;
 begin
   FBOM := '';
   If Not (self is TMemIniFile) then
     StripQuotes:=True;
-  inherited Create(AFileName,AEscapeLineFeeds);
+  inherited Create(AFileName,AOptions);
   FStream := nil;
   slLines := TStringList.Create;
   try
@@ -757,12 +843,23 @@ begin
   end;
 end;
 
-constructor TIniFile.Create(AStream: TStream; AEscapeLineFeeds : Boolean = False);
+constructor TIniFile.Create(AStream: TStream; AEscapeLineFeeds : Boolean);
+
+begin
+  if AEscapeLineFeeds then
+    Create(AStream,[ifoEscapeLineFeeds])
+  else
+    Create(AStream,[]);
+end;
+
+constructor TIniFile.Create(AStream: TStream; AOptions : TIniFileOptions = []);
+
 var
   slLines: TStringList;
+
 begin
   FBOM := '';
-  inherited Create('',AEscapeLineFeeds);
+  inherited Create('',AOptions);
   FStream := AStream;
   slLines := TStringList.Create;
   try
@@ -818,10 +915,13 @@ var
     end;
   end;
 
+Var
+  addKey : Boolean;
+
 begin
   oSection := nil;
   FSectionList.Clear;
-  if FEscapeLineFeeds then
+  if EscapeLineFeeds then
     RemoveBackslashes;
   if (AStrings.Count > 0) and (copy(AStrings.Strings[0],1,Length(Utf8Bom)) = Utf8Bom) then
   begin
@@ -832,37 +932,51 @@ begin
     sLine := Trim(AStrings[i]);
     if sLine > '' then
       begin
-      if IsComment(sLine) and (oSection = nil) then begin
+      if IsComment(sLine) and (oSection = nil) then
+        begin
         // comment at the beginning of the ini file
-        oSection := TIniFileSection.Create(sLine);
-        FSectionList.Add(oSection);
+        if Not (ifoStripComments in Options) then
+          begin
+          oSection := TIniFileSection.Create(sLine);
+          FSectionList.Add(oSection);
+          end;
         continue;
-      end;
-      if (Copy(sLine, 1, 1) = Brackets[0]) and (Copy(sLine, length(sLine), 1) = Brackets[1]) then begin
+        end;
+      if (Copy(sLine, 1, 1) = Brackets[0]) and (Copy(sLine, length(sLine), 1) = Brackets[1]) then
+        begin
         // regular section
         oSection := TIniFileSection.Create(Copy(sLine, 2, Length(sLine) - 2));
         FSectionList.Add(oSection);
-      end else if oSection <> nil then begin
-        if IsComment(sLine) then begin
+        end
+      else if oSection <> nil then
+        begin
+        if IsComment(sLine) then
+          begin
+          AddKey:=Not (ifoStripComments in Options);
           // comment within a section
           sIdent := sLine;
           sValue := '';
-        end else begin
+          end
+        else
+          begin
           // regular key
           j:=Pos(Separator, sLine);
           if j=0 then
            begin
-             sIdent:='';
-             sValue:=sLine
+           AddKey:=Not (ifoStripInvalid in Options);
+           sIdent:='';
+           sValue:=sLine
            end
           else
            begin
-             sIdent:=Trim(Copy(sLine, 1,  j - 1));
-             sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
+           AddKey:=True;
+           sIdent:=Trim(Copy(sLine, 1,  j - 1));
+           sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
            end;
         end;
-        oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
-      end;
+        if AddKey then
+          oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
+        end;
       end;
   end;
 end;
@@ -982,31 +1096,49 @@ begin
   end;
 end;
 
-procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings);
+procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings; AOptions : TSectionValuesOptions = []);
 var
   oSection: TIniFileSection;
   s: string;
   i,J: integer;
+  KeyIsComment,IncludeComments,IncludeInvalid,DoStripQuotes : boolean;
+  K : TIniFileKey;
+
 begin
+  IncludeComments:=(svoIncludeComments in AOptions) Or (ifoStripComments in Options);
+  IncludeInvalid:=(svoIncludeInvalid in AOptions) Or (ifoStripInvalid in Options);
+  DoStripQuotes:=StripQuotes and Not (svoIncludeQuotes in AOptions);
   Strings.BeginUpdate;
   try
     Strings.Clear;
     oSection := FSectionList.SectionByName(Section,CaseSensitive);
-    if oSection <> nil then with oSection.KeyList do
-      for i := 0 to Count-1 do begin
-        s := Items[i].Value;
-      If StripQuotes then
+    if oSection = nil then
+      Exit;
+    for i := 0 to oSection.KeyList.Count-1 do
+      begin
+      K:=oSection.KeyList.Items[i];
+      if IncludeInvalid or (K.Ident<>'') then
         begin
-          J:=Length(s);
-          // Joost, 2-jan-2007: The check (J>1) is there for the case that
-          // the value consist of a single double-quote character. (see
-          // mantis bug 6555)
-          If (J>1) and ((s[1] in ['"','''']) and (s[J]=s[1])) then
-             s:=Copy(s,2,J-2);
+        s := K.Value;
+        KeyIsComment:=IsComment(K.Ident);
+        if IncludeComments Or Not KeyIsComment then
+          begin
+          If DoStripQuotes then
+            begin
+            J:=Length(s);
+            // Joost, 2-jan-2007: The check (J>1) is there for the case that
+            // the value consist of a single double-quote character. (see
+            // mantis bug 6555)
+            If (J>1) and ((s[1] in ['"','''']) and (s[J]=s[1])) then
+               s:=Copy(s,2,J-2);
+            end;
+          if KeyIsComment then
+            S:=K.Ident
+          else if k.ident<>'' then
+            s:=K.Ident+Separator+s;
+          Strings.Add(s);
+          end;
         end;
-        if Items[i].Ident<>'' then
-          s:=Items[i].Ident+Separator+s;
-        Strings.Add(s);
       end;
   finally
     Strings.EndUpdate;

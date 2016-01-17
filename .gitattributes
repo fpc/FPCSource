@@ -1988,6 +1988,7 @@ packages/fcl-base/examples/testcont.pp svneol=native#text/plain
 packages/fcl-base/examples/testexprpars.pp svneol=native#text/plain
 packages/fcl-base/examples/testez.pp svneol=native#text/plain
 packages/fcl-base/examples/testhres.pp svneol=native#text/plain
+packages/fcl-base/examples/testini.pp svneol=native#text/plain
 packages/fcl-base/examples/testipc_client.pp svneol=native#text/plain
 packages/fcl-base/examples/testipc_server.pp svneol=native#text/plain
 packages/fcl-base/examples/testmime.pp svneol=native#text/plain
