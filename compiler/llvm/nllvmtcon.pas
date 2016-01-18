@@ -62,8 +62,7 @@ interface
     end;
 
     tllvmtai_typedconstbuilder = class(ttai_typedconstbuilder)
-     protected type
-      public
+     public
        { set the default value for caggregateinformation (= tllvmaggregateinformation) }
        class constructor classcreate;
      protected
