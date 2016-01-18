@@ -1707,7 +1707,7 @@ implementation
         end;
       end;
 
-    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;var output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s  : byte;
