@@ -2473,7 +2473,7 @@ implementation
                 ) or
                 (
                   (
-                    not pd.is_specialization or
+                    not pd.is_specialization and
                     assigned(pd.owner)
                   ) and
                   (
