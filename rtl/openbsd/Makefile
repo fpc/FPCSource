@@ -3141,7 +3141,7 @@ x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
 ports$(PPUEXT) : $(UNIXINC)/ports.pp x86$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $<
-ifeq ($(ARCH),x86_64)
+ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $<
 else
