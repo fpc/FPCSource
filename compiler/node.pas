@@ -711,13 +711,18 @@ implementation
     function is_conststringnode(p : tnode) : boolean;
       begin
          is_conststringnode :=
-           (p.nodetype = stringconstn) and is_chararray(p.resultdef);
+           (p.nodetype = stringconstn) and
+           (is_chararray(p.resultdef) or
+            is_shortstring(p.resultdef) or
+            is_ansistring(p.resultdef));
       end;
 
     function is_constwidestringnode(p : tnode) : boolean;
       begin
          is_constwidestringnode :=
-           (p.nodetype = stringconstn) and is_widechararray(p.resultdef);
+           (p.nodetype = stringconstn) and
+           (is_widechararray(p.resultdef) or
+            is_wide_or_unicode_string(p.resultdef));
       end;
 
     function is_conststring_or_constcharnode(p : tnode) : boolean;
