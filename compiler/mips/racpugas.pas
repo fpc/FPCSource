@@ -96,32 +96,24 @@ Interface
 
 
     procedure TMipsReader.handledollar;
+      var
+        len: longint;
       begin
-        Inherited handledollar;
-        if (c in ['0'..'9','a'..'z']) then
+        len:=1;
+        actasmpattern[len]:='$';
+        c:=current_scanner.asmgetchar;
+        while c in ['A'..'Z','a'..'z','0'..'9'] do
           begin
-            Consume(AS_DOLLAR);
-            if (actasmtoken=AS_INTNUM) or (actasmtoken=AS_ID) then
-              begin
-                { Try to convert to std register }
-                if actasmtoken=AS_INTNUM then
-                  actasmregister:=gas_regnum_search('$'+actasmpattern)
-                else
-                  begin
-                    { AS_ID is uppercased by default but register names
-                      are lowercase }
-                    actasmpattern:=lower(actasmpattern);
-                    actasmregister:=gas_regnum_search(actasmpattern);
-                    if actasmregister=NR_NO then
-                      actasmregister:=std_regnum_search(actasmpattern);
-                  end;
-                if actasmregister<>NR_NO then
-                  begin
-                    // Consume(actasmtoken);
-                    actasmtoken:=AS_REGISTER;
-                  end;
-              end;
+            inc(len);
+            actasmpattern[len]:=c;
+            c:=current_scanner.asmgetchar;
           end;
+        actasmpattern[0]:=chr(len);
+        actasmpattern:=lower(actasmpattern);
+        actasmregister:=gas_regnum_search(actasmpattern);
+        if actasmregister=NR_NO then
+          actasmregister:=std_regnum_search(copy(actasmpattern,2,maxint));
+        actasmtoken:=AS_REGISTER;
       end;
 
 
