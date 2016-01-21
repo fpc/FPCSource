@@ -344,11 +344,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 LOADERS=prt0 dllprt0 cprt0 gprt0
 ifeq ($(ARCH),i386)
-ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
 override LOADERS=
-else
-override LOADERS+=cprt21 gprt21
-endif
 CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
