@@ -613,4 +613,9 @@ begin
       end;
 end;
 
+{$ifdef XMLREG}
+finalization
+  TXMLRegistryInstance.FreeXMLRegistryCache;
+{$endif}
+
 end.
