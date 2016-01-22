@@ -320,6 +320,55 @@ type
     property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
   end;
 
+  generic TFPGMapObject<TKey, TData> = class(TFPSMap)
+  private
+    type
+      TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
+      TDataCompareFunc = function(const Data1, Data2: TData): Integer;
+      PKey = ^TKey;
+// unsed      PData = ^TData;
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+      FOnKeyCompare: TKeyCompareFunc;
+      FOnDataCompare: TDataCompareFunc;
+      FFreeObjects: Boolean;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure CopyKey(Src, Dest: Pointer); override;
+    procedure CopyData(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    procedure InitOnPtrCompare; override;
+    function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
+    function KeyCompare(Key1, Key2: Pointer): Integer;
+    function KeyCustomCompare(Key1, Key2: Pointer): Integer;
+    //function DataCompare(Data1, Data2: Pointer): Integer;
+    function DataCustomCompare(Data1, Data2: Pointer): Integer;
+    procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+    procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
+  public
+    constructor Create(AFreeObjects: Boolean);
+    constructor Create;
+    function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOfData(const AData: TData): Integer;
+    procedure InsertKey(Index: Integer; const AKey: TKey);
+    procedure InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
+    function Remove(const AKey: TKey): Integer;
+    property Keys[Index: Integer]: TKey read GetKey write PutKey;
+    property Data[Index: Integer]: TData read GetData write PutData;
+    property KeyData[const AKey: TKey]: TData read GetKeyData write PutKeyData; default;
+    property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; //deprecated;
+    property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
+    property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
+  end;
+
   generic TFPGMapInterfacedObjectData<TKey, TData> = class(TFPSMap)
   private
     type
@@ -352,6 +401,8 @@ type
     function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    function TryGetData(const AKey: TKey; out AData: TData): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure AddOrSetData(const AKey: TKey; const AData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
@@ -1530,6 +1581,191 @@ begin
 end;
 
 {****************************************************************************
+                             TFPGMapObject
+ ****************************************************************************}
+
+constructor TFPGMapObject.Create(AFreeObjects: Boolean);
+begin
+  inherited Create(SizeOf(TKey), SizeOf(TData));
+  FFreeObjects := AFreeObjects;
+end;
+
+constructor TFPGMapObject.Create;
+begin
+  Create(True);
+end;
+
+procedure TFPGMapObject.CopyItem(Src, Dest: Pointer);
+begin
+  CopyKey(Src, Dest);
+  CopyData(PByte(Src)+KeySize, PByte(Dest)+KeySize);
+end;
+
+procedure TFPGMapObject.CopyKey(Src, Dest: Pointer);
+begin
+  TKey(Dest^) := TKey(Src^);
+end;
+
+procedure TFPGMapObject.CopyData(Src, Dest: Pointer);
+begin
+  if Assigned(Pointer(Dest^)) then
+    TData(Dest^).Free;
+  TData(Dest^) := TData(Src^);
+end;
+
+procedure TFPGMapObject.Deref(Item: Pointer);
+begin
+  Finalize(TKey(Item^));
+  if Assigned(PPointer(PByte(Item)+KeySize)^) and FFreeObjects then
+    TData(Pointer(PByte(Item)+KeySize)^).Free;
+end;
+
+function TFPGMapObject.GetKey(Index: Integer): TKey;
+begin
+  Result := TKey(inherited GetKey(Index)^);
+end;
+
+function TFPGMapObject.GetData(Index: Integer): TData;
+begin
+  Result := TData(inherited GetData(Index)^);
+end;
+
+function TFPGMapObject.GetKeyData(const AKey: TKey): TData;
+begin
+  Result := TData(inherited GetKeyData(@AKey)^);
+end;
+
+function TFPGMapObject.KeyCompare(Key1, Key2: Pointer): Integer;
+begin
+  if PKey(Key1)^ < PKey(Key2)^ then
+    Result := -1
+  else if PKey(Key1)^ > PKey(Key2)^ then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+{function TFPGMapObject.DataCompare(Data1, Data2: Pointer): Integer;
+begin
+  if PData(Data1)^ < PData(Data2)^ then
+    Result := -1
+  else if PData(Data1)^ > PData(Data2)^ then
+    Result := 1
+  else
+    Result := 0;
+end;}
+
+function TFPGMapObject.KeyCustomCompare(Key1, Key2: Pointer): Integer;
+begin
+  Result := FOnKeyCompare(TKey(Key1^), TKey(Key2^));
+end;
+
+function TFPGMapObject.DataCustomCompare(Data1, Data2: Pointer): Integer;
+begin
+  Result := FOnDataCompare(TData(Data1^), TData(Data2^));
+end;
+
+procedure TFPGMapObject.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+begin
+  FOnKeyCompare := NewCompare;
+  if NewCompare <> nil then
+    OnKeyPtrCompare := @KeyCustomCompare
+  else
+    OnKeyPtrCompare := @KeyCompare;
+end;
+
+procedure TFPGMapObject.SetOnDataCompare(NewCompare: TDataCompareFunc);
+begin
+  FOnDataCompare := NewCompare;
+  if NewCompare <> nil then
+    OnDataPtrCompare := @DataCustomCompare
+  else
+    OnDataPtrCompare := nil;
+end;
+
+procedure TFPGMapObject.InitOnPtrCompare;
+begin
+  SetOnKeyCompare(nil);
+  SetOnDataCompare(nil);
+end;
+
+procedure TFPGMapObject.PutKey(Index: Integer; const NewKey: TKey);
+begin
+  inherited PutKey(Index, @NewKey);
+end;
+
+procedure TFPGMapObject.PutData(Index: Integer; const NewData: TData);
+begin
+  inherited PutData(Index, @NewData);
+end;
+
+procedure TFPGMapObject.PutKeyData(const AKey: TKey; const NewData: TData);
+begin
+  inherited PutKeyData(@AKey, @NewData);
+end;
+
+function TFPGMapObject.Add(const AKey: TKey): Integer;
+begin
+  Result := inherited Add(@AKey);
+end;
+
+function TFPGMapObject.Add(const AKey: TKey; const AData: TData): Integer;
+begin
+  Result := inherited Add(@AKey, @AData);
+end;
+
+function TFPGMapObject.Find(const AKey: TKey; out Index: Integer): Boolean;
+begin
+  Result := inherited Find(@AKey, Index);
+end;
+
+function TFPGMapObject.TryGetData(const AKey: TKey; out AData: TData): Boolean;
+var
+  I: Integer;
+begin
+  Result := inherited Find(@AKey, I);
+  if Result then
+    AData := TData(inherited GetData(I)^)
+  else
+{$IFDEF VER2_6}
+    FillChar(AData,SizeOf(TData),0);
+{$ELSE}
+    AData := Default(TData);
+{$ENDIF}
+end;
+
+procedure TFPGMapObject.AddOrSetData(const AKey: TKey; const AData: TData);
+begin
+  inherited PutKeyData(@AKey, @AData);
+end;
+
+function TFPGMapObject.IndexOf(const AKey: TKey): Integer;
+begin
+  Result := inherited IndexOf(@AKey);
+end;
+
+function TFPGMapObject.IndexOfData(const AData: TData): Integer;
+begin
+  { TODO: loop ? }
+  Result := inherited IndexOfData(@AData);
+end;
+
+procedure TFPGMapObject.InsertKey(Index: Integer; const AKey: TKey);
+begin
+  inherited InsertKey(Index, @AKey);
+end;
+
+procedure TFPGMapObject.InsertKeyData(Index: Integer; const AKey: TKey; const AData: TData);
+begin
+  inherited InsertKeyData(Index, @AKey, @AData);
+end;
+
+function TFPGMapObject.Remove(const AKey: TKey): Integer;
+begin
+  Result := inherited Remove(@AKey);
+end;
+
+{****************************************************************************
                              TFPGMapInterfacedObjectData
  ****************************************************************************}
 
@@ -1662,6 +1898,27 @@ end;
 function TFPGMapInterfacedObjectData.Find(const AKey: TKey; out Index: Integer): Boolean;
 begin
   Result := inherited Find(@AKey, Index);
+end;
+
+function TFPGMapInterfacedObjectData.TryGetData(const AKey: TKey; out AData: TData): Boolean;
+var
+  I: Integer;
+begin
+  Result := inherited Find(@AKey, I);
+  if Result then
+    AData := TData(inherited GetData(I)^)
+  else
+{$IFDEF VER2_6}
+    FillChar(AData,SizeOf(TData),0);
+{$ELSE}
+    AData := Default(TData);
+{$ENDIF}
+end;
+
+procedure TFPGMapInterfacedObjectData.AddOrSetData(const AKey: TKey;
+  const AData: TData);
+begin
+  inherited PutKeyData(@AKey, @AData);
 end;
 
 function TFPGMapInterfacedObjectData.IndexOf(const AKey: TKey): Integer;
