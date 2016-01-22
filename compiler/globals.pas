@@ -523,6 +523,7 @@ interface
 
     procedure InitGlobals;
     procedure DoneGlobals;
+    procedure register_initdone_proc(init,done:tprocedure);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
@@ -1349,8 +1350,70 @@ implementation
 
 
 
+   type
+     tinitdoneentry=record
+       init:tprocedure;
+       done:tprocedure;
+     end;
+     pinitdoneentry=^tinitdoneentry;
+
+
+   var
+     initdoneprocs : TFPList;
+
+
+   procedure register_initdone_proc(init,done:tprocedure);
+     var
+       entry : pinitdoneentry;
+     begin
+       new(entry);
+       entry^.init:=init;
+       entry^.done:=done;
+       initdoneprocs.add(entry);
+     end;
+
+
+   procedure callinitprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(init) then
+             init();
+     end;
+
+
+   procedure calldoneprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(done) then
+             done();
+     end;
+
+
+   procedure allocinitdoneprocs;
+     begin
+       initdoneprocs:=tfplist.create;
+     end;
+
+
+   procedure freeinitdoneprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         dispose(pinitdoneentry(initdoneprocs[i]));
+       initdoneprocs.free;
+     end;
+
+
    procedure DoneGlobals;
      begin
+       calldoneprocs;
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1434,6 +1497,12 @@ implementation
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
+
+        callinitprocs;
      end;
 
+initialization
+  allocinitdoneprocs;
+finalization
+  freeinitdoneprocs;
 end.
