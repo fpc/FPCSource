@@ -1084,7 +1084,6 @@ var
 
 begin
   result := -1;
-  counter:=0;
   TerminateSentCount:=0;
 
   P := TProcess.Create(nil);
@@ -1094,6 +1093,13 @@ begin
     P.InheritHandles:=(execinheritshandles in flags);
 
     P.Execute;
+{$ifdef Windows}
+    WaitForSingleObject(P.ProcessHandle,max_count);
+    counter:=max_count;
+{$else not Windows}
+    counter:=0;
+{$endif not Windows}
+
     while P.Running do
       begin
         if counter>max_count then
