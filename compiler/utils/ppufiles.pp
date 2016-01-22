@@ -150,7 +150,7 @@ begin
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  if inppu.GetPPUVersion<CurrentPPUVersion then
+  if inppu.getversion<CurrentPPUVersion then
    begin
      inppu.free;
      Error('Error: Wrong PPU Version : '+PPUFn,false);

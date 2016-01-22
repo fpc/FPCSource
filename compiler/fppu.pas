@@ -210,9 +210,9 @@ var
            exit;
          end;
       { check for allowed PPU versions }
-        if not (ppufile.GetPPUVersion = CurrentPPUVersion) then
+        if not (ppufile.getversion = CurrentPPUVersion) then
          begin
-           Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion),@queuecomment);
+           Message1(unit_u_ppu_invalid_version,tostr(ppufile.getversion),@queuecomment);
            ppufile.free;
            ppufile:=nil;
            exit;

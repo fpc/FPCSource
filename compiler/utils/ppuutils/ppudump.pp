@@ -3656,7 +3656,7 @@ begin
      exit;
    end;
 { Check PPU Version }
-  ppuversion:=ppufile.GetPPUVersion;
+  ppuversion:=ppufile.getversion;
 
   Writeln(['Analyzing ',filename,' (v',PPUVersion,')']);
   if PPUVersion<16 then

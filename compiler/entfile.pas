@@ -225,6 +225,7 @@ type
     error         : boolean;
     constructor create(const fn:string);
     destructor  destroy;override;
+    function getversion:integer;
     procedure flush;
     procedure closefile;virtual;
     procedure newentry;
@@ -326,6 +327,19 @@ begin
     freemem(buf,entryfilebufsize);
 end;
 
+function tentryfile.getversion:integer;
+  var
+    l    : integer;
+    code : integer;
+    header : pentryheader;
+  begin
+    header:=getheaderaddr;
+    Val(header^.ver[1]+header^.ver[2]+header^.ver[3],l,code);
+    if code=0 then
+     result:=l
+    else
+     result:=0;
+  end;
 
 procedure tentryfile.flush;
 begin

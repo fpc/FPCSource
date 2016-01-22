@@ -132,7 +132,6 @@ type
     constructor Create(const fn:string);
     procedure closefile;override;
     function  CheckPPUId:boolean;
-    function  GetPPUVersion:integer;
   {read}
   { nothing special currently }
   {write}
@@ -193,19 +192,6 @@ begin
   CheckPPUId:=((Header.common.Id[1]='P') and
                 (Header.common.Id[2]='P') and
                 (Header.common.Id[3]='U'));
-end;
-
-
-function tppufile.GetPPUVersion:integer;
-var
-  l    : integer;
-  code : integer;
-begin
-  Val(header.common.ver[1]+header.common.ver[2]+header.common.ver[3],l,code);
-  if code=0 then
-   GetPPUVersion:=l
-  else
-   GetPPUVersion:=0;
 end;
 
 
