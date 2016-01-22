@@ -8925,7 +8925,6 @@ rtl/linux/fpmake.inc svneol=native#text/plain
 rtl/linux/i386/bsyscall.inc svneol=native#text/plain
 rtl/linux/i386/si_c.inc svneol=native#text/plain
 rtl/linux/i386/si_c21.inc svneol=native#text/plain
-rtl/linux/i386/si_c21g.inc svneol=native#text/plain
 rtl/linux/i386/si_dll.inc svneol=native#text/plain
 rtl/linux/i386/si_g.inc svneol=native#text/plain
 rtl/linux/i386/si_prc.inc svneol=native#text/plain
