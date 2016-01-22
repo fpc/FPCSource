@@ -185,7 +185,7 @@ begin
   if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
+      duplicatesymbol(hp.name^);
       exit;
     end;
   if hp2=texported_item(current_module._exports.first) then

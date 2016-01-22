@@ -681,7 +681,7 @@ implementation
             if hp2.name^=hp.name^ then
               begin
                 { this is not allowed !! }
-                message1(parser_e_export_name_double,hp.name^);
+                duplicatesymbol(hp.name^);
                 exit;
               end;
             current_module._exports.insertbefore(hp,hp2);
