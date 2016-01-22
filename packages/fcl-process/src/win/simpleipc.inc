@@ -17,7 +17,7 @@
 uses Windows,messages,contnrs;
 
 const
-  MsgWndClassName: PChar = 'FPCMsgWindowCls';
+  MsgWndClassName: WideString = 'FPCMsgWindowCls';
 
 resourcestring
   SErrFailedToRegisterWindowClass = 'Failed to register message window class';
@@ -25,7 +25,7 @@ resourcestring
   SErrMessageQueueOverflow = 'Message queue overflow (limit %s)';
 
 var
-  MsgWindowClass: TWndClassA = (
+  MsgWindowClass: TWndClassW = (
     style: 0;
     lpfnWndProc: nil;
     cbClsExtra: 0;
@@ -75,7 +75,7 @@ type
     FWndProcException: Boolean;
     FWndProcExceptionMsg: String;
     FMsgQueue: TWinMsgServerMsgQueue;
-    function AllocateHWnd(const aWindowName : String) : HWND;
+    function AllocateHWnd(const aWindowName: WideString) : HWND;
     procedure ProcessMessages;
     procedure ProcessMessagesWait(TimeOut: Integer);
     procedure HandlePostedMessage(const Msg: TMsg); inline;
@@ -222,7 +222,7 @@ begin
   end
   else
   begin
-    Result:=DefWindowProc(Window,uMsg,wParam,lParam);
+    Result:=DefWindowProcW(Window,uMsg,wParam,lParam);
   end;
 end;
 
@@ -230,20 +230,20 @@ end;
     TWinMsgServerComm
   ---------------------------------------------------------------------}
 
-function TWinMsgServerComm.AllocateHWnd(const aWindowName: String): HWND;
+function TWinMsgServerComm.AllocateHWnd(const aWindowName: WideString): HWND;
 var
-  cls: TWndClassA;
+  cls: TWndClassW;
   isreg : Boolean;
 begin
-  Pointer(MsgWindowClass.lpfnWndProc):=@MsgWndProc;
+  MsgWindowClass.lpfnWndProc:=@MsgWndProc;
   MsgWindowClass.hInstance := HInstance;
-  MsgWindowClass.lpszClassName:=MsgWndClassName;
-  isreg:=GetClassInfoA(HInstance,MsgWndClassName,cls);
+  MsgWindowClass.lpszClassName:=PWideChar(MsgWndClassName);
+  isreg:=GetClassInfoW(HInstance,PWideChar(MsgWndClassName),@cls);
   if not isreg then
-    if (Windows.RegisterClassA(MsgWindowClass)=0) then
+    if (Windows.RegisterClassW(MsgWindowClass)=0) then
       Owner.DoError(SErrFailedToRegisterWindowClass,[]);
-  Result:=CreateWindowExA(WS_EX_TOOLWINDOW, MsgWndClassName,
-    PChar(aWindowName), WS_POPUP {!0}, 0, 0, 0, 0, 0, 0, HInstance, nil);
+  Result:=CreateWindowExW(WS_EX_TOOLWINDOW, PWideChar(MsgWndClassName),
+    PWideChar(aWindowName), WS_POPUP {!0}, 0, 0, 0, 0, 0, 0, HInstance, nil);
   if (Result=0) then
     Owner.DoError(SErrFailedToCreateWindow,[aWindowName]);
   SetWindowLongPtr(Result,GWL_USERDATA,PtrInt(Self));
@@ -270,7 +270,7 @@ end;
 procedure TWinMsgServerComm.StartServer;
 begin
   StopServer;
-  FHWND := AllocateHWND(FWindowName);
+  FHWND := AllocateHWND(WideString(FWindowName));
 end;
 
 procedure TWinMsgServerComm.StopServer;
@@ -341,7 +341,7 @@ procedure TWinMsgServerComm.ProcessMessagesWait(TimeOut: Integer);
 var
   Msg: TMsg;
   TimerID: UINT_PTR;
-  GetMessageReturn: BOOL;
+  GetMessageResult: BOOL;
 begin
   // Not allowed to wait.
   if TimeOut = 0 then
@@ -362,8 +362,8 @@ begin
       // message is available for retrieval. Note: WM_COPYDATA will not actually
       // wake up Windows.GetMessage, so we must post a dummy message when
       // we receive WM_COPYDATA inside of WindowProc.
-      GetMessageReturn := GetMessage(Msg, FHWND, 0, 0);
-      case LongInt(GetMessageReturn) of
+      GetMessageResult := Windows.GetMessage(Msg, FHWND, 0, 0);
+      case LongInt(GetMessageResult) of
         -1, 0: ;
         else HandlePostedMessage(Msg);
       end;
@@ -458,6 +458,7 @@ Type
     FWindowName: String;
     FHWND : HWND;
     function FindServerWindow: HWND;
+    function FindServerWindow(const aWindowName: WideString): HWND;
   Public
     Constructor Create(AOWner : TSimpleIPCClient); override;
     Procedure Connect; override;
@@ -478,7 +479,12 @@ end;
 
 function TWinMsgClientComm.FindServerWindow: HWND;
 begin
-  Result := FindWindowA(MsgWndClassName,PChar(FWindowName));
+  Result := FindServerWindow(WideString(FWindowName));
+end;
+
+function TWinMsgClientComm.FindServerWindow(const aWindowName: WideString): HWND;
+begin
+  Result := FindWindowW(PWideChar(MsgWndClassName), PWideChar(aWindowName));
 end;
 
 procedure TWinMsgClientComm.Connect;
