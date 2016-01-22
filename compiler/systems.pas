@@ -148,7 +148,10 @@ interface
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
             tf_cld,
             { indicates that the default value of the ts_x86_far_procs_push_odd_bp target switch is 'on' for this target }
-            tf_x86_far_procs_push_odd_bp
+            tf_x86_far_procs_push_odd_bp,
+            { indicates that this target can use dynamic packages otherwise an
+              error will be generated if a package file is compiled }
+            tf_supports_packages
        );
 
        psysteminfo = ^tsysteminfo;

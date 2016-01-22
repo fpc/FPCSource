@@ -413,7 +413,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTER
 #
 # Parser
 #
-# 03343 is the last used one
+# 03344 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1544,6 +1544,9 @@ parser_e_no_genfuncs_in_interfaces=03342_E_Generic methods are not allowed in in
 parser_e_genfuncs_cannot_be_virtual=03343_E_Generic methods can not be virtual
 % Generic methods can not be declared as virtual as there'd need to be a VMT entry for each
 % specialization. This is however not possible with a static VMT.
+parser_e_packages_not_supported=03344_E_Dynamic packages not supported for target OS
+% Support for dynamic packages is not implemented for the specified target OS
+% or it is at least not tested and thus disabled.
 %
 %
 % \end{description}

@@ -1666,6 +1666,9 @@ type
          init_procinfo:=nil;
          finalize_procinfo:=nil;}
 
+         if not (tf_supports_packages in target_info.flags) then
+           message1(parser_e_packages_not_supported,target_info.name);
+
          if not RelocSectionSetExplicitly then
            RelocSection:=true;
 
