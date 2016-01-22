@@ -41,7 +41,7 @@ implementation
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,ngenutil,
        nbas,nutils,ncgutil,
-       link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
+       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
        objcgutl,
@@ -1475,28 +1475,28 @@ type
            Exit;
          end;
       { No .o file generated for this ppu, just skip }
-        if (inppu.header.flags and uf_no_link)<>0 then
+        if (inppu.header.common.flags and uf_no_link)<>0 then
          begin
            inppu.free;
            Result:=true;
            Exit;
          end;
       { Already a lib? }
-        if (inppu.header.flags and uf_in_library)<>0 then
+        if (inppu.header.common.flags and uf_in_library)<>0 then
          begin
            inppu.free;
            Comment(V_Error,'PPU is already in a library : '+PPUFn);
            Exit;
          end;
       { We need a static linked unit }
-        if (inppu.header.flags and uf_static_linked)=0 then
+        if (inppu.header.common.flags and uf_static_linked)=0 then
          begin
            inppu.free;
            Comment(V_Error,'PPU is not static linked : '+PPUFn);
            Exit;
          end;
       { Check if shared is allowed }
-        if tsystem(inppu.header.target) in [system_i386_go32v2] then
+        if tsystem(inppu.header.common.target) in [system_i386_go32v2] then
          begin
            Comment(V_Error,'Shared library not supported for ppu target, switching to static library');
            MakeStatic:=true;
@@ -1509,11 +1509,11 @@ type
         outppu.createfile;
       { Create new header, with the new flags }
         outppu.header:=inppu.header;
-        outppu.header.flags:=outppu.header.flags or uf_in_library;
+        outppu.header.common.flags:=outppu.header.common.flags or uf_in_library;
         if MakeStatic then
-         outppu.header.flags:=outppu.header.flags or uf_static_linked
+         outppu.header.common.flags:=outppu.header.common.flags or uf_static_linked
         else
-         outppu.header.flags:=outppu.header.flags or uf_shared_linked;
+         outppu.header.common.flags:=outppu.header.common.flags or uf_shared_linked;
       { read until the object files are found }
         untilb:=iblinkunitofiles;
         repeat

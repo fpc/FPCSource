@@ -118,7 +118,8 @@ uses
   scanner,
   aasmbase,ogbase,
   parser,
-  comphook;
+  comphook,
+  entfile;
 
 
 var
@@ -217,7 +218,7 @@ var
            exit;
          end;
       { check the target processor }
-        if tsystemcpu(ppufile.header.cpu)<>target_cpu then
+        if tsystemcpu(ppufile.header.common.cpu)<>target_cpu then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -225,7 +226,7 @@ var
            exit;
          end;
       { check target }
-        if tsystem(ppufile.header.target)<>target_info.system then
+        if tsystem(ppufile.header.common.target)<>target_info.system then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -234,7 +235,7 @@ var
          end;
 {$ifdef i8086}
       { check i8086 memory model flags }
-        if ((ppufile.header.flags and uf_i8086_far_code)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_far_code)<>0) xor
             (current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge]) then
          begin
            ppufile.free;
@@ -242,7 +243,7 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
-        if ((ppufile.header.flags and uf_i8086_far_data)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_far_data)<>0) xor
             (current_settings.x86memorymodel in [mm_compact,mm_large]) then
          begin
            ppufile.free;
@@ -250,7 +251,7 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
-        if ((ppufile.header.flags and uf_i8086_huge_data)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_huge_data)<>0) xor
             (current_settings.x86memorymodel=mm_huge) then
          begin
            ppufile.free;
@@ -258,7 +259,7 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
-        if ((ppufile.header.flags and uf_i8086_cs_equals_ds)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_cs_equals_ds)<>0) xor
             (current_settings.x86memorymodel=mm_tiny) then
          begin
            ppufile.free;
@@ -270,7 +271,7 @@ var
 {$ifdef cpufpemu}
        { check if floating point emulation is on?
          fpu emulation isn't unit levelwise because it affects calling convention }
-       if ((ppufile.header.flags and uf_fpu_emulation)<>0) xor
+       if ((ppufile.header.common.flags and uf_fpu_emulation)<>0) xor
             (cs_fp_emulation in current_settings.moduleswitches) then
          begin
            ppufile.free;
@@ -281,7 +282,7 @@ var
 {$endif cpufpemu}
 
       { Load values to be access easier }
-        flags:=ppufile.header.flags;
+        flags:=ppufile.header.common.flags;
         crc:=ppufile.header.checksum;
         interface_crc:=ppufile.header.interface_checksum;
         indirect_crc:=ppufile.header.indirect_checksum;
@@ -1243,14 +1244,14 @@ var
          { flush to be sure }
          ppufile.flush;
          { create and write header }
-         ppufile.header.size:=ppufile.size;
+         ppufile.header.common.size:=ppufile.size;
          ppufile.header.checksum:=ppufile.crc;
          ppufile.header.interface_checksum:=ppufile.interface_crc;
          ppufile.header.indirect_checksum:=ppufile.indirect_crc;
-         ppufile.header.compiler:=wordversion;
-         ppufile.header.cpu:=word(target_cpu);
-         ppufile.header.target:=word(target_info.system);
-         ppufile.header.flags:=flags;
+         ppufile.header.common.compiler:=wordversion;
+         ppufile.header.common.cpu:=word(target_cpu);
+         ppufile.header.common.target:=word(target_info.system);
+         ppufile.header.common.flags:=flags;
          ppufile.header.deflistsize:=current_module.deflist.count;
          ppufile.header.symlistsize:=current_module.symlist.count;
          ppufile.writeheader;
@@ -1349,14 +1350,14 @@ var
 
          { create and write header, this will only be used
            for debugging purposes }
-         ppufile.header.size:=ppufile.size;
+         ppufile.header.common.size:=ppufile.size;
          ppufile.header.checksum:=ppufile.crc;
          ppufile.header.interface_checksum:=ppufile.interface_crc;
          ppufile.header.indirect_checksum:=ppufile.indirect_crc;
-         ppufile.header.compiler:=wordversion;
-         ppufile.header.cpu:=word(target_cpu);
-         ppufile.header.target:=word(target_info.system);
-         ppufile.header.flags:=flags;
+         ppufile.header.common.compiler:=wordversion;
+         ppufile.header.common.cpu:=word(target_cpu);
+         ppufile.header.common.target:=word(target_info.system);
+         ppufile.header.common.flags:=flags;
          ppufile.writeheader;
 
          ppufile.closefile;
@@ -1391,7 +1392,7 @@ var
               if (pu.u.interface_crc<>pu.interface_checksum) or
                  (pu.u.indirect_crc<>pu.indirect_checksum) or
                  (
-                  ((ppufile.header.flags and uf_release)=0) and
+                  ((ppufile.header.common.flags and uf_release)=0) and
                   (pu.u.crc<>pu.checksum)
                  ) then
                begin

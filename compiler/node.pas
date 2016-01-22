@@ -497,7 +497,7 @@ interface
 implementation
 
     uses
-       verbose,ppu,comphook,
+       verbose,entfile,comphook,
        symconst,
        nutils,nflw,
        defutil;

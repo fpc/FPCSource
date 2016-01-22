@@ -28,9 +28,7 @@ interface
        { common }
        cutils,cclasses,globtype,tokens,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,
-       { ppu }
-       ppu;
+       symconst,symbase,symtype,symdef,symsym;
 
 
 {****************************************************************************
@@ -438,7 +436,9 @@ implementation
       { module }
       fmodule,
       { codegen }
-      procinfo
+      procinfo,
+      { ppu }
+      entfile
       ;
 
 

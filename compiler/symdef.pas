@@ -1194,7 +1194,8 @@ implementation
       fmodule,
       { other }
       gendef,
-      fpccrc
+      fpccrc,
+      entfile
       ;
 
 {****************************************************************************

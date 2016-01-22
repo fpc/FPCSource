@@ -497,7 +497,9 @@ implementation
        aasmtai,aasmdata,
        { codegen }
        paramgr,
-       procinfo
+       procinfo,
+       { ppu }
+       entfile
        ;
 
 {****************************************************************************

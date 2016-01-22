@@ -22,7 +22,7 @@ Program ppufiles;
 
 uses
   dos,
-  ppu;
+  ppu,entfile;
 
 const
   Version   = 'Version 1.00';
