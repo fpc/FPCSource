@@ -1164,7 +1164,9 @@ type
                  init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
                  init_procinfo.generate_code;
                  current_module.flags:=current_module.flags or uf_init;
-               end;
+               end
+             else
+               release_proc_symbol(init_procinfo.procdef);
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
@@ -1177,7 +1179,9 @@ type
                  finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
                  finalize_procinfo.generate_code;
                  current_module.flags:=current_module.flags or uf_finalize;
-               end;
+               end
+             else
+               release_proc_symbol(finalize_procinfo.procdef);
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
            end;

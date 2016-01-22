@@ -905,7 +905,7 @@ implementation
           list.concatlist(tcb.get_final_asmlist(
             current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
             rec_tguid,
-            sec_rodata_norel,
+            sec_rodata,
             s,
             const_align(sizeof(pint))));
           tcb.free;
@@ -916,7 +916,7 @@ implementation
       list.concatlist(tcb.get_final_asmlist(
         current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
         def,
-        sec_rodata_norel,
+        sec_rodata,
         s,
         sizeof(pint)));
       tcb.free;

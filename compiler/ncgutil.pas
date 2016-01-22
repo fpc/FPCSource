@@ -76,6 +76,7 @@ interface
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
+    procedure release_proc_symbol(pd:tprocdef);
     procedure gen_proc_entry_code(list:TAsmList);
     procedure gen_proc_exit_code(list:TAsmList);
     procedure gen_stack_check_size_para(list:TAsmList);
@@ -1360,6 +1361,22 @@ implementation
               current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION);
            item := TCmdStrListItem(item.next);
          end;
+      end;
+
+
+    procedure release_proc_symbol(pd:tprocdef);
+      var
+        idx : longint;
+        item : TCmdStrListItem;
+      begin
+        item:=TCmdStrListItem(pd.aliasnames.first);
+        while assigned(item) do
+          begin
+            idx:=current_asmdata.AsmSymbolDict.findindexof(item.str);
+            if idx>=0 then
+              current_asmdata.AsmSymbolDict.Delete(idx);
+            item:=TCmdStrListItem(item.next);
+          end;
       end;
 
 
