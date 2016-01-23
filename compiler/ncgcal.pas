@@ -625,7 +625,14 @@ implementation
                begin
                  { don't release the funcret temp }
                  if not(assigned(ppn.parasym)) or
-                    not(vo_is_funcret in ppn.parasym.varoptions) then
+                    not(
+                      (vo_is_funcret in ppn.parasym.varoptions) or
+                      (
+                        (vo_is_self in ppn.parasym.varoptions) and
+                        (procdefinition.proctypeoption=potype_constructor) and
+                        (ppn.parasym.vardef.typ<>objectdef)
+                      )
+                    )then
                    location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
                  { process also all nodes of an array of const }
                  hp:=ppn.left;
