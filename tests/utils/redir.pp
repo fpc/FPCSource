@@ -1093,12 +1093,17 @@ begin
     P.InheritHandles:=(execinheritshandles in flags);
 
     P.Execute;
+{$ifdef VER3_0}
 {$ifdef Windows}
     WaitForSingleObject(P.ProcessHandle,max_count);
     counter:=max_count;
 {$else not Windows}
     counter:=0;
 {$endif not Windows}
+{$else}
+    P.WaitForExit(max_count);
+    counter:=max_count;
+{$endif}
 
     while P.Running do
       begin
