@@ -87,6 +87,13 @@
      end;
   PPoint = ^TPoint;
 
+  TSplitRectType = (
+    srLeft,
+    srRight,
+    srTop,
+    srBottom
+  );
+
   { TRect }
 
   TRect =
@@ -100,9 +107,46 @@
        function  getSize: TSize;
        function  getWidth : Longint; inline;
        procedure setHeight(AValue: Longint);
-       procedure setLocation(AValue: TPoint);
        procedure setSize(AValue: TSize);
        procedure setWidth (AValue: Longint);
+     public
+{$IFDEF VER3_0_0}
+       class function Create(Origin: TPoint): TRect; static; // empty rect at given origin
+       class function Create(Origin: TPoint; AWidth, AHeight: Longint): TRect; static;
+       class function Create(ALeft, ATop, ARight, ABottom: Longint): TRect; static;   
+       class function Create(P1, P2: TPoint; Normalize: Boolean = False): TRect; static;
+       class function Create(R: TRect; Normalize: Boolean = False): TRect; static;
+{$ELSE}       
+       constructor Create(Origin: TPoint); // empty rect at given origin
+       constructor Create(Origin: TPoint; AWidth, AHeight: Longint);
+       constructor Create(ALeft, ATop, ARight, ABottom: Longint);
+       constructor Create(P1, P2: TPoint; Normalize: Boolean = False);
+       constructor Create(R: TRect; Normalize: Boolean = False);
+{$ENDIF}       
+       class operator = (L, R: TRect): Boolean;
+       class operator <> (L, R: TRect): Boolean;
+       class operator + (L, R: TRect): TRect; // union
+       class operator * (L, R: TRect): TRect; // intersection
+       class function Empty: TRect; static;
+       procedure NormalizeRect;
+       function IsEmpty: Boolean;
+       function Contains(Pt: TPoint): Boolean;
+       function Contains(R: TRect): Boolean;
+       function IntersectsWith(R: TRect): Boolean;
+       class function Intersect(R1: TRect; R2: TRect): TRect; static;
+       procedure Intersect(R: TRect);
+       class function Union(R1, R2: TRect): TRect; static;
+       procedure Union(R: TRect);
+       class function Union(const Points: array of TPoint): TRect; static;
+       procedure Offset(DX, DY: Longint);
+       procedure Offset(DP: TPoint);
+       procedure SetLocation(X, Y: Longint);
+       procedure SetLocation(P: TPoint);
+       procedure Inflate(DX, DY: Longint);
+       procedure Inflate(DL, DT, DR, DB: Longint);
+       function CenterPoint: TPoint;
+       function SplitRect(SplitType: TSplitRectType; ASize: Longint): TRect;
+       function SplitRect(SplitType: TSplitRectType; Percent: Double): TRect;
      public
        property Height: Longint read getHeight write setHeight;
        property Width : Longint read getWidth  write setWidth;
