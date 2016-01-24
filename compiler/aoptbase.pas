@@ -293,8 +293,7 @@ unit aoptbase;
 
   function TAoptBase.RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean;
     begin
-      { save approximation }
-      Result:=true;
+      internalerror(2016012401);
     end;
 
 
