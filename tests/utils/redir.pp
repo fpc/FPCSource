@@ -1101,7 +1101,7 @@ begin
     counter:=0;
 {$endif not Windows}
 {$else}
-    P.WaitForExit(max_count);
+    P.WaitOnExit(max_count);
     counter:=max_count;
 {$endif}
 
