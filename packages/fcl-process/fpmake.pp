@@ -29,6 +29,7 @@ begin
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);
+    P.IncludePath.Add('src/winall',AllWindowsOSes);
     P.IncludePath.Add('src/win',[win32,win64]);
     P.IncludePath.Add('src/amicommon',AllAmigaLikeOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-[win32,win64]-AllUnixOSes-AllAmigaLikeOSes);
