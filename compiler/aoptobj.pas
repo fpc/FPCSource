@@ -315,6 +315,10 @@ Unit AoptObj;
         { reg used after p? }
         function RegUsedAfterInstruction(reg: Tregister; p: tai; var AllUsedRegs: TAllUsedRegs): Boolean;
 
+        { returns true if reg reaches it's end of life at p, this means it is either
+          reloaded with a new value or it is deallocated afterwards }
+        function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
+
        { traces sucessive jumps to their final destination and sets it, e.g.
          je l1                je l3
          <code>               <code>
@@ -1117,15 +1121,25 @@ Unit AoptObj;
        End;
 
 
-      function TAOptObj.RegUsedAfterInstruction(reg: Tregister; p: tai;
-       var AllUsedRegs: TAllUsedRegs): Boolean;
-       begin
-         AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
-         RegUsedAfterInstruction :=
-           (AllUsedRegs[getregtype(reg)].IsUsed(reg)); { optimization and
-              (not(getNextInstruction(p,p)) or
-               not(regLoadedWithNewValue(supreg,false,p))); }
-       end;
+    function TAOptObj.RegUsedAfterInstruction(reg: Tregister; p: tai;var AllUsedRegs: TAllUsedRegs): Boolean;
+      begin
+        AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
+        RegUsedAfterInstruction :=
+          AllUsedRegs[getregtype(reg)].IsUsed(reg) and
+          not(regLoadedWithNewValue(reg,p)) and
+          (
+            not(GetNextInstruction(p,p)) or
+            InstructionLoadsFromReg(reg,p) or
+            not(regLoadedWithNewValue(reg,p))
+          );
+      end;
+
+
+    function TAOptObj.RegEndOfLife(reg : TRegister;p : taicpu) : boolean;
+      begin
+         Result:=assigned(FindRegDealloc(reg,tai(p.Next))) or
+           RegLoadedWithNewValue(reg,p);
+      end;
 
 
     function SkipLabels(hp: tai; var hp2: tai): boolean;

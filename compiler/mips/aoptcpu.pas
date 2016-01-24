@@ -42,6 +42,8 @@ unit aoptcpu;
         function TryRemoveMovBeforeStore(var p: tai; next: taicpu; const storeops: TAsmOpSet): boolean;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
         procedure PeepHoleOptPass2; override;
+        function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
+        function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
       End;
 
   Implementation
@@ -70,29 +72,6 @@ unit aoptcpu;
         (next.oper[1]^.typ=top_reg) and
         (next.oper[0]^.reg=next.oper[1]^.reg) and
         (next.oper[0]^.reg=this.oper[0]^.reg);
-    end;
-
-
-  function regLoadedWithNewValue(reg: tregister; hp: tai): boolean;
-    var
-      p: taicpu;
-    begin
-      p:=taicpu(hp);
-      result:=false;
-      if not ((assigned(hp)) and (hp.typ=ait_instruction)) then
-        exit;
-
-      case p.opcode of
-        { These instructions do not write into a register at all }
-        A_NOP,
-        A_C_EQ_D,A_C_EQ_S,A_C_LE_D,A_C_LE_S,A_C_LT_D,A_C_LT_S,
-        A_BA,A_BC,
-        A_SB,A_SH,A_SW,A_SWL,A_SWR,A_SWC1,A_SDC1:
-          exit;
-      end;
-
-      result:=(p.ops>0) and (p.oper[0]^.typ=top_reg) and
-        (p.oper[0]^.reg=reg);
     end;
 
 
@@ -151,7 +130,7 @@ unit aoptcpu;
     end;
 
 
-  function instructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
+  function TCpuAsmOptimizer.InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
     var
       p: taicpu;
       i: longint;
@@ -175,6 +154,29 @@ unit aoptcpu;
           if result then exit; {Bailout if we found something}
           Inc(I);
         end;
+    end;
+
+
+  function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
+    var
+      p: taicpu;
+    begin
+      p:=taicpu(hp);
+      result:=false;
+      if not ((assigned(hp)) and (hp.typ=ait_instruction)) then
+        exit;
+
+      case p.opcode of
+        { These instructions do not write into a register at all }
+        A_NOP,
+        A_C_EQ_D,A_C_EQ_S,A_C_LE_D,A_C_LE_S,A_C_LT_D,A_C_LT_S,
+        A_BA,A_BC,
+        A_SB,A_SH,A_SW,A_SWL,A_SWR,A_SWC1,A_SDC1:
+          exit;
+      end;
+
+      result:=(p.ops>0) and (p.oper[0]^.typ=top_reg) and
+        (p.oper[0]^.reg=reg);
     end;
 
 

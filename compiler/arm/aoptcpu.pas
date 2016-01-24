@@ -39,11 +39,7 @@ Type
     procedure PeepHoleOptPass2;override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
     function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
-    function RegUsedAfterInstruction(reg: Tregister; p: tai;
-                                     var AllUsedRegs: TAllUsedRegs): Boolean;
-    { returns true if reg reaches it's end of life at p, this means it is either
-      reloaded with a new value or it is deallocated afterwards }
-    function RegEndOfLife(reg: TRegister;p: taicpu): boolean;
+
     { gets the next tai object after current that contains info relevant
       to the optimizer in p1 which used the given register or does a
       change in program flow.
@@ -55,6 +51,9 @@ Type
     { outputs a debug message into the assembler file }
     procedure DebugMsg(const s: string; p: tai);
 
+    function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
+
+    function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
   protected
     function LookForPreindexedPattern(p: taicpu): boolean;
     function LookForPostindexedPattern(p: taicpu): boolean;
@@ -167,67 +166,6 @@ Implementation
       end;
     end;
 
-  function regLoadedWithNewValue(reg: tregister; hp: tai): boolean;
-  var
-    p: taicpu;
-  begin
-    p := taicpu(hp);
-    regLoadedWithNewValue := false;
-    if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
-      exit;
-
-    case p.opcode of
-      { These operands do not write into a register at all }
-      A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD:
-        exit;
-      {Take care of post/preincremented store and loads, they will change their base register}
-      A_STR, A_LDR:
-        begin
-          regLoadedWithNewValue :=
-            (taicpu(p).oper[1]^.typ=top_ref) and
-            (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-            (taicpu(p).oper[1]^.ref^.base = reg);
-          {STR does not load into it's first register}
-          if p.opcode = A_STR then exit;
-        end;
-      { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
-      A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
-        regLoadedWithNewValue :=
-          (p.oper[1]^.typ = top_reg) and
-          (p.oper[1]^.reg = reg);
-      {Loads to oper2 from coprocessor}
-      {
-      MCR/MRC is currently not supported in FPC
-      A_MRC:
-        regLoadedWithNewValue :=
-          (p.oper[2]^.typ = top_reg) and
-          (p.oper[2]^.reg = reg);
-      }
-      {Loads to all register in the registerset}
-      A_LDM:
-        regLoadedWithNewValue := (getsupreg(reg) in p.oper[1]^.regset^);
-      A_POP:
-        regLoadedWithNewValue := (getsupreg(reg) in p.oper[0]^.regset^) or
-                                 (reg=NR_STACK_POINTER_REG);
-    end;
-
-    if regLoadedWithNewValue then
-      exit;
-
-    case p.oper[0]^.typ of
-      {This is the case}
-      top_reg:
-        regLoadedWithNewValue := (p.oper[0]^.reg = reg) or
-          { LDRD }
-          (p.opcode=A_LDR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg));
-      {LDM/STM might write a new value to their index register}
-      top_ref:
-        regLoadedWithNewValue :=
-          (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
-          (taicpu(p).oper[0]^.ref^.base = reg);
-    end;
-  end;
-
 
   function AlignedToQWord(const ref : treference) : boolean;
     begin
@@ -249,44 +187,6 @@ Implementation
     end;
 
 
-  function instructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
-  var
-    p: taicpu;
-    i: longint;
-  begin
-    instructionLoadsFromReg := false;
-    if not (assigned(hp) and (hp.typ = ait_instruction)) then
-      exit;
-    p:=taicpu(hp);
-
-    i:=1;
-    {For these instructions we have to start on oper[0]}
-    if (p.opcode in [A_STR, A_LDM, A_STM, A_PLD,
-                        A_CMP, A_CMN, A_TST, A_TEQ,
-                        A_B, A_BL, A_BX, A_BLX,
-                        A_SMLAL, A_UMLAL]) then i:=0;
-
-    while(i<p.ops) do
-      begin
-        case p.oper[I]^.typ of
-          top_reg:
-            instructionLoadsFromReg := (p.oper[I]^.reg = reg) or
-              { STRD }
-              ((i=0) and (p.opcode=A_STR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg)));
-          top_regset:
-            instructionLoadsFromReg := (getsupreg(reg) in p.oper[I]^.regset^);
-          top_shifterop:
-            instructionLoadsFromReg := p.oper[I]^.shifterop^.rs = reg;
-          top_ref:
-            instructionLoadsFromReg :=
-              (p.oper[I]^.ref^.base = reg) or
-              (p.oper[I]^.ref^.index = reg);
-        end;
-        if instructionLoadsFromReg then exit; {Bailout if we found something}
-        Inc(I);
-      end;
-  end;
-
   function isValidConstLoadStoreOffset(const aoffset: longint; const pf: TOpPostfix) : boolean;
     begin
       if GenerateThumb2Code then
@@ -297,26 +197,111 @@ Implementation
                   (abs(aoffset)<256);
     end;
 
-  function TCpuAsmOptimizer.RegUsedAfterInstruction(reg: Tregister; p: tai;
-    var AllUsedRegs: TAllUsedRegs): Boolean;
+
+  function TCpuAsmOptimizer.InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
+    var
+      p: taicpu;
+      i: longint;
     begin
-      AllUsedRegs[getregtype(reg)].Update(tai(p.Next),true);
-      RegUsedAfterInstruction :=
-        AllUsedRegs[getregtype(reg)].IsUsed(reg) and
-        not(regLoadedWithNewValue(reg,p)) and
-        (
-          not(GetNextInstruction(p,p)) or
-          instructionLoadsFromReg(reg,p) or
-          not(regLoadedWithNewValue(reg,p))
-        );
+      instructionLoadsFromReg := false;
+      if not (assigned(hp) and (hp.typ = ait_instruction)) then
+        exit;
+      p:=taicpu(hp);
+
+      i:=1;
+      {For these instructions we have to start on oper[0]}
+      if (p.opcode in [A_STR, A_LDM, A_STM, A_PLD,
+                          A_CMP, A_CMN, A_TST, A_TEQ,
+                          A_B, A_BL, A_BX, A_BLX,
+                          A_SMLAL, A_UMLAL]) then i:=0;
+
+      while(i<p.ops) do
+        begin
+          case p.oper[I]^.typ of
+            top_reg:
+              instructionLoadsFromReg := (p.oper[I]^.reg = reg) or
+                { STRD }
+                ((i=0) and (p.opcode=A_STR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg)));
+            top_regset:
+              instructionLoadsFromReg := (getsupreg(reg) in p.oper[I]^.regset^);
+            top_shifterop:
+              instructionLoadsFromReg := p.oper[I]^.shifterop^.rs = reg;
+            top_ref:
+              instructionLoadsFromReg :=
+                (p.oper[I]^.ref^.base = reg) or
+                (p.oper[I]^.ref^.index = reg);
+          end;
+          if instructionLoadsFromReg then exit; {Bailout if we found something}
+          Inc(I);
+        end;
     end;
 
 
-  function TCpuAsmOptimizer.RegEndOfLife(reg : TRegister;p : taicpu) : boolean;
+  function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
+    var
+      p: taicpu;
     begin
-       Result:=assigned(FindRegDealloc(reg,tai(p.Next))) or
-         RegLoadedWithNewValue(reg,p);
+      p := taicpu(hp);
+      Result := false;
+      if not ((assigned(hp)) and (hp.typ = ait_instruction)) then
+        exit;
+
+      case p.opcode of
+        { These operands do not write into a register at all }
+        A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD:
+          exit;
+        {Take care of post/preincremented store and loads, they will change their base register}
+        A_STR, A_LDR:
+          begin
+            Result := false;
+            { actually, this does not apply here because post-/preindexed does not mean that a register
+              is loaded with a new value, it is only modified
+              (taicpu(p).oper[1]^.typ=top_ref) and
+              (taicpu(p).oper[1]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+              (taicpu(p).oper[1]^.ref^.base = reg);
+            }
+            { STR does not load into it's first register }
+            if p.opcode = A_STR then
+              exit;
+          end;
+        { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
+        A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
+          Result :=
+            (p.oper[1]^.typ = top_reg) and
+            (p.oper[1]^.reg = reg);
+        {Loads to oper2 from coprocessor}
+        {
+        MCR/MRC is currently not supported in FPC
+        A_MRC:
+          Result :=
+            (p.oper[2]^.typ = top_reg) and
+            (p.oper[2]^.reg = reg);
+        }
+        {Loads to all register in the registerset}
+        A_LDM:
+          Result := (getsupreg(reg) in p.oper[1]^.regset^);
+        A_POP:
+          Result := (getsupreg(reg) in p.oper[0]^.regset^) or
+                                   (reg=NR_STACK_POINTER_REG);
+      end;
+
+      if Result then
+        exit;
+
+      case p.oper[0]^.typ of
+        {This is the case}
+        top_reg:
+          Result := (p.oper[0]^.reg = reg) or
+            { LDRD }
+            (p.opcode=A_LDR) and (p.oppostfix=PF_D) and (getsupreg(p.oper[0]^.reg)+1=getsupreg(reg));
+        {LDM/STM might write a new value to their index register}
+        top_ref:
+          Result :=
+            (taicpu(p).oper[0]^.ref^.addressmode in [AM_PREINDEXED,AM_POSTINDEXED]) and
+            (taicpu(p).oper[0]^.ref^.base = reg);
+      end;
     end;
+
 
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
     Out Next: tai; reg: TRegister): Boolean;
