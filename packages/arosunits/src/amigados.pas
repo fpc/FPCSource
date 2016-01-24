@@ -23,7 +23,7 @@
 {$define AROS_FAST_BPTR}
 
 unit amigados;
-{$mode objfpc}
+
 interface
 
 uses
@@ -2418,10 +2418,10 @@ function WriteChar(c: LongInt): LongInt;
 function UnReadChar(c: LongInt): LongInt;
 
 // Special functions for var args
-function AllocDosObjectTags(const Type_: LongWord; const Tags: array of const): APTR;
-function CreateNewProcTags(const Tags: array of const): PProcess;
-function NewLoadSegTags(const File_: STRPTR; const Tags: array of const): BPTR;
-function SystemTags(const Command: STRPTR; const Tags: array of const): LongInt;
+function AllocDosObjectTags(const Type_: LongWord; const Tags: array of PtrUInt): APTR;
+function CreateNewProcTags(const Tags: array of PtrUInt): PProcess;
+function NewLoadSegTags(const File_: STRPTR; const Tags: array of PtrUInt): BPTR;
+function SystemTags(const Command: STRPTR; const Tags: array of PtrUInt): LongInt;
 
 // elf.h
 
@@ -2436,7 +2436,6 @@ function ELF_R_TYPE(i: LongWord): LongWord;
 function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord;
 {$endif}
 
-
 const
   BNULL = nil;
 
@@ -2445,76 +2444,61 @@ function BADDR(a: BPTR): APTR;
 
 implementation
 
-uses
-  tagsarray;
-
-function ELF_ST_TYPE(i: LongWord): LongWord;
+function ELF_ST_TYPE(i: LongWord): LongWord; inline;
 begin
-  Result := i and $0F;
+  ELF_ST_TYPE := i and $0F;
 end;
 
 {$ifdef ELF_64BIT}
-  function ELF_R_SYM(i: QWord): QWord;
+  function ELF_R_SYM(i: QWord): QWord; inline;
   begin
-    Result := i shr 32;
+    ELF_R_SYM := i shr 32;
   end;
 
-  function ELF_R_TYPE(i: QWord): QWord;
+  function ELF_R_TYPE(i: QWord): QWord; inline;
   begin
-    Result := i and $ffffffff;
+    ELF_R_TYPE := i and $ffffffff;
   end;
 
-  function ELF_R_INFO(Sym: QWord; Type_: QWord): QWord;
+  function ELF_R_INFO(Sym: QWord; Type_: QWord): QWord; inline;
   begin
-    Result := Sym shl 32 + Type_;
+    ELF_R_INFO := Sym shl 32 + Type_;
   end;
 {$else}
-  function ELF_R_SYM(i: LongWord): LongWord;
+  function ELF_R_SYM(i: LongWord): LongWord; inline;
   begin
-    Result := i shr 8;
+    ELF_R_SYM := i shr 8;
   end;
 
-  function ELF_R_TYPE(i: LongWord): LongWord;
+  function ELF_R_TYPE(i: LongWord): LongWord; inline;
   begin
-    Result := i and $ff;
+    ELF_R_TYPE := i and $ff;
   end;
 
-  function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord;
+  function ELF_R_INFO(Sym: LongWord; Type_: LongWord): LongWord; inline;
   begin
-    Result := Sym shl 8 + (Type_ and $ff);
+    ELF_R_INFO := Sym shl 8 + (Type_ and $ff);
   end;
 {$endif}
 
-function AllocDosObjectTags(const Type_: LongWord; const Tags: array of const): APTR;
-var
-  TagList: TTagsList;
+function AllocDosObjectTags(const Type_: LongWord; const Tags: array of PtrUInt): APTR; inline;
 begin
-  AddTags(TagList, Tags);
-  AllocDosObjectTags := AllocDosObject(Type_, GetTagPtr(TagList));
+  AllocDosObjectTags := AllocDosObject(Type_, @Tags);
 end;
 
-function CreateNewProcTags(const Tags: array of const): PProcess;
-var
-  TagList: TTagsList;
+function CreateNewProcTags(const Tags: array of PtrUInt): PProcess; inline;
 begin
-  AddTags(TagList, Tags);
-  CreateNewProcTags := CreateNewProc(GetTagPtr(TagList));
+  CreateNewProcTags := CreateNewProc(@Tags);
 end;
 
-function NewLoadSegTags(const File_: STRPTR; const Tags: array of const): BPTR;
-var
-  TagList: TTagsList;
+function NewLoadSegTags(const File_: STRPTR; const Tags: array of PtrUInt): BPTR; inline;
 begin
-  AddTags(TagList, Tags);
-  NewLoadSegTags := NewLoadSeg(File_, GetTagPtr(TagList));
+  NewLoadSegTags := NewLoadSeg(File_, @Tags);
 end;
 
-function SystemTags(const Command: STRPTR; const Tags: array of const): LongInt;
-var
-  TagList: TTagsList;
+function SystemTags(const Command: STRPTR; const Tags: array of PtrUInt): LongInt; inline;
 begin
-  AddTags(TagList, Tags);
-  SystemTags := SystemTagList(Command, GetTagPtr(TagList));
+  SystemTags := SystemTagList(Command, @Tags);
 end;
 
 function MKBADDR(a: APTR): BPTR; inline;
@@ -2535,17 +2519,17 @@ begin
   {$endif}
 end;
 
-function ReadChar(): LongInt;
+function ReadChar(): LongInt; inline;
 begin
   ReadChar := FGetC(DosInput());
 end;
 
-function WriteChar(c: LongInt): LongInt;
+function WriteChar(c: LongInt): LongInt; inline;
 begin
   WriteChar := FPutC(DosOutput(), c);
 end;
 
-function UnReadChar(c: LongInt): LongInt;
+function UnReadChar(c: LongInt): LongInt; inline;
 begin
   UnReadChar := UnGetC(DosInput(),c);
 end;
