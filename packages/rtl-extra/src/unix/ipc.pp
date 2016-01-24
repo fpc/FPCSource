@@ -656,7 +656,7 @@ const
   MAX_SOPS = 5;
 {$endif}
 
-{$if not defined(aix) and not defined(darwin)}
+{$if not defined(aix)}
   SEM_GETNCNT = 3;   { Return the value of sempid (READ)  }
   SEM_GETPID  = 4;   { Return the value of semval (READ)  }
   SEM_GETVAL  = 5;   { Return semvals into arg.array (READ)  }
