@@ -459,16 +459,36 @@ begin
   FRunning:=False;
 end;
 
+{ maybe some unixes might need a simpler solution }
+{$define USE_GETTIMEOFDAY}
+
 Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
 var
   res: cint;
+{$ifdef USE_GETTIMEOFDAY}
+  timeout_tv,t : timeval;
+  tz : timezone;
+{$endif USE_GETTIMEOFDAY}
+
 begin
   Result:=false;
+{$ifdef USE_GETTIMEOFDAY}
+  fpGetTimeOfDay(@timeout_tv,@tz);
+  inc(timeout_tv.tv_sec,Timeout div 1000);
+  inc(timeout_tv.tv_usec,(Timeout mod 1000)*1000);
+{$endif USE_GETTIMEOFDAY}
   res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
-  while (res=-1) and (fpgeterrno=ESysEINTR) do
+  while res=0 do
     begin
+{$ifdef USE_GETTIMEOFDAY}
+      fpGetTimeOfDay(@t,@tz);
+      if (t.tv_sec>timeout_tv.tv_sec) or
+        ((t.tv_sec=timeout_tv.tv_sec) and (t.tv_usec>timeout_tv.tv_usec)) then
+        exit;
+{$else USE_GETTIMEOFDAY}
       if Timeout=0 then
         Exit;
+{$endif USE_GETTIMEOFDAY}
       Sleep(1);
       dec(Timeout);
       res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
