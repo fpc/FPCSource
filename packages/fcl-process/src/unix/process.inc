@@ -459,6 +459,27 @@ begin
   FRunning:=False;
 end;
 
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
+var
+  res: cint;
+begin
+  Result:=false;
+  res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
+  while (res=-1) and (fpgeterrno=ESysEINTR) do
+    begin
+      if Timeout=0 then
+        Exit;
+      Sleep(1);
+      dec(Timeout);
+      res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
+    end;
+  result:=res=Handle;
+  If Not Result then
+    FexitCode:=cardinal(-1) // was 0, better testable for abnormal exit.
+  else
+    FRunning:=False;
+end;
+
 Function TProcess.Suspend : Longint;
 
 begin

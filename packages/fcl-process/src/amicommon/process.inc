@@ -143,6 +143,11 @@ begin
   Result:=True;
 end;
 
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
+begin
+  Result:=True;
+end;
+
 Function TProcess.Suspend : Longint;
 begin
   Result:=0;

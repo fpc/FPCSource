@@ -36,10 +36,8 @@ begin
 end;
 
 Function TProcess.PeekExitStatus : Boolean;
-
 begin
-  GetExitCodeProcess(ProcessHandle,FExitCode);
-  Result:=(FExitCode<>Still_Active);
+  Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
 end;
 
 Function GetStartupFlags (P : TProcess): Cardinal;
@@ -137,6 +135,7 @@ begin
   FillChar(SI,SizeOf(SI),0);
   With SI do
     begin
+    cb:=SizeOf(SI);
     dwFlags:=GetStartupFlags(P);
     if P.FShowWindow<>swoNone then
      dwFlags:=dwFlags or Startf_UseShowWindow
@@ -307,16 +306,27 @@ Var
 end;
 
 Function TProcess.WaitOnExit : Boolean;
-
 Var
   R : DWord;
-
 begin
   R:=WaitForSingleObject (FProcessHandle,Infinite);
   Result:=(R<>Wait_Failed);
   If Result then
     GetExitStatus;
   FRunning:=False;
+end;
+
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
+Var
+  R : DWord;
+begin
+  R:=WaitForSingleObject (FProcessHandle,Timeout);
+  Result:=R=0;
+  If Result then
+    begin
+      GetExitStatus;
+      FRunning:=False;
+    end;
 end;
 
 Function TProcess.Suspend : Longint;
