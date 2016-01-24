@@ -2584,6 +2584,9 @@ packages/fcl-process/examples/demoproject.res -text
 packages/fcl-process/examples/demoruncommand.lpi svneol=native#text/plain
 packages/fcl-process/examples/demoruncommand.pp svneol=native#text/plain
 packages/fcl-process/examples/echoparams.pp svneol=native#text/plain
+packages/fcl-process/examples/empty.pp svneol=native#text/pascal
+packages/fcl-process/examples/infinity.pp svneol=native#text/pascal
+packages/fcl-process/examples/waitonexit.pp svneol=native#text/pascal
 packages/fcl-process/fpmake.pp svneol=native#text/plain
 packages/fcl-process/src/amicommon/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/amicommon/process.inc svneol=native#text/plain
