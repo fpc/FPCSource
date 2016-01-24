@@ -108,7 +108,7 @@ unit aoptbase;
   implementation
 
     uses
-      globtype,globals,aoptcpub;
+      verbose,globtype,globals,aoptcpub;
 
   constructor taoptbase.create;
     begin
@@ -293,6 +293,7 @@ unit aoptbase;
 
   function TAoptBase.RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean;
     begin
+      result:=false;
       internalerror(2016012401);
     end;
 
