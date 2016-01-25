@@ -674,14 +674,14 @@ end;
 procedure TWriter.WriteProc(d: TProcDef; Variable: TVarDef; AParent: TDef);
 var
   i, j, ClassIdx: integer;
-  s, ss, TempRes: string;
+  s, ss, TempRes, VarFin: string;
   err, tf: boolean;
   pi: TProcInfo;
   ci: TClassInfo;
   IsTObject: boolean;
   tempvars: TStringList;
   vd: TVarDef;
-  UseTempObjVar, IsObj: boolean;
+  UseTempObjVar, IsObj, IsProcVar: boolean;
   ItemDef: TDef;
 begin
   ASSERT(d.DefType = dtProc);
@@ -737,7 +737,8 @@ begin
       if IsObj and (ProcType in [ptConstructor, ptDestructor]) then
         TempRes:='__tempres';
 
-      UseTempObjVar:=(ProcType = ptProcedure) and (Variable <> nil) and (Variable.VarType <> nil) and (Variable.VarType.DefType = dtProcType) and (Variable.Parent.DefType <> dtUnit);
+      IsProcVar:=(Variable <> nil) and (Variable.VarType <> nil) and (Variable.VarType.DefType = dtProcType);
+      UseTempObjVar:=IsProcVar and (ProcType = ptProcedure) and (Variable.Parent.DefType <> dtUnit);
 
       for j:=0 to Count - 1 do begin
         vd:=TVarDef(Items[j]);
@@ -791,11 +792,8 @@ begin
           if s <> '' then
             Fps.WriteLn(s);
         end;
-        if UseTempObjVar then begin
+        if UseTempObjVar then
           Fps.WriteLn('__objvar: ' + d.Parent.Name + ';');
-          if Variable.VarType.DefType = dtProcType then
-            Fps.WriteLn('__mvar: TMethod;');
-        end;
         if TempRes <> '' then begin
           s:=TempRes + ': ';
           if IsObj and (ProcType in [ptConstructor, ptDestructor]) then
@@ -806,6 +804,10 @@ begin
         end;
         Fps.DecI;
       end;
+
+      if IsProcVar and (ProcType = ptProcedure) then
+        Fps.WriteLn('var __mvar: TMethod;');
+
       Fps.WriteLn('begin');
       Fps.IncI;
       EHandlerStart;
@@ -896,7 +898,7 @@ begin
           ASSERT(Count = i + 1);
           if Variable.VarType.DefType = dtProcType then begin
             Fps.WriteLn(Format('__mvar:=TMethod(%s);', [s]));
-            ss:=Format('_RefMethodPtr(_env, TMethod(%s), True); _RefMethodPtr(_env, __mvar, False);', [s]);
+            VarFin:=Format('_RefMethodPtr(_env, TMethod(%s), True); _RefMethodPtr(_env, __mvar, False);', [s]);
           end;
           s:=s + ':=' + JniToPasType(TVarDef(Items[i]).VarType, Items[i].Name, False);
         end;
@@ -921,8 +923,8 @@ begin
         Fps.WriteLn(s);
       end;
 
-      if (Variable <> nil) and UseTempObjVar then
-        Fps.WriteLn(ss);
+      if VarFin <> '' then
+        Fps.WriteLn(VarFin);
 
       // Return var/out parameters
       if tempvars <> nil then begin
