@@ -16,6 +16,9 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
+
+{$mode objfpc}
+
 unit exeinfo;
 interface
 
@@ -51,7 +54,7 @@ procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: st
 implementation
 
 uses
-  strings{$ifdef windows},windows{$endif windows};
+  sysutils,strings{$ifdef windows},windows{$endif windows};
 
 {$ifdef unix}
 
@@ -116,8 +119,10 @@ uses
 {$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos) or defined(android) or defined(dragonfly)}
   {$ifdef cpu64}
     {$define ELF64}
+    {$define FIND_BASEADDR_ELF}
   {$else}
     {$define ELF32}
+    {$define FIND_BASEADDR_ELF}
   {$endif}
 {$endif}
 
@@ -793,6 +798,102 @@ type
 
 
 {$if defined(ELF32) or defined(ELF64) or defined(BEOS)}
+
+{$ifdef FIND_BASEADDR_ELF}
+var
+  envp : ppchar external name 'operatingsystem_parameter_envp';
+
+procedure GetExeInMemoryBaseAddr(addr : pointer; var BaseAddr : pointer;
+                                 var filename : openstring);
+type
+  AT_HDR = record
+    typ : ptruint;
+    value : ptruint;
+  end;
+  P_AT_HDR = ^AT_HDR;
+
+{ Values taken from /usr/include/linux/auxvec.h }
+const
+  AT_HDR_COUNT = 5;{ AT_PHNUM }
+  AT_HDR_SIZE = 4; { AT_PHENT }
+  AT_HDR_Addr = 3; { AT_PHDR }
+  AT_EXE_FN = 31;  {AT_EXECFN }
+
+var
+  pc : ppchar;
+  pat_hdr : P_AT_HDR;
+  i, phdr_count : ptrint;
+  phdr_size : ptruint;
+  phdr :  ^telfproghdr;
+  found_addr : ptruint;
+
+begin
+  filename:=ParamStr(0);
+  Try
+    pc:=envp;
+    phdr_count:=-1;
+    phdr_size:=0;
+    phdr:=nil;
+    found_addr:=ptruint(-1);
+    while (assigned(pc^)) do
+      inc (pointer(pc), sizeof(ptruint));
+    inc(pointer(pc), sizeof(ptruint));
+    pat_hdr:=P_AT_HDR(pc);
+    while assigned(pat_hdr) do
+      begin
+        if (pat_hdr^.typ=0) and (pat_hdr^.value=0) then
+          break;
+        if pat_hdr^.typ = AT_HDR_COUNT then
+          phdr_count:=pat_hdr^.value;
+        if pat_hdr^.typ = AT_HDR_SIZE then
+          phdr_size:=pat_hdr^.value;
+        if pat_hdr^.typ = AT_HDR_Addr then
+          phdr := pointer(pat_hdr^.value);
+        if pat_hdr^.typ = AT_EXE_FN then
+          filename:=strpas(pchar(pat_hdr^.value));
+        inc (pointer(pat_hdr),sizeof(AT_HDR));
+      end;
+    if (phdr_count>0) and (phdr_size = sizeof (telfproghdr))
+       and  assigned(phdr) then
+      begin
+        for i:=0 to phdr_count -1 do
+          begin
+            if (phdr^.p_type = 1 {PT_LOAD}) and (ptruint(phdr^.p_vaddr) < found_addr) then
+              found_addr:=phdr^.p_vaddr;
+            inc(phdr, phdr_size);
+          end;
+      {$ifdef DEBUG}
+      end
+    else
+      begin
+        if (phdr_count=-1) then
+           writeln(stderr,'AUX entry AT_PHNUM not found');
+        if (phdr_size=0) then
+           writeln(stderr,'AUX entry AT_PHENT not found');
+        if (phdr=nil) then
+           writeln(stderr,'AUX entry AT_PHDR not found');
+      {$endif DEBUG}
+      end;
+
+     if found_addr<>ptruint(-1) then
+       begin
+          {$ifdef DEBUG}
+          Writeln(stderr,'Found addr = $',hexstr(found_addr,2 * sizeof(ptruint)));
+          {$endif}
+          BaseAddr:=pointer(found_addr);
+       end
+  {$ifdef DEBUG}
+     else
+    writeln(stderr,'Error parsing stack');
+  {$endif DEBUG}
+  except
+  {$ifdef DEBUG}
+    writeln(stderr,'Exception parsing stack');
+  {$endif DEBUG}
+  end
+end;
+{$endif FIND_BASEADDR_ELF}
+
 function OpenElf(var e:TExeFile):boolean;
 var
   elfheader : telfheader;
@@ -1240,4 +1341,8 @@ begin
 end;
 
 
+begin
+{$ifdef FIND_BASEADDR_ELF}
+  UnixGetModuleByAddrHook:=@GetExeInMemoryBaseAddr;
+{$endif FIND_BASEADDR_ELF}
 end.
