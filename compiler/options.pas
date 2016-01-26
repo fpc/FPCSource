@@ -3429,7 +3429,6 @@ begin
 {$ifdef i8086}
   def_system_macro('CPU86');  { Borland compatibility }
   def_system_macro('CPU87');  { Borland compatibility }
-  def_system_macro('CPU8086');
   def_system_macro('CPUI8086');
   def_system_macro('CPU16');
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
