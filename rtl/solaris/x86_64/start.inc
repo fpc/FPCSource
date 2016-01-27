@@ -168,6 +168,14 @@ asm
  * there was a genuine call to _start.
  */
 *)
+   movq   %rsp,%rax
+  // Save %rsp to StackTopPtr
+{$ifdef FPC_PIC}
+   movq   StackTopPtr@GOTPCREL(%rip),%rcx
+{$else FPC_PIC}
+   movq   $StackTopPtr,%rcx
+{$endif FPC_PIC}
+   movq   %rax,(%rcx)
    pushq  $0x0
    pushq  $0x0
    movq   %rsp,%rbp

@@ -24,9 +24,16 @@ procedure PascalMain;cdecl;external name 'PASCALMAIN';
 
 procedure _start;assembler;nostackframe;public name '_start';
 asm
-        // Terminate the stack frame, and reserve space for functions to
-        //   drop their arguments.
+        // Terminate the stack frame
         mov     %g0, %fp
+
+        // Save current %sp to StackTopPtr
+        mov     %sp, %o2
+        sethi   %hi(StackTopPtr),%o1
+        or      %o1,%lo(StackTopPtr),%o1
+        st      %o2, [%o1]
+
+        // Reserve space for functions to drop their arguments.
         sub     %sp, 6*4, %sp
 
         // Extract the arguments and environment as encoded on the stack.  The

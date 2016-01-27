@@ -53,6 +53,8 @@ procedure __Argv;cdecl;external 'c' name '__Argv';
 Dump of assembler code for function _start:   }
 procedure _start;assembler;nostackframe;public name '_start';
 asm
+   mov    %esp,%eax
+   mov    %eax,StackTopPtr
    pushl  $0x0
    pushl  $0x0
    mov    %esp,%ebp
