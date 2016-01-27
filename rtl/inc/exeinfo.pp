@@ -800,9 +800,12 @@ type
 {$if defined(ELF32) or defined(ELF64) or defined(BEOS)}
 
 {$ifdef FIND_BASEADDR_ELF}
+{$ifndef SOLARIS}
+  { Solaris has envp variable in system unit interface,
+    so we directly use system envp variable in that case }
 var
   envp : ppchar external name 'operatingsystem_parameter_envp';
-
+{$endif not SOLARIS}
 procedure GetExeInMemoryBaseAddr(addr : pointer; var BaseAddr : pointer;
                                  var filename : openstring);
 type
@@ -860,7 +863,7 @@ begin
           begin
             if (phdr^.p_type = 1 {PT_LOAD}) and (ptruint(phdr^.p_vaddr) < found_addr) then
               found_addr:=phdr^.p_vaddr;
-            inc(phdr, phdr_size);
+            inc(pointer(phdr), phdr_size);
           end;
       {$ifdef DEBUG}
       end
