@@ -1117,12 +1117,10 @@ Const
 
 TYPE
     TVarType            = USHORT;
-    VARTYPE             = TVarType deprecated;  // not in Delphi, and clashes with VarType function
 
 //TypeInfo stuff.
 
     TDispID             = Long;
-    DISPID              = TDispID deprecated;  // not in Delphi and clashes with property modifier
     SCODE               = Long;
     pSCODE              = ^SCODE;
     lpDISPID            = ^TDispID;
