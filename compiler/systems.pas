@@ -782,6 +782,10 @@ begin
     {$define default_target_set}
     default_target(system_i386_android);
    {$endif}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_i386_solaris);
+   {$endif}
   {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
@@ -892,7 +896,13 @@ begin
   {$ifdef cpusparc}
     default_target(source_info.system);
   {$else cpusparc}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_sparc_solaris);
+   {$endif}
+    {$ifndef default_target_set}
     default_target(system_sparc_linux);
+    {$endif ndef default_target_set}
   {$endif cpusparc}
 {$endif sparc}
 
