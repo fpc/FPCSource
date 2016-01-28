@@ -5266,7 +5266,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     FOF_NOCONFIRMATION       = $0010;
 {$endif MSWINDOWS}
   var
-    i: integer;
+    retries: integer;
 {$ifdef MSWINDOWS}
     SHFileOpStruct: TSHFileOpStruct;
     DirBuf: array[0..MAX_PATH+1] of TCHAR;
@@ -5279,6 +5279,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
   begin
     result := true;
 {$ifdef MSWINDOWS}
+    retries:=2;
     try
       FillChar(SHFileOpStruct, Sizeof(SHFileOpStruct), 0);
       FillChar(DirBuf, Sizeof(DirBuf), 0);
@@ -5293,6 +5294,14 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     except
       Result := False;
     end;
+    while not result and (retries>0) do
+      begin
+        log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
+        sleep(5000);
+        dec(retries);
+        result := SHFileOperation(SHFileOpStruct) = 0;;
+      end;
+
 {$else MSWINDOWS}
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
     try
@@ -5320,17 +5329,17 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     // There were reports of RemoveDir failing due to locking-problems. To solve
     // these the RemoveDir is tried three times, with a delay of 5 seconds. See
     // bug 21868
-    i := 2;
+    retries := 2;
     result := RemoveDir(ADirectoryName);
-{$endif WINDOWS}
-
-    while not result and (i>0) do
+    while not result and (retries>0) do
       begin
         log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
         sleep(5000);
-        dec(i);
+        dec(retries);
         result := RemoveDir(ADirectoryName);
       end;
+
+{$endif WINDOWS}
 
     if result then
       log(vldebug, SDbgRemovedDirectory, [ADirectoryName]);
@@ -6691,6 +6700,7 @@ Var
     T: TTarget;
     L: TStrings;
     F: Text;
+    CompilationFailed: Boolean;
 
   begin
     if (APackage.FBUTarget.Dependencies.Count>0) then
@@ -6714,17 +6724,27 @@ Var
         system.close(F);
 
         APackage.FBuildMode:=bmOneByOne;
+        Compilationfailed:=false;
         try
-          Compile(APackage,APackage.FBUTarget);
-        finally
-          // Delete temporary build-unit files
-          L := TStringList.Create;
           try
-            APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))),'',Defaults.CPU,Defaults.OS);
-            L.Add(AddPathPrefix(APackage,APackage.FBUTarget.SourceFileName));
-            CmdDeleteFiles(L);
-          finally
-            L.Free;
+            Compile(APackage,APackage.FBUTarget);
+          except
+            Compilationfailed:=true;
+          end;
+        finally
+          if CompilationFailed then
+            Log(vlDebug,APackage.FBUTarget.FTargetSourceFileName)
+          else
+            begin
+            // Delete temporary build-unit files
+            L := TStringList.Create;
+            try
+              APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))),'',Defaults.CPU,Defaults.OS);
+              L.Add(AddPathPrefix(APackage,APackage.FBUTarget.SourceFileName));
+              CmdDeleteFiles(L);
+            finally
+              L.Free;
+            end;
           end;
         end;
       end;
