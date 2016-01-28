@@ -858,8 +858,13 @@ implementation
         if is_constrealnode(left) then
           begin
              trealconstnode(left).value_real:=-trealconstnode(left).value_real;
+             { Avoid integer overflow on x86_64 CPU for currency value }
+             { i386 uses fildll/fchs/fistll instructions which never seem
+               to raise any coprocessor flags .. }
+             {$push}{$Q-}
              trealconstnode(left).value_currency:=-trealconstnode(left).value_currency;
              result:=left;
+             {$pop}
              left:=nil;
              exit;
           end;
