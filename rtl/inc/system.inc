@@ -101,6 +101,10 @@ var
   initialstklen : SizeUint;external name '__stklen';
 {$endif FPC_NO_GENERIC_STACK_CHECK}
 
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  EntryInformation: TEntryInformation;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.
  Otherwise it should return an acceptable value.

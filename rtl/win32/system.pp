@@ -112,20 +112,6 @@ implementation
 
 var
   SysInstance : Longint;public name '_FPC_SysInstance';
-  InitFinalTable : record end; external name 'INITFINAL';
-  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
-  procedure PascalMain;external name 'PASCALMAIN';
-  procedure asm_exit;stdcall;external name 'asm_exit';
-const
-  EntryInformation : TEntryInformation = (
-    InitFinalTable : @InitFinalTable;
-    ThreadvarTablesTable : @ThreadvarTablesTable;
-    PascalMain : @PascalMain;
-    valgrind_used : false;
-    OS : (
-      asm_exit: @asm_exit;
-      );
-    );
 
 {$ifdef FPC_USE_WIN32_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
