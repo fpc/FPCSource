@@ -366,7 +366,7 @@ end;
 
 procedure TRect.setHeight(AValue: Longint);
 begin
-  right:=left+avalue;
+  bottom:=top+avalue;
 end;
 
 procedure TRect.SetLocation(X, Y: Longint);
@@ -387,7 +387,7 @@ end;
 
 procedure TRect.setWidth(AValue: Longint);
 begin
-  bottom:=top+avalue;
+  right:=left+avalue;
 end;
 
 function TRect.SplitRect(SplitType: TSplitRectType; Percent: Double): TRect;
