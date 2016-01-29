@@ -1805,10 +1805,7 @@ var
         if ch in [#10, #13] then
         begin
           if Interactive then
-            begin
-              System.Writeln(output);
-              System.Flush(output);
-            end
+            System.Writeln(output)
           else if Verbose then
             installer.log(vlInfo,sLine)
           else
@@ -1832,7 +1829,6 @@ var
                   if Interactive then
                     begin
                       System.Write(output,ch);
-                      System.Flush(output);
                     end
                   else
                     sLine:=ch;
@@ -1845,10 +1841,7 @@ var
         else
         begin
           if Interactive then
-            begin
-              System.Write(output,ch);
-              System.Flush(output);
-            end
+            System.Write(output,ch)
           else
             sLine := sLine + ch;
         end;
@@ -1857,7 +1850,10 @@ var
 
       // keep partial lines, unlessin interactive mode
       if not Interactive then
-        ConsoleOutput.Position := BuffPos;
+        ConsoleOutput.Position := BuffPos
+        // Flush for interactive mode
+      else if n > 0 then
+        System.Flush(output);
     end;
 
     Result := n;
