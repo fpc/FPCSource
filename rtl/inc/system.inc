@@ -499,155 +499,130 @@ function aligntoptr(p : pointer) : pointer;inline;
 
 {$if defined(FPC_HAS_FEATURE_RANDOM)}
 
-{----------------------------------------------------------------------
-   Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
-   Pseudo-Random Number Generator.
+{ Pascal translation of https://github.com/dajobe/libmtwist }
 
-   What is Mersenne Twister?
-   Mersenne Twister(MT) is a pseudorandom number generator developped by
-   Makoto Matsumoto and Takuji Nishimura (alphabetical order) during
-   1996-1997. MT has the following merits:
-   It is designed with consideration on the flaws of various existing
-   generators.
-   Far longer period and far higher order of equidistribution than any
-   other implemented generators. (It is proved that the period is 2^19937-1,
-   and 623-dimensional equidistribution property is assured.)
-   Fast generation. (Although it depends on the system, it is reported that
-   MT is sometimes faster than the standard ANSI-C library in a system
-   with pipeline and cache memory.)
-   Efficient use of the memory. (The implemented C-code mt19937.c
-   consumes only 624 words of working area.)
-
-   home page
-     http://www.math.keio.ac.jp/~matumoto/emt.html
-   original c source
-     http://www.math.keio.ac.jp/~nisimura/random/int/mt19937int.c
-
-   Coded by Takuji Nishimura, considering the suggestions by
-   Topher Cooper and Marc Rieffel in July-Aug. 1997.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later
-   version.
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-   See the GNU Library General Public License for more details.
-   You should have received a copy of the GNU Library General
-   Public License along with this library; if not, write to the
-   Free Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307  USA
-
-   Copyright (C) 1997, 1999 Makoto Matsumoto and Takuji Nishimura.
-   When you use this, send an email to: matumoto@math.keio.ac.jp
-   with an appropriate reference to your work.
-
-   REFERENCE
-   M. Matsumoto and T. Nishimura,
-   "Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
-   Pseudo-Random Number Generator",
-   ACM Transactions on Modeling and Computer Simulation,
-   Vol. 8, No. 1, January 1998, pp 3--30.
-
-
-  Translated to OP and Delphi interface added by Roman Krejci (6.12.1999)
-
-  http://www.rksolution.cz/delphi/tips.htm
-
-  Revised 21.6.2000: Bug in the function RandInt_MT19937 fixed
-
-  2003/10/26: adapted to use the improved intialisation mentioned at
-  <http://www.math.keio.ac.jp/~matumoto/MT2002/emt19937ar.html> and
-  removed the assembler code
-
- ----------------------------------------------------------------------}
+{* -*- Mode: c; c-basic-offset: 2 -*-
+ *
+ * mt.c - Mersenne Twister functions
+ *
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors
+ * of this software dedicate any and all copyright interest in the
+ * software to the public domain. We make this dedication for the benefit
+ * of the public at large and to the detriment of our heirs and
+ * successors. We intend this dedication to be an overt act of
+ * relinquishment in perpetuity of all present and future rights to this
+ * software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * For more information, please refer to <http://unlicense.org/>
+ * 
+ *}
 
 {$R-} {range checking off}
 {$Q-} {overflow checking off}
 
-{ Period parameter }
-Const
-  MT19937N=624;
-
-Type
-  tMT19937StateArray = array [0..MT19937N-1] of longint; // the array for the state vector
-
-{ Period parameters }
 const
-  MT19937M=397;
-  MT19937MATRIX_A  =$9908b0df;  // constant vector a
-  MT19937UPPER_MASK=longint($80000000);  // most significant w-r bits
-  MT19937LOWER_MASK=longint($7fffffff);  // least significant r bits
+  MTWIST_N = 624;
+  MTWIST_M = 397;
 
-{ Tempering parameters }
-  TEMPERING_MASK_B=longint($9d2c5680);
-  TEMPERING_MASK_C=longint($efc60000);
+  MT_STATIC_SEED = 5489;
 
+  MTWIST_UPPER_MASK = cardinal($80000000);
+  MTWIST_LOWER_MASK = cardinal($7FFFFFFF);
 
-VAR
-  mt : tMT19937StateArray;
-  mti: longint=MT19937N+1; // mti=MT19937N+1 means mt[] is not initialized
+  MTWIST_MATRIX_A   = cardinal($9908B0DF);
 
-{ Initializing the array with a seed }
-procedure sgenrand_MT19937(seed: longint);
+var
+  mt_state: array[0..MTWIST_N-1] of cardinal;
+
+const
+  mt_index: cardinal = MTWIST_N+1;
+
+function MTWIST_MIXBITS(u, v: cardinal): cardinal; inline;
+begin
+  result:=(u and MTWIST_UPPER_MASK) or (v and MTWIST_LOWER_MASK);
+end;
+
+function MTWIST_TWIST(u, v: cardinal): cardinal; inline;
+begin
+  { the construct at the end is equivalent to
+    if odd(v) then
+      MTWIST_MATRIX_A
+    else
+      0
+  }
+  result:=(MTWIST_MIXBITS(u,v) shr 1) xor (cardinal(-(v and 1)) and MTWIST_MATRIX_A);
+end;
+
+procedure mtwist_init(seed: cardinal);
 var
   i: longint;
 begin
-  mt[0] := seed;
-  for i := 1 to MT19937N-1 do
-    begin
-      mt[i] := 1812433253 * (mt[i-1] xor (mt[i-1] shr 30)) + i;
-      { See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. }
-      { In the previous versions, MSBs of the seed affect   }
-      { only MSBs of the array mt[].                        }
-      { 2002/01/09 modified by Makoto Matsumoto             }
-    end;
-  mti := MT19937N;
+  mt_state[0]:=seed;
+  for i:=1 to MTWIST_N-1 do
+    mt_state[i]:=cardinal(1812433253) * (mt_state[i-1] xor (mt_state[i-1] shr 30)) + i;
+   { still need to update the state }
+  mt_index:=MTWIST_N;
+end;
+
+procedure mtwist_update_state;
+var
+  count: longint;
+begin
+  { The original C code uses pointers, doesn't play nice with JVM backend;
+    it counts from N-M+1 downto 0 (0 not included) for the first loop, which
+    should initialise the first N-M+1 elements -- doing so gives the wrong
+    results though (different from the old generator, and it also doesn't
+    match the algorithm description), so we use only N-M iterations. They don't
+    seem to test this one element and its value does not impact subsequent
+    numbers, so it's probably a bug in their implementation.
+  }
+  for count:=0 to MTWIST_N-MTWIST_M-1 do
+    mt_state[count]:=mt_state[count+MTWIST_M] xor MTWIST_TWIST(mt_state[count],mt_state[count+1]);
+  for count:=MTWIST_N-MTWIST_M to MTWIST_N-2 do
+    mt_state[count]:=mt_state[count+(MTWIST_M-MTWIST_N)] xor MTWIST_TWIST(mt_state[count],mt_state[count+1]);
+  mt_state[MTWIST_N-1]:=mt_state[MTWIST_M-1] xor MTWIST_TWIST(mt_state[MTWIST_N-1],mt_state[0]);
+  mt_index:=0;
 end;
 
 
-function genrand_MT19937: longint;
-const
-  mag01 : array [0..1] of longint =(0, longint(MT19937MATRIX_A));
-var
-  y: longint;
-  kk: longint;
+function mtwist_u32rand: cardinal;
 begin
-  if RandSeed<>OldRandSeed then
-    mti:=MT19937N+1;
-  if (mti >= MT19937N) { generate MT19937N longints at one time }
-  then begin
-     if mti = (MT19937N+1) then  // if sgenrand_MT19937() has not been called,
-       begin
-         sgenrand_MT19937(randseed);   // default initial seed is used
-         { hack: randseed is not used more than once in this algorithm. Most }
-         {  user changes are re-initialising reandseed with the value it had }
-         {  at the start -> with the "not", we will detect this change.      }
-         {  Detecting other changes is not useful, since the generated       }
-         {  numbers will be different anyway.                                }
-         randseed := not(randseed);
-         oldrandseed := randseed;
-       end;
-     for kk:=0 to MT19937N-MT19937M-1 do begin
-        y := (mt[kk] and MT19937UPPER_MASK) or (mt[kk+1] and MT19937LOWER_MASK);
-        mt[kk] := mt[kk+MT19937M] xor (y shr 1) xor mag01[y and $00000001];
-     end;
-     for kk:= MT19937N-MT19937M to MT19937N-2 do begin
-       y := (mt[kk] and MT19937UPPER_MASK) or (mt[kk+1] and MT19937LOWER_MASK);
-       mt[kk] := mt[kk+(MT19937M-MT19937N)] xor (y shr 1) xor mag01[y and $00000001];
-     end;
-     y := (mt[MT19937N-1] and MT19937UPPER_MASK) or (mt[0] and MT19937LOWER_MASK);
-     mt[MT19937N-1] := mt[MT19937M-1] xor (y shr 1) xor mag01[y and $00000001];
-     mti := 0;
-  end;
-  y := mt[mti]; inc(mti);
-  y := y xor (y shr 11);
-  y := y xor (y shl 7)  and TEMPERING_MASK_B;
-  y := y xor (y shl 15) and TEMPERING_MASK_C;
-  y := y xor (y shr 18);
-  Result := y;
+  if (RandSeed<>OldRandSeed) or
+     (mt_index=MTWIST_N+1) then
+    begin
+      mtwist_init(RandSeed);
+      { Detect resets of randseed
+      
+        This will break if someone coincidentally uses not(randseed) as the
+        next randseed, but it's much more common that you will reset randseed
+        to the same value as before to regenerate the same sequence of numbers
+      }
+      RandSeed:=not(RandSeed);
+      OldRandSeed:=RandSeed;
+    end;
+  if mt_index=MTWIST_N then
+    mtwist_update_state;
+  result:=mt_state[mt_index];
+  inc(mt_index);
+  result:=result xor (result shr 11);
+  result:=result xor ((result shl 7) and cardinal($9D2C5680));
+  result:=result xor ((result shl 15) and cardinal($EFC60000));
+  result:=result xor (result shr 18);
 end;
 
 
@@ -656,13 +631,16 @@ begin
   { otherwise we can return values = l (JM) }
   if (l < 0) then
     inc(l);
-  random := longint((int64(cardinal(genrand_MT19937))*l) shr 32);
+  random := longint((int64(mtwist_u32rand)*l) shr 32);
 end;
 
 function random(l:int64): int64;
 begin
   { always call random, so the random generator cycles (TP-compatible) (JM) }
-  random := int64((qword(cardinal(genrand_MT19937)) or ((qword(cardinal(genrand_MT19937)) shl 32))) and $7fffffffffffffff);
+  { also do it in two separate steps, so the order in which the two calls
+    are performed is predictable (JM) }
+  random:=mtwist_u32rand;
+  random:=random or ((qword(mtwist_u32rand) shl 32) and high(int64));
   if (l<>0) then
     random := random mod l
   else
@@ -672,7 +650,7 @@ end;
 {$ifndef FPUNONE}
 function random: extended;
 begin
-  random := cardinal(genrand_MT19937) * (extended(1.0)/(int64(1) shl 32));
+  random := mtwist_u32rand * (extended(1.0)/(int64(1) shl 32));
 end;
 {$endif}
 {$endif FPC_HAS_FEATURE_RANDOM}
