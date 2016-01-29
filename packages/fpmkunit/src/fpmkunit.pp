@@ -1567,6 +1567,7 @@ ResourceString
   SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
   SErrEventNotSupported = 'Unsupported event type';
   SErrorPkgNotInstalled = 'Package "%s" is not installed, can not uninstall.';
+  SErrBuildUnitCompilation = 'Compilation of "%s" failed';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1647,6 +1648,7 @@ ResourceString
   SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
   SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
   SDbgGenerateBuildUnit     = 'Generate build-unit %s';
+  SDbgBuildUnitFailure      = 'Generate build-unit %s failed';
   SDbgForcedCompile         = 'Forced compile';
   SDbgOutputDoesNotExist    = 'Output file does not exist';
   SDbgNewerSource           = 'Source file is newer then output file';
@@ -6733,7 +6735,11 @@ Var
           end;
         finally
           if CompilationFailed then
-            Log(vlDebug,APackage.FBUTarget.FTargetSourceFileName)
+            begin
+              Log(vlDebug,Format(SDbgBuildUnitFailure,[APackage.FBUTarget.FTargetSourceFileName]));
+              // Raise failure exception again.
+              Error(SErrBuildUnitCompilation,[APackage.FBUTarget.FTargetSourceFileName]);
+            end
           else
             begin
             // Delete temporary build-unit files
