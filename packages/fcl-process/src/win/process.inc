@@ -187,11 +187,18 @@ begin
 end;
 
 
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoW; CE : Boolean; APipeBufferSize : Cardinal);
+Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoW; CI, CE : Boolean; APipeBufferSize : Cardinal);
 
 begin
-  CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
-  DuplicateHandleFP(SI.hStdInput);
+  if CI then
+    begin
+      CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
+      DuplicateHandleFP(SI.hStdInput);
+    end
+  else
+    begin
+      SI.hStdInput:=StdInputHandle;
+    end;
   CreatePipeHandles(HO,Si.hStdOutput, APipeBufferSize);
   DuplicateHandleFP(   Si.hStdOutput);
   if CE then begin
@@ -270,7 +277,7 @@ Var
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
     If poUsePipes in FProcessOptions then
-      CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions), FPipeBufferSize);
+      CreatePipes(HI,HO,HE,FStartupInfo,Not(poPassInput in Options), Not(poStdErrToOutPut in Options), FPipeBufferSize);
     Try
       // Beware: CreateProcess can alter the strings
       // Beware: nil is not the same as a pointer to a #0

@@ -261,7 +261,7 @@ Type
   TPipeEnd = (peRead,peWrite);
   TPipePair = Array[TPipeEnd] of cint;
 
-Procedure CreatePipes(Var HI,HO,HE : TPipePair; CE : Boolean);
+Procedure CreatePipes(Var HI,HO,HE : TPipePair; CI, CE : Boolean);
 
   Procedure CreatePair(Var P : TPipePair);
 
@@ -285,7 +285,8 @@ begin
   HE[peRead]:=-1;HE[peWrite]:=-1;
   Try
     CreatePair(HO);
-    CreatePair(HI);
+    if CI then
+      CreatePair(HI);
     If CE then
       CreatePair(HE);
   except
@@ -317,8 +318,8 @@ Var
   PName    : String;
 
 begin
-  If (poUsePipes in FProcessOptions) then
-    CreatePipes(HI,HO,HE,Not (poStdErrToOutPut in FProcessOptions));
+  If (poUsePipes in Options) then
+    CreatePipes(HI, HO, HE, Not(poPassInput in Options), Not (poStdErrToOutPut in Options));
   Try
     if FEnvironment.Count<>0 then
       FEnv:=StringsToPcharList(FEnvironment)
@@ -394,8 +395,11 @@ begin
                end;
             if PoUsePipes in Options then
               begin
-                FileClose(HI[peWrite]);
-                safefpdup2(HI[peRead],0);
+                if not (poPassInput in Options) then
+                  begin
+                    FileClose(HI[peWrite]);
+                    safefpdup2(HI[peRead],0);
+                  end;
                 FileClose(HO[peRead]);
                 safefpdup2(HO[peWrite],1);
                 if (poStdErrToOutPut in Options) then
@@ -431,10 +435,11 @@ begin
         FreePCharList(FEnv);
     end;
   Finally
-    if POUsePipes in FProcessOptions then
+    if POUsePipes in Options then
       begin
         FileClose(HO[peWrite]);
-        FileClose(HI[peRead]);
+        if not (POPassInput in Options) then
+          FileClose(HI[peRead]);
         if Not (poStdErrToOutPut in FProcessOptions) then
           FileClose(HE[peWrite]);
         CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
