@@ -25,7 +25,8 @@ Type
                     poUsePipes,poStderrToOutPut,
                     poNoConsole,poNewConsole,
                     poDefaultErrorMode,poNewProcessGroup,
-                    poDebugProcess,poDebugOnlyThisProcess);
+                    poDebugProcess,poDebugOnlyThisProcess,
+                    poPassInput);
 
   TShowWindowOptions = (swoNone,swoHIDE,swoMaximize,swoMinimize,swoRestore,swoShow,
                         swoShowDefault,swoShowMaximized,swoShowMinimized,
