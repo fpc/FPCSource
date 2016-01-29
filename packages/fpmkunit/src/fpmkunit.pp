@@ -1092,6 +1092,7 @@ Type
     FForceCompile : Boolean;
     FListMode : Boolean;
     FVerbose : boolean;
+    FInteractive : boolean;
     FProgressMax : integer;
     FProgressCount : integer;
     FExternalPackages : TPackages;
@@ -1150,6 +1151,7 @@ Type
     function AddPathPrefix(APackage: TPackage; APath: string): string;
 
     property Verbose : boolean read FVerbose write FVerbose;
+    property Interactive : boolean read FInteractive write FInteractive;
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
     Procedure ClearResolvedFileNames(APackage : TPackage);
 
@@ -1232,6 +1234,7 @@ Type
     FPackages: TPackages;
     FRunMode: TRunMode;
     FListMode : Boolean;
+    FInteractive : boolean;
     FLogLevels : TVerboseLevels;
     FFPMakeOptionsString: string;
     FPackageVariantSettings: TStrings;
@@ -1689,6 +1692,7 @@ ResourceString
   SHelpConfig         = 'Use indicated config file when compiling.';
   SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
+  SHelpInteractive    = 'Allow to interact with child processes';
   SHelpInstExamples   = 'Install the example-sources.';
   SHelpSkipCrossProgs = 'Skip programs when cross-compiling/installing';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
@@ -1744,7 +1748,7 @@ Const
 ****************************************************************************}
 
 {$ifdef HAS_UNIT_PROCESS}
-function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; const Env: TStrings; ConsoleOutput: TMemoryStream): integer;
+function ExecuteFPC(Verbose, Interactive: boolean; const Path: string; const ComLine: string; const Env: TStrings; ConsoleOutput: TMemoryStream): integer;
 var
   P: TProcess;
   BytesRead: longint;
@@ -1800,7 +1804,12 @@ var
 
         if ch in [#10, #13] then
         begin
-          if Verbose then
+          if Interactive then
+            begin
+              System.Writeln(output);
+              System.Flush(output);
+            end
+          else if Verbose then
             installer.log(vlInfo,sLine)
           else
             begin
@@ -1819,18 +1828,36 @@ var
               if ch=#10 then
                 sLine:=''
               else
-                sLine:=ch;
+                begin
+                  if Interactive then
+                    begin
+                      System.Write(output,ch);
+                      System.Flush(output);
+                    end
+                  else
+                    sLine:=ch;
+                end;
             end
           else
             sLine := '';
           BuffPos := ConsoleOutput.Position;
         end
         else
-          sLine := sLine + ch;
+        begin
+          if Interactive then
+            begin
+              System.Write(output,ch);
+              System.Flush(output);
+            end
+          else
+            sLine := sLine + ch;
+        end;
 
       until ConsoleOutput.Position >= BytesRead;
 
-      ConsoleOutput.Position := BuffPos;
+      // keep partial lines, unlessin interactive mode
+      if not Interactive then
+        ConsoleOutput.Position := BuffPos;
     end;
 
     Result := n;
@@ -1845,7 +1872,10 @@ begin
     if assigned(Env) then
       P.Environment.Assign(Env);
 
-    P.Options := [poUsePipes];
+    if Interactive then
+      P.Options := [poUsePipes,poPassInput]
+    else
+      P.Options := [poUsePipes];
 
     P.Execute;
     while P.Running do
@@ -4517,6 +4547,7 @@ begin
   FBuildEngine:=TBuildEngine.Create(Self);
 //  FBuildEngine.Defaults:=Defaults;
   FBuildEngine.ListMode:=FListMode;
+  FBuildEngine.FInteractive:=FInteractive;
   FBuildEngine.Verbose := (FLogLevels = AllMessages);
   FBuildEngine.OnLog:=@Self.Log;
   NotifyEventCollection.CallEvents(neaAfterCreateBuildengine, Self);
@@ -4669,6 +4700,8 @@ begin
     Inc(I);
     if CheckOption(I,'v','verbose') then
       FLogLevels:=AllMessages
+    else if CheckOption(I,'I','interactive') then
+      FInteractive:=true
     else if CheckOption(I,'d','debug') then
       FLogLevels:=AllMessages+[vlDebug]
     else if CheckCommand(I,'m','compile') then
@@ -4810,6 +4843,7 @@ begin
   LogOption('l','list-commands',SHelpList);
   LogOption('n','nofpccfg',SHelpNoFPCCfg);
   LogOption('v','verbose',SHelpVerbose);
+  LogOption('I','interactive',SHelpInteractive);
 {$ifdef HAS_UNIT_PROCESS}
   LogOption('e', 'useenv', sHelpUseEnvironment);
 {$endif}
@@ -5125,8 +5159,10 @@ begin
       // We should check cmd for spaces, and move all after first space to args.
       ConsoleOutput := TMemoryStream.Create;
       try
+        if Interactive then
+          Log(vlInfo,'Starting "%s" "%s" interactively',[Cmd,Args]);
         {$ifdef HAS_UNIT_PROCESS}
-        E:=ExecuteFPC(Verbose, cmd, args, env, ConsoleOutput);
+        E:=ExecuteFPC(Verbose, Interactive, cmd, args, env, ConsoleOutput);
         {$else}
         E:=ExecuteProcess(cmd,args);
         {$endif}
