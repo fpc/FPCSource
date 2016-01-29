@@ -20,7 +20,7 @@ function atexit(proc:TCdeclProcedure):longint;cdecl;external 'c' name 'atexit';
 procedure _cleanup;cdecl;external 'c' name '_cleanup';
 procedure _DYNAMIC;cdecl;external 'c' name '_DYNAMIC';
 procedure __fpstart;cdecl;external 'c' name '__fpstart';
-procedure PascalMain;cdecl;external name 'PASCALMAIN';
+procedure PascalMain;external name 'PASCALMAIN';
 
 procedure _start;assembler;nostackframe;public name '_start';
 asm

@@ -114,7 +114,7 @@ var
   SysInstance : Longint;public name '_FPC_SysInstance';
   InitFinalTable : record end; external name 'INITFINAL';
   ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
-  procedure PascalMain;stdcall;external name 'PASCALMAIN';
+  procedure PascalMain;external name 'PASCALMAIN';
   procedure asm_exit;stdcall;external name 'asm_exit';
 const
   EntryInformation : TEntryInformation = (

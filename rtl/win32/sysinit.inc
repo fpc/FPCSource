@@ -38,7 +38,7 @@
 
     procedure EXE_Entry(const info : TEntryInformation); external name '_FPC_EXE_Entry';
     function DLL_Entry(const info : TEntryInformation) : longbool; external name '_FPC_DLL_Entry';
-    procedure PascalMain;stdcall;external name 'PASCALMAIN';
+    procedure PascalMain;external name 'PASCALMAIN';
 
     function GetStdHandle(nStdHandle:DWORD) : THandle; stdcall; external 'kernel32' name 'GetStdHandle';
     function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';

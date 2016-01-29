@@ -26,7 +26,7 @@ procedure _exit;cdecl;external 'c' name '_exit';
 //procedure __fpstart;cdecl;external 'c' name '__fpstart'{ @plt };
 //procedure __fsr;cdecl;external 'c' name '__fsr';
 //procedure _init;cdecl;external 'c' name '_init';
-procedure PascalMain;cdecl;external name 'PASCALMAIN';
+procedure PascalMain;external name 'PASCALMAIN';
 
 
 {vars are not correctly transformed :(

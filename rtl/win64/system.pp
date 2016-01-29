@@ -137,7 +137,7 @@ end;
 {$ifndef FPC_USE_WIN64_SEH}
 procedure install_exception_handlers;forward;
 {$endif FPC_USE_WIN64_SEH}
-procedure PascalMain;stdcall;external name 'PASCALMAIN';
+procedure PascalMain;external name 'PASCALMAIN';
 
 { include code common with win32 }
 {$I syswin.inc}

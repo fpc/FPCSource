@@ -605,7 +605,7 @@ type
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
     asm_exit : Procedure;stdcall;
-    PascalMain : Procedure;stdcall;
+    PascalMain : Procedure;
     valgrind_used : boolean;
   end;
 
