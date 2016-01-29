@@ -46,17 +46,17 @@ begin
   With P do
     begin
     Result:=0;
-    if poUsePipes in FProcessOptions then
+    if poUsePipes in Options then
        Result:=Result or Startf_UseStdHandles;
-    if suoUseShowWindow in FStartupOptions then
+    if suoUseShowWindow in StartupOptions then
       Result:=Result or startf_USESHOWWINDOW;
-    if suoUSESIZE in FStartupOptions then
+    if suoUSESIZE in StartupOptions then
       Result:=Result or startf_usesize;
-    if suoUsePosition in FStartupOptions then
+    if suoUsePosition in StartupOptions then
       Result:=Result or startf_USEPOSITION;
-    if suoUSECOUNTCHARS in FStartupoptions then
+    if suoUSECOUNTCHARS in Startupoptions then
       Result:=Result or startf_usecountchars;
-    if suoUsefIllAttribute in FStartupOptions then
+    if suoUsefIllAttribute in StartupOptions then
       Result:=Result or startf_USEFILLATTRIBUTE;
     end;
 end;
@@ -67,19 +67,19 @@ begin
   With P do
     begin
     Result:=CREATE_UNICODE_ENVIRONMENT;
-    if poNoConsole in FProcessOptions then
+    if poNoConsole in Options then
       Result:=Result or Detached_Process;
-    if poNewConsole in FProcessOptions then
+    if poNewConsole in Options then
       Result:=Result or Create_new_console;
-    if poNewProcessGroup in FProcessOptions then
+    if poNewProcessGroup in Options then
       Result:=Result or CREATE_NEW_PROCESS_GROUP;
-    If poRunSuspended in FProcessOptions Then
+    If poRunSuspended in Options Then
       Result:=Result or Create_Suspended;
-    if poDebugProcess in FProcessOptions Then
+    if poDebugProcess in Options Then
       Result:=Result or DEBUG_PROCESS;
-    if poDebugOnlyThisProcess in FProcessOptions Then
+    if poDebugOnlyThisProcess in Options Then
       Result:=Result or DEBUG_ONLY_THIS_PROCESS;
-    if poDefaultErrorMode in FProcessOptions Then
+    if poDefaultErrorMode in Options Then
       Result:=Result or CREATE_DEFAULT_ERROR_MODE;
     result:=result or PriorityConstants[FProcessPriority];
     end;
@@ -276,7 +276,7 @@ Var
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
-    If poUsePipes in FProcessOptions then
+    If poUsePipes in Options then
       CreatePipes(HI,HO,HE,FStartupInfo,Not(poPassInput in Options), Not(poStdErrToOutPut in Options), FPipeBufferSize);
     Try
       // Beware: CreateProcess can alter the strings
@@ -292,11 +292,12 @@ Var
       FThreadHandle:=FProcessInformation.hThread;
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
-      if POUsePipes in FProcessOptions then
+      if POUsePipes in Options then
         begin
-        FileClose(FStartupInfo.hStdInput);
+        if not (poPassInput in Options) then
+          FileClose(FStartupInfo.hStdInput);
         FileClose(FStartupInfo.hStdOutput);
-        if Not (poStdErrToOutPut in FProcessOptions) then
+        if Not (poStdErrToOutPut in Options) then
           FileClose(FStartupInfo.hStdError);
         CreateStreams(HI,HO,HE);
         end;
@@ -307,8 +308,8 @@ Var
       FreeMem(FEnv);
   end;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
-     (poWaitOnExit in FProcessOptions) and
-      not (poRunSuspended in FProcessOptions) then
+     (poWaitOnExit in Options) and
+      not (poRunSuspended in Options) then
     WaitOnExit;
 end;
 
