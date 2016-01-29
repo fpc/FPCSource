@@ -540,6 +540,12 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
+    ResourceStringTables : Pointer;
+    ResStrInitTables : Pointer;
+    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    WideInitTables : Pointer;
+    {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    ResLocation : Pointer;
     PascalMain : Procedure;
     valgrind_used : boolean;
     {$ifdef HAS_ENTRYINFORMATION_OS}
