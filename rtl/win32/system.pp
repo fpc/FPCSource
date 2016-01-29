@@ -120,9 +120,11 @@ const
   EntryInformation : TEntryInformation = (
     InitFinalTable : @InitFinalTable;
     ThreadvarTablesTable : @ThreadvarTablesTable;
-    asm_exit : @asm_exit;
     PascalMain : @PascalMain;
     valgrind_used : false;
+    OS : (
+      asm_exit: @asm_exit;
+      );
     );
 
 {$ifdef FPC_USE_WIN32_SEH}
@@ -183,7 +185,7 @@ begin
 {$endif FPC_USE_WIN32_SEH}
 
   { do cleanup required by the startup code }
-  EntryInformation.asm_exit();
+  EntryInformation.OS.asm_exit();
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);

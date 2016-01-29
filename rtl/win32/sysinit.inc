@@ -48,9 +48,11 @@
       SysInitEntryInformation : TEntryInformation = (
         InitFinalTable : @InitFinalTable;
         ThreadvarTablesTable : @ThreadvarTablesTable;
-        asm_exit : @asm_exit;
         PascalMain : @PascalMain;
         valgrind_used : false;
+        OS : (
+          asm_exit : @asm_exit;
+          );
         );
 
 
@@ -59,7 +61,7 @@
         { valgind_used is the only thng that can change at startup
         EntryInformation.InitFinalTable:=@InitFinalTable;
         EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
-        EntryInformation.asm_exit:=@asm_exit;
+        EntryInformation.OS.asm_exit:=@asm_exit;
         EntryInformation.PascalMain:=@PascalMain;}
         SysInitEntryInformation.valgrind_used:=valgrind_used;
       end;
