@@ -359,7 +359,7 @@ Var
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-     EntryInformation:=info;
+     SetupEntryInformation(info);
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
      DllInitState:=DLLreason;

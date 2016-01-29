@@ -105,6 +105,30 @@ var
   EntryInformation: TEntryInformation;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
+var
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_RESSTRINITS}
+  FPCResStrInitTables : Pointer;public name '_FPC_ResStrInitTables';
+{$endif FPC_HAS_RESSTRINITS}
+  FPCResourceStringTables : Pointer;public name '_FPC_ResourceStringTables';
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+{$ifdef FPC_HAS_RESSTRINITS}
+  FPCResStrInitTablesVar : record end; external name 'FPC_RESSTRINITTABLES';
+  FPCResStrInitTables : Pointer = @FPCResStrInitTablesVar;public name '_FPC_ResStrInitTables';
+{$endif FPC_HAS_RESSTRINITS}
+  FPCResourceStringTablesVar : record end; External Name 'FPC_RESOURCESTRINGTABLES';
+  FPCResourceStringTables : Pointer = @FPCResourceStringTablesVar;public name '_FPC_ResourceStringTables';
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+procedure SetupEntryInformation(const info: TEntryInformation);
+begin
+  EntryInformation := info;
+  FPCResStrInitTables := info.ResStrInitTables;
+  FPCResourceStringTables := info.ResourceStringTables;
+end;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+
 { checks whether the given suggested size for the stack of the current
  thread is acceptable. If this is the case, returns it unaltered.
  Otherwise it should return an acceptable value.

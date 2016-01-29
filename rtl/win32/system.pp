@@ -186,7 +186,7 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
   var
     xframe: TEXCEPTION_FRAME;
   begin
-     EntryInformation:=info;
+     SetupEntryInformation(info);
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
