@@ -296,7 +296,7 @@ end;
 
 {$ifdef Darwin}
 
-procedure pascalmain;external name 'PASCALMAIN';
+procedure pascalmain;external name '_PASCALMAIN';
 
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
 
