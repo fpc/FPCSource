@@ -99,6 +99,7 @@ interface
           function handle_copy: tnode;
           function handle_box: tnode;
           function handle_unbox: tnode;
+          function handle_ifthen: tnode;
        end;
        tinlinenodeclass = class of tinlinenode;
 
@@ -3281,6 +3282,10 @@ implementation
                   set_varstate(tcallparanode(tcallparanode(tcallparanode(left).right).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(left).left.resultdef;
                 end;
+              in_ifthen_x_y_z:
+                begin
+                  result:=handle_ifthen;
+                end;
               else
                 internalerror(8);
             end;
@@ -3631,6 +3636,8 @@ implementation
          in_fma_extended,
          in_fma_float128:
            result:=first_fma;
+         in_ifthen_x_y_z:
+           internalerror(2016013105);
          else
            internalerror(89);
           end;
@@ -4244,6 +4251,77 @@ implementation
          resultdef:=tcallparanode(left).left.resultdef;
        end;
 
+
+     function tinlinenode.handle_ifthen: tnode;
+       var
+         stat : tstatementnode;
+         tempnode : ttempcreatenode;
+         n,
+         condexpr,
+         thenexpr,
+         elseexpr : tnode;
+         resdef : tdef;
+       begin
+         if left.nodetype<>callparan then
+           internalerror(2016013101);
+         condexpr:=tcallparanode(left).left;
+         tcallparanode(left).left:=nil;
+         n:=tcallparanode(left).right;
+         if n.nodetype<>callparan then
+           internalerror(2016013102);
+         thenexpr:=tcallparanode(n).left;
+         tcallparanode(n).left:=nil;
+         n:=tcallparanode(n).right;
+         if n.nodetype<>callparan then
+           internalerror(2016013103);
+         elseexpr:=tcallparanode(n).left;
+         tcallparanode(n).left:=nil;
+         if assigned(tcallparanode(n).right) then
+           internalerror(2016013104);
+
+         { The result type of the expression is that of the then-expression; the
+           else-expression is converted to that if possible (otherwise error)
+           There are a few special cases however:
+           - constant strings need to be converted to strings
+           - chars need to be checked with strings
+         }
+
+         if is_conststringnode(thenexpr) then
+           begin
+             if is_constwidestringnode(elseexpr) or is_constwidecharnode(elseexpr) then
+               resdef:=cwidestringtype
+             else
+               resdef:=cansistringtype;
+           end
+         else if is_constcharnode(thenexpr) then
+           begin
+             if is_constcharnode(elseexpr) then
+               resdef:=cansichartype
+             else if is_constwidecharnode(elseexpr) then
+               resdef:=cwidechartype
+             else if is_string(elseexpr.resultdef) then
+               resdef:=elseexpr.resultdef
+             else
+               resdef:=thenexpr.resultdef;
+           end
+         else
+           resdef:=thenexpr.resultdef;
+
+         result:=internalstatements(stat);
+
+         { create the tempnode that will hold our result }
+         tempnode:=ctempcreatenode.create(resdef,resdef.size,tt_persistent,true);
+         addstatement(stat,tempnode);
+
+         n:=cifnode.create(condexpr,
+                            cassignmentnode.create(ctemprefnode.create(tempnode),thenexpr),
+                            cassignmentnode.create(ctemprefnode.create(tempnode),elseexpr)
+                          );
+         addstatement(stat,n);
+
+         addstatement(stat,ctempdeletenode.create_normal_temp(tempnode));
+         addstatement(stat,ctemprefnode.create(tempnode));
+       end;
 
      function tinlinenode.first_pack_unpack: tnode;
        var

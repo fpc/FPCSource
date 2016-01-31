@@ -914,6 +914,20 @@ implementation
             begin
               statement_syssym := inline_setstring;
             end;
+
+          in_ifthen_x_y_z:
+            begin
+              consume(_LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr([ef_accept_equal]);
+              consume(_COMMA);
+              p2:=comp_expr([ef_accept_equal]);
+              consume(_COMMA);
+              paras:=comp_expr([ef_accept_equal]);
+              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil))));
+              consume(_RKLAMMER);
+            end;
+
           else
             internalerror(15);
 
