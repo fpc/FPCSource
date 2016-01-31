@@ -2472,10 +2472,7 @@ implementation
                   )
                 ) or
                 (
-                  (
-                    not pd.is_specialization and
-                    assigned(pd.owner)
-                  ) and
+                  assigned(pd.owner) and
                   (
                     not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
                     is_visible_for_object(pd,contextstructdef)
