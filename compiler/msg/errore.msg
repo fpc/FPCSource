@@ -3694,6 +3694,7 @@ J*2Cv_Var/out parameter copy-out checking
 **2Mdelphi_Delphi 7 compatibility mode
 **2Mtp_TP/BP 7.0 compatibility mode
 **2Mmacpas_Macintosh Pascal dialects compatibility mode
+**2Miso_ISO 7185 mode
 **1n_Do not read the default config files
 **1o<x>_Change the name of the executable produced to <x>
 **1O<x>_Optimizations:
