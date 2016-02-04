@@ -914,20 +914,6 @@ implementation
             begin
               statement_syssym := inline_setstring;
             end;
-
-          in_ifthen_x_y_z:
-            begin
-              consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr([ef_accept_equal]);
-              consume(_COMMA);
-              p2:=comp_expr([ef_accept_equal]);
-              consume(_COMMA);
-              paras:=comp_expr([ef_accept_equal]);
-              statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil))));
-              consume(_RKLAMMER);
-            end;
-
           else
             internalerror(15);
 
@@ -3242,6 +3228,77 @@ implementation
            result:=not current_procinfo.get_normal_proc.procdef.no_self_node;
          end;
 
+
+         function factor_read_inline_if:tnode;
+           var
+             stat : tstatementnode;
+             tempnode : ttempcreatenode;
+             ifnode,
+             condexpr,
+             thenexpr,
+             elseexpr : tnode;
+             resdef : tdef;
+           begin
+             consume(_IF);
+             condexpr:=comp_expr([ef_accept_equal]);
+             consume(_THEN);
+             thenexpr:=comp_expr([ef_accept_equal]);
+             consume(_ELSE);
+             elseexpr:=factor(false,[ef_accept_equal]);// comp_expr([ef_accept_equal]);
+
+             typecheckpass(condexpr);
+             typecheckpass(thenexpr);
+             typecheckpass(elseexpr);
+
+             if (condexpr.nodetype=errorn) or
+                 (thenexpr.nodetype=errorn) or
+                 (elseexpr.nodetype=errorn) then
+               result:=cerrornode.create;
+
+             { The result type of the expression is that of the then-expression; the
+               else-expression is converted to that if possible (otherwise error)
+               There are a few special cases however:
+               - constant strings need to be converted to strings
+               - chars need to be checked with strings
+             }
+
+             if is_conststringnode(thenexpr) then
+               begin
+                 if is_constwidestringnode(elseexpr) or is_constwidecharnode(elseexpr) then
+                   resdef:=cwidestringtype
+                 else
+                   resdef:=cansistringtype;
+               end
+             else if is_constcharnode(thenexpr) then
+               begin
+                 if is_constcharnode(elseexpr) then
+                   resdef:=cansichartype
+                 else if is_constwidecharnode(elseexpr) then
+                   resdef:=cwidechartype
+                 else if is_string(elseexpr.resultdef) then
+                   resdef:=elseexpr.resultdef
+                 else
+                   resdef:=thenexpr.resultdef;
+               end
+             else
+               resdef:=thenexpr.resultdef;
+
+             result:=internalstatements(stat);
+
+             { create the tempnode that will hold our result }
+             tempnode:=ctempcreatenode.create(resdef,resdef.size,tt_persistent,true);
+             addstatement(stat,tempnode);
+
+             ifnode:=cifnode.create(condexpr,
+                                cassignmentnode.create(ctemprefnode.create(tempnode),thenexpr),
+                                cassignmentnode.create(ctemprefnode.create(tempnode),elseexpr)
+                              );
+             addstatement(stat,ifnode);
+
+             addstatement(stat,ctempdeletenode.create_normal_temp(tempnode));
+             addstatement(stat,ctemprefnode.create(tempnode));
+           end;
+
       {---------------------------------------------
                       Factor (Main)
       ---------------------------------------------}
@@ -3778,6 +3835,10 @@ implementation
                p1:=factor(false,[]);
                consume(_RKLAMMER);
                p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
+             end;
+           _IF:
+             begin
+               p1:=factor_read_inline_if;
              end;
 
              else
