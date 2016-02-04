@@ -341,6 +341,7 @@ FUNCTION_PROLOG _dynamic_start
   LOAD_64BIT_VAL 10,operatingsystem_parameter_argv
   std     4,0(10)
   /* store environment pointer */
+  LOAD_64BIT_VAL 10,operatingsystem_parameter_envp
   std     5,0(10)
 
   LOAD_64BIT_VAL 8,__stkptr
