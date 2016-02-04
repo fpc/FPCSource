@@ -2883,7 +2883,7 @@ lineinfo$(PPUEXT) : $(INC)/lineinfo.pp exeinfo$(PPUEXT) strings$(PPUEXT) system$
 lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp exeinfo$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
 	$(EXECPPAS)
-exeinfo$(PPUEXT) : $(INC)/exeinfo.pp strings$(PPUEXT) system$(PPUEXT)
+exeinfo$(PPUEXT) : $(INC)/exeinfo.pp sysutils$(PPUEXT) strings$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) $(INC)/exeinfo.pp
 	$(EXECPPAS)
 charset$(PPUEXT) : $(INC)/charset.pp objpas$(PPUEXT) system$(PPUEXT)
