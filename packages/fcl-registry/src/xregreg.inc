@@ -55,6 +55,8 @@ class procedure TXMLRegistryInstance.FreeXMLRegistryCache;
 
 var i: integer;
 begin
+  if not Assigned(XMLRegistryCache) then
+    exit;
   for i := 0 to XMLRegistryCache.Count - 1 do
     TXMLRegistryInstance(XMLRegistryCache[i]).Free;
   FreeAndNil(XMLRegistryCache);
