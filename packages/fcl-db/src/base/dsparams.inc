@@ -1104,7 +1104,7 @@ Var
 
 begin
   SetLength(Temp,ASize);
-  Move(Buffer^,Temp,ASize);
+  Move(Buffer^,Temp[1],ASize);
   AsBlob:=Temp;
 end;
 
