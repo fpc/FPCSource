@@ -2041,10 +2041,7 @@ implementation
               begin
                 symderef:=pderef(genericparaderefs[i]);
                 genericparas.items[i]:=symderef^.resolve;
-                dispose(symderef);
               end;
-            genericparaderefs.free;
-            genericparaderefs:=nil;
           end;
       end;
 
