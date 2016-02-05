@@ -40,6 +40,7 @@ Type
     FOptionChar : Char;
     FCaseSensitiveOptions : Boolean;
     FStopOnException : Boolean;
+    FExceptionExitCode : Integer;
     function GetEnvironmentVar(VarName : String): String;
     function GetExeName: string;
     Function GetLocation : String;
@@ -64,6 +65,7 @@ Type
     procedure Run;
     procedure ShowException(E: Exception);virtual;
     procedure Terminate; virtual;
+    procedure Terminate(AExitCode : Integer) ; virtual;
     // Extra methods.
     function FindOptionIndex(Const S : String; Var Longopt : Boolean; StartAt : Integer = -1) : Integer;
     Function GetOptionValue(Const S : String) : String;
@@ -97,6 +99,7 @@ Type
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
+    Property ExceptionExitCode : Longint Read FExceptionExitCode Write FExceptionExitCode;
     Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
     Property SingleInstance: TBaseSingleInstance read GetSingleInstance;
     Property SingleInstanceClass: TBaseSingleInstanceClass read FSingleInstanceClass write SetSingleInstanceClass;
@@ -311,7 +314,7 @@ begin
       FOnException(Sender,Exception(ExceptObject));
     end;
   If FStopOnException then
-    FTerminated:=True;
+    Terminate(ExceptionExitCode);
 end;
 
 
@@ -359,7 +362,15 @@ end;
 
 procedure TCustomApplication.Terminate;
 begin
+  Terminate(0);
+end;
+
+procedure TCustomApplication.Terminate(AExitCode : Integer) ;
+
+begin
   FTerminated:=True;
+  If (AExitCode<>0) then
+    ExitCode:=AExitCode;
 end;
 
 function TCustomApplication.GetOptionAtIndex(AIndex : Integer; IsLong: Boolean): String;
