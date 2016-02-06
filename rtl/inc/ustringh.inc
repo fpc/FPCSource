@@ -16,12 +16,12 @@
 
 
 Procedure UniqueString (Var S : UnicodeString);external name 'FPC_UNICODESTR_UNIQUE';
-Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
-Function Pos (c : Char; Const s : UnicodeString) : SizeInt;
-Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
-Function Pos (const c : RawByteString; Const s : UnicodeString) : SizeInt;
-Function Pos (const c : UnicodeString; Const s : RawByteString) : SizeInt;
-Function Pos (const c : ShortString; Const s : UnicodeString) : SizeInt;
+Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (c : Char; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (const c : RawByteString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (const c : UnicodeString; Const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (const c : ShortString; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 
 Function UpCase(const s : UnicodeString) : UnicodeString;
 Function  UpCase(c:UnicodeChar):UnicodeChar;
