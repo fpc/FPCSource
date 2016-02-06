@@ -3236,6 +3236,8 @@ begin
         AppendKw(CodeEl, 'property ');
         AppendHyperlink(CodeEl, Member);
         t:=TPasProperty(Member).ResolvedType;
+        if Assigned(TPasProperty(Member).Args) and (TPasProperty(Member).Args.Count>0) then
+           AppendText(CodeEl, ' []');
         if Assigned(T) then
         begin
           AppendSym(CodeEl, ': ');
@@ -3674,12 +3676,31 @@ var
   var
     NeedBreak: Boolean;
     T : TPasType;
+    A : TPasArgument;
+    I : integer;
 
   begin
     AppendKw(CodeEl, 'property ');
     AppendHyperlink(CodeEl, Element.Parent);
     AppendSym(CodeEl, '.');
     AppendText(CodeEl, Element.Name);
+    if Assigned(Element.Args) and (Element.Args.Count>0) then
+      begin
+      AppendSym(CodeEl,'[');
+      For I:=0 to Element.Args.Count-1 do
+        begin
+        If I>0 then
+          AppendSym(CodeEl,',');
+        A:=TPasArgument(Element.Args[i]);
+        AppendText(CodeEl, A.Name);
+        AppendSym(CodeEl,': ');
+        if Assigned(A.ArgType) then
+          AppendText(CodeEl,A.ArgType.Name)
+        else
+          AppendText(CodeEl,'<Unknown>');
+        end;
+      AppendSym(CodeEl,']');
+      end;
     T:=Element.ResolvedType;
     if Assigned(T) then
     begin
