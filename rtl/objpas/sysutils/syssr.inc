@@ -1,5 +1,5 @@
 var
-  OldPat,Srch: string; // Srch and Oldp can contain uppercase versions of S,OldPattern
+  OldPat,Srch: SRstring; // Srch and Oldp can contain uppercase versions of S,OldPattern
   PatLength,NewPatLength,P,Cnt,PatCount,PrevP: Integer;
   c,d: SRPChar ;
   
