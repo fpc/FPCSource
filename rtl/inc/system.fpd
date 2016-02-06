@@ -71,8 +71,6 @@ Procedure SetLength(Var S : AStringType; Len : Integer);
 Procedure SetLength(Var A : DynArrayType; Len : Integer);
 Function Length(S : AStringType) : Integer;
 Function Length(A : DynArrayType) : Integer;
-Function Power(Base:double;expon:double):double;
-Function Power(Base:Longint;expon:Longint):Longint;
 Procedure WriteStr(Out S : String; Args : Arguments);
 Procedure ReadStr(Const S : String; Args : Arguments);
 Procedure Pack(Const A : UnpackedArrayType; StartIndex : TIndexType; Out Z : PackedArrayType);
