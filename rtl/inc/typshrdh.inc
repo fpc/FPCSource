@@ -70,14 +70,16 @@
        constructor Create(ax,ay:Longint); overload;
        constructor Create(apt :TPoint); overload;
        {$endif}
+       class function Zero: TPoint; static; inline;
        function Add(const apt: TPoint): TPoint;
-       function Distance(const apt : TPoint) : Double;
+       function Distance(const apt: TPoint) : ValReal;
        function IsZero : Boolean;
        function Subtract(const apt : TPoint): TPoint;
        procedure SetLocation(const apt :TPoint);
        procedure SetLocation(ax,ay : Longint);
        procedure Offset(const apt :TPoint);
        procedure Offset(dx,dy : Longint);
+       class function PointInCircle(const apt, acenter: TPoint; const aradius: Integer): Boolean; static; inline;
        class operator = (const apt1, apt2 : TPoint) : Boolean;
        class operator <> (const apt1, apt2 : TPoint): Boolean;
        class operator + (const apt1, apt2 : TPoint): TPoint;

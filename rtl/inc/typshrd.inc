@@ -89,11 +89,12 @@ end;
 function TPoint.Add(const apt: TPoint): TPoint;
 begin
   result.x:=x+apt.x;
+  result.y:=y+apt.y;
 end;
 
-function TPoint.Distance(const apt : TPoint) : Double;
+function TPoint.Distance(const apt: TPoint): ValReal;
 begin
-  result:=sqrt(sqr(apt.x-x)+sqr(apt.y-y));
+  result:=sqrt(sqr(ValReal(apt.x)-ValReal(x))+sqr(ValReal(apt.y)-ValReal(y))); // convert to ValReal to prevent integer overflows
 end;
 
 function TPoint.IsZero : Boolean;
@@ -104,6 +105,13 @@ end;
 function TPoint.Subtract(const apt : TPoint): TPoint;
 begin
   result.x:=x-apt.x;
+  result.y:=y-apt.y;
+end;
+
+class function TPoint.Zero: TPoint;
+begin
+  Result.x := 0;
+  Result.y := 0;
 end;
 
 procedure TPoint.SetLocation(const apt :TPoint);
@@ -117,14 +125,20 @@ end;
 
 procedure TPoint.Offset(const apt :TPoint);
 begin
- x:=x-apt.x;
- y:=y-apt.y;
+ x:=x+apt.x;
+ y:=y+apt.y;
+end;
+
+class function TPoint.PointInCircle(const apt, acenter: TPoint;
+  const aradius: Integer): Boolean;
+begin
+  Result := apt.Distance(acenter) <= aradius;
 end;
 
 procedure TPoint.Offset(dx,dy : Longint);
 begin
-  x:=x-dx;
-  y:=y-dy;
+  x:=x+dx;
+  y:=y+dy;
 end;
 
 class operator TPoint.= (const apt1, apt2 : TPoint) : Boolean;
