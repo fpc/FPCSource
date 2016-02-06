@@ -326,7 +326,7 @@ endef
 $(foreach unit,$(CPU_UNITS),$(eval $(call CPU_UNITS_RULE,$(unit))))
 
 $(addsuffix $(PPUEXT),$(CPU_UNITS)):
-	$(COMPILER) $<
+	$(COMPILER) -g $<
 
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
