@@ -1481,6 +1481,7 @@ end;
 {$IFDEF FPC_HAS_TYPE_SINGLE}
 {$define TFLOATHELPER:=TSingleHelper}
 {$define FLOATTYPE:=Single}
+{$define TFloatRec:=TSingleRec}
 {$i syshelpf.inc}
 {$ENDIF FPC_HAS_TYPE_SINGLE}
 
@@ -1490,6 +1491,7 @@ end;
 {$IFDEF FPC_HAS_TYPE_DOUBLE}
 {$define TFLOATHELPER:=TDoubleHelper}
 {$define FLOATTYPE:=Double}
+{$define TFloatRec:=TDoubleRec}
 {$i syshelpf.inc}
 {$ENDIF FPC_HAS_TYPE_DOUBLE}
 
@@ -1500,6 +1502,7 @@ end;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define TFLOATHELPER:=TExtendedHelper}
 {$define FLOATTYPE:=Extended}
+{$define TFloatRec:=TExtended80Rec}
 {$i syshelpf.inc}
 {$ENDIF FPC_HAS_TYPE_EXTENDED}
 
