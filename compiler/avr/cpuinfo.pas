@@ -278,7 +278,7 @@ Const
         flashbase:0;
         flashsize:$20000;
         srambase:256;
-        sramsize:4096;
+        sramsize:32*1024;
         eeprombase:0;
         eepromsize:4096;
         )
