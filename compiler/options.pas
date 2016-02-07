@@ -1007,7 +1007,7 @@ begin
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
           ((length(opt)>3) and (opt[2]='C') and (opt[3]='p')) or
-          ((length(opt)>3) and (opt[2]='W') and (opt[3]='m'))
+          ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
          )
         ) then
     exit;
@@ -3483,8 +3483,13 @@ begin
   if target_info.system in systems_embedded then
     begin
       case target_info.system of
+{$ifdef AVR}
         system_avr_embedded:
-          heapsize:=128;
+          if init_settings.controllertype=ct_avrsim then
+            heapsize:=8192
+          else
+            heapsize:=128;
+{$endif AVR}
         system_arm_embedded:
           heapsize:=256;
         system_mipsel_embedded:
