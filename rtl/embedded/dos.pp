@@ -7,11 +7,11 @@
 
     MorphOS port was done on a free Pegasos II/G4 machine
     provided by Genesi S.a.r.l. <www.genesi.lu>
-    
+
     This unit is based on the MorphOS one and is adapted for Gameboy Advance
-    simply by stripping out all stuff inside funcs and procs. 
+    simply by stripping out all stuff inside funcs and procs.
     Copyright (c) 2006 by Francesco Lombardi
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -41,6 +41,8 @@ type
 {$I dosh.inc}
 
 implementation
+
+{$define HAS_GETMSCOUNT}
 
 {$I dos.inc}
 
@@ -132,12 +134,14 @@ procedure GetTime(Var Hour, Minute, Second, Sec100: Word);
 begin
 end;
 
-
 Procedure SetTime(Hour, Minute, Second, Sec100: Word);
 begin
 end;
 
-
+function GetMsCount: int64;
+begin
+   result:=0;
+end;
 
 {******************************************************************************
                                --- Exec ---
