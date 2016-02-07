@@ -638,35 +638,35 @@ end;
 function Sign(const AValue: Integer): TValueSign;inline;
 
 begin
-  If Avalue<0 then
-    Result:=NegativeValue
-  else If Avalue>0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  result:=TValueSign(
+    SarLongint(AValue,sizeof(AValue)*8-1) or   { gives -1 for negative values, 0 otherwise }
+    (-AValue shr (sizeof(AValue)*8-1))         { gives 1 for positive values, 0 otherwise }
+  );
 end;
 
 function Sign(const AValue: Int64): TValueSign;inline;
 
 begin
+{$ifdef cpu64}
+  result:=TValueSign(
+    SarInt64(AValue,sizeof(AValue)*8-1) or
+    (-AValue shr (sizeof(AValue)*8-1))
+  );
+{$else cpu64}
   If Avalue<0 then
     Result:=NegativeValue
   else If Avalue>0 then
     Result:=PositiveValue
   else
     Result:=ZeroValue;
+{$endif}
 end;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function Sign(const AValue: Single): TValueSign;inline;
 
 begin
-  If Avalue<0.0 then
-    Result:=NegativeValue
-  else If Avalue>0.0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  Result:=ord(AValue>0.0)-ord(AValue<0.0);
 end;
 {$endif}
 
@@ -674,24 +674,14 @@ end;
 function Sign(const AValue: Double): TValueSign;inline;
 
 begin
-  If Avalue<0.0 then
-    Result:=NegativeValue
-  else If Avalue>0.0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  Result:=ord(AValue>0.0)-ord(AValue<0.0);
 end;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function Sign(const AValue: Extended): TValueSign;inline;
 
 begin
-  If Avalue<0.0 then
-    Result:=NegativeValue
-  else If Avalue>0.0 then
-    Result:=PositiveValue
-  else
-    Result:=ZeroValue;
+  Result:=ord(AValue>0.0)-ord(AValue<0.0);
 end;
 {$endif}
 
