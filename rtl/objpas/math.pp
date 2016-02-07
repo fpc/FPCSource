@@ -616,6 +616,8 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 
 implementation
 
+function copysign(x,y: float): float; forward;    { returns abs(x)*sign(y) }
+
 { include cpu specific stuff }
 {$i mathu.inc}
 
@@ -883,7 +885,8 @@ function sinh(x : float) : float;
      temp : float;
   begin
      temp:=exp(x);
-     sinh:=0.5*(temp-1.0/temp);
+     { copysign ensures that sinh(-0.0)=-0.0 }
+     sinh:=copysign(0.5*(temp-1.0/temp),x);
   end;
 
 Const MaxTanh = 5678.22249441322; // Ln(MaxExtended)/2
@@ -919,8 +922,13 @@ function arcosh(x : float) : float;
   end;
 
 function arsinh(x : float) : float;
+  var
+    z: float;
   begin
-     arsinh:=Ln(x+Sqrt(1+x*x));
+    z:=abs(x);
+    z:=Ln(z+Sqrt(1+z*z));
+    { copysign ensures that arsinh(-Inf)=-Inf and arsinh(-0.0)=-0.0 }
+    arsinh:=copysign(z,x);
   end;
 
 function artanh(x : float) : float;
@@ -2165,6 +2173,10 @@ type
     cards: Array[0..1] of cardinal;
   end;
 
+  TSplitExtended = packed record
+    cards: Array[0..1] of cardinal;
+    w: word;
+  end;
 
 function IsNan(const d : Single): Boolean; overload;
   begin
@@ -2191,13 +2203,6 @@ function IsNan(const d : Double): Boolean;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function IsNan(const d : Extended): Boolean; overload;
-  type
-    TSplitExtended = packed record
-      case byte of
-        0: (bytes: Array[0..9] of byte);
-        1: (words: Array[0..4] of word);
-        2: (cards: Array[0..1] of cardinal; w: word);
-    end;
   var
     fraczero, expMaximal: boolean;
   begin
@@ -2228,6 +2233,23 @@ function IsInfinite(const d : Double): Boolean;
     Result:=expMaximal and fraczero;
   end;
 
+function copysign(x,y: float): float;
+begin
+{$if defined(FPC_HAS_TYPE_FLOAT128)}
+  {$error copysign not yet implemented for float128}
+{$elseif defined(FPC_HAS_TYPE_EXTENDED)}
+  TSplitExtended(x).w:=(TSplitExtended(x).w and $7fff) or (TSplitExtended(y).w and $8000);
+{$elseif defined(FPC_HAS_TYPE_DOUBLE)}
+  {$if defined(FPC_BIG_ENDIAN) or defined(FPC_DOUBLE_HILO_SWAPPED)}
+  TSplitDouble(x).cards[0]:=(TSplitDouble(x).cards[0] and $7fffffff) or (TSplitDouble(y).cards[0] and longword($80000000));
+  {$else}
+  TSplitDouble(x).cards[1]:=(TSplitDouble(x).cards[1] and $7fffffff) or (TSplitDouble(y).cards[1] and longword($80000000));
+  {$endif}
+{$else}
+  longword(x):=longword(x and $7fffffff) or (longword(y) and longword($80000000));
+{$endif}
+  result:=x;
+end;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
