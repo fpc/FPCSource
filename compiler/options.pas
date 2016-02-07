@@ -1178,7 +1178,13 @@ begin
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
-                         if (code<>0) or (heapsize<1024) then
+                         if (code<>0)
+{$ifdef AVR}
+                         or (heapsize<32)
+{$else AVR}
+                         or (heapsize<1024)
+{$endif AVR}
+                         then
                            IllegalPara(opt);
                          break;
                       end;
