@@ -1527,7 +1527,7 @@ begin
       Fjs.WriteLn('protected boolean _cleanup = false;');
       Fjs.WriteLn('protected void finalize() { ');
 {$ifdef DEBUG}
-      Fjs.WriteLn('String s = "finalize(): " + getClass().getName(); if (_cleanup) s=s+". Need __Release()."; System.out.println(s);', 1);
+      Fjs.WriteLn('String s = "finalize(): " + getClass().getName(); if (_cleanup) s=s+". Need __Release(). ptr="+_pasobj; System.out.println(s);', 1);
 {$endif DEBUG}
       Fjs.WriteLn('if (_cleanup) __Release();', 1);
       Fjs.WriteLn('}');
@@ -1557,6 +1557,163 @@ begin
       d.AliasName:='MethodPtr';
       WriteClassInfoVar(d);
 
+      // Method pointer support
+      Fps.WriteLn;
+      Fps.WriteLn('type');
+      Fps.IncI;
+      Fps.WriteLn('_TMethodPtrInfo = class');
+      Fps.IncI;
+      Fps.WriteLn('Obj: JObject;');
+      Fps.WriteLn('MethodId: JMethodID;');
+      Fps.WriteLn('Index, RefCnt: integer;');
+      Fps.WriteLn('RealMethod: TMethod;');
+      Fps.WriteLn('InlineHandler: boolean;');
+      Fps.WriteLn('constructor Create(env: PJNIEnv; JavaObj: JObject; const AMethodName, AMethodSig: ansistring);');
+      Fps.WriteLn('procedure Release(env: PJNIEnv);');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.DecI;
+      Fps.WriteLn;
+      Fps.WriteLn('var _MethodPointers: array of _TMethodPtrInfo;');
+      Fps.WriteLn('var _MethodPointersCS: TCriticalSection;');
+      Fps.WriteLn;
+
+      Fps.WriteLn('constructor _TMethodPtrInfo.Create(env: PJNIEnv; JavaObj: JObject; const AMethodName, AMethodSig: ansistring);');
+      Fps.WriteLn('var c: JClass;');
+      Fps.WriteLn('begin');
+      Fps.IncI;
+      Fps.WriteLn('if (JavaObj = nil) or (AMethodName = '''') then exit;');
+      Fps.WriteLn('c:=env^^.GetObjectClass(env, JavaObj);');
+      Fps.WriteLn('if c = nil then exit;');
+      Fps.WriteLn('MethodId:=env^^.GetMethodID(env, c, PAnsiChar(AMethodName), PAnsiChar(AMethodSig));');
+      Fps.WriteLn('if MethodId = nil then raise Exception.CreateFmt(''Method "%s" does not exist or has wrong parameters.'', [AMethodName]);');
+      Fps.WriteLn('Obj:=env^^.NewGlobalRef(env, JavaObj);');
+      Fps.WriteLn('_MethodPointersCS.Enter;');
+      Fps.WriteLn('try');
+      Fps.IncI;
+      Fps.WriteLn('Index:=Length(_MethodPointers) + 1;');
+      Fps.WriteLn(Format('if Index > %d then raise Exception.Create(''Too many method pointers.'');', [MaxMethodPointers]));
+      Fps.WriteLn('SetLength(_MethodPointers, Index);');
+      Fps.WriteLn('_MethodPointers[Index - 1]:=Self;');
+      Fps.WriteLn('finally', -1);
+      Fps.WriteLn('_MethodPointersCS.Leave;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+
+      Fps.WriteLn;
+      Fps.WriteLn('procedure _TMethodPtrInfo.Release(env: PJNIEnv);');
+      Fps.WriteLn('var i: integer;');
+      Fps.WriteLn('begin');
+      Fps.IncI;
+      Fps.WriteLn('i:=InterlockedDecrement(RefCnt);');
+      {$ifdef DEBUG}
+      Fps.WriteLn('writeln(''_TMethodPtrInfo.Release(). RefCnt='',i,'' ptr='',ptruint(Self));');
+      {$endif DEBUG}
+      Fps.WriteLn('if i <> 0 then exit;');
+      Fps.WriteLn('if Index > 0 then begin');
+      Fps.IncI;
+      Fps.WriteLn('_MethodPointersCS.Enter;');
+      Fps.WriteLn('try');
+      Fps.IncI;
+      Fps.WriteLn('if InlineHandler then begin');
+      Fps.IncI;
+      {$ifdef DEBUG}
+      Fps.WriteLn('writeln(''Finalizing Java inline handler.'');');
+      {$endif DEBUG}
+      Fps.WriteLn(Format('env^^.SetLongField(env, Obj, %s.ObjFieldId, -1);', [GetTypeInfoVar(d)]));
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.WriteLn('env^^.DeleteGlobalRef(env, Obj);');
+      Fps.WriteLn('_MethodPointers[Index-1]:=nil;');
+      Fps.WriteLn('Index:=High(_MethodPointers);');
+      Fps.WriteLn('while (Index >= 0) and (_MethodPointers[Index] = nil) do Dec(Index);');
+      Fps.WriteLn('SetLength(_MethodPointers, Index + 1);');
+      Fps.WriteLn('finally', -1);
+      Fps.WriteLn('_MethodPointersCS.Leave;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.WriteLn('Self.Destroy;');
+  {$ifdef DEBUG}
+      Fps.WriteLn('writeln(''_TMethodPtrInfo destroyed.'');');
+  {$endif DEBUG}
+      Fps.DecI;
+      Fps.WriteLn('end;');
+
+      Fps.WriteLn;
+      Fps.WriteLn('procedure _RefMethodPtr(env: PJNIEnv; const m: TMethod; AddRef: boolean);');
+      Fps.WriteLn('var i: integer;');
+      Fps.WriteLn('begin');
+      Fps.IncI;
+      Fps.WriteLn('i:=-integer(ptruint(m.Data));');
+  {$ifdef DEBUG}
+      Fps.WriteLn('writeln(''_RefMethodPtr. i='',i,''  AddRef='',AddRef);');
+  {$endif DEBUG}
+      Fps.WriteLn(Format('if (i < 1) or (i > %d) then exit;', [MaxMethodPointers]));
+      Fps.WriteLn('_MethodPointersCS.Enter;');
+      Fps.WriteLn('try');
+      Fps.IncI;
+      Fps.WriteLn('with _MethodPointers[i - 1] do');
+      Fps.WriteLn('if AddRef then InterlockedIncrement(RefCnt) else Release(env);', 1);
+      Fps.WriteLn('finally', -1);
+      Fps.WriteLn('_MethodPointersCS.Leave;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+
+      Fps.WriteLn;
+      Fps.WriteLn('function _CreateMethodPtrObject(env: PJNIEnv; const m: TMethod; const ci: _TJavaClassInfo): jobject;');
+      Fps.WriteLn('var i: integer;');
+      Fps.WriteLn('var mpi: _TMethodPtrInfo;');
+      Fps.WriteLn('begin');
+      Fps.IncI;
+      Fps.WriteLn('_MethodPointersCS.Enter;');
+      Fps.WriteLn('try');
+      Fps.IncI;
+      Fps.WriteLn('i:=-integer(ptruint(m.Data));');
+      Fps.WriteLn(Format('if (i > 0) and (i <= %d) then begin', [MaxMethodPointers]));
+      Fps.WriteLn('mpi:=_MethodPointers[i - 1];', 1);
+      Fps.WriteLn('end');
+      Fps.WriteLn('else begin');
+      Fps.WriteLn('mpi:=_TMethodPtrInfo.Create(env, nil, '''', '''');', 1);
+      Fps.WriteLn('mpi.RealMethod:=m;', 1);
+      Fps.WriteLn('InterlockedIncrement(mpi.RefCnt);', 1);
+      Fps.WriteLn('end;');
+      Fps.WriteLn('finally', -1);
+      Fps.WriteLn('_MethodPointersCS.Leave;');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+      Fps.WriteLn('Result:=_CreateJavaObj(env, pointer(mpi), ci);');
+      Fps.DecI;
+      Fps.WriteLn('end;');
+
+      Fps.WriteLn;
+      Fps.WriteLn('function _GetMethodPtrHandler(env: PJNIEnv; jobj: jobject; hptr: pointer; const ci: _TJavaClassInfo): TMethod;');
+      Fps.WriteLn('var mpi: _TMethodPtrInfo;');
+      Fps.WriteLn('begin');
+      Fps.IncI;
+      Fps.WriteLn(  'Result.Data:=nil; Result.Code:=nil;');
+      Fps.WriteLn(  'mpi:=_TMethodPtrInfo(_GetPasObj(env, jobj, ci, False));');
+      Fps.WriteLn(  'if mpi = nil then exit;');
+      Fps.WriteLn(  'if pointer(mpi) = pointer(ptruint(-1)) then begin');
+      Fps.WriteLn(    'env^^.CallVoidMethodA(env, jobj, env^^.GetMethodID(env, ci.ClassRef, ''Init'', ''()V''), nil);', 1);
+      Fps.WriteLn(    'Result:=_GetMethodPtrHandler(env, jobj, hptr, ci);', 1);
+      Fps.WriteLn(    'exit;', 1);
+      Fps.WriteLn(  'end;');
+      Fps.WriteLn(  'if mpi.Index = 0 then');
+      Fps.WriteLn(    'TMethod(Result):=mpi.RealMethod', 1);
+      Fps.WriteLn(  'else');
+      Fps.WriteLn(    'with TMethod(Result) do begin', 1);
+      Fps.WriteLn(      'Data:=pointer(ptruint(-integer(mpi.Index)));', 2);
+      Fps.WriteLn(      'Code:=hptr;', 2);
+      Fps.WriteLn(    'end;', 1);
+      Fps.DecI;
+      Fps.WriteLn('end;');
+
       Fps.WriteLn;
       Fps.WriteLn('procedure _TMethodPtrInfo_Init(env: PJNIEnv; _self, JavaObj: JObject; AMethodName, AMethodSig: jstring; IncRef: jboolean);' + JniCaliing);
       Fps.WriteLn('var mpi: _TMethodPtrInfo;');
@@ -1564,7 +1721,13 @@ begin
       Fps.IncI;
       EHandlerStart;
       Fps.WriteLn('mpi:=_TMethodPtrInfo.Create(env, JavaObj, ansistring(_StringFromJString(env, AMethodName)), ansistring(_StringFromJString(env, AMethodSig)));');
-      Fps.WriteLn('if IncRef <> 0 then InterlockedIncrement(mpi.RefCnt);');
+      Fps.WriteLn('if IncRef <> 0 then');
+      Fps.WriteLn('InterlockedIncrement(mpi.RefCnt)', 1);
+      Fps.WriteLn('else');
+      Fps.WriteLn('mpi.InlineHandler:=True;', 1);
+{$ifdef DEBUG}
+      Fps.WriteLn('writeln(''_TMethodPtrInfo_Init. RefCnt='',mpi.RefCnt,'' ptr='',ptruint(mpi));');
+{$endif DEBUG}
       Fps.WriteLn(Format('env^^.SetLongField(env, _self, %s.ObjFieldId, Int64(ptruint(mpi)));', [GetTypeInfoVar(d)]));
       EHandlerEnd('env');
       Fps.DecI;
@@ -2458,145 +2621,6 @@ begin
     Fps.WriteLn('GetMem(p, size);', 1);
     Fps.WriteLn('FillChar(p^, size, 0);', 1);
     Fps.WriteLn('Result:=ptruint(p);', 1);
-    Fps.WriteLn('end;');
-
-    // Method pointer support
-    Fps.WriteLn;
-    Fps.WriteLn('type');
-    Fps.IncI;
-    Fps.WriteLn('_TMethodPtrInfo = class');
-    Fps.IncI;
-    Fps.WriteLn('Obj: JObject;');
-    Fps.WriteLn('MethodId: JMethodID;');
-    Fps.WriteLn('Index, RefCnt: integer;');
-    Fps.WriteLn('RealMethod: TMethod;');
-    Fps.WriteLn('constructor Create(env: PJNIEnv; JavaObj: JObject; const AMethodName, AMethodSig: ansistring);');
-    Fps.WriteLn('procedure Release(env: PJNIEnv);');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-    Fps.DecI;
-    Fps.WriteLn;
-    Fps.WriteLn('var _MethodPointers: array of _TMethodPtrInfo;');
-    Fps.WriteLn('var _MethodPointersCS: TCriticalSection;');
-    Fps.WriteLn;
-
-    Fps.WriteLn('constructor _TMethodPtrInfo.Create(env: PJNIEnv; JavaObj: JObject; const AMethodName, AMethodSig: ansistring);');
-    Fps.WriteLn('var c: JClass;');
-    Fps.WriteLn('begin');
-    Fps.IncI;
-    Fps.WriteLn('if (JavaObj = nil) or (AMethodName = '''') then exit;');
-    Fps.WriteLn('c:=env^^.GetObjectClass(env, JavaObj);');
-    Fps.WriteLn('if c = nil then exit;');
-    Fps.WriteLn('MethodId:=env^^.GetMethodID(env, c, PAnsiChar(AMethodName), PAnsiChar(AMethodSig));');
-    Fps.WriteLn('if MethodId = nil then raise Exception.CreateFmt(''Method "%s" does not exist or has wrong parameters.'', [AMethodName]);');
-    Fps.WriteLn('Obj:=env^^.NewGlobalRef(env, JavaObj);');
-    Fps.WriteLn('_MethodPointersCS.Enter;');
-    Fps.WriteLn('try');
-    Fps.IncI;
-    Fps.WriteLn('Index:=Length(_MethodPointers) + 1;');
-    Fps.WriteLn(Format('if Index > %d then raise Exception.Create(''Too many method pointers.'');', [MaxMethodPointers]));
-    Fps.WriteLn('SetLength(_MethodPointers, Index);');
-    Fps.WriteLn('_MethodPointers[Index - 1]:=Self;');
-    Fps.WriteLn('finally', -1);
-    Fps.WriteLn('_MethodPointersCS.Leave;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-
-    Fps.WriteLn;
-    Fps.WriteLn('procedure _TMethodPtrInfo.Release(env: PJNIEnv);');
-    Fps.WriteLn('var i: integer;');
-    Fps.WriteLn('begin');
-    Fps.IncI;
-    Fps.WriteLn('i:=InterlockedDecrement(RefCnt);');
-    Fps.WriteLn('if i <> 0 then exit;');
-    Fps.WriteLn('if Index > 0 then begin');
-    Fps.IncI;
-    Fps.WriteLn('_MethodPointersCS.Enter;');
-    Fps.WriteLn('try');
-    Fps.IncI;
-    Fps.WriteLn('_MethodPointers[Index-1]:=nil;');
-    Fps.WriteLn('Index:=High(_MethodPointers);');
-    Fps.WriteLn('while (Index >= 0) and (_MethodPointers[Index] = nil) do Dec(Index);');
-    Fps.WriteLn('SetLength(_MethodPointers, Index + 1);');
-    Fps.WriteLn('finally', -1);
-    Fps.WriteLn('_MethodPointersCS.Leave;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-    Fps.WriteLn('env^^.DeleteGlobalRef(env, Obj);');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-    Fps.WriteLn('Self.Destroy;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-
-    Fps.WriteLn;
-    Fps.WriteLn('procedure _RefMethodPtr(env: PJNIEnv; const m: TMethod; AddRef: boolean);');
-    Fps.WriteLn('var i: integer;');
-    Fps.WriteLn('begin');
-    Fps.IncI;
-    Fps.WriteLn('i:=-integer(ptruint(m.Data));');
-    Fps.WriteLn(Format('if (i < 1) or (i > %d) then exit;', [MaxMethodPointers]));
-    Fps.WriteLn('_MethodPointersCS.Enter;');
-    Fps.WriteLn('try');
-    Fps.IncI;
-    Fps.WriteLn('with _MethodPointers[i - 1] do');
-    Fps.WriteLn('if AddRef then InterlockedIncrement(RefCnt) else Release(env);', 1);
-    Fps.WriteLn('finally', -1);
-    Fps.WriteLn('_MethodPointersCS.Leave;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-
-    Fps.WriteLn;
-    Fps.WriteLn('function _CreateMethodPtrObject(env: PJNIEnv; const m: TMethod; const ci: _TJavaClassInfo): jobject;');
-    Fps.WriteLn('var i: integer;');
-    Fps.WriteLn('var mpi: _TMethodPtrInfo;');
-    Fps.WriteLn('begin');
-    Fps.IncI;
-    Fps.WriteLn('_MethodPointersCS.Enter;');
-    Fps.WriteLn('try');
-    Fps.IncI;
-    Fps.WriteLn('i:=-integer(ptruint(m.Data));');
-    Fps.WriteLn(Format('if (i > 0) and (i <= %d) then begin', [MaxMethodPointers]));
-    Fps.WriteLn('mpi:=_MethodPointers[i - 1];', 1);
-    Fps.WriteLn('end');
-    Fps.WriteLn('else begin');
-    Fps.WriteLn('mpi:=_TMethodPtrInfo.Create(env, nil, '''', '''');', 1);
-    Fps.WriteLn('mpi.RealMethod:=m;', 1);
-    Fps.WriteLn('InterlockedIncrement(mpi.RefCnt);', 1);
-    Fps.WriteLn('end;');
-    Fps.WriteLn('finally', -1);
-    Fps.WriteLn('_MethodPointersCS.Leave;');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-    Fps.WriteLn('Result:=_CreateJavaObj(env, pointer(mpi), ci);');
-    Fps.DecI;
-    Fps.WriteLn('end;');
-
-    Fps.WriteLn;
-    Fps.WriteLn('function _GetMethodPtrHandler(env: PJNIEnv; jobj: jobject; hptr: pointer; const ci: _TJavaClassInfo): TMethod;');
-    Fps.WriteLn('var mpi: _TMethodPtrInfo;');
-    Fps.WriteLn('begin');
-    Fps.IncI;
-    Fps.WriteLn(  'Result.Data:=nil; Result.Code:=nil;');
-    Fps.WriteLn(  'mpi:=_TMethodPtrInfo(_GetPasObj(env, jobj, ci, False));');
-    Fps.WriteLn(  'if mpi = nil then exit;');
-    Fps.WriteLn(  'if pointer(mpi) = pointer(ptruint(-1)) then begin');
-    Fps.WriteLn(    'env^^.CallVoidMethodA(env, jobj, env^^.GetMethodID(env, ci.ClassRef, ''Init'', ''()V''), nil);', 1);
-    Fps.WriteLn(    'Result:=_GetMethodPtrHandler(env, jobj, hptr, ci);', 1);
-    Fps.WriteLn(    'exit;', 1);
-    Fps.WriteLn(  'end;');
-    Fps.WriteLn(  'if mpi.Index = 0 then');
-    Fps.WriteLn(    'TMethod(Result):=mpi.RealMethod', 1);
-    Fps.WriteLn(  'else');
-    Fps.WriteLn(    'with TMethod(Result) do begin', 1);
-    Fps.WriteLn(      'Data:=pointer(ptruint(-integer(mpi.Index)));', 2);
-    Fps.WriteLn(      'Code:=hptr;', 2);
-    Fps.WriteLn(    'end;', 1);
-    Fps.DecI;
     Fps.WriteLn('end;');
 
     // Set support
