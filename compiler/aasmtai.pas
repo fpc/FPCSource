@@ -196,9 +196,6 @@ interface
           'stab',
           'force_line',
           'function_name',
-{$ifdef m68k}
-          'labeled_instr',
-{$endif m68k}
           'symbolpair',
           'cut',
           'regalloc',
