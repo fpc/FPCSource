@@ -40,7 +40,6 @@ const
 type
   { taicpu }
   taicpu = class(tai_cpu_abstract_sym)
-    delayslot_annulled: boolean;   { conditinal opcode with ,a }
     constructor op_none(op: tasmop);
 
     constructor op_reg(op: tasmop; _op1: tregister);

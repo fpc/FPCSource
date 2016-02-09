@@ -340,8 +340,6 @@ unit cpugas;
               if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
                 owner.writer.AsmWriteln(#9'.set'#9'macro');
               s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
-              if taicpu(hp).delayslot_annulled then
-                s := s + ',a';
               if taicpu(hp).ops > 0 then
               begin
                 s := s + #9 + getopstr(taicpu(hp).oper[0]^);
