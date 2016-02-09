@@ -1781,15 +1781,7 @@ const
                     instr.ConcatInstruction(curlist);
                   end;
                   instr.Free;
-{
-                  instr.init;
-                  BuildOpcode;
-                  instr.ops := operandnum;
-                  if instr.labeled then
-                    ConcatLabeledInstr(instr)
-                  else
-                    ConcatOpCode(instr);
-                  instr.done;}
+
                 end;
               AS_SEPARATOR:
                 begin

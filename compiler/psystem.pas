@@ -743,13 +743,6 @@ implementation
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;
-{$ifdef m68k}
-{ TODO: FIXME: tai_labeled_instruction doesn't exists}
-//        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
-{$endif m68k}
-{$ifdef SPARC}
-//        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
-{$endif SPARC}
         aiclass[ait_symbolpair]:=tai_symbolpair;
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;

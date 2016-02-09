@@ -69,9 +69,6 @@ interface
           ait_stab,
           ait_force_line,
           ait_function_name,
-{$ifdef m68k}
-          ait_labeled_instruction,
-{$endif m68k}
           ait_symbolpair,
           { used to split into tiny assembler files }
           ait_cutobject,
