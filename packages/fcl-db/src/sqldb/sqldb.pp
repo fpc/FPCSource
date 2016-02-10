@@ -1273,10 +1273,13 @@ begin
     If LogEvent(detPrepare) then
       Log(detPrepare,SQL);
     PrepareStatement(Cursor,ATransaction,SQL,Nil);
-    If LogEvent(detExecute) then
-      Log(detExecute,SQL);
-    Execute(Cursor,ATransaction, Nil);
-    UnPrepareStatement(Cursor);
+    try
+      If LogEvent(detExecute) then
+        Log(detExecute,SQL);
+      Execute(Cursor,ATransaction, Nil);
+    finally
+      UnPrepareStatement(Cursor);
+    end;
   finally;
     DeAllocateCursorHandle(Cursor);
   end;
