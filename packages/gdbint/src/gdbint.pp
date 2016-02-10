@@ -59,6 +59,17 @@ interface
 
 {$undef GDB_VERSION_RECOGNIZED}
 
+{ 7.11.x }
+{$ifdef GDB_V711}
+  {$info using gdb 7.11.x}
+  {$define GDB_VERSION_RECOGNIZED}
+  {$define GDB_VER_GE_711}
+{$endif}
+
+{$ifdef GDB_VER_GE_711}
+  {$define GDB_VER_GE_710}
+{$endif}
+
 { 7.10.x }
 {$ifdef GDB_V710}
   {$info using gdb 7.10.x}
