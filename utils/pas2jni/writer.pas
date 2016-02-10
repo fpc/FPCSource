@@ -427,7 +427,8 @@ var
           if (j < 0) or (Written.Objects[j] = c) then begin
             s:=p.Name + ':';
             for j:=0 to p.Count - 1 do
-              s:=s + DefToJniSig(p[j]);
+              if p[j].DefType = dtParam then
+                s:=s + DefToJniSig(TVarDef(p[j]).VarType);
             if Written.IndexOf(s) < 0 then begin
               OldRet:=p.ReturnType;
               p.ReturnType:=d;
@@ -674,7 +675,7 @@ end;
 procedure TWriter.WriteProc(d: TProcDef; Variable: TVarDef; AParent: TDef);
 var
   i, j, ClassIdx: integer;
-  s, ss, TempRes, VarFin: string;
+  s, ss, ps, TempRes, VarFin: string;
   err, tf: boolean;
   pi: TProcInfo;
   ci: TClassInfo;
@@ -851,6 +852,7 @@ begin
         s:=s + pi.Name;
         if Count > 0 then begin
           s:=s + '(';
+          ps:='';
           for j:=0 to Count - 1 do begin
             vd:=TVarDef(Items[j]);
             if vd.DefType <> dtParam then
@@ -864,11 +866,11 @@ begin
                 ss:=Items[j].Name;
                 ss:=JniToPasType(vd.VarType, ss, False);
               end;
-            if j <> 0 then
-              s:=s + ', ';
-            s:=s + ss;
+            if ps <> '' then
+              ps:=ps + ', ';
+            ps:=ps + ss;
           end;
-          s:=s + ')';
+          s:=s + ps + ')';
         end;
       end
       else begin
@@ -2128,15 +2130,12 @@ var
   j: integer;
 begin
   with d do begin
-    if Count > 0 then
-      s:='('
-    else
-      s:='';
+    s:='';
     for j:=0 to Count - 1 do
       with TVarDef(Items[j]) do begin
         if DefType <> dtParam then
           continue;
-        if j > 0 then
+        if s <> '' then
           s:=s + '; ';
         if voVar in VarOpt then
           s:=s + 'var '
@@ -2153,8 +2152,8 @@ begin
         s:=s + ': ' + GetPasType(VarType, FullTypeNames);
       end;
 
-    if Count > 0 then
-      s:=s + ')';
+    if s <> '' then
+      s:='(' + s + ')';
     case ProcType of
       ptConstructor:
         ss:='constructor';

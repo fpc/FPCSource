@@ -361,7 +361,7 @@ begin
     exit;
   if AValue and (RefCnt = 0) then begin
     for i:=0 to Count - 1 do
-      if TVarDef(Items[i]).VarType = nil then
+      if (Items[i].DefType = dtParam) and (TVarDef(Items[i]).VarType = nil) then
         exit; // If procedure has unsupported parameters, don't use it
   end;
   inherited SetIsUsed(AValue);
