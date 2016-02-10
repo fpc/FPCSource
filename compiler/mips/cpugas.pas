@@ -211,27 +211,6 @@ unit cpugas;
      end;
 }
 
-    function is_macro_instruction(ai : taicpu) : boolean;
-      var
-        op: tasmop;
-      begin
-        op:=ai.opcode;
-        is_macro_instruction :=
-        { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
-          (op=A_SEQ) or (op = A_SGE) or (op=A_SGEU) or (op=A_SGT) or
-          (op=A_SGTU) or (op=A_SLE) or (op=A_SLEU) or (op=A_SNE)
-          { JAL is not here! See comments in TCGMIPS.a_call_name. }
-          or (op=A_LA) or ((op=A_BC) and
-            not (ai.condition in [C_EQ,C_NE,C_GTZ,C_GEZ,C_LTZ,C_LEZ,C_COP1TRUE,C_COP1FALSE])) {or (op=A_JAL)}
-          or (op=A_REM) or (op=A_REMU)
-          { DIV and DIVU are normally macros, but use $zero as first arg to generate a CPU instruction. }
-          or (((op=A_DIV) or (op=A_DIVU)) and
-            ((ai.ops<>3) or (ai.oper[0]^.typ<>top_reg) or (ai.oper[0]^.reg<>NR_R0)))
-          or (op=A_MULO) or (op=A_MULOU)
-          { A_LI is only a macro if the immediate is not in thez 16-bit range }
-          or (op=A_LI);
-      end;
-
     procedure TMIPSInstrWriter.WriteInstruction(hp: Tai);
       var
         Op: TAsmOp;
@@ -337,7 +316,7 @@ unit cpugas;
             end;
           else
             begin
-              if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
+              if taicpu(hp).is_macro and TMIPSGNUAssembler(owner).nomacro then
                 owner.writer.AsmWriteln(#9'.set'#9'macro');
               s := #9 + gas_op2str[op] + cond2str[taicpu(hp).condition];
               if taicpu(hp).ops > 0 then
@@ -347,7 +326,7 @@ unit cpugas;
                   s := s + ',' + getopstr(taicpu(hp).oper[i]^);
               end;
               owner.writer.AsmWriteLn(s);
-              if is_macro_instruction(taicpu(hp)) and TMIPSGNUAssembler(owner).nomacro then
+              if taicpu(hp).is_macro and TMIPSGNUAssembler(owner).nomacro then
                 owner.writer.AsmWriteln(#9'.set'#9'nomacro');
             end;
         end;

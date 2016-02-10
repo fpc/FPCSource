@@ -70,6 +70,8 @@ type
 
     { register spilling code }
     function spilling_get_operation_type(opnr: longint): topertype; override;
+
+    function is_macro: boolean;
   end;
 
   tai_align = class(tai_align_abstract)
@@ -252,6 +254,25 @@ begin
     ) and
     (oper[0]^.reg = oper[1]^.reg);
 end;
+
+
+    function taicpu.is_macro: boolean;
+      begin
+        result :=
+        { 'seq', 'sge', 'sgeu', 'sgt', 'sgtu', 'sle', 'sleu', 'sne', }
+          (opcode=A_SEQ) or (opcode=A_SGE) or (opcode=A_SGEU) or (opcode=A_SGT) or
+          (opcode=A_SGTU) or (opcode=A_SLE) or (opcode=A_SLEU) or (opcode=A_SNE)
+          { JAL is not here! See comments in TCGMIPS.a_call_name. }
+          or (opcode=A_LA) or ((opcode=A_BC) and
+            not (condition in [C_EQ,C_NE,C_GTZ,C_GEZ,C_LTZ,C_LEZ,C_COP1TRUE,C_COP1FALSE])) {or (op=A_JAL)}
+          or (opcode=A_REM) or (opcode=A_REMU)
+          { DIV and DIVU are normally macros, but use $zero as first arg to generate a CPU instruction. }
+          or (((opcode=A_DIV) or (opcode=A_DIVU)) and
+            ((ops<>3) or (oper[0]^.typ<>top_reg) or (oper[0]^.reg<>NR_R0)))
+          or (opcode=A_MULO) or (opcode=A_MULOU)
+          { A_LI is only a macro if the immediate is not in thez 16-bit range }
+          or (opcode=A_LI);
+      end;
 
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
