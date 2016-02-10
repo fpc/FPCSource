@@ -493,14 +493,13 @@ Interface
     function TMipsReader.is_asmopcode(const s: string):boolean;
       var
         cond:TAsmCond;
+        hs:string;
       Begin
-        { making s a value parameter would break other assembler readers }
         is_asmopcode:=false;
 
-        { clear op code }
+        { clear op code and condition }
         actopcode:=A_None;
-        { clear condition }
-        fillchar(actcondition,sizeof(actcondition),0);
+        actcondition:=C_None;
 
          { Search opcodes }
          actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
@@ -517,8 +516,9 @@ Interface
             { we can search here without an extra table which is sorted by string length
               because we take the whole remaining string without the leading B }
             actopcode := A_BC;
+            hs:=lower(copy(s,2,maxint));
             for cond:=low(TAsmCond) to high(TAsmCond) do
-              if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
+              if (hs=Cond2Str[cond]) then
                 begin
                   actasmtoken:=AS_OPCODE;
                   actcondition:=cond;
