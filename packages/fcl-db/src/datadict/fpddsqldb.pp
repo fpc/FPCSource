@@ -232,8 +232,8 @@ begin
     Q.SQL.text:=Format('SELECT * FROM %s WHERE (1=2)',[ATableName]);
     Q.ReadOnly:=False;
     Q.Prepare;
-    Q.IndexDefs.Update;
-    IndexDefsToDDIndexDefs(Q.IndexDefs,Defs);
+    Q.ServerIndexDefs.Update;
+    IndexDefsToDDIndexDefs(Q.ServerIndexDefs,Defs);
     Result:=Defs.Count;
   finally
     Q.Free;
