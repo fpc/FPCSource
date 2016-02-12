@@ -113,6 +113,9 @@ implementation
 var
   SysInstance : Longint;public name '_FPC_SysInstance';
 
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
+
 {$ifdef FPC_USE_WIN32_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
 procedure OutermostHandler; external name '__FPC_DEFAULT_HANDLER';
@@ -130,6 +133,10 @@ end;
 { include code common with win64 }
 {$I syswin.inc}
 
+procedure OsSetupEntryInformation(const info: TEntryInformation);
+begin
+  TlsKey := info.OS.TlsKeyAddr;
+end;
 
 {*****************************************************************************
                          System Dependent Exit code

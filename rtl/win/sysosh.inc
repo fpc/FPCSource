@@ -53,6 +53,7 @@ type
   {$define HAS_ENTRYINFORMATION_OS}
   TEntryInformationOS = record
     asm_exit : Procedure;stdcall;
+    TlsKeyAddr : PDWord;
   end;
 {$endif Win32}
 

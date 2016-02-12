@@ -126,6 +126,9 @@ begin
   EntryInformation := info;
   FPCResStrInitTables := info.ResStrInitTables;
   FPCResourceStringTables := info.ResourceStringTables;
+{$ifdef FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+  OSSetupEntryInformation(info);
+{$endif FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
 end;
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 

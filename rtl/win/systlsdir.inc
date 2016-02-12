@@ -33,7 +33,7 @@ Const
   DLL_THREAD_DETACH = 3;
 
 var
-   TlsKey : dword; external name '_FPC_TlsKey';
+   TlsKey : PDWord = @TlsKeyVar;
 
 type
   TTlsDirectory=packed record
@@ -107,7 +107,7 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          end;
        DLL_THREAD_DETACH :
          begin
-           if TlsGetValue(TLSKey)<>nil then
+           if TlsGetValue(TLSKey^)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
      end;

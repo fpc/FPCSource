@@ -915,7 +915,7 @@ var
    edata : ptruint; external name '__data_end__';
    sbss : ptruint; external name '__bss_start__';
    ebss : ptruint; external name '__bss_end__';
-   TLSKey : DWord; external name '_FPC_TlsKey';
+   TLSKey : PDWord; external name '_FPC_TlsKey';
    TLSSize : DWord; external name '_FPC_TlsSize';
 
 function TlsGetValue(dwTlsIndex : DWord) : pointer;
@@ -989,9 +989,9 @@ begin
   if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
     exit;
   { is program multi-threaded and p inside Threadvar range? }
-  if TlsKey<>-1 then
+  if TlsKey^<>-1 then
     begin
-      datap:=TlsGetValue(tlskey);
+      datap:=TlsGetValue(tlskey^);
       if ((ptruint(p)>=ptruint(datap)) and
           (ptruint(p)<ptruint(datap)+TlsSize)) then
         exit;
