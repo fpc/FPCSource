@@ -586,7 +586,7 @@ begin
   Pos:=0;
   if (Length(SubStr)>0) and (Offset>0) and (Offset<Length(Source)) then
    begin
-     MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
+     MaxLen:=Length(source)-Length(SubStr);
      i:=Offset-1;
      pc:=@source[Offset];
      while (i<=MaxLen) do
