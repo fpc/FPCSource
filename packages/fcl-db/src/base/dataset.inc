@@ -1028,7 +1028,7 @@ end;
 
 procedure TDataSet.InternalPost;
 
-  Procedure Checkrequired;
+  Procedure CheckRequiredFields;
 
   Var I : longint;
 
@@ -1042,7 +1042,7 @@ procedure TDataSet.InternalPost;
   end;
 
 begin
-  Checkrequired;
+  CheckRequiredFields;
 end;
 
 procedure TDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
