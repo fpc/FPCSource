@@ -194,6 +194,7 @@ type
   Protected
     Procedure Bind; Override;
     Function Accept : Longint;override;
+    function GetConnection: TSocketStream; override;
     Function SockToStream (ASocket : Longint) : TSocketStream;Override;
     Procedure Close; override;
   Public
@@ -509,11 +510,9 @@ Function TInetServer.GetConnection : TSocketStream;
 
 var
   NewSocket : longint;
-  l : integer;
 
 begin
   Result:=Nil;
-  L:=SizeOf(FAddr);
   NewSocket:=Accept;
   if (NewSocket<0) then
     Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
@@ -815,6 +814,22 @@ Function  TUnixServer.SockToStream (ASocket : Longint) : TSocketStream;
 begin
   Result:=TUnixSocket.Create(ASocket);
   (Result as TUnixSocket).FFileName:=FFileName;
+end;
+
+Function TUnixServer.GetConnection : TSocketStream;
+
+var
+  NewSocket : longint;
+
+begin
+  Result:=Nil;
+  NewSocket:=Accept;
+  if (NewSocket<0) then
+    Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError]);
+  If FAccepting and DoConnectQuery(NewSocket) Then
+    Result:=SockToStream(NewSocket)
+  else
+    CloseSocket(NewSocket);
 end;
 
 {$endif}
