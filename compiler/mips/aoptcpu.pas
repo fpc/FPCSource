@@ -271,17 +271,18 @@ unit aoptcpu;
             begin
               { try to optimize the typical call sequence
                 lw  $reg, (whatever)
-                <alloc volatile registers>
+                <alloc volatile registers (including $reg!!)>
                 move $t9,$reg
                 jalr $t9
-                Do not do so if the used register might contain a 
-                register variable.      }
+
+                if $reg is nonvolatile, its value may be used after call 
+                and we cannot safely replace it with $t9 }
               if (opcode=A_MOVE) and
-                 not(cs_opt_regvar in current_settings.optimizerswitches) and
                  (taicpu(next).oper[0]^.reg=NR_R25) and
                  GetNextInstruction(next,hp1) and
                  MatchInstruction(hp1,A_JALR) and
-                 MatchOperand(taicpu(hp1).oper[0]^,NR_R25) then
+                 MatchOperand(taicpu(hp1).oper[0]^,NR_R25) and
+                 assigned(FindRegAlloc(taicpu(p).oper[0]^.reg,tai(p.next))) then
                 begin
                   taicpu(p).loadreg(0,taicpu(next).oper[0]^.reg);
                   asml.remove(next);
@@ -499,8 +500,7 @@ unit aoptcpu;
                       else if (taicpu(next).opcode in [A_ADD,A_ADDU,A_ADDI,A_ADDIU,A_SUB,A_SUBU]) and
                          MatchOperand(taicpu(next).oper[0]^,taicpu(p).oper[0]^.reg) then
                         begin
-                          if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) and
-                             Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
+                          if MatchOperand(taicpu(next).oper[1]^,taicpu(p).oper[0]^.reg) then
                             begin
                               taicpu(next).loadreg(1,taicpu(p).oper[1]^.reg);
                               asml.remove(p);
@@ -509,8 +509,7 @@ unit aoptcpu;
                             end
                           { TODO: if Ry=NR_R0, this effectively changes instruction into MOVE,
                             providing further optimization possibilities }
-                          else if MatchOperand(taicpu(next).oper[2]^,taicpu(p).oper[0]^.reg) and
-                                  Assigned(FindRegDealloc(taicpu(p).oper[0]^.reg,tai(next.next))) then
+                          else if MatchOperand(taicpu(next).oper[2]^,taicpu(p).oper[0]^.reg) then
                             begin
                               taicpu(next).loadreg(2,taicpu(p).oper[1]^.reg);
                               asml.remove(p);
