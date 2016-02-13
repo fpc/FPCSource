@@ -720,13 +720,15 @@ end;
 
 
 
-Procedure TStrings.AddStrings(TheStrings: TStrings);
+Procedure TStrings.AddStrings(TheStrings: TStrings; ClearFirst : Boolean);
 
 Var Runner : longint;
 
 begin
   beginupdate;
   try
+    if ClearFirst then
+      Clear;
     For Runner:=0 to TheStrings.Count-1 do
       self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
   finally
@@ -734,13 +736,27 @@ begin
   end;
 end;
 
+Procedure TStrings.AddStrings(TheStrings: TStrings);
+
+begin
+  AddStrings(TheStrings,False);
+end;
+
 Procedure TStrings.AddStrings(const TheStrings: array of string);
+
+begin
+  AddStrings(TheStrings,False);
+end;
+
+Procedure TStrings.AddStrings(const TheStrings: array of string; ClearFirst : Boolean);
 
 Var Runner : longint;
 
 begin
+  beginupdate;
   try
-    beginupdate;
+    if ClearFirst then
+      Clear;
     if Count + High(TheStrings)+1 > Capacity then
       Capacity := Count + High(TheStrings)+1;
     For Runner:=Low(TheStrings) to High(TheStrings) do
