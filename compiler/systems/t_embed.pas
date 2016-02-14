@@ -96,7 +96,7 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(AVR) or defined(MIPSEL)}
+{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -737,6 +737,43 @@ begin
       Add('_end = .;');
     end;
 {$endif i386}
+
+{$ifdef x86_64}
+  with linkres do
+    begin
+      Add('ENTRY(_START)');
+      Add('SECTIONS');
+      Add('{');
+      Add('     . = 0x100000;');
+      Add('     .text ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _text = .;');
+      Add('    KEEP(*(.init, .init.*))');
+      Add('    *(.text, .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    }');
+      Add('    .data ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data, .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    }');
+      Add('    . = ALIGN(4);');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss, .bss.*)');
+      Add('    *(COMMON)');
+      Add('    }');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif x86_64}
 
 {$ifdef AVR}
   with linkres do
@@ -1444,6 +1481,11 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
+
+{$ifdef x86_64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_x86_64_embedded_info);
+{$endif x86_64}
 
 {$ifdef mipsel}
   RegisterLinker(ld_embedded,TLinkerEmbedded);

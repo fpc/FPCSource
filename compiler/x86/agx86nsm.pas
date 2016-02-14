@@ -1239,6 +1239,8 @@ interface
             FormatName:='win64';
           system_x86_64_darwin:
             FormatName:='macho64';
+          system_x86_64_embedded:
+            FormatName:='obj';
           system_x86_64_linux:
             FormatName:='elf64';
         else
