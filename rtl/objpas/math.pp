@@ -641,8 +641,8 @@ function Sign(const AValue: Integer): TValueSign;inline;
 
 begin
   result:=TValueSign(
-    SarLongint(AValue,sizeof(AValue)*8-1) or   { gives -1 for negative values, 0 otherwise }
-    (-AValue shr (sizeof(AValue)*8-1))         { gives 1 for positive values, 0 otherwise }
+    SarLongint(AValue,sizeof(AValue)*8-1) or            { gives -1 for negative values, 0 otherwise }
+    (longint(-AValue) shr (sizeof(AValue)*8-1))         { gives 1 for positive values, 0 otherwise }
   );
 end;
 
