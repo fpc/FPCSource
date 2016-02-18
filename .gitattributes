@@ -8422,7 +8422,7 @@ rtl/inc/sstrings.inc svneol=native#text/plain
 rtl/inc/strings.pp svneol=native#text/plain
 rtl/inc/stringsi.inc svneol=native#text/plain
 rtl/inc/sysres.inc svneol=native#text/plain
-rtl/inc/system.fpd -text
+rtl/inc/system.fpd svneol=native#text/plain
 rtl/inc/system.inc svneol=native#text/plain
 rtl/inc/systemh.inc svneol=native#text/plain
 rtl/inc/text.inc svneol=native#text/plain
