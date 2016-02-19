@@ -3093,7 +3093,11 @@ implementation
                           { it as a class member                                }
                           if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                              (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                            begin
+                              p1:=ctypenode.create(hdef);
+                              if not is_record(hdef) then
+                                p1:=cloadvmtaddrnode.create(p1);
+                            end
                           else
                             p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }
