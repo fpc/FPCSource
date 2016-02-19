@@ -241,6 +241,7 @@ unit typinfo;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                IntfUnit: ShortString;
+               { here the properties follow as Word Count & array of TPropInfo }
               );
             tkInterfaceRaw:
               (
@@ -249,6 +250,7 @@ unit typinfo;
                IID: TGUID;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
+               { here the properties follow as Word Count & array of TPropInfo }
               );
             tkArray:
               (ArrayData: TArrayTypeData);
