@@ -111,7 +111,7 @@ Const
 implementation
 
 var
-  SysInstance : Longint;public name '_FPC_SysInstance';
+  FPCSysInstance : PLongint;public name '_FPC_SysInstance';
 
 {$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
 procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
@@ -136,6 +136,7 @@ end;
 procedure OsSetupEntryInformation(const info: TEntryInformation);
 begin
   TlsKey := info.OS.TlsKeyAddr;
+  FPCSysInstance := info.OS.SysInstance;
 end;
 
 {*****************************************************************************
@@ -650,9 +651,9 @@ begin
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
   if not IsLibrary then
-    SysInstance:=getmodulehandle(nil);
+    FPCSysInstance^:=getmodulehandle(nil);
 
-  MainInstance:=SysInstance;
+  MainInstance:=FPCSysInstance^;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);

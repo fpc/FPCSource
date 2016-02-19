@@ -54,6 +54,7 @@ type
   TEntryInformationOS = record
     asm_exit : Procedure;stdcall;
     TlsKeyAddr : PDWord;
+    SysInstance: PLongInt;
   end;
 {$endif Win32}
 

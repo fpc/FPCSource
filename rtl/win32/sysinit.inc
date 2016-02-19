@@ -15,7 +15,7 @@
  **********************************************************************}
 
    var
-      SysInstance : Longint;external name '_FPC_SysInstance';
+      SysInstance : LongInt;
       TlsKeyVar: DWord = $ffffffff;
 
       InitFinalTable : record end; external name 'INITFINAL';
@@ -67,6 +67,7 @@
         OS : (
           asm_exit : @asm_exit;
           TlsKeyAddr : @TlsKeyVar;
+          SysInstance : @SysInstance;
           );
         );
 
@@ -81,6 +82,7 @@
         EntryInformation.WideInitTables:=@WideInitTables;
         EntryInformation.OS.asm_exit:=@asm_exit;
         EntryInformation.OS.TlsKeyAddr:=@TlsKeyVar;
+        EntryInformation.OS.SysInstance:=@SysInstance;
         EntryInformation.PascalMain:=@PascalMain;}
         SysInitEntryInformation.valgrind_used:=valgrind_used;
       end;

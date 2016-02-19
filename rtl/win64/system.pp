@@ -106,7 +106,8 @@ implementation
 {$asmmode att}
 
 var
-  SysInstance : qword;public;
+  SysInstance : qword;
+  FPCSysInstance: PQWord = @SysInstance; public name '_FPC_SysInstance';
 
 {$ifdef FPC_USE_WIN64_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
