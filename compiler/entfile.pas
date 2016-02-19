@@ -192,6 +192,9 @@ type
   end;
 
   tentryfile=class
+  private
+    function getposition:longint;
+    procedure setposition(value:longint);
   protected
     buf      : pchar;
     bufstart,
@@ -205,8 +208,9 @@ type
     tempclosed : boolean;
     closepos : integer;
   protected
-    f        : TCCustomFileStream;
+    f        : TCStream;
     mode     : byte; {0 - Closed, 1 - Reading, 2 - Writing}
+    fisfile  : boolean;
     fname    : string;
     fsize    : integer;
     procedure newheader;virtual;abstract;
@@ -229,8 +233,14 @@ type
     procedure flush;
     procedure closefile;virtual;
     procedure newentry;
+    property position:longint read getposition write setposition;
+    { Warning: don't keep the stream open during a tempclose! }
+    function substream(ofs,len:longint):TCStream;
+    { Warning: don't use the put* or write* functions anymore when writing through this }
+    property stream:TCStream read f;
   {read}
     function  openfile:boolean;
+    function  openstream(strm:TCStream):boolean;
     procedure reloadbuf;
     procedure readdata(out b;len:integer);
     procedure skipdata(len:integer);
@@ -258,6 +268,7 @@ type
     function  skipuntilentry(untilb:byte):boolean;
   {write}
     function  createfile:boolean;virtual;
+    function  createstream(strm:TCStream):boolean;
     procedure writeheader;virtual;abstract;
     procedure writebuf;
     procedure writedata(const b;len:integer);
@@ -310,6 +321,7 @@ end;
 constructor tentryfile.create(const fn:string);
 begin
   fname:=fn;
+  fisfile:=false;
   change_endian:=false;
   mode:=0;
   newheader;
@@ -353,10 +365,41 @@ begin
   if mode<>0 then
    begin
      flush;
-     f.Free;
+     if fisfile then
+       f.Free;
      mode:=0;
      closed:=true;
    end;
+end;
+
+
+procedure tentryfile.setposition(value:longint);
+begin
+  if assigned(f) then
+    f.Position:=value
+  else
+    if tempclosed then
+      closepos:=value;
+end;
+
+
+function tentryfile.getposition:longint;
+begin
+  if assigned(f) then
+    result:=f.Position
+  else
+    if tempclosed then
+      result:=closepos
+    else
+      result:=0;
+end;
+
+
+function tentryfile.substream(ofs,len:longint):TCStream;
+begin
+  result:=nil;
+  if assigned(f) then
+    result:=TCRangeStream.Create(f,ofs,len);
 end;
 
 
@@ -367,13 +410,25 @@ end;
 function tentryfile.openfile:boolean;
 var
   i      : integer;
+  strm : TCStream;
 begin
   openfile:=false;
   try
-    f:=CFileStreamClass.Create(fname,fmOpenRead)
+    strm:=CFileStreamClass.Create(fname,fmOpenRead)
   except
     exit;
   end;
+  openfile:=openstream(strm);
+  fisfile:=result;
+end;
+
+
+function tentryfile.openstream(strm:TCStream):boolean;
+var
+  i : longint;
+begin
+  openstream:=false;
+  f:=strm;
   closed:=false;
 {read ppuheader}
   fsize:=f.Size;
@@ -390,7 +445,7 @@ begin
   entrystart:=0;
   entrybufstart:=0;
   error:=false;
-  openfile:=true;
+  openstream:=true;
 end;
 
 
@@ -890,8 +945,10 @@ end;
 function tentryfile.createfile:boolean;
 var
   ok: boolean;
+  strm : TCStream;
 begin
   createfile:=false;
+  strm:=nil;
   if outputallowed then
     begin
       {$ifdef MACOS}
@@ -901,7 +958,7 @@ begin
       {$endif}
       ok:=false;
       try
-        f:=CFileStreamClass.Create(fname,fmCreate);
+        strm:=CFileStreamClass.Create(fname,fmCreate);
         ok:=true;
       except
       end;
@@ -911,6 +968,17 @@ begin
       {$endif}
       if not ok then
        exit;
+    end;
+  createfile:=createstream(strm);
+  fisfile:=result;
+end;
+
+function tentryfile.createstream(strm:TCStream):boolean;
+begin
+  createstream:=false;
+  if outputallowed then
+    begin
+      f:=strm;
       mode:=2;
       {write header for sure}
       f.Write(getheaderaddr^,getheadersize);
@@ -925,7 +993,7 @@ begin
   entrytyp:=mainentryid;
 {start}
   newentry;
-  createfile:=true;
+  createstream:=true;
 end;
 
 
