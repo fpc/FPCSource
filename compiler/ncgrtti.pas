@@ -1099,7 +1099,7 @@ implementation
             IntfFlags:=0;
             if assigned(def.iidguid) then
               IntfFlags:=IntfFlags or (1 shl ord(ifHasGuid));
-            if assigned(def.iidstr) then
+            if (def.objecttype=odt_interfacecorba) and (def.iidstr^<>'') then
               IntfFlags:=IntfFlags or (1 shl ord(ifHasStrGUID));
             if (def.objecttype=odt_dispinterface) then
               IntfFlags:=IntfFlags or (1 shl ord(ifDispInterface));
@@ -1122,10 +1122,13 @@ implementation
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
             { write iidstr }
-            if assigned(def.iidstr) then
-              tcb.emit_shortstring_const(def.iidstr^)
-            else
-              tcb.emit_shortstring_const('');
+            if def.objecttype=odt_interfacecorba then
+              begin
+                { prepareguid always allocates an empty string }
+                if not assigned(def.iidstr) then
+                  internalerror(2016021901);
+                tcb.emit_shortstring_const(def.iidstr^)
+              end;
 
             { write published properties for this object }
             published_properties_write_rtti_data(tcb,propnamelist,def.symtable);
