@@ -252,10 +252,11 @@ implementation
              if (is_objc_class_or_protocol(left.resultdef) or
                  is_objcclassref(left.resultdef)) then
                begin
-                 if target_info.system=system_aarch64_darwin then
+                 { on non-fragile ABI platforms, the ISA pointer may be opaque
+                   and we must call Object_getClass to obtain the real ISA
+                   pointer }
+                 if target_info.system in systems_objc_nfabi then
                    begin
-                     { on Darwin/AArch64, the isa field is opaque and we must
-                       call Object_getClass to obtain the actual ISA pointer }
                      result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
                      inserttypeconv_explicit(result,resultdef);
                    end
