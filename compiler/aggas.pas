@@ -52,7 +52,7 @@ interface
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
-        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
+        procedure WriteWeakSymbolRef(s: tasmsymbol); virtual;
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
         procedure WriteUnalignedIntConst(hp: tai_const);
@@ -91,8 +91,8 @@ interface
       TAppleGNUAssembler=class(TGNUAssembler)
        protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-        procedure WriteWeakSymbolDef(s: tasmsymbol); override;
-
+        procedure WriteWeakSymbolRef(s: tasmsymbol); override;
+        procedure WriteDirectiveName(dir: TAsmDirective); override;
        end;
 
 
@@ -113,7 +113,7 @@ implementation
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
-      cpubase;
+      cpubase,objcasm;
 
     const
       line_length = 70;
@@ -131,6 +131,13 @@ implementation
         #9'.sleb128'#9,#9'.uleb128'#9,
         #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.short'#9,
         #9'.short'#9,#9'.long'#9,#9'.quad'#9
+      );
+
+      ait_solaris_const2str : array[aitconst_128bit..aitconst_64bit_unaligned] of string[20]=(
+        #9'.fixme128'#9,#9'.8byte'#9,#9'.4byte'#9,#9'.2byte'#9,#9'.byte'#9,
+        #9'.sleb128'#9,#9'.uleb128'#9,
+        #9'.rva'#9,#9'.secrel32'#9,#9'.8byte'#9,#9'.4byte'#9,#9'.2byte'#9,#9'.2byte'#9,
+        #9'.2byte'#9,#9'.4byte'#9,#9'.8byte'#9
       );
 
       ait_unaligned_consts = [aitconst_16bit_unaligned..aitconst_64bit_unaligned];
@@ -453,7 +460,7 @@ implementation
          system_powerpc_aix,
          system_powerpc64_aix:
            begin
-             if (atype in [sec_stub,sec_objc_data,sec_objc_const,sec_data_coalesced]) then
+             if (atype in [sec_stub]) then
                writer.AsmWrite('.section ');
            end
          else
@@ -595,7 +602,7 @@ implementation
                     writer.AsmWrite(','+tostr(fillop))
 {$ifdef x86}
                   { force NOP as alignment op code }
-                  else if LastSecType=sec_code then
+                  else if (LastSecType=sec_code) and (asminfo^.id<>as_solaris_as) then
                     writer.AsmWrite(',0x90');
 {$endif x86}
 {$ifdef m68k}
@@ -886,7 +893,7 @@ implementation
                        cpu_i386:
                          begin
                            writer.AsmWrite(ait_const2str[aitconst_32bit]);
-                           writer.AsmWrite(tai_const(hp).sym.name);
+                           writer.AsmWrite(tai_const(hp).sym.name+'-_GLOBAL_OFFSET_TABLE_');
                          end;
                      else
                        InternalError(2014022602);
@@ -951,6 +958,8 @@ implementation
                            unaligned tai -> always use vbyte }
                          else if target_info.system in systems_aix then
                             writer.AsmWrite(#9'.vbyte'#9+tostr(tai_const(hp).size)+',')
+                         else if (asminfo^.id=as_solaris_as) then
+                           writer.AsmWrite(ait_solaris_const2str[constdef])
                          else
                            writer.AsmWrite(ait_const2str[constdef]);
                          l:=0;
@@ -1197,13 +1206,6 @@ implementation
                    writer.AsmWriteLn(tai_symbolpair(hp).value^);
                  end;
              end;
-           ait_weak:
-             begin
-               if replaceforbidden then
-                 writer.AsmWriteLn(#9'.weak '+ReplaceForbiddenAsmSymbolChars(tai_weak(hp).sym^))
-               else
-                 writer.AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
-             end;
            ait_symbol_end :
              begin
                if tf_needs_symbol_size in target_info.flags then
@@ -1369,7 +1371,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+    procedure TGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
       begin
         writer.AsmWriteLn(#9'.weak '+s.name);
       end;
@@ -1563,7 +1565,7 @@ implementation
       { add weak symbol markers }
       for i:=0 to current_asmdata.asmsymboldict.count-1 do
         if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
-          writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
+          WriteWeakSymbolRef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
          (target_info.system in systems_darwin) then
@@ -1594,6 +1596,11 @@ implementation
       begin
         if (target_info.system in systems_darwin) then
           case atype of
+            sec_user:
+              begin
+                result:='.section '+aname;
+                exit;
+              end;
             sec_bss:
               { all bss (lcomm) symbols are automatically put in the right }
               { place by using the lcomm assembler directive               }
@@ -1664,137 +1671,31 @@ implementation
                 result:='.section __DATA, __mod_term_func, mod_term_funcs';
                 exit;
               end;
-            sec_objc_protocol_ext:
+            low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
               begin
-                result:='.section __OBJC, __protocol_ext, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_class_ext:
-              begin
-                result:='.section __OBJC, __class_ext, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_property:
-              begin
-                result:='.section __OBJC, __property, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_image_info:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  result:='.section __DATA,__objc_imageinfo,regular,no_dead_strip'
-                else
-                  result:='.section __OBJC, __image_info, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_cstring_object:
-              begin
-                result:='.section __OBJC, __cstring_object, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_sel_fixup:
-              begin
-                result:='.section __OBJC, __sel_fixup, regular, no_dead_strip';
-                exit;
-              end;
-            sec_objc_message_refs:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_selrefs, literal_pointers, no_dead_strip';
-                    exit;
-                  end;
-              end;
-            sec_objc_cls_refs:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_clsrefs, regular, no_dead_strip';
-                    exit;
-                  end;
-              end;
-            sec_objc_meth_var_types:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __TEXT,__objc_methtype,cstring_literals';
-                    exit
-                  end;
-              end;
-            sec_objc_meth_var_names:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __TEXT,__objc_methname,cstring_literals';
-                    exit
-                  end;
-              end;
-            sec_objc_class_names:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __TEXT,__objc_classname,cstring_literals';
-                    exit
-                  end;
-              end;
-            sec_objc_inst_meth,
-            sec_objc_cls_meth,
-            sec_objc_cat_inst_meth,
-            sec_objc_cat_cls_meth:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_const';
-                    exit;
-                  end;
-              end;
-            sec_objc_meta_class,
-            sec_objc_class:
-              begin
-                if (target_info.system in systems_objc_nfabi) then
-                  begin
-                    result:='.section __DATA, __objc_data';
-                    exit;
-                  end;
-              end;
-            sec_objc_sup_refs:
-              begin
-                result:='.section __DATA, __objc_superrefs, regular, no_dead_strip';
+                result:='.section '+objc_section_name(atype);
                 exit
-              end;
-            sec_objc_classlist:
-              begin
-                result:='.section __DATA, __objc_classlist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_nlclasslist:
-              begin
-                result:='.section __DATA, __objc_nlclasslist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_catlist:
-              begin
-                result:='.section __DATA, __objc_catlist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_nlcatlist:
-              begin
-                result:='.section __DATA, __objc_nlcatlist, regular, no_dead_strip';
-                exit
-              end;
-            sec_objc_protolist:
-              begin
-                result:='.section __DATA, __objc_protolist, coalesced, no_dead_strip';
-                exit;
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;
 
 
-    procedure TAppleGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+    procedure TAppleGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
       begin
         writer.AsmWriteLn(#9'.weak_reference '+s.name);
+      end;
+
+    procedure TAppleGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
+      begin
+        case dir of
+          asd_weak_reference:
+            writer.AsmWrite('.weak_reference ');
+          asd_weak_definition:
+            writer.AsmWrite('.weak_definition ');
+          else
+            inherited;
+        end;
       end;
 
 

@@ -1061,7 +1061,7 @@ begin
     begin
     N:=S.PropertyName;
     tn:=GetPropertyType(AClassName,S);
-    AddLn('Procedure Set%s(AIndex : Integer; AValue : %s); virtual;',[N,tn]);
+    AddLn('Procedure Set%s(AIndex : Integer; Const AValue : %s); virtual;',[N,tn]);
     end;
   if NeedSetArrayLength and not UseListForArray then
     begin
@@ -1119,7 +1119,7 @@ begin
   AddLn('Private');
   IncINdent;
   Addln('Function GetI (AIndex : Integer) : %s;',[AItemName]);
-  Addln('Procedure SetI (AIndex : Integer; AValue: %s);',[AItemName]);
+  Addln('Procedure SetI (AIndex : Integer; Const AValue: %s);',[AItemName]);
   DecIndent;
   AddLn('Protected');
   IncIndent;
@@ -1216,7 +1216,7 @@ begin
     NeedGetWritename:=NeedGetWritename or (CompareText(N,S.Name)<>0);
     TN:=GetPropertyType(AClassName,S);
     Addln('');
-    AddLn('Procedure %s.Set%s(AIndex : Integer; AValue : %s); ',[AClassName,N,tn]);
+    AddLn('Procedure %s.Set%s(AIndex : Integer; Const AValue : %s); ',[AClassName,N,tn]);
     SimpleMethodBody([Format('If (F%s=AValue) then exit;',[N]),
                       Format('F%s:=AValue;',[N]),
                       'MarkPropertyChanged(AIndex);']);
@@ -1252,7 +1252,7 @@ begin
   Addln('Function %s.GetI (AIndex : Integer) : %s;',[AClassName,AItemName]);
   SimpleMethodBody([Format('Result:=%s(Objects[AIndex]);',[AItemName])]);
   Addln('');
-  Addln('Procedure %s.SetI (AIndex : Integer; AValue: %s);',[AClassName,AItemName]);
+  Addln('Procedure %s.SetI (AIndex : Integer; Const AValue: %s);',[AClassName,AItemName]);
   SimpleMethodBody(['Objects[AIndex]:=AValue;']);
   Addln('');
   AddLn('Class Function %s.ObjectClass : TBaseObjectClass;',[ACLassName]);

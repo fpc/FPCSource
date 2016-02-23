@@ -385,9 +385,9 @@ implementation
             { method of this objectdef }
             pd.struct:=obj;
             { can only construct the artificial accessorname now, because it requires
-              pd.defid }
+              pd.unique_id_str }
             if not explicitwrapper then
-              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+tostr(pd.defid);
+              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+pd.unique_id_str;
           end
         else
           begin
@@ -397,9 +397,9 @@ implementation
             exclude(pd.procoptions,po_abstractmethod);
             exclude(pd.procoptions,po_overridingmethod);
             { can only construct the artificial accessorname now, because it requires
-              pd.defid }
+              pd.unique_id_str }
             if not explicitwrapper then
-              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+tostr(pd.defid);
+              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+pd.unique_id_str;
             finish_copied_procdef(pd,accessorname,obj.symtable,obj);
             sym:=pd.procsym;
           end;

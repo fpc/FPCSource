@@ -38,7 +38,7 @@ interface
 
     uses
       cmsgs,verbose,
-      cutils,cclasses,
+      cutils,cclasses,cstreams,
       globtype,globals,finput,fmodule,
       symbase,ppu,symtype;
 
@@ -59,7 +59,8 @@ interface
           constructor create(LoadedFrom:TModule;const amodulename: string; const afilename:TPathStr;_is_unit:boolean);
           destructor destroy;override;
           procedure reset;override;
-          function  openppu:boolean;
+          function  openppufile:boolean;
+          function  openppustream(strm:TCStream):boolean;
           procedure getppucrc;
           procedure writeppu;
           procedure loadppu;
@@ -75,6 +76,7 @@ interface
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
 
+          function  openppu(ppufiletime:longint):boolean;
           function  search_unit_files(onlysource:boolean):boolean;
           function  search_unit(onlysource,shortname:boolean):boolean;
           procedure load_interface;
@@ -118,7 +120,8 @@ uses
   scanner,
   aasmbase,ogbase,
   parser,
-  comphook;
+  comphook,
+  entfile;
 
 
 var
@@ -180,11 +183,11 @@ var
       until false;
     end;
 
-    function tppumodule.openppu:boolean;
+    function tppumodule.openppufile:boolean;
       var
         ppufiletime : longint;
       begin
-        openppu:=false;
+        openppufile:=false;
         Message1(unit_t_ppu_loading,ppufilename,@queuecomment);
       { Get ppufile time (also check if the file exists) }
         ppufiletime:=getnamedfiletime(ppufilename);
@@ -200,6 +203,29 @@ var
            Message(unit_u_ppu_file_too_short);
            exit;
          end;
+        result:=openppu(ppufiletime);
+      end;
+
+
+    function tppumodule.openppustream(strm:TCStream):boolean;
+      begin
+      { Open the ppufile }
+        Message1(unit_u_ppu_name,ppufilename);
+        ppufile:=tcompilerppufile.create(ppufilename);
+        if not ppufile.openstream(strm) then
+         begin
+           ppufile.free;
+           ppufile:=nil;
+           Message(unit_u_ppu_file_too_short);
+           exit;
+         end;
+        result:=openppu(-1);
+      end;
+
+
+    function tppumodule.openppu(ppufiletime:longint):boolean;
+      begin
+        openppu:=false;
       { check for a valid PPU file }
         if not ppufile.CheckPPUId then
          begin
@@ -209,15 +235,15 @@ var
            exit;
          end;
       { check for allowed PPU versions }
-        if not (ppufile.GetPPUVersion = CurrentPPUVersion) then
+        if not (ppufile.getversion = CurrentPPUVersion) then
          begin
-           Message1(unit_u_ppu_invalid_version,tostr(ppufile.GetPPUVersion),@queuecomment);
+           Message1(unit_u_ppu_invalid_version,tostr(ppufile.getversion),@queuecomment);
            ppufile.free;
            ppufile:=nil;
            exit;
          end;
       { check the target processor }
-        if tsystemcpu(ppufile.header.cpu)<>target_cpu then
+        if tsystemcpu(ppufile.header.common.cpu)<>target_cpu then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -225,7 +251,7 @@ var
            exit;
          end;
       { check target }
-        if tsystem(ppufile.header.target)<>target_info.system then
+        if tsystem(ppufile.header.common.target)<>target_info.system then
          begin
            ppufile.free;
            ppufile:=nil;
@@ -234,7 +260,7 @@ var
          end;
 {$ifdef i8086}
       { check i8086 memory model flags }
-        if ((ppufile.header.flags and uf_i8086_far_code)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_far_code)<>0) xor
             (current_settings.x86memorymodel in [mm_medium,mm_large,mm_huge]) then
          begin
            ppufile.free;
@@ -242,7 +268,7 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
-        if ((ppufile.header.flags and uf_i8086_far_data)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_far_data)<>0) xor
             (current_settings.x86memorymodel in [mm_compact,mm_large]) then
          begin
            ppufile.free;
@@ -250,7 +276,7 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
-        if ((ppufile.header.flags and uf_i8086_huge_data)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_huge_data)<>0) xor
             (current_settings.x86memorymodel=mm_huge) then
          begin
            ppufile.free;
@@ -258,7 +284,7 @@ var
            Message(unit_u_ppu_invalid_memory_model,@queuecomment);
            exit;
          end;
-        if ((ppufile.header.flags and uf_i8086_cs_equals_ds)<>0) xor
+        if ((ppufile.header.common.flags and uf_i8086_cs_equals_ds)<>0) xor
             (current_settings.x86memorymodel=mm_tiny) then
          begin
            ppufile.free;
@@ -270,7 +296,7 @@ var
 {$ifdef cpufpemu}
        { check if floating point emulation is on?
          fpu emulation isn't unit levelwise because it affects calling convention }
-       if ((ppufile.header.flags and uf_fpu_emulation)<>0) xor
+       if ((ppufile.header.common.flags and uf_fpu_emulation)<>0) xor
             (cs_fp_emulation in current_settings.moduleswitches) then
          begin
            ppufile.free;
@@ -281,12 +307,15 @@ var
 {$endif cpufpemu}
 
       { Load values to be access easier }
-        flags:=ppufile.header.flags;
+        flags:=ppufile.header.common.flags;
         crc:=ppufile.header.checksum;
         interface_crc:=ppufile.header.interface_checksum;
         indirect_crc:=ppufile.header.indirect_checksum;
       { Show Debug info }
-        Message1(unit_u_ppu_time,filetimestring(ppufiletime));
+        if ppufiletime<>-1 then
+          Message1(unit_u_ppu_time,filetimestring(ppufiletime))
+        else
+          Message1(unit_u_ppu_time,'unknown');
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
@@ -337,7 +366,7 @@ var
            if Found then
             Begin
               SetFileName(hs,false);
-              Found:=OpenPPU;
+              Found:=openppufile;
             End;
            PPUSearchPath:=Found;
          end;
@@ -1197,13 +1226,10 @@ var
              position in derefdata is not necessarily at the end }
             derefdata.seek(derefdata.size);
          tstoredsymtable(globalsymtable).buildderefimpl;
-         if (flags and uf_local_symtable)<>0 then
-           begin
-             tstoredsymtable(localsymtable).buildderef;
-             tstoredsymtable(localsymtable).buildderefimpl;
-           end;
          tunitwpoinfo(wpoinfo).buildderef;
          tunitwpoinfo(wpoinfo).buildderefimpl;
+         if (flags and uf_local_symtable)<>0 then
+           tstoredsymtable(localsymtable).buildderef_registered;
          writederefmap;
          writederefdata;
 
@@ -1246,14 +1272,14 @@ var
          { flush to be sure }
          ppufile.flush;
          { create and write header }
-         ppufile.header.size:=ppufile.size;
+         ppufile.header.common.size:=ppufile.size;
          ppufile.header.checksum:=ppufile.crc;
          ppufile.header.interface_checksum:=ppufile.interface_crc;
          ppufile.header.indirect_checksum:=ppufile.indirect_crc;
-         ppufile.header.compiler:=wordversion;
-         ppufile.header.cpu:=word(target_cpu);
-         ppufile.header.target:=word(target_info.system);
-         ppufile.header.flags:=flags;
+         ppufile.header.common.compiler:=wordversion;
+         ppufile.header.common.cpu:=word(target_cpu);
+         ppufile.header.common.target:=word(target_info.system);
+         ppufile.header.common.flags:=flags;
          ppufile.header.deflistsize:=current_module.deflist.count;
          ppufile.header.symlistsize:=current_module.symlist.count;
          ppufile.writeheader;
@@ -1352,14 +1378,14 @@ var
 
          { create and write header, this will only be used
            for debugging purposes }
-         ppufile.header.size:=ppufile.size;
+         ppufile.header.common.size:=ppufile.size;
          ppufile.header.checksum:=ppufile.crc;
          ppufile.header.interface_checksum:=ppufile.interface_crc;
          ppufile.header.indirect_checksum:=ppufile.indirect_crc;
-         ppufile.header.compiler:=wordversion;
-         ppufile.header.cpu:=word(target_cpu);
-         ppufile.header.target:=word(target_info.system);
-         ppufile.header.flags:=flags;
+         ppufile.header.common.compiler:=wordversion;
+         ppufile.header.common.cpu:=word(target_cpu);
+         ppufile.header.common.target:=word(target_info.system);
+         ppufile.header.common.flags:=flags;
          ppufile.writeheader;
 
          ppufile.closefile;
@@ -1394,7 +1420,7 @@ var
               if (pu.u.interface_crc<>pu.interface_checksum) or
                  (pu.u.indirect_crc<>pu.indirect_checksum) or
                  (
-                  ((ppufile.header.flags and uf_release)=0) and
+                  ((ppufile.header.common.flags and uf_release)=0) and
                   (pu.u.crc<>pu.checksum)
                  ) then
                begin
@@ -1477,9 +1503,12 @@ var
           end;
 
         { we can now derefence all pointers to the implementation parts }
-        tstoredsymtable(globalsymtable).derefimpl;
+        tstoredsymtable(globalsymtable).derefimpl(false);
+        { we've just loaded the localsymtable from the ppu file, so everything
+          in it was registered by definition (otherwise it wouldn't have been in
+          there) }
         if assigned(localsymtable) then
-            tstoredsymtable(localsymtable).derefimpl;
+          tstoredsymtable(localsymtable).derefimpl(false);
 
          { read whole program optimisation-related information }
          wpoinfo:=tunitwpoinfo.ppuload(ppufile);
@@ -1608,12 +1637,14 @@ var
                if interface_compiled then
                  begin
                    Message1(unit_u_reresolving_unit,modulename^);
-                   tstoredsymtable(globalsymtable).deref;
-                   tstoredsymtable(globalsymtable).derefimpl;
+                   tstoredsymtable(globalsymtable).deref(false);
+                   tstoredsymtable(globalsymtable).derefimpl(false);
                    if assigned(localsymtable) then
                     begin
-                      tstoredsymtable(localsymtable).deref;
-                      tstoredsymtable(localsymtable).derefimpl;
+                      { we have only builderef(impl)'d the registered symbols of
+                        the localsymtable -> also only deref those again }
+                      tstoredsymtable(localsymtable).deref(true);
+                      tstoredsymtable(localsymtable).derefimpl(true);
                     end;
                    if assigned(wpoinfo) then
                      begin

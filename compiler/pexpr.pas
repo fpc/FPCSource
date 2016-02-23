@@ -31,14 +31,22 @@ interface
       tokens,globtype,globals,constexp,
       pgentype;
 
+    type
+      texprflag = (
+        ef_accept_equal,
+        ef_type_only,
+        ef_had_specialize
+      );
+      texprflags = set of texprflag;
+
     { reads a whole expression }
     function expr(dotypecheck:boolean) : tnode;
 
     { reads an expression without assignements and .. }
-    function comp_expr(accept_equal,typeonly:boolean):tnode;
+    function comp_expr(flags:texprflags):tnode;
 
     { reads a single factor }
-    function factor(getaddr,typeonly,hadspecialize:boolean) : tnode;
+    function factor(getaddr:boolean;flags:texprflags) : tnode;
 
     procedure string_dec(var def: tdef; allowtypedef: boolean);
 
@@ -74,7 +82,7 @@ implementation
        pbase,pinline,ptype,pgenutil,procinfo,cpuinfo
        ;
 
-    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean;factornode:tnode):tnode;forward;
+    function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;forward;
 
     const
        { true, if the inherited call is anonymous }
@@ -96,7 +104,7 @@ implementation
              if not(allowtypedef) then
                Message(parser_e_no_local_para_def);
              consume(_LECKKLAMMER);
-             p:=comp_expr(true,false);
+             p:=comp_expr([ef_accept_equal]);
              if not is_constintnode(p) then
                begin
                  Message(parser_e_illegal_expression);
@@ -116,11 +124,11 @@ implementation
 {                    t:=cstringdef.createlong(tordconstnode(p).value))}
                     Message(parser_e_invalid_string_size);
                     tordconstnode(p).value:=255;
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value));
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
                   end
                 else
                   if tordconstnode(p).value<>255 then
-                    def:=cstringdef.createshort(int64(tordconstnode(p).value));
+                    def:=cstringdef.createshort(int64(tordconstnode(p).value),true);
                 consume(_RECKKLAMMER);
               end;
              p.free;
@@ -172,12 +180,12 @@ implementation
                else
                  begin
                    named_args_allowed:=true;
-                   p1:=comp_expr(true,false);
+                   p1:=comp_expr([ef_accept_equal]);
                    named_args_allowed:=false;
                    if found_arg_name then
                      begin
                        argname:=p1;
-                       p1:=comp_expr(true,false);
+                       p1:=comp_expr([ef_accept_equal]);
                        p2:=ccallparanode.create(p1,p2);
                        tcallparanode(p2).parametername:=argname;
                      end
@@ -188,19 +196,19 @@ implementation
              end
            else
              begin
-               p1:=comp_expr(true,false);
+               p1:=comp_expr([ef_accept_equal]);
                p2:=ccallparanode.create(p1,p2);
              end;
            { it's for the str(l:5,s); }
            if __colon and (token=_COLON) then
              begin
                consume(_COLON);
-               p1:=comp_expr(true,false);
+               p1:=comp_expr([ef_accept_equal]);
                p2:=ccallparanode.create(p1,p2);
                include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                if try_to_consume(_COLON) then
                  begin
-                   p1:=comp_expr(true,false);
+                   p1:=comp_expr([ef_accept_equal]);
                    p2:=ccallparanode.create(p1,p2);
                    include(tcallparanode(p2).callparaflags,cpf_is_colon_para);
                  end
@@ -284,7 +292,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
               p1:=geninlinenode(in_ord_x,false,p1);
               statement_syssym := p1;
@@ -299,7 +307,7 @@ implementation
                     begin
                       if not(try_to_consume(_RKLAMMER)) then
                         begin
-                          p1:=comp_expr(true,false);
+                          p1:=comp_expr([ef_accept_equal]);
                           consume(_RKLAMMER);
                           if not assigned(current_procinfo) or
                              (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
@@ -339,7 +347,7 @@ implementation
                                   exit_procinfo.nestedexitlabel.defined:=true;
                                   exit_procinfo.nestedexitlabel.used:=true;
 
-                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[]);
+                                  exit_procinfo.nestedexitlabel.jumpbuf:=clocalvarsym.create('LABEL$_'+exit_procinfo.nestedexitlabel.name,vs_value,rec_jmp_buf,[],true);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel);
                                   exit_procinfo.procdef.localst.insert(exit_procinfo.nestedexitlabel.jumpbuf);
                                 end;
@@ -397,7 +405,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
@@ -424,7 +432,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               consume(_RKLAMMER);
               if ((p1.nodetype<>typen) and
 
@@ -475,7 +483,7 @@ implementation
                 begin
                   consume(_LKLAMMER);
                   in_args:=true;
-                  p1:=comp_expr(true,false);
+                  p1:=comp_expr([ef_accept_equal]);
                   { When reading a class type it is parsed as loadvmtaddrn,
                     typeinfo only needs the type so we remove the loadvmtaddrn }
                   if p1.nodetype=loadvmtaddrn then
@@ -515,7 +523,7 @@ implementation
               err:=false;
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=ccallparanode.create(p1,nil);
               p2:=geninlinenode(l,false,p2);
               consume(_RKLAMMER);
@@ -527,7 +535,7 @@ implementation
               err:=false;
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               { When reading a class type it is parsed as loadvmtaddrn,
                 typeinfo only needs the type so we remove the loadvmtaddrn }
               if p1.nodetype=loadvmtaddrn then
@@ -583,9 +591,13 @@ implementation
           in_addr_x :
             begin
               consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true,false);
+              got_addrn:=true;
+              p1:=factor(true,[]);
+              { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+              if token<>_RKLAMMER then
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=caddrnode.create(p1);
+              got_addrn:=false;
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -595,12 +607,15 @@ implementation
               if target_info.system in systems_managed_vm then
                 message(parser_e_feature_unsupported_for_vm);
               consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true,false);
+              got_addrn:=true;
+              p1:=factor(true,[]);
+              { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+              if token<>_RKLAMMER then
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=caddrnode.create(p1);
-              do_typecheckpass(p1);
+              got_addrn:=false;
               { Ofs() returns a cardinal/qword, not a pointer }
-              p1.resultdef:=uinttype;
+              inserttypeconv_internal(p1,uinttype);
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -608,9 +623,13 @@ implementation
           in_seg_x :
             begin
               consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true,false);
+              got_addrn:=true;
+              p1:=factor(true,[]);
+              { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
+              if token<>_RKLAMMER then
+                p1:=sub_expr(opcompare,[ef_accept_equal],p1);
               p1:=geninlinenode(in_seg_x,false,p1);
+              got_addrn:=false;
               consume(_RKLAMMER);
               statement_syssym:=p1;
             end;
@@ -620,7 +639,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -631,7 +650,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -642,9 +661,9 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_COMMA) then
-                p2:=ccallparanode.create(comp_expr(true,false),nil)
+                p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil)
               else
                 p2:=nil;
               p2:=ccallparanode.create(p1,p2);
@@ -659,9 +678,9 @@ implementation
                   message(parser_e_illegal_slice);
                   consume(_LKLAMMER);
                   in_args:=true;
-                  comp_expr(true,false).free;
+                  comp_expr([ef_accept_equal]).free;
                   if try_to_consume(_COMMA) then
-                    comp_expr(true,false).free;
+                    comp_expr([ef_accept_equal]).free;
                   statement_syssym:=cerrornode.create;
                   consume(_RKLAMMER);
                 end
@@ -669,10 +688,10 @@ implementation
                 begin
                   consume(_LKLAMMER);
                   in_args:=true;
-                  p1:=comp_expr(true,false);
+                  p1:=comp_expr([ef_accept_equal]);
                   Consume(_COMMA);
                   if not(codegenerror) then
-                    p2:=ccallparanode.create(comp_expr(true,false),nil)
+                    p2:=ccallparanode.create(comp_expr([ef_accept_equal]),nil)
                   else
                     p2:=cerrornode.create;
                   p2:=ccallparanode.create(p1,p2);
@@ -704,7 +723,7 @@ implementation
                 type checking }
               p2:=nil;
               repeat
-                p1:=comp_expr(true,false);
+                p1:=comp_expr([ef_accept_equal]);
                 if p2<>nil then
                   p2:=caddnode.create(addn,p2,p1)
                 else
@@ -750,7 +769,7 @@ implementation
                   consume(_LKLAMMER);
                   in_args:=true;
                   { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(true,false,false);
+                  p1:=factor(true,[]);
                   p2:=geninlinenode(l,false,p1);
                   consume(_RKLAMMER);
                   statement_syssym:=p2;
@@ -766,7 +785,7 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               p2:=geninlinenode(l,false,p1);
               consume(_RKLAMMER);
               statement_syssym:=p2;
@@ -800,11 +819,11 @@ implementation
             Begin
               consume(_LKLAMMER);
               in_args := true;
-              p1:= ccallparanode.create(comp_expr(true,false), nil);
+              p1:= ccallparanode.create(comp_expr([ef_accept_equal]), nil);
               consume(_COMMA);
-              p2 := ccallparanode.create(comp_expr(true,false),p1);
+              p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p1);
               if try_to_consume(_COMMA) then
-                p2 := ccallparanode.create(comp_expr(true,false),p2);
+                p2 := ccallparanode.create(comp_expr([ef_accept_equal]),p2);
               consume(_RKLAMMER);
               p2 := geninlinenode(l,false,p2);
               statement_syssym := p2;
@@ -815,9 +834,9 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
-              p2:=comp_expr(true,false);
+              p2:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,nil)));
               consume(_RKLAMMER);
             end;
@@ -827,11 +846,11 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
-              p2:=comp_expr(true,false);
+              p2:=comp_expr([ef_accept_equal]);
               consume(_COMMA);
-              paras:=comp_expr(true,false);
+              paras:=comp_expr([ef_accept_equal]);
               statement_syssym:=geninlinenode(l,false,ccallparanode.create(p1,ccallparanode.create(p2,ccallparanode.create(paras,nil))));
               consume(_RKLAMMER);
             end;
@@ -840,9 +859,9 @@ implementation
             begin
               consume(_LKLAMMER);
               in_args:=true;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_COMMA) then
-                 p2:=comp_expr(true,false)
+                 p2:=comp_expr([ef_accept_equal])
               else
                begin
                  { then insert an empty string }
@@ -864,7 +883,7 @@ implementation
                    however, as a stack frame may not exist, it does more harm than
                    good, so ignore it.}
                   in_args:=true;
-                  p1:=comp_expr(true,false);
+                  p1:=comp_expr([ef_accept_equal]);
                   p1.destroy;
                   consume(_RKLAMMER);
                 end;
@@ -1164,7 +1183,7 @@ implementation
                          { read the expression }
                          if propsym.propdef.typ=procvardef then
                            getprocvardef:=tprocvardef(propsym.propdef);
-                         p2:=comp_expr(true,false);
+                         p2:=comp_expr([ef_accept_equal]);
                          if assigned(getprocvardef) then
                            handle_procvar(getprocvardef,p2);
                          tcallnode(p1).left:=ccallparanode.create(p2,tcallnode(p1).left);
@@ -1175,12 +1194,12 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,false,p1) then
+                         if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
                          { read the expression }
-                         p2:=comp_expr(true,false);
+                         p2:=comp_expr([ef_accept_equal]);
                          p1:=cassignmentnode.create(p1,p2);
                       end
                     else
@@ -1205,7 +1224,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,false,p1) then
+                         if not handle_staticfield_access(sym,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          { catch expressions like "(propx):=1;" }
@@ -1312,7 +1331,7 @@ implementation
                    end;
                  fieldvarsym:
                    begin
-                      if not handle_staticfield_access(sym,true,p1) then
+                      if not handle_staticfield_access(sym,p1) then
                         begin
                           if isclassref then
                             if assigned(p1) and
@@ -1337,7 +1356,7 @@ implementation
                      p1.free;
                      if try_to_consume(_LKLAMMER) then
                       begin
-                        p1:=comp_expr(true,false);
+                        p1:=comp_expr([ef_accept_equal]);
                         consume(_RKLAMMER);
                         p1:=ctypeconvnode.create_explicit(p1,ttypesym(sym).typedef);
                       end
@@ -1455,7 +1474,7 @@ implementation
          if (not typeonly or is_ordinal(hdef)) and
             try_to_consume(_LKLAMMER) then
           begin
-            result:=comp_expr(true,false);
+            result:=comp_expr([ef_accept_equal]);
             consume(_RKLAMMER);
             { type casts to class helpers aren't allowed }
             if is_objectpascal_helper(hdef) then
@@ -1478,7 +1497,7 @@ implementation
                  result:=ctypenode.create(hdef);
                  ttypenode(result).typesym:=sym;
                  if not (m_delphi in current_settings.modeswitches) and
-                     (block_type in [bt_type,bt_var_type,bt_const_type]) and
+                     (block_type in inline_specialization_block_types) and
                      (token=_ID) and
                      (idtoken=_SPECIALIZE) then
                    begin
@@ -1519,7 +1538,7 @@ implementation
                 result:=ctypenode.create(hdef);
                 ttypenode(result).typesym:=sym;
                 if not (m_delphi in current_settings.modeswitches) and
-                    (block_type in [bt_type,bt_var_type,bt_const_type]) and
+                    (block_type in inline_specialization_block_types) and
                     (token=_ID) and
                     (idtoken=_SPECIALIZE) then
                   begin
@@ -1673,14 +1692,14 @@ implementation
              else if try_to_consume(_LECKKLAMMER) then
                begin
                  repeat
-                   comp_expr(true,false);
+                   comp_expr([ef_accept_equal]);
                  until not try_to_consume(_COMMA);
                  consume(_RECKKLAMMER);
                end
              else if try_to_consume(_LKLAMMER) then
                begin
                  repeat
-                   comp_expr(true,false);
+                   comp_expr([ef_accept_equal]);
                  until not try_to_consume(_COMMA);
                  consume(_RKLAMMER);
                end
@@ -1711,7 +1730,7 @@ implementation
 
          countindices:=0;
          repeat
-           p4:=comp_expr(true,false);
+           p4:=comp_expr([ef_accept_equal]);
 
            addstatement(newstatement,cassignmentnode.create(
              ctemprefnode.create_offset(temp,countindices*s32inttype.size),p4));
@@ -1727,7 +1746,7 @@ implementation
          if token=_ASSIGNMENT then
            begin
              consume(_ASSIGNMENT);
-             p4:=comp_expr(true,false);
+             p4:=comp_expr([ef_accept_equal]);
 
              { create call to fpc_vararray_put }
              paras:=ccallparanode.create(cordconstnode.create
@@ -1794,7 +1813,7 @@ implementation
                     cvecnode.create(
                       ctemprefnode.create(arrnode),
                       cordconstnode.create(paracount,arrdef.rangedef,false)),
-                    comp_expr(true,false)));
+                    comp_expr([ef_accept_equal])));
                 inc(paracount);
               until not try_to_consume(_COMMA);
               consume(_RKLAMMER);
@@ -1941,7 +1960,7 @@ implementation
                  end;
 
                { iso file buf access? }
-               if (m_iso in current_settings.modeswitches) and
+               if (m_isolike_io in current_settings.modeswitches) and
                  (p1.resultdef.typ=filedef) then
                  begin
                    case tfiledef(p1.resultdef).filetyp of
@@ -2006,10 +2025,10 @@ implementation
                             if (tpointerdef(p1.resultdef).pointeddef.typ=arraydef) and
                                (m_autoderef in current_settings.modeswitches) then
                               p1:=cderefnode.create(p1);
-                            p2:=comp_expr(true,false);
+                            p2:=comp_expr([ef_accept_equal]);
                             { Support Pbytevar[0..9] which returns array [0..9].}
                             if try_to_consume(_POINTPOINT) then
-                              p2:=crangenode.create(p2,comp_expr(true,false));
+                              p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
                             p1:=cvecnode.create(p1,p2);
                          end;
                        variantdef:
@@ -2020,15 +2039,15 @@ implementation
                          end;
                        stringdef :
                          begin
-                           p2:=comp_expr(true,false);
+                           p2:=comp_expr([ef_accept_equal]);
                            { Support string[0..9] which returns array [0..9] of char.}
                            if try_to_consume(_POINTPOINT) then
-                             p2:=crangenode.create(p2,comp_expr(true,false));
+                             p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
                            p1:=cvecnode.create(p1,p2);
                          end;
                        arraydef:
                          begin
-                           p2:=comp_expr(true,false);
+                           p2:=comp_expr([ef_accept_equal]);
                            { support SEG:OFS for go32v2/msdos Mem[] }
                            if (target_info.system in [system_i386_go32v2,system_i386_watcom,system_i8086_msdos,system_i8086_win16]) and
                               (p1.nodetype=loadn) and
@@ -2044,7 +2063,7 @@ implementation
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
                                p3:=cshlshrnode.create(shln,p2,cordconstnode.create($10,s16inttype,false));
-                               p2:=comp_expr(true,false);
+                               p2:=comp_expr([ef_accept_equal]);
                                inserttypeconv(p2,u16inttype);
                                inserttypeconv_internal(p2,u32inttype);
                                p2:=caddnode.create(addn,p2,p3);
@@ -2060,11 +2079,11 @@ implementation
                                if try_to_consume(_COLON) then
                                 begin
                                   p3:=caddnode.create(muln,cordconstnode.create($10,s32inttype,false),p2);
-                                  p2:=comp_expr(true,false);
+                                  p2:=comp_expr([ef_accept_equal]);
                                   p2:=caddnode.create(addn,p2,p3);
                                   if try_to_consume(_POINTPOINT) then
                                     { Support mem[$a000:$0000..$07ff] which returns array [0..$7ff] of memtype.}
-                                    p2:=crangenode.create(p2,caddnode.create(addn,comp_expr(true,false),p3.getcopy));
+                                    p2:=crangenode.create(p2,caddnode.create(addn,comp_expr([ef_accept_equal]),p3.getcopy));
                                   p1:=cvecnode.create(p1,p2);
                                   include(tvecnode(p1).flags,nf_memseg);
                                   include(tvecnode(p1).flags,nf_memindex);
@@ -2073,7 +2092,7 @@ implementation
                                 begin
                                   if try_to_consume(_POINTPOINT) then
                                     { Support mem[$80000000..$80000002] which returns array [0..2] of memtype.}
-                                    p2:=crangenode.create(p2,comp_expr(true,false));
+                                    p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
                                   p1:=cvecnode.create(p1,p2);
                                   include(tvecnode(p1).flags,nf_memindex);
                                 end;
@@ -2085,7 +2104,7 @@ implementation
                              begin
                                if try_to_consume(_POINTPOINT) then
                                  { Support arrayvar[0..9] which returns array [0..9] of arraytype.}
-                                 p2:=crangenode.create(p2,comp_expr(true,false));
+                                 p2:=crangenode.create(p2,comp_expr([ef_accept_equal]));
                                p1:=cvecnode.create(p1,p2);
                              end;
                          end;
@@ -2095,7 +2114,7 @@ implementation
                              Message(parser_e_invalid_qualifier);
                            p1.destroy;
                            p1:=cerrornode.create;
-                           comp_expr(true,false);
+                           comp_expr([ef_accept_equal]);
                            again:=false;
                          end;
                      end;
@@ -2110,7 +2129,7 @@ implementation
           _POINT :
              begin
                consume(_POINT);
-               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in [bt_type,bt_var_type,bt_const_type]);
+               allowspecialize:=not (m_delphi in current_settings.modeswitches) and (block_type in inline_specialization_block_types);
                if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
                  begin
                    //consume(_ID);
@@ -2350,12 +2369,13 @@ implementation
                            end;
                        end
                      else
-                       begin
-                         Message(parser_e_invalid_qualifier);
-                         p1.destroy;
-                         p1:=cerrornode.create;
-                         consume(_ID);
-                       end;
+                       if (token<>_ID) or not try_type_helper(p1,nil) then
+                         begin
+                           Message(parser_e_invalid_qualifier);
+                           p1.destroy;
+                           p1:=cerrornode.create;
+                           consume(_ID);
+                         end;
                    end;
                   variantdef:
                     begin
@@ -2389,7 +2409,7 @@ implementation
                                 begin
                                   consume(_ASSIGNMENT);
                                   { read the expression }
-                                  p3:=comp_expr(true,false);
+                                  p3:=comp_expr([ef_accept_equal]);
                                   { concat value parameter too }
                                   p2:=ccallparanode.create(p3,p2);
                                   p1:=translate_disp_call(p1,p2,dct_propput,dispatchstring,0,voidtype);
@@ -2579,7 +2599,7 @@ implementation
                     begin
                       if try_to_consume(_LKLAMMER) then
                         begin
-                          p1:=comp_expr(true,false);
+                          p1:=comp_expr([ef_accept_equal]);
                           consume(_RKLAMMER);
                           p1:=ctypeconvnode.create_explicit(p1,p1.resultdef);
                         end
@@ -2655,7 +2675,7 @@ implementation
 
   {$maxfpuregisters 0}
 
-    function factor(getaddr,typeonly,hadspecialize:boolean) : tnode;
+    function factor(getaddr:boolean;flags:texprflags) : tnode;
 
          {---------------------------------------------
                          Factor_read_id
@@ -2690,7 +2710,9 @@ implementation
            allowspecialize,
            isspecialize,
            unit_found : boolean;
+           dummypos,
            tokenpos: tfileposinfo;
+           spezcontext : tspecializationcontext;
          begin
            { allow post fix operators }
            again:=true;
@@ -2698,17 +2720,21 @@ implementation
            { preinitalize tokenpos }
            tokenpos:=current_filepos;
            p1:=nil;
+           spezcontext:=nil;
+
+           { avoid warning }
+           fillchar(dummypos,sizeof(dummypos),0);
 
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
-                            not hadspecialize and
-                            (block_type in [bt_type,bt_var_type,bt_const_type]);
+                            not (ef_had_specialize in flags) and
+                            (block_type in inline_specialization_block_types);
            if allowspecialize and (token=_ID) and (idtoken=_SPECIALIZE) then
              begin
                consume(_ID);
                isspecialize:=true;
              end
            else
-             isspecialize:=hadspecialize;
+             isspecialize:=ef_had_specialize in flags;
 
            { first check for identifier }
            if token<>_ID then
@@ -2720,7 +2746,7 @@ implementation
              end
            else
              begin
-               if typeonly then
+               if ef_type_only in flags then
                  searchsym_type(pattern,srsym,srsymtable)
                else
                  searchsym(pattern,srsym,srsymtable);
@@ -2762,17 +2788,44 @@ implementation
                      end
                    else
                      begin
-                       hdef:=ttypesym(srsym).typedef;
-                       generate_specialization(hdef,false,'');
+                       {$push}
+                       {$warn 5036 off}
+                       hdef:=generate_specialization_phase1(spezcontext,nil,nil,orgstoredpattern,dummypos);
+                       {$pop}
                        if hdef=generrordef then
                          begin
+                           spezcontext.free;
+                           spezcontext:=nil;
                            srsym:=generrorsym;
                            srsymtable:=nil;
                          end
                        else
                          begin
-                           srsym:=hdef.typesym;
-                           srsymtable:=srsym.owner;
+                           if hdef.typ in [objectdef,recorddef,procvardef,arraydef] then
+                             begin
+                               hdef:=generate_specialization_phase2(spezcontext,tstoreddef(hdef),false,'');
+                               spezcontext.free;
+                               spezcontext:=nil;
+                               srsym:=hdef.typesym;
+                               srsymtable:=srsym.owner;
+                             end
+                           else
+                             if hdef.typ=procdef then
+                               begin
+                                 if block_type<>bt_body then
+                                   begin
+                                     message(parser_e_illegal_expression);
+                                     srsym:=generrorsym;
+                                     srsymtable:=nil;
+                                   end
+                                 else
+                                   begin
+                                     srsym:=tprocdef(hdef).procsym;
+                                     srsymtable:=srsym.owner;
+                                   end;
+                               end
+                             else
+                               internalerror(2015061204);
                          end;
                      end;
                  end;
@@ -2818,7 +2871,7 @@ implementation
                       findwithsymtable then
                      begin
                        { create dummy symbol, it will be freed later on }
-                       srsym:=tsym.create(undefinedsym,'$undefinedsym');
+                       srsym:=tstoredsym.create(undefinedsym,'$undefinedsym',false);
                        srsymtable:=nil;
                      end
                    else
@@ -2838,7 +2891,7 @@ implementation
               (
                (token=_LKLAMMER) or
                (
-                (([m_tp7,m_delphi,m_mac,m_iso] * current_settings.modeswitches) <> []) and
+                (([m_tp7,m_delphi,m_mac,m_iso,m_extpas] * current_settings.modeswitches) <> []) and
                 (afterassignment or in_args)
                )
               ) then
@@ -2937,11 +2990,41 @@ implementation
                      end
                     else
                      begin
-                       { We need to know if this unit uses Variants }
-                       if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
-                          not(cs_compilesystem in current_settings.moduleswitches) then
-                         current_module.flags:=current_module.flags or uf_uses_variants;
-                       p1:=handle_factor_typenode(hdef,getaddr,again,srsym,typeonly);
+                       if (m_delphi in current_settings.modeswitches) and
+                           (sp_generic_dummy in srsym.symoptions) and
+                           (token in [_LT,_LSHARPBRACKET]) then
+                         begin
+                           if block_type in [bt_type,bt_const_type,bt_var_type] then
+                             begin
+                               if not handle_specialize_inline_specialization(srsym,srsymtable,spezcontext) or (srsym.typ=procsym) then
+                                 begin
+                                   spezcontext.free;
+                                   p1:=cerrornode.create;
+                                   if try_to_consume(_LKLAMMER) then
+                                    begin
+                                      parse_paras(false,false,_RKLAMMER);
+                                      consume(_RKLAMMER);
+                                    end;
+                                 end
+                               else
+                                 begin
+                                   if srsym.typ<>typesym then
+                                     internalerror(2015071705);
+                                   hdef:=ttypesym(srsym).typedef;
+                                   p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                                 end;
+                             end
+                           else
+                             p1:=cspecializenode.create(nil,getaddr,srsym)
+                         end
+                       else
+                         begin
+                           { We need to know if this unit uses Variants }
+                           if ((hdef=cvarianttype) or (hdef=colevarianttype)) and
+                              not(cs_compilesystem in current_settings.moduleswitches) then
+                             current_module.flags:=current_module.flags or uf_uses_variants;
+                           p1:=handle_factor_typenode(hdef,getaddr,again,srsym,ef_type_only in flags);
+                         end;
                      end;
                   end;
 
@@ -2976,7 +3059,10 @@ implementation
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                          do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],nil)
+                          begin
+                            do_member_read(tabstractrecorddef(hdef),getaddr,srsym,p1,again,[],spezcontext);
+                            spezcontext:=nil;
+                          end
                         else
                           { no procsyms in records (yet) }
                           internalerror(2007012006);
@@ -2990,7 +3076,8 @@ implementation
                           callflags:=[cnf_unit_specified];
                         do_proc_call(srsym,srsymtable,nil,
                                      (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
-                                     again,p1,callflags,nil);
+                                     again,p1,callflags,spezcontext);
+                        spezcontext:=nil;
                       end;
                   end;
 
@@ -3006,7 +3093,11 @@ implementation
                           { it as a class member                                }
                           if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                              (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
-                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                            begin
+                              p1:=ctypenode.create(hdef);
+                              if not is_record(hdef) then
+                                p1:=cloadvmtaddrnode.create(p1);
+                            end
                           else
                             p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }
@@ -3077,6 +3168,9 @@ implementation
                   end;
               end; { end case }
 
+              if assigned(spezcontext) then
+                internalerror(2015061207);
+
               if assigned(p1) and (p1.nodetype<>errorn) then
                 p1.fileinfo:=tokenpos;
             end;
@@ -3105,10 +3199,10 @@ implementation
               { nested array constructors are not allowed, see also tests/webtbs/tw17213.pp }
               old_allow_array_constructor:=allow_array_constructor;
               allow_array_constructor:=false;
-              p1:=comp_expr(true,false);
+              p1:=comp_expr([ef_accept_equal]);
               if try_to_consume(_POINTPOINT) then
                 begin
-                  p2:=comp_expr(true,false);
+                  p2:=comp_expr([ef_accept_equal]);
                   p1:=carrayconstructorrangenode.create(p1,p2);
                 end;
                { insert at the end of the tree, to get the correct order }
@@ -3137,6 +3231,7 @@ implementation
              exit;
            result:=not current_procinfo.get_normal_proc.procdef.no_self_node;
          end;
+
 
       {---------------------------------------------
                       Factor (Main)
@@ -3217,7 +3312,7 @@ implementation
                  dopostfix:=not could_be_generic(idstr);
                end;
            { maybe an additional parameter instead of misusing hadspezialize? }
-           if dopostfix and not hadspecialize then
+           if dopostfix and not (ef_had_specialize in flags) then
              updatefpos:=postfixoperators(p1,again,getaddr);
          end
         else
@@ -3230,7 +3325,7 @@ implementation
                   p1:=nil;
                   if not(token in [_SEMICOLON,_ELSE,_END]) then
                     begin
-                      p1:=comp_expr(true,false);
+                      p1:=comp_expr([ef_accept_equal]);
                       if not assigned(current_procinfo) or
                          (current_procinfo.procdef.proctypeoption in [potype_constructor,potype_destructor]) or
                          is_void(current_procinfo.procdef.returndef) then
@@ -3466,7 +3561,7 @@ implementation
                  { STRING can be also a type cast }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=comp_expr(true,false);
+                    p1:=comp_expr([ef_accept_equal]);
                     consume(_RKLAMMER);
                     p1:=ctypeconvnode.create_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
@@ -3484,7 +3579,7 @@ implementation
                  { FILE can be also a type cast }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=comp_expr(true,false);
+                    p1:=comp_expr([ef_accept_equal]);
                     consume(_RKLAMMER);
                     p1:=ctypeconvnode.create_explicit(p1,hdef);
                     { handle postfix operators here e.g. string(a)[10] }
@@ -3548,14 +3643,14 @@ implementation
                  { support both @<x> and @(<x>) }
                  if try_to_consume(_LKLAMMER) then
                   begin
-                    p1:=factor(true,false,false);
+                    p1:=factor(true,[]);
                     { inside parentheses a full expression is allowed, see also tests\webtbs\tb27517.pp }
                     if token<>_RKLAMMER then
-                      p1:=sub_expr(opcompare,true,false,p1);
+                      p1:=sub_expr(opcompare,[ef_accept_equal],p1);
                     consume(_RKLAMMER);
                   end
                  else
-                  p1:=factor(true,false,false);
+                  p1:=factor(true,[]);
                  if token in postfixoperator_tokens then
                   begin
                     again:=true;
@@ -3577,7 +3672,7 @@ implementation
              _LKLAMMER :
                begin
                  consume(_LKLAMMER);
-                 p1:=comp_expr(true,false);
+                 p1:=comp_expr([ef_accept_equal]);
                  consume(_RKLAMMER);
                  { it's not a good solution
                    but (a+b)^ makes some problems  }
@@ -3598,7 +3693,7 @@ implementation
              _PLUS :
                begin
                  consume(_PLUS);
-                 p1:=factor(false,false,false);
+                 p1:=factor(false,[]);
                  p1:=cunaryplusnode.create(p1);
                end;
 
@@ -3610,7 +3705,7 @@ implementation
                       { ugly hack, but necessary to be able to parse }
                       { -9223372036854775808 as int64 (JM)           }
                       pattern := '-'+pattern;
-                      p1:=sub_expr(oppower,false,false,nil);
+                      p1:=sub_expr(oppower,[],nil);
                       {  -1 ** 4 should be - (1 ** 4) and not
                          (-1) ** 4
                          This was the reason of tw0869.pp test failure PM }
@@ -3634,9 +3729,9 @@ implementation
                  else
                    begin
                      if m_isolike_unary_minus in current_settings.modeswitches then
-                       p1:=sub_expr(opmultiply,false,false,nil)
+                       p1:=sub_expr(opmultiply,[],nil)
                      else
-                       p1:=sub_expr(oppower,false,false,nil);
+                       p1:=sub_expr(oppower,[],nil);
 
                      p1:=cunaryminusnode.create(p1);
                    end;
@@ -3645,7 +3740,7 @@ implementation
              _OP_NOT :
                begin
                  consume(_OP_NOT);
-                 p1:=factor(false,false,false);
+                 p1:=factor(false,[]);
                  p1:=cnotnode.create(p1);
                end;
 
@@ -3671,7 +3766,7 @@ implementation
                }
                consume(_OBJCPROTOCOL);
                consume(_LKLAMMER);
-               p1:=factor(false,false,false);
+               p1:=factor(false,[]);
                consume(_RKLAMMER);
                p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
              end;
@@ -3731,7 +3826,7 @@ implementation
 {****************************************************************************
                              Sub_Expr
 ****************************************************************************}
-    function sub_expr(pred_level:Toperator_precedence;accept_equal,typeonly:boolean;factornode:tnode):tnode;
+    function sub_expr(pred_level:Toperator_precedence;flags:texprflags;factornode:tnode):tnode;
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
      simpl2_expr.}
@@ -3876,26 +3971,29 @@ implementation
             end
           else
             begin
-              result:=nil;
-              { check if it's a method/class method }
-              if is_member_read(gensym,gensym.owner,result,parseddef) then
+              if gensym.typ=procsym then
                 begin
-                  { if we are accessing a owner procsym from the nested }
-                  { class we need to call it as a class member }
-                  if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
-                      assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
+                  result:=nil;
+                  { check if it's a method/class method }
+                  if is_member_read(gensym,gensym.owner,result,parseddef) then
                     begin
-                      result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
-                      { not srsymtable.symtabletype since that can be }
-                      { withsymtable as well                          }
-                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                      { if we are accessing a owner procsym from the nested }
+                      { class we need to call it as a class member }
+                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
+                          assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
                         begin
-                          do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
-                          spezcontext:=nil;
-                        end
-                      else
-                        { no procsyms in records (yet) }
-                        internalerror(2015092704);
+                          result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
+                          { not srsymtable.symtabletype since that can be }
+                          { withsymtable as well                          }
+                          if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                            begin
+                              do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
+                              spezcontext:=nil;
+                            end
+                          else
+                            { no procsyms in records (yet) }
+                            internalerror(2015092704);
+                        end;
                     end
                   else
                     begin
@@ -3934,24 +4032,24 @@ implementation
         if pred_level=highest_precedence then
           begin
             if factornode=nil then
-              p1:=factor(false,typeonly,false)
+              p1:=factor(false,flags)
             else
               p1:=factornode;
           end
         else
-          p1:=sub_expr(succ(pred_level),true,typeonly,factornode);
+          p1:=sub_expr(succ(pred_level),flags+[ef_accept_equal],factornode);
         repeat
           if (token in [NOTOKEN..last_operator]) and
              (token in operator_levels[pred_level]) and
-             ((token<>_EQ) or accept_equal) then
+             ((token<>_EQ) or (ef_accept_equal in flags)) then
            begin
              oldt:=token;
              filepos:=current_tokenpos;
              consume(token);
              if pred_level=highest_precedence then
-               p2:=factor(false,false,false)
+               p2:=factor(false,[])
              else
-               p2:=sub_expr(succ(pred_level),true,typeonly,nil);
+               p2:=sub_expr(succ(pred_level),flags+[ef_accept_equal],nil);
              case oldt of
                _PLUS :
                  p1:=caddnode.create(addn,p1,p2);
@@ -4074,9 +4172,13 @@ implementation
                        { for now we're handling this as a generic declaration;
                          there could be cases though (because of operator
                          overloading) where this is the wrong decision... }
-                       { TODO : here the same note as in _LT applies as p2 could
-                                point to a variable, etc }
-                       gendef:=gettypedef(p2);
+                       if gensym.typ=typesym then
+                         gendef:=ttypesym(gensym).typedef
+                       else
+                         if gensym.typ=procsym then
+                           gendef:=tdef(tprocsym(gensym).procdeflist[0])
+                         else
+                           internalerror(2015072401);
 
                        ptmp:=generate_inline_specialization(gendef,p2,filepos,nil,nil,nil);
 
@@ -4120,7 +4222,7 @@ implementation
                _OP_MOD :
                  begin
                    p1:=cmoddivnode.create(modn,p1,p2);
-                   if m_iso in current_settings.modeswitches then
+                   if m_isolike_mod in current_settings.modeswitches then
                      include(p1.flags,nf_isomod);
                  end;
                _OP_SHL :
@@ -4143,14 +4245,14 @@ implementation
       end;
 
 
-    function comp_expr(accept_equal,typeonly:boolean):tnode;
+    function comp_expr(flags:texprflags):tnode;
       var
          oldafterassignment : boolean;
          p1 : tnode;
       begin
          oldafterassignment:=afterassignment;
          afterassignment:=true;
-         p1:=sub_expr(opcompare,accept_equal,typeonly,nil);
+         p1:=sub_expr(opcompare,flags,nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) then
           do_typecheckpass(p1);
@@ -4169,7 +4271,7 @@ implementation
 
       begin
          oldafterassignment:=afterassignment;
-         p1:=sub_expr(opcompare,true,false,nil);
+         p1:=sub_expr(opcompare,[ef_accept_equal],nil);
          { get the resultdef for this expression }
          if not assigned(p1.resultdef) and
             dotypecheck then
@@ -4182,7 +4284,7 @@ implementation
            _POINTPOINT :
              begin
                 consume(_POINTPOINT);
-                p2:=sub_expr(opcompare,true,false,nil);
+                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                 p1:=crangenode.create(p1,p2);
              end;
            _ASSIGNMENT :
@@ -4190,7 +4292,7 @@ implementation
                 consume(_ASSIGNMENT);
                 if assigned(p1.resultdef) and (p1.resultdef.typ=procvardef) then
                   getprocvardef:=tprocvardef(p1.resultdef);
-                p2:=sub_expr(opcompare,true,false,nil);
+                p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                 if assigned(getprocvardef) then
                   handle_procvar(getprocvardef,p2);
                 getprocvardef:=nil;
@@ -4199,25 +4301,25 @@ implementation
            _PLUSASN :
              begin
                consume(_PLUSASN);
-               p2:=sub_expr(opcompare,true,false,nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(addn,p1,p2);
             end;
           _MINUSASN :
             begin
                consume(_MINUSASN);
-               p2:=sub_expr(opcompare,true,false,nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(subn,p1,p2);
             end;
           _STARASN :
             begin
                consume(_STARASN  );
-               p2:=sub_expr(opcompare,true,false,nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(muln,p1,p2);
             end;
           _SLASHASN :
             begin
                consume(_SLASHASN  );
-               p2:=sub_expr(opcompare,true,false,nil);
+               p2:=sub_expr(opcompare,[ef_accept_equal],nil);
                p1:=gen_c_style_operator(slashn,p1,p2);
             end;
           else
@@ -4240,7 +4342,7 @@ implementation
       p:tnode;
     begin
       result:=0;
-      p:=comp_expr(true,false);
+      p:=comp_expr([ef_accept_equal]);
       if not codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
@@ -4260,7 +4362,7 @@ implementation
       p:tnode;
     begin
       get_stringconst:='';
-      p:=comp_expr(true,false);
+      p:=comp_expr([ef_accept_equal]);
       if p.nodetype<>stringconstn then
         begin
           if (p.nodetype=ordconstn) and is_char(p.resultdef) then

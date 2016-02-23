@@ -34,7 +34,6 @@ Interface
       function is_asmopcode(const s: string):boolean;override;
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
-      procedure ReadSym(oper : TOperand);
       procedure ConvertCalljmp(instr : TInstruction);
       procedure handlepercent;override;
       procedure handledollar;override;
@@ -63,65 +62,26 @@ Interface
       cgbase,cgobj
       ;
 
-    procedure TMipsReader.ReadSym(oper : TOperand);
-      var
-         tempstr, mangledname : string;
-         typesize,l,k : aint;
-      begin
-        tempstr:=actasmpattern;
-        Consume(AS_ID);
-        { typecasting? }
-        if (actasmtoken=AS_LPAREN) and
-           SearchType(tempstr,typesize) then
-          begin
-            oper.hastype:=true;
-            Consume(AS_LPAREN);
-            BuildOperand(oper);
-            Consume(AS_RPAREN);
-            if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-              oper.SetSize(typesize,true);
-          end
-        else
-          if not oper.SetupVar(tempstr,false) then
-            Message1(sym_e_unknown_id,tempstr);
-        { record.field ? }
-        if actasmtoken=AS_DOT then
-          begin
-            BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
-           if (mangledname<>'') then
-             Message(asmr_e_invalid_reference_syntax);
-            inc(oper.opr.ref.offset,l);
-          end;
-      end;
-
 
     procedure TMipsReader.handledollar;
+      var
+        len: longint;
       begin
-        Inherited handledollar;
-        if (c in ['0'..'9','a'..'z']) then
+        len:=1;
+        actasmpattern[len]:='$';
+        c:=current_scanner.asmgetchar;
+        while c in ['A'..'Z','a'..'z','0'..'9'] do
           begin
-            Consume(AS_DOLLAR);
-            if (actasmtoken=AS_INTNUM) or (actasmtoken=AS_ID) then
-              begin
-                { Try to convert to std register }
-                if actasmtoken=AS_INTNUM then
-                  actasmregister:=gas_regnum_search('$'+actasmpattern)
-                else
-                  begin
-                    { AS_ID is uppercased by default but register names
-                      are lowercase }
-                    actasmpattern:=lower(actasmpattern);
-                    actasmregister:=gas_regnum_search(actasmpattern);
-                    if actasmregister=NR_NO then
-                      actasmregister:=std_regnum_search(actasmpattern);
-                  end;
-                if actasmregister<>NR_NO then
-                  begin
-                    // Consume(actasmtoken);
-                    actasmtoken:=AS_REGISTER;
-                  end;
-              end;
+            inc(len);
+            actasmpattern[len]:=c;
+            c:=current_scanner.asmgetchar;
           end;
+        actasmpattern[0]:=chr(len);
+        actasmpattern:=lower(actasmpattern);
+        actasmregister:=gas_regnum_search(actasmpattern);
+        if actasmregister=NR_NO then
+          actasmregister:=std_regnum_search(copy(actasmpattern,2,maxint));
+        actasmtoken:=AS_REGISTER;
       end;
 
 
@@ -501,14 +461,13 @@ Interface
     function TMipsReader.is_asmopcode(const s: string):boolean;
       var
         cond:TAsmCond;
+        hs:string;
       Begin
-        { making s a value parameter would break other assembler readers }
         is_asmopcode:=false;
 
-        { clear op code }
+        { clear op code and condition }
         actopcode:=A_None;
-        { clear condition }
-        fillchar(actcondition,sizeof(actcondition),0);
+        actcondition:=C_None;
 
          { Search opcodes }
          actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
@@ -525,8 +484,9 @@ Interface
             { we can search here without an extra table which is sorted by string length
               because we take the whole remaining string without the leading B }
             actopcode := A_BC;
+            hs:=lower(copy(s,2,maxint));
             for cond:=low(TAsmCond) to high(TAsmCond) do
-              if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
+              if (hs=Cond2Str[cond]) then
                 begin
                   actasmtoken:=AS_OPCODE;
                   actcondition:=cond;

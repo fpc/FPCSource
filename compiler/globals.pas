@@ -44,6 +44,9 @@ interface
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+      llvminfo,
+{$endif LLVM and not GENERIC_CPU}
       globtype,version,systems;
 
     const
@@ -70,7 +73,13 @@ interface
        macmodeswitches =
          [m_mac,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
        isomodeswitches =
-         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
+         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
+          m_isolike_program_para,
+          m_isolike_mod];
+       extpasmodeswitches =
+         [m_extpas,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
+          m_isolike_program_para,
+          m_isolike_mod];
 
        { maximum nesting of routines }
        maxnesting = 32;
@@ -160,6 +169,10 @@ interface
 {$if defined(ARM)}
          instructionset : tinstructionset;
 {$endif defined(ARM)}
+
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+         llvmversion: tllvmversion;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
          controllertype   : tcontrollertype;
@@ -266,8 +279,6 @@ interface
        autoloadunits      : string;
 
        { linking }
-       usegnubinutils : boolean;
-       forceforwardslash : boolean;
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
@@ -340,8 +351,6 @@ interface
        prop_auto_setter_prefix : string;
 
     const
-       DLLsource : boolean = false;
-
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
@@ -488,6 +497,9 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+        llvmversion    : llvmver_3_6_0;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
         controllertype : ct_none;
         pmessage : nil;
       );
@@ -511,6 +523,7 @@ interface
 
     procedure InitGlobals;
     procedure DoneGlobals;
+    procedure register_initdone_proc(init,done:tprocedure);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
@@ -740,10 +753,10 @@ implementation
      get the current time in a string HH:MM:SS
    }
       var
-        hour,min,sec,hsec : word;
+        st: TSystemTime;
       begin
-        DecodeTime(Time,hour,min,sec,hsec);
-        gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
+        GetLocalTime(st);
+        gettimestr:=L0(st.Hour)+':'+L0(st.Minute)+':'+L0(st.Second);
       end;
 
 
@@ -752,10 +765,10 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
-        Year,Month,Day: Word;
+        st: TSystemTime;
       begin
-        DecodeDate(Date,year,month,day);
-        getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
+        GetLocalTime(st);
+        getdatestr:=L0(st.Year)+'/'+L0(st.Month)+'/'+L0(st.Day);
       end;
 
 
@@ -783,10 +796,10 @@ implementation
 
    function getrealtime : real;
      var
-       h,m,s,s1000 : word;
+       st:TSystemTime;
      begin
-       DecodeTime(Time,h,m,s,s1000);
-       result:=h*3600.0+m*60.0+s+s1000/1000.0;
+       GetLocalTime(st);
+       result:=st.Hour*3600.0+st.Minute*60.0+st.Second+st.MilliSecond/1000.0;
      end;
 
 {****************************************************************************
@@ -1337,8 +1350,70 @@ implementation
 
 
 
+   type
+     tinitdoneentry=record
+       init:tprocedure;
+       done:tprocedure;
+     end;
+     pinitdoneentry=^tinitdoneentry;
+
+
+   var
+     initdoneprocs : TFPList;
+
+
+   procedure register_initdone_proc(init,done:tprocedure);
+     var
+       entry : pinitdoneentry;
+     begin
+       new(entry);
+       entry^.init:=init;
+       entry^.done:=done;
+       initdoneprocs.add(entry);
+     end;
+
+
+   procedure callinitprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(init) then
+             init();
+     end;
+
+
+   procedure calldoneprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(done) then
+             done();
+     end;
+
+
+   procedure allocinitdoneprocs;
+     begin
+       initdoneprocs:=tfplist.create;
+     end;
+
+
+   procedure freeinitdoneprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         dispose(pinitdoneentry(initdoneprocs[i]));
+       initdoneprocs.free;
+     end;
+
+
    procedure DoneGlobals;
      begin
+       calldoneprocs;
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1358,7 +1433,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         codegenerror:=false;
-        DLLsource:=false;
 
         { Output }
         OutputFileName:='';
@@ -1423,6 +1497,12 @@ implementation
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
+
+        callinitprocs;
      end;
 
+initialization
+  allocinitdoneprocs;
+finalization
+  freeinitdoneprocs;
 end.

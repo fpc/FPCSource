@@ -52,11 +52,11 @@ interface
       tgeTSymtable = (gs_none,gs_record,gs_local,gs_para);
 
       tdef = class(TDefEntry)
+        protected
+         { whether this def is already registered in the unit's def list }
+         function registered : boolean;
+        public
          typesym    : tsym;  { which type the definition was generated this def }
-         { maybe it's useful to merge the dwarf and stabs debugging info with some hacking }
-         { dwarf debugging }
-         dwarf_lab : tasmsymbol;
-         dwarf_ref_lab : tasmsymbol;
          { stabs debugging }
          stab_number : word;
          dbg_state   : tdefdbgstatus;
@@ -75,7 +75,8 @@ interface
          function  getmangledparaname:TSymStr;virtual;
          function  rtti_mangledname(rt:trttitype):TSymStr;virtual;abstract;
          function  OwnerHierarchyName: string; virtual; abstract;
-         function  fullownerhierarchyname:string;virtual;abstract;
+         function  fullownerhierarchyname:TSymStr;virtual;abstract;
+         function  unique_id_str: string;
          function  size:asizeint;virtual;abstract;
          function  packedbitsize:asizeint;virtual;
          function  alignment:shortint;virtual;abstract;
@@ -91,6 +92,11 @@ interface
          function getreusablesymtab: tsymtable;
          procedure register_created_object_type;virtual;
          function  get_top_level_symtable: tsymtable;
+         { only valid for registered defs and defs for which a unique id string
+           has been requested; otherwise, first call register_def }
+         function  deflist_index: longint;
+         procedure register_def; virtual; abstract;
+         property is_registered: boolean read registered;
       end;
 
 {************************************************
@@ -103,6 +109,7 @@ interface
 
       tsym = class(TSymEntry)
       protected
+       function registered : boolean;
       public
          fileinfo   : tfileposinfo;
          { size of fileinfo is 10 bytes, so if a >word aligned type would follow,
@@ -125,6 +132,8 @@ interface
          procedure IncRefCountBy(AValue : longint);
          procedure MaybeCreateRefList;
          procedure AddRef;
+         procedure register_sym; virtual; abstract;
+         property is_registered:boolean read registered;
       end;
 
       tsymarr = array[0..maxlongint div sizeof(pointer)-1] of tsym;
@@ -255,6 +264,12 @@ implementation
                                 Tdef
 ****************************************************************************}
 
+    function tdef.registered: boolean;
+      begin
+        result:=defid>defid_not_registered;
+      end;
+
+
     constructor tdef.create(dt:tdeftyp);
       begin
          inherited create;
@@ -264,6 +279,7 @@ implementation
          defoptions:=[];
          dbg_state:=dbg_state_unused;
          stab_number:=0;
+         defid:=defid_not_registered;
       end;
 
 
@@ -292,7 +308,8 @@ implementation
 
     function tdef.GetTypeName : string;
       begin
-         GetTypeName:='<unknown type>'      end;
+         GetTypeName:='<unknown type>'
+      end;
 
 
     function tdef.typesymbolprettyname:string;
@@ -318,6 +335,26 @@ implementation
     function tdef.getmangledparaname:TSymStr;
       begin
          result:='<unknown type>';
+      end;
+
+
+    function tdef.unique_id_str: string;
+      begin
+        if (defid=defid_not_registered) or
+           (defid=defid_registered_nost) then
+          begin
+            if not assigned(current_module) then
+              internalerror(2015102505);
+            current_module.deflist.Add(self);
+            { invert the defid to indicate that it was only set because we
+              needed a unique number -- then add defid_not_registered so we
+              don't get the values between defid_registered and 0 }
+            defid:=-(current_module.deflist.Count-1)+defid_not_registered-1;
+          end;
+        { use deflist_index so that it will remain the same if def first gets a
+          defid just for the unique id (as above) and later it gets registered
+          because it must be saved to the ppu }
+        result:=hexstr(deflist_index,sizeof(defid)*2);
       end;
 
 
@@ -363,9 +400,14 @@ implementation
           won't be saved to the ppu and as a result we can get unreachable
           defs when reloading the derived ones from the ppu }
         origowner:=owner;
-        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable]) do
+        while not(origowner.symtabletype in [localsymtable,staticsymtable,globalsymtable,stt_excepTSymtable]) do
           origowner:=origowner.defowner.owner;
-        if origowner.symtabletype=localsymtable then
+        { if the def is in an exceptionsymtable, we can't create a reusable
+          def because the original one will be freed when the (always
+          temprary) exceptionsymtable is freed }
+        if origowner.symtabletype=stt_excepTSymtable then
+          internalerror(2015111701)
+        else if origowner.symtabletype=localsymtable then
           result:=origowner
         else if assigned(current_module.localsymtable) then
           result:=current_module.localsymtable
@@ -387,9 +429,26 @@ implementation
           result:=tdef(result.defowner).owner;
       end;
 
+
+    function tdef.deflist_index: longint;
+      begin
+        if defid<defid_not_registered then
+          result:=-(defid-defid_not_registered+1)
+        else if defid>=0 then
+          result:=defid
+        else
+          internalerror(2015102502)
+      end;
+
 {****************************************************************************
                           TSYM (base for all symtypes)
 ****************************************************************************}
+
+    function tsym.registered: boolean;
+      begin
+        result:=symid>symid_not_registered;
+      end;
+
 
     constructor tsym.create(st:tsymtyp;const aname:string);
       begin
@@ -402,6 +461,7 @@ implementation
          isdbgwritten := false;
          visibility:=vis_public;
          deprecatedmsg:=nil;
+         symid:=symid_not_registered;
       end;
 
     destructor  Tsym.destroy;
@@ -682,9 +742,24 @@ implementation
          begin
 { TODO: ugly hack}
            if s is tsym then
-             st:=FindUnitSymtable(tsym(s).owner)
+             begin
+               { if it has been registered but it wasn't put in a symbol table,
+                 this symbol shouldn't be written to a ppu }
+               if tsym(s).SymId=symid_registered_nost then
+                 Internalerror(2015102504);
+               if not tsym(s).registered then
+                 tsym(s).register_sym;
+               st:=FindUnitSymtable(tsym(s).owner)
+             end
            else
-             st:=FindUnitSymtable(tdef(s).owner);
+             begin
+               { same as above }
+               if tdef(s).defid=defid_registered_nost then
+                 Internalerror(2015102505);
+               if not tdef(s).registered then
+                 tdef(s).register_def;
+               st:=FindUnitSymtable(tdef(s).owner);
+             end;
            if not st.iscurrentunit then
              begin
                { register that the unit is needed for resolving }

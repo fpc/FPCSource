@@ -73,3 +73,4 @@ poolmm2.pp   Test for pooledmm (nonfree) (VS)
 testweb.pp   Test for fpcgi (MVC)
 daemon.pp    Test for daemonapp (MVC)
 testtimer.pp Test for TFPTimer (MVC)
+testini.pp   Test/Demo for inifiles, ReadSectionValues.

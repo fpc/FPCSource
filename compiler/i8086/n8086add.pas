@@ -88,6 +88,11 @@ interface
             (rt = pointerconstn) and is_farpointer(rd) and
             is_constintnode(left) and
             (nodetype=addn)
+           ) or
+           (
+            (lt in [pointerconstn,niln]) and is_farpointer(ld) and
+            (rt in [pointerconstn,niln]) and is_farpointer(rd) and
+            (nodetype in [ltn,lten,gtn,gten,equaln,unequaln])
            ) then
           begin
             t:=nil;
@@ -143,6 +148,18 @@ interface
                   else
                     internalerror(2014040606);
                 end;
+              ltn:
+                t:=cordconstnode.create(ord(word(qword(lv))<word(qword(rv))),pasbool8type,true);
+              lten:
+                t:=cordconstnode.create(ord(word(qword(lv))<=word(qword(rv))),pasbool8type,true);
+              gtn:
+                t:=cordconstnode.create(ord(word(qword(lv))>word(qword(rv))),pasbool8type,true);
+              gten:
+                t:=cordconstnode.create(ord(word(qword(lv))>=word(qword(rv))),pasbool8type,true);
+              equaln:
+                t:=cordconstnode.create(ord(lv=rv),pasbool8type,true);
+              unequaln:
+                t:=cordconstnode.create(ord(lv<>rv),pasbool8type,true);
               else
                 internalerror(2014040605);
             end;

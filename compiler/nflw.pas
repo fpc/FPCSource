@@ -1514,6 +1514,7 @@ implementation
 
          { loop unrolling }
          if (cs_opt_loopunroll in current_settings.optimizerswitches) and
+           assigned(t2) and
            { statements must be error free }
            not(nf_error in t2.flags) then
            begin

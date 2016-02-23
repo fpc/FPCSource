@@ -23,9 +23,7 @@ unit cfileutl;
 
 {$i fpcdefs.inc}
 
-{$ifndef DragonFly}
 {$define usedircache}
-{$endif DragonFly}
 
 interface
 

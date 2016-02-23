@@ -446,6 +446,7 @@ const
   parser_e_explicit_method_implementation_for_specializations_not_allowed=03341;
   parser_e_no_genfuncs_in_interfaces=03342;
   parser_e_genfuncs_cannot_be_virtual=03343;
+  parser_e_packages_not_supported=03344;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -799,6 +800,9 @@ const
   asmr_w_check_mem_operand_automap_multiple_size=07124;
   asmr_e_invalid_ref_register=07125;
   asmr_e_seg_without_identifier=07126;
+  asmr_e_CODE_or_DATA_without_SEG=07127;
+  asmr_e_const16bit_for_segment=07128;
+  asmr_e_invalid_code_value=07129;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -831,6 +835,7 @@ const
   asmw_e_32bit_not_supported=08029;
   asmw_f_code_segment_too_large=08030;
   asmw_f_data_segment_too_large=08031;
+  asmw_e_instruction_not_supported_by_cpu=08032;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -881,6 +886,7 @@ const
   link_e_data_segment_too_large=09204;
   link_e_segment_too_large=09205;
   link_e_group_too_large=09206;
+  link_e_com_program_uses_segment_relocations=09207;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -1020,9 +1026,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 76232;
+  MsgTxtSize = 76752;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,99,344,124,96,58,127,32,207,64,
+    27,99,345,124,96,58,130,33,208,64,
     58,20,1,1,1,1,1,1,1,1
   );

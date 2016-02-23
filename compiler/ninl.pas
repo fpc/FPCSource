@@ -422,7 +422,7 @@ implementation
           if not assigned(srsym) then
             begin
               { no valid default variable found, so create it }
-              srsym:=clocalvarsym.create(defaultname,vs_const,def,[]);
+              srsym:=clocalvarsym.create(defaultname,vs_const,def,[],true);
               srsymtable.insert(srsym);
               { mark the staticvarsym as typedconst }
               include(tabstractvarsym(srsym).varoptions,vo_is_typed_const);
@@ -539,7 +539,7 @@ implementation
           tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
           ccallparanode.create(left,nil));
         { create the correct call }
-        if m_iso in current_settings.modeswitches then
+        if m_isolike_io in current_settings.modeswitches then
           begin
             if inlinenumber=in_reset_typedfile then
               result := ccallnode.createintern('fpc_reset_typed_iso',left)
@@ -721,7 +721,7 @@ implementation
                     readfunctype:=pbestrealtype^;
                   end;
                 { iso pascal needs a different handler }
-                if (m_iso in current_settings.modeswitches) and do_read then
+                if (m_isolike_io in current_settings.modeswitches) and do_read then
                   name:=name+'_iso';
               end;
             enumdef:
@@ -743,14 +743,14 @@ implementation
                     begin
                       get_read_write_int_func(para.left.resultdef,func_suffix,readfunctype);
                       name := procprefixes[do_read]+func_suffix;
-                      if (m_iso in current_settings.modeswitches) and do_read then
+                      if (m_isolike_io in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
                     end;
                   uchar :
                     begin
                       name := procprefixes[do_read]+'char';
                       { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
+                      if (m_isolike_io in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
                       readfunctype:=cansichartype;
                     end;
@@ -763,7 +763,7 @@ implementation
                     begin
                       name := procprefixes[do_read]+'currency';
                       { iso pascal needs a different handler }
-                      if (m_iso in current_settings.modeswitches) and do_read then
+                      if (m_isolike_io in current_settings.modeswitches) and do_read then
                         name:=name+'_iso';
                       readfunctype:=s64currencytype;
                       is_real:=true;
@@ -817,7 +817,7 @@ implementation
           end;
 
           { iso pascal needs a different handler }
-          if (m_iso in current_settings.modeswitches) and not(do_read) then
+          if (m_isolike_io in current_settings.modeswitches) and not(do_read) then
             name:=name+'_iso';
 
           { check for length/fractional colon para's }
@@ -868,7 +868,7 @@ implementation
                     begin
                       if not assigned(lenpara) then
                         begin
-                          if m_iso in current_settings.modeswitches then
+                          if m_isolike_io in current_settings.modeswitches then
                             lenpara := ccallparanode.create(
                               cordconstnode.create(-1,s32inttype,false),nil)
                           else
@@ -1051,7 +1051,7 @@ implementation
             in_readln_x:
               begin
                 name:='fpc_readln_end';
-                if m_iso in current_settings.modeswitches then
+                if m_isolike_io in current_settings.modeswitches then
                   name:=name+'_iso';
               end;
             in_writeln_x:
@@ -1157,7 +1157,7 @@ implementation
           { since the parameters are in the correct order, we have to insert }
           { the statements always at the end of the current block            }
           addstatement(Tstatementnode(newstatement),
-            Ccallnode.createintern(procprefixes[m_iso in current_settings.modeswitches,do_read],para
+            Ccallnode.createintern(procprefixes[m_isolike_io in current_settings.modeswitches,do_read],para
           ));
 
           { if we used a temp, free it }
@@ -3296,6 +3296,7 @@ implementation
       var
          hp: tnode;
          shiftconst: longint;
+         objdef: tobjectdef;
 
       begin
          result:=nil;
@@ -3341,10 +3342,34 @@ implementation
           in_typeof_x:
             begin
               expectloc:=LOC_REGISTER;
-              if (left.nodetype=typen) and
-                 (cs_create_pic in current_settings.moduleswitches) and
-                 (tf_pic_uses_got in target_info.flags) then
-                include(current_procinfo.flags,pi_needs_got);
+              case left.resultdef.typ of
+                objectdef,classrefdef:
+                  begin
+                    if left.resultdef.typ=objectdef then
+                      begin
+                        result:=cloadvmtaddrnode.create(left);
+                        objdef:=tobjectdef(left.resultdef);
+                      end
+                    else
+                      begin
+                        result:=left;
+                        objdef:=tobjectdef(tclassrefdef(left.resultdef).pointeddef);
+                      end;
+                    left:=nil;
+                    if inlinenumber=in_sizeof_x then
+                      begin
+                        inserttypeconv_explicit(result,cpointerdef.getreusable(objdef.vmt_def));
+                        result:=cderefnode.create(result);
+                        result:=genloadfield(result,'VINSTANCESIZE');
+                      end
+                    else
+                      inserttypeconv_explicit(result,voidpointertype);
+                  end;
+                undefineddef:
+                  ;
+                else
+                  internalerror(2015122702);
+              end;
             end;
 
           in_length_x:
@@ -3399,7 +3424,8 @@ implementation
                       s32bit,
 {$endif cpu64bitaddr}
                       get_min_value(resultdef),
-                      get_max_value(resultdef)))
+                      get_max_value(resultdef),
+                      true))
                   else
                     inserttypeconv(hp,resultdef);
 
@@ -3858,7 +3884,8 @@ implementation
                  s32bit,
 {$endif cpu64bitaddr}
                  get_min_value(resultnode.resultdef),
-                 get_max_value(resultnode.resultdef)))
+                 get_max_value(resultnode.resultdef),
+                 true))
              else
                inserttypeconv(hpp,resultnode.resultdef);
 
@@ -4274,7 +4301,9 @@ implementation
          temprangedef:=nil;
          getrange(unpackednode.resultdef,ulorange,uhirange);
          getrange(packednode.resultdef,plorange,phirange);
-         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange);
+         { does not really need to be registered, but then we would have to
+           record it elsewhere so it still can be freed }
+         temprangedef:=corddef.create(torddef(sinttype).ordtype,ulorange,uhirange,true);
          sourcevecindex := ctemprefnode.create(loopvar);
          targetvecindex := ctypeconvnode.create_internal(index.getcopy,sinttype);
          targetvecindex := caddnode.create(subn,targetvecindex,cordconstnode.create(plorange,sinttype,true));

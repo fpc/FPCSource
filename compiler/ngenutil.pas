@@ -117,7 +117,7 @@ implementation
       verbose,version,globals,cutils,constexp,
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmtai,aasmcnst,
-      symbase,symtable,defutil,
+      symbase,symtable,defutil,symcreat,
       nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
       ppu,
       pass_1;
@@ -313,12 +313,13 @@ implementation
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
-      block: tnode;
+      block,
+      target: tnode;
       psym: tsym;
     begin
       result:=maybe_insert_trashing(pd,n);
 
-      if (m_iso in current_settings.modeswitches) and
+      if (m_isolike_program_para in current_settings.modeswitches) and
         (pd.proctypeoption=potype_proginit) then
         begin
           block:=internalstatements(stat);
@@ -383,6 +384,31 @@ implementation
                 end;
             end;
           end;
+        end;
+      if target_info.system in systems_fpnestedstruct then
+        begin
+          { if the funcretsym was moved to the parentfpstruct, move its value
+            back into the funcretsym now, as the code generator is hardcoded
+            to use the funcretsym when loading the value to be returned;
+            replacing it with an absolutevarsym that redirects to the field in
+            the parentfpstruct doesn't work, as the code generator cannot deal
+            with such symbols }
+          if assigned(pd.funcretsym) and
+             tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
+            begin
+              block:=internalstatements(stat);
+              addstatement(stat,result);
+              target:=cloadnode.create(pd.funcretsym,pd.funcretsym.owner);
+              { ensure the target of this assignment doesn't translate the
+                funcretsym also to its alias in the parentfpstruct }
+              include(target.flags,nf_internal);
+              addstatement(stat,
+                cassignmentnode.create(
+                  target,cloadnode.create(pd.funcretsym,pd.funcretsym.owner)
+                )
+              );
+              result:=block;
+            end;
         end;
     end;
 
@@ -960,55 +986,71 @@ implementation
   class procedure tnodeutils.InsertResourceTablesTable;
     var
       hp : tmodule;
-      ResourceStringTables : tasmlist;
       count : longint;
+      tcb : ttai_typedconstbuilder;
+      countplaceholder : ttypedconstplaceholder;
     begin
-      ResourceStringTables:=tasmlist.Create;
+      tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable,tcalo_new_section]);
       count:=0;
       hp:=tmodule(loaded_units.first);
+      tcb.begin_anonymous_record('',default_settings.packrecords,sizeof(pint),
+        targetinfos[target_info.system]^.alignment.recordalignmin,
+        targetinfos[target_info.system]^.alignment.maxCrecordalign);
+      countplaceholder:=tcb.emit_placeholder(ptruinttype);
       while assigned(hp) do
         begin
           If (hp.flags and uf_has_resourcestrings)=uf_has_resourcestrings then
             begin
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'START'),AT_DATA,0));
-              ResourceStringTables.concat(Tai_const.Createname(make_mangledname('RESSTR',hp.localsymtable,'END'),AT_DATA,0));
+              tcb.emit_tai(Tai_const.Create_sym(
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_start('RESSTR',hp.localsymtable,false)),
+                voidpointertype
+              );
+              tcb.emit_tai(Tai_const.Create_sym(
+                ctai_typedconstbuilder.get_vectorized_dead_strip_section_symbol_end('RESSTR',hp.localsymtable,false)),
+                voidpointertype
+              );
               inc(count);
             end;
           hp:=tmodule(hp.next);
         end;
       { Insert TableCount at start }
-      ResourceStringTables.insert(Tai_const.Create_pint(count));
+      countplaceholder.replace(Tai_const.Create_pint(count),ptruinttype);
+      countplaceholder.free;
       { Add to data segment }
-      maybe_new_object_file(current_asmdata.AsmLists[al_globals]);
-      new_section(current_asmdata.AsmLists[al_globals],sec_data,'FPC_RESOURCESTRINGTABLES',const_align(sizeof(pint)));
-      current_asmdata.AsmLists[al_globals].concat(Tai_symbol.Createname_global('FPC_RESOURCESTRINGTABLES',AT_DATA,0));
-      current_asmdata.AsmLists[al_globals].concatlist(ResourceStringTables);
-      current_asmdata.AsmLists[al_globals].concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
-      ResourceStringTables.free;
+      current_asmdata.AsmLists[al_globals].concatList(
+        tcb.get_final_asmlist(
+          current_asmdata.DefineAsmSymbol('FPC_RESOURCESTRINGTABLES',AB_GLOBAL,AT_DATA),
+          tcb.end_anonymous_record,sec_rodata,'FPC_RESOURCESTRINGTABLES',sizeof(pint)
+        )
+      );
+      tcb.free;
     end;
 
 
   class procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     var
-      ResourceInfo : TAsmList;
+      tcb: ttai_typedconstbuilder;
     begin
       if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
-        ResourceInfo:=current_asmdata.asmlists[al_globals];
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
 
-        maybe_new_object_file(ResourceInfo);
-        new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
-        ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-        if ResourcesUsed then
-          { Valid pointer to resource information }
-          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
-        else
-          { Nil pointer to resource information }
-          {$IFNDEF cpu64bitaddr}
-          ResourceInfo.Concat(Tai_const.Create_32bit(0));
-          {$ELSE}
-          ResourceInfo.Concat(Tai_const.Create_64bit(0));
-          {$ENDIF}
+          if ResourcesUsed then
+            tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),voidpointertype)
+          else
+            { Nil pointer to resource information }
+            tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+          current_asmdata.asmlists[al_globals].concatList(
+            tcb.get_final_asmlist(
+              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA),
+              voidpointertype,
+              sec_rodata,
+              'FPC_RESLOCATION',
+              sizeof(puint)
+            )
+          );
+
+          tcb.free;
         end;
     end;
 

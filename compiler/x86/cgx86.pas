@@ -2847,10 +2847,12 @@ unit cgx86;
       procedure push_regs;
         var
           r: longint;
+          usedregs: tcpuregisterset;
         begin
           regsize:=0;
+          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
           for r := low(saved_standard_registers) to high(saved_standard_registers) do
-            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            if saved_standard_registers[r] in usedregs then
               begin
                 inc(regsize,sizeof(aint));
                 list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE)));
@@ -3106,10 +3108,12 @@ unit cgx86;
         r: longint;
         hreg: tregister;
         href: treference;
+        usedregs: tcpuregisterset;
       begin
         href:=current_procinfo.save_regs_ref;
+        usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
         for r:=high(saved_standard_registers) downto low(saved_standard_registers) do
-          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+          if saved_standard_registers[r] in usedregs then
             begin
               hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
               { Allocate register so the optimizer does not remove the load }

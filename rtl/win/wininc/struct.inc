@@ -50,6 +50,7 @@ Const
   IMAGE_SIZEOF_SHORT_NAME = 8;
 
   type
+  {$I typshrdh.inc}
 
     { WARNING
       the variable argument list
@@ -214,24 +215,14 @@ Const
      TANIMATIONINFO = ANIMATIONINFO;
      PANIMATIONINFO = ^ANIMATIONINFO;
 
-     POINT = record
-          x : LONG;
-          y : LONG;
-       end;
-     LPPOINT = ^POINT;
-     tagPOINT = POINT;
-     TPOINT = POINT;
-     PPOINT = ^POINT;
+     POINT = TPOINT;
+     LPPOINT = PPOINT;
+     tagPOINT = TPOINT;
 
-     RECT = record
-          case Integer of
-             0: (Left,Top,Right,Bottom : Longint);
-             1: (TopLeft,BottomRight : TPoint);
-       end;
-     LPRECT = ^RECT;
+
+     RECT = TRect;
+     LPRECT = PRECT;
      _RECT = RECT;
-     TRECT = RECT;
-     PRECT = ^RECT;
 
      RECTL = record
           left : LONG;
@@ -438,7 +429,7 @@ Const
           lpfn : BFFCALLBACK;
           lParam : LPARAM;
           iImage : longint;
-       end deprecated 'Use shlobj version. Will be removed in 2.8'; 
+       end deprecated 'Use shlobj version. Will be removed in the future'; 
      LPBROWSEINFO = ^BROWSEINFO deprecated;
      _browseinfo = BROWSEINFO deprecated;
      Tbrowseinfo = BROWSEINFO deprecated;
@@ -493,12 +484,6 @@ Const
      _POINTL = POINTL;
      TPOINTL = POINTL;
      PPOINTL = ^POINTL;
-
-     TSmallPoint = record
-       X,
-       Y : SHORT;
-       end;
-
 
      POINTS = record
           x : SHORT;
@@ -780,7 +765,7 @@ Const
           nShow : longint;
           dwHotKey : DWORD;
           hIcon : HANDLE;
-       end deprecated 'Use shlobj version. Will be removed in 2.8';
+       end deprecated 'Use shlobj version. Will be removed in the future';
      LPCMINVOKECOMMANDINFO = ^CMINVOKECOMMANDINFO deprecated;
      _CMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
      TCMInvokeCommandInfo = CMINVOKECOMMANDINFO deprecated;
@@ -2950,14 +2935,9 @@ Const
      TEMRFORMAT = EMRFORMAT;
      PEMRFORMAT = ^EMRFORMAT;
 
-     SIZE = record
-          cx : LONG;
-          cy : LONG;
-       end;
-     LPSIZE = ^SIZE;
+     SIZE = TSize;
+     LPSIZE = PSIZE;
      tagSIZE = SIZE;
-     TSIZE = SIZE;
-     PSIZE = ^SIZE;
 
      SIZEL = SIZE;
      TSIZEL = SIZE;
@@ -6478,14 +6458,35 @@ Const
      TREASSIGNBLOCKS = REASSIGN_BLOCKS;
      PREASSIGNBLOCKS = ^REASSIGN_BLOCKS;
 
-     REMOTE_NAME_INFO = record
+     REMOTE_NAME_INFOA = record
           lpUniversalName : LPTSTR;
           lpConnectionName : LPTSTR;
           lpRemainingPath : LPTSTR;
        end;
-     _REMOTE_NAME_INFO = REMOTE_NAME_INFO;
-     TREMOTENAMEINFO = REMOTE_NAME_INFO;
-     PREMOTENAMEINFO = ^REMOTE_NAME_INFO;
+     _REMOTE_NAME_INFOA = REMOTE_NAME_INFOA;
+     TREMOTENAMEINFOA = REMOTE_NAME_INFOA;
+     PREMOTENAMEINFOA = ^REMOTE_NAME_INFOA;
+
+     REMOTE_NAME_INFOW = record
+          lpUniversalName : LPWSTR;
+          lpConnectionName : LPWSTR;
+          lpRemainingPath : LPWSTR;
+       end;
+     _REMOTE_NAME_INFOW = REMOTE_NAME_INFOW;
+     TREMOTENAMEINFOW = REMOTE_NAME_INFOW;
+     PREMOTENAMEINFOW = ^REMOTE_NAME_INFOW;
+
+{$IFNDEF UNICODE}
+     REMOTE_NAME_INFO = REMOTE_NAME_INFOA;
+     _REMOTE_NAME_INFO = REMOTE_NAME_INFOA;
+     TREMOTENAMEINFO = REMOTE_NAME_INFOA;
+     PREMOTENAMEINFO = ^REMOTE_NAME_INFOA;
+{$ELSE UNICODE}
+     REMOTE_NAME_INFO = REMOTE_NAME_INFOW;
+     _REMOTE_NAME_INFO = REMOTE_NAME_INFOW;
+     TREMOTENAMEINFO = REMOTE_NAME_INFOW;
+     PREMOTENAMEINFO = ^REMOTE_NAME_INFOW;
+{$ENDIF UNICODE}
 
   (*
    TODO: OLE
@@ -9111,5 +9112,6 @@ type
        a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEUP_fAckReq) and bm_DDEUP_fAckReq);
     end;
 
+  {$i typshrd.inc}
 {$endif read_implementation}
 

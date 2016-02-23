@@ -145,6 +145,16 @@ const
   { prefix for names of class helper procsyms added to regular symtables }
   class_helper_prefix = 'CH$';
 
+  { tsym.symid value in case the sym has not yet been registered }
+  symid_not_registered = -2;
+  { tsym.symid value in case the sym has been registered, but not put in a
+    symtable }
+  symid_registered_nost = -1;
+  { tdef.defid value in case the def has not yet been registered }
+  defid_not_registered = -2;
+  { tdef.defid value in case the sym has been registered, but not put in a
+    symtable }
+  defid_registered_nost = -1;
 
 type
   { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }
@@ -202,7 +212,16 @@ type
     { def has been copied from another def so symtable is not owned }
     df_copied_def,
     { def was created as a generic constraint and thus is only "shallow" }
-    df_genconstraint
+    df_genconstraint,
+    { don't free def after finishing the implementation section even if it
+      wasn't written to the ppu, as this def may still be referred (e.g. because
+      it was used to set the type of a paraloc, since paralocs are reused
+      across units) -- never stored to ppu, because in that case the def would
+      be registered }
+    df_not_registered_no_free,
+    { don't pack this record at the llvm level -- can't do this via symllvm
+      because we have to access this information in the symtable unit }
+    df_llvm_no_struct_packing
   );
   tdefoptions=set of tdefoption;
 
@@ -238,8 +257,8 @@ type
   { base types for orddef }
   tordtype = (
     uvoid,
-    u8bit,u16bit,u32bit,u64bit,
-    s8bit,s16bit,s32bit,s64bit,
+    u8bit,u16bit,u32bit,u64bit,u128bit,
+    s8bit,s16bit,s32bit,s64bit,s128bit,
     pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
@@ -652,6 +671,7 @@ type
     accidental collisions) }
   tinternaltypeprefix = (
     itp_1byte,
+    itp_emptyrec,
     itp_llvmstruct,
     itp_vmtdef,
     itp_vmt_tstringmesssagetable,
@@ -670,7 +690,20 @@ type
     itp_rtti_normal_array,
     itp_rtti_dyn_array,
     itp_rtti_proc_param,
-    itp_threadvar_record
+    itp_threadvar_record,
+    itp_objc_method_list,
+    itp_objc_proto_list,
+    itp_objc_cat_methods,
+    itb_objc_nf_ivars,
+    itb_objc_nf_category,
+    itb_obcj_nf_class_ro_part,
+    itb_objc_nf_meta_class,
+    itb_objc_nf_class,
+    itb_objc_fr_protocol_ext,
+    itb_objc_fr_protocol,
+    itb_objc_fr_category,
+    itb_objc_fr_meta_class,
+    itb_objc_fr_class
   );
 
   { The order is from low priority to high priority,
@@ -774,6 +807,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
      internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
        '$1byte$',
+       '$emptyrec',
        '$llvmstruct$',
        '$vmtdef$',
        '$vmt_TStringMesssageTable$',
@@ -792,7 +826,20 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_normal_array$',
        '$rtti_dyn_array$',
        '$rtti_proc_param$',
-       '$threadvar_record$'
+       '$threadvar_record$',
+       '$objc_method_list$',
+       '$objc_proto_list$',
+       '$objc_cat_methods$',
+       '$objc_nf_ivars$',
+       '$objc_nf_category$',
+       '$obcj_nf_class_ro_part$',
+       '$objc_nf_meta_class$',
+       '$objc_nf_class$',
+       '$objc_fr_protocol_ext$',
+       '$objc_fr_protocol$',
+       '$objc_fr_category$',
+       '$objc_fr_meta_class$',
+       '$objc_fr_class$'
      );
 
 

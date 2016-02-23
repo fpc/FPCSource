@@ -14,6 +14,14 @@
 
  **********************************************************************}
 
-{$if defined(LINUX) and (defined(CPUARMEL) or defined(CPUARMHF))}
-{$define SYSTEM_HAS_KUSER_CMPXCHG} // system has kuser_cmpxchg method
+{$if defined(LINUX) or defined(ANDROID)}
+  {$if defined(CPUARMEL) or defined(CPUARMHF)}
+    {$define SYSTEM_HAS_KUSER_CMPXCHG} // system has kuser_cmpxchg method
+  {$endif}
+{$endif}
+
+{$if defined(ANDROID)}
+  {$if defined(CPUARMEL) or defined(CPUARMHF)}
+    {$define SYSTEM_HAS_KUSER_MEMORY_BARRIER} // system has kuser_memory_barrier method
+  {$endif}
 {$endif}

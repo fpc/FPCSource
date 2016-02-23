@@ -539,9 +539,9 @@ unit agppcgas;
          idtxt  : 'AS';
          asmbin : 'as';
 {$ifdef cpu64bitaddr}
-         asmcmd : '-a64 -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '-a64 $ENDIAN -o $OBJ $EXTRAOPT $ASM';
 {$else cpu64bitaddr}
-         asmcmd: '-o $OBJ $EXTRAOPT $ASM';
+         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ASM';
 {$endif cpu64bitaddr}
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];

@@ -763,6 +763,24 @@ interface
                                 tostr(hi(longint(tai_const(hp).value))));
                      writer.AsmLn;
                    end;
+                 aitconst_seg:
+                   begin
+                     writer.AsmWrite(ait_const2str[aitconst_16bit]);
+                     if assigned(tai_const(hp).sym) then
+                       begin
+                         if SmartAsm then
+                           AddSymbol(tai_const(hp).sym.name,false);
+                         writer.AsmWrite('SEG ');
+                         writer.AsmWrite(tai_const(hp).sym.name);
+                       end
+                     else
+                       internalerror(2015110501);
+                     writer.AsmLn;
+                   end;
+                 aitconst_dgroup:
+                   writer.AsmWriteLn(#9'DW'#9'DGROUP');
+                 aitconst_fardataseg:
+                   writer.AsmWriteLn(#9'DW'#9+current_module.modulename^+'_DATA');
 {$endif i8086}
                  aitconst_32bit,
                  aitconst_16bit,
@@ -1221,6 +1239,8 @@ interface
             FormatName:='win64';
           system_x86_64_darwin:
             FormatName:='macho64';
+          system_x86_64_embedded:
+            FormatName:='obj';
           system_x86_64_linux:
             FormatName:='elf64';
         else

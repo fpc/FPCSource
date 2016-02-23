@@ -86,11 +86,11 @@ type
   end;
   tcpufloatdefclass = class of tcpufloatdef;
 
-  tcpuprocvardef = class(tprocvardef)
+  tcpuprocvardef = class(tx86procvardef)
   end;
   tcpuprocvardefclass = class of tcpuprocvardef;
 
-  tcpuprocdef = class(tprocdef)
+  tcpuprocdef = class(tx86procdef)
     procedure ppuload_platform(ppufile: tcompilerppufile); override;
     procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
    public

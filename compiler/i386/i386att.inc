@@ -670,6 +670,7 @@
 'aesdeclast',
 'aesimc',
 'aeskeygenassist',
+'rdtscp',
 'vaddpd',
 'vaddps',
 'vaddsd',

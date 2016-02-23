@@ -88,7 +88,7 @@ var
   hp2 : texported_item;
 begin
   { first test the index value }
-  if (hp.options and eo_index)<>0 then
+  if eo_index in hp.options then
    begin
      Message1(parser_e_no_export_with_index_for_target,target_info.shortname);
      exit;
@@ -102,7 +102,7 @@ begin
   if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
+      duplicatesymbol(hp.name^);
       exit;
     end;
   if hp2=texported_item(current_module._exports.first) then
@@ -142,6 +142,7 @@ begin
   while assigned(hp2) do
    begin
      if (not hp2.is_var) and
+        assigned(hp2.sym) and
         (hp2.sym.typ=procsym) then
       begin
         { the manglednames can already be the same when the procedure

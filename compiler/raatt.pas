@@ -203,6 +203,7 @@ unit raatt;
         srsym : tsym;
         srsymtable : TSymtable;
       begin
+        c:=scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
         actasmtoken:=AS_NONE;
@@ -212,10 +213,10 @@ unit raatt;
         while c in [' ',#9] do
          c:=current_scanner.asmgetchar;
         { get token pos }
-        if not (c in [#10,#13,'{',';']) then
+        if not (c in [#10,#13,'{',';','/','(']) then
           current_scanner.gettokenpos;
         { Local Label, Label, Directive, Prefix or Opcode }
-        if firsttoken and not(c in [#10,#13,'{',';']) then
+        if firsttoken and not(c in [#10,#13,'{',';','/','(']) then
          begin
            firsttoken:=FALSE;
            len:=0;
@@ -573,7 +574,6 @@ unit raatt;
 
              '''' : { char }
                begin
-                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    c:=current_scanner.asmgetchar;
@@ -598,13 +598,11 @@ unit raatt;
                  until false;
                  actasmpattern:=EscapeToPascal(actasmpattern);
                  actasmtoken:=AS_STRING;
-                 current_scanner.in_asm_string:=false;
                  exit;
                end;
 
              '"' : { string }
                begin
-                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    c:=current_scanner.asmgetchar;
@@ -629,7 +627,6 @@ unit raatt;
                  until false;
                  actasmpattern:=EscapeToPascal(actasmpattern);
                  actasmtoken:=AS_STRING;
-                 current_scanner.in_asm_string:=false;
                  exit;
                end;
 
@@ -659,15 +656,28 @@ unit raatt;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
-{$ifdef arm}
-             // the arm assembler uses { ... } for register sets
+
              '{' :
                begin
-                 actasmtoken:=AS_LSBRACKET;
+{$ifdef arm}
+                 // the arm assembler uses { ... } for register sets
+                 // but compiler directives {$... } are still allowed
                  c:=current_scanner.asmgetchar;
+                 if c<>'$' then
+                   actasmtoken:=AS_LSBRACKET
+                 else
+                   begin
+                     current_scanner.skipcomment(false);
+                     GetToken;
+                   end;
+{$else arm}
+                 current_scanner.skipcomment(true);
+                 GetToken;
+{$endif arm}
                  exit;
                end;
 
+{$ifdef arm}
              '}' :
                begin
                  actasmtoken:=AS_RSBRACKET;
@@ -725,8 +735,14 @@ unit raatt;
 
              '(' :
                begin
-                 actasmtoken:=AS_LPAREN;
                  c:=current_scanner.asmgetchar;
+                 if c='*' then
+                   begin
+                     current_scanner.skipoldtpcomment(true);
+                     GetToken;
+                   end
+                 else
+                   actasmtoken:=AS_LPAREN;
                  exit;
                end;
 
@@ -767,8 +783,14 @@ unit raatt;
 
              '/' :
                begin
-                 actasmtoken:=AS_SLASH;
                  c:=current_scanner.asmgetchar;
+                 if c='/' then
+                   begin
+                     current_scanner.skipdelphicomment;
+                     GetToken;
+                   end
+                 else
+                   actasmtoken:=AS_SLASH;
                  exit;
                end;
 
@@ -786,12 +808,17 @@ unit raatt;
                  exit;
                end;
 
-{$ifndef arm}
-             '{',
-{$endif arm}
-             #13,#10,';' :
+             #13,#10:
                begin
-                 { the comment is read by asmgetchar }
+                 current_scanner.linebreak;
+                 c:=current_scanner.asmgetchar;
+                 firsttoken:=TRUE;
+                 actasmtoken:=AS_SEPARATOR;
+                 exit;
+               end;
+
+             ';' :
+               begin
                  c:=current_scanner.asmgetchar;
                  firsttoken:=TRUE;
                  actasmtoken:=AS_SEPARATOR;
@@ -1024,7 +1051,6 @@ unit raatt;
        curlist:=TAsmList.Create;
        lasTSec:=sec_code;
        { start tokenizer }
-       c:=current_scanner.asmgetcharstart;
        gettoken;
        { main loop }
        repeat
@@ -1249,7 +1275,11 @@ unit raatt;
              begin
                Consume(AS_WEAK);
                BuildConstSymbolExpression(true,false,false, l1,symname,symtyp);
-               curList.concat(tai_weak.create(symname));
+               { ideally, we should look up the symbol here (or later) and
+                 depending on whether it's external or net, generate
+                 asd_weak_reference or asd_weak_definition -- this is different
+                 on some targets) }
+               curList.concat(tai_directive.create(asd_weak_definition,symname));
              end;
 
            AS_SECTION:

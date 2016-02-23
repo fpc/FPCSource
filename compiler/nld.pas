@@ -1143,9 +1143,8 @@ implementation
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
-        { set the elementdef to the correct type in case of a managed
-          variant array }
-        if do_managed_variant then
+        { set the elementdef to the correct type in case of a variant array }
+        if do_variant then
           tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
       end;

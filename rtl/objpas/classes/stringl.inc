@@ -80,6 +80,20 @@ begin
     end;
 end;
 
+Function TStrings.GetSkipLastLineBreak : Boolean;
+
+begin
+  CheckSpecialChars;
+  Result:=FSkipLastLineBreak;
+end;
+
+procedure TStrings.SetSkipLastLineBreak(const AValue : Boolean);
+
+begin
+  CheckSpecialChars;
+  FSkipLastLineBreak:=AValue;
+end;
+
 Function TStrings.GetLBS : TTextLineBreakStyle;
 begin
   CheckSpecialChars;
@@ -512,6 +526,8 @@ begin
   NLS:=Length(NL);
   For I:=0 to count-1 do
     L:=L+Length(Strings[I])+NLS;
+  if SkipLastLineBreak then
+    Dec(L,NLS);
   Setlength(Result,L);
   P:=Pointer(Result);
   For i:=0 To count-1 do
@@ -521,11 +537,12 @@ begin
     if L<>0 then
       System.Move(Pointer(S)^,P^,L);
     P:=P+L;
-    For L:=1 to NLS do
-      begin
-      P^:=NL[L];
-      inc(P);
-      end;
+    if (I<Count-1) or Not SkipLastLineBreak then
+      For L:=1 to NLS do
+        begin
+        P^:=NL[L];
+        inc(P);
+        end;
     end;
 end;
 
@@ -599,7 +616,7 @@ Var
 begin
   S:='';
   Result:=False;
-  If ((Length(Value)-P)<=0) then
+  If ((Length(Value)-P)<0) then
     exit;
   PS:=@Value[P];
   PC:=PS;
@@ -703,31 +720,47 @@ end;
 
 
 
-Procedure TStrings.AddStrings(TheStrings: TStrings);
+Procedure TStrings.AddStrings(TheStrings: TStrings; ClearFirst : Boolean);
 
-Var Runner : longint;
 
 begin
+  beginupdate;
   try
-    beginupdate;
-    For Runner:=0 to TheStrings.Count-1 do
-      self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+    if ClearFirst then
+      Clear;
+    AddStrings(TheStrings);
   finally
     EndUpdate;
   end;
 end;
 
+Procedure TStrings.AddStrings(TheStrings: TStrings);
+
+Var Runner : longint;
+begin
+  For Runner:=0 to TheStrings.Count-1 do
+    self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+end;
+
 Procedure TStrings.AddStrings(const TheStrings: array of string);
 
 Var Runner : longint;
+begin
+  if Count + High(TheStrings)+1 > Capacity then
+    Capacity := Count + High(TheStrings)+1;
+  For Runner:=Low(TheStrings) to High(TheStrings) do
+    self.Add(Thestrings[Runner]);
+end;
+
+Procedure TStrings.AddStrings(const TheStrings: array of string; ClearFirst : Boolean);
+
 
 begin
+  beginupdate;
   try
-    beginupdate;
-    if Count + High(TheStrings)+1 > Capacity then
-      Capacity := Count + High(TheStrings)+1;
-    For Runner:=Low(TheStrings) to High(TheStrings) do
-      self.Add(Thestrings[Runner]);
+    if ClearFirst then
+      Clear;
+    AddStrings(TheStrings);
   finally
     EndUpdate;
   end;
@@ -815,8 +848,8 @@ Var
   Str : String;
 
 begin
+  beginUpdate;
   Try
-    beginUpdate;
     Obj:=Objects[Index1];
     Str:=Strings[Index1];
     Objects[Index1]:=Objects[Index2];
@@ -923,8 +956,8 @@ Var
   I,BufDelta     : Longint;
 begin
   // reread into a buffer
+  beginupdate;
   try
-    beginupdate;
     Buffer:='';
     BufLen:=0;
     I:=1;
@@ -951,12 +984,15 @@ Var
   Str : String;
 begin
   BeginUpdate;
-  Obj:=Objects[CurIndex];
-  Str:=Strings[CurIndex];
-  Objects[CurIndex]:=Nil; // Prevent Delete from freeing.
-  Delete(Curindex);
-  InsertObject(NewIndex,Str,Obj);
-  EndUpdate;
+  Try
+    Obj:=Objects[CurIndex];
+    Str:=Strings[CurIndex];
+    Objects[CurIndex]:=Nil; // Prevent Delete from freeing.
+    Delete(Curindex);
+    InsertObject(NewIndex,Str,Obj);
+  finally
+    EndUpdate;
+    end;
 end;
 
 
@@ -1251,7 +1287,7 @@ begin
       begin
       MSize:=FCapacity*Sizeof(TStringItem);
       System.Move (FList^,NewList^,MSize);
-      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*WordRatio, 0);
+      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
       FreeMem (Flist,MSize);
       end;
     Flist:=NewList;

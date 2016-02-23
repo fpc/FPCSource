@@ -2472,10 +2472,7 @@ implementation
                   )
                 ) or
                 (
-                  (
-                    not pd.is_specialization or
-                    assigned(pd.owner)
-                  ) and
+                  assigned(pd.owner) and
                   (
                     not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
                     is_visible_for_object(pd,contextstructdef)
@@ -2999,8 +2996,8 @@ implementation
     function get_variantequaltype(def: tdef): tvariantequaltype;
       const
         variantorddef_cl: array[tordtype] of tvariantequaltype =
-          (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,
-           tve_shortint,tve_smallint,tve_longint,tve_chari64,
+          (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,tve_incompatible,
+           tve_shortint,tve_smallint,tve_longint,tve_chari64,tve_incompatible,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);

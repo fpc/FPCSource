@@ -105,11 +105,11 @@ interface
 implementation
 
     uses
-      cutils,verbose;
+      cutils,verbose,rgbase;
 
     const
     {$if defined(x86_64)}
-      att_regname_table : array[tregisterindex] of string[7] = (
+      att_regname_table : TRegNameTable = (
         {r8664att.inc contains the AT&T name of each register.}
         {$i r8664att.inc}
       );
@@ -120,7 +120,7 @@ implementation
         {$i r8664ari.inc}
       );
     {$elseif defined(i386)}
-      att_regname_table : array[tregisterindex] of string[7] = (
+      att_regname_table : TRegNameTable = (
         {r386att.inc contains the AT&T name of each register.}
         {$i r386att.inc}
       );
@@ -131,7 +131,7 @@ implementation
         {$i r386ari.inc}
       );
     {$elseif defined(i8086)}
-      att_regname_table : array[tregisterindex] of string[7] = (
+      att_regname_table : TRegNameTable = (
         {r8086att.inc contains the AT&T name of each register.}
         {$i r8086att.inc}
       );
@@ -143,28 +143,11 @@ implementation
       );
     {$endif}
 
-    function findreg_by_attname(const s:string):byte;
-      var
-        i,p : tregisterindex;
-      begin
-        {Binary search.}
-        p:=0;
-        i:=regnumber_count_bsstart;
-        repeat
-          if (p+i<=high(tregisterindex)) and (att_regname_table[att_regname_index[p+i]]<=s) then
-            p:=p+i;
-          i:=i shr 1;
-        until i=0;
-        if att_regname_table[att_regname_index[p]]=s then
-          findreg_by_attname:=att_regname_index[p]
-        else
-          findreg_by_attname:=0;
-      end;
 
 
     function gas_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_attname(s)];
+        result:=regnumber_table[findreg_by_name_table(s,att_regname_table,att_regname_index)];
       end;
 
 

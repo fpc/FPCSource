@@ -178,7 +178,7 @@ begin
     T := p.Targets.AddProgram('src'+PathDelim+'gdbver.pp');
     T.Install := false;
     //
-    // NOTE: the gdbver.inc dependancies gives warnings because the makefile.fpc
+    // NOTE: the gdbver.inc dependencies gives warnings because the makefile.fpc
     // does a "cp src/gdbver_nogdb.inc src/gdbver.inc" to create it
 
     T:=P.Targets.AddUnit('gdbcon.pp');
@@ -191,6 +191,8 @@ begin
     P.Targets.AddExampleProgram('testgdb.pp');
     P.Targets.AddExampleProgram('symify.pp');
     P.Targets.AddExampleUnit('mingw.pas');
+
+    P.Sources.AddSrc('src/gdbver_nogdb.inc');
     end;
 end;
 

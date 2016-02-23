@@ -1637,7 +1637,7 @@ SysCall MOS_DOSBase 348;
 
 function VFPrintf(fh      : BPTR location 'd1';
                   format  : PChar   location 'd2';
-                  argarray: Pointer location 'd3'): LongInt;
+                  argarray: PLongInt location 'd3'): LongInt;
 SysCall MOS_DOSBase 354;
 
 function dosFlush(fh: BPTR location 'd1'): LongInt;
@@ -1895,10 +1895,10 @@ function CompareDates(date1: PDateStamp location 'd1';
                       date2: PDateStamp location 'd2'): LongInt;
 SysCall MOS_DOSBase 738;
 
-function DateToStr(datetime: _PDateTime location 'd1'): LongBool;
+function DOSDateToStr(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 744;
 
-function StrToDate(datetime: _PDateTime location 'd1'): LongBool;
+function DOSStrToDate(datetime: _PDateTime location 'd1'): LongBool;
 SysCall MOS_DOSBase 750;
 
 function InternalLoadSeg(fh           : BPTR location 'd0';
@@ -2076,7 +2076,7 @@ function WriteChar(ch: Char): LongInt; Inline;
 function UnReadChar(ch: Char): LongInt; Inline;
 function ReadChars(buf: Pointer; num: LongInt): LongInt; Inline;
 function dosReadLn(buf: PChar; num: LongInt): PChar; Inline;
-function WriteStr(str: PChar): LongInt; Inline;
+function dosWriteStr(str: PChar): LongInt; Inline;
 procedure VWritef(format: PChar; argv: Pointer); Inline;
 
 
@@ -2085,8 +2085,8 @@ procedure VWritef(format: PChar; argv: Pointer); Inline;
   * }
 
 function CreateNewProcTags(tags: array of dword): PProcess; Inline;
-
-
+function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
+function SystemTags(command: PChar; Tags: array of DWord): LongInt; Inline;
 
 implementation
 
@@ -2120,9 +2120,9 @@ begin
   dosReadLn:=FGets(dosInput,buf,num);
 end;
 
-function WriteStr(str: PChar): LongInt; Inline;
+function dosWriteStr(str: PChar): LongInt; Inline;
 begin
-  WriteStr:=FPuts(dosOutput,str);
+  dosWriteStr:=FPuts(dosOutput,str);
 end;
 
 procedure VWritef(format: PChar; argv: Pointer); Inline;
@@ -2158,6 +2158,15 @@ begin
   CreateNewProcTags:=CreateNewProc(@tags);
 end;
 
+function AllocDosObjectTags(type1: Cardinal; Tags: array of DWord): Pointer; inline;
+begin
+  AllocDosObjectTags := AllocDosObject(type1, @Tags);
+end;
+
+function SystemTags(command: PChar; Tags: array of DWord): LongInt;
+begin
+  SystemTags := SystemTagList(Command, @Tags);
+end;
 
 begin
   DosBase:=MOS_DOSBase;

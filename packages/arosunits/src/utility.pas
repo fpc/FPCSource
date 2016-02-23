@@ -14,7 +14,6 @@
  **********************************************************************}
 unit utility;
 
-{$mode objfpc}{$H+}
 {$PACKRECORDS C}
 
 interface
@@ -253,41 +252,32 @@ function UnpackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR; inline;
 
 // VarArgs Versions
-function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
-function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
+function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject;
+function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR;
 
 implementation
 
-uses
-  tagsarray,longarray;
-
-function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
-var
-  TagList: TTagsList;
+function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 begin
-  AddTags(TagList, Tags);
-  Result := AllocNamedObjectA(Name, GetTagPtr(TagList));
+  AllocNamedObject := AllocNamedObjectA(Name, @Tags);
 end;
 
-function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
-var
-  Args: TArgList;
+function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR; inline;
 begin
-  AddArguments(Args, params);
-  CallHook := CallHookPkt(Hook, Object_ , GetArgPtr(Args));
+  CallHook := CallHookPkt(Hook, Object_ , @Params);
 end;
 
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR;
 var
   FuncPtr: THookFunctionProc;
 begin
-  Result := 0;
+  CALLHOOKPKT_ := 0;
   if (Hook = nil) or (Object_ = nil) or (Message = nil) then
     Exit;
   if (Hook^.h_Entry = 0) then
     Exit;
   FuncPtr := THookFunctionProc(Hook^.h_Entry);
-  Result := FuncPtr(Hook, Object_, Message);
+  CALLHOOKPKT_ := FuncPtr(Hook, Object_, Message);
 end;
 
 end.

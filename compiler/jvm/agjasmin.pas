@@ -1098,39 +1098,26 @@ implementation
 
 
     procedure TJasminAssembler.WriteAsmList;
-    begin
-{$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Start writing Jasmin-styled assembler output for '+current_module.mainsource);
-{$endif}
+      begin
+        { the code for Java methods needs to be emitted class per class,
+          so instead of iterating over all asmlists, we iterate over all types
+          and global variables (a unit becomes a class, with its global
+          variables static fields) }
+        writer.MarkEmpty;
+        WriteExtraHeader(nil);
+        { print all global variables }
+        WriteSymtableVarSyms(current_module.globalsymtable);
+        WriteSymtableVarSyms(current_module.localsymtable);
+        writer.AsmLn;
+        { print all global procedures/functions }
+        WriteSymtableProcdefs(current_module.globalsymtable);
+        WriteSymtableProcdefs(current_module.localsymtable);
 
-      writer.MarkEmpty;
-      WriteExtraHeader(nil);
-(*
-      for hal:=low(TasmlistType) to high(TasmlistType) do
-        begin
-          writer.AsmWriteLn(asminfo^.comment+'Begin asmlist '+AsmlistTypeStr[hal]);
-          writetree(current_asmdata.asmlists[hal]);
-          writer.AsmWriteLn(asminfo^.comment+'End asmlist '+AsmlistTypeStr[hal]);
-        end;
-*)
-      { print all global variables }
-      WriteSymtableVarSyms(current_module.globalsymtable);
-      WriteSymtableVarSyms(current_module.localsymtable);
-      writer.AsmLn;
-      { print all global procedures/functions }
-      WriteSymtableProcdefs(current_module.globalsymtable);
-      WriteSymtableProcdefs(current_module.localsymtable);
+        WriteSymtableStructDefs(current_module.globalsymtable);
+        WriteSymtableStructDefs(current_module.localsymtable);
 
-      WriteSymtableStructDefs(current_module.globalsymtable);
-      WriteSymtableStructDefs(current_module.localsymtable);
-
-      writer.AsmLn;
-{$ifdef EXTDEBUG}
-      if assigned(current_module.mainsource) then
-       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource);
-{$endif EXTDEBUG}
-    end;
+        writer.AsmLn;
+      end;
 
 
 {****************************************************************************}

@@ -1085,7 +1085,7 @@ Type
 { ======================================================================== }
 
 Type
-
+    pScreen = ^tScreen;
     pWindow = ^tWindow;
     tWindow = record
         NextWindow      : pWindow;      { for the linked list in a screen }
@@ -1115,7 +1115,7 @@ Type
 
         ReqCount        : smallint;        { count of reqs blocking Window }
 
-        WScreen         : Pointer;      { this Window's Screen }
+        WScreen         : PScreen;      { this Window's Screen }
         RPort           : pRastPort;  { this Window's very own RastPort }
 
     { the border variables describe the window border.   If you specify
@@ -1216,6 +1216,71 @@ Type
         MoreFlags       : ULONG;
 
     {**** Data beyond this point are Intuition Private.  DO NOT USE ****}
+
+    end;
+
+{ ======================================================================== }
+{ === Screen ============================================================= }
+{ ======================================================================== }
+
+    tScreen = record
+        NextScreen      : pScreen;      { linked list of screens }
+        FirstWindow     : pWindow;      { linked list Screen's Windows }
+
+        LeftEdge,
+        TopEdge         : smallint;        { parameters of the screen }
+        Width,
+        Height          : smallint;        { parameters of the screen }
+
+        MouseY,
+        MouseX          : smallint;        { position relative to upper-left }
+
+        Flags           : Word;        { see definitions below }
+
+        Title           : STRPTR;       { null-terminated Title text }
+        DefaultTitle    : STRPTR;       { for Windows without ScreenTitle }
+
+    { Bar sizes for this Screen and all Window's in this Screen }
+        BarHeight,
+        BarVBorder,
+        BarHBorder,
+        MenuVBorder,
+        MenuHBorder     : Shortint;
+        WBorTop,
+        WBorLeft,
+        WBorRight,
+        WBorBottom      : Shortint;
+
+        Font            : pTextAttr;  { this screen's default font       }
+
+    { the display data structures for this Screen (note the prefix S)}
+        ViewPort        : tViewPort;     { describing the Screen's display }
+        RastPort        : tRastPort;     { describing Screen rendering      }
+        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
+        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
+
+    { You supply a linked-list of Gadgets for your Screen.
+     *  This list DOES NOT include system Gadgets.  You get the standard
+     *  system Screen Gadgets by default
+     }
+
+        FirstGadget     : pGadget;
+
+        DetailPen,
+        BlockPen        : Byte;         { for bar/border/gadget rendering }
+
+    { the following variable(s) are maintained by Intuition to support the
+     * DisplayBeep() color flashing technique
+     }
+        SaveColor0      : Word;
+
+    { This layer is for the Screen and Menu bars }
+        BarLayer        : pLayer;
+
+        ExtData         : Pointer;
+        UserData        : Pointer;
+                        { general-purpose pointer to User data extension }
+    {**** Data below this point are SYSTEM PRIVATE ****}
 
     end;
 
@@ -1793,7 +1858,7 @@ Type
  tDrawInfo = record
     dri_Version : Word;    { will be  DRI_VERSION                 }
     dri_NumPens : Word;    { guaranteed to be >= numDrIPens       }
-    dri_Pens    : Pointer;  { pointer to pen array                 }
+    dri_Pens    : PWord;  { pointer to pen array                 }
 
     dri_Font    : pTextFont;      { screen default font          }
     dri_Depth   : Word;            { (initial) depth of screen bitmap     }
@@ -1843,74 +1908,6 @@ CONST
  PEN_C2        =  $FEFD;          { Complement of color 2 }
  PEN_C1        =  $FEFE;          { Complement of color 1 }
  PEN_C0        =  $FEFF;          { Complement of color 0 }
-
-{ ======================================================================== }
-{ === Screen ============================================================= }
-{ ======================================================================== }
-
-Type
-
-    pScreen = ^tScreen;
-    tScreen = record
-        NextScreen      : pScreen;      { linked list of screens }
-        FirstWindow     : pWindow;      { linked list Screen's Windows }
-
-        LeftEdge,
-        TopEdge         : smallint;        { parameters of the screen }
-        Width,
-        Height          : smallint;        { parameters of the screen }
-
-        MouseY,
-        MouseX          : smallint;        { position relative to upper-left }
-
-        Flags           : Word;        { see definitions below }
-
-        Title           : STRPTR;       { null-terminated Title text }
-        DefaultTitle    : STRPTR;       { for Windows without ScreenTitle }
-
-    { Bar sizes for this Screen and all Window's in this Screen }
-        BarHeight,
-        BarVBorder,
-        BarHBorder,
-        MenuVBorder,
-        MenuHBorder     : Shortint;
-        WBorTop,
-        WBorLeft,
-        WBorRight,
-        WBorBottom      : Shortint;
-
-        Font            : pTextAttr;  { this screen's default font       }
-
-    { the display data structures for this Screen (note the prefix S)}
-        ViewPort        : tViewPort;     { describing the Screen's display }
-        RastPort        : tRastPort;     { describing Screen rendering      }
-        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
-        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
-
-    { You supply a linked-list of Gadgets for your Screen.
-     *  This list DOES NOT include system Gadgets.  You get the standard
-     *  system Screen Gadgets by default
-     }
-
-        FirstGadget     : pGadget;
-
-        DetailPen,
-        BlockPen        : Byte;         { for bar/border/gadget rendering }
-
-    { the following variable(s) are maintained by Intuition to support the
-     * DisplayBeep() color flashing technique
-     }
-        SaveColor0      : Word;
-
-    { This layer is for the Screen and Menu bars }
-        BarLayer        : pLayer;
-
-        ExtData         : Pointer;
-        UserData        : Pointer;
-                        { general-purpose pointer to User data extension }
-    {**** Data below this point are SYSTEM PRIVATE ****}
-
-    end;
 
 Const
 
@@ -4081,7 +4078,7 @@ PROCEDURE ChangeWindowBox(window : pWindow location 'a0'; left : LONGINT locatio
 FUNCTION ClearDMRequest(window : pWindow location 'a0') : LongBool; syscall _IntuitionBase 048;
 PROCEDURE ClearMenuStrip(window : pWindow location 'a0'); syscall _IntuitionBase 054;
 PROCEDURE ClearPointer(window : pWindow location 'a0'); syscall _IntuitionBase 060;
-PROCEDURE CloseScreen(screen : pScreen location 'a0'); syscall _IntuitionBase 066;
+function CloseScreen(screen : pScreen location 'a0'): LongBool; syscall _IntuitionBase 066;
 PROCEDURE CloseWindow(window : pWindow location 'a0'); syscall _IntuitionBase 072;
 FUNCTION CloseWorkBench : LongBool; syscall _IntuitionBase 078;
 PROCEDURE CurrentTime(VAR seconds : ULONG location 'a0'; VAR micros : ULONG location 'a1'); syscall _IntuitionBase 084;
@@ -4192,9 +4189,9 @@ PROCEDURE ZipWindow(window : pWindow location 'a0'); syscall _IntuitionBase 504;
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 function SIZEOF_INSTANCE (cl: pIClass): Longint;
 function BASEOBJECT (o: p_Object): Pointer;
-function _OBJ(o: p_Object): p_Object;
-function __OBJECT (o: Pointer): p_Object;
-function OCLASS (o: Pointer): pIClass;
+function _OBJ(o: p_Object): p_Object; inline;
+function __OBJECT (o: Pointer): p_Object; inline;
+function OCLASS (o: Pointer): pIClass; inline;
 function SHIFTITEM (n: smallint): word;
 function SHIFTMENU (n: smallint): word;
 function SHIFTSUB (n: smallint): word;
@@ -4246,11 +4243,8 @@ begin
 end;
 
 function OCLASS (o: Pointer): pIClass; inline;
-var
-    obj: p_Object;
 begin
-    obj := p_Object(Longint(o) - sizeof(t_Object));
-    OCLASS := obj^.o_Class;
+    OCLASS := p_Object(o - sizeof(t_Object))^.o_Class;
 end;
 
 function SHIFTITEM (n: smallint): word; inline;

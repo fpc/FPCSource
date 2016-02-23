@@ -77,6 +77,10 @@ const calculated_cmdline:Pchar=nil;
 
 {$I system.inc}
 
+{$ifdef android}
+{$I sysandroid.inc}
+{$endif android}
+
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}

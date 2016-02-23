@@ -71,11 +71,12 @@ interface
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
     procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation);
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
+    procedure release_proc_symbol(pd:tprocdef);
     procedure gen_proc_entry_code(list:TAsmList);
     procedure gen_proc_exit_code(list:TAsmList);
     procedure gen_stack_check_size_para(list:TAsmList);
@@ -485,7 +486,7 @@ implementation
 *****************************************************************************}
 
 
-    procedure register_maybe_adjust_setbase(list: TAsmList; var l: tlocation; setbase: aint);
+    procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
       var
         tmpreg: tregister;
       begin
@@ -497,14 +498,14 @@ implementation
             case l.loc of
               LOC_CREGISTER:
                 begin
-                  tmpreg := cg.getintregister(list,l.size);
-                  cg.a_op_const_reg_reg(list,OP_SUB,l.size,setbase,l.register,tmpreg);
+                  tmpreg := hlcg.getintregister(list,opdef);
+                  hlcg.a_op_const_reg_reg(list,OP_SUB,opdef,setbase,l.register,tmpreg);
                   l.loc:=LOC_REGISTER;
                   l.register:=tmpreg;
                 end;
               LOC_REGISTER:
                 begin
-                  cg.a_op_const_reg(list,OP_SUB,l.size,setbase,l.register);
+                  hlcg.a_op_const_reg(list,OP_SUB,opdef,setbase,l.register);
                 end;
             end;
           end;
@@ -930,7 +931,7 @@ implementation
                                 unget_para(curparaloc^.next^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(destloc.register64.reglo)),1);
                                 unget_para(curparaloc^.next^.next^.next^);
-                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^,GetNextReg(GetNextReg(GetNextReg(destloc.register64.reglo))),1);
+                                cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^.next^.next^,GetNextReg(GetNextReg(GetNextReg(destloc.register64.reglo))),1);
 
                                 curparaloc:=paraloc^.next^.next^.next^.next;
                                 unget_para(curparaloc^);
@@ -1360,6 +1361,22 @@ implementation
               current_asmdata.DefineAsmSymbol(item.str,AB_LOCAL,AT_FUNCTION);
            item := TCmdStrListItem(item.next);
          end;
+      end;
+
+
+    procedure release_proc_symbol(pd:tprocdef);
+      var
+        idx : longint;
+        item : TCmdStrListItem;
+      begin
+        item:=TCmdStrListItem(pd.aliasnames.first);
+        while assigned(item) do
+          begin
+            idx:=current_asmdata.AsmSymbolDict.findindexof(item.str);
+            if idx>=0 then
+              current_asmdata.AsmSymbolDict.Delete(idx);
+            item:=TCmdStrListItem(item.next);
+          end;
       end;
 
 

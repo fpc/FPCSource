@@ -1,5 +1,5 @@
 {
-    Copyright (c) 2010, 2013 by Jonas Maebe
+    Copyright (c) 2010, 2013, 2015 by Jonas Maebe
 
     Basic Processor information for LLVM
 
@@ -16,23 +16,66 @@ Unit llvminfo;
 
 Interface
 
-  uses
-    globtype, cpubase;
+uses
+  globtype;
 
 Type
    { possible supported processors for this target }
-   tllvmcputype =
-      (llvmcpu_none,
-       { may add older/newer versions if required/appropriate }
-       llvmcpu_33
+   tllvmversion =
+      ({ may add older/newer versions if required/appropriate }
+       llvmver_3_3,
+       llvmver_3_4_0,
+       llvmver_3_4_1,
+       llvmver_3_4_2,
+       llvmver_3_5_0,
+       llvmver_3_5_1,
+       llvmver_3_5_2,
+       llvmver_3_6_0,
+       llvmver_3_6_1,
+       llvmver_3_6_2,
+       { Xcode versions use snapshots of LLVM and don't correspond to released
+         versions of llvm (they don't ship with the llvm utilities either, but
+         they do come with Clang, which can also be used to some extent instead
+         of opt/llc) }
+       llvmver_xc_6_4
       );
 
+type
+   tllvmversionflag = (
+     llvmflag_metadata_keyword,    { use "metadata" keyword (others leave it away, except when metadata is an argument to call instructions) }
+     llvmflag_linker_private       { have linker_private linkage type (later versions use global in combination with hidden visibility) }
+   );
+   tllvmversionflags = set of tllvmversionflag;
 
 Const
-
-   llvmcputypestr : array[tllvmcputype] of string[9] = ('',
-     'LLVM-3.3'
+   llvmversionstr : array[tllvmversion] of string[14] = (
+     'LLVM-3.3',
+     'LLVM-3.4.0',
+     'LLVM-3.4.1',
+     'LLVM-3.4.2',
+     'LLVM-3.5.0',
+     'LLVM-3.5.1',
+     'LLVM-3.5.2',
+     'LLVM-3.6.0',
+     'LLVM-3.6.1',
+     'LLVM-3.6.2',
+     'LLVM-Xcode-6.4'
    );
+
+   llvmversion_properties: array[tllvmversion] of tllvmversionflags =
+     (
+       { llvmver_3_3    } [llvmflag_metadata_keyword,llvmflag_linker_private],
+       { llvmver_3_4_0  } [llvmflag_metadata_keyword,llvmflag_linker_private],
+       { llvmver_3_4_1  } [llvmflag_metadata_keyword,llvmflag_linker_private],
+       { llvmver_3_4_2  } [llvmflag_metadata_keyword,llvmflag_linker_private],
+       { llvmver_3_5_0  } [llvmflag_metadata_keyword],
+       { llvmver_3_5_1  } [llvmflag_metadata_keyword],
+       { llvmver_3_5_2  } [llvmflag_metadata_keyword],
+       { llvmver_3_6_0  } [],
+       { llvmver_3_6_1  } [],
+       { llvmver_3_6_2  } [],
+       { llvmver_xc_6_4 } [llvmflag_metadata_keyword]
+     );
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+

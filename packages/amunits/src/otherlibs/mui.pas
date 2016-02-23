@@ -1198,6 +1198,8 @@ uses exec, intuition,utility,agraphics,iffparse;
        MUIA_Application_Title = $804281b8;
     { V10 i.. BOOL               }
        MUIA_Application_UseCommodities = $80425ee5;
+    { V10 i.. STRPTR               }
+     MUIA_Application_UsedClasses = $8042e9a7;
     { V10 i.. BOOL               }
        MUIA_Application_UseRexx = $80422387;
     { V4  i.g STRPTR             }

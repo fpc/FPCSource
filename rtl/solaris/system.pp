@@ -28,6 +28,10 @@ var argc:longint;
     argv:PPchar;
     envp:PPchar;
 
+{$define FPC_SYSTEM_HAS_STACKTOP}
+var
+   StackTopPtr : pointer;
+
 {$if defined(CPUARM) or defined(CPUM68K) or (defined(CPUSPARC) and defined(VER2_6))}
 
 {$define fpc_softfpu_interface}
@@ -264,10 +268,21 @@ begin
   result := stklen;
 end;
 
+function StackTop : pointer;
+begin
+  if assigned(StackTopPtr) then
+    StackTop:=StackTopPtr
+  else
+    StackTop:=StackBottom + StackLength;
+end;
+
 Begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
-  StackBottom := Sptr - StackLength;
+  if assigned(StackTopPtr) then
+    StackBottom:=StackTopPtr - StackLength
+  else
+    StackBottom := Sptr - StackLength;
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 { Setup heap }

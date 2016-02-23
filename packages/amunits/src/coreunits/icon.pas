@@ -373,21 +373,19 @@ FUNCTION LayoutIconA(icon : pDiskObject location 'a0'; screen : pScreen location
 PROCEDURE ChangeToSelectedIconColor(cr : pColorRegister location 'a0'); syscall IconBase 198;
 
 { overlay }
-FUNCTION BumpRevision(newname : string;const oldname : pCHAR) : pCHAR;
-FUNCTION BumpRevision(newname : pCHar;const oldname : string) : pCHAR;
-FUNCTION BumpRevision(newname : string;const oldname : string) : pCHAR;
-FUNCTION DeleteDiskObject(const name : string) : BOOLEAN;
-FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : string) : pCHAR;
-FUNCTION GetDiskObject(const name : string) : pDiskObject;
-FUNCTION GetDiskObjectNew(const name : string) : pDiskObject;
-FUNCTION MatchToolValue(const typeString :string;const value : pCHAR) : BOOLEAN;
-FUNCTION MatchToolValue(const typeString : pCHAR;const value : string) : BOOLEAN;
-FUNCTION MatchToolValue(const typeString : string;const value : string) : BOOLEAN;
-FUNCTION PutDiskObject(const name : string;const diskobj : pDiskObject) : BOOLEAN;
+FUNCTION BumpRevision(newname : pCHar; const oldname : RawByteString) : pCHAR;
+FUNCTION DeleteDiskObject(const name : RawByteString) : BOOLEAN;
+FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : RawByteString) : pCHAR;
+FUNCTION GetDiskObject(const name : RawByteString) : pDiskObject;
+FUNCTION GetDiskObjectNew(const name : RawByteString) : pDiskObject;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : pCHAR) : BOOLEAN;
+FUNCTION MatchToolValue(const typeString : pCHAR;const value : RawByteString) : BOOLEAN;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : RawByteString) : BOOLEAN;
+FUNCTION PutDiskObject(const name : RawByteString;const diskobj : pDiskObject) : BOOLEAN;
 
 { version 44 overlay}
-FUNCTION GetIconTagList(CONST name : string; CONST tags : pTagItem) : pDiskObject;
-FUNCTION PutIconTagList(CONST name : string; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
+FUNCTION GetIconTagList(CONST name : RawByteString; CONST tags : pTagItem) : pDiskObject;
+FUNCTION PutIconTagList(CONST name : RawByteString; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
 
 {macros}
 function PACK_ICON_ASPECT_RATIO(num,den : longint) : longint;
@@ -406,11 +404,11 @@ var
 
 IMPLEMENTATION
 
-uses
 {$ifndef dont_use_openlib}
-amsgbox,
+uses
+  amsgbox;
 {$endif dont_use_openlib}
-pastoc;
+
 
 function PACK_ICON_ASPECT_RATIO(num,den : longint) : longint;
 begin
@@ -418,69 +416,59 @@ begin
 end;
 
 
-FUNCTION BumpRevision(newname : string;const oldname : pCHAR) : pCHAR;
+FUNCTION BumpRevision(newname : pCHar;const oldname : RawByteString) : pCHAR;
 begin
-      BumpRevision := BumpRevision(pas2c(newname),oldname);
+      BumpRevision := BumpRevision(newname,PChar(oldname));
 end;
 
-FUNCTION BumpRevision(newname : pCHar;const oldname : string) : pCHAR;
+FUNCTION DeleteDiskObject(const name : RawByteString) : BOOLEAN;
 begin
-      BumpRevision := BumpRevision(newname,pas2c(oldname));
+      DeleteDiskObject := DeleteDiskObject(PChar(name));
 end;
 
-FUNCTION BumpRevision(newname : string;const oldname : string) : pCHAR;
+FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : RawByteString) : pCHAR;
 begin
-      BumpRevision := BumpRevision(pas2c(newname),pas2c(oldname));
+      FindToolType := FindToolType(toolTypeArray,PChar(typeName));
 end;
 
-FUNCTION DeleteDiskObject(const name : string) : BOOLEAN;
+FUNCTION GetDiskObject(const name : RawByteString) : pDiskObject;
 begin
-      DeleteDiskObject := DeleteDiskObject(pas2c(name));
+      GetDiskObject := GetDiskObject(PChar(name));
 end;
 
-FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : string) : pCHAR;
+FUNCTION GetDiskObjectNew(const name : RawByteString) : pDiskObject;
 begin
-      FindToolType := FindToolType(toolTypeArray,pas2c(typeName));
+      GetDiskObjectNew := GetDiskObjectNew(PChar(name));
 end;
 
-FUNCTION GetDiskObject(const name : string) : pDiskObject;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : pCHAR) : BOOLEAN;
 begin
-      GetDiskObject := GetDiskObject(pas2c(name));
+       MatchToolValue := MatchToolValue(PChar(typeString),value);
 end;
 
-FUNCTION GetDiskObjectNew(const name : string) : pDiskObject;
+FUNCTION MatchToolValue(const typeString : pCHAR;const value : RawByteString) : BOOLEAN;
 begin
-      GetDiskObjectNew := GetDiskObjectNew(pas2c(name));
+       MatchToolValue := MatchToolValue(typeString,PChar(value));
 end;
 
-FUNCTION MatchToolValue(const typeString : string;const value : pCHAR) : BOOLEAN;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : RawByteString) : BOOLEAN;
 begin
-       MatchToolValue := MatchToolValue(pas2c(typeString),value);
+       MatchToolValue := MatchToolValue(PChar(typeString),PChar(value));
 end;
 
-FUNCTION MatchToolValue(const typeString : pCHAR;const value : string) : BOOLEAN;
+FUNCTION PutDiskObject(const name : RawByteString;const diskobj : pDiskObject) : BOOLEAN;
 begin
-       MatchToolValue := MatchToolValue(typeString,pas2c(value));
+       PutDiskObject := PutDiskObject(PChar(name),diskobj);
 end;
 
-FUNCTION MatchToolValue(const typeString : string;const value : string) : BOOLEAN;
+FUNCTION GetIconTagList(CONST name : RawByteString; CONST tags : pTagItem) : pDiskObject;
 begin
-       MatchToolValue := MatchToolValue(pas2c(typeString),pas2c(value));
+       GetIconTagList := GetIconTagList(PChar(name),tags);
 end;
 
-FUNCTION PutDiskObject(const name : string;const diskobj : pDiskObject) : BOOLEAN;
+FUNCTION PutIconTagList(CONST name : RawByteString; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
 begin
-       PutDiskObject := PutDiskObject(pas2c(name),diskobj);
-end;
-
-FUNCTION GetIconTagList(CONST name : string; CONST tags : pTagItem) : pDiskObject;
-begin
-       GetIconTagList := GetIconTagList(pas2c(name),tags);
-end;
-
-FUNCTION PutIconTagList(CONST name : string; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
-begin
-       PutIconTagList := PutIconTagList(pas2c(name),icon,tags);
+       PutIconTagList := PutIconTagList(PChar(name),icon,tags);
 end;
 
 const

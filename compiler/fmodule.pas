@@ -1038,6 +1038,38 @@ implementation
             macrosymtablestack.free;
             macrosymtablestack:=nil;
           end;
+        extendeddefs.free;
+        extendeddefs:=nil;
+        genericdummysyms.free;
+        genericdummysyms:=nil;
+        waitingforunit.free;
+        waitingforunit:=nil;
+        localmacrosymtable.free;
+        localmacrosymtable:=nil;
+        ptrdefs.free;
+        ptrdefs:=nil;
+        arraydefs.free;
+        arraydefs:=nil;
+        procaddrdefs.free;
+        procaddrdefs:=nil;
+{$ifdef llvm}
+        llvmdefs.free;
+        llvmdefs:=nil;
+{$endif llvm}
+        checkforwarddefs.free;
+        checkforwarddefs:=nil;
+        tcinitcode.free;
+        tcinitcode:=nil;
+        localunitsearchpath.free;
+        localunitsearchpath:=nil;
+        localobjectsearchpath.free;
+        localobjectsearchpath:=nil;
+        localincludesearchpath.free;
+        localincludesearchpath:=nil;
+        locallibrarysearchpath.free;
+        locallibrarysearchpath:=nil;
+        localframeworksearchpath.free;
+        localframeworksearchpath:=nil;
       end;
 
 

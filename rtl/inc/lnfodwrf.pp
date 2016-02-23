@@ -21,11 +21,27 @@
   dependent on objpas unit.
 }
 unit lnfodwrf;
+
 interface
 
 {$S-}
 
+{$IF FPC_VERSION<3}
+type
+  CodePointer = Pointer;
+{$ENDIF}
+
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
+function DwarfBackTraceStr(addr: CodePointer): string;
+procedure CloseDwarf;
+
+var
+  // Allows more efficient operation by reusing previously loaded debug data
+  // when the target module filename is the same. However, if an invalid memory
+  // address is supplied then further calls may result in an undefined behaviour.
+  // In summary: enable for speed, disable for resilience.
+  AllowReuseOfLineInfoData: Boolean = True;
+
 
 implementation
 
@@ -61,7 +77,6 @@ var
   e : TExeFile;
   EBuf: Array [0..EBUF_SIZE-1] of Byte;
   EBufCnt, EBufPos: Integer;
-  DwarfErr : boolean;
   { the offset and size of the DWARF debug_line section in the file }
   DwarfOffset : longint;
   DwarfSize : longint;
@@ -137,18 +152,47 @@ var
   baseaddr : pointer;
   filename,
   dbgfn : string;
+  lastfilename: string;   { store last processed file }
+  lastopendwarf: Boolean; { store last result of processing a file }
 
-function Opendwarf(addr : pointer) : boolean;
+function OpenDwarf(addr : pointer) : boolean;
 begin
-  Opendwarf:=false;
-  if dwarferr then
-    exit;
+  // False by default
+  OpenDwarf:=false;
 
+  // Empty so can test if GetModuleByAddr has worked
+  filename := '';
+
+  // Get filename by address using GetModuleByAddr
   GetModuleByAddr(addr,baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
   writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
 {$endif DEBUG_LINEINFO}
 
+  // Check if GetModuleByAddr has worked
+  if filename = '' then
+    exit;
+
+  // If target filename same as previous, then re-use previous result
+  if AllowReuseOfLineInfoData and (filename = lastfilename) then
+  begin
+    {$ifdef DEBUG_LINEINFO}
+    writeln(stderr,'Reusing debug data');
+    {$endif DEBUG_LINEINFO}
+    OpenDwarf:=lastopendwarf;
+    exit;
+  end;
+
+  // Close previously opened Dwarf
+  CloseDwarf;
+
+  // Reset last open dwarf result
+  lastopendwarf := false;
+
+  // Save newly processed filename
+  lastfilename := filename;
+
+  // Open exe file or debug link
   if not OpenExeFile(e,filename) then
     exit;
   if ReadDebugLink(e,dbgfn) then
@@ -158,21 +202,25 @@ begin
         exit;
     end;
 
+  // Find debug data section
   e.processaddress:=ptruint(baseaddr)-e.processaddress;
-
   if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
-    Opendwarf:=true
+  begin
+    lastopendwarf:=true;
+    OpenDwarf:=true;
+  end
   else
-    begin
-      dwarferr:=true;
-      exit;
-    end;
+    CloseExeFile(e);
 end;
 
 
-procedure Closedwarf;
+procedure CloseDwarf;
 begin
-  CloseExeFile(e);
+  if e.isopen then
+    CloseExeFile(e);
+
+  // Reset last processed filename
+  lastfilename := '';
 end;
 
 
@@ -731,13 +779,9 @@ begin
   source := '';
   found := false;
   GetLineInfo:=false;
-  if DwarfErr then
+
+  if not OpenDwarf(pointer(addr)) then
     exit;
-  if not e.isopen then
-   begin
-     if not OpenDwarf(pointer(addr)) then
-      exit;
-   end;
 
   addr := addr - e.processaddress;
 
@@ -749,21 +793,26 @@ begin
     current_offset := ParseCompilationUnit(addr, current_offset,
       source, line, found);
   end;
-  if e.isopen then
+
+  if not AllowReuseOfLineInfoData then
     CloseDwarf;
+
   GetLineInfo:=true;
 end;
 
 
-function DwarfBackTraceStr(addr : CodePointer) : shortstring;
+function DwarfBackTraceStr(addr: CodePointer): string;
 var
   func,
   source : string;
-  hs     : string[32];
+  hs     : string;
   line   : longint;
   Store  : TBackTraceStrFunc;
   Success : boolean;
 begin
+  {$ifdef DEBUG_LINEINFO}
+  writeln(stderr,'DwarfBackTraceStr called');
+  {$endif DEBUG_LINEINFO}
   { reset to prevent infinite recursion if problems inside the code }
   Success:=false;
   Store := BackTraceStrFunc;
@@ -771,27 +820,32 @@ begin
   Success:=GetLineInfo(ptruint(addr), func, source, line);
   { create string }
   DwarfBackTraceStr :='  $' + HexStr(ptruint(addr), sizeof(ptruint) * 2);
-  if func<>'' then
-   DwarfBackTraceStr := DwarfBackTraceStr + '  ' + func;
-
-  if source<>'' then begin
-    if func<>'' then
-      DwarfBackTraceStr := DwarfBackTraceStr + ', ';
-    if line<>0 then begin
-      str(line, hs);
-      DwarfBackTraceStr := DwarfBackTraceStr + ' line ' + hs;
-    end;
-    DwarfBackTraceStr := DwarfBackTraceStr + ' of ' + source;
-  end;
   if Success then
-    BackTraceStrFunc := Store;
+  begin
+    if func<>'' then
+      DwarfBackTraceStr := DwarfBackTraceStr + '  ' + func;
+    if source<>'' then
+    begin
+      if func<>'' then
+        DwarfBackTraceStr := DwarfBackTraceStr + ', ';
+      if line<>0 then
+      begin
+        str(line, hs);
+        DwarfBackTraceStr := DwarfBackTraceStr + ' line ' + hs;
+      end;
+      DwarfBackTraceStr := DwarfBackTraceStr + ' of ' + source;
+    end;
+  end;
+  BackTraceStrFunc := Store;
 end;
 
 
 initialization
+  lastfilename := '';
+  lastopendwarf := false;
   BackTraceStrFunc := @DwarfBacktraceStr;
 
 finalization
-  if e.isopen then
-    CloseDwarf();
+  CloseDwarf;
+
 end.

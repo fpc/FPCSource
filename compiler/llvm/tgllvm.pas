@@ -79,7 +79,7 @@ implementation
        systems,verbose,
        procinfo,
        llvmbase,aasmllvm,
-       symconst,
+       symconst,symdef,
        cgobj
        ;
 
@@ -159,7 +159,13 @@ implementation
 
     procedure ttgllvm.gethltemp(list: TAsmList; def: tdef; forcesize: asizeint; temptype: ttemptype; out ref: treference);
       begin
-        alloctemp(list,def.size,def.alignment,temptype,def,false,ref);
+        { empty array (can happen for arrayconstructors) -> don't request the
+          size, as that will internalerror }
+        if (def.typ=arraydef) and
+           (tarraydef(def).highrange<tarraydef(def).lowrange) then
+          alloctemp(list,0,def.alignment,temptype,def,false,ref)
+        else
+          alloctemp(list,def.size,def.alignment,temptype,def,false,ref);
       end;
 
 

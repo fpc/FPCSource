@@ -127,6 +127,10 @@ table.bar {
   background-color: #a0c0ff;
 }
 
+td p {
+ margin: 0;
+}
+
 span.bartitle {
   font-weight: bold;
   font-style: italic;
@@ -164,3 +168,20 @@ dd {
 td p {
   margin: 0;
 }
+
+span.toggletreeclose {
+    background: url(minus.png) center left no-repeat;
+    padding-left: 20px;
+}
+span.toggletreeopen {
+    background: url(plus.png) center left no-repeat;
+    padding-left: 20px;
+}
+
+ul.classtreelist li { padding-left: 0px; }
+
+ul.classtreelist { list-style-type:none; }
+
+li.classtree ul { display: block; }
+ 
+li.classtreeclosed ul { display: none; }

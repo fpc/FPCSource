@@ -448,11 +448,13 @@ begin
   Request.Method:=GetNextWord(AStartLine);
   Request.URL:=GetNextWord(AStartLine);
   S:=Request.URL;
-  If (S<>'') and (S[1]='/') then
-    Delete(S,1,1);
   I:=Pos('?',S);
   if (I>0) then
     S:=Copy(S,1,I-1);
+  If (Length(S)>1) and (S[1]<>'/') then
+    S:='/'+S
+  else if S='/' then 
+    S:='';
   Request.PathInfo:=S;
   S:=GetNextWord(AStartLine);
   If (Pos('HTTP/',S)<>1) then

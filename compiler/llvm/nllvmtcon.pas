@@ -28,7 +28,7 @@ interface
   uses
     cclasses,constexp,globtype,
     aasmbase,aasmtai,aasmcnst,aasmllvm,
-    symconst,symtype,symdef,symsym,
+    symconst,symbase,symtype,symdef,symsym,
     ngtcon;
 
   type
@@ -36,6 +36,13 @@ interface
      private
       faggai: tai_aggregatetypedconst;
       fanonrecalignpos: longint;
+      { if this is a non-anonymous record, keep track of the current field at
+        the llvm level that gets emitted, so we know when the data types of the
+        Pascal and llvm representation don't match up (because of variant
+        records, or because not all fields are defined at the Pascal level and
+        the rest is zeroed) }
+      fllvmnextfieldindex: longint;
+      fdoesnotmatchllvmdef: boolean;
      public
       constructor create(_def: tdef; _typ: ttypedconstkind); override;
 
@@ -43,6 +50,8 @@ interface
 
       property aggai: tai_aggregatetypedconst read faggai write faggai;
       property anonrecalignpos: longint read fanonrecalignpos write fanonrecalignpos;
+      property llvmnextfieldindex: longint read fllvmnextfieldindex write fllvmnextfieldindex;
+      property doesnotmatchllvmdef: boolean read fdoesnotmatchllvmdef write fdoesnotmatchllvmdef;
     end;
 
     tllvmtypedconstplaceholder = class(ttypedconstplaceholder)
@@ -53,11 +62,12 @@ interface
     end;
 
     tllvmtai_typedconstbuilder = class(ttai_typedconstbuilder)
-     protected type
-      public
+     public
        { set the default value for caggregateinformation (= tllvmaggregateinformation) }
        class constructor classcreate;
      protected
+      foverriding_def: tdef;
+
       fqueued_tai,
       flast_added_tai: tai;
       fqueued_tai_opidx: longint;
@@ -82,6 +92,11 @@ interface
       function get_internal_data_section_internal_label: tasmlabel; override;
 
       procedure do_emit_extended_in_aggregate(p: tai);
+
+      { mark the current agginfo, and hence also all the ones higher up in ther
+        aggregate hierarchy, as not matching our canonical llvm definition for
+        their def }
+      procedure mark_aggregate_hierarchy_llvmdef_mismatch(new_current_level_def: trecorddef);
      public
       destructor destroy; override;
       procedure emit_tai(p: tai; def: tdef); override;
@@ -95,6 +110,8 @@ interface
       procedure queue_emit_asmsym(sym: tasmsymbol; def: tdef); override;
       procedure queue_emit_ordconst(value: int64; def: tdef); override;
 
+      class function get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean; override;
+
       function emit_placeholder(def: tdef): ttypedconstplaceholder; override;
 
       class function get_string_symofs(typ: tstringtype; winlikewidestring: boolean): pint; override;
@@ -107,7 +124,7 @@ implementation
     verbose,systems,
     aasmdata,
     cpubase,cpuinfo,llvmbase,
-    symbase,symtable,llvmdef,defutil;
+    symtable,llvmdef,defutil,defcmp;
 
   { tllvmaggregateinformation }
 
@@ -115,15 +132,17 @@ implementation
      begin
        inherited;
        fanonrecalignpos:=-1;
+       fllvmnextfieldindex:=0;
      end;
 
+
    function tllvmaggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
-    begin
-      result:=inherited;
-      { in case of C/ABI alignment, the padding gets added by LLVM }
-      if tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment then
-        result:=0;
-    end;
+     begin
+       result:=inherited;
+       { in case we let LLVM align, don't add padding ourselves }
+       if df_llvm_no_struct_packing in def.defoptions then
+         result:=0;
+     end;
 
 
    { tllvmtypedconstplaceholder }
@@ -162,15 +181,22 @@ implementation
       newasmlist: tasmlist;
       decl: taillvmdecl;
     begin
-      { todo }
-      if section = sec_user then
-        internalerror(2014052904);
       newasmlist:=tasmlist.create;
+      if assigned(foverriding_def) then
+        def:=foverriding_def;
       { llvm declaration with as initialisation data all the elements from the
         original asmlist }
       decl:=taillvmdecl.createdef(sym,def,fasmlist,section,alignment);
+      if section=sec_user then
+        decl.setsecname(secname);
       if tcalo_is_lab in options then
         include(decl.flags,ldf_unnamed_addr);
+      if ([tcalo_vectorized_dead_strip_start,
+           tcalo_vectorized_dead_strip_item,
+           tcalo_vectorized_dead_strip_end]*options)<>[] then
+        include(decl.flags,ldf_vectorized);
+      if tcalo_weak in options then
+        include(decl.flags,ldf_weak);
       { TODO: tcalo_no_dead_strip: add to @llvm.user meta-variable }
       newasmlist.concat(decl);
       fasmlist:=newasmlist;
@@ -269,7 +295,22 @@ implementation
            internalerror(2014052906);
         end;
       if assigned(info) then
-        info.aggai.addvalue(stc)
+        begin
+          { are we emitting data that does not match the equivalent data in
+            the llvm structure? If so, record this so that we know we have to
+            use a custom recorddef to emit this data }
+          if not(info.anonrecord) and
+             (info.def.typ<>procvardef) and
+             (aggregate_kind(info.def)=tck_record) then
+            begin
+              if not info.doesnotmatchllvmdef and
+                 (info.llvmnextfieldindex<tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.symdeflist.count) and
+                 not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
+                info.doesnotmatchllvmdef:=true;
+              info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
+            end;
+          info.aggai.addvalue(stc);
+        end
       else
         inherited do_emit_tai(stc,def);
     end;
@@ -301,13 +342,44 @@ implementation
     end;
 
   procedure tllvmtai_typedconstbuilder.maybe_emit_tail_padding(def: tdef);
+    var
+      info: tllvmaggregateinformation;
+      constdata: tai_abstracttypedconst;
+      newdef: trecorddef;
     begin
-      { in case of C/ABI alignment, the padding gets added by LLVM }
-      if (is_record(def) or
-          is_object(def)) and
-         (tabstractrecordsymtable(tabstractrecorddef(def).symtable).usefieldalignment=C_alignment) then
+      { in case we let LLVM align, don't add padding ourselves }
+      if df_llvm_no_struct_packing in def.defoptions then
         exit;
       inherited;
+      { we can only check here whether the aggregate does not match our
+        cononical llvm definition, as the tail padding may cause a mismatch
+        (in case not all fields have been defined), and we can't do it inside
+        end_aggregate_internal as its inherited method (which calls this
+        method) frees curagginfo before it returns }
+      info:=tllvmaggregateinformation(curagginfo);
+      if info.doesnotmatchllvmdef then
+        begin
+          { create a new recorddef representing this mismatched def; this can
+            even replace an array in case it contains e.g. variant records }
+          case info.def.typ of
+            arraydef:
+              { in an array, all elements come right after each other ->
+                replace with a packed record }
+              newdef:=crecorddef.create_global_internal('',1,1,1);
+            recorddef,
+            objectdef:
+              newdef:=crecorddef.create_global_internal('',
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignment,
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).recordalignmin,
+                tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).maxCrecordalign);
+            else
+              internalerror(2015122401);
+          end;
+          for constdata in tai_aggregatetypedconst(info.aggai) do
+            newdef.add_field_by_def('',constdata.def);
+          tai_aggregatetypedconst(info.aggai).changetorecord(newdef);
+          mark_aggregate_hierarchy_llvmdef_mismatch(newdef);
+        end;
     end;
 
 
@@ -324,6 +396,7 @@ implementation
       srsym     : tsym;
       srsymtable: tsymtable;
       strrecdef : trecorddef;
+      strdef: tdef;
       offset: pint;
       field: tfieldvarsym;
       dataptrdef: tdef;
@@ -351,7 +424,10 @@ implementation
           field:=trecordsymtable(strrecdef.symtable).findfieldbyoffset(offset);
           { pointerdef to the string data array }
           dataptrdef:=cpointerdef.getreusable(field.vardef);
-          queue_init(charptrdef);
+          { the fields of the resourcestring record are declared as ansistring }
+          strdef:=get_dynstring_def_for_type(st,winlikewidestring);
+          queue_init(strdef);
+          queue_typeconvn(charptrdef,strdef);
           queue_subscriptn(strrecdef,field);
           queue_emit_asmsym(ll.lab,strrecdef);
         end
@@ -376,12 +452,14 @@ implementation
           { either add to the current typed const aggregate (if nested), or
             emit to the asmlist (if top level) }
           curagg:=tllvmaggregateinformation(curagginfo);
+          { create aggregate information for this new aggregate }
+          inherited;
+          { only add the new aggregate to the previous aggregate now, because
+            the inherited call may have had to add padding bytes first }
           if assigned(curagg) then
             curagg.aggai.addvalue(agg)
           else
             fasmlist.concat(agg);
-          { create aggregate information for this new aggregate }
-          inherited;
           { set new current typed const aggregate }
           tllvmaggregateinformation(curagginfo).aggai:=agg
         end
@@ -393,15 +471,31 @@ implementation
   procedure tllvmtai_typedconstbuilder.end_aggregate_internal(def: tdef; anonymous: boolean);
     var
       info: tllvmaggregateinformation;
+      was_aggregate: boolean;
     begin
+      was_aggregate:=false;
       if aggregate_kind(def)<>tck_simple then
         begin
+          was_aggregate:=true;
           info:=tllvmaggregateinformation(curagginfo);
           if not assigned(info) then
             internalerror(2014060101);
           info.aggai.finish;
         end;
       inherited;
+      info:=tllvmaggregateinformation(curagginfo);
+      if assigned(info) and
+         was_aggregate then
+        begin
+          { are we emitting data that does not match the equivalent data in
+            the llvm structure? If so, record this so that we know we have to
+            use a custom recorddef to emit this data }
+          if not info.anonrecord and
+             (aggregate_kind(info.def)=tck_record) and
+             not equal_defs(def,tabstractrecordsymtable(tabstractrecorddef(info.def).symtable).llvmst.entries_by_llvm_index[info.llvmnextfieldindex].def) then
+            info.doesnotmatchllvmdef:=true;
+          info.llvmnextfieldindex:=info.llvmnextfieldindex+1;
+        end;
     end;
 
 
@@ -448,6 +542,30 @@ implementation
       maybe_end_aggregate(arrdef);
       { free the original constant, since we didn't emit it }
       p.free;
+    end;
+
+
+  procedure tllvmtai_typedconstbuilder.mark_aggregate_hierarchy_llvmdef_mismatch(new_current_level_def: trecorddef);
+    var
+      aggregate_level,
+      i: longint;
+      info: tllvmaggregateinformation;
+    begin
+      if assigned(faggregateinformation) then
+        begin
+          aggregate_level:=faggregateinformation.count;
+          { the top element, at aggregate_level-1, is already marked, since
+            that's why we are marking the rest }
+          for i:=aggregate_level-2 downto 0 do
+            begin
+              info:=tllvmaggregateinformation(faggregateinformation[i]);
+              if info.doesnotmatchllvmdef then
+                break;
+              info.doesnotmatchllvmdef:=true;
+            end;
+          if aggregate_level=1 then
+            foverriding_def:=new_current_level_def;
+        end;
     end;
 
 
@@ -612,6 +730,22 @@ implementation
       if fqueue_offset<>0 then
         internalerror(2015030702);
       inherited;
+    end;
+
+
+  class function tllvmtai_typedconstbuilder.get_vectorized_dead_strip_custom_section_name(const basename: TSymStr; st: tsymtable; out secname: TSymStr): boolean;
+    begin
+      result:=inherited;
+      if result then
+        exit;
+      { put all of the resource strings in a single section: it doesn't hurt,
+        and this avoids problems with Darwin/mach-o's limitation of 255
+        sections }
+      secname:=basename;
+      { Darwin requires specifying a segment name too }
+      if target_info.system in systems_darwin then
+        secname:='__DATA,'+secname;
+      result:=true;
     end;
 
 

@@ -930,8 +930,8 @@ implementation
                         begin
                           if tdef(container.defowner).typ<>procdef then
                             internalerror(2011040303);
-                          { defid is added to prevent problem with overloads }
-                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tostr(tprocdef(container.defowner).defid)+'$'+result;
+                          { unique_id_str is added to prevent problem with overloads }
+                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tprocdef(container.defowner).unique_id_str+'$'+result;
                           container:=container.defowner.owner;
                         end;
                     end;

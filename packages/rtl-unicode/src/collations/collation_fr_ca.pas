@@ -37,7 +37,7 @@ const
   UPDATED_FIELDS = [ TCollationField.BackWard ];
   COLLATION_NAME = 'fr';
   BASE_COLLATION = '';
-  VERSION_STRING = '$Revision: 5851 $';
+  VERSION_STRING = '$Revision: 8242 $';
   VARIABLE_LOW_LIMIT = 65535;
   VARIABLE_HIGH_LIMIT = 0;
   VARIABLE_WEIGHT = 0;

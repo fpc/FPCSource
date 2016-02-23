@@ -78,18 +78,18 @@ interface
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     procedure parse_record_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(astruct:tabstractrecorddef;potype:tproctypeoption;isgeneric:boolean;genericdef:tdef;generictypelist:tfphashobjectlist;out pd:tprocdef):boolean;
-    function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+    function  parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
     procedure parse_proc_dec_finish(pd:tprocdef;isclassmethod:boolean);
 
     { parse a record method declaration (not a (class) constructor/destructor) }
-    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
 
     procedure insert_record_hidden_paras(astruct: trecorddef);
 
-    { helper functions - they insert nested objects hierarcy to the symtablestack
+    { helper functions - they insert nested objects hierarchy to the symtablestack
       with object hierarchy
     }
-    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function push_child_hierarchy(obj:tabstractrecorddef):integer;
     function pop_child_hierarchy(obj:tabstractrecorddef):integer;
     function push_nested_hierarchy(obj:tabstractrecorddef):integer;
     function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
@@ -125,7 +125,7 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function push_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
       begin
@@ -153,7 +153,7 @@ implementation
         result:=0;
         if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
           inc(result,push_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
-        inc(result,push_child_hierarcy(obj));
+        inc(result,push_child_hierarchy(obj));
       end;
 
     function pop_child_hierarchy(obj:tabstractrecorddef):integer;
@@ -818,7 +818,7 @@ implementation
           var
             node : tnode;
           begin
-            node:=factor(false,true,true);
+            node:=factor(false,[ef_type_only,ef_had_specialize]);
             if node.nodetype=typen then
               begin
                 sp:=ttypenode(node).typedef.typesym.name;
@@ -973,6 +973,13 @@ implementation
                  Message(parser_e_only_methods_allowed);
 
                repeat
+                 { only 1 class constructor and destructor is allowed in the class and
+                   the check was already done with oo_has_class_constructor or
+                   oo_has_class_destructor -> skip searching
+                   (bug #28801) }
+                 if (potype in [potype_class_constructor,potype_class_destructor]) then
+                   break;
+
                  searchagain:=false;
                  current_tokenpos:=procstartfilepos;
 
@@ -1071,6 +1078,12 @@ implementation
             { push the parameter symtable so that constraint definitions are added
               there and not in the owner symtable }
             symtablestack.push(pd.parast);
+            { register the parameters }
+            for i:=0 to genericparams.count-1 do
+              begin
+                 ttypesym(genericparams[i]).register_sym;
+                 tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
+              end;
             insert_generic_parameter_types(pd,nil,genericparams);
             symtablestack.pop(pd.parast);
             freegenericparams:=false;
@@ -1450,7 +1463,7 @@ implementation
          end;
       end;
 
-    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef):tprocdef;
+    function parse_proc_dec(isclassmethod:boolean;astruct:tabstractrecorddef;isgeneric:boolean):tprocdef;
       var
         pd : tprocdef;
         old_block_type : tblock_type;
@@ -1473,7 +1486,7 @@ implementation
           _FUNCTION :
             begin
               consume(_FUNCTION);
-              if parse_proc_head(astruct,potype_function,false,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_function,isgeneric,nil,nil,pd) then
                 begin
                   { pd=nil when it is a interface mapping }
                   if assigned(pd) then
@@ -1493,7 +1506,7 @@ implementation
           _PROCEDURE :
             begin
               consume(_PROCEDURE);
-              if parse_proc_head(astruct,potype_procedure,false,nil,nil,pd) then
+              if parse_proc_head(astruct,potype_procedure,isgeneric,nil,nil,pd) then
                 begin
                   { pd=nil when it is an interface mapping }
                   if assigned(pd) then
@@ -1571,13 +1584,13 @@ implementation
       end;
 
 
-    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean): tprocdef;
+    function parse_record_method_dec(astruct: tabstractrecorddef; is_classdef: boolean;hadgeneric:boolean): tprocdef;
       var
         oldparse_only: boolean;
       begin
         oldparse_only:=parse_only;
         parse_only:=true;
-        result:=parse_proc_dec(is_classdef,astruct);
+        result:=parse_proc_dec(is_classdef,astruct,hadgeneric);
 
         { this is for error recovery as well as forward }
         { interface mappings, i.e. mapping to a method  }
@@ -1587,7 +1600,7 @@ implementation
             parse_record_proc_directives(result);
 
             { since records have no inheritance, don't allow non-static
-              class methods. Selphi does the same. }
+              class methods. Delphi does the same. }
             if (result.proctypeoption<>potype_operator) and
                is_classdef and
                not (po_staticmethod in result.procoptions) then
@@ -1858,7 +1871,7 @@ var pt:Tnode;
 begin
   if pd.typ<>procdef then
     internalerror(200604301);
-  pt:=comp_expr(true,false);
+  pt:=comp_expr([ef_accept_equal]);
   if is_constintnode(pt) then
     if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
       message3(type_e_range_check_error_bounds,tostr(Tordconstnode(pt).value),tostr(low(longint)),tostr(high(longint)))
@@ -1943,7 +1956,7 @@ begin
       if paracnt<>1 then
         Message(parser_e_ill_msg_param);
     end;
-  pt:=comp_expr(true,false);
+  pt:=comp_expr([ef_accept_equal]);
   { message is 1-character long }
   if is_constcharnode(pt) then
     begin
@@ -2997,7 +3010,9 @@ const
                   { but according to MacPas mode description
                     Cprefix should still be used PM }
                   if (m_mac in current_settings.modeswitches) then
-                    result:=target_info.Cprefix+tprocdef(pd).procsym.realname;
+                    result:=target_info.Cprefix+tprocdef(pd).procsym.realname
+                  else
+                    result:=pd.procsym.realname;
                 end;
             end;
           end;

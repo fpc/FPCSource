@@ -2514,10 +2514,10 @@ end;
 function TFPDDSQLEngine.CreateSequenceSQL(Sequence: TDDSequenceDef): String;
 begin
   Result:='CREATE SEQUENCE '+Sequence.SequenceName;
-  If (Sequence.StartValue>0) then
-    Result:=Result+'START WITH '+IntToStr(Sequence.StartValue);
+  If (Sequence.StartValue<>0) then
+    Result:=Result+' START WITH '+IntToStr(Sequence.StartValue);
   If (Sequence.Increment<>0) then
-    Result:=Result+'INCREMENT BY '+IntToStr(Sequence.Increment);
+    Result:=Result+' INCREMENT BY '+IntToStr(Sequence.Increment);
 end;
 
 function TFPDDSQLEngine.CreateSequencesSQL(Sequences: TFPDDSequenceList): String;
@@ -2844,7 +2844,7 @@ begin
     WriteString(ASection,KeyCaseInsFields,CaseInsFields);
     WriteString(ASection,KeyDescFields,DescFields);
     WriteString(ASection,KeySource,Source);
-    O:=Integer(Options);
+    O:=Integer(self.Options);
     T:=TypeInfo(TIndexOptions);
     WriteString(ASection,KeyOptions,SetToString(T,O,False));
     end;
@@ -2870,7 +2870,7 @@ begin
     T:=TypeInfo(TIndexOptions);
     O:=StringToSet(T,S);
     OP:=TIndexOptions(O);
-    Options:=OP;
+    Self.Options:=OP;
     end;
 end;
 

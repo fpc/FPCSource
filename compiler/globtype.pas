@@ -92,8 +92,16 @@ interface
        PAInt = ^AInt;
 
        { target cpu specific type used to store data sizes }
+{$ifdef cpu16bitaddr}
+       { on small CPUs such as i8086, we use LongInt to support data structures
+         larger than 32767 bytes and up to 65535 bytes in size. Since asizeint
+         must be signed, we use LongInt/LongWord. }
+       ASizeInt = LongInt;
+       ASizeUInt = LongWord;
+{$else cpu16bitaddr}
        ASizeInt = PInt;
        ASizeUInt = PUInt;
+{$endif cpu16bitaddr}
 
        { type used for handling constants etc. in the code generator }
        TCGInt = Int64;
@@ -106,7 +114,7 @@ interface
 {$ifdef i8086}
        TConstPtrUInt = LongWord;  { 32-bit for far pointers support }
 {$else i8086}
-       TConstPtrUInt = AWord;
+       TConstPtrUInt = PUint;
 {$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
@@ -196,8 +204,9 @@ interface
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,
          cs_link_opt_used_sections,cs_link_separate_dbg_file,
          cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
-	 cs_link_native,
-         cs_link_pre_binutils_2_19
+         cs_link_native,
+         cs_link_pre_binutils_2_19,
+         cs_link_vlink
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -373,7 +382,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas,
          {$ifdef fpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
@@ -411,12 +420,15 @@ interface
                                     ansistring; similarly, char becomes unicodechar rather than ansichar }
          m_type_helpers,        { allows the declaration of "type helper" (non-Delphi) or "record helper"
                                   (Delphi) for primitive types }
-         m_blocks               { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_isolike_io,          { I/O as it required by an ISO compatible compiler }
+         m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
+         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
        );
        tmodeswitches = set of tmodeswitch;
 
     const
-       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas];
 
     type
        { Application types (platform specific) }
@@ -544,7 +556,7 @@ interface
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
-         '','','','','','',
+         '','','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
          'CLASS',
@@ -577,7 +589,11 @@ interface
          'FINALFIELDS',
          'UNICODESTRINGS',
          'TYPEHELPERS',
-         'CBLOCKS');
+         'CBLOCKS',
+         'ISOIO',
+         'ISOPROGRAMPARAS',
+         'ISOMOD'
+         );
 
 
      type
@@ -628,7 +644,12 @@ interface
          { set if the stack frame of the procedure is estimated }
          pi_estimatestacksize,
          { the routine calls a C-style varargs function }
-         pi_calls_c_varargs
+         pi_calls_c_varargs,
+         { the routine has an open array parameter,
+           for i8086 cpu huge memory model,
+           as this changes SP register it requires special handling
+           to restore DS segment register  }
+         pi_has_open_array_parameter
        );
        tprocinfoflags=set of tprocinfoflag;
 

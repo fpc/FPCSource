@@ -252,10 +252,11 @@ implementation
              if (is_objc_class_or_protocol(left.resultdef) or
                  is_objcclassref(left.resultdef)) then
                begin
-                 if target_info.system=system_aarch64_darwin then
+                 { on non-fragile ABI platforms, the ISA pointer may be opaque
+                   and we must call Object_getClass to obtain the real ISA
+                   pointer }
+                 if target_info.system in systems_objc_nfabi then
                    begin
-                     { on Darwin/AArch64, the isa field is opaque and we must
-                       call Object_getClass to obtain the actual ISA pointer }
                      result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
                      inserttypeconv_explicit(result,resultdef);
                    end
@@ -800,6 +801,10 @@ implementation
     procedure Tsubscriptnode.mark_write;
       begin
         include(flags,nf_write);
+        { if an element of a record is written, then the whole record is changed/it is written to it,
+          for data types being implicit pointers this does not apply as the object itself does not change }
+        if not(is_implicit_pointer_object_type(left.resultdef)) then
+          left.mark_write;
       end;
 
 
@@ -961,7 +966,8 @@ implementation
                        newordtyp:=torddef(ptrsinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
-                                                         int64(Tarraydef(left.resultdef).highrange)
+                                                         int64(Tarraydef(left.resultdef).highrange),
+                                                         true
                                                         ))
                    end
                  else
@@ -972,7 +978,7 @@ implementation
                  inserttypeconv(right,u8inttype)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true))
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);

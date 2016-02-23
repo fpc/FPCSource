@@ -82,7 +82,12 @@ Unit heapmgr;
             InternalFreemem(pointer(ptruint(p)+AllocSize), RestSize);
           end
         else
-          Result := nil;
+          begin
+            if ReturnNilIfGrowHeapFails then
+              Result := nil
+            else
+              RunError(203);
+          end;
       end;
 
     function GetAlignedMem(Size, Alignment: ptruint): pointer;

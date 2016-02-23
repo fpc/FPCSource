@@ -732,10 +732,10 @@ Type
     Function AddExample(const AFiles : String) : TSource;
     Function AddExample(const AFiles : String; AInstallSourcePath : String) : TSource;
     Function AddTest(const AFiles : String) : TSource;
-    procedure AddDocFiles(const AFileMask: string; Recursive: boolean = False; AInstallSourcePath : String = '');
-    procedure AddSrcFiles(const AFileMask: string; Recursive: boolean = False);
-    procedure AddExampleFiles(const AFileMask: string; Recursive: boolean = False; AInstallSourcePath : String = '');
-    procedure AddTestFiles(const AFileMask: string; Recursive: boolean = False);
+    procedure AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
+    procedure AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
+    procedure AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False; AInstallSourcePath : String = '');
+    procedure AddTestFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean = False);
     Property SourceItems[Index : Integer] : TSource Read GetSourceItem Write SetSourceItem;default;
   end;
 
@@ -1092,6 +1092,7 @@ Type
     FForceCompile : Boolean;
     FListMode : Boolean;
     FVerbose : boolean;
+    FInteractive : boolean;
     FProgressMax : integer;
     FProgressCount : integer;
     FExternalPackages : TPackages;
@@ -1105,10 +1106,10 @@ Type
     FGeneralCriticalSection: TRTLCriticalSection;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipper: TZipper;
+    FGZFileStream: TGZFileStream;
 {$endif HAS_UNIT_ZIPPER}
 {$ifdef HAS_TAR_SUPPORT}
     FTarWriter: TTarWriter;
-    FGZFileStream: TGZFileStream;
 {$endif HAS_TAR_SUPPORT}
     procedure AddFileToArchive(const APackage: TPackage; Const ASourceFileName, ADestFileName : String);
     procedure FinishArchive(Sender: TObject);
@@ -1150,6 +1151,7 @@ Type
     function AddPathPrefix(APackage: TPackage; APath: string): string;
 
     property Verbose : boolean read FVerbose write FVerbose;
+    property Interactive : boolean read FInteractive write FInteractive;
     Procedure ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;DoChangeDir:boolean=true; WarnIfNotFound:boolean=true);
     Procedure ClearResolvedFileNames(APackage : TPackage);
 
@@ -1232,6 +1234,7 @@ Type
     FPackages: TPackages;
     FRunMode: TRunMode;
     FListMode : Boolean;
+    FInteractive : boolean;
     FLogLevels : TVerboseLevels;
     FFPMakeOptionsString: string;
     FPackageVariantSettings: TStrings;
@@ -1374,7 +1377,7 @@ Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string
 Function AddProgramExtension(const ExecutableName: string; AOS : TOS) : string;
 Function GetImportLibraryFilename(const UnitName: string; AOS : TOS) : string;
 
-procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 function GetDefaultLibGCCDir(CPU : TCPU;OS: TOS; var ErrorMessage: string): string;
 
 Implementation
@@ -1383,7 +1386,11 @@ uses typinfo, rtlconsts;
 
 const
 {$ifdef CREATE_TAR_FILE}
+  {$ifdef HAS_UNIT_ZIPPER}
   ArchiveExtension = '.tar.gz';
+  {$else }
+  ArchiveExtension = '.tar';
+  {$endif HAS_UNIT_ZIPPER}
 {$else CREATE_TAR_FILE}
   ArchiveExtension = '.zip';
 {$endif CREATE_TAR_FILE}
@@ -1563,6 +1570,7 @@ ResourceString
   SErrPackVarNotExist   = 'There is no package variant with the name "%s"';
   SErrEventNotSupported = 'Unsupported event type';
   SErrorPkgNotInstalled = 'Package "%s" is not installed, can not uninstall.';
+  SErrBuildUnitCompilation = 'Compilation of "%s" failed';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -1643,6 +1651,7 @@ ResourceString
   SDbgDirectoryDoesNotExist = 'Directory "%s" does not exist';
   SDbgDirectoryNotEmpty     = 'Directory "%s" is not empty. Will not remove';
   SDbgGenerateBuildUnit     = 'Generate build-unit %s';
+  SDbgBuildUnitFailure      = 'Generate build-unit %s failed';
   SDbgForcedCompile         = 'Forced compile';
   SDbgOutputDoesNotExist    = 'Output file does not exist';
   SDbgNewerSource           = 'Source file is newer then output file';
@@ -1683,6 +1692,7 @@ ResourceString
   SHelpConfig         = 'Use indicated config file when compiling.';
   SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
+  SHelpInteractive    = 'Allow to interact with child processes';
   SHelpInstExamples   = 'Install the example-sources.';
   SHelpSkipCrossProgs = 'Skip programs when cross-compiling/installing';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
@@ -1738,7 +1748,7 @@ Const
 ****************************************************************************}
 
 {$ifdef HAS_UNIT_PROCESS}
-function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string; const Env: TStrings; ConsoleOutput: TMemoryStream): integer;
+function ExecuteFPC(Verbose, Interactive: boolean; const Path: string; const ComLine: string; const Env: TStrings; ConsoleOutput: TMemoryStream): integer;
 var
   P: TProcess;
   BytesRead: longint;
@@ -1794,7 +1804,9 @@ var
 
         if ch in [#10, #13] then
         begin
-          if Verbose then
+          if Interactive then
+            System.Writeln(output)
+          else if Verbose then
             installer.log(vlInfo,sLine)
           else
             begin
@@ -1813,18 +1825,35 @@ var
               if ch=#10 then
                 sLine:=''
               else
-                sLine:=ch;
+                begin
+                  if Interactive then
+                    begin
+                      System.Write(output,ch);
+                    end
+                  else
+                    sLine:=ch;
+                end;
             end
           else
             sLine := '';
           BuffPos := ConsoleOutput.Position;
         end
         else
-          sLine := sLine + ch;
+        begin
+          if Interactive then
+            System.Write(output,ch)
+          else
+            sLine := sLine + ch;
+        end;
 
       until ConsoleOutput.Position >= BytesRead;
 
-      ConsoleOutput.Position := BuffPos;
+      // keep partial lines, unlessin interactive mode
+      if not Interactive then
+        ConsoleOutput.Position := BuffPos
+        // Flush for interactive mode
+      else if n > 0 then
+        System.Flush(output);
     end;
 
     Result := n;
@@ -1839,7 +1868,10 @@ begin
     if assigned(Env) then
       P.Environment.Assign(Env);
 
-    P.Options := [poUsePipes];
+    if Interactive then
+      P.Options := [poUsePipes,poPassInput]
+    else
+      P.Options := [poUsePipes];
 
     P.Execute;
     while P.Running do
@@ -2398,7 +2430,7 @@ begin
 end;
 
 
-procedure SearchFiles(const AFileName: string; Recursive: boolean; var List: TStrings);
+procedure SearchFiles(AFileName, ASearchPathPrefix: string; Recursive: boolean; var List: TStrings);
 
   procedure AddRecursiveFiles(const SearchDir, FileMask: string; Recursive: boolean);
   var
@@ -2421,12 +2453,16 @@ var
   BasePath: string;
   i: integer;
 begin
+  if IsRelativePath(AFileName) and (ASearchPathPrefix<>'') then
+    AFileName := IncludeTrailingPathDelimiter(ASearchPathPrefix) + AFileName;
+
   BasePath := ExtractFilePath(ExpandFileName(AFileName));
+
   AddRecursiveFiles(BasePath, ExtractFileName(AFileName), Recursive);
 
   CurrDir:=GetCurrentDir;
   for i := 0 to Pred(List.Count) do
-    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(CurrDir), List[i]);
+    List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(CurrDir)+ASearchPathPrefix), List[i]);
 end;
 
 Const
@@ -2553,7 +2589,7 @@ var
 begin
   S:=TProcess.Create(Nil);
   S.Commandline:=ACompiler+' '+AOptions;
-  S.Options:=[poUsePipes];
+  S.Options:=[poUsePipes,poWaitOnExit];
   S.execute;
   Count:=s.output.read(buf,BufSize);
   if (count=0) and ReadStdErr then
@@ -3162,53 +3198,52 @@ begin
   Result.FSourceType:=stTest;
 end;
 
-
-procedure TSources.AddDocFiles(const AFileMask: string; Recursive: boolean; AInstallSourcePath : String = '');
+procedure TSources.AddDocFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddDoc(List[i], AInstallSourcePath);
   List.Free;
 end;
 
 
-procedure TSources.AddSrcFiles(const AFileMask: string; Recursive: boolean);
+procedure TSources.AddSrcFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddSrc(List[i]);
   List.Free;
 end;
 
 
-procedure TSources.AddExampleFiles(const AFileMask: string; Recursive: boolean; AInstallSourcePath : String = '');
+procedure TSources.AddExampleFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean; AInstallSourcePath: String);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddExample(List[i], AInstallSourcePath);
   List.Free;
 end;
 
 
-procedure TSources.AddTestFiles(const AFileMask: string; Recursive: boolean);
+procedure TSources.AddTestFiles(const AFileMask, ASearchPathPrefix: string; Recursive: boolean);
 var
   List : TStrings;
   i: integer;
 begin
   List := TStringList.Create;
-  SearchFiles(AFileMask, Recursive, List);
+  SearchFiles(AFileMask, ASearchPathPrefix, Recursive, List);
   for i:= 0 to Pred(List.Count) do
     AddTest(List[i]);
   List.Free;
@@ -4508,6 +4543,7 @@ begin
   FBuildEngine:=TBuildEngine.Create(Self);
 //  FBuildEngine.Defaults:=Defaults;
   FBuildEngine.ListMode:=FListMode;
+  FBuildEngine.FInteractive:=FInteractive;
   FBuildEngine.Verbose := (FLogLevels = AllMessages);
   FBuildEngine.OnLog:=@Self.Log;
   NotifyEventCollection.CallEvents(neaAfterCreateBuildengine, Self);
@@ -4660,6 +4696,8 @@ begin
     Inc(I);
     if CheckOption(I,'v','verbose') then
       FLogLevels:=AllMessages
+    else if CheckOption(I,'I','interactive') then
+      FInteractive:=true
     else if CheckOption(I,'d','debug') then
       FLogLevels:=AllMessages+[vlDebug]
     else if CheckCommand(I,'m','compile') then
@@ -4801,6 +4839,7 @@ begin
   LogOption('l','list-commands',SHelpList);
   LogOption('n','nofpccfg',SHelpNoFPCCfg);
   LogOption('v','verbose',SHelpVerbose);
+  LogOption('I','interactive',SHelpInteractive);
 {$ifdef HAS_UNIT_PROCESS}
   LogOption('e', 'useenv', sHelpUseEnvironment);
 {$endif}
@@ -5021,15 +5060,19 @@ begin
   {$ifdef HAS_TAR_SUPPORT}
   if not assigned(FTarWriter) then
     begin
+    {$ifdef HAS_UNIT_ZIPPER}
       FGZFileStream := TGZFileStream.create(GetArchiveName + ArchiveExtension, gzopenwrite);
       try
         FTarWriter := TTarWriter.Create(FGZFileStream);
-        FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
-        FTarWriter.UserName := 'root';
-        FTarWriter.GroupName := 'root';
       except
         FGZFileStream.Free;
       end;
+    {$else}
+    FTarWriter := TTarWriter.Create(GetArchiveName + ArchiveExtension);
+    {$endif HAS_UNIT_ZIPPER}
+    FTarWriter.Permissions := [tpReadByOwner, tpWriteByOwner, tpReadByGroup, tpReadByOther];
+    FTarWriter.UserName := 'root';
+    FTarWriter.GroupName := 'root';
     end;
 {$ifdef unix}
   if (FpStat(ASourceFileName, FileStat) = 0) and (FileStat.st_mode and S_IXUSR = S_IXUSR) then
@@ -5066,7 +5109,9 @@ begin
   if assigned(FTarWriter) then
     begin
       FreeAndNil(FTarWriter);
+      {$ifdef HAS_UNIT_ZIPPER}
       FGZFileStream.Free;
+      {$endif HAS_UNIT_ZIPPER}
     end;
   {$endif HAS_TAR_SUPPORT}
   {$ifdef HAS_UNIT_ZIPPER}
@@ -5110,8 +5155,10 @@ begin
       // We should check cmd for spaces, and move all after first space to args.
       ConsoleOutput := TMemoryStream.Create;
       try
+        if Interactive then
+          Log(vlInfo,'Starting "%s" "%s" interactively',[Cmd,Args]);
         {$ifdef HAS_UNIT_PROCESS}
-        E:=ExecuteFPC(Verbose, cmd, args, env, ConsoleOutput);
+        E:=ExecuteFPC(Verbose, Interactive, cmd, args, env, ConsoleOutput);
         {$else}
         E:=ExecuteProcess(cmd,args);
         {$endif}
@@ -5253,7 +5300,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     FOF_NOCONFIRMATION       = $0010;
 {$endif MSWINDOWS}
   var
-    i: integer;
+    retries: integer;
 {$ifdef MSWINDOWS}
     SHFileOpStruct: TSHFileOpStruct;
     DirBuf: array[0..MAX_PATH+1] of TCHAR;
@@ -5266,6 +5313,7 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
   begin
     result := true;
 {$ifdef MSWINDOWS}
+    retries:=2;
     try
       FillChar(SHFileOpStruct, Sizeof(SHFileOpStruct), 0);
       FillChar(DirBuf, Sizeof(DirBuf), 0);
@@ -5280,6 +5328,14 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     except
       Result := False;
     end;
+    while not result and (retries>0) do
+      begin
+        log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
+        sleep(5000);
+        dec(retries);
+        result := SHFileOperation(SHFileOpStruct) = 0;;
+      end;
+
 {$else MSWINDOWS}
     SearchResult := FindFirst(IncludeTrailingPathDelimiter(ADirectoryName)+AllFilesMask, faAnyFile+faSymLink, searchRec);
     try
@@ -5307,17 +5363,17 @@ procedure TBuildEngine.SysDeleteTree(Const ADirectoryName: String);
     // There were reports of RemoveDir failing due to locking-problems. To solve
     // these the RemoveDir is tried three times, with a delay of 5 seconds. See
     // bug 21868
-    i := 2;
+    retries := 2;
     result := RemoveDir(ADirectoryName);
-{$endif WINDOWS}
-
-    while not result and (i>0) do
+    while not result and (retries>0) do
       begin
         log(vlWarning, SWarnRetryRemDirectory, [ADirectoryName]);
         sleep(5000);
-        dec(i);
+        dec(retries);
         result := RemoveDir(ADirectoryName);
       end;
+
+{$endif WINDOWS}
 
     if result then
       log(vldebug, SDbgRemovedDirectory, [ADirectoryName]);
@@ -6678,6 +6734,7 @@ Var
     T: TTarget;
     L: TStrings;
     F: Text;
+    CompilationFailed: Boolean;
 
   begin
     if (APackage.FBUTarget.Dependencies.Count>0) then
@@ -6701,17 +6758,31 @@ Var
         system.close(F);
 
         APackage.FBuildMode:=bmOneByOne;
+        Compilationfailed:=false;
         try
-          Compile(APackage,APackage.FBUTarget);
-        finally
-          // Delete temporary build-unit files
-          L := TStringList.Create;
           try
-            APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))),'',Defaults.CPU,Defaults.OS);
-            L.Add(AddPathPrefix(APackage,APackage.FBUTarget.SourceFileName));
-            CmdDeleteFiles(L);
-          finally
-            L.Free;
+            Compile(APackage,APackage.FBUTarget);
+          except
+            Compilationfailed:=true;
+          end;
+        finally
+          if CompilationFailed then
+            begin
+              Log(vlDebug,Format(SDbgBuildUnitFailure,[APackage.FBUTarget.FTargetSourceFileName]));
+              // Raise failure exception again.
+              Error(SErrBuildUnitCompilation,[APackage.FBUTarget.FTargetSourceFileName]);
+            end
+          else
+            begin
+            // Delete temporary build-unit files
+            L := TStringList.Create;
+            try
+              APackage.FBUTarget.GetCleanFiles(L,IncludeTrailingPathDelimiter(AddPathPrefix(APackage,APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS))),'',Defaults.CPU,Defaults.OS);
+              L.Add(AddPathPrefix(APackage,APackage.FBUTarget.SourceFileName));
+              CmdDeleteFiles(L);
+            finally
+              L.Free;
+            end;
           end;
         end;
       end;

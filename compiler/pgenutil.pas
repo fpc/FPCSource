@@ -327,7 +327,7 @@ uses
               consume(_COMMA);
             block_type:=bt_type;
             tmpparampos:=current_filepos;
-            typeparam:=factor(false,true,false);
+            typeparam:=factor(false,[ef_type_only]);
             if typeparam.nodetype=typen then
               begin
                 if tstoreddef(typeparam.resultdef).is_generic and
@@ -354,7 +354,7 @@ uses
                         { special handling for specializations inside generic function declarations }
                         if symtablestack.top.defowner.typ<>procdef then
                           internalerror(2015080101);
-                        str(symtablestack.top.defowner.defid,namepart);
+                        namepart:=tdef(symtablestack.top.defowner).unique_id_str;
                         namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
                         prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname+tprocdef(symtablestack.top.defowner).procsym.prettyname;
                       end
@@ -453,7 +453,7 @@ uses
               repeat
                 if not first then
                   begin
-                    pt2:=factor(false,true,false);
+                    pt2:=factor(false,[ef_type_only]);
                     pt2.free;
                   end;
                 first:=false;

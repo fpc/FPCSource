@@ -237,7 +237,9 @@
   (but there we don't support it)
 }
 {$ifdef cpu64bitaddr}
+{$ifndef USE_STABS_64}
 {$define NoDbgStabs}
+{$endif}
 {$endif}
 
 {$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}

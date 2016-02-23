@@ -547,11 +547,14 @@ asm
 {$endif}
   stmfd   sp!, {r1, lr}
   sub     r0, r1, #8
-{$if defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
-  blx     InterLockedDecrement
-{$else defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
+
+// We use always bl, as newer binutils apparently never translate blx into bl
+// {$if defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
+//   blx     InterLockedDecrement
+// {$else defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
   bl      InterLockedDecrement
-{$endif defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
+// {$endif defined(CPUARM_HAS_BLX_LABEL) and not(defined(WINCE))}
+
   // InterLockedDecrement is a nice guy and sets the z flag for us
   // if the reference count dropped to 0
   ldmnefd sp!, {r1, pc}
@@ -970,8 +973,6 @@ asm
 {$else}
 {$ifdef SYSTEM_HAS_KUSER_CMPXCHG}
   stmfd r13!, {r4, lr}
-  mvn   r3, #0x0000f000
-  sub   r3, r3, #0x3F
 
   mov   r4, r2 // Swap parameters around
   mov   r2, r0
@@ -979,9 +980,13 @@ asm
 
   // r1 and r2 will not be clobbered by kuser_cmpxchg
   // If we have to loop, r0 will be set to the original Comperand
+  // kuser_cmpxchg is documented to destroy r3, therefore setting
+  // r3 must be in the loop
   .Linterlocked_compare_exchange_loop:
+  mvn   r3, #0x0000f000
+  sub   r3, r3, #0x3F
 {$ifdef CPUARM_HAS_BLX}
-  blx r3	 // Call kuser_cmpxchg, sets C-Flag on success
+  blx r3       // Call kuser_cmpxchg, sets C-Flag on success
 {$else}
   mov lr, pc
 {$ifdef CPUARM_HAS_BX}
@@ -997,11 +1002,11 @@ asm
   // The loop case is HIGHLY unlikely, it would require that we got rescheduled between
   // calling kuser_cmpxchg and the ldr. While beeing rescheduled another process/thread
   // would have the set the value to our comperand
-  ldr	r0, [r2] // Load the currently set value
+  ldr   r0, [r2] // Load the currently set value
   cmp   r0, r4   // Return if Comperand != current value, otherwise loop again
   ldmnefd r13!, {r4, pc}
   // If we need to loop here, we have to
-  b	.Linterlocked_compare_exchange_loop
+  b    .Linterlocked_compare_exchange_loop
 
 {$else}
 // lock
@@ -1183,12 +1188,29 @@ asm
   // assembler settings 
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05f  // dmb sy
-{$else}
+{$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
   .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5}
-{$endif}
-{$endif}
+{$else CPUARMV6}
+{$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+  stmfd r13!, {lr}
+  mvn   r0, #0x0000f000
+  sub   r0, r0, #0x5F
+{$ifdef CPUARM_HAS_BLX}
+  blx r0       // Call kuser_memory_barrier at address 0xffff0fa0
+{$else CPUARM_HAS_BLX}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r0
+{$else CPUARM_HAS_BX}
+  mov pc, r0
+{$endif CPUARM_HAS_BX}
+{$endif CPUARM_HAS_BLX}
+  ldmfd r13!, {pc}
+{$endif SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+{$endif CPUARMV6}
+{$endif CPUARM_HAS_DMB}
 end;
 
 procedure ReadBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1212,12 +1234,29 @@ asm
   // "dmb st" may be more optimal than the more generic "dmb sy"
 {$ifdef CPUARM_HAS_DMB}
   .long 0xf57ff05e  // dmb st
-{$else}
+{$else CPUARM_HAS_DMB}
 {$ifdef CPUARMV6}
   mov r0, #0
   .long 0xee070fba  // mcr 15, 0, r0, cr7, cr10, {5} 
-{$endif}
-{$endif}
+{$else CPUARMV6}
+{$ifdef SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+  stmfd r13!, {lr}
+  mvn   r0, #0x0000f000
+  sub   r0, r0, #0x5F
+{$ifdef CPUARM_HAS_BLX}
+  blx r0       // Call kuser_memory_barrier at address 0xffff0fa0
+{$else CPUARM_HAS_BLX}
+  mov lr, pc
+{$ifdef CPUARM_HAS_BX}
+  bx  r0
+{$else CPUARM_HAS_BX}
+  mov pc, r0
+{$endif CPUARM_HAS_BX}
+{$endif CPUARM_HAS_BLX}
+  ldmfd r13!, {pc}
+{$endif SYSTEM_HAS_KUSER_MEMORY_BARRIER}
+{$endif CPUARMV6}
+{$endif CPUARM_HAS_DMB}
 end;
 
 {$endif}

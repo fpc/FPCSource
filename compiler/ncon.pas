@@ -262,7 +262,7 @@ implementation
             concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
             result:=cstringconstnode.createunistr(pWideStringVal);
           end
-        else if is_conststringnode(p) then
+        else if p.nodetype=stringconstn then
           result:=tstringconstnode(p.getcopy)
         else
           begin

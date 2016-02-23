@@ -17,7 +17,7 @@ Interface
 
 Uses BaseUnix,UnixType;
 // If you deprecated new symbols, please annotate the version.
-// this makes it easier to 
+// this makes it easier to decide if they can already be removed.
 
 {$if (defined(BSD) or defined(SUNOS)) and defined(FPC_USE_LIBC)}
 {$define USE_VFORK}
@@ -49,16 +49,6 @@ Const
   MAP_TYPE      = baseunix.MAP_TYPE;          { Mask for type of mapping }
   MAP_FIXED     = baseunix.MAP_FIXED;         { Interpret addr exactly }
 
-{ Flags to `msync'.  There is non msync() call in this unit? 
-  Set to deprecated in 2.7.1, see if sb complains}
-  MS_ASYNC        = 1 deprecated;               { Sync memory asynchronously.  }
-  MS_SYNC         = 4 deprecated;               { Synchronous memory sync.  }
-  MS_INVALIDATE   = 2 deprecated;               { Invalidate the caches.  }
-
-Type
-  // deprecated in 2.7.1, no active use, use the baseunix one.
-  Tpipe = baseunix.tfildes deprecated;     // compability.
-
 {** Time/Date Handling **}
 
 var
@@ -88,7 +78,6 @@ function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
 function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
-Function fpSystem(const Command:string):cint; deprecated 'use ansistring version';
 Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
@@ -100,9 +89,6 @@ Function W_STOPCODE (Signal: Integer): Integer;
 {**      File Handling     **}
 Function  fpFlock   (var T : text;mode : cint) : cint;
 Function  fpFlock   (var F : File;mode : cint) : cint;
-
-Function  SelectText (var T:Text;TimeOut :PTimeVal):cint; deprecated;
-Function  SelectText (var T:Text;TimeOut :cint):cint; deprecated;
 
 {**  Directory Handling  **}
 
@@ -132,8 +118,6 @@ Type
 
 Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
-
-procedure SigRaise (sig:integer); deprecated;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
@@ -338,27 +322,12 @@ End;
 {$ifdef FPC_USE_LIBC}
 function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
 
-function fpsystem(const Command:string):cint;
-
-var c:array[0..255] of char;
-
-begin
-  move(command[1],c[0],length(command));
-  c[length(command)]:=#0;
-  fpsystem:=xfpsystem(@c);
-end;
-
 Function fpSystem(const Command:AnsiString):cint;
 begin
   fpsystem:=xfpsystem(pchar(command));
 end;
 
 {$else}
-Function fpSystem(const Command:string):cint; // deprecated helper.
-begin
-  fpsystem:=fpsystem(ansistring(command));
-end;
-
 Function fpSystem(const Command:AnsiString):cint;
 var
   pid,savedpid   : cint;
@@ -1151,15 +1120,6 @@ begin
    gethostname:=''
   else
    gethostname:=strpas(@Sysn.nodename[0]);
-end;
-
-{******************************************************************************
-                          Signal handling calls
-******************************************************************************}
-
-procedure SigRaise(sig:integer);
-begin
-  fpKill(fpGetPid,Sig);
 end;
 
 {******************************************************************************

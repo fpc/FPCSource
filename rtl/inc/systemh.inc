@@ -153,6 +153,9 @@ Type
     ValReal = Extended;
   {$endif}
 
+  {$define MOVE_HAS_SIZEUINT_COUNT}
+  {$define FILLCHAR_HAS_SIZEUINT_COUNT}
+
   {$if defined(FPC_MM_TINY)}
     {$define FPC_X86_CODE_NEAR}
     {$define FPC_X86_DATA_NEAR}
@@ -509,9 +512,11 @@ Type
   PCardinal           = ^Cardinal;
   PQWord              = ^QWord;
   PInt64              = ^Int64;
+  PUInt64             = ^UInt64;
   PPtrInt             = ^PtrInt;
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
+  PSizeUInt           = ^SizeUInt;
 
   PPByte              = ^PByte;
   PPLongint           = ^PLongint;
@@ -599,9 +604,17 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
-    asm_exit : Procedure;stdcall;
-    PascalMain : Procedure;stdcall;
+    ResourceStringTables : Pointer;
+    ResStrInitTables : Pointer;
+    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    WideInitTables : Pointer;
+    {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    ResLocation : Pointer;
+    PascalMain : Procedure;
     valgrind_used : boolean;
+    {$ifdef HAS_ENTRYINFORMATION_OS}
+    OS : TEntryInformationOS;
+    {$endif HAS_ENTRYINFORMATION_OS}
   end;
 
 
@@ -772,11 +785,11 @@ function StackTop: Pointer;
   {$endif}
 {$endif}
 
-Procedure Move(const source;var dest;count:SizeInt);
-Procedure FillChar(var x;count:SizeInt;Value:Byte);
-Procedure FillChar(var x;count:SizeInt;Value:Boolean);
-Procedure FillChar(var x;count:SizeInt;Value:Char);
-procedure FillByte(var x;count:SizeInt;value:byte);
+Procedure Move(const source;var dest;count:{$ifdef MOVE_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif});
+Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Byte);
+Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Boolean);
+Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Char);
+procedure FillByte(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value:byte);
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 procedure FillQWord(var x;count:SizeInt;value:QWord);
@@ -1578,6 +1591,16 @@ const
 *****************************************************************************}
 
 {$i resh.inc}
+
+
+{*****************************************************************************
+                          Exception support
+*****************************************************************************}
+
+{ contains the definition of the TExceptAddr type, which is required
+  by the compiler to generate code for any routine containing
+  implicit or explicit exceptions }
+{$i excepth.inc}
 
 {*****************************************************************************
                    FPDoc phony declarations.

@@ -28,7 +28,15 @@ Const
   //Message types
   mtUnknown = 0;
   mtString = 1;
-  
+
+type
+  TIPCMessageOverflowAction = (ipcmoaNone, ipcmoaDiscardOld, ipcmoaDiscardNew, ipcmoaError);
+
+var
+  // Currently implemented only for Windows platform!
+  DefaultIPCMessageOverflowAction: TIPCMessageOverflowAction = ipcmoaNone;
+  DefaultIPCMessageQueueLimit: Integer = 0;
+
 Type
 
   TMessageType = LongInt;
@@ -48,7 +56,7 @@ Type
     FOwner  : TSimpleIPCServer;
   Protected  
     Function  GetInstanceID : String; virtual; abstract;
-    Procedure DoError(Msg : String; Args : Array of const);
+    Procedure DoError(const Msg : String; const Args : Array of const);
     Procedure SetMsgType(AMsgType: TMessageType); 
     Function MsgData : TStream;
   Public
@@ -71,7 +79,7 @@ Type
     FBusy: Boolean;
     FActive : Boolean;
     FServerID : String;
-    Procedure DoError(Msg : String; Args : Array of const);
+    Procedure DoError(const Msg: String; const Args: array of const);
     Procedure CheckInactive;
     Procedure CheckActive;
     Procedure Activate; virtual; abstract;
@@ -99,13 +107,13 @@ Type
     Function CommClass : TIPCServerCommClass; virtual;
     Procedure Activate; override;
     Procedure Deactivate; override;
-    Procedure ReadMessage;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     Procedure StartServer;
     Procedure StopServer;
     Function PeekMessage(TimeOut : Integer; DoReadMessage : Boolean): Boolean;
+    Procedure ReadMessage;
     Property  StringMessage : String Read GetStringMessage;
     Procedure GetMessageData(Stream : TStream);
     Property  MsgType: TMessageType Read FMsgType;
@@ -122,7 +130,7 @@ Type
   private
     FOwner: TSimpleIPCClient;
   protected
-   Procedure DoError(Msg : String; Args : Array of const);
+    Procedure DoError(const Msg : String; const Args : Array of const);
   Public
     Constructor Create(AOwner : TSimpleIPCClient); virtual;
     Property  Owner : TSimpleIPCClient read FOwner;
@@ -195,7 +203,7 @@ begin
   FOwner:=AOWner;
 end;
 
-Procedure TIPCServerComm.DoError(Msg : String; Args : Array of const);
+Procedure TIPCServerComm.DoError(const Msg : String; const Args : Array of const);
 
 begin
   FOwner.DoError(Msg,Args);
@@ -222,7 +230,7 @@ begin
   FOwner:=AOwner;
 end;
 
-Procedure TIPCClientComm.DoError(Msg : String; Args : Array of const);
+Procedure TIPCClientComm.DoError(const Msg : String; const Args : Array of const);
 
 begin
   FOwner.DoError(Msg,Args);
@@ -232,9 +240,15 @@ end;
     TSimpleIPC
   ---------------------------------------------------------------------}
 
-procedure TSimpleIPC.DoError(Msg: String; Args: array of const);
+Procedure TSimpleIPC.DoError(const Msg: String; const Args: array of const);
+var
+  FullMsg: String;
 begin
-  Raise EIPCError.Create(Name+': '+Format(Msg,Args));
+  if Length(Name) > 0
+    then FullMsg := Name + ': '
+    else FullMsg := '';
+  FullMsg := FullMsg + Format(Msg, Args);
+  raise EIPCError.Create(FullMsg);
 end;
 
 procedure TSimpleIPC.CheckInactive;
@@ -351,10 +365,16 @@ begin
   FActive:=False;
 end;
 
-function TSimpleIPCServer.PeekMessage(TimeOut: Integer; DoReadMessage: Boolean
-  ): Boolean;
+// TimeOut values:
+//   >  0  -- number of milliseconds to wait
+//   =  0  -- return immediately
+//   = -1  -- wait infinitely
+//   < -1  -- wait infinitely (force to -1)
+function TSimpleIPCServer.PeekMessage(TimeOut: Integer; DoReadMessage: Boolean): Boolean;
 begin
   CheckActive;
+  if TimeOut < -1 then
+    TimeOut := -1;
   FBusy:=True;
   Try
     Result:=FIPCComm.PeekMessage(Timeout);

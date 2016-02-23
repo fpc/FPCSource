@@ -540,9 +540,17 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
-    asm_exit : Procedure;stdcall;
-    PascalMain : Procedure;stdcall;
+    ResourceStringTables : Pointer;
+    ResStrInitTables : Pointer;
+    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    WideInitTables : Pointer;
+    {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    ResLocation : Pointer;
+    PascalMain : Procedure;
     valgrind_used : boolean;
+    {$ifdef HAS_ENTRYINFORMATION_OS}
+    OS : TEntryInformationOS;
+    {$endif HAS_ENTRYINFORMATION_OS}
   end;
 *)
 

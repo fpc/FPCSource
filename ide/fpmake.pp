@@ -175,6 +175,8 @@ begin
     P.Dependencies.Add('regexpr');
     if not (NoGDBOption) and not (GDBMIOption) then
       P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
+    if GDBMIOption then
+      P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
@@ -192,7 +194,7 @@ begin
     P.Options.Add('-Fi../compiler/'+CPUToString(CompilerTarget));
     P.Options.Add('-Fi../compiler');
 
-    if CompilerTarget in [x86_64, i386] then
+    if CompilerTarget in [x86_64, i386, i8086] then
       P.Options.Add('-Fu../compiler/x86');
     if CompilerTarget in [powerpc, powerpc64] then
       P.Options.Add('-Fu../compiler/ppcgen');
@@ -201,6 +203,10 @@ begin
     if CompilerTarget = mipsel then
       P.Options.Add('-Fu../compiler/mips');
 
+    { Handle SPECIALLINK environment variable if available }
+    s:=GetEnvironmentVariable('SPECIALLINK');
+    if s<>'' then
+      P.Options.Add(s);
     P.Options.Add('-Sg');
     P.IncludePath.Add('compiler');
 
@@ -232,13 +238,13 @@ begin
       AddSrc('readme.txt');
       AddSrc('todo.txt');
       AddSrc('fp.ans');
-      AddSrcFiles('*.tdf');
-      AddSrcFiles('*.pas',true);
-      AddSrcFiles('*.inc',true);
-      AddSrcFiles('*.rc');
-      AddSrcFiles('*.ico');
-      AddSrcFiles('*.term');
-      AddSrcFiles('*.pt');
+      AddSrcFiles('*.tdf',P.Directory);
+      AddSrcFiles('*.pas',P.Directory,true);
+      AddSrcFiles('*.inc',P.Directory,true);
+      AddSrcFiles('*.rc',P.Directory);
+      AddSrcFiles('*.ico',P.Directory);
+      AddSrcFiles('*.term',P.Directory);
+      AddSrcFiles('*.pt',P.Directory);
      end;
 
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');

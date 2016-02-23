@@ -148,7 +148,10 @@ interface
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
             tf_cld,
             { indicates that the default value of the ts_x86_far_procs_push_odd_bp target switch is 'on' for this target }
-            tf_x86_far_procs_push_odd_bp
+            tf_x86_far_procs_push_odd_bp,
+            { indicates that this target can use dynamic packages otherwise an
+              error will be generated if a package file is compiled }
+            tf_supports_packages
        );
 
        psysteminfo = ^tsysteminfo;
@@ -357,7 +360,7 @@ interface
 
        { all systems where a value parameter passed by reference must be copied
          on the caller side rather than on the callee side }
-       systems_caller_copy_addr_value_para = [system_aarch64_darwin];
+       systems_caller_copy_addr_value_para = [system_aarch64_darwin,system_aarch64_linux];
 
        { pointer checking (requires special code in FPC_CHECKPOINTER,
          and can never work for libc-based targets or any other program
@@ -779,6 +782,10 @@ begin
     {$define default_target_set}
     default_target(system_i386_android);
    {$endif}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_i386_solaris);
+   {$endif}
   {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
@@ -889,7 +896,13 @@ begin
   {$ifdef cpusparc}
     default_target(source_info.system);
   {$else cpusparc}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_sparc_solaris);
+   {$endif}
+    {$ifndef default_target_set}
     default_target(system_sparc_linux);
+    {$endif ndef default_target_set}
   {$endif cpusparc}
 {$endif sparc}
 

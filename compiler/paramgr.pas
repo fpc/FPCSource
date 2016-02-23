@@ -403,7 +403,11 @@ implementation
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
             newparaloc^.def:=paraloc^.def;
-            newparaloc^.shiftval:=paraloc^.shiftval;
+            { shiftval overlaps with part of the reference, so it may be
+              different from 0 and if wr then force the newparaloc to a register
+              in the optimization below, shiftval will remain <> 0 }
+            if not(paraloc^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              newparaloc^.shiftval:=paraloc^.shiftval;
             { $warning maybe release this optimization for all targets?  }
             { released for all CPUs:
               i386 isn't affected anyways because it uses the stack to push parameters
@@ -560,7 +564,7 @@ implementation
             retloc.def:=tdef(p.owner.defowner);
             if not (is_implicit_pointer_object_type(retloc.def) or
                (retloc.def.typ<>objectdef)) then
-              retloc.def:=cpointerdef.getreusable(retloc.def);
+              retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
           end;
         retcgsize:=def_cgsize(retloc.def);
         retloc.intsize:=retloc.def.size;
@@ -568,7 +572,7 @@ implementation
         { Return is passed as var parameter }
         if ret_in_param(retloc.def,p) then
           begin
-            retloc.def:=cpointerdef.getreusable(retloc.def);
+            retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
             paraloc:=retloc.add_location;
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;
@@ -621,7 +625,7 @@ implementation
         else if restlen in [1,2,4,8] then
           result:=cgsize_orddef(int_cgsize(restlen))
         else
-          result:=carraydef.getreusable(u8inttype,restlen);
+          result:=carraydef.getreusable_no_free(u8inttype,restlen);
       end;
 
 

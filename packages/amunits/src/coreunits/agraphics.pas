@@ -2419,6 +2419,9 @@ PROCEDURE ON_SPRITE (cust: pCustom);
 PROCEDURE OFF_VBLANK (cust: pCustom);
 PROCEDURE ON_VBLANK (cust: pCustom);
 
+procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt); inline;
+function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
+
 function RasSize(w, h: Word): Integer;
 
 {Here we read how to compile this unit}
@@ -2537,6 +2540,16 @@ END;
 function RasSize(w, h: Word): Integer; inline;
 begin
   RasSize := h * (((w + 15) shr 3) and $FFFE);
+end;
+
+procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt); inline;
+begin
+  DrawEllipse(Rp, xCenter, yCenter, r, r);
+end;
+
+function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
+begin
+  AreaCircle := AreaEllipse(Rp, xCenter, yCenter, r, r);
 end;
 
 const

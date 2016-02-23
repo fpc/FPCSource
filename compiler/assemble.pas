@@ -735,7 +735,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in current_settings.globalswitches) and
                 (([cs_asm_extern,cs_asm_leave,cs_link_on_target] * current_settings.globalswitches) = []) and
-                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang]));
+                ((asminfo^.id in [as_gas,as_ggas,as_darwin,as_powerpc_xcoff,as_clang,as_solaris_as]));
       end;
 
 
@@ -927,14 +927,22 @@ Implementation
              Replace(result,'$ASM',maybequoted(AsmFileName));
            Replace(result,'$OBJ',maybequoted(ObjFileName));
          end;
+
          if (cs_create_pic in current_settings.moduleswitches) then
            Replace(result,'$PIC','-KPIC')
          else
            Replace(result,'$PIC','');
+
          if (cs_asm_source in current_settings.globalswitches) then
            Replace(result,'$NOWARN','')
          else
            Replace(result,'$NOWARN','-W');
+
+         if target_info.endian=endian_little then
+           Replace(result,'$ENDIAN','-mlittle')
+         else
+           Replace(result,'$ENDIAN','-mbig');
+
          Replace(result,'$EXTRAOPT',asmextraopt);
       end;
 
@@ -1557,6 +1565,9 @@ Implementation
 {$ifdef ARM}
                    asd_thumb_func:
                      ObjData.ThumbFunc:=true;
+                   asd_code:
+                     { ai_directive(hp).name can be only 16 or 32, this is checked by the reader }
+                     ObjData.ThumbFunc:=tai_directive(hp).name='16';
 {$endif ARM}
                    else
                      internalerror(2010011101);
@@ -1698,6 +1709,9 @@ Implementation
                      { ignore for now, but should be added}
                      ;
                    asd_thumb_func:
+                     { ignore for now, but should be added}
+                     ;
+                   asd_code:
                      { ignore for now, but should be added}
                      ;
                    else
@@ -1861,6 +1875,15 @@ Implementation
                        internalerror(2015040601)
                      else
                        ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
+                   aitconst_seg:
+                     if assigned(tai_const(hp).sym) and (tai_const(hp).size=2) then
+                       ObjData.writereloc(0,2,Objdata.SymbolRef(tai_const(hp).sym),RELOC_SEG)
+                     else
+                       internalerror(2015110502);
+                   aitconst_dgroup:
+                     ObjData.writereloc(0,2,nil,RELOC_DGROUP);
+                   aitconst_fardataseg:
+                     ObjData.writereloc(0,2,nil,RELOC_FARDATASEG);
 {$endif i8086}
 {$ifdef arm}
                    aitconst_got:
@@ -1907,10 +1930,21 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
-             ait_weak:
+             ait_directive :
                begin
-                 objsym:=ObjData.symbolref(tai_weak(hp).sym^);
-                 objsym.bind:=AB_WEAK_EXTERNAL;
+                 case tai_directive(hp).directive of
+                   asd_weak_definition,
+                   asd_weak_reference:
+                     begin
+                       objsym:=ObjData.symbolref(tai_directive(hp).name);
+                       if objsym.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL] then
+                         objsym.bind:=AB_WEAK_EXTERNAL
+                       else
+                         { TODO: should become a weak definition; for now, do
+                             the same as what was done for ait_weak }
+                         objsym.bind:=AB_WEAK_EXTERNAL;
+                     end
+                 end
                end;
              ait_symbolpair:
                begin

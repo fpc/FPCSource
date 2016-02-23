@@ -41,7 +41,7 @@ implementation
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,ngenutil,
        nbas,nutils,ncgutil,
-       link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
+       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
        objcgutl,
@@ -173,7 +173,7 @@ implementation
         CheckResourcesUsed:=found;
       end;
 
-    procedure AddUnit(const s:string);
+    function AddUnit(const s:string): tppumodule;
       var
         hp : tppumodule;
         unitsym : tunitsym;
@@ -193,6 +193,7 @@ implementation
         tabstractunitsymtable(current_module.localsymtable).insertunit(unitsym);
         { add to used units }
         current_module.addusedunit(hp,false,unitsym);
+        result:=hp;
       end;
 
 
@@ -351,6 +352,13 @@ implementation
 
         if m_iso in current_settings.modeswitches then
           AddUnit('iso7185');
+
+        if m_extpas in current_settings.modeswitches then
+          begin
+            { basic procedures for Extended Pascal are for now provided by the iso unit }
+            AddUnit('iso7185');
+            AddUnit('extpas');
+          end;
 
         { blocks support? }
         if m_blocks in current_settings.modeswitches then
@@ -544,7 +552,34 @@ implementation
                     pd.localst.free;
                     pd.localst:=nil;
                   end;
+                pd.freeimplprocdefinfo;
+                pd.done_paraloc_info(calleeside);
               end;
+          end;
+      end;
+
+
+    procedure free_unregistered_localsymtable_elements;
+      var
+        i: longint;
+        def: tdef;
+        sym: tsym;
+      begin
+        { from high to low so we hopefully have moves of less data }
+        for i:=current_module.localsymtable.symlist.count-1 downto 0 do
+          begin
+            sym:=tsym(current_module.localsymtable.symlist[i]);
+            { this also frees sym, as the symbols are owned by the symtable }
+            if not sym.is_registered then
+              current_module.localsymtable.Delete(sym);
+          end;
+        for i:=current_module.localsymtable.deflist.count-1 downto 0 do
+          begin
+            def:=tdef(current_module.localsymtable.deflist[i]);
+            { this also frees def, as the defs are owned by the symtable }
+            if not def.is_registered and
+               not(df_not_registered_no_free in def.defoptions) then
+              current_module.localsymtable.deletedef(def);
           end;
       end;
 
@@ -617,7 +652,7 @@ implementation
            begin
              { insert symbol for got access in assembler code}
              gotvarsym:=cstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
-                          vs_value,voidpointertype,[vo_is_external]);
+                          vs_value,voidpointertype,[vo_is_external],true);
              gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
              current_module.localsymtable.insert(gotvarsym);
              { avoid unnecessary warnings }
@@ -1129,7 +1164,9 @@ type
                  init_procinfo.code:=cnodeutils.wrap_proc_body(init_procinfo.procdef,init_procinfo.code);
                  init_procinfo.generate_code;
                  current_module.flags:=current_module.flags or uf_init;
-               end;
+               end
+             else
+               release_proc_symbol(init_procinfo.procdef);
              init_procinfo.resetprocdef;
              release_main_proc(init_procinfo);
            end;
@@ -1142,7 +1179,9 @@ type
                  finalize_procinfo.code:=cnodeutils.wrap_proc_body(finalize_procinfo.procdef,finalize_procinfo.code);
                  finalize_procinfo.generate_code;
                  current_module.flags:=current_module.flags or uf_finalize;
-               end;
+               end
+             else
+               release_proc_symbol(finalize_procinfo.procdef);
              finalize_procinfo.resetprocdef;
              release_main_proc(finalize_procinfo);
            end;
@@ -1255,6 +1294,8 @@ type
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename);
 {$endif EXTDEBUG}
 
+         { release unregistered defs/syms from the localsymtable }
+         free_unregistered_localsymtable_elements;
          { release local symtables that are not needed anymore }
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
@@ -1335,7 +1376,7 @@ type
       begin
         hp:=texported_item.create;
         hp.name:=stringdup(s);
-        hp.options:=hp.options or eo_name;
+        include(hp.options,eo_name);
         exportlib.exportprocedure(hp);
       end;
 
@@ -1346,7 +1387,7 @@ type
       begin
         hp:=texported_item.create;
         hp.name:=stringdup(s);
-        hp.options:=hp.options or eo_name;
+        include(hp.options,eo_name);
         exportlib.exportvar(hp);
       end;
 
@@ -1430,7 +1471,7 @@ type
            Comment(V_Error,'Not a PPU File : '+PPUFn);
            Exit;
          end;
-        ppuversion:=inppu.GetPPUVersion;
+        ppuversion:=inppu.getversion;
         if ppuversion<CurrentPPUVersion then
          begin
            inppu.free;
@@ -1438,28 +1479,28 @@ type
            Exit;
          end;
       { No .o file generated for this ppu, just skip }
-        if (inppu.header.flags and uf_no_link)<>0 then
+        if (inppu.header.common.flags and uf_no_link)<>0 then
          begin
            inppu.free;
            Result:=true;
            Exit;
          end;
       { Already a lib? }
-        if (inppu.header.flags and uf_in_library)<>0 then
+        if (inppu.header.common.flags and uf_in_library)<>0 then
          begin
            inppu.free;
            Comment(V_Error,'PPU is already in a library : '+PPUFn);
            Exit;
          end;
       { We need a static linked unit }
-        if (inppu.header.flags and uf_static_linked)=0 then
+        if (inppu.header.common.flags and uf_static_linked)=0 then
          begin
            inppu.free;
            Comment(V_Error,'PPU is not static linked : '+PPUFn);
            Exit;
          end;
       { Check if shared is allowed }
-        if tsystem(inppu.header.target) in [system_i386_go32v2] then
+        if tsystem(inppu.header.common.target) in [system_i386_go32v2] then
          begin
            Comment(V_Error,'Shared library not supported for ppu target, switching to static library');
            MakeStatic:=true;
@@ -1472,11 +1513,11 @@ type
         outppu.createfile;
       { Create new header, with the new flags }
         outppu.header:=inppu.header;
-        outppu.header.flags:=outppu.header.flags or uf_in_library;
+        outppu.header.common.flags:=outppu.header.common.flags or uf_in_library;
         if MakeStatic then
-         outppu.header.flags:=outppu.header.flags or uf_static_linked
+         outppu.header.common.flags:=outppu.header.common.flags or uf_static_linked
         else
-         outppu.header.flags:=outppu.header.flags or uf_shared_linked;
+         outppu.header.common.flags:=outppu.header.common.flags or uf_shared_linked;
       { read until the object files are found }
         untilb:=iblinkunitofiles;
         repeat
@@ -1628,6 +1669,9 @@ type
          {main_procinfo:=nil;
          init_procinfo:=nil;
          finalize_procinfo:=nil;}
+
+         if not (tf_supports_packages in target_info.flags) then
+           message1(parser_e_packages_not_supported,target_info.name);
 
          if not RelocSectionSetExplicitly then
            RelocSection:=true;
@@ -1938,8 +1982,8 @@ type
          textsym : ttypesym;
          sc : array of TProgramParam;
          i : Longint;
+         sysinitmod: tmodule;
       begin
-         DLLsource:=islibrary;
          Status.IsLibrary:=IsLibrary;
          Status.IsPackage:=false;
          Status.IsExe:=true;
@@ -2000,7 +2044,11 @@ type
               exportlib.preparelib(program_name);
 
               if tf_library_needs_pic in target_info.flags then
-                include(current_settings.moduleswitches,cs_create_pic);
+                begin
+                  include(current_settings.moduleswitches,cs_create_pic);
+                  { also set create_pic for all unit compilation }
+                  include(init_settings.moduleswitches,cs_create_pic);
+                end;
 
               { setup things using the switches, do this before the semicolon, because after the semicolon has been
                 read, all following directives are parsed as well }
@@ -2029,7 +2077,7 @@ type
                    consume(_LKLAMMER);
                    paramnum:=1;
                    repeat
-                     if m_iso in current_settings.modeswitches then
+                     if m_isolike_program_para in current_settings.modeswitches then
                        begin
                          if (pattern<>'INPUT') and (pattern<>'OUTPUT') then
                            begin
@@ -2288,8 +2336,10 @@ type
          if target_info.system in systems_internal_sysinit then
          begin
            { add start/halt unit }
-           AddUnit(linker.sysinitunit);
-         end;
+           sysinitmod:=AddUnit(linker.sysinitunit);
+         end
+         else
+           sysinitmod:=nil;
 
 {$ifdef arm}
          { Insert .pdata section for arm-wince.
@@ -2379,13 +2429,18 @@ type
                  { write .def file }
                  if (cs_link_deffile in current_settings.globalswitches) then
                   deffile.writefile;
+                 { link SysInit (if any) first, to have behavior consistent with
+                   assembler startup files }
+                 if assigned(sysinitmod) then
+                   linker.AddModuleFiles(sysinitmod);
                  { insert all .o files from all loaded units and
                    unload the units, we don't need them anymore.
                    Keep the current_module because that is still needed }
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    linker.AddModuleFiles(hp);
+                    if (hp<>sysinitmod) then
+                      linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
@@ -2399,7 +2454,7 @@ type
                  if not needsymbolinfo then
                    unloaded_units.Clear;
                  { finally we can create a executable }
-                 if DLLSource then
+                 if current_module.islibrary then
                    linker.MakeSharedLibrary
                  else
                    linker.MakeExecutable;

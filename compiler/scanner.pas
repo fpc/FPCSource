@@ -136,11 +136,9 @@ interface
 
           comment_level,
           yylexcount     : longint;
-          lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           replaystack    : treplaystack;
-          in_asm_string  : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
@@ -216,12 +214,11 @@ interface
           function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
-          procedure skipcomment;
+          procedure skipcomment(read_first_char:boolean);
           procedure skipdelphicomment;
-          procedure skipoldtpcomment;
+          procedure skipoldtpcomment(read_first_char:boolean);
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
-          function  asmgetcharstart : char;
           function  asmgetchar:char;
        end;
 
@@ -499,6 +496,9 @@ implementation
          if s='ISO' then
           current_settings.modeswitches:=isomodeswitches
         else
+         if s='EXTENDEDPASCAL' then
+          current_settings.modeswitches:=extpasmodeswitches
+        else
          b:=false;
 
 {$ifdef jvm}
@@ -516,16 +516,16 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal }
-           if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
                if changeinit then
                  include(init_settings.localswitches,cs_bitpacking);
              end;
 
-           { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
+           if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then
@@ -918,12 +918,12 @@ type
         variables are initialised. Since these types are only used for
         compile-time evaluation of conditional expressions, it doesn't matter
         that we use the base types instead of the cpu-specific ones. }
-      sintdef:=torddef.create(s64bit,low(int64),high(int64));
-      uintdef:=torddef.create(u64bit,low(qword),high(qword));
-      booldef:=torddef.create(pasbool8,0,1);
-      strdef:=tstringdef.createansi(0);
-      setdef:=tsetdef.create(sintdef,0,255);
-      realdef:=tfloatdef.create(s80real);
+      sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
+      uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
+      booldef:=torddef.create(pasbool8,0,1,false);
+      strdef:=tstringdef.createansi(0,false);
+      setdef:=tsetdef.create(sintdef,0,255,false);
+      realdef:=tfloatdef.create(s80real,false);
     end;
 
   class destructor texprvalue.destroydefs;
@@ -2647,9 +2647,7 @@ type
         nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
-        lastasmgetchar:=#0;
         ignoredirectives:=TFPHashList.Create;
-        in_asm_string:=false;
       end;
 
 
@@ -4373,7 +4371,7 @@ type
                         end
                        else
                         begin
-                          skipoldtpcomment;
+                          skipoldtpcomment(false);
                           next_char_loaded:=true;
                         end;
                      end
@@ -4410,10 +4408,11 @@ type
                              Comment Handling
 ****************************************************************************}
 
-    procedure tscannerfile.skipcomment;
+    procedure tscannerfile.skipcomment(read_first_char:boolean);
       begin
         current_commentstyle:=comment_tp;
-        readchar;
+        if read_first_char then
+          readchar;
         inc_comment_level;
       { handle compiler switches }
         if (c='$') then
@@ -4458,7 +4457,7 @@ type
       end;
 
 
-    procedure tscannerfile.skipoldtpcomment;
+    procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
       var
         found : longint;
       begin
@@ -4466,7 +4465,7 @@ type
         inc_comment_level;
         { only load a char if last already processed,
           was cause of bug1634 PM }
-        if c=#0 then
+        if read_first_char then
           readchar;
       { this is now supported }
         if (c='$') then
@@ -4574,7 +4573,7 @@ type
         repeat
           case c of
             '{' :
-              skipcomment;
+              skipcomment(true);
             #26 :
               begin
                 reload;
@@ -4813,8 +4812,7 @@ type
                  case c of
                    '*' :
                      begin
-                       c:=#0;{Signal skipoldtpcomment to reload a char }
-                       skipoldtpcomment;
+                       skipoldtpcomment(true);
                        readtoken(false);
                        exit;
                      end;
@@ -5495,87 +5493,17 @@ exit_label:
       end;
 
 
-    function tscannerfile.asmgetcharstart : char;
-      begin
-        { return first the character already
-          available in c }
-        lastasmgetchar:=c;
-        result:=asmgetchar;
-      end;
-
-
     function tscannerfile.asmgetchar : char;
       begin
-         if lastasmgetchar<>#0 then
-          begin
-            c:=lastasmgetchar;
-            lastasmgetchar:=#0;
-          end
-         else
-          readchar;
-         if in_asm_string then
-           begin
-             asmgetchar:=c;
-             exit;
-           end;
+         readchar;
          repeat
            case c of
-             // the { ... } is used in ARM assembler to define register sets,  so we can't used
-             // it as comment, either (* ... *), /* ... */ or // ... should be used instead.
-             // But compiler directives {$...} are allowed in ARM assembler.
-             '{' :
-               begin
-{$ifdef arm}
-                 readchar;
-                 dec(inputpointer);
-                 if c<>'$' then
-                   begin
-                     asmgetchar:='{';
-                     exit;
-                   end
-                 else
-{$endif arm}
-                   skipcomment;
-               end;
-             #10,#13 :
-               begin
-                 linebreak;
-                 asmgetchar:=c;
-                 exit;
-               end;
              #26 :
                begin
                  reload;
                  if (c=#26) and not assigned(inputfile.next) then
                    end_of_file;
                  continue;
-               end;
-             '/' :
-               begin
-                  readchar;
-                  if c='/' then
-                   skipdelphicomment
-                  else
-                   begin
-                     asmgetchar:='/';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
-               end;
-             '(' :
-               begin
-                  readchar;
-                  if c='*' then
-                   begin
-                     c:=#0;{Signal skipoldtpcomment to reload a char }
-                     skipoldtpcomment;
-                   end
-                  else
-                   begin
-                     asmgetchar:='(';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
                end;
              else
                begin

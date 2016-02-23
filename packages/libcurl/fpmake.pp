@@ -33,7 +33,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testcurl.pp');
     P.Targets.AddExampleProgram('teststream.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 
 {$ifndef ALLPACKAGES}

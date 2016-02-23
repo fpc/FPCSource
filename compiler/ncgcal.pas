@@ -105,11 +105,11 @@ interface
 
           { loads the code pointer of a complex procvar (one with a self/
             parentfp/... and a procedure address) into a register and returns it }
-          function load_complex_procvar_codeptr: tregister; virtual;
-          { loads the procvar code pointer into a register }
-          function load_procvar_codeptr: tregister;
+          procedure load_complex_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef); virtual;
+          { loads the procvar code pointer into a register with type def }
+          procedure load_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef);
 
-          procedure load_block_invoke(toreg: tregister);virtual;
+          procedure load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);
 
           function get_call_reg(list: TAsmList): tregister; virtual;
           procedure unget_call_reg(list: TAsmList; reg: tregister); virtual;
@@ -436,23 +436,17 @@ implementation
       end;
 
 
-    procedure tcgcallnode.load_block_invoke(toreg: tregister);
+    procedure tcgcallnode.load_block_invoke(toreg: tregister; out callprocdef: tabstractprocdef);
       var
         href: treference;
-        srsym: tsym;
-        srsymtable: tsymtable;
         literaldef: trecorddef;
       begin
         literaldef:=get_block_literal_type_for_proc(tabstractprocdef(right.resultdef));
         hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cpointerdef.getreusable(literaldef),true);
         { load the invoke pointer }
         hlcg.reference_reset_base(href,right.resultdef,right.location.register,0,right.resultdef.alignment);
-        if not searchsym_in_record(literaldef,'INVOKE',srsym,srsymtable) or
-           (srsym.typ<>fieldvarsym) or
-           (tfieldvarsym(srsym).vardef<>voidpointertype) then
-          internalerror(2014071506);
-        href.offset:=tfieldvarsym(srsym).fieldoffset;
-        hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(srsym).vardef,procdefinition,href,toreg);
+        hlcg.g_load_field_reg_by_name(current_asmdata.CurrAsmList,literaldef,procdefinition,'INVOKE',href,toreg);
+        callprocdef:=procdefinition;
       end;
 
 
@@ -631,7 +625,14 @@ implementation
                begin
                  { don't release the funcret temp }
                  if not(assigned(ppn.parasym)) or
-                    not(vo_is_funcret in ppn.parasym.varoptions) then
+                    not(
+                      (vo_is_funcret in ppn.parasym.varoptions) or
+                      (
+                        (vo_is_self in ppn.parasym.varoptions) and
+                        (procdefinition.proctypeoption=potype_constructor) and
+                        (ppn.parasym.vardef.typ<>objectdef)
+                      )
+                    )then
                    location_freetemp(current_asmdata.CurrAsmList,ppn.left.location);
                  { process also all nodes of an array of const }
                  hp:=ppn.left;
@@ -778,18 +779,17 @@ implementation
        end;
 
 
-     function tcgcallnode.load_complex_procvar_codeptr: tregister;
+     procedure tcgcallnode.load_complex_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef);
        var
          srcreg: tregister;
-         codeprocdef: tabstractprocdef;
        begin
          { this is safe even on i8086, because procvardef code pointers are
            always far there (so the current state of far calls vs the state
            of far calls where the procvardef was defined does not matter,
            even though the procvardef constructor called by getcopyas looks at
            it) }
-         codeprocdef:=cprocvardef.getreusableprocaddr(procdefinition);
-         result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,codeprocdef);
+         callprocdef:=cprocvardef.getreusableprocaddr(procdefinition);
+         reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,callprocdef);
          { in case we have a method pointer on a big endian target in registers,
            the method address is stored in registerhi (it's the first field
            in the tmethod record) }
@@ -801,31 +801,33 @@ implementation
                srcreg:=right.location.registerhi
              else
                srcreg:=right.location.register;
-             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,srcreg,result)
+             hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,callprocdef,callprocdef,srcreg,reg)
            end
          else
            begin
              hlcg.location_force_mem(current_asmdata.CurrAsmList,right.location,procdefinition);
-             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(procdefinition),cpointerdef.getreusable(codeprocdef),right.location.reference);
-             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,codeprocdef,codeprocdef,right.location.reference,result);
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(procdefinition),cpointerdef.getreusable(callprocdef),right.location.reference);
+             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,callprocdef,callprocdef,right.location.reference,reg);
            end;
        end;
 
 
-     function tcgcallnode.load_procvar_codeptr: tregister;
+     procedure tcgcallnode.load_procvar_codeptr(out reg: tregister; out callprocdef: tabstractprocdef);
        begin
          if po_is_block in procdefinition.procoptions then
            begin
-             result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
-             load_block_invoke(result);
+             reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
+             load_block_invoke(reg,callprocdef);
            end
          else if not(procdefinition.is_addressonly) then
-           result:=load_complex_procvar_codeptr
+           load_complex_procvar_codeptr(reg,callprocdef)
          else
            begin
-             result:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
-             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,procdefinition,procdefinition,right.location,result);
+             reg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,procdefinition);
+             hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,procdefinition,procdefinition,right.location,reg);
+             callprocdef:=procdefinition;
            end;
+         callprocdef.init_paraloc_info(callerside);
        end;
 
 
@@ -860,6 +862,7 @@ implementation
         pvreg : tregister;
         oldaktcallnode : tcallnode;
         retlocitem: pcgparalocation;
+        callpvdef: tabstractprocdef;
         pd : tprocdef;
         callref: boolean;
 {$ifdef vtentry}
@@ -1013,6 +1016,7 @@ implementation
                    retloc:=do_call_ref(href)
                  else
                    begin
+                     hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,vmt_entry.resultdef,cpointerdef.getreusable(procdefinition),pvreg);
                      retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,tabstractprocdef(procdefinition),pvreg,paralocs);
                      unget_call_reg(current_asmdata.CurrAsmList,pvreg);
                    end;
@@ -1074,9 +1078,12 @@ implementation
                 end;
 
               if not callref then
-                pvreg:=load_procvar_codeptr
+                load_procvar_codeptr(pvreg,callpvdef)
               else
-                pvreg:=NR_INVALID;
+                begin
+                  pvreg:=NR_INVALID;
+                  callpvdef:=nil;
+                end;
               location_freetemp(current_asmdata.CurrAsmList,right.location);
 
               { Load parameters that are in temporary registers in the
@@ -1110,7 +1117,7 @@ implementation
               if callref then
                 retloc:=do_call_ref(href)
               else
-                retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,procdefinition,pvreg,paralocs);
+                retloc:=hlcg.a_call_reg(current_asmdata.CurrAsmList,callpvdef,pvreg,paralocs);
               extra_post_call_code;
            end;
 

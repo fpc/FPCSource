@@ -134,7 +134,7 @@ implementation
                      objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
                  reference_reset_symbol(href,tasmlabel(entry^.Data),0,voidpointertype.size);
-                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
+                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,objc_idtype,objc_idtype,href,location.register);
                end;
            end
          else
@@ -289,9 +289,7 @@ implementation
          if (cs_use_heaptrc in current_settings.globalswitches) and
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
-{$ifdef x86}
-            (tcpupointerdef(left.resultdef).x86pointertyp = tcpupointerdefclass(cpointerdef).default_x86_data_pointer_type) and
-{$endif x86}
+            tpointerdef(left.resultdef).compatible_with_pointerdef_size(tpointerdef(voidpointertype)) and
             not(nf_no_checkpointer in flags) and
             { can be NR_NO in case of LOC_CONSTANT }
             (location.reference.base<>NR_NO) then
@@ -526,6 +524,7 @@ implementation
              }
              asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname);
              reference_reset_symbol(tmpref,asmsym,0,sizeof(pint));
+             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference);
              location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
@@ -766,20 +765,22 @@ implementation
                firstpass(hightree);
                secondpass(hightree);
                { generate compares }
+{$ifndef cpuhighleveltarget}
                if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                  hreg:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_INT)
                else
+{$endif not cpuhighleveltarget}
                  begin
-                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hreg);
+                   hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ossinttype);
+                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,ossinttype,right.location,hreg);
                  end;
                current_asmdata.getjumplabel(neglabel);
                current_asmdata.getjumplabel(poslabel);
-               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_LT,0,hreg,poslabel);
-               cg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-               cg.a_label(current_asmdata.CurrAsmList,poslabel);
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RANGEERROR',false);
-               cg.a_label(current_asmdata.CurrAsmList,neglabel);
+               hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,ossinttype,OC_LT,0,hreg,poslabel);
+               hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,osuinttype,OC_BE,hightree.location,hreg,neglabel);
+               hlcg.a_label(current_asmdata.CurrAsmList,poslabel);
+               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_rangeerror',[],nil).resetiftemp;
+               hlcg.a_label(current_asmdata.CurrAsmList,neglabel);
                { release hightree }
                hightree.free;
              end;
@@ -965,8 +966,10 @@ implementation
            begin
               { may happen in case of function results }
               case left.location.loc of
+                LOC_CSUBSETREG,
                 LOC_CREGISTER,
                 LOC_CMMREGISTER,
+                LOC_SUBSETREG,
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);

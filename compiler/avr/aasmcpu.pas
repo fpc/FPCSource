@@ -422,7 +422,6 @@ implementation
                       end;
                     ait_align:
                       inc(CurrOffset,tai_align(curtai).aligntype);
-                    ait_weak,
                     ait_symbolpair,
                     ait_marker:
                       ;

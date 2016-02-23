@@ -65,6 +65,10 @@ interface
             replace this explicit type conversion with a different node, or to
             reject it after all }
           function target_specific_explicit_typeconv: boolean;virtual;
+
+          { called when inserttypeconv is used to convert to a def that is equal
+            according to compare_defs() }
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; virtual;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -326,7 +330,8 @@ implementation
           still expects the resultdef of the node to be a stringdef) }
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
-           not is_bitpacked_access(p) then
+           not is_bitpacked_access(p) and
+           not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def) then
           begin
             { don't replace encoded string constants to rawbytestring encoding.
               preserve the codepage }
@@ -643,7 +648,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -1426,6 +1431,8 @@ implementation
         else
           begin
             result:=cinlinenode.create(in_round_real,false,left);
+            { Internal type cast to currency }
+            result:=ctypeconvnode.create_internal(result,s64currencytype);
             left:=nil;
           end;
       end;
@@ -1981,6 +1988,12 @@ implementation
 
 
     function ttypeconvnode.target_specific_explicit_typeconv: boolean;
+      begin
+        result:=false;
+      end;
+
+
+    class function ttypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
       begin
         result:=false;
       end;
@@ -2595,8 +2608,12 @@ implementation
             end;
           typeconvn:
             begin
-              n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
+              { may change the type conversion, e.g. if the old conversion was
+                from 64 bit to a 64 bit, and now becomes 64 bit to 32 bit }
+              n.resultdef:=nil;
+              ttypeconvnode(n).convtype:=tc_none;
+              typecheckpass(n);
             end;
           else
             inserttypeconv_internal(n,todef);
@@ -2637,14 +2654,17 @@ implementation
           remove the typeconv node }
         case left.nodetype of
           stringconstn :
-            if (convtype=tc_string_2_string) and
-               (resultdef.typ=stringdef) and
-              (
-                ((not is_widechararray(left.resultdef) and
-                  not is_wide_or_unicode_string(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+            if (resultdef.typ=stringdef) and
+               ((convtype=tc_equal) or
+                ((convtype=tc_string_2_string) and
+                 (
+                  ((not is_widechararray(left.resultdef) and
+                    not is_wide_or_unicode_string(left.resultdef)) or
+                   (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+                  )
+                 )
                 )
-              ) then
+               ) then
               begin
                 { output string consts in local ansistring encoding }
                 if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then

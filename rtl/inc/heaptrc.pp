@@ -86,7 +86,7 @@ const
   printleakedblock: boolean = false;
   printfaultyblock: boolean = false;
   maxprintedblocklength: integer = 128;
-  
+
   GlobalSkipIfNoLeaks : Boolean = False;
 
 implementation
@@ -512,7 +512,7 @@ begin
   { clear the memory }
   fillchar(p^,size,#255);
   { retrieve backtrace info }
-  CaptureBacktrace(1,tracesize-1,@pp^.calls[1]);
+  CaptureBacktrace(1,tracesize,@pp^.calls[1]);
 
   { insert in the linked list }
   if loc_info^.heap_mem_root<>nil then
@@ -868,7 +868,7 @@ begin
   inc(loc_info^.getmem_size,size);
   inc(loc_info^.getmem8_size,(size+7) and not 7);
   { generate new backtrace }
-  CaptureBacktrace(1,tracesize-1,@pp^.calls[1]);
+  CaptureBacktrace(1,tracesize,@pp^.calls[1]);
   { regenerate signature }
   if usecrc then
     pp^.sig:=calculate_sig(pp);
@@ -915,7 +915,7 @@ var
    edata : ptruint; external name '__data_end__';
    sbss : ptruint; external name '__bss_start__';
    ebss : ptruint; external name '__bss_end__';
-   TLSKey : DWord; external name '_FPC_TlsKey';
+   TLSKey : PDWord; external name '_FPC_TlsKey';
    TLSSize : DWord; external name '_FPC_TlsSize';
 
 function TlsGetValue(dwTlsIndex : DWord) : pointer;
@@ -989,9 +989,9 @@ begin
   if (ptruint(p)>=ptruint(@sbss)) and (ptruint(p)<ptruint(@ebss)) then
     exit;
   { is program multi-threaded and p inside Threadvar range? }
-  if TlsKey<>-1 then
+  if TlsKey^<>-1 then
     begin
-      datap:=TlsGetValue(tlskey);
+      datap:=TlsGetValue(tlskey^);
       if ((ptruint(p)>=ptruint(datap)) and
           (ptruint(p)<ptruint(datap)+TlsSize)) then
         exit;
@@ -1128,7 +1128,7 @@ begin
   else
     ptext:=textoutput;
   pp:=loc_info^.heap_mem_root;
-  if ((loc_info^.getmem_size-loc_info^.freemem_size)=0) and SkipIfNoLeaks then 
+  if ((loc_info^.getmem_size-loc_info^.freemem_size)=0) and SkipIfNoLeaks then
     exit;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,loc_info^.getmem_cnt, ' memory blocks allocated : ',

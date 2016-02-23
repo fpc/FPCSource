@@ -1030,6 +1030,7 @@ reg32,reg32,reg32          \x80\xFB\x40\xF0\x0                 THUMB32,ARMv6T2
 reg32,reg32,reg32          \x15\x7\x00\x5\xF                   ARM32,ARMv6
 
 [SRScc]
+[RFEcc]
 
 [SSATcc]
 reg32,immshifter,reg32            \x83\xF3\x00\x0\x0          THUMB32,ARMv6T2

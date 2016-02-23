@@ -25,6 +25,7 @@ begin
   T:=P.Targets.AddUnit('xml2.pas');
   with T.Dependencies do
     begin
+      AddInclude('xml2.inc');
       AddInclude('xinclude.inc');
       AddInclude('xpointer.inc');
       AddInclude('HTMLparser.inc');
@@ -87,7 +88,7 @@ begin
     P.Targets.AddExampleProgram('tree2.pas');
     P.Targets.AddExampleProgram('exutils.pas');
     P.Targets.AddExampleProgram('reader2.pas');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -105,8 +105,8 @@ implementation
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
              left.resultdef, opdef, true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, left.location,
-             setbase);
+            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, opdef,
+             left.location, setbase);
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
              right.resultdef, right.resultdef, true);
 

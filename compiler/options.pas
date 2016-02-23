@@ -1007,7 +1007,7 @@ begin
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
           ((length(opt)>3) and (opt[2]='C') and (opt[3]='p')) or
-          ((length(opt)>3) and (opt[2]='W') and (opt[3]='m'))
+          ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
          )
         ) then
     exit;
@@ -1178,7 +1178,13 @@ begin
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
-                         if (code<>0) or (heapsize<1024) then
+                         if (code<>0)
+{$ifdef AVR}
+                         or (heapsize<32)
+{$else AVR}
+                         or (heapsize<1024)
+{$endif AVR}
+                         then
                            IllegalPara(opt);
                          break;
                       end;
@@ -2486,6 +2492,16 @@ begin
                       begin
                         ForceStaticLinking;
                       end;
+                    'V' :
+                      begin
+                        If UnsetBool(More, j, opt, false) then
+                          exclude(init_settings.globalswitches,cs_link_vlink)
+                        else
+                          begin
+                            include(init_settings.globalswitches,cs_link_vlink);
+                            include(init_settings.globalswitches,cs_link_extern);
+                          end;
+                      end;
                     'X' :
                       begin
                         def_system_macro('FPC_LINK_SMART');
@@ -3419,7 +3435,6 @@ begin
 {$ifdef i8086}
   def_system_macro('CPU86');  { Borland compatibility }
   def_system_macro('CPU87');  { Borland compatibility }
-  def_system_macro('CPU8086');
   def_system_macro('CPUI8086');
   def_system_macro('CPU16');
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
@@ -3474,8 +3489,13 @@ begin
   if target_info.system in systems_embedded then
     begin
       case target_info.system of
+{$ifdef AVR}
         system_avr_embedded:
-          heapsize:=128;
+          if init_settings.controllertype=ct_avrsim then
+            heapsize:=8192
+          else
+            heapsize:=128;
+{$endif AVR}
         system_arm_embedded:
           heapsize:=256;
         system_mipsel_embedded:
@@ -3686,7 +3706,14 @@ begin
   if not(cs_link_extern in init_settings.globalswitches) and
      ((target_info.link=ld_none) or
       (cs_link_nolink in init_settings.globalswitches)) then
-    include(init_settings.globalswitches,cs_link_extern);
+    begin
+      include(init_settings.globalswitches,cs_link_extern);
+{$ifdef hasamiga}
+      { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
+      if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
+        include(init_settings.globalswitches,cs_link_vlink);
+{$endif}
+    end;
 
   { turn off stripping if compiling with debuginfo or profile }
   if (
@@ -3755,11 +3782,11 @@ begin
       end;
     system_arm_android:
       begin
-        { set default cpu type to ARMv6 for Android unless specified otherwise }
+        { set default cpu type to ARMv5T for Android unless specified otherwise }
         if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_armv6;
+          init_settings.cputype:=cpu_armv5t;
         if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_armv6;
+          init_settings.optimizecputype:=cpu_armv5t;
       end;
   end;
 

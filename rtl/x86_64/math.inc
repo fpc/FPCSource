@@ -128,7 +128,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;nostackframe;
+    assembler;
     asm
       fldt d
       fsqrt
@@ -147,7 +147,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;nostackframe;
+    assembler;
     asm
       fldt d
       fld1
@@ -164,7 +164,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;nostackframe;
+    assembler;
     asm
       fldln2
       fldt d
@@ -181,7 +181,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;nostackframe;
+    assembler;
     asm
       fldt d
       fsin
@@ -197,7 +197,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;nostackframe;
+    assembler;
     asm
       fldt d
       fcos

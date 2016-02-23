@@ -344,11 +344,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 LOADERS=prt0 dllprt0 cprt0 gprt0
 ifeq ($(ARCH),i386)
-ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
 override LOADERS=
-else
-override LOADERS+=cprt21 gprt21
-endif
 CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
@@ -374,250 +370,250 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-aros)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-wii)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-netbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-openbsd)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-iphonesim)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-aros)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),x86_64-dragonfly)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),arm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),powerpc64-aix)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),mips-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),mipsel-embedded)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),mipsel-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),jvm-java)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),jvm-android)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i8086-msdos)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i8086-win16)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),aarch64-linux)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),aarch64-darwin)
-override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
+override TARGET_UNITS+=$(SYSTEMUNIT) fpintres $(SYSINIT_UNITS) uuchar unixtype ctypes baseunix strings objpas macpas iso7185 extpas syscall unixutil heaptrc lineinfo lnfodwrf termio unix linux initc cmem $(CPU_UNITS) linuxvcs sysutils typinfo math   charset cpall character unixcp getopts errors dl dynlibs types sysconst fpwidestring cthreads classes fgl rtlconsts dos cwstring fpcylix
 endif
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_IMPLICITUNITS+=exeinfo cp1250 cp1251 cp1252 cp1253 cp1254 cp1255 cp1256 cp1257 cp1258 cp437 cp646 cp850 cp856 cp866 cp874 cp8859_1 cp8859_5 cp8859_2 cp852 unicodedata unicodenumtable
@@ -3565,6 +3561,12 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+ifneq ($(findstring -Cg ,$(COMPILER)),)
+  PIC_OPT=1
+endif
+ifneq ($(findstring -fPIC ,$(COMPILER)),)
+  PIC_OPT=1
+endif
 ifeq ($(ARCH),i386)
   ASTARGET=--32
 endif
@@ -3575,18 +3577,21 @@ ifeq ($(ARCH),powerpc64)
   ASTARGET=-a64
 endif
 ifeq ($(ARCH),mips)
-  ASTARGET=-32 -mips32 -EB
+  ASTARGET=-32 -mabi=32 -mips2 -EB
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+= -KPIC
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
-  ASTARGET=-32 -mips32 -EL
+  ASTARGET=-32 -mabi=32 -mips2 -EL
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+= -KPIC
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),sparc)
-  ifneq ($(findstring -Cg ,$(COMPILER)),)
-    ASTARGET+=-K PIC --defsym PIC=1
-  endif
-  ifneq ($(findstring -fPIC ,$(COMPILER)),)
+  ifeq ($(PIC_OPT),1)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
 endif
@@ -3626,7 +3631,7 @@ ifndef ARMTHUMB
 endif
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_prc.pp
-si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21g.inc $(SYSTEMUNIT)$(PPUEXT)
+si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c21g.pp
 si_c21$(PPUEXT) : si_c21.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c21.pp
@@ -3698,7 +3703,7 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUN
 	$(COMPILER) $(OBJPASDIR)/math.pp
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/fgl.pp
-types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
 sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/sysconst.pp
@@ -3706,7 +3711,7 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
-ifeq ($(ARCH),x86_64)
+ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 else
@@ -3721,9 +3726,9 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp
@@ -3731,6 +3736,8 @@ cpall$(PPUEXT): $(RTL)/charmaps/cpall.pas system$(PPUEXT) charset$(PPUEXT)
 	$(COMPILER) -Fu$(INC) -Fi$(RTL)/charmaps $(RTL)/charmaps/cpall.pas
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/iso7185.pp
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/extpas.pp
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/fpintres.pp
 fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp character$(PPUEXT) unixcp$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

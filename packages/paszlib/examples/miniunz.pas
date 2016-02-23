@@ -24,7 +24,7 @@ uses
   {$ifdef Delphi}
   Windows,
   {$else}
-   zlib,ctypes,
+  zlib,
   {$endif}
   ziputils,
   paszlib,

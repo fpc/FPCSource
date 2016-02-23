@@ -1230,7 +1230,7 @@ implementation
          pd:=search_system_proc('fpc_catches');
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname,AT_DATA),0,sizeof(pint));
          paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
-         cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
+         hlcg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,excepttype.vmt_def,href2,paraloc1);
          paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
          fpc_catches_res:=hlcg.g_call_system_proc(current_asmdata.CurrAsmList,pd,[@paraloc1],nil);
          location_reset(fpc_catches_resloc,LOC_REGISTER,def_cgsize(fpc_catches_res.def));
@@ -1249,8 +1249,8 @@ implementation
          if assigned(exceptvarsym) then
            begin
              location_reset_ref(exceptvarsym.localloc,LOC_REFERENCE,def_cgsize(voidpointertype),voidpointertype.alignment);
-             tg.GetLocal(current_asmdata.CurrAsmList,voidpointertype.size,voidpointertype,exceptvarsym.localloc.reference);
-             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,fpc_catches_res.def,voidpointertype,fpc_catches_resloc.register,exceptvarsym.localloc.reference);
+             tg.GetLocal(current_asmdata.CurrAsmList,exceptvarsym.vardef.size,exceptvarsym.vardef,exceptvarsym.localloc.reference);
+             hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,fpc_catches_res.def,exceptvarsym.vardef,fpc_catches_resloc.register,exceptvarsym.localloc.reference);
            end;
 
          { in the case that another exception is risen

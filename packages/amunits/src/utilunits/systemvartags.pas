@@ -109,8 +109,11 @@ FUNCTION WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; C
 FUNCTION OpenScreenTags(newScreen : pNewScreen; tagList : array of const) : pScreen;
 FUNCTION OpenWindowTags(newWindow : pNewWindow; tagList : array of const) : pWindow;
 FUNCTION NewObject(classPtr : pIClass; classID : pCHAR; Const argv : Array Of Const) : POINTER;
+FUNCTION SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
 FUNCTION SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : Array Of Const) : ULONG;
 FUNCTION NewObject(classPtr : pIClass; classID : string; Const argv : array of const ) : POINTER;
+FUNCTION EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
+PROCEDURE SetWindowPointer(win : pWindow; tags: array of DWord);
 
 { from locale }
 FUNCTION OpenCatalog(locale : pLocale; name : pCHAR; Const argv : Array Of Const) : pCatalog;
@@ -180,9 +183,24 @@ begin
       NewObject := NewObjectA(classPtr,pas2c(classID),readintags(argv));
 end;
 
+FUNCTION SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
+begin
+  SetAttrs := SetAttrsA(obj, @tags);
+end;
+
 FUNCTION SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : Array Of Const) : ULONG;
 begin
     SetGadgetAttrs := SetGadgetAttrsA(gadget,window,requester,readintags(argv));
+end;
+
+FUNCTION EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
+begin
+  EasyRequest := EasyRequestArgs(window, easystruct, idcmpptr, @args);
+end;
+
+PROCEDURE SetWindowPointer(win : pWindow; tags: array of DWord);
+begin
+  SetWindowPointerA(win, @tags);
 end;
 
 FUNCTION AddAmigaGuideHost(h : pHook; name : pCHAR; Const argv : Array Of Const) : POINTER;

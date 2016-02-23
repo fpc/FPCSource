@@ -661,6 +661,7 @@
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_All, Ch_None, Ch_None)),
+(Ch: (Ch_WEAX, Ch_WEDX, Ch_None)),
 (Ch: (Ch_RRAX, Ch_WMemEDI, Ch_RWRDI)),
 (Ch: (Ch_WRAX, Ch_RWRSI, Ch_None)),
 (Ch: (Ch_All, Ch_None, Ch_None)),

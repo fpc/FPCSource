@@ -706,20 +706,40 @@ end;
     'A' to 'Z', 'a' to 'z' or '_' and the following characters are
     on of: 'A' to 'Z', 'a' to 'z', '0'..'9' or '_'    }
 
-function IsValidIdent(const Ident: string): boolean;
-var i, len: integer;
+function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
+const
+  Alpha = ['A'..'Z', 'a'..'z', '_'];
+  AlphaNum = Alpha + ['0'..'9'];
+  Dot = '.';
+var
+  First: Boolean;
+  I, Len: Integer;
 begin
-result := false;
-len := length(Ident);
-if len <> 0 then begin
-   result := Ident[1] in ['A'..'Z', 'a'..'z', '_'];
-   i := 1;
-   while (result) and (i < len) do begin
-      i := i + 1;
-      result := result and (Ident[i] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-      end ;
-   end ;
-end ;
+  Len := Length(Ident);
+  if Len < 1 then
+    Exit(False);
+  First := True;
+  for I := 1 to Len do
+  begin
+    if First then
+    begin
+      Result := Ident[I] in Alpha;
+      First := False;
+    end
+    else if AllowDots and (Ident[I] = Dot) then
+    begin
+      if StrictDots then
+      begin
+        Result := I < Len;
+        First := True;
+      end;
+    end
+    else
+      Result := Ident[I] in AlphaNum;
+    if not Result then
+      Break;
+  end;
+end;
 
 {   IntToStr returns a string representing the value of Value    }
 
@@ -2604,45 +2624,21 @@ begin
     Dec(Result);
 end;
 
+{$macro on}
+{$define INSTRINGREPLACE}
+{$define SRString:=String}
+{$define SRUpperCase:=AnsiUppercase}
+{$define SRPCHAR:=PChar}
+{$define SRCHAR:=Char}
 
 Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
-var
-  Srch,OldP,RemS: string; // Srch and Oldp can contain uppercase versions of S,OldPattern
-  P : Integer;
-begin
-  Srch:=S;
-  OldP:=OldPattern;
-  if rfIgnoreCase in Flags then
-    begin
-    Srch:=AnsiUpperCase(Srch);
-    OldP:=AnsiUpperCase(OldP);
-    end;
-  RemS:=S;
-  Result:='';
-  while (Length(Srch)<>0) do
-    begin
-    P:=AnsiPos(OldP, Srch);
-    if P=0 then
-      begin
-      Result:=Result+RemS;
-      Srch:='';
-      end
-    else
-      begin
-      Result:=Result+Copy(RemS,1,P-1)+NewPattern;
-      P:=P+Length(OldP);
-      RemS:=Copy(RemS,P,Length(RemS)-P+1);
-      if not (rfReplaceAll in Flags) then
-        begin
-        Result:=Result+RemS;
-        Srch:='';
-        end
-      else
-         Srch:=Copy(Srch,P,Length(Srch)-P+1);
-      end;
-    end;
-end;
+{$i syssr.inc}
 
+{$undef INSTRINGREPLACE}
+{$undef SRString}
+{$undef SRUpperCase}
+{$undef SRPCHAR}
+{$undef SRCHAR}
 
 Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
 

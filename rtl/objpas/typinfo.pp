@@ -52,7 +52,7 @@ unit typinfo;
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
 {$endif}
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
-                      mkClassProcedure,mkClassFunction,mkClassConstructor, 
+                      mkClassProcedure,mkClassFunction,mkClassConstructor,
                       mkClassDestructor,mkOperatorOverload);
        TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
        TParamFlags    = set of TParamFlag;
@@ -241,6 +241,7 @@ unit typinfo;
                IntfFlags : TIntfFlagsBase;
                GUID: TGUID;
                IntfUnit: ShortString;
+               { here the properties follow as Word Count & array of TPropInfo }
               );
             tkInterfaceRaw:
               (
@@ -249,6 +250,7 @@ unit typinfo;
                IID: TGUID;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
+               { here the properties follow as Word Count & array of TPropInfo }
               );
             tkArray:
               (ArrayData: TArrayTypeData);
@@ -401,7 +403,10 @@ Procedure SetInt64Prop(Instance: TObject; const PropName: string;  const Value: 
 
 Function GetPropValue(Instance: TObject; const PropName: string): Variant;
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
+Function GetPropValue(Instance: TObject; PropInfo: PPropInfo): Variant;
+Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
 Procedure SetPropValue(Instance: TObject; const PropName: string; const Value: Variant);
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant);
 Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
 Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
 Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
@@ -434,8 +439,8 @@ const
 
 Type
   EPropertyError  = Class(Exception);
-  TGetPropValue   = Function (Instance: TObject; const PropName: string; PreferStrings: Boolean) : Variant;
-  TSetPropValue   = Procedure (Instance: TObject; const PropName: string; const Value: Variant);
+  TGetPropValue   = Function (Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean) : Variant;
+  TSetPropValue   = Procedure (Instance: TObject; PropInfo: PPropInfo; const Value: Variant);
   TGetVariantProp = Function (Instance: TObject; PropInfo : PPropInfo): Variant;
   TSetVariantProp = Procedure (Instance: TObject; PropInfo : PPropInfo; const Value: Variant);
 
@@ -1950,7 +1955,7 @@ end;
   Variant properties
   ---------------------------------------------------------------------}
 
-Procedure CheckVariantEvent(P : Pointer);
+Procedure CheckVariantEvent(P : CodePointer);
 
 begin
   If (P=Nil) then
@@ -1959,14 +1964,14 @@ end;
 
 Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
 begin
-  CheckVariantEvent(Pointer(OnGetVariantProp));
+  CheckVariantEvent(CodePointer(OnGetVariantProp));
   Result:=OnGetVariantProp(Instance,PropInfo);
 end;
 
 
 Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo; const Value: Variant);
 begin
-   CheckVariantEvent(Pointer(OnSetVariantProp));
+   CheckVariantEvent(CodePointer(OnSetVariantProp));
    OnSetVariantProp(Instance,PropInfo,Value);
 end;
 
@@ -1989,22 +1994,38 @@ end;
 
 Function GetPropValue(Instance: TObject; const PropName: string): Variant;
 begin
-  Result:=GetPropValue(Instance,PropName,True);
+  Result := GetPropValue(Instance,FindPropInfo(Instance, PropName));
 end;
-
 
 Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
 
 begin
-  CheckVariantEvent(Pointer(OnGetPropValue));
-  Result:=OnGetPropValue(Instance,PropName,PreferStrings)
+  Result := GetPropValue(Instance,FindPropInfo(Instance, PropName),PreferStrings);
+end;
+
+Function GetPropValue(Instance: TObject; PropInfo: PPropInfo): Variant;
+begin
+  Result := GetPropValue(Instance, PropInfo, True);
+end;
+
+Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
+
+begin
+  CheckVariantEvent(CodePointer(OnGetPropValue));
+  Result:=OnGetPropValue(Instance,PropInfo,PreferStrings);
 end;
 
 Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
 
 begin
-  CheckVariantEvent(Pointer(OnSetPropValue));
-  OnSetPropValue(Instance,PropName,Value);
+  SetPropValue(Instance, FindPropInfo(Instance, PropName), Value);
+end;
+
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo;  const Value: Variant);
+
+begin
+  CheckVariantEvent(CodePointer(OnSetPropValue));
+  OnSetPropValue(Instance,PropInfo,Value);
 end;
 
 

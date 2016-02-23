@@ -64,14 +64,24 @@ interface
 
        tstoreddef = class(tdef)
        private
+{$ifdef symansistr}
+          _fullownerhierarchyname : ansistring;
+{$else symansistr}
           _fullownerhierarchyname : pshortstring;
+{$endif symansistr}
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
-          { whether this def is already registered in the unit's def list }
-          registered : boolean;
           procedure ppuwrite_platform(ppufile:tcompilerppufile);virtual;
           procedure ppuload_platform(ppufile:tcompilerppufile);virtual;
+          { a (possibly) reusable def is always created on the basis of another
+            def, and contains a reference to this other def. If this other
+            def is in a non-persistent symboltable, the new def cannot actually
+            be safely reused everywhere in the current module. This routine
+            abtracts that checking, and also restores the symtable stack
+            (which had to be reset before creating the new def, so that the new
+             def did not automatically get added to its top) }
+          class procedure setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
        public
 {$ifdef EXTDEBUG}
           fileinfo   : tfileposinfo;
@@ -104,7 +114,7 @@ interface
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
-          function  fullownerhierarchyname:string;override;
+          function  fullownerhierarchyname:TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -121,8 +131,10 @@ interface
           { same as above for specializations }
           function is_specialization:boolean;inline;
           { registers this def in the unit's deflist; no-op if already registered }
-          procedure register_def;
-          property is_registered: boolean read registered;
+          procedure register_def; override;
+          { add the def to the top of the symtable stack if it's not yet owned
+            by another symtable }
+          procedure maybe_put_in_symtable_stack;
        private
           savesize  : asizeuint;
        end;
@@ -225,6 +237,11 @@ interface
           { returns a pointerdef for def, reusing an existing one in case it
             exists in the current module }
           class function getreusable(def: tdef): tpointerdef; virtual;
+          { same as above, but in case the def must never be freed after the
+            current module has been compiled -- even if the def was not written
+            to the ppu file (for defs in para locations, as we don't reset them
+            so we don't have to recalculate them all the time) }
+          class function getreusable_no_free(def: tdef): tpointerdef;
           function size:asizeint;override;
           function getcopy:tstoreddef;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -242,6 +259,7 @@ interface
              Normally, this is sinttype, except on i8086, where it takes into account the
              special i8086 pointer types (near, far, huge). }
           function pointer_subtraction_result_type:tdef;virtual;
+          function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
        end;
        tpointerdefclass = class of tpointerdef;
 
@@ -376,7 +394,6 @@ interface
        private
           fcurrent_dispid: longint;
        public
-          dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
           childofderef   : tderef;
 
@@ -496,6 +513,11 @@ interface
           constructor create_from_pointer(def:tpointerdef);virtual;
           constructor create(l,h:asizeint;def:tdef);virtual;
           class function getreusable(def: tdef; elems: asizeint): tarraydef; virtual;
+          { same as above, but in case the def must never be freed after the
+            current module has been compiled -- even if the def was not written
+            to the ppu file (for defs in para locations, as we don't reset them
+            so we don't have to recalculate them all the time) }
+          class function getreusable_no_free(def: tdef; elems: asizeint): tarraydef;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy; override;
           function getcopy : tstoreddef;override;
@@ -519,7 +541,7 @@ interface
        torddef = class(tstoreddef)
           low,high : TConstExprInt;
           ordtype  : tordtype;
-          constructor create(t : tordtype;v,b : TConstExprInt);virtual;
+          constructor create(t : tordtype;v,b : TConstExprInt; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -536,7 +558,7 @@ interface
 
        tfloatdef = class(tstoreddef)
           floattype : tfloattype;
-          constructor create(t : tfloattype);virtual;
+          constructor create(t: tfloattype; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -580,7 +602,7 @@ interface
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
-          funcretloc : array[tcallercallee] of TCGPara;
+          funcretloc : array[callerside..calleeside] of TCGPara;
           has_paraloc_info : tcallercallee; { paraloc info is available }
           { number of user visible parameters }
           maxparacount,
@@ -599,8 +621,10 @@ interface
           function  no_self_node:boolean;
           { get either a copy as a procdef or procvardef }
           function  getcopyas(newtyp:tdeftyp;copytyp:tproccopytyp): tstoreddef; virtual;
+          function  compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
+          procedure done_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;virtual;
           function address_type:tdef;virtual;
@@ -615,6 +639,11 @@ interface
           constructor create(level:byte);virtual;
           { returns a procvardef that represents the address of a proc(var)def }
           class function getreusableprocaddr(def: tabstractprocdef): tprocvardef; virtual;
+          { same as above, but in case the def must never be freed after the
+            current module has been compiled -- even if the def was not written
+            to the ppu file (for defs in para locations, as we don't reset them
+            so we don't have to recalculate them all the time) }
+          class function getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -753,6 +782,7 @@ interface
           constructor create(level:byte;doregister:boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
+          procedure   freeimplprocdefinfo;
           { do not override this routine in platform-specific subclasses,
             override ppuwrite_platform instead }
           procedure ppuwrite(ppufile:tcompilerppufile);override;final;
@@ -832,15 +862,15 @@ interface
           encoding   : tstringencoding;
           stringtype : tstringtype;
           len        : asizeint;
-          constructor createshort(l : byte);virtual;
+          constructor createshort(l: byte; doregister: boolean);virtual;
           constructor loadshort(ppufile:tcompilerppufile);
-          constructor createlong(l : asizeint);virtual;
+          constructor createlong(l: asizeint; doregister: boolean);virtual;
           constructor loadlong(ppufile:tcompilerppufile);
-          constructor createansi(aencoding:tstringencoding);virtual;
+          constructor createansi(aencoding: tstringencoding; doregister: boolean);virtual;
           constructor loadansi(ppufile:tcompilerppufile);
-          constructor createwide;virtual;
+          constructor createwide(doregister: boolean);virtual;
           constructor loadwide(ppufile:tcompilerppufile);
-          constructor createunicode;virtual;
+          constructor createunicode(doregister: boolean);virtual;
           constructor loadunicode(ppufile:tcompilerppufile);virtual;
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
@@ -896,7 +926,7 @@ interface
           elementdefderef : tderef;
           setbase,
           setmax   : asizeint;
-          constructor create(def:tdef;low, high : asizeint);virtual;
+          constructor create(def: tdef; low, high: asizeint; doregister: boolean);virtual;
           constructor ppuload(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           { do not override this routine in platform-specific subclasses,
@@ -1005,6 +1035,8 @@ interface
        s32inttype,                { 32-Bit signed integer }
        u64inttype,                { 64-bit unsigned integer }
        s64inttype,                { 64-bit signed integer }
+       u128inttype,               { 128-bit unsigned integer }
+       s128inttype,               { 128-bit signed integer }
        s32floattype,              { 32 bit floating point number }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
@@ -1027,7 +1059,7 @@ interface
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
-       { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
+       { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
        sinttype,
        uinttype,
        { integer types corresponding to OS_SINT/OS_INT }
@@ -1036,6 +1068,9 @@ interface
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
        ptrsinttype,
+       { unsigned and signed ord type with the same size as a codepointer }
+       codeptruinttype,
+       codeptrsinttype,
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
        vmtarraytype,
@@ -1159,7 +1194,8 @@ implementation
       fmodule,
       { other }
       gendef,
-      fpccrc
+      fpccrc,
+      entfile
       ;
 
 {****************************************************************************
@@ -1194,7 +1230,7 @@ implementation
                 else
                   symtable:=current_module.localsymtable;
                 symtablestack.push(symtable);
-                current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage);
+                current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
                 symtablestack.pop(symtable);
               end;
             result:=tstringdef(current_module.ansistrdef);
@@ -1222,7 +1258,7 @@ implementation
         typ: ttypesym;
         name: string;
       begin
-        name:=internaltypeprefixName[itp_threadvar_record]+tostr(def.defid);
+        name:=internaltypeprefixName[itp_threadvar_record]+def.unique_id_str;
         typ:=try_search_current_module_type(name);
         if assigned(typ) then
           begin
@@ -1659,6 +1695,20 @@ implementation
       end;
 
 
+    class procedure tstoreddef.setup_reusable_def(origdef, newdef: tdef; res: PHashSetItem; oldsymtablestack: tsymtablestack);
+      var
+        reusablesymtab: tsymtable;
+      begin
+        { must not yet belong to a symtable }
+        if assigned(newdef.owner) then
+          internalerror(2015111503);
+        reusablesymtab:=origdef.getreusablesymtab;
+        res^.Data:=newdef;
+        reusablesymtab.insertdef(newdef);
+        symtablestack:=oldsymtablestack;
+      end;
+
+
     constructor tstoreddef.create(dt:tdeftyp;doregister:boolean);
       begin
          inherited create(dt);
@@ -1673,9 +1723,22 @@ implementation
            end of an type block }
          if (dt=forwarddef) then
            exit;
-         { register the definition if wanted }
+         { Register in symtable stack }
          if doregister then
-           register_def;
+           begin
+             { immediately register interface defs, as they will always be
+               written to the ppu, their defid inlfuences the interface crc and
+               if we wait, depending on e.g. compiler defines they may get a
+               different defid (e.g. when a function is called, its procdef is
+               registered, so depending on whether or not, or when, an interface
+               procedure is called in the implementation, that may change its
+               defid otherwise) }
+             if assigned(current_module) and
+                current_module.in_interface then
+               register_def
+             else
+               maybe_put_in_symtable_stack;
+           end;
       end;
 
 
@@ -1697,7 +1760,9 @@ implementation
             dispose(pderef(genericparaderefs[i]));
         genericparaderefs.free;
         genconstraintdata.free;
+{$ifndef symansistr}
         stringdispose(_fullownerhierarchyname);
+{$endif not symansistr}
         inherited destroy;
       end;
 
@@ -1710,8 +1775,6 @@ implementation
       begin
          inherited create(dt);
          DefId:=ppufile.getlongint;
-         { defs loaded from ppu are always owned }
-         registered:=true;
          current_module.deflist[DefId]:=self;
 {$ifdef EXTDEBUG}
          fillchar(fileinfo,sizeof(fileinfo),0);
@@ -1785,7 +1848,7 @@ implementation
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
           result:=make_mangledname(prefix,typesym.owner,typesym.name)
         else
-          result:=make_mangledname(prefix,findunitsymtable(owner),'DEF'+tostr(DefId))
+          result:=make_mangledname(prefix,findunitsymtable(owner),'def'+unique_id_str)
       end;
 
 
@@ -1806,25 +1869,29 @@ implementation
         until tmp=nil;
       end;
 
-    function tstoreddef.fullownerhierarchyname: string;
+    function tstoreddef.fullownerhierarchyname: TSymStr;
       var
+        lastowner: tsymtable;
         tmp: tdef;
       begin
+{$ifdef symansistr}
+        if _fullownerhierarchyname<>'' then
+          exit(_fullownerhierarchyname);
+{$else symansistr}
         if assigned(_fullownerhierarchyname) then
-          begin
-            result:=_fullownerhierarchyname^;
-            exit;
-          end;
+          exit(_fullownerhierarchyname^);
+{$endif symansistr}
         { the def can only reside inside structured types or
           procedures/functions/methods }
         tmp:=self;
         result:='';
         repeat
+          lastowner:=tmp.owner;
           { can be not assigned in case of a forwarddef }
-          if not assigned(tmp.owner) then
+          if not assigned(lastowner) then
             break
           else
-            tmp:=tdef(tmp.owner.defowner);
+            tmp:=tdef(lastowner.defowner);
           if not assigned(tmp) then
             break;
           if tmp.typ in [recorddef,objectdef] then
@@ -1833,7 +1900,15 @@ implementation
             if tmp.typ=procdef then
               result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
         until tmp=nil;
+        { add the unit name }
+        if assigned(lastowner) and
+           assigned(lastowner.realname) then
+          result:=lastowner.realname^+'.'+result;
+{$ifdef symansistr}
+        _fullownerhierarchyname:=result;
+{$else symansistr}
         _fullownerhierarchyname:=stringdup(result);
+{$endif symansistr}
       end;
 
 
@@ -1861,6 +1936,8 @@ implementation
         buf  : array[0..255] of byte;
         oldintfcrc : boolean;
       begin
+        if defid<0 then
+          internalerror(2015101401);
         ppufile.putlongint(DefId);
         ppufile.putderef(typesymderef);
         ppufile.putsmallset(defoptions);
@@ -1918,6 +1995,8 @@ implementation
         sym : tsym;
         symderef : pderef;
       begin
+        if not registered then
+          register_def;
         typesymderef.build(typesym);
         genericdefderef.build(genericdef);
         if assigned(genconstraintdata) then
@@ -1962,10 +2041,7 @@ implementation
               begin
                 symderef:=pderef(genericparaderefs[i]);
                 genericparas.items[i]:=symderef^.resolve;
-                dispose(symderef);
               end;
-            genericparaderefs.free;
-            genericparaderefs:=nil;
           end;
       end;
 
@@ -2038,11 +2114,11 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (((recsize <= sizeof(asizeint)*2) and
+                (((recsize <= sizeof(aint)*2) and
                  { records cannot go into registers on 16 bit targets for now }
-                  (sizeof(asizeint)>2) and
+                  (sizeof(aint)>2) and
                   not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(asizeint))) and
+                  (recsize <= sizeof(aint))) and
                 not needs_inittable;
 {$endif llvm}
             end;
@@ -2131,23 +2207,40 @@ implementation
 
 
    procedure tstoreddef.register_def;
-     var
-       insertstack : psymtablestackitem;
      begin
        if registered then
          exit;
        { Register in current_module }
        if assigned(current_module) then
          begin
-           current_module.deflist.Add(self);
-           DefId:=current_module.deflist.Count-1;
-         end;
-       { Register in symtable stack }
-       if assigned(symtablestack) then
+           exclude(defoptions,df_not_registered_no_free);
+           if defid<defid_not_registered then
+             defid:=deflist_index
+           else
+             begin
+               current_module.deflist.Add(self);
+               defid:=current_module.deflist.Count-1;
+             end;
+           maybe_put_in_symtable_stack;
+         end
+       else
+         DefId:=defid_registered_nost;
+     end;
+
+
+   procedure tstoreddef.maybe_put_in_symtable_stack;
+     var
+       insertstack: psymtablestackitem;
+     begin
+       if assigned(symtablestack) and
+          not assigned(self.owner) then
          begin
            insertstack:=symtablestack.stack;
+           { don't insert defs in exception symtables, as they are freed before
+             the module is compiled, so we can get crashes on high level targets
+             if they still need it while e.g. writing assembler code }
            while assigned(insertstack) and
-                 (insertstack^.symtable.symtabletype=withsymtable) do
+                 (insertstack^.symtable.symtabletype in [stt_exceptsymtable,withsymtable]) do
              insertstack:=insertstack^.next;
            if not assigned(insertstack) then
              internalerror(200602044);
@@ -2155,7 +2248,6 @@ implementation
              internalerror(2015022301);
            insertstack^.symtable.insertdef(self);
          end;
-       registered:=true;
      end;
 
 
@@ -2163,9 +2255,9 @@ implementation
                                Tstringdef
 ****************************************************************************}
 
-    constructor tstringdef.createshort(l : byte);
+    constructor tstringdef.createshort(l: byte; doregister: boolean);
       begin
-         inherited create(stringdef,true);
+         inherited create(stringdef,doregister);
          stringtype:=st_shortstring;
          encoding:=0;
          len:=l;
@@ -2182,9 +2274,9 @@ implementation
       end;
 
 
-    constructor tstringdef.createlong(l : asizeint);
+    constructor tstringdef.createlong(l: asizeint; doregister: boolean);
       begin
-         inherited create(stringdef,true);
+         inherited create(stringdef,doregister);
          stringtype:=st_longstring;
          encoding:=0;
          len:=l;
@@ -2201,9 +2293,9 @@ implementation
       end;
 
 
-    constructor tstringdef.createansi(aencoding:tstringencoding);
+    constructor tstringdef.createansi(aencoding: tstringencoding; doregister: boolean);
       begin
-         inherited create(stringdef,true);
+         inherited create(stringdef,doregister);
          stringtype:=st_ansistring;
          encoding:=aencoding;
          len:=-1;
@@ -2220,9 +2312,9 @@ implementation
       end;
 
 
-    constructor tstringdef.createwide;
+    constructor tstringdef.createwide(doregister: boolean);
       begin
-         inherited create(stringdef,true);
+         inherited create(stringdef,doregister);
          stringtype:=st_widestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2245,9 +2337,9 @@ implementation
       end;
 
 
-    constructor tstringdef.createunicode;
+    constructor tstringdef.createunicode(doregister: boolean);
       begin
-         inherited create(stringdef,true);
+         inherited create(stringdef,doregister);
          stringtype:=st_unicodestring;
          if target_info.endian=endian_little then
            encoding:=CP_UTF16LE
@@ -2597,7 +2689,7 @@ implementation
             symtable:=basedef.symtable.getcopy;
           end
         else
-          tenumsymtable(symtable).deref;
+          tenumsymtable(symtable).deref(false);
       end;
 
 
@@ -2631,9 +2723,9 @@ implementation
                                  TORDDEF
 ****************************************************************************}
 
-    constructor torddef.create(t : tordtype;v,b : TConstExprInt);
+    constructor torddef.create(t : tordtype;v,b : TConstExprInt; doregister: boolean);
       begin
-         inherited create(orddef,true);
+         inherited create(orddef,doregister);
          low:=v;
          high:=b;
          ordtype:=t;
@@ -2654,7 +2746,7 @@ implementation
 
     function torddef.getcopy : tstoreddef;
       begin
-         result:=corddef.create(ordtype,low,high);
+         result:=corddef.create(ordtype,low,high,true);
          result.typ:=orddef;
          torddef(result).low:=low;
          torddef(result).high:=high;
@@ -2677,8 +2769,8 @@ implementation
       const
         sizetbl : array[tordtype] of longint = (
           0,
-          1,2,4,8,
-          1,2,4,8,
+          1,2,4,8,16,
+          1,2,4,8,16,
           1,2,4,8,
           1,2,4,8,
           1,2,8
@@ -2727,8 +2819,8 @@ implementation
       const
         basetype2vardef : array[tordtype] of longint = (
           varUndefined,
-          varbyte,varword,varlongword,varqword,
-          varshortint,varsmallint,varinteger,varint64,
+          varbyte,varword,varlongword,varqword,varUndefined,
+          varshortint,varsmallint,varinteger,varint64,varUndefined,
           varboolean,varboolean,varboolean,varboolean,
           varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
@@ -2757,8 +2849,8 @@ implementation
       const
         names : array[tordtype] of string[20] = (
           'untyped',
-          'Byte','Word','DWord','QWord',
-          'ShortInt','SmallInt','LongInt','Int64',
+          'Byte','Word','DWord','QWord','UInt128',
+          'ShortInt','SmallInt','LongInt','Int64','Int128',
           'Boolean','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
@@ -2772,9 +2864,9 @@ implementation
                                 TFLOATDEF
 ****************************************************************************}
 
-    constructor tfloatdef.create(t : tfloattype);
+    constructor tfloatdef.create(t: tfloattype; doregister: boolean);
       begin
-         inherited create(floatdef,true);
+         inherited create(floatdef,doregister);
          floattype:=t;
          setsize;
       end;
@@ -2791,7 +2883,7 @@ implementation
 
     function tfloatdef.getcopy : tstoreddef;
       begin
-         result:=cfloatdef.create(floattype);
+         result:=cfloatdef.create(floattype,true);
          result.typ:=floatdef;
          tfloatdef(result).savesize:=savesize;
       end;
@@ -2979,7 +3071,7 @@ implementation
            begin
              savesize:=search_system_type('FILEREC').typedef.size;
              { allocate put/get buffer in iso mode }
-             if m_iso in current_settings.modeswitches then
+             if m_isolike_io in current_settings.modeswitches then
                inc(savesize,typedfiledef.size);
            end;
          ft_untyped:
@@ -3187,11 +3279,20 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            res^.Data:=cpointerdef.create(def);
-            def.getreusablesymtab.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
+            result:=cpointerdef.create(def);
+            setup_reusable_def(def,result,res,oldsymtablestack);
+            { res^.Data may still be nil -> don't overwrite result }
+            exit;
           end;
         result:=tpointerdef(res^.Data);
+      end;
+
+
+    class function tpointerdef.getreusable_no_free(def: tdef): tpointerdef;
+      begin
+        result:=getreusable(def);
+        if not result.is_registered then
+          include(result.defoptions,df_not_registered_no_free);
       end;
 
 
@@ -3258,6 +3359,12 @@ implementation
       end;
 
 
+    function tpointerdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+      begin
+        result:=true;
+      end;
+
+
 {****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
@@ -3321,13 +3428,13 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-    constructor tsetdef.create(def:tdef;low, high : asizeint);
+    constructor tsetdef.create(def: tdef; low, high: asizeint; doregister: boolean);
       var
         setallocbits: aint;
         packedsavesize: aint;
         actual_setalloc: ShortInt;
       begin
-         inherited create(setdef,true);
+         inherited create(setdef,doregister);
          elementdef:=def;
          setmax:=high;
          actual_setalloc:=current_settings.setalloc;
@@ -3372,7 +3479,7 @@ implementation
 
     function tsetdef.getcopy : tstoreddef;
       begin
-        result:=csetdef.create(elementdef,setbase,setmax);
+        result:=csetdef.create(elementdef,setbase,setmax,true);
         { the copy might have been created with a different setalloc setting }
         tsetdef(result).savesize:=savesize;
       end;
@@ -3497,12 +3604,20 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            res^.Data:=carraydef.create(0,elems-1,ptrsinttype);
-            tarraydef(res^.Data).elementdef:=def;
-            def.getreusablesymtab.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
+            result:=carraydef.create(0,elems-1,ptrsinttype);
+            result.elementdef:=def;
+            setup_reusable_def(def,result,res,oldsymtablestack);
+            { res^.Data may still be nil -> don't overwrite result }
+            exit;
           end;
         result:=tarraydef(res^.Data);
+      end;
+
+    class function tarraydef.getreusable_no_free(def: tdef; elems: asizeint): tarraydef;
+      begin
+        result:=getreusable(def,elems);
+        if not result.is_registered then
+          include(result.defoptions,df_not_registered_no_free);
       end;
 
 
@@ -3559,7 +3674,7 @@ implementation
     procedure tarraydef.deref;
       begin
         inherited deref;
-        tarraysymtable(symtable).deref;
+        tarraysymtable(symtable).deref(false);
         _elementdef:=tdef(_elementdefderef.resolve);
         rangedef:=tdef(rangedefderef.resolve);
       end;
@@ -3672,6 +3787,13 @@ implementation
         if (ado_IsBitPacked in arrayoptions) then
           { can't just add 7 and divide by 8, because that may overflow }
           result:=result div 8 + ord((result mod 8)<>0);
+{$ifdef cpu16bitaddr}
+        if result>65535 then
+          begin
+            result:=-1;
+            exit;
+          end;
+{$endif cpu16bitaddr}
       end;
 
 
@@ -3825,7 +3947,7 @@ implementation
       begin
         inherited derefimpl;
         if not (df_copied_def in defoptions) then
-          tstoredsymtable(symtable).derefimpl;
+          tstoredsymtable(symtable).derefimpl(false);
       end;
 
 
@@ -4206,7 +4328,7 @@ implementation
           end
         else
           pname:=@optionalname;
-        sym:=cfieldvarsym.create(pname^,vs_value,def,[]);
+        sym:=cfieldvarsym.create(pname^,vs_value,def,[],true);
         symtable.insert(sym);
         trecordsymtable(symtable).addfield(sym,vis_hidden);
         result:=sym;
@@ -4330,7 +4452,7 @@ implementation
              symtable:=cloneddef.symtable.getcopy;
            end
          else
-           tstoredsymtable(symtable).deref;
+           tstoredsymtable(symtable).deref(false);
 
          { internal types, only load from the system unit }
          if assigned(owner) and
@@ -4604,7 +4726,7 @@ implementation
              has_paraloc_info:=callnoside;
            end;
          { parast }
-         tparasymtable(parast).deref;
+         tparasymtable(parast).deref(false);
          { recalculated parameters }
          calcparas;
       end;
@@ -4879,6 +5001,12 @@ implementation
       end;
 
 
+    function tabstractprocdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+      begin
+        result:=is_addressonly;
+      end;
+
+
     procedure tabstractprocdef.check_mark_as_nested;
       begin
          { nested procvars require that nested functions use the Delphi-style
@@ -4908,6 +5036,36 @@ implementation
               has_paraloc_info:=callbothsides
             else
               has_paraloc_info:=calleeside;
+          end;
+      end;
+
+
+    procedure tabstractprocdef.done_paraloc_info(side: tcallercallee);
+      var
+        i: longint;
+      begin
+        if (side in [callerside,callbothsides]) and
+           (has_paraloc_info in [callerside,callbothsides]) then
+          begin
+            funcretloc[callerside].done;
+            for i:=0 to paras.count-1 do
+              tparavarsym(paras[i]).paraloc[callerside].done;
+            if has_paraloc_info=callerside then
+              has_paraloc_info:=callnoside
+            else
+              has_paraloc_info:=calleeside;
+          end;
+
+        if (side in [calleeside,callbothsides]) and
+           (has_paraloc_info in [calleeside,callbothsides]) then
+          begin
+            funcretloc[calleeside].done;
+            for i:=0 to paras.count-1 do
+              tparavarsym(paras[i]).paraloc[calleeside].done;
+            if has_paraloc_info=calleeside then
+              has_paraloc_info:=callnoside
+            else
+              has_paraloc_info:=callerside;
           end;
       end;
 
@@ -5324,12 +5482,7 @@ implementation
             dispose(inlininginfo);
             inlininginfo:=nil;
           end;
-         if assigned(implprocdefinfo) then
-           begin
-            stringdispose(implprocdefinfo^.resultname);
-            freemem(implprocdefinfo);
-            implprocdefinfo:=nil;
-           end;
+         freeimplprocdefinfo;
          genericdecltokenbuf.free;
          genericdecltokenbuf:=nil;
          stringdispose(import_dll);
@@ -5350,6 +5503,17 @@ implementation
           end;
 {$endif symansistr}
          inherited destroy;
+      end;
+
+
+    procedure tprocdef.freeimplprocdefinfo;
+      begin
+        if assigned(implprocdefinfo) then
+          begin
+            stringdispose(implprocdefinfo^.resultname);
+            freemem(implprocdefinfo);
+            implprocdefinfo:=nil;
+          end;
       end;
 
 
@@ -5730,8 +5894,8 @@ implementation
             { Locals }
             if assigned(localst) then
               begin
-                tlocalsymtable(localst).deref;
-                tlocalsymtable(localst).derefimpl;
+                tlocalsymtable(localst).deref(false);
+                tlocalsymtable(localst).derefimpl(false);
               end;
 
             inlininginfo^.code.derefimpl;
@@ -5794,15 +5958,15 @@ implementation
 {$ifdef NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[2] = (
              '',
-             'Uc','Us','Ui','Us',
-             'Sc','s','i','x',
+             'Uc','Us','Ui','Us','',
+             'Sc','s','i','x','',
              'b','b','b','b','b',
              'c','w','x');
 {$else NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[1] = (
              'v',
-             'h','t','j','y',
-             'a','s','i','x',
+             'h','t','j','y','',
+             'a','s','i','x','',
              'b','b','b','b',
              'b','b','b','b',
              'c','w','x');
@@ -6031,11 +6195,20 @@ implementation
             { do not simply push/pop current_module.localsymtable, because
               that can have side-effects (e.g., it removes helpers) }
             symtablestack:=nil;
-            res^.Data:=def.getcopyas(procvardef,pc_address_only);
-            def.getreusablesymtab.insertdef(tdef(res^.Data));
-            symtablestack:=oldsymtablestack;
+            result:=tprocvardef(def.getcopyas(procvardef,pc_address_only));
+            setup_reusable_def(def,result,res,oldsymtablestack);
+            { res^.Data may still be nil -> don't overwrite result }
+            exit;
           end;
         result:=tprocvardef(res^.Data);
+      end;
+
+
+    class function tprocvardef.getreusableprocaddr_no_free(def: tabstractprocdef): tprocvardef;
+      begin
+        result:=getreusableprocaddr(def);
+        if not result.is_registered then
+          include(result.defoptions,df_not_registered_no_free);
       end;
 
 
@@ -6074,7 +6247,7 @@ implementation
         tprocvardef(result).calleeargareasize:=calleeargareasize;
         tprocvardef(result).maxparacount:=maxparacount;
         tprocvardef(result).minparacount:=minparacount;
-        for i:=low(tcallercallee) to high(tcallercallee) do
+        for i:=low(funcretloc) to high(funcretloc) do
           tprocvardef(result).funcretloc[i]:=funcretloc[i].getcopy;
         tprocvardef(result).has_paraloc_info:=has_paraloc_info;
 {$ifdef m68k}
@@ -6557,7 +6730,7 @@ implementation
              symtable:=cloneddef.symtable.getcopy;
            end
          else
-           tstoredsymtable(symtable).deref;
+           tstoredsymtable(symtable).deref(false);
          if objecttype=odt_helper then
            extendeddef:=tdef(extendeddefderef.resolve);
          for i:=0 to vmtentries.count-1 do
@@ -6733,7 +6906,7 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
+             vmt_field:=cfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[],true);
              hidesym(vmt_field);
              tObjectSymtable(symtable).insert(vmt_field);
              tObjectSymtable(symtable).addfield(tfieldvarsym(vmt_field),vis_hidden);

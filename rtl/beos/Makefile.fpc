@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0 cprt0 func dllprt
-units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 strings \
+units=system uuchar baseunix unixtype ctypes objpas macpas iso7185 extpas strings \
 #      beos \
       errors dos dl \
       sysconst sysutils \

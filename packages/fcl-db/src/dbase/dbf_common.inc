@@ -222,14 +222,7 @@
   {$define SUPPORT_VARIANTS}
   {$define SUPPORT_SEPARATE_VARIANTS_UNIT}
   {$define SUPPORT_REFRESHEVENTS}
-
-  // FPC 2.0.x improvements
-  // todo: add a $IF FPC_FULLVERSION>=20000 for support for future FPC 3+
-  {$ifdef VER2}
-    {$ifndef VER2_0_0}
-      {$define SUPPORT_BACKWARD_FIELDDATA}
-    {$endif}
-  {$endif}
+  {$define SUPPORT_BACKWARD_FIELDDATA}
 
   // FPC 1.0.x exceptions: no 0/0 support
   {$ifdef VER1_0}

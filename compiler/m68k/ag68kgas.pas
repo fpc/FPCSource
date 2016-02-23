@@ -133,9 +133,8 @@ interface
       end;
 
 
-    function getopstr(const o:toper) : string;
+    function getopstr(var o:toper) : string;
       var
-        hs : string;
         i : tsuperregister;
       begin
         case o.typ of
@@ -145,41 +144,39 @@ interface
             if o.ref^.refaddr=addr_full then
               begin
                 if assigned(o.ref^.symbol) then
-                  hs:=o.ref^.symbol.name
+                  getopstr:=o.ref^.symbol.name
                 else
-                  hs:='#';
+                  getopstr:='#';
                 if o.ref^.offset>0 then
-                  hs:=hs+'+'+tostr(o.ref^.offset)
+                  getopstr:=getopstr+'+'+tostr(o.ref^.offset)
                 else
                   if o.ref^.offset<0 then
-                    hs:=hs+tostr(o.ref^.offset)
+                    getopstr:=getopstr+tostr(o.ref^.offset)
                   else
                     if not(assigned(o.ref^.symbol)) then
-                      hs:=hs+'0';
-                getopstr:=hs;
+                      getopstr:=getopstr+'0';
               end
             else
               getopstr:=getreferencestring(o.ref^);
           top_regset:
             begin
-              hs:='';
+              getopstr:='';
               for i:=RS_D0 to RS_D7 do
                 begin
                   if i in o.dataregset^ then
-                   hs:=hs+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
+                   getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_A0 to RS_SP do
                 begin
                   if i in o.addrregset^ then
-                   hs:=hs+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
+                   getopstr:=getopstr+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_FP0 to RS_FP7 do
                 begin
                   if i in o.fpuregset^ then
-                   hs:=hs+gas_regname(newreg(R_FPUREGISTER,i,R_SUBWHOLE))+'/';
+                   getopstr:=getopstr+gas_regname(newreg(R_FPUREGISTER,i,R_SUBNONE))+'/';
                 end;
-              delete(hs,length(hs),1);
-              getopstr := hs;
+              delete(getopstr,length(getopstr),1);
             end;
           top_const:
             getopstr:='#'+tostr(longint(o.val));
@@ -188,9 +185,7 @@ interface
       end;
 
 
-    function getopstr_jmp(const o:toper) : string;
-      var
-        hs : string;
+    function getopstr_jmp(var o:toper) : string;
       begin
         case o.typ of
           top_reg:
@@ -201,22 +196,22 @@ interface
             else
               begin
                 if assigned(o.ref^.symbol) then
-                  hs:=o.ref^.symbol.name
+                  getopstr_jmp:=o.ref^.symbol.name
                 else
-                  hs:='';
-                  if o.ref^.offset>0 then
-                   hs:=hs+'+'+tostr(o.ref^.offset)
+                  getopstr_jmp:='';
+                if o.ref^.offset>0 then
+                  getopstr_jmp:=getopstr_jmp+'+'+tostr(o.ref^.offset)
+                else
+                  if o.ref^.offset<0 then
+                    getopstr_jmp:=getopstr_jmp+tostr(o.ref^.offset)
                   else
-                   if o.ref^.offset<0 then
-                    hs:=hs+tostr(o.ref^.offset)
-                  else
-                   if not(assigned(o.ref^.symbol)) then
-                     hs:=hs+'0';
-                getopstr_jmp:=hs;
+                    if not(assigned(o.ref^.symbol)) then
+                      getopstr_jmp:=getopstr_jmp+'0';
               end;
           top_const:
             getopstr_jmp:=tostr(o.val);
-          else internalerror(200405022);
+          else 
+            internalerror(200405022);
         end;
       end;
 
@@ -228,35 +223,24 @@ interface
     function getopcodestring(hp : tai) : string;
       var
         op : tasmop;
-        s : string;
       begin
         op:=taicpu(hp).opcode;
         { old versions of GAS don't like PEA.L and LEA.L }
         if (op in [
-         A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
-         A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
-         A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
-         A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
-         s:=gas_op2str[op]
+          A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
+          A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
+          A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
+          A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
+          result:=gas_op2str[op]
         else
-        if op in [A_SXX, A_FSXX] then
-         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
+        { Scc/FScc is always BYTE, DBRA/DBcc is always WORD, doesn't need opsize (KB) }
+        if op in [A_SXX, A_FSXX, A_DBXX, A_DBRA] then
+          result:=gas_op2str[op]+cond2str[taicpu(hp).condition]
         else
-        { size of DBRA is always WORD, doesn't need opsize (KB) }
-        if op = A_DBRA then
-         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]
+        if op in [a_bxx,a_fbxx] then
+          result:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
-        if op in [a_dbxx,a_bxx,a_fbxx] then
-         s:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
-        else
-         s:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
-        if op = A_FMOVE then
-          begin
-{$ifdef DEBUG_CHARLIE}
-            writeln('fmove! opsize:',dword(taicpu(hp).opsize));
-{$endif DEBUG_CHARLIE}
-          end;
-        getopcodestring:=s;
+          result:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
       end;
 
 
@@ -265,12 +249,10 @@ interface
         op       : tasmop;
         s        : string;
         sep      : char;
-        calljmp  : boolean;
         i        : integer;
        begin
          if hp.typ <> ait_instruction then exit;
          op:=taicpu(hp).opcode;
-         calljmp:=is_calljmp(op);
          { call maybe not translated to call }
          s:=#9+getopcodestring(hp);
          { process operands }
@@ -279,10 +261,9 @@ interface
              { call and jmp need an extra handling                          }
              { this code is only called if jmp isn't a labeled instruction  }
              { quick hack to overcome a problem with manglednames=255 chars }
-             if calljmp then
+             if is_calljmp(op) then
                 begin
-                  owner.writer.AsmWrite(s+#9);
-                  s:=getopstr_jmp(taicpu(hp).oper[0]^);
+                  s:=s+#9+getopstr_jmp(taicpu(hp).oper[0]^);
                   { dbcc dx,<sym> has two operands! (KB) }
                   if (taicpu(hp).ops>1) then
                     s:=s+','+getopstr_jmp(taicpu(hp).oper[1]^);
@@ -296,17 +277,12 @@ interface
                       if i=0 then
                         sep:=#9
                       else
-                      if ((op = A_DIVSL) or
-                         (op = A_DIVUL) or
-                         (op = A_MULU) or
-                         (op = A_MULS) or
-                         (op = A_DIVS) or
-                         (op = A_DIVU)) and (i=2) then
-                      begin
+                      if (i=2) and
+                         (op in [A_DIVSL,A_DIVUL,A_MULS,A_MULU,A_DIVS,A_DIVU]) then
                         sep:=':'
-                      end else
+                      else
                         sep:=',';
-                      s:=s+sep+getopstr(taicpu(hp).oper[i]^)
+                      s:=s+sep+getopstr(taicpu(hp).oper[i]^);
                     end;
                 end;
            end;

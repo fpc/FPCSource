@@ -1384,7 +1384,10 @@ begin
    index := LS+1;
   Dec(Index);
   SetLength(Temp,Length(Source)+LS);
-  cp:=TranslatePlaceholderCP(StringCodePage(S));
+  if length(S)<>0 then
+    cp:=TranslatePlaceholderCP(StringCodePage(S))
+  else
+    cp:=TranslatePlaceholderCP(StringCodePage(Source));
   SetCodePage(Temp,cp,false);
   If Index>0 then
     fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);

@@ -30,6 +30,7 @@ begin
     // P.NeedLibC:= false;
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/das');
+    P.IncludePath.Add('src/das');
 
     T:=P.Targets.AddUnit('sdo_consts.pas');
     T.ResourceStrings := True;
@@ -261,6 +262,7 @@ begin
     with T.Dependencies do
       begin
       AddUnit('data_acces_intf');
+      AddInclude('sdo_global.inc');
       end;
     T:=P.Targets.AddUnit('sdo_das_utils.pas');
     with T.Dependencies do

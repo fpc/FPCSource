@@ -406,10 +406,22 @@ begin
   Result := CompareUnicodeStringUCA(p1,p2,l1,l2);
 end;
 
-function CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+function CompareUnicodeString(const s1, s2 : UnicodeString;Options : TCompareOptions) : PtrInt;
+Var
+  us1,us2 : UnicodeString;
 begin
   if (current_Collation=nil) then
-    exit(OldManager.CompareUnicodeStringProc(s1,s2));
+    exit(OldManager.CompareUnicodeStringProc(s1,s2,Options));
+  if (coIgnoreCase in Options) then  
+    begin
+    us1:=UpperUnicodeString(s1);
+    us2:=UpperUnicodeString(s2);
+    end
+  else
+    begin
+    us1:=S1;
+    us2:=S2;
+    end;  
   Result:=CompareUnicodeString(
             PUnicodeChar(Pointer(s1)),
             PUnicodeChar(Pointer(s2)),
@@ -417,25 +429,39 @@ begin
           );
 end;
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+
+Var
+  us1,us2 : WideString;
+   
 begin
   if (current_Collation=nil) then
-    exit(OldManager.CompareWideStringProc(s1,s2));
+    exit(OldManager.CompareWideStringProc(s1,s2,Options));
+  if (coIgnoreCase in Options) then  
+    begin
+    us1:=UpperWideString(s1);
+    us2:=UpperWideString(s2);
+    end
+  else
+    begin
+    us1:=S1;
+    us2:=S2;
+    end;  
   Result:=CompareUnicodeString(
-            PUnicodeChar(Pointer(s1)),
-            PUnicodeChar(Pointer(s2)),
-            Length(s1),Length(s2)
+            PUnicodeChar(Pointer(us1)),
+            PUnicodeChar(Pointer(us2)),
+            Length(us1),Length(us2)
           );
 end;
 
 function CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
 begin
-  Result:=CompareUnicodeString(UpperUnicodeString(s1),UpperUnicodeString(s2));
+  Result:=CompareUnicodeString(s1,s2,[coIgnoreCase]);
 end;
 
 function CompareTextWideString(const s1, s2 : WideString) : PtrInt;
 begin
-  Result:=CompareWideString(UpperWideString(s1),UpperWideString(s2));
+  Result:=CompareWideString(s1,s2,[coIgnoreCase]);
 end;
 
 procedure EnsureAnsiLen(var S: AnsiString; const len: SizeInt); inline;
@@ -649,7 +675,7 @@ begin
   Ansi2UnicodeMove(S1,DefaultSystemCodePage,a,Len1);
   b := '';
   Ansi2UnicodeMove(S2,DefaultSystemCodePage,b,Len2);
-  Result := CompareUnicodeString(a,b);
+  Result := CompareUnicodeString(a,b,[]);
 end;
 
 function StrLCompAnsiString(S1, S2: PAnsiChar; MaxLen: PtrUInt): PtrInt;
@@ -746,7 +772,6 @@ begin
       LowerWideStringProc:=@LowerWideString;
 
       CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
 {$else FPC_WIDESTRING_EQUAL_UNICODESTRING}
       Ansi2WideMoveProc:=@Ansi2UnicodeMove;
 
@@ -754,7 +779,6 @@ begin
       LowerWideStringProc:=@LowerUnicodeString;
 
       CompareWideStringProc:=@CompareUnicodeString;
-      CompareTextWideStringProc:=@CompareTextUnicodeString;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
       CharLengthPCharProc:=@CharLengthPChar;
@@ -778,7 +802,6 @@ begin
       UpperUnicodeStringProc:=@UpperUnicodeString;
       LowerUnicodeStringProc:=@LowerUnicodeString;
       CompareUnicodeStringProc:=@CompareUnicodeString;
-      CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
     end;
   SetUnicodeStringManager(locWideStringManager);
 

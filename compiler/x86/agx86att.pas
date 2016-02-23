@@ -111,6 +111,8 @@ interface
             FormatName:='win64';
           system_x86_64_darwin:
             FormatName:='macho64';
+          system_x86_64_embedded:
+            FormatName:='obj';
           system_x86_64_linux:
             FormatName:='elf64';
         else
@@ -224,7 +226,11 @@ interface
       begin
         case o.typ of
           top_reg :
-            owner.writer.AsmWrite(gas_regname(o.reg));
+            { Solaris assembler does not accept %st instead of %st(0) }
+            if (owner.asminfo^.id=as_solaris_as) and (o.reg=NR_ST) then
+              owner.writer.AsmWrite(gas_regname(NR_ST0))
+            else
+              owner.writer.AsmWrite(gas_regname(o.reg));
           top_ref :
             if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
               WriteReference(o.ref^)
@@ -296,7 +302,7 @@ interface
         calljmp:=is_calljmp(op);
 
         // BUGFIX GAS-assembler
-        // Intel "Intel 64 and IA-32 Architectures Software Developers manual 12/2011
+        // Intel "Intel 64 and IA-32 Architectures Software Developers manual 12/2011"
         // Intel:       VCVTDQ2PD  YMMREG, YMMREG/mem128 ((intel syntax))
         // GAS:         VCVTDQ2PD  YMMREG, XMMREG/mem128 ((intel syntax))
         if (op = A_VCVTDQ2PD) and
@@ -356,13 +362,14 @@ interface
            (op<>A_FLDCW) and
            (not fskipPopcountSuffix or
             (op<>A_POPCNT)) and
+           ((owner.asminfo^.id<>as_solaris_as) or (op<>A_Jcc) and (op<>A_SETcc)) and
            not(
                (taicpu(hp).ops<>0) and
                (taicpu(hp).oper[0]^.typ=top_reg) and
                (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
               ) then
         begin
-          if gas_needsuffix[op] = AttSufMM then
+          if (gas_needsuffix[op] = AttSufMM)then
           begin
             for i:=0 to taicpu(hp).ops-1 do
             begin
@@ -462,6 +469,20 @@ interface
             idtxt  : 'GAS';
             asmbin : 'gas';
             asmcmd : '--64 -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_x86_64_solaris];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+
+       as_x86_64_solaris_info : tasminfo =
+          (
+            id     : as_solaris_as;
+            idtxt  : 'AS-SOL';
+            asmbin : 'as';
+            asmcmd : ' -m64 -o $OBJ $EXTRAOPT $ASM';
             supported_targets : [system_x86_64_solaris];
             flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
@@ -586,6 +607,21 @@ interface
             comment : '# ';
             dollarsign: '$';
           );
+
+       as_i386_solaris_info : tasminfo =
+          (
+            id     : as_solaris_as;
+            idtxt  : 'AS-SOL';
+            asmbin : 'as';
+            asmcmd : ' -o $OBJ $EXTRAOPT $ASM';
+            supported_targets : [system_i386_solaris];
+            flags : [af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+            dollarsign: '$';
+          );
+
+
 {$endif x86_64}
 
 initialization
@@ -595,6 +631,7 @@ initialization
   RegisterAssembler(as_x86_64_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_x86_64_clang_darwin_info,Tx86AppleGNUAssembler);
+  RegisterAssembler(as_x86_64_solaris_info,Tx86ATTAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);
   RegisterAssembler(as_i386_gas_info,Tx86ATTAssembler);
@@ -602,5 +639,6 @@ initialization
   RegisterAssembler(as_i386_gas_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_i386_clang_darwin_info,Tx86AppleGNUAssembler);
   RegisterAssembler(as_i386_as_aout_info,Tx86AoutGNUAssembler);
+  RegisterAssembler(as_i386_solaris_info,Tx86ATTAssembler);
 {$endif x86_64}
 end.

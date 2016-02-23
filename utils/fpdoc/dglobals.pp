@@ -132,6 +132,8 @@ resourcestring
   SCHMUsageMakeSearch = 'Automatically generate a Search Index from filenames that match *.htm*';
   SCHMUsageChmTitle= 'Title of the chm. Defaults to the value from --package';
 
+  SXMLUsageSource  = 'Include source file and line info in generated XML';
+
   // Linear usage
   SLinearUsageDupLinkedDocsP1 = 'Duplicate linked element documentation in';
   SLinearUsageDupLinkedDocsP2 = 'descendant classes.';
@@ -142,6 +144,8 @@ resourcestring
   SCopyright2      = '(c) 2005 - 2012 various FPC contributors';
 
   SCmdLineHelp     = 'Usage: %s [options]';
+  SUsageOption008  = '--base-descr-dir=DIR prefix all description files with this directory';
+  SUsageOption009  = '--base-input-dir=DIR prefix all input files with this directory';
   SUsageOption010  = '--content         Create content file for package cross-references';
   SUsageOption020  = '--cputarget=value Set the target CPU for the scanner.';
   SUsageOption030  = '--descr=file      use file as description file, e.g.: ';

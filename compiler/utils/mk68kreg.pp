@@ -1,7 +1,7 @@
 {
     Copyright (c) 1998-2002 by Peter Vreman and Florian Klaempfl
 
-    Convert spreg.dat to several .inc files for usage with
+    Convert m68kreg.dat to several .inc files for usage with
     the Free pascal compiler
 
     See the file COPYING.FPC, included in this distribution,
@@ -13,7 +13,7 @@
 
  **********************************************************************}
 {$mode objfpc}
-program mkspreg;
+program mk68kreg;
 
 const Version = '1.00';
       max_regcount = 200;
@@ -24,9 +24,7 @@ var s : string;
     regcount:byte;
     regcount_bsstart:byte;
     names,
-    regtypes,
-    supregs,
-    numbers,
+    values,
     stdnames,
     gasnames,
     stabs : array[0..max_regcount-1] of string[63];
@@ -102,7 +100,7 @@ begin
         i:=h;
         repeat
           j:=i+p;
-          if numbers[regnumber_index[j]]>=numbers[regnumber_index[i]] then
+          if values[regnumber_index[j]]>=values[regnumber_index[i]] then
             break;
           t:=regnumber_index[i];
           regnumber_index[i]:=regnumber_index[j];
@@ -199,9 +197,7 @@ begin
         i:=1;
         names[regcount]:=readstr;
         readcomma;
-        regtypes[regcount]:=readstr;
-        readcomma;
-        supregs[regcount]:=readstr;
+        values[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
         readcomma;
@@ -209,13 +205,12 @@ begin
         readcomma;
         stabs[regcount]:=readstr;
         { Create register number }
-        if supregs[regcount][1]<>'$' then
+        if values[regcount][1]<>'$' then
           begin
             writeln('Missing $ before number, at line ',line);
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);
@@ -237,7 +232,8 @@ procedure write_inc_files;
 var
     norfile,stdfile,gasfile,supfile,
     numfile,stabfile,confile,
-    rnifile,srifile,grifile:text;
+    rnifile,srifile,grifile,
+    bssfile:text;
     first:boolean;
 
 begin
@@ -252,6 +248,7 @@ begin
   openinc(rnifile,'r68krni.inc');
   openinc(srifile,'r68ksri.inc');
   openinc(grifile,'r68kgri.inc');
+  openinc(bssfile,'r68kbss.inc');
   first:=true;
   for i:=0 to regcount-1 do
     begin
@@ -267,9 +264,10 @@ begin
         end
       else
         first:=false;
-      writeln(supfile,'RS_',names[i],' = ',supregs[i],';');
-      writeln(confile,'NR_'+names[i],' = ','tregister(',numbers[i],')',';');
-      write(numfile,'tregister(',numbers[i],')');
+      if (copy(values[i],4,2)='00') or (copy(values[i],4,2)='04') then // subd or subnone -> superregister
+        writeln(supfile,'RS_',names[i],' = $',copy(values[i],length(values[i])-1,2),'; { ',values[i],' }');
+      writeln(confile,'NR_'+names[i],' = ','tregister(',values[i],')',';');
+      write(numfile,'tregister(',values[i],')');
       write(stdfile,'''',stdnames[i],'''');
       write(gasfile,'''',gasnames[i],'''');
       write(stabfile,stabs[i]);
@@ -278,6 +276,7 @@ begin
       write(grifile,gas_regname_index[i]);
     end;
   write(norfile,regcount);
+  write(bssfile,'regnumber_count_bsstart = ',regcount_bsstart,';');
   close(confile);
   close(supfile);
   closeinc(numfile);
@@ -288,6 +287,7 @@ begin
   closeinc(rnifile);
   closeinc(srifile);
   closeinc(grifile);
+  closeinc(bssfile);
   writeln('Done!');
   writeln(regcount,' registers processed');
 end;

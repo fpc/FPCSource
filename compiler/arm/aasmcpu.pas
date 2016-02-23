@@ -275,7 +275,7 @@ uses
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
-         procedure BuildArmMasks;
+         procedure BuildArmMasks(objdata:TObjData);
          function  InsEnd:longint;
          procedure create_ot(objdata:TObjData);
          function  Matches(p:PInsEntry):longint;
@@ -715,91 +715,178 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        case opcode of
-          A_ADC,A_ADD,A_AND,A_BIC,
-          A_EOR,A_CLZ,A_RBIT,
-          A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
-          A_LDRSH,A_LDRT,
-          A_MOV,A_MVN,A_MLA,A_MUL,
-          A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
-          A_SWP,A_SWPB,
-          A_LDF,A_FLT,A_FIX,
-          A_ADF,A_DVF,A_FDV,A_FML,
-          A_RFS,A_RFC,A_RDF,
-          A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
-          A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
-          A_LFM,
-          A_FLDS,A_FLDD,
-          A_FMRX,A_FMXR,A_FMSTAT,
-          A_FMSR,A_FMRS,A_FMDRR,
-          A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
-          A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
-          A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
-          A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
-          A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
-          A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
-          A_FNEGS,A_FNEGD,
-          A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
-          A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
-          A_SXTB16,A_UXTB16,
-          A_UXTB,A_UXTH,A_SXTB,A_SXTH,
-          A_NEG,
-          A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
-          A_MRS,A_MSR:
-            if opnr=0 then
-              result:=operand_write
-            else
+        if GenerateThumbCode then
+          case opcode of
+            A_ADC,A_ADD,A_AND,A_BIC,
+            A_EOR,A_CLZ,A_RBIT,
+            A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
+            A_LDRSH,A_LDRT,
+            A_MOV,A_MVN,A_MLA,A_MUL,
+            A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
+            A_SWP,A_SWPB,
+            A_LDF,A_FLT,A_FIX,
+            A_ADF,A_DVF,A_FDV,A_FML,
+            A_RFS,A_RFC,A_RDF,
+            A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
+            A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
+            A_LFM,
+            A_FLDS,A_FLDD,
+            A_FMRX,A_FMXR,A_FMSTAT,
+            A_FMSR,A_FMRS,A_FMDRR,
+            A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
+            A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
+            A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
+            A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
+            A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
+            A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
+            A_FNEGS,A_FNEGD,
+            A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
+            A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
+            A_SXTB16,A_UXTB16,
+            A_UXTB,A_UXTH,A_SXTB,A_SXTH,
+            A_NEG,
+            A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
+            A_MRS,A_MSR:
+              if opnr=0 then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_BKPT,A_B,A_BL,A_BLX,A_BX,
+            A_CMN,A_CMP,A_TEQ,A_TST,
+            A_CMF,A_CMFE,A_WFS,A_CNF,
+            A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
+            A_FCMPZS,A_FCMPZD,
+            A_VCMP,A_VCMPE:
               result:=operand_read;
-          A_BKPT,A_B,A_BL,A_BLX,A_BX,
-          A_CMN,A_CMP,A_TEQ,A_TST,
-          A_CMF,A_CMFE,A_WFS,A_CNF,
-          A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
-          A_FCMPZS,A_FCMPZD,
-          A_VCMP,A_VCMPE:
-            result:=operand_read;
-          A_SMLAL,A_UMLAL:
-            if opnr in [0,1] then
-              result:=operand_readwrite
+            A_SMLAL,A_UMLAL:
+              if opnr in [0,1] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+             A_SMULL,A_UMULL,
+             A_FMRRD:
+              if opnr in [0,1] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_STR,A_STRB,A_STRBT,
+            A_STRH,A_STRT,A_STF,A_SFM,
+            A_FSTS,A_FSTD,
+            A_VSTR:
+              { important is what happens with the involved registers }
+              if opnr=0 then
+                result := operand_read
+              else
+                { check for pre/post indexed }
+                result := operand_read;
+            //Thumb2
+            A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
+            A_SMMLA,A_SMMLS:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_BFC:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_LDREX:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_STREX:
+              result:=operand_write;
             else
+              internalerror(200403151);
+          end
+        else
+          case opcode of
+            A_ADC,A_ADD,A_AND,A_BIC,
+            A_EOR,A_CLZ,A_RBIT,
+            A_LDR,A_LDRB,A_LDRBT,A_LDRH,A_LDRSB,
+            A_LDRSH,A_LDRT,
+            A_MOV,A_MVN,A_MLA,A_MUL,
+            A_ORR,A_RSB,A_RSC,A_SBC,A_SUB,
+            A_SWP,A_SWPB,
+            A_LDF,A_FLT,A_FIX,
+            A_ADF,A_DVF,A_FDV,A_FML,
+            A_RFS,A_RFC,A_RDF,
+            A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
+            A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
+            A_LFM,
+            A_FLDS,A_FLDD,
+            A_FMRX,A_FMXR,A_FMSTAT,
+            A_FMSR,A_FMRS,A_FMDRR,
+            A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
+            A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
+            A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
+            A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
+            A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
+            A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
+            A_FNEGS,A_FNEGD,
+            A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
+            A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD,
+            A_SXTB16,A_UXTB16,
+            A_UXTB,A_UXTH,A_SXTB,A_SXTH,
+            A_NEG,
+            A_VABS,A_VADD,A_VCVT,A_VDIV,A_VLDR,A_VMOV,A_VMUL,A_VNEG,A_VSQRT,A_VSUB,
+            A_MRS,A_MSR:
+              if opnr=0 then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_BKPT,A_B,A_BL,A_BLX,A_BX,
+            A_CMN,A_CMP,A_TEQ,A_TST,
+            A_CMF,A_CMFE,A_WFS,A_CNF,
+            A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
+            A_FCMPZS,A_FCMPZD,
+            A_VCMP,A_VCMPE:
               result:=operand_read;
-           A_SMULL,A_UMULL,
-           A_FMRRD:
-            if opnr in [0,1] then
-              result:=operand_write
+            A_SMLAL,A_UMLAL:
+              if opnr in [0,1] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+             A_SMULL,A_UMULL,
+             A_FMRRD:
+              if opnr in [0,1] then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_STR,A_STRB,A_STRBT,
+            A_STRH,A_STRT,A_STF,A_SFM,
+            A_FSTS,A_FSTD,
+            A_VSTR:
+              { important is what happens with the involved registers }
+              if opnr=0 then
+                result := operand_read
+              else
+                { check for pre/post indexed }
+                result := operand_read;
+            //Thumb2
+            A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
+            A_SMMLA,A_SMMLS:
+              if opnr in [0] then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_BFC:
+              if opnr in [0] then
+                result:=operand_readwrite
+              else
+                result:=operand_read;
+            A_LDREX:
+              if opnr in [0] then
+                result:=operand_write
+              else
+                result:=operand_read;
+            A_STREX:
+              result:=operand_write;
             else
-              result:=operand_read;
-          A_STR,A_STRB,A_STRBT,
-          A_STRH,A_STRT,A_STF,A_SFM,
-          A_FSTS,A_FSTD,
-          A_VSTR:
-            { important is what happens with the involved registers }
-            if opnr=0 then
-              result := operand_read
-            else
-              { check for pre/post indexed }
-              result := operand_read;
-          //Thumb2
-          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV, A_MOVW, A_MOVT, A_MLS, A_BFI,
-          A_SMMLA,A_SMMLS:
-            if opnr in [0] then
-              result:=operand_write
-            else
-              result:=operand_read;
-          A_BFC:
-            if opnr in [0] then
-              result:=operand_readwrite
-            else
-              result:=operand_read;
-          A_LDREX:
-            if opnr in [0] then
-              result:=operand_write
-            else
-              result:=operand_read;
-          A_STREX:
-            result:=operand_write;
-          else
-            internalerror(200403151);
-        end;
+              internalerror(200403151);
+          end;
       end;
 
 
@@ -1329,6 +1416,36 @@ implementation
               ait_instruction:
                 begin
                   case taicpu(curtai).opcode of
+                    A_STM:
+                      begin
+                        if (taicpu(curtai).ops=2) and
+                           (taicpu(curtai).oper[0]^.typ=top_ref) and
+                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                           (taicpu(curtai).oppostfix in [PF_FD,PF_DB]) then
+                          begin
+                            taicpu(curtai).oppostfix:=PF_None;
+                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
+                            taicpu(curtai).ops:=1;
+                            taicpu(curtai).opcode:=A_PUSH;
+                          end;
+                      end;
+
+                    A_LDM:
+                      begin
+                        if (taicpu(curtai).ops=2) and
+                           (taicpu(curtai).oper[0]^.typ=top_ref) and
+                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
+                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
+                           (taicpu(curtai).oppostfix in [PF_FD,PF_IA]) then
+                          begin
+                            taicpu(curtai).oppostfix:=PF_None;
+                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
+                            taicpu(curtai).ops:=1;
+                            taicpu(curtai).opcode:=A_POP;
+                          end;
+                      end;
+
                     A_ADD,
                     A_AND,A_EOR,A_ORR,A_BIC,
                     A_LSL,A_LSR,A_ASR,A_ROR,
@@ -2007,7 +2124,7 @@ implementation
       end;
 
 
-    procedure taicpu.BuildArmMasks;
+    procedure taicpu.BuildArmMasks(objdata:TObjData);
       const
         Masks: array[tcputype] of longint =
           (
@@ -2048,7 +2165,8 @@ implementation
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
 
-        if current_settings.instructionset=is_thumb then
+        if objdata.ThumbFunc then
+        //if current_settings.instructionset=is_thumb then
           begin
             fArmMask:=IF_THUMB;
             if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
@@ -2549,7 +2667,7 @@ implementation
            { create the .ot fields }
            create_ot(objdata);
 
-           BuildArmMasks;
+           BuildArmMasks(objdata);
            { set the file postion }
            current_filepos:=fileinfo;
          end
@@ -2857,13 +2975,15 @@ implementation
               else
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
-                  if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
-                    begin
-                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
-                      bytes:=bytes or $fffffe; // TODO: Not sure this is right, but it matches the output of gas
-                    end
+
+                  bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
+
+                  if (opcode<>A_BL) or (condition<>C_None) then
+                    objdata.writereloc(bytes,4,currsym,RELOC_RELATIVE_24)
                   else
-                    bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
+                    objdata.writereloc(bytes,4,currsym,RELOC_RELATIVE_CALL);
+
+                  exit;
                 end;
             end;
           #$02:
@@ -4400,11 +4520,9 @@ implementation
               bytes:=bytes or (ord(insentry^.code[1]) shl 8);
               bytes:=bytes or ord(insentry^.code[2]);
 
-
               case opcode of
                 A_SUB:
                   begin
-                    bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
                     if (ops=3) and
                        (oper[2]^.typ=top_const) then
                       bytes:=bytes or ((oper[2]^.val shr 2) and $7F)
@@ -4564,7 +4682,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
@@ -4575,7 +4693,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;

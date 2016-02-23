@@ -15,9 +15,7 @@
 
 unit agraphics;
 
-{$mode delphi}{$H+}
-
-Interface
+interface
 
 uses
   Exec, Hardware, Utility;
@@ -26,15 +24,15 @@ uses
 const
   BITSET = $8000;
   BITCLR = 0;
-    
+
 type
   TPlanePtr = PByte;
-  
+
   PPoint = ^TPoint;
   TPoint = record
     x, y: SmallInt;
   end;
-  
+
   PBitMap = ^TBitMap;
   TBitMap = record
     BytesPerRow: Word;
@@ -44,7 +42,7 @@ type
     Pad: Word;
     Planes: array[0..7] of TPlanePtr;
   end;
-  
+
   PRectangle = ^TRectangle;
   TRectangle = record
     MinX,
@@ -52,7 +50,7 @@ type
     MaxX,
     MaxY: SmallInt;
   end;
-   
+
   PRect32 = ^TRect32;
   TRect32 = record
     MinX,
@@ -60,12 +58,12 @@ type
     MaxX,
     MaxY: Longint;
   end;
-  
+
 type
 // a structure to contain the 16 collision procedure addresses }
   PCollTable = ^TCollTable;
   TCollTable = array[0..15] of Pointer;
-    
+
 // flags for AllocBitMap, etc.
 const
   BMB_CLEAR       = 0;
@@ -73,7 +71,7 @@ const
   BMB_INTERLEAVED = 2;
   BMB_STANDARD    = 3;
   BMB_MINPLANES   = 4;
-  BMB_SPECIALFMT	= 7; // CyberGfx Flag
+  BMB_SPECIALFMT  = 7; // CyberGfx Flag
 
   BMF_CLEAR       = 1 shl BMB_CLEAR;
   BMF_DISPLAYABLE = 1 shl BMB_DISPLAYABLE;
@@ -89,7 +87,7 @@ const
   BMB_HIJACKED    = 7;
   BMF_HIJACKED    = 1 shl 7;
   BMB_RTGTAGS     = 8;
-  BMF_RTGTAGS	    = 1 shl 8;
+  BMF_RTGTAGS     = 1 shl 8;
   BMB_RTGCHECK    = 9;
   BMF_RTGCHECK    = 1 shl 9;
   BMB_FRIENDISTAG = 10;
@@ -99,7 +97,7 @@ const
 
   BMF_CHECKVALUE  = BMF_RTGTAGS or BMF_RTGCHECK or BMF_FRIENDISTAG;
   BMF_CHECKMASK   = BMF_HIJACKED or BMF_CHECKVALUE or BMF_INVALID;
-  
+
 // tags for AllocBitMap */
   BMATags_Friend              = TAG_USER + 0;
   BMATags_Depth               = TAG_USER + 1;
@@ -157,7 +155,7 @@ const
   ISLESSY     = 1 shl 1;
   ISGRTRX     = 1 shl 2;
   ISGRTRY     = 1 shl 3;
-   
+
 type
 // TextAttr node, matches text attributes in RastPort
   PTextAttr = ^TTextAttr;
@@ -181,7 +179,7 @@ const
 // ta_Style/tta_Style
   FS_NORMAL           = 0;       // normal text (no style bits set)
   FSB_UNDERLINED      = 0;       // underlined (under baseline)
-  FSF_UNDERLINED      = 1 shl 0; 
+  FSF_UNDERLINED      = 1 shl 0;
   FSB_BOLD            = 1;       // bold face text (ORed w/ shifted)
   FSF_BOLD            = 1 shl 1;
   FSB_ITALIC          = 2;       // italic (slanted 1:2 right)
@@ -205,13 +203,13 @@ const
   FPF_WIDEDOT         = 1 shl 4;
   FPB_PROPORTIONAL    = 5;      //character sizes can vary from nominal
   FPF_PROPORTIONAL    = 1 shl 5;
-  FPB_DESIGNED        = 6;     // size is "designed", not constructed 
+  FPB_DESIGNED        = 6;     // size is "designed", not constructed
   FPF_DESIGNED        = 1 shl 6;
   FPB_REMOVED         = 7;     // the font has been removed
   FPF_REMOVED         = 1 shl 7;
 // tta_Tags
   TA_DeviceDPI        =  TAG_USER + 1; // Tag value is Point union: Hi Longint XDPI, Lo Longint YDPI
-  
+
   MAXFONTMATCHWEIGHT  =  32767;   { perfect match from WeighTAMatch }
 
 type
@@ -229,10 +227,10 @@ type
     tf_LoChar: Byte;      // the first character described here
     tf_HiChar: Byte;      // the last character described here
     tf_CharData: APTR;    // the bit character data
-    tf_Modulo: Word;      // the row modulo for the strike font data 
+    tf_Modulo: Word;      // the row modulo for the strike font data
     tf_CharLoc: APTR;     // ptr to location data for the strike font 2 words: bit offset then size
-    tf_CharSpace: APTR;   // ptr to words of proportional spacing data 
-    tf_CharKern: APTR;    // ptr to words of kerning data   
+    tf_CharSpace: APTR;   // ptr to words of proportional spacing data
+    tf_CharKern: APTR;    // ptr to words of kerning data
     //property tf_extension: PMsgPort read tf_Message.mn_ReplyPort write tf_Message.mn_ReplyPort;
   end;
 
@@ -241,11 +239,11 @@ type
     tfe_MatchWord: Word;         // a magic cookie for the extension
     tfe_Flags0: Byte;            // (system private flags)
     tfe_Flags1: Byte;            // (system private flags)
-    
+
     tfe_BackPtr: PTextFont;      // validation of compilation
     tfe_OrigReplyPort: PMsgPort; // original value in tf_Extension
     tfe_Tags: PTagItem;          // Text Tags for the font
-    
+
     tfe_OFontPatchS,             // (system private use)
     tfe_OFontPatchK: PWord;      // (system private use)
     // this space is reserved for future expansion
@@ -261,7 +259,7 @@ type
   PColorTextFont = ^TColorTextFont;
   TColorTextFont = record
     ctf_TF: TTextFont;
-     
+
     ctf_Flags: Word;      // extended flags
     ctf_Depth,            // number of bit planes
     ctf_FgColor,          // color that is remapped to FgPen
@@ -269,9 +267,9 @@ type
     ctf_High,             // highest color represented here }
     ctf_PlanePick,        // PlanePick ala Images }
     ctf_PlaneOnOff: Byte; // PlaneOnOff ala Images
-    
+
     ctf_ColorFontColors: PColorFontColors; // colors for font
-    
+
     ctf_CharData: array[0..7] of APTR; // pointers to bit planes ala tf_CharData
   end;
 
@@ -328,7 +326,7 @@ type
   TVUserStuff = SmallInt; // Sprite user stuff
   TBUserStuff = SmallInt; // Bob user stuff
   TAUserStuff = SmallInt; // AnimOb user stuff
-  
+
   PBob = ^TBob;
   PAnimOb = ^TAnimOb;
   PAnimComp = ^TAnimComp;
@@ -337,7 +335,7 @@ type
   list is copied to clear list
   must be here in VSprite for system boundary detection
   the VSprite positions are defined in (y,x) order to make sorting
-  sorting easier, since (y,x) as a long Longint} 
+  sorting easier, since (y,x) as a long Longint}
   PVSprite = ^TVSprite;
   TVSprite = record
    // SYSTEM VARIABLES
@@ -408,7 +406,7 @@ type
     Flags: SmallInt; // AnimComp flags for system & user
     Timer: SmallInt; // timer defines how long to keep this component active:
                      //  if set non-zero, timer decrements to zero then switches to nextSeq
-                     //  if set to zero, AnimComp never switches 
+                     //  if set to zero, AnimComp never switches
    // USER VARIABLES
     TimeSet: SmallInt;     // initial value for timer when the AnimComp is activated by the system
     NextComp: PAnimComp;   // pointer to next and previous components of animation object
@@ -450,12 +448,12 @@ const
   B2SWAP   = 1;
   B2BOBBER = 2;
 
- 
+
 const
   MAXSUPERSAVECLIPRECTS = 20; // Max. number of cliprects that are kept preallocated in the list
-    
+
 type
-  // predefinitions, for record referencing:    
+  // predefinitions, for record referencing:
   PRastPort = ^tRastPort;
   PLayer_Info = ^TLayer_Info;
   PLayer = ^TLayer;
@@ -471,10 +469,10 @@ type
     _p2: Pointer;        // system reserved
     reserved: Longint;   // system use
     Flags: Longint;      // only exists in layer allocation
-  end;  
+  end;
 
-  
-// Layer Structure  
+
+// Layer Structure
   TLayer = record
     Front,
     Back: PLayer;         // ignored by roms
@@ -500,7 +498,7 @@ type
 {$ifdef aros}
     VisibleRegion: PRegion;        // Private!
 {$else}
-    Reserved1: ULONG; 
+    Reserved1: ULONG;
 {$endif}
     ClipRegion: PRegion;
     SaveClipRects: PRegion;        // used to back out when in trouble
@@ -547,7 +545,7 @@ type
   TChangeLayerShapeMsg = record
     NewShape: PRegion;    // same as passed to ChangeLayerShape()
     ClipRect: PClipRect;
-    Shape: PRegion;  
+    Shape: PRegion;
   end;
 
   TCollectPixelsLayerMsg = record
@@ -563,7 +561,7 @@ type
   end;
 
 // Msg sent through LA_ShapeHook.
-  PShapeHookMsg = ^TShapeHookMsg;  
+  PShapeHookMsg = ^TShapeHookMsg;
   TShapeHookMsg = record
     Action: LongInt;
     Layer: PLayer;
@@ -599,7 +597,7 @@ type
     gelHead,
     gelTail: PVSprite;       // dummy vSprites for list management
     NextLine: PSmallInt;     // pointer to array of 8 WORDS for sprite available lines
-    LastColor: ^PSmallInt;   // pointer to array of 8 pointers for color-last-assigned to vSprites 
+    LastColor: ^PSmallInt;   // pointer to array of 8 pointers for color-last-assigned to vSprites
     CollHandler: PCollTable; // Pointeres of collision routines
     LeftMost,
     RightMost,
@@ -608,7 +606,7 @@ type
     FirstBlissObj,
     LastBlissObj: APTR;      // system use only
   end;
-    
+
   TRastPort = record
     Layer: PLayer;        // LayerPtr
     BitMap: PBitMap;      // BitMapPtr
@@ -665,7 +663,7 @@ const
   SHAPEHOOKACTION_MOVESIZELAYER = 3;
 
 // Tags for scale layer
-  LA_SRCX	      = $4000;
+  LA_SRCX       = $4000;
   LA_SRCY       = $4001;
   LA_DESTX      = $4002;
   LA_DESTY      = $4003;
@@ -673,7 +671,7 @@ const
   LA_SRCHEIGHT  = $4005;
   LA_DESTWIDTH  = $4006;
   LA_DESTHEIGHT = $4007;
-  
+
   ROOTPRIORITY     =  0;
   BACKDROPPRIORITY = 10;
   UPFRONTPRIORITY  = 20;
@@ -696,7 +694,7 @@ const
   LAYERS_NOBACKFILL: PHook = PHook(1);
 
 // LayerInfo Flag
-  LIFLG_SUPPORTS_OFFSCREEN_LAYERS = 1 shl 8; 	// Same flag as AmigaOS hack PowerWindowsNG 
+  LIFLG_SUPPORTS_OFFSCREEN_LAYERS = 1 shl 8;  // Same flag as AmigaOS hack PowerWindowsNG
 
 // Tags for CreateLayerTagList
   LA_Dummy       = TAG_USER + 1234;
@@ -706,17 +704,17 @@ const
   LA_Invisible   = LA_Dummy + 4; // LongBool. Default is FALSE
   LA_BackFill    = LA_Dummy + 5; // PHook. Default is LAYERS_BACKFILL
   LA_SuperBitMap = LA_Dummy + 6; // PBitMap. Default is nil (none)
-  LA_Shape	     = LA_Dummy + 7; // PRegion. Default is nil (rectangular shape)
+  LA_Shape       = LA_Dummy + 7; // PRegion. Default is nil (rectangular shape)
 
-  LPRI_NORMAL 	 = 0;
-  LPRI_BACKDROP	 = -50;  
+  LPRI_NORMAL    = 0;
+  LPRI_BACKDROP  = -50;
 
- 
+
 const
 // tfe_Flags0 (partial definition)
   TE0B_NOREMFONT = 0;    // disallow RemFont for this font
   TE0F_NOREMFONT = $01;
-   
+
 Const
     CleanUp     = $40;
     CleanMe     = CleanUp;
@@ -765,7 +763,7 @@ type
     xln_Type: Byte;          // NT_GRAPHICS
     xln_Pri: ShortInt;
     xln_Name: PChar;
-    xln_Subsystem: Byte;     // see below 
+    xln_Subsystem: Byte;     // see below
     xln_Subtype: Byte;       // SS_GRAPHICS
     xln_Library : Longint;
     xln_Init : Pointer;
@@ -795,7 +793,7 @@ type
     reserved1,                // Private do not touch
     reserved2,
     reserved3: Pointer;
-    hblank,                   // Signal timings by themselves 
+    hblank,                   // Signal timings by themselves
     vblank,
     hsync,
     vsync: TAnalogSignalInterval;
@@ -812,26 +810,26 @@ type
     DeniseMaxDisplayColumn,
     BeamCon0,                // Value for beamcon0 Amiga(tm) chipset register
     min_row: Word;
-    
+
     ms_Special: PSpecialMonitor; // Synchro signal timings description (optional)
-    
+
     ms_OpenCount: Word;         // Driver open count
     ms_transform,
     ms_translate,
     ms_scale: Pointer;
     ms_xoffset,
     ms_yoffset: Word;
-    
+
     ms_LegalView: TRectangle;  // Allowed range for view positioning (right-bottom position included)
-    
+
     ms_maxoscan,               // maximum legal overscan
     ms_videoscan: Pointer;     // video display overscan
     DeniseMinDisplayColumn: Word;
     DisplayCompatible: ULONG;
-    
+
     DisplayInfoDataBase: TList;
     DisplayInfoDataBaseSemaphore: TSignalSemaphore;
-    
+
     ms_MrgCop,             // Driver call vectors, unused by AROS
     ms_LoadView,
     ms_KillView: Pointer;
@@ -852,7 +850,7 @@ const
 
   TO_MONITOR            =  0;
   FROM_MONITOR          =  1;
-  
+
   STANDARD_XOFFSET      =  9;
   STANDARD_YOFFSET      =  0;
 
@@ -866,10 +864,10 @@ const
   NTSC_MONITOR_NAME: PChar    = 'ntsc.monitor';
   PAL_MONITOR_NAME: PChar     = 'pal.monitor';
   VGA_MONITOR_NAME: PChar     = 'vga.monitor';
-  
+
   STANDARD_MONITOR_MASK =  REQUEST_NTSC or REQUEST_PAL;
-  
-// Some standard/default constants for Amiga(tm) chipset 
+
+// Some standard/default constants for Amiga(tm) chipset
   STANDARD_NTSC_ROWS    =   262;
   MIN_NTSC_ROW          =    21;
   STANDARD_PAL_ROWS     =   312;
@@ -981,7 +979,7 @@ type
     Monitor: PMonitorSpec; // Monitor used for displaying this View
     TopLine: Word;
   end;
-    
+
   // Copper structures
   PCopIns = ^TCopIns;
   TCopIns = record
@@ -997,9 +995,9 @@ type
     2:(
       HWaitPos: SmallInt; // horizontal wait position
       DestData: SmallInt; // data to send
-      );  
+      );
   end;
-    
+
   TCopList = record
     Next: PCopList;       // next block for this copper list
     _CopList: PCopList;   // system use
@@ -1014,9 +1012,9 @@ type
     SLRepeat: Word;
     Flags: Word;          // EXACT_LINE or HALF_LINE
   end;
-  
+
 // Describes a displayed bitmap (or logical screen). Copperlists are relevant only to Amiga(tm) chipset,
-// for other hardware they are NULL. 
+// for other hardware they are NULL.
   TViewPort = record
     Next: PViewPort;
     ColorMap: PColorMap; // table of colors for this viewport if this is nil, MakeVPort assumes default values
@@ -1042,13 +1040,13 @@ type
     ViewPort: PViewPort;     // ViewPort it relates to (backward link)
     DisplayClip: TRectangle; // makevp display clipping information, Total size of displayable part
     VecTable: APTR;          // Unused in AROS
-    DriverData: array[0..1] of APTR; // Private storage for display drivers. Do not touch! 
+    DriverData: array[0..1] of APTR; // Private storage for display drivers. Do not touch!
     Flags: Word;             // Flags, see below
     Origin: array[0..1] of TPoint; // First visible point relative to the DClip. One for each possible playfield.
     cop1ptr,                 // private
     cop2ptr: ULONG;          // private
   end;
-  
+
   PPaletteExtra = ^TPaletteExtra;
   TPaletteExtra = record             // structure may be extended so watch out!
     pe_Semaphore: TSignalSemaphore;  // shared semaphore for arbitration
@@ -1072,13 +1070,13 @@ type
    color number 4, value: $00ABCDEF
    ColorTable[4] := $0ACE,
    LowColorBits[4] := $0BDF
- 
+
   SpriteBase fields keep bank number, not a color number. On m68k Amiga colors are divided into
   banks, 16 per each. So bank number is color number divided by 16. Base color is a number which
   is added to all colors of the sprite in order to look up the actual palette entry.
   AROS may run on different hardware where sprites may have base colors that do not divide by 16.
   In order to cover this bank numbers have a form: ((c and $0F) shl 8 ) or (c shr 4), where c is actual
-  color number (i. e. remainder is stored in a high byte of Word).}  
+  color number (i. e. remainder is stored in a high byte of Word).}
   TColorMap = record
     Flags: Byte;            // see below (CMF_*)
     Type_: Byte;            // Colormap type (reflects version), see below (COLORMAP_*)
@@ -1086,23 +1084,23 @@ type
     ColorTable: PWord;      // Table of high nibbles of color values (see description above)
       // The following fields are present only if Type_ >= COLORMAP_TYPE_V36
     cm_vpe: PViewPortExtra; // ViewPortExtra, for faster access
-    
-    LowColorBits: PWord;    // Table of low nibbles of color values (see above) 
+
+    LowColorBits: PWord;    // Table of low nibbles of color values (see above)
     TransparencyPlane,
     SpriteResolution,       // see below
     SpriteResDefault,
     AuxFlags: Byte;
-    
+
     cm_vp: PViewPort;       // Points back to a ViewPort this colormap belongs to
-    
+
     NormalDisplayInfo,
     CoerceDisplayInfo : APTR;
-    
+
     cm_batch_items: PTagItem;
     VPModeID: ULONG;
       // The following fields are present only if Type_ >= COLORMAP_TYPE_V39
     PalExtra: PPaletteExtra; // Structure controlling palette sharing
-    
+
     SpriteBase_Even,         // Color bank for even sprites (see above)
     SpriteBase_Odd,          // The same for odd sprites
     Bp_0_base,
@@ -1112,7 +1110,7 @@ type
 const
 // flags for TColorMap.Flags
   CMF_CMTRANS             = 0;
-  COLORMAP_TRANSPARENCY   = 1 shl 0; 
+  COLORMAP_TRANSPARENCY   = 1 shl 0;
   CMF_CPTRANS             = 1;
   COLORPLANE_TRANSPARENCY = 1 shl 1;
   CMF_BRDRBLNK            = 2;
@@ -1127,13 +1125,13 @@ const
   COLORMAP_TYPE_V1_2      = 0;
   COLORMAP_TYPE_V36       = 1;
   COLORMAP_TYPE_V39       = 2;
-// SpriteResolution  
-  SPRITERESN_ECS          = $00; 
+// SpriteResolution
+  SPRITERESN_ECS          = $00;
   SPRITERESN_140NS        = $01; // ^140ns, except in 35ns viewport, where it is 70ns.
   SPRITERESN_70NS         = $02;
   SPRITERESN_35NS         = $03;
   SPRITERESN_DEFAULT      = $ff;
-  
+
 // Private Flags for TCopList.Flags
   EXACT_LINE = 1;
   HALF_LINE  = 2;
@@ -1185,7 +1183,7 @@ const
   CMAF_NO_COLOR_LOAD      = 1 shl CMAB_NO_COLOR_LOAD;
   CMAB_DUALPF_DISABLE     = 3;
   CMAF_DUALPF_DISABLE     = 1 shl CMAB_DUALPF_DISABLE;
-  
+
 const
 // flags values for ObtainPen
   PENB_EXCLUSIVE   = 0;
@@ -1260,11 +1258,11 @@ const
    DEFAULT_MONITOR_ID           =   $00000000;
    NTSC_MONITOR_ID              =   $00011000;
    PAL_MONITOR_ID               =   $00021000;
-   
+
 { the following 22 composite keys are for Modes on the default Monitor.
   NTSC & PAL "flavors" of these particular keys may be made by or'ing
   the NTSC or PAL MONITOR_ID with the desired MODE_KEY...
- 
+
   For example, to specifically open a PAL HAM interlaced ViewPort
   (or intuition screen), you would use the modeid of
   (PAL_MONITOR_ID or HAMLACE_KEY)}
@@ -1286,7 +1284,7 @@ const
    SUPER_KEY                     =  $00008020;
    SUPERLACE_KEY                 =  $00008024;
    HIRESEHB_KEY                  =  $00008080;
-   HIRESEHBLACE_KEY              =  $00008084;   
+   HIRESEHBLACE_KEY              =  $00008084;
    SUPEREHB_KEY                  =  $000080a0;
    SUPEREHBLACE_KEY              =  $000080a4;
    HIRESDPF_KEY                  =  $00008400;
@@ -1302,7 +1300,7 @@ const
    HIRESHAMSDBL_KEY              =  $00008808;
    SUPERHAM_KEY                  =  $00008820;
    SUPERHAMLACE_KEY              =  $00008824;
-   
+
 // VGA identifiers
    VGA_MONITOR_ID                =  $00031000;
 
@@ -1349,7 +1347,7 @@ const
    VGAEXTRALORESEHBDBL_KEY       =  $00031080;
    VGALORESEHBDBL_KEY            =  $00039080;
    VGAPRODUCTEHBDBL_KEY          =  $000390a0;
-// A2024 identifiers 
+// A2024 identifiers
    A2024_MONITOR_ID              =  $00041000;
    A2024TENHERTZ_KEY             =  $00041000;
    A2024FIFTEENHERTZ_KEY         =  $00049000;
@@ -1408,7 +1406,7 @@ const
 { Euro36 modeids can be ORed with the default modeids a la NTSC and PAL.
   For example, Euro36 SuperHires is
   (EURO36_MONITOR_ID OR SUPER_KEY)}
-// Super 72  
+// Super 72
    SUPER72_MONITOR_ID            =  $00081000;
 { Super72 modeids can be ORed with the default modeids a la NTSC and PAL.
  For example, Super72 SuperHiresLace (80$600) is
@@ -1537,7 +1535,7 @@ const
    BIDTAG_BlueBits         = $8000000c; //  > Match up from the database
    BIDTAG_GreenBits        = $8000000d; // /                 Default - 4
    BIDTAG_GfxPrivate       = $8000000e; // Private
-   
+
 type
 // the "public" handle to a DisplayInfoRecord
   DisplayInfoHandle = APTR;
@@ -1569,7 +1567,7 @@ type
   end;
 
 const
- // availability TDisplayInfo.NotAvailable 
+ // availability TDisplayInfo.NotAvailable
   DI_AVAIL_NOCHIPS          = 1 shl 0;
   DI_AVAIL_NOMONITOR        = 1 shl 1;
   DI_AVAIL_NOTWITHGENLOCK   = 1 shl 2;
@@ -1592,22 +1590,22 @@ const
   DIPF_IS_SPRITES_CHNG_RES  = 1 shl 14; // supports variable sprite resolution
   DIPF_IS_SPRITES_BORDER    = 1 shl 15; // sprite can be displayed in the border
   DIPF_IS_AA                = 1 shl 16; // AA modes - may only be available if machine has correct memory
-                                        // type to support required bandwidth - check availability.  
+                                        // type to support required bandwidth - check availability.
   DIPF_IS_SCANDBL           = 1 shl 17; // scan doubled
   DIPF_IS_SPRITES_CHNG_BASE = 1 shl 18; // can change the sprite base colour
   DIPF_IS_SPRITES_CHNG_PRI  = 1 shl 19; // can change the sprite priority with respect to the playfield(s).
   DIPF_IS_DBUFFER           = 1 shl 20; // can support double buffering
   DIPF_IS_PROGBEAM          = 1 shl 21; // is a programmed beam-sync mode
   DIPF_IS_FOREIGN           = 1 shl 22; // this mode is not native to the Amiga
-  
+
 // Use these tags for passing to BestModeID()
-   SPECIAL_FLAGS = DIPF_IS_DUALPF or DIPF_IS_PF2PRI or DIPF_IS_HAM or DIPF_IS_EXTRAHALFBRITE;  
+   SPECIAL_FLAGS = DIPF_IS_DUALPF or DIPF_IS_PF2PRI or DIPF_IS_HAM or DIPF_IS_EXTRAHALFBRITE;
 
 type
   PDimensionInfo = ^TDimensionInfo;
   TDimensionInfo = record
     Header: TQueryHeader;
-    MaxDepth,              // log2(max number of colors) 
+    MaxDepth,              // log2(max number of colors)
     MinRasterWidth,        // minimum width in pixels
     MinRasterHeight,       // minimum height in pixels
     MaxRasterWidth,        // maximum width in pixels
@@ -1644,7 +1642,7 @@ const
   MCOMPAT_NOBODY = -1;  // only one viewport at a time
   MCOMPAT_MIXED  =  0;  // can share display with other MCOMPAT_MIXED
   MCOMPAT_SELF   =  1;  // can share only within same monitor
-  
+
   DISPLAYNAMELEN = 32;
 type
   PNameInfo = ^TNameInfo;
@@ -1653,7 +1651,7 @@ type
     Name: array[0..DISPLAYNAMELEN - 1] of Char;
     Reserved: array[0..1] of IPTR; // terminator
   end;
-  
+
 const
   DTAG_DISP = TAG_USER;
   DTAG_DIMS = TAG_USER + $1000;
@@ -1677,16 +1675,16 @@ type
 const
 // Tags for AddDisplayDriverA()
   DDRV_BootMode     = TAG_USER + $01; // (LongBool) Boot mode driver which will be
-                                      // unloaded when any next driver comes in, default = False 
+                                      // unloaded when any next driver comes in, default = False
   DDRV_MonitorID    = TAG_USER + $02; // (ULONG) Monitor ID for this driver, default = next available
-  DDRV_ReserveIDs   = TAG_USER + $03;	// (ULONG) How many monitor IDs to reserve, default = 1
-  DDRV_KeepBootMode = TAG_USER + $04;	// (LongBool) Do not shut down boot mode drivers, default = False
-  DDRV_ResultID     = TAG_USER + $05;	// (PLongWord) Obtain assigned monitor ID
-  DDRV_IDMask       = TAG_USER + $06;	// (ULONG) Use own mask for monitor ID separation
+  DDRV_ReserveIDs   = TAG_USER + $03; // (ULONG) How many monitor IDs to reserve, default = 1
+  DDRV_KeepBootMode = TAG_USER + $04; // (LongBool) Do not shut down boot mode drivers, default = False
+  DDRV_ResultID     = TAG_USER + $05; // (PLongWord) Obtain assigned monitor ID
+  DDRV_IDMask       = TAG_USER + $06; // (ULONG) Use own mask for monitor ID separation
 // Return codes
-  DD_OK        = 0;	// No error
-  DD_NO_MEM    = 1;	// Out of memory
-  DD_ID_EXISTS = 2;	// Specified MonitorID is already allocated 
+  DD_OK        = 0; // No error
+  DD_NO_MEM    = 1; // Out of memory
+  DD_ID_EXISTS = 2; // Specified MonitorID is already allocated
 
 type
 // This structure is subject to change! Private!
@@ -1762,7 +1760,7 @@ const
   VTAG_FULLPALETTE_GET          =  $80000039;
   VTAG_FULLPALETTE_CLR          =  $8000003A;
   VTAG_DEFSPRITERESN_SET        =  $8000003B;
-  VTAG_DEFSPRITERESN_GET        =  $8000003C; 
+  VTAG_DEFSPRITERESN_GET        =  $8000003C;
 
 { all the following tags follow the new, rational standard for videocontrol tags:
   VC_xxx,state         set the state of attribute 'xxx' to value 'state'
@@ -1803,8 +1801,8 @@ type
     es_WordWidth: Word;                 { graphics use only, subject to change }
     es_Flags: Word;                 { graphics use only, subject to change }
 {$ifdef aros} // New in AROS
-    es_Bitmap: PBitmap;  // Actual image data. 
-{$endif}    
+    es_Bitmap: PBitmap;  // Actual image data.
+{$endif}
   end;
 
 const
@@ -1859,21 +1857,21 @@ const
 // Extensions invented by AROS
   RPTAG_PatternOriginX     = $800000C0; // SmallInt
   RPTAG_PatternOriginY     = $800000C1; // SmallInt
-  RPTAG_ClipRectangle  	   = $800000C2; // PRectangle Clones PRectangle.
+  RPTAG_ClipRectangle      = $800000C2; // PRectangle Clones PRectangle.
   RPTAG_ClipRectangleFlags = $800000C3; // LongWord
-  RPTAG_RemapColorFonts	   = $800000C4; // LongBool
+  RPTAG_RemapColorFonts    = $800000C4; // LongBool
 {$endif}
 
 // Flags for ClipRectangleFlags
   RPCRF_RELRIGHT  = $01; // ClipRectangle.MaxX is relative to right of layer/bitmap
   RPCRF_RELBOTTOM = $02; // ClipRectangle.MaxY is relative to bottom of layer/bitmap
-  RPCRF_VALID 	  = $04; // private
+  RPCRF_VALID     = $04; // private
 
 type
   PGfxBase = ^tGfxBase;
   TGfxBase = record
     LibNode: TLibrary;
-    
+
     ActiView: PView;      // ViewPtr
     CopInit: PCopInit;    // ptr to copper start up list
     Cia: PLongInt;        // for 8520 resource use
@@ -1887,10 +1885,10 @@ type
     vbsrv,
     timsrv,
     bltsrv: TInterrupt;
-    
+
     TextFonts: TList;    // Fonts
-    DefaultFont: PTextFont; 
-    
+    DefaultFont: PTextFont;
+
     Modes: Word;              // copy of current first bplcon0
     VBlank: Shortint;
     Debug: Shortint;
@@ -1905,10 +1903,10 @@ type
     BlitWaitQ: TList;
     BlitOwner: PTask;
     TOF_WaitQ: tList;
-    
+
     DisplayFlags: Word;            // NTSC PAL GENLOC etc.  Display flags are determined at power on
     SimpleSprites: PPSimpleSprite; // SimpleSpritePtr ptr
-    
+
     MaxDisplayRow: Word;       // hardware stuff, do not use
     MaxDisplayColumn: Word;    // hardware stuff, do not use
     NormalDisplayRows: Word;
@@ -1916,9 +1914,9 @@ type
      // the following are for standard non interlace, 1/2 wb width
     NormalDPMX: Word;        // Dots per meter on display
     NormalDPMY: Word;        // Dots per meter on display
-    
+
     LastChanceMemory: PSignalSemaphore;
-    
+
     LCMptr: PWord;
     MicrosPerLine: Word;    // 256 time usec/line
     MinDisplayColumn: Word;
@@ -1932,7 +1930,7 @@ type
     hedley_count: SmallInt;
     hedley_flags: Word;
     hedley_tmp: SmallInt;
-    
+
     hash_table: ^IPTR;          // Hashtable used for GfxAssociate() and GfxLookup() (private!)
     current_tot_rows: Word;
     current_tot_cclks: Word;
@@ -1942,19 +1940,19 @@ type
     a2024_sync_raster: PLongWord;
     control_delta_pal: Word;
     control_delta_ntsc: Word;
-    
+
     Current_Monitor: PMonitorSpec;          // MonitorSpec used for current display
     MonitorList: TList;                     // List of all MonitorSpecs in the system
     Default_Monitor: PMonitorSpec;          // MonitorSpec of "default.monitor"
-    MonitorListSemaphore: PSignalSemaphore; // Semaphore for MonitorList access 
-    
+    MonitorListSemaphore: PSignalSemaphore; // Semaphore for MonitorList access
+
     DisplayInfoDataBase: Pointer;           // nil, unused by AROS
     TopLine: Word;
     ActiViewCprSemaphore: pSignalSemaphore; // Semaphore for active view access
-    
+
     UtilityBase: PUtilityBase;   // for hook AND tag utilities
     ExecBase: PExecBase;         // to link with rom.lib
-    
+
     bwshifts: PShortInt;
     StrtFetchMasks,
     StopFetchMasks,
@@ -1978,35 +1976,35 @@ type
     MonitorFlags: Word;
     ScanDoubledSprites,
     BP3Bits: Byte;
-    
+
     MonitorVBlank: TAnalogSignalInterval;
     Natural_Monitor: PMonitorSpec; // Default MonitorSpec for view without explicit MonitorSpec in ViewExtra
-    
+
     ProgData: APTR;  // nil not used in AROS
     ExtSprites: Byte;
     pad3: Byte;
     GfxFlags: Word;
     VBCounter: ULONG;
-    
+
     HashTableSemaphore: PSignalSemaphore;  // Semaphore for hash_table access, private in fact
-    
+
     ChunkyToPlanarPtr: PLongWord;  // HWEmul[0];
     HWEmul: array[1..8] of PLongWord;
   end;
 
-type  
+type
 // for SetDisplayDriverCallback
   TDriverNotifyFunc = function (Obj: APTR; Add: LongBool; userdata: APTR): APTR; cdecl;
-  
+
 const
-//DisplayFlags 
+//DisplayFlags
   // Specify some system-wide options for Amiga(tm) chipset
   NTSC             = 1 shl 0; // Default mode is NTSC
   GENLOC           = 1 shl 1; // Genlock is in use
   PAL              = 1 shl 2; // Default mode is PAL
   TODA_SAFE        = 1 shl 3;
   REALLY_PAL       = 1 shl 4;
-  LPEN_SWAP_FRAMES = 1 shl 5; // When light pen is being used on interlaced screens, swap even and odd frames 
+  LPEN_SWAP_FRAMES = 1 shl 5; // When light pen is being used on interlaced screens, swap even and odd frames
 // bits defs for ChipRevBits
   GFXB_BIG_BLITS = 0 ;
   GFXB_HR_AGNUS  = 0 ;
@@ -2033,7 +2031,7 @@ const
   BUS_32          = 1;
   NML_CAS         = 0;
   DBL_CAS         = 2;
-   
+
   BANDWIDTH_1X    = BUS_16 or NML_CAS;
   BANDWIDTH_2XNML = BUS_32;
   BANDWIDTH_2XDBL = DBL_CAS;
@@ -2043,9 +2041,9 @@ const
 
 { GfxFlags (private) }
   NEW_DATABASE   = 1;
- 
+
   GRAPHICSNAME: PChar  = 'graphics.library';
-  
+
 var
   GfxBase: PGfxBase;
 
@@ -2200,7 +2198,7 @@ procedure ScrollVPort(Vp: PViewPort); syscall GfxBase 98;
 procedure SetABPenDrMd(Rp: PRastPort; APen: LongWord; BPen: LongWord; DrawMode: LongWord); syscall GfxBase 149;
 procedure SetAPen(Rp: PRastPort; Pen: LongWord); syscall GfxBase 57;
 procedure SetBPen(Rp: PRastPort; Pen: LongWord); syscall GfxBase 58;
-function SetChipRev(ChipRev: LongWord): LongWord; platform; syscall GfxBase 148;
+function SetChipRev(ChipRev: LongWord): LongWord; syscall GfxBase 148; platform;
 procedure SetCollision(Num: LongWord; Routine: TProcedure; GInfo: PGelsInfo); syscall GfxBase 24;
 procedure SetDisplayDriverCallback(CallBack: TDriverNotifyFunc; UserData: APTR); syscall GfxBase 186;
 procedure SetDrMd(Rp: PRastPort; DrawMode: LongWord); syscall GfxBase 59;
@@ -2226,7 +2224,7 @@ function TextFit(Rp: PRastPort; const String_: STRPTR; StrLen: LongWord; TextExt
 function TextLength(Rp: PRastPort; const string_: STRPTR; Count: LongWord): SmallInt; syscall GfxBase 9;
 function UCopperListInit(Ucl: PUCopList; n: SmallInt): PCopList; syscall GfxBase 99;
 procedure UnlockLayerRom(l: PLayer); syscall GfxBase 73;
-function VBeamPos: LongInt; platform; syscall GfxBase 64;
+function VBeamPos: LongInt; syscall GfxBase 64; platform;
 function VideoControl(Cm: PColorMap; Tags: PTagItem): LongWord; syscall GfxBase 118; unimplemented;
 procedure WaitBlit; syscall GfxBase 38; unimplemented;
 procedure WaitBOVP(Vp: PViewPort); syscall GfxBase 67; unimplemented;
@@ -2242,19 +2240,19 @@ function XorRectRegionND(Reg: PRegion; Rect: PRectangle): PRegion; syscall GfxBa
 function XorRegionRegion(SrcRegion: PRegion; DestRegion: PRegion): LongBool; syscall GfxBase 103;
 function XorRegionRegionND(R1: PRegion; R2: PRegion): PRegion; syscall GfxBase 151;
 
-function BestModeID(Tags: array of const): LongWord;
-function AllocSpriteData(Bitmap: PBitMap; Tags: array of const): PExtSprite;
-function ChangeExtSprite(Vp: PViewPort; Oldsprite: PExtSprite; NewSprite: PExtSprite; Tags: array of const): LongInt;
-function ExtendFontTags(Font: PTextFont; Tags: array of const): LongWord;
-function GetExtSprite(Sprite: PExtSprite; Tags: array of const): LongInt;
-procedure GetRPAttrs(Rp: PRastPort; Tags: array of const);
-function ObtainBestPen(Cm: PColorMap; r, g, b: LongWord; Tags: array of const): LongInt;
-procedure SetRPAttrs(Rp: PRastPort; Tags: array of const);
-function VideoControlTags(Cm: PColorMap; Tags: array of const): LongWord; unimplemented;
+function BestModeID(const Tags: array of PtrUInt): LongWord;
+function AllocSpriteData(Bitmap: PBitMap; const Tags: array of PtrUInt): PExtSprite;
+function ChangeExtSprite(Vp: PViewPort; Oldsprite: PExtSprite; NewSprite: PExtSprite; const Tags: array of PtrUInt): LongInt;
+function ExtendFontTags(Font: PTextFont; const Tags: array of PtrUInt): LongWord;
+function GetExtSprite(Sprite: PExtSprite; const Tags: array of PtrUInt): LongInt;
+procedure GetRPAttrs(Rp: PRastPort; const Tags: array of PtrUInt);
+function ObtainBestPen(Cm: PColorMap; r, g, b: LongWord; const Tags: array of PtrUInt): LongInt;
+procedure SetRPAttrs(Rp: PRastPort; const Tags: array of PtrUInt);
+function VideoControlTags(Cm: PColorMap; const Tags: array of PtrUInt): LongWord; unimplemented;
 
 // gfxmacros
 
-// This one is used for determining optimal offset for blitting into cliprects 
+// This one is used for determining optimal offset for blitting into cliprects
 function Align_Offset(x: Pointer): Pointer;
 function Is_Visible(l: PLayer): Boolean;
 procedure InitAnimate(var Animkey: PAnimOb);
@@ -2270,7 +2268,7 @@ procedure SetAfPt(w: PRastPort; p: Pointer; n: Byte);
 procedure SetDrPt(w: PRastPort; p: Word);
 procedure SetOPen(w: PRastPort; c: Byte);
 procedure SetWrMsk(w: PRastPort; m: Byte);
-  
+
 function SetAOlPen(Rp: PRastPort; Pen: LongWord): LongWord;
 
 procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt);
@@ -2284,80 +2282,50 @@ procedure CEND(c: PUCopList);
 
 implementation
 
-uses
-  tagsarray;
-
-function BestModeID(Tags: array of const): LongWord;
-var
-  TagList: TTagsList;
+function BestModeID(const Tags: array of PtrUInt): LongWord; inline;
 begin
-  AddTags(TagList, Tags);
-  Result := BestModeIDA(GetTagPtr(TagList));
-end; 
-
-function AllocSpriteData(Bitmap: PBitMap; Tags: array of const): PExtSprite;
-var
-  TagList: TTagsList;
-begin
-  AddTags(TagList, Tags);
-  Result := AllocSpriteDataA(Bitmap, GetTagPtr(TagList));
+  BestModeID := BestModeIDA(@Tags);
 end;
 
-function ChangeExtSprite(Vp: PViewPort; Oldsprite: PExtSprite; NewSprite: PExtSprite; Tags: array of const): LongInt;
-var
-  TagList: TTagsList;
+function AllocSpriteData(Bitmap: PBitMap; const Tags: array of PtrUInt): PExtSprite; inline;
 begin
-  AddTags(TagList, Tags);
-  Result := ChangeExtSpriteA(Vp, Oldsprite, NewSprite, GetTagPtr(TagList));
+  AllocSpriteData := AllocSpriteDataA(Bitmap, @Tags);
 end;
 
-function ExtendFontTags(Font: PTextFont; Tags: array of const): LongWord;
-var
-  TagList: TTagsList;
+function ChangeExtSprite(Vp: PViewPort; Oldsprite: PExtSprite; NewSprite: PExtSprite; const Tags: array of PtrUInt): LongInt; inline;
 begin
-  AddTags(TagList, Tags);
-  Result := ExtendFont(Font, GetTagPtr(TagList));
+  ChangeExtSprite := ChangeExtSpriteA(Vp, Oldsprite, NewSprite, @Tags);
 end;
 
-function GetExtSprite(Sprite: PExtSprite; Tags: array of const): LongInt;
-var
-  TagList: TTagsList;
+function ExtendFontTags(Font: PTextFont; const Tags: array of PtrUInt): LongWord; inline;
 begin
-  AddTags(TagList, Tags);
-  Result := GetExtSpriteA(Sprite, GetTagPtr(TagList));
+  ExtendFontTags := ExtendFont(Font, @Tags);
 end;
 
-procedure GetRPAttrs(Rp: PRastPort; Tags: array of const);
-var
-  TagList: TTagsList;
+function GetExtSprite(Sprite: PExtSprite; const Tags: array of PtrUInt): LongInt; inline;
 begin
-  AddTags(TagList, Tags);
-  GetRPAttrsA(Rp, GetTagPtr(TagList));
+  GetExtSprite := GetExtSpriteA(Sprite, @Tags);
 end;
 
-function ObtainBestPen(Cm: PColorMap; r, g, b: LongWord; Tags: array of const): LongInt;
-var
-  TagList: TTagsList;
+procedure GetRPAttrs(Rp: PRastPort; const Tags: array of PtrUInt); inline;
 begin
-  AddTags(TagList, Tags);
-  Result := ObtainBestPenA(Cm, r, g, b, GetTagPtr(TagList));
+  GetRPAttrsA(Rp, @Tags);
 end;
 
-procedure SetRPAttrs(Rp: PRastPort; Tags: array of const);
-var
-  TagList: TTagsList;
+function ObtainBestPen(Cm: PColorMap; r, g, b: LongWord; const Tags: array of PtrUInt): LongInt; inline;
 begin
-  AddTags(TagList, Tags);
-  SetRPAttrsA(Rp, GetTagPtr(TagList));
+  ObtainBestPen := ObtainBestPenA(Cm, r, g, b, @Tags);
 end;
 
-function VideoControlTags(Cm: PColorMap; Tags: array of const): LongWord;
-var
-  TagList: TTagsList;
+procedure SetRPAttrs(Rp: PRastPort; const Tags: array of PtrUInt); inline;
 begin
-  AddTags(TagList, Tags);
+  SetRPAttrsA(Rp, @Tags);
+end;
+
+function VideoControlTags(Cm: PColorMap; const Tags: array of PtrUInt): LongWord; inline;
+begin
   {$WARNINGS OFF} // suppress unimplemented Warning
-  Result := VideoControl(Cm, GetTagPtr(TagList));
+  VideoControlTags := VideoControl(Cm, @Tags);
   {$WARNINGS ON}
 end;
 
@@ -2378,12 +2346,12 @@ end;
 
 procedure RemBob(B: PBob); inline;
 begin
-  B^.Flags := B^.Flags or BOBSAWAY; 
+  B^.Flags := B^.Flags or BOBSAWAY;
 end;
 
 function RasSize(w, h: Word): Integer; inline;
 begin
-  Result := h * (((w + 15) shr 3) and $FFFE);
+  RasSize := h * (((w + 15) shr 3) and $FFFE);
 end;
 
 function BitmapFlags_are_Extended(f: LongInt): Boolean; inline;
@@ -2393,18 +2361,18 @@ end;
 
 function GetTextFontReplyPort(Font: PTextFont): PMsgPort; inline;
 var
-  tfe: PTextFontExtension; 
+  tfe: PTextFontExtension;
 begin
-	 tfe := PTextFontExtension(ExtendFont(Font, nil));
-	 if Assigned(tfe) then
-	   GetTextFontReplyPort := tfe^.tfe_OrigReplyPort
-	 else  
-	   GetTextFontReplyPort :=  Font^.tf_Message.mn_ReplyPort;
+   tfe := PTextFontExtension(ExtendFont(Font, nil));
+   if Assigned(tfe) then
+     GetTextFontReplyPort := tfe^.tfe_OrigReplyPort
+   else
+     GetTextFontReplyPort :=  Font^.tf_Message.mn_ReplyPort;
 end;
 
 function SetAOlPen(Rp: PRastPort; Pen: LongWord): LongWord; inline;
 begin
-  Result := SetOutlinePen(Rp, Pen);
+  SetAOlPen := SetOutlinePen(Rp, Pen);
 end;
 
 procedure BNDRYOFF (w: PRastPort); inline;
@@ -2446,12 +2414,12 @@ end;
 
 function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
 begin
-  Result := AreaEllipse(Rp, xCenter, yCenter, r, r);
+  AreaCircle := AreaEllipse(Rp, xCenter, yCenter, r, r);
 end;
 
 function CINIT(c: PUCopList; n: SmallInt): PCopList; inline;
 begin
-  Result := UCopperListInit(c, n);
+  CINIT := UCopperListInit(c, n);
 end;
 
 procedure CMOVE1(c: PUCopList; a: Pointer; b: LongInt);

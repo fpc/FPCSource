@@ -284,7 +284,7 @@
   Enumerations
 }
 
-     ACL_INFORMATION_CLASS = (AclRevisionInformation := 1,AclSizeInformation
+     ACL_INFORMATION_CLASS = (AclRevisionInformation = 1,AclSizeInformation
        );
 
      _ACL_INFORMATION_CLASS = ACL_INFORMATION_CLASS;
@@ -302,7 +302,7 @@
 
   type
 
-     RASCONNSTATE = (RASCS_OpenPort := 0,RASCS_PortOpened,
+     RASCONNSTATE = (RASCS_OpenPort = 0,RASCS_PortOpened,
        RASCS_ConnectDevice,RASCS_DeviceConnected,
        RASCS_AllDevicesConnected,RASCS_Authenticate,
        RASCS_AuthNotify,RASCS_AuthRetry,RASCS_AuthCallback,
@@ -312,15 +312,15 @@
        RASCS_WaitForModemReset,RASCS_WaitForCallback,
        RASCS_Projected,RASCS_StartAuthentication,
        RASCS_CallbackComplete,RASCS_LogonNetwork,
-       RASCS_Interactive := RASCS_PAUSED,RASCS_RetryAuthentication,
+       RASCS_Interactive = RASCS_PAUSED,RASCS_RetryAuthentication,
        RASCS_CallbackSetByCaller,RASCS_PasswordExpired,
-       RASCS_Connected := RASCS_DONE,RASCS_Disconnected
+       RASCS_Connected = RASCS_DONE,RASCS_Disconnected
        );
 
      _RASCONNSTATE = RASCONNSTATE;
 
-     RASPROJECTION = (RASP_PppIp := $8021, RASP_PppIpx := $802B, RASP_PppNbf := $803F,
-       RASP_Amb := $10000);
+     RASPROJECTION = (RASP_PppIp = $8021, RASP_PppIpx = $802B, RASP_PppNbf = $803F,
+       RASP_Amb = $10000);
 
      _RASPROJECTION = RASPROJECTION;
 
@@ -330,7 +330,7 @@
 
      _SECURITY_IMPERSONATION_LEVEL = SECURITY_IMPERSONATION_LEVEL;
 
-     SID_NAME_USE = (SidTypeUser := 1,SidTypeGroup,SidTypeDomain,
+     SID_NAME_USE = (SidTypeUser = 1,SidTypeGroup,SidTypeDomain,
        SidTypeAlias,SidTypeWellKnownGroup,SidTypeDeletedAccount,
        SidTypeInvalid,SidTypeUnknown);
 
@@ -404,7 +404,7 @@
     FINDEX_SEARCH_OPS   = _FINDEX_SEARCH_OPS;
     PFINDEX_SEARCH_OPS  = ^TFINDEX_SEARCH_OPS;
 
-    PARTITION_STYLE     = (PARTITION_STYLE_MBR:=0,PARTITION_STYLE_GPT,PARTITION_STYLE_RAW);
+    PARTITION_STYLE     = (PARTITION_STYLE_MBR=0,PARTITION_STYLE_GPT,PARTITION_STYLE_RAW);
     TPARTITION_STYLE    = PARTITION_STYLE;
     PPARTITION_STYLE    = ^TPARTITION_STYLE;
 
@@ -624,7 +624,7 @@
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
 
-     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;stdcall;
+     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:PLONG):DWORD;stdcall;
 
      LPFRHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT_PTR;stdcall;
 
@@ -672,9 +672,9 @@
 
      DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;stdcall;
 
-     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
-     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
-     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
 
      PROPENUMPROCA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE):WINBOOL;stdcall;
      PROPENUMPROCW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE):WINBOOL;stdcall;

@@ -1355,17 +1355,6 @@ begin
       end;
     end;
 
-    if CurToken = tkDotDot then begin
-      NextToken;
-      b:=TBinaryExpr.CreateRange(AParent,x, DoParseExpression(AParent));
-      if not Assigned(b.right) then
-        begin
-        b.free;
-        Exit; // error
-        end;
-      x:=b;
-    end;
-
     Result:=x;
   finally
     if not Assigned(Result) then x.Free;
@@ -1439,11 +1428,16 @@ const
     t       : TToken;
     xright  : TPasExpr;
     xleft   : TPasExpr;
+    bin     : TBinaryExpr;
   begin
     t:=PopOper;
     xright:=PopExp;
     xleft:=PopExp;
-    expstack.Add(TBinaryExpr.Create(AParent,xleft, xright, TokenToExprOp(t)));
+    if t=tkDotDot then
+      bin := TBinaryExpr.CreateRange(AParent,xleft, xright)
+    else
+      bin := TBinaryExpr.Create(AParent,xleft, xright, TokenToExprOp(t));
+    expstack.Add(bin);
   end;
 
 begin
@@ -3421,24 +3415,33 @@ begin
             end
           else
             // read case values
-            repeat
-              Left:=DoParseExpression(Parent);
-              //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
-              if CurBlock is TPasImplCaseStatement then
-                TPasImplCaseStatement(CurBlock).Expressions.Add(Left)
-              else
-                begin
-                el:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock));
-                TPasImplCaseStatement(el).AddExpression(Left);
-                CurBlock.AddElement(el);
-                CurBlock:=TPasImplCaseStatement(el);
-                end;
-              //writeln(i,'CASE after value Token=',CurTokenText);
-              if (CurToken=tkComma) then
-                NextToken
-              else if (CurToken<>tkColon) then
-                ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkComma]]))
-            until Curtoken=tkColon;
+            if (curToken=tkIdentifier) and (LowerCase(CurtokenString)='otherwise') then
+              begin
+              // create case-else block
+              el:=TPasImplCaseElse(CreateElement(TPasImplCaseElse,'',CurBlock));
+              TPasImplCaseOf(CurBlock).ElseBranch:=TPasImplCaseElse(el);
+              CreateBlock(TPasImplCaseElse(el));
+              break;
+              end
+            else
+              repeat
+                Left:=DoParseExpression(Parent);
+                //writeln(i,'CASE value="',Expr,'" Token=',CurTokenText);
+                if CurBlock is TPasImplCaseStatement then
+                  TPasImplCaseStatement(CurBlock).Expressions.Add(Left)
+                else
+                  begin
+                  el:=TPasImplCaseStatement(CreateElement(TPasImplCaseStatement,'',CurBlock));
+                  TPasImplCaseStatement(el).AddExpression(Left);
+                  CurBlock.AddElement(el);
+                  CurBlock:=TPasImplCaseStatement(el);
+                  end;
+                //writeln(i,'CASE after value Token=',CurTokenText);
+                if (CurToken=tkComma) then
+                  NextToken
+                else if (CurToken<>tkColon) then
+                  ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkComma]]))
+              until Curtoken=tkColon;
             // read statement
             ParseStatement(CurBlock,SubBlock);
             CloseBlock;

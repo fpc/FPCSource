@@ -858,8 +858,16 @@ implementation
            symaddr:=p.address;
            { Local ObjSymbols can be resolved already or need a section reloc }
            if (p.bind=AB_LOCAL) and
-              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}]) then
+              (reltype in [RELOC_RELATIVE,RELOC_ABSOLUTE{$ifdef x86_64},RELOC_ABSOLUTE32{$endif x86_64}{$ifdef arm},RELOC_RELATIVE_24,RELOC_RELATIVE_CALL{$endif arm}]) then
              begin
+{$ifdef ARM}
+               if (reltype in [RELOC_RELATIVE_24,RELOC_RELATIVE_CALL]) and
+                  (p.objsection=CurrObjSec) then
+                 begin
+                   data:=(data and $ff000000) or (((((data and $ffffff) shl 2)+(symaddr-CurrObjSec.Size)) shr 2) and $FFFFFF); // TODO: Check overflow
+                 end
+               else
+{$endif ARM}
                { For a reltype relocation in the same section the
                  value can be calculated }
                if (p.objsection=CurrObjSec) and

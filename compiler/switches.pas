@@ -42,6 +42,10 @@ procedure flushpendingswitchesstate;
 implementation
 uses
   systems,cpuinfo,
+{$ifdef llvm}
+  { override optimizer switches }
+  llvminfo,
+{$endif llvm}
   globals,verbose,comphook,dirparse,
   fmodule;
 

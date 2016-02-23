@@ -931,7 +931,7 @@ unit cg64f32;
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
              cg.a_label(list,poslabel);
-             hdef:=corddef.create(u32bit,0,$ffffffff);
+             hdef:=corddef.create(u32bit,0,$ffffffff,false);
 
              location_copy(temploc,l);
              temploc.size:=OS_32;
@@ -944,7 +944,7 @@ unit cg64f32;
                end;
 
              hlcg.g_rangecheck(list,temploc,hdef,todef);
-             hdef.owner.deletedef(hdef);
+             hdef.free;
 
              if from_signed and to_signed then
                begin
@@ -971,11 +971,11 @@ unit cg64f32;
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
                  cg.a_label(list,neglabel);
-                 hdef:=corddef.create(s32bit,int64(longint($80000000)),int64(-1));
+                 hdef:=corddef.create(s32bit,int64(longint($80000000)),int64(-1),false);
                  location_copy(temploc,l);
                  temploc.size:=OS_32;
                  hlcg.g_rangecheck(list,temploc,hdef,todef);
-                 hdef.owner.deletedef(hdef);
+                 hdef.free;
                  cg.a_label(list,endlabel);
                end;
            end

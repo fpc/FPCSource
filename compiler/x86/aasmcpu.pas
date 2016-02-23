@@ -1611,6 +1611,11 @@ implementation
         { Segment override }
         if (segprefix>=NR_ES) and (segprefix<=NR_GS) then
          begin
+{$ifdef i8086}
+           if (current_settings.cputype<cpu_386) and
+              ((segprefix=NR_FS) or (segprefix=NR_GS)) then
+             Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
            objdata.writebytes(segprefixes[segprefix],1);
            { fix the offset for GenNode }
            inc(InsOffset);
@@ -1702,31 +1707,16 @@ implementation
         end;
       end;
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;var output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,index,scalefactor,
         o     : longint;
         ir,br : Tregister;
         isub,bsub : tsubregister;
       begin
-        process_ea:=false;
-        fillchar(output,sizeof(output),0);
-        {Register ?}
-        if (input.typ=top_reg) then
-          begin
-            rv:=regval(input.reg);
-            output.modrm:=$c0 or (rfield shl 3) or rv;
-            output.size:=1;
-            output.rex:=output.rex or (rexbits(input.reg) and $F1);
-            process_ea:=true;
-
-            exit;
-         end;
-        {No register, so memory reference.}
-        if input.typ<>top_ref then
-          internalerror(200409263);
+        result:=false;
         ir:=input.ref^.index;
         br:=input.ref^.base;
         isub:=getsubreg(ir);
@@ -1778,7 +1768,7 @@ implementation
             exit;
 
            output.rex:=output.rex or (rexbits(br) and $F1) or (rexbits(ir) and $F2);
-           process_ea:=true;
+           result:=true;
 
 
            { base }
@@ -1924,36 +1914,22 @@ implementation
             end;
          end;
         output.size:=1+ord(output.sib_present)+output.bytes;
-        process_ea:=true;
+        result:=true;
       end;
 
 
 {$elseif defined(i386)}
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
-        md,s,rv  : byte;
+        md,s  : byte;
         base,index,scalefactor,
         o     : longint;
         ir,br : Tregister;
         isub,bsub : tsubregister;
       begin
-        process_ea:=false;
-        fillchar(output,sizeof(output),0);
-        {Register ?}
-        if (input.typ=top_reg) then
-          begin
-            rv:=regval(input.reg);
-            output.modrm:=$c0 or (rfield shl 3) or rv;
-            output.size:=1;
-            process_ea:=true;
-            exit;
-         end;
-        {No register, so memory reference.}
-        if (input.typ<>top_ref) then
-          internalerror(200409262);
-
+        result:=false;
         if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)=R_MMREGISTER) and (input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) or // vector memory (AVX2)
            ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER) and (getregtype(input.ref^.index)<>R_MMREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
@@ -2095,7 +2071,7 @@ implementation
          output.size:=2+output.bytes
         else
          output.size:=1+output.bytes;
-        process_ea:=true;
+        result:=true;
       end;
 {$elseif defined(i8086)}
 
@@ -2112,7 +2088,7 @@ implementation
           end;
       end;
 
-    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+    function process_ea_ref(const input:toper;out output:ea;rfield:longint):boolean;
       var
         sym   : tasmsymbol;
         md,s,rv  : byte;
@@ -2121,21 +2097,7 @@ implementation
         ir,br : Tregister;
         isub,bsub : tsubregister;
       begin
-        process_ea:=false;
-        fillchar(output,sizeof(output),0);
-        {Register ?}
-        if (input.typ=top_reg) then
-          begin
-            rv:=regval(input.reg);
-            output.modrm:=$c0 or (rfield shl 3) or rv;
-            output.size:=1;
-            process_ea:=true;
-            exit;
-          end;
-        {No register, so memory reference.}
-        if (input.typ<>top_ref) then
-          internalerror(200409262);
-
+        result:=false;
         if ((input.ref^.index<>NR_NO) and (getregtype(input.ref^.index)<>R_INTREGISTER)) or
            ((input.ref^.base<>NR_NO) and (getregtype(input.ref^.base)<>R_INTREGISTER)) then
           internalerror(200301081);
@@ -2196,9 +2158,33 @@ implementation
           end;
         output.size:=1+output.bytes;
         output.sib_present:=false;
-        process_ea:=true;
+        result:=true;
       end;
 {$endif}
+
+    function process_ea(const input:toper;out output:ea;rfield:longint):boolean;
+      var
+        rv  : byte;
+      begin
+        result:=false;
+        fillchar(output,sizeof(output),0);
+        {Register ?}
+        if (input.typ=top_reg) then
+          begin
+            rv:=regval(input.reg);
+            output.modrm:=$c0 or (rfield shl 3) or rv;
+            output.size:=1;
+{$ifdef x86_64}
+            output.rex:=output.rex or (rexbits(input.reg) and $F1);
+{$endif x86_64}
+            result:=true;
+            exit;
+          end;
+        {No register, so memory reference.}
+        if input.typ<>top_ref then
+          internalerror(200409263);
+        result:=process_ea_ref(input,output,rfield);
+      end;
 
     function taicpu.calcsize(p:PInsEntry):shortint;
       var
@@ -2336,9 +2322,14 @@ implementation
               end;
             &312,
             &323,
-            &325,
             &327,
             &331,&332: ;
+            &325:
+{$ifdef i8086}
+              inc(len)
+{$endif i8086}
+              ;
+
             &333:
               begin
                 inc(len);
@@ -2621,7 +2612,30 @@ implementation
             end;
         end;
 {$endif x86_64}
-       procedure objdata_writereloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
+
+       procedure write0x66prefix;
+         const
+           b66: Byte=$66;
+         begin
+{$ifdef i8086}
+           if current_settings.cputype<cpu_386 then
+             Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
+           objdata.writebytes(b66,1);
+         end;
+
+       procedure write0x67prefix;
+         const
+           b67: Byte=$67;
+         begin
+{$ifdef i8086}
+           if current_settings.cputype<cpu_386 then
+             Message(asmw_e_instruction_not_supported_by_cpu);
+{$endif i8086}
+           objdata.writebytes(b67,1);
+         end;
+
+       procedure objdata_writereloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
          begin
 {$ifdef i386}
                { Special case of '_GLOBAL_OFFSET_TABLE_'
@@ -2676,6 +2690,48 @@ implementation
         currrelreloc:=RELOC_NONE;
         currval:=0;
 
+        { check instruction's processor level }
+        { todo: maybe adapt and enable this code for i386 and x86_64 as well }
+{$ifdef i8086}
+        case insentry^.flags and IF_PLEVEL of
+          IF_8086:
+            ;
+          IF_186:
+            if current_settings.cputype<cpu_186 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_286:
+            if current_settings.cputype<cpu_286 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_386:
+            if current_settings.cputype<cpu_386 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_486,
+          IF_PENT:
+            if current_settings.cputype<cpu_Pentium then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_P6:
+            if current_settings.cputype<cpu_Pentium2 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_KATMAI:
+            if current_settings.cputype<cpu_Pentium3 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          IF_WILLAMETTE,
+          IF_PRESCOTT:
+            if current_settings.cputype<cpu_Pentium4 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
+          IF_NEC:
+            if current_settings.cputype>=cpu_386 then
+              Message(asmw_e_instruction_not_supported_by_cpu);
+          { todo: handle these properly }
+          IF_CYRIX,
+          IF_AMD,
+          IF_CENTAUR,
+          IF_SANDYBRIDGE:
+            ;
+        end;
+{$endif i8086}
+
         { load data to write }
         codes:=insentry^.code;
 {$ifdef x86_64}
@@ -2684,10 +2740,7 @@ implementation
         { Force word push/pop for registers }
         if (opsize={$ifdef i8086}S_L{$else}S_W{$endif}) and ((codes[0]=#4) or (codes[0]=#6) or
             ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
-        begin
-          bytes[0]:=$66;
-          objdata.writebytes(bytes,1);
-        end;
+          write0x66prefix;
 
         // needed VEX Prefix (for AVX etc.)
 
@@ -3056,10 +3109,7 @@ implementation
               begin
 {$if defined(x86_64) or defined(i8086)}
                 if (oper[c and 3]^.ot and OT_SIZE_MASK)=OT_BITS32 then
-                  begin
-                    bytes[0]:=$67;
-                    objdata.writebytes(bytes,1);
-                  end;
+                  write0x67prefix;
 {$endif x86_64 or i8086}
               end;
             &310 :   { fixed 16-bit addr }
@@ -3067,21 +3117,15 @@ implementation
               { every insentry having code 0310 must be marked with NOX86_64 }
               InternalError(2011051302);
 {$elseif defined(i386)}
-              begin
-                bytes[0]:=$67;
-                objdata.writebytes(bytes,1);
-              end;
+              write0x67prefix;
 {$elseif defined(i8086)}
               {nothing};
 {$endif}
             &311 :   { fixed 32-bit addr }
 {$if defined(x86_64) or defined(i8086)}
-              begin
-                bytes[0]:=$67;
-                objdata.writebytes(bytes,1);
-              end
+              write0x67prefix
 {$endif x86_64 or i8086}
-               ;
+              ;
             &320,&321,&322 :
               begin
                 case oper[c-&320]^.ot and OT_SIZE_MASK of
@@ -3090,28 +3134,27 @@ implementation
 {$elseif defined(i8086)}
                   OT_BITS32 :
 {$endif}
-                    begin
-                      bytes[0]:=$66;
-                      objdata.writebytes(bytes,1);
-                    end;
+                    write0x66prefix;
 {$ifndef x86_64}
                   OT_BITS64 :
                       Message(asmw_e_64bit_not_supported);
 {$endif x86_64}
                 end;
               end;
-            &323,
-            &325 : {no action needed};
+            &323 : {no action needed};
+            &325:
+{$ifdef i8086}
+              write0x66prefix;
+{$else i8086}
+              {no action needed};
+{$endif i8086}
 
             &324,
             &361:
               begin
 {$ifndef i8086}
                 if not(needed_VEX) then
-                begin
-                  bytes[0]:=$66;
-                  objdata.writebytes(bytes,1);
-                end;
+                  write0x66prefix;
 {$endif not i8086}
               end;
             &326 :
@@ -3287,16 +3330,26 @@ implementation
                            currabsreloc:=RELOC_GOT32
                          else
 {$endif i386}
+{$ifdef i8086}
+                         if ea_data.bytes=2 then
+                           currabsreloc:=RELOC_ABSOLUTE
+                         else
+{$endif i8086}
                              currabsreloc:=RELOC_ABSOLUTE32;
 
-                           if (currabsreloc=RELOC_ABSOLUTE32) and
+                           if (currabsreloc in [RELOC_ABSOLUTE32{$ifdef i8086},RELOC_ABSOLUTE{$endif}]) and
                             (Assigned(oper[opidx]^.ref^.relsymbol)) then
                            begin
                              relsym:=objdata.symbolref(oper[opidx]^.ref^.relsymbol);
                              if relsym.objsection=objdata.CurrObjSec then
                                begin
                                  currval:=objdata.CurrObjSec.size+ea_data.bytes-relsym.offset+currval;
-                                 currabsreloc:=RELOC_RELATIVE;
+{$ifdef i8086}
+                                 if ea_data.bytes=4 then
+                                   currabsreloc:=RELOC_RELATIVE32
+                                 else
+{$endif i8086}
+                                   currabsreloc:=RELOC_RELATIVE;
                                end
                              else
                                begin

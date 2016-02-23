@@ -184,9 +184,8 @@ begin
   {$ENDIF Win64}
     MSSQL:      Fconnection := TMSSQLConnection.Create(nil);
     SYBASE:     Fconnection := TSybaseConnection.Create(nil);
+    else        writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
   end;
-
-  if not assigned(Fconnection) then writeln('Invalid database type, check if a valid database type for your achitecture was provided in the file ''database.ini''');
 
   FTransaction := TSQLTransaction.Create(nil);
 

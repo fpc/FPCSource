@@ -65,12 +65,8 @@ implementation
 
     function tllvmsubscriptnode.handle_platform_subscript: boolean;
       var
-        parentdef,
-        subscriptdef,
-        currentstructdef,
-        llvmfielddef: tdef;
         newbase: tregister;
-        implicitpointer: boolean;
+        fielddef: tdef;
       begin
         if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
           internalerror(2014011905);
@@ -79,62 +75,25 @@ implementation
             { typecast the result to the expected type, but don't actually index
               (that still has to be done by the generic code, so return false) }
             newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference,newbase);
+            if is_ordinal(resultdef) then
+              fielddef:=
+                cgsize_orddef(
+                  int_cgsize(
+                    packedbitsloadsize(resultdef.packedbitsize)
+                  )
+                )
+            else
+              fielddef:=resultdef;
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,
+              left.resultdef,
+              cpointerdef.getreusable(fielddef),
+              location.reference,newbase);
             reference_reset_base(location.reference,newbase,0,location.reference.alignment);
             result:=false;
           end
         else
           begin
-            implicitpointer:=is_implicit_pointer_object_type(left.resultdef);
-            currentstructdef:=left.resultdef;
-            { in case the field is part of a parent of the current object,
-              index into the parents until we're at the parent containing the
-              field; if it's an implicit pointer type, these embedded parents
-              will be of the structure type of the class rather than of the
-              class time itself -> one indirection fewer }
-            while vs.owner<>tabstractrecorddef(currentstructdef).symtable do
-              begin
-                { only objectdefs have parents and hence the owner of the
-                  fieldvarsym can be different from the current def's owner }
-                parentdef:=tobjectdef(currentstructdef).childof;
-                if implicitpointer then
-                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,parentdef)
-                else
-                  newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(parentdef));
-                location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-                if implicitpointer then
-                  subscriptdef:=currentstructdef
-                else
-                  subscriptdef:=cpointerdef.getreusable(currentstructdef);
-                { recurse into the first field }
-                current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,0,true));
-                reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset));
-                { go to the parent }
-                currentstructdef:=parentdef;
-              end;
-            { get the type of the corresponding field in the llvm shadow
-              definition }
-            llvmfielddef:=tabstractrecordsymtable(tabstractrecorddef(currentstructdef).symtable).llvmst[vs].def;
-            if implicitpointer then
-              subscriptdef:=currentstructdef
-            else
-              subscriptdef:=cpointerdef.getreusable(currentstructdef);
-            { load the address of that shadow field }
-            newbase:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef));
-            location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-            current_asmdata.CurrAsmList.concat(taillvm.getelementptr_reg_size_ref_size_const(newbase,subscriptdef,location.reference,s32inttype,vs.llvmfieldnr,true));
-            reference_reset_base(location.reference,newbase,vs.offsetfromllvmfield,newalignment(location.reference.alignment,vs.fieldoffset+vs.offsetfromllvmfield));
-            { in case of an 80 bits extended type, typecast from an array of 10
-              bytes (used because otherwise llvm will allocate the ABI-defined
-              size for extended, which is usually larger) into an extended }
-            if (llvmfielddef.typ=floatdef) and
-               (tfloatdef(llvmfielddef).floattype=s80real) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(carraydef.getreusable(u8inttype,10)),cpointerdef.getreusable(s80floattype),location.reference);
-            { if it doesn't match the requested field exactly (variant record),
-              adjust the type of the pointer }
-            if (vs.offsetfromllvmfield<>0) or
-               (llvmfielddef<>resultdef) then
-              hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(llvmfielddef),cpointerdef.getreusable(resultdef),location.reference);
+            hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,tabstractrecorddef(left.resultdef),vs,location.reference);
             location.size:=def_cgsize(resultdef);
             result:=true;
           end;
@@ -147,6 +106,7 @@ implementation
       locref: preference;
       hreg: tregister;
       arrptrelementdef: tdef;
+      indirect: boolean;
 
     procedure getarrelementptrdef;
       begin
@@ -178,17 +138,24 @@ implementation
       locref:=nil;
       { avoid uninitialised warning }
       arrptrelementdef:=nil;
-      if not arraytopointerconverted and
-         not is_dynamicstring(left.resultdef) and
-         not is_dynamic_array(left.resultdef) then
+      indirect:=
+        not is_dynamicstring(left.resultdef) and
+        not is_dynamic_array(left.resultdef);
+      if (not arraytopointerconverted and
+          indirect) or
+         (constarrayoffset<>0) then
         begin
           { the result is currently a pointer to left.resultdef (the array type)
              -> convert it into a pointer to an element inside this array }
           getarrelementptrdef;
           hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,arrptrelementdef);
           locref^:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
-          current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
-            locref^,ptruinttype,constarrayoffset,true));
+          if indirect then
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,cpointerdef.getreusable(left.resultdef),
+              locref^,ptruinttype,constarrayoffset,true))
+          else
+            current_asmdata.CurrAsmList.Concat(taillvm.getelementptr_reg_size_ref_size_const(hreg,left.resultdef,
+              locref^,ptruinttype,constarrayoffset,false));
           reference_reset_base(locref^,hreg,0,locref^.alignment);
         end;
 
@@ -216,6 +183,7 @@ implementation
           hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
           hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_ADD,ptruinttype,constarrayoffset,maybe_const_reg,hreg);
           maybe_const_reg:=hreg;
+          constarrayoffset:=0;
         end;
       hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef));
       location.reference:=thlcgllvm(hlcg).make_simple_ref(current_asmdata.CurrAsmList,location.reference,left.resultdef);
@@ -267,6 +235,7 @@ implementation
       sref.ref:=location.reference;
       hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
       hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,ptruinttype,tarraydef(left.resultdef).lowrange-constarrayoffset,maybe_const_reg,hreg);
+      constarrayoffset:=0;
 
       { keep alignment for index }
       sref.ref.alignment:=left.resultdef.alignment;

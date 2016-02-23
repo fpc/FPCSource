@@ -99,6 +99,7 @@ unit cgcpu;
      protected
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
+        procedure check_register_size(size:tcgsize;reg:tregister);
      private
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
      end;
@@ -316,7 +317,7 @@ unit cgcpu;
 
             reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
-            list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[pushsize],a,ref));
+            a_load_const_ref(list, pushsize, a, ref);
           end
         else
           inherited a_load_const_cgpara(list,size,a,cgpara);
@@ -826,7 +827,18 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[tosize],hreg,href));
           end
         else
-          list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[tosize],longint(a),href));
+          { loading via a register is almost always faster if the value is small.
+            (with the 68040 being the only notable exception, so maybe disable
+            this on a '040? but the difference is minor) it also results in shorter
+            code. (KB) }
+          if isvalue8bit(a) and (tcgsize2opsize[tosize] = S_L) then
+            begin
+              hreg:=getintregister(list,OS_INT);
+              a_load_const_reg(list,OS_INT,a,hreg); // this will use moveq et.al.
+              list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[tosize],hreg,href));
+            end
+          else
+            list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[tosize],longint(a),href));
       end;
 
 
@@ -940,7 +952,7 @@ unit cgcpu;
           end
         else
           begin
-            if (reg1<>reg2) then
+            if not isregoverlap(reg1,reg2) then
               begin
                 instr:=taicpu.op_reg_reg(A_MOVE,opsize,reg1,reg2);
                 add_move_instruction(instr);
@@ -1871,7 +1883,7 @@ unit cgcpu;
           for r:=low(saved_fpu_registers) to high(saved_fpu_registers) do
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
-                hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBWHOLE);
+                hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBNONE);
                 inc(fsize,12{sizeof(extended)});
                 fpuregs:=fpuregs + [saved_fpu_registers[r]];
               end;
@@ -1960,11 +1972,11 @@ unit cgcpu;
               end;
 
         if uses_registers(R_FPUREGISTER) then
-          for r:=low(saved_address_registers) to high(saved_address_registers) do
+          for r:=low(saved_fpu_registers) to high(saved_fpu_registers) do
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
                 inc(fsize,12{sizeof(extended)});
-                hfreg:=newreg(R_FPUREGISTER,saved_address_registers[r],R_SUBWHOLE);
+                hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBNONE);
                 { Allocate register so the optimizer does not remove the load }
                 a_reg_alloc(list,hfreg);
                 fpuregs:=fpuregs + [saved_fpu_registers[r]];
@@ -2165,6 +2177,13 @@ unit cgcpu;
     procedure tcg68k.g_stackpointer_alloc(list : TAsmList;localsize : longint);
       begin
         list.concat(taicpu.op_const_reg(A_SUB,S_L,localsize,NR_STACK_POINTER_REG));
+      end;
+
+
+    procedure tcg68k.check_register_size(size:tcgsize;reg:tregister);
+      begin
+        if TCGSize2OpSize[size]<>TCGSize2OpSize[reg_cgsize(reg)] then
+          internalerror(201512131);
       end;
 
 

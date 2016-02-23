@@ -151,6 +151,8 @@ interface
          sec_heap
        );
 
+       TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;
+
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
 
        TAsmSymbol = class(TFPHashObject)

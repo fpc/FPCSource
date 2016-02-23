@@ -52,7 +52,7 @@ var
   CharWidth,CharHeight: SmallInt;
 begin
   dc:=BeginPaint(hwnd,@ps);
-  oldfont:=SelectObject(dc,GetStockObject(SYSTEM_FIXED_FONT));
+  oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
   GetTextMetrics(dc,@Metrics);
   CharWidth:=Metrics.tmMaxCharWidth;
   CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;
@@ -181,7 +181,7 @@ var
   CharWidth,CharHeight: SmallInt;
 begin
   dc:=GetDC(VideoWindow);
-  oldfont:=SelectObject(dc,GetStockObject(SYSTEM_FIXED_FONT));
+  oldfont:=SelectObject(dc,GetStockObject(OEM_FIXED_FONT));
   GetTextMetrics(dc,@Metrics);
   CharWidth:=Metrics.tmMaxCharWidth;
   CharHeight:=Metrics.tmHeight+Metrics.tmExternalLeading;

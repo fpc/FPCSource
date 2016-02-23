@@ -670,6 +670,7 @@
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_All, Ch_None, Ch_None)),
+(Ch: (Ch_WEAX, Ch_WEDX, Ch_None)),
 (Ch: (Ch_Wop3, Ch_Rop2, Ch_Rop1)),
 (Ch: (Ch_Wop3, Ch_Rop2, Ch_Rop1)),
 (Ch: (Ch_Wop3, Ch_Rop2, Ch_Rop1)),

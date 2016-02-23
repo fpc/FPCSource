@@ -109,6 +109,7 @@ type
     {$endif}
     FInternalActiveBuffer: PDataRecord;
     FInsertBookmark: PDataRecord;
+    FFilterBuffer: TRecordBuffer;
     FOnCallback: TSqliteCallback;
     FMasterLink: TMasterDataLink;
     FIndexFieldNames: String;
@@ -176,6 +177,7 @@ type
     procedure DoBeforeClose; override;
     procedure DoAfterInsert; override;
     procedure DoBeforeInsert; override;
+    procedure DoFilterRecord(var Acceptable: Boolean); virtual;
     procedure FreeRecordBuffer(var Buffer: TRecordBuffer); override;
     procedure GetBookmarkData(Buffer: TRecordBuffer; Data: Pointer); override;
     function GetBookmarkFlag(Buffer: TRecordBuffer): TBookmarkFlag; override;
@@ -578,6 +580,13 @@ begin
   inherited DoBeforeInsert;
 end;
 
+procedure TCustomSqliteDataset.DoFilterRecord(var Acceptable: Boolean);
+begin
+  Acceptable := True;
+  if Assigned(OnFilterRecord) then
+    OnFilterRecord(Self, Acceptable);
+end;
+
 destructor TCustomSqliteDataset.Destroy;
 begin
   inherited Destroy;
@@ -746,10 +755,14 @@ begin
   else
     FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
 
-  if not (State in [dsCalcFields, dsInternalCalc]) then
-    FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset]
-  else
-    FieldRow := PPDataRecord(CalcBuffer)^^.Row[FieldOffset];
+  case State of
+    dsCalcFields, dsInternalCalc:
+      FieldRow := PPDataRecord(CalcBuffer)^^.Row[FieldOffset];
+    dsFilter:
+      FieldRow := PPDataRecord(FFilterBuffer)^^.Row[FieldOffset];
+    else
+      FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset];
+  end;
 
   Result := FieldRow <> nil;  
   if Result and (Buffer <> nil) then //supports GetIsNull
@@ -789,31 +802,46 @@ begin
 end;
 
 function TCustomSqliteDataset.GetRecord(Buffer: TRecordBuffer; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
+var
+  Acceptable: Boolean;
+  SaveState: TDataSetState;
 begin
   Result := grOk;
-  case GetMode of
-    gmPrior:
-      if (FCurrentItem^.Previous = FBeginItem) or (FCurrentItem = FBeginItem) then
-        Result := grBOF
-      else
-        FCurrentItem:=FCurrentItem^.Previous;
-    gmCurrent:
-      if (FCurrentItem = FBeginItem) or (FCurrentItem = FEndItem) then
-         Result := grError;
-    gmNext:
-      if (FCurrentItem = FEndItem) or (FCurrentItem^.Next = FEndItem) then
-        Result := grEOF
-      else
-        FCurrentItem := FCurrentItem^.Next;
-  end; //case
-  if Result = grOk then
-  begin
-    PDataRecord(Pointer(Buffer)^) := FCurrentItem;
-    FCurrentItem^.BookmarkFlag := bfCurrent;
-    GetCalcFields(Buffer);
-  end
-    else if (Result = grError) and DoCheck then
-      DatabaseError('No records found', Self);
+  repeat
+    Acceptable := True;
+    case GetMode of
+      gmPrior:
+        if (FCurrentItem^.Previous = FBeginItem) or (FCurrentItem = FBeginItem) then
+          Result := grBOF
+        else
+          FCurrentItem:=FCurrentItem^.Previous;
+      gmCurrent:
+        if (FCurrentItem = FBeginItem) or (FCurrentItem = FEndItem) then
+           Result := grError;
+      gmNext:
+        if (FCurrentItem = FEndItem) or (FCurrentItem^.Next = FEndItem) then
+          Result := grEOF
+        else
+          FCurrentItem := FCurrentItem^.Next;
+    end; //case
+    if Result = grOk then
+    begin
+      PDataRecord(Pointer(Buffer)^) := FCurrentItem;
+      FCurrentItem^.BookmarkFlag := bfCurrent;
+      GetCalcFields(Buffer);
+      if Filtered then
+      begin
+        FFilterBuffer := Buffer;
+        SaveState := SetTempState(dsFilter);
+        DoFilterRecord(Acceptable);
+        if (GetMode = gmCurrent) and not Acceptable then
+          Result := grError;
+        RestoreState(SaveState);
+      end;
+    end
+      else if (Result = grError) and DoCheck then
+        DatabaseError('No records found', Self);
+  until (Result <> grOK) or Acceptable;
 end;
 
 function TCustomSqliteDataset.GetRecordCount: Integer;
@@ -1573,7 +1601,7 @@ begin
   FMasterLink.DataSource := Value;
 end;
 
-procedure TCustomSqliteDataset.ExecSQL(const ASQL: String);
+procedure TCustomSqliteDataset.ExecSQL(const ASql: String);
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
@@ -1831,7 +1859,8 @@ begin
     Result := False;
 end;
 
-procedure TCustomSqliteDataset.ExecCallback(const ASQL: String; UserData: Pointer = nil);
+procedure TCustomSqliteDataset.ExecCallback(const ASql: String;
+  UserData: Pointer);
 var
   CallbackInfo: TCallbackInfo;
 begin
@@ -1913,12 +1942,13 @@ begin
     (FAddedItems.Count > 0) or (FDeletedItems.Count > 0);
 end;
 
-function TCustomSqliteDataset.QuickQuery(const ASQL: String): String;
+function TCustomSqliteDataset.QuickQuery(const ASql: String): String;
 begin
   Result := QuickQuery(ASQL, nil, False);
 end;
 
-function TCustomSqliteDataset.QuickQuery(const ASQL: String; const AStrList: TStrings): String;
+function TCustomSqliteDataset.QuickQuery(const ASql: String;
+  const AStrList: TStrings): String;
 begin
   Result := QuickQuery(ASQL, AStrList, False)
 end;  
