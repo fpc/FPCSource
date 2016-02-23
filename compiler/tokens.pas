@@ -460,7 +460,7 @@ const
       (str:'VAR'           ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'XOR'           ;special:false;keyword:alllanguagemodes;op:_OP_XOR),
       (str:'CASE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
-      (str:'COPY'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
+      (str:'COPY'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'CVAR'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'ELSE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'EXIT'          ;special:false;keyword:[m_none];op:NOTOKEN),
