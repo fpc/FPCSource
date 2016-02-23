@@ -34,7 +34,6 @@ Interface
       function is_asmopcode(const s: string):boolean;override;
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
-      procedure ReadSym(oper : TOperand);
       procedure ConvertCalljmp(instr : TInstruction);
       procedure handlepercent;override;
       procedure handledollar;override;
@@ -62,37 +61,6 @@ Interface
       itcpugas,
       cgbase,cgobj
       ;
-
-    procedure TMipsReader.ReadSym(oper : TOperand);
-      var
-         tempstr, mangledname : string;
-         typesize,l,k : aint;
-      begin
-        tempstr:=actasmpattern;
-        Consume(AS_ID);
-        { typecasting? }
-        if (actasmtoken=AS_LPAREN) and
-           SearchType(tempstr,typesize) then
-          begin
-            oper.hastype:=true;
-            Consume(AS_LPAREN);
-            BuildOperand(oper);
-            Consume(AS_RPAREN);
-            if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-              oper.SetSize(typesize,true);
-          end
-        else
-          if not oper.SetupVar(tempstr,false) then
-            Message1(sym_e_unknown_id,tempstr);
-        { record.field ? }
-        if actasmtoken=AS_DOT then
-          begin
-            BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
-           if (mangledname<>'') then
-             Message(asmr_e_invalid_reference_syntax);
-            inc(oper.opr.ref.offset,l);
-          end;
-      end;
 
 
     procedure TMipsReader.handledollar;
