@@ -1360,7 +1360,7 @@ implementation
          filepos:=current_tokenpos;
          consume(starttoken);
 
-         while not(token in [_END,_FINALIZATION]) do
+         while not((token = _END) or (token = _FINALIZATION)) do
            begin
               if first=nil then
                 begin
@@ -1372,7 +1372,7 @@ implementation
                    tstatementnode(last).right:=cstatementnode.create(statement,nil);
                    last:=tstatementnode(last).right;
                 end;
-              if (token in [_END,_FINALIZATION]) then
+              if ((token = _END) or (token = _FINALIZATION)) then
                 break
               else
                 begin

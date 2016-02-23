@@ -1384,7 +1384,8 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives before a semicolon }
-             if (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) then
+             if (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or
+                (idtoken = _WEAKEXTERNAL) then
                begin
                  read_public_and_external_sc(sc);
                  allowdefaultvalue:=false;
@@ -1445,7 +1446,10 @@ implementation
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
              if (
                  (
-                  (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and
+                  (
+                   (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) or
+                   (idtoken = _WEAKEXTERNAL)
+                  ) and
                   (m_cvar_support in current_settings.modeswitches)
                  ) or
                  (
