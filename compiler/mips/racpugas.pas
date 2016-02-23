@@ -26,11 +26,13 @@ Unit racpugas;
 Interface
 
   uses
+    cgbase,
     rautils,
     raatt;
 
   type
     tMipsReader = class(tattreader)
+      actrel: trefaddr;
       function is_asmopcode(const s: string):boolean;override;
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
@@ -58,7 +60,7 @@ Interface
       rabase,
       rgbase,
       itcpugas,
-      cgbase,cgobj
+      cgobj
       ;
 
 
@@ -91,7 +93,6 @@ Interface
         len:=1;
         actasmpattern[len]:='%';
         c:=current_scanner.asmgetchar;
-        { to be a register there must be a letter and not a number }
         while c in ['a'..'z','A'..'Z','0'..'9'] do
           Begin
             inc(len);
@@ -100,12 +101,15 @@ Interface
           end;
          actasmpattern[0]:=chr(len);
          uppervar(actasmpattern);
+         actrel:=addr_no;
          if (actasmpattern='%HI') then
-           actasmtoken:=AS_HI
+           actrel:=addr_high
          else if (actasmpattern='%LO')then
-           actasmtoken:=AS_LO
+           actrel:=addr_low
          else
            Message(asmr_e_invalid_reference_syntax);
+         if actrel<>addr_no then
+           actasmtoken:=AS_RELTYPE;
       end;
 
 
@@ -253,16 +257,12 @@ Interface
                 gotplus:=false;
               end;
 
-            AS_HI,
-            AS_LO:
+            AS_RELTYPE:
               begin
                 { Low or High part of a constant (or constant
                   memory location) }
                 oper.InitRef;
-                if actasmtoken=AS_LO then
-                  oper.opr.ref.refaddr:=addr_low
-                else
-                  oper.opr.ref.refaddr:=addr_high;
+                oper.opr.ref.refaddr:=actrel;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);

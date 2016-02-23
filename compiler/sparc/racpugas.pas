@@ -26,10 +26,11 @@ Unit racpugas;
 Interface
 
   uses
-    raatt,racpu;
+    cgbase,raatt,racpu;
 
   type
     tSparcReader = class(tattreader)
+      actrel: trefaddr;
       function is_asmopcode(const s: string):boolean;override;
       procedure handleopcode;override;
       procedure BuildReference(oper : tSparcoperand);
@@ -56,7 +57,7 @@ Interface
       scanner,
       procinfo,
       rabase,rautils,
-      cgbase,cgobj
+      cgobj
       ;
 
 
@@ -153,12 +154,15 @@ Interface
          uppervar(actasmpattern);
          if is_register(actasmpattern) then
            exit;
+         actrel:=addr_no;
          if (actasmpattern='%HI') then
-           actasmtoken:=AS_HI
+           actrel:=addr_high
          else if (actasmpattern='%LO')then
-           actasmtoken:=AS_LO
+           actrel:=addr_low
          else
            Message(asmr_e_invalid_register);
+         if (actrel<>addr_no) then
+           actasmtoken:=AS_RELTYPE;
       end;
 
 
@@ -292,16 +296,12 @@ Interface
                 gotplus:=false;
               end;
 
-            AS_HI,
-            AS_LO:
+            AS_RELTYPE:
               begin
                 { Low or High part of a constant (or constant
                   memory location) }
                 oper.InitRef;
-                if actasmtoken=AS_LO then
-                  oper.opr.ref.refaddr:=addr_low
-                else
-                  oper.opr.ref.refaddr:=addr_high;
+                oper.opr.ref.refaddr:=actrel;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);

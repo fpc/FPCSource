@@ -57,7 +57,7 @@ unit raatt;
         AS_SET,AS_WEAK,AS_SECTION,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
-        AS_LO,AS_HI,
+        AS_RELTYPE, // common token for relocation types
         {------------------ Target-specific directive ---------------}
         AS_TARGET_DIRECTIVE
         );
@@ -82,7 +82,7 @@ unit raatt;
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
         '.data','.text','.init','.fini','.rva',
         '.set','.weak','.section','END',
-        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','reltype',
         'directive');
 
     type
