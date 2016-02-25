@@ -1166,7 +1166,7 @@ var
   pc : punicodechar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
      i:=0;
@@ -1177,7 +1177,7 @@ begin
         if (SubStr[1]=pc^) and
            (CompareWord(Substr[1],pc^,Length(SubStr))=0) then
          begin
-           Pos:=i;
+           Pos:=Offset+i-1;
            exit;
          end;
         inc(pc);
@@ -1195,15 +1195,18 @@ var
   i: SizeInt;
   pc : punicodechar;
 begin
-  pc:=@s[OffSet];
-  for i:=OffSet to length(s) do
+  if (Offset>0) and (Offset<=length(s)) then
    begin
-     if pc^=c then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
+     pc:=@s[OffSet];
+     for i:=OffSet to length(s) do
+       begin
+         if pc^=c then
+           begin
+             pos:=i;
+             exit;
+           end;
+         inc(pc);
+       end;
    end;
   pos:=0;
 end;
@@ -1241,17 +1244,20 @@ var
   wc : unicodechar;
   pc : punicodechar;
 begin
-  wc:=c;
-  pc:=@s[OffSet];
-  for i:=OffSet to length(s) do
-   begin
-     if pc^=wc then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
-   end;
+  if (Offset>0) and (Offset<=Length(S)) then
+    begin
+      wc:=c;
+      pc:=@s[OffSet];
+      for i:=OffSet to length(s) do
+       begin
+         if pc^=wc then
+          begin
+            pos:=i;
+            exit;
+          end;
+         inc(pc);
+       end;
+    end;
   pos:=0;
 end;
 {$endif FPC_HAS_POS_CHAR_UNICODESTR}
