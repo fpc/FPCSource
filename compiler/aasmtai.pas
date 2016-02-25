@@ -340,7 +340,12 @@ interface
         { supported by recent clang-based assemblers for data-in-code  }
         asd_data_region, asd_end_data_region,
         { ARM }
-        asd_thumb_func,asd_code
+        asd_thumb_func,asd_code,
+        { restricts the assembler only to those instructions, which are
+          available on the specified CPU; this represents directives such as
+          NASM's 'CPU 686' or MASM/TASM's '.686p'. Might not be supported by
+          all assemblers. }
+        asd_cpu
       );
 
       TAsmSehDirective=(
@@ -376,7 +381,8 @@ interface
         'data_region','end_data_region',
         { ARM }
         'thumb_func',
-        'code'
+        'code',
+        'cpu'
       );
       sehdirectivestr : array[TAsmSehDirective] of string[16]=(
         '.seh_proc','.seh_endproc',

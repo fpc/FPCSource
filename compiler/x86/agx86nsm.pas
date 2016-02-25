@@ -82,6 +82,37 @@ interface
         {$i r8086nasm.inc}
 {$endif}
       );
+      nasm_cpu_name : array[tcputype] of string = (
+{$if defined(x86_64)}
+        '',            // cpu_none,
+        'X64',         // cpu_athlon64,
+        'X64',         // cpu_core_i,
+        'X64',         // cpu_core_avx,
+        'X64'          // cpu_core_avx2
+{$elseif defined(i386)}
+        '',         // cpu_none,
+        '386',      // cpu_386,
+        'PENTIUM',  // cpu_Pentium,
+        'P2',       // cpu_Pentium2,
+        'P3',       // cpu_Pentium3,
+        'P4',       // cpu_Pentium4,
+        'P4',       // cpu_PentiumM,
+        'PRESCOTT', // cpu_core_i,
+        'PRESCOTT', // cpu_core_avx,
+        'PRESCOTT'  // cpu_core_avx2
+{$elseif defined(i8086)}
+        '',        // cpu_none
+        '8086',    // cpu_8086
+        '186',     // cpu_186
+        '286',     // cpu_286
+        '386',     // cpu_386
+        'PENTIUM', // cpu_Pentium
+        'P2',      // cpu_Pentium2
+        'P3',      // cpu_Pentium3
+        'P4',      // cpu_Pentium4
+        'P4'       // cpu_PentiumM
+{$endif}
+      );
 
     function nasm_regname(r:Tregister):string;
       var
@@ -641,6 +672,7 @@ interface
       fixed_opcode: TAsmOp;
       prefix, LastSecName  : string;
       LastAlign : Byte;
+      cpu: tcputype;
     begin
       if not assigned(p) then
        exit;
@@ -1074,21 +1106,41 @@ interface
            ait_directive :
              begin
                case tai_directive(hp).directive of
-                 asd_nasm_import :
-                   writer.AsmWrite('import ');
+                 asd_nasm_import,
                  asd_extern :
-                   writer.AsmWrite('EXTERN ');
+                   begin
+                     case tai_directive(hp).directive of
+                       asd_nasm_import :
+                         writer.AsmWrite('import ');
+                       asd_extern :
+                         writer.AsmWrite('EXTERN ');
+                       else
+                         internalerror(200509191);
+                     end;
+                     if tai_directive(hp).name<>'' then
+                       begin
+
+                         if SmartAsm then
+                           AddSymbol(tai_directive(hp).name,false);
+
+                         writer.AsmWrite(tai_directive(hp).name);
+                       end;
+                   end;
+                 asd_cpu :
+                   begin
+                     writer.AsmWrite('CPU ');
+                     for cpu:=low(tcputype) to high(tcputype) do
+                       begin
+                         if tai_directive(hp).name=CPUTypeStr[CPU] then
+                           begin
+                             writer.AsmWriteLn(nasm_cpu_name[cpu]);
+                             break;
+                           end;
+                       end;
+                   end;
                  else
                    internalerror(200509191);
                end;
-               if tai_directive(hp).name<>'' then
-                 begin
-
-                   if SmartAsm then
-                     AddSymbol(tai_directive(hp).name,false);
-
-                   writer.AsmWrite(tai_directive(hp).name);
-                 end;
                writer.AsmLn;
              end;
            ait_seh_directive :

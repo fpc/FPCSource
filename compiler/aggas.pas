@@ -1522,7 +1522,12 @@ implementation
 
     procedure TGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
     begin
-      writer.AsmWrite('.'+directivestr[dir]+' ');
+      { TODO: implement asd_cpu for GAS => usually .arch or .cpu, but the CPU
+        name has to be translated as well }
+      if dir=asd_cpu then
+        writer.AsmWrite(asminfo^.comment+' CPU ')
+      else
+        writer.AsmWrite('.'+directivestr[dir]+' ');
     end;
 
 

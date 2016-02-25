@@ -859,6 +859,9 @@ implementation
                    writer.AsmWrite('import ');
                  asd_extern :
                    writer.AsmWrite('EXTRN ');
+                 asd_cpu :
+                   { TODO: implement this properly for TASM/MASM/WASM (.686p, etc.) }
+                   writer.AsmWrite(asminfo^.comment+' CPU ');
                  else
                    internalerror(200509192);
                end;
