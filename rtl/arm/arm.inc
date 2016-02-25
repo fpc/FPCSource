@@ -1130,10 +1130,12 @@ end;
   generates a perfect 4 cycle code sequence and can be inlined.
 }
 function SwapEndian(const AValue: LongWord): LongWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  Temp: LongWord;
 begin
-  Result:= AValue xor rordword(AValue,16);
-  Result:= Result and $FF00FFFF;
-  Result:= (Result shr 8) xor rordword(AValue,8);
+  Temp  := AValue xor rordword(AValue,16);
+  Temp  := Temp and $FF00FFFF;
+  Result:= (Temp shr 8) xor rordword(AValue,8);
 end;
 
 function SwapEndian(const AValue: LongInt): LongInt;{$ifdef SYSTEMINLINE}inline;{$endif}
