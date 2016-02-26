@@ -1093,6 +1093,16 @@ interface
                    else if tai_marker(hp).kind=mark_NoLineInfoEnd then
                      dec(InlineLevel);
                  end;
+              ait_directive :
+                if tai_directive(hp).directive=asd_cpu then
+                  begin
+                    writer.AsmWrite(asminfo^.comment+' CPU ');
+                    if tai_directive(hp).name<>'' then
+                      writer.AsmWrite(tai_directive(hp).name);
+                    writer.AsmLn;
+                  end
+                else
+                  internalerror(2016022601);
          else
           internalerror(2002110303);
          end;

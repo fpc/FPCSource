@@ -1120,6 +1120,9 @@ implementation
 
           ait_directive :
             begin
+              { CPU directive is commented out for the LLVM }
+              if tai_directive(hp).directive=asd_cpu then
+                writer.AsmWrite(asminfo^.comment);
               WriteDirectiveName(tai_directive(hp).directive);
               if tai_directive(hp).name <>'' then
                 writer.AsmWrite(tai_directive(hp).name);
