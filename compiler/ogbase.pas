@@ -34,7 +34,8 @@ interface
       { outputwriters }
       owbase,
       { assembler }
-      aasmbase;
+      aasmbase,
+      cpuinfo;
 
     type
       TObjSection = class;
@@ -329,6 +330,7 @@ interface
        FStabsObjSec,
        FStabStrObjSec : TObjSection;
        FGroupsList : TFPHashObjectList;
+       FCPUType : tcputype;
        procedure section_reset(p:TObject;arg:pointer);
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
@@ -380,6 +382,10 @@ interface
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
        property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
        property CObjSymbol: TObjSymbolClass read FCObjSymbol write FCObjSymbol;
+       { Current CPU type for the internal asm writer.
+         Instructions, not supported by the given CPU should produce an error.
+         A value of 'cpu_none' means no restrictions (all instructions should be accepted) }
+       property CPUType : tcputype read FCPUType write FCPUType;
      end;
      TObjDataClass = class of TObjData;
 
@@ -1427,6 +1433,7 @@ implementation
 
     procedure TObjData.beforealloc;
       begin
+        FCPUType:=cpu_none;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
           begin
@@ -1438,6 +1445,7 @@ implementation
 
     procedure TObjData.beforewrite;
       begin
+        FCPUType:=cpu_none;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin
