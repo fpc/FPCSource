@@ -255,7 +255,6 @@ type
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; virtual;
     function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; virtual;
 
-    function GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual;
     Procedure MaybeConnect;
 
     Property Statements : TFPList Read FStatements;
@@ -269,6 +268,9 @@ type
     procedure EndTransaction; override;
     procedure ExecuteDirect(SQL : String); overload; virtual;
     procedure ExecuteDirect(SQL : String; ATransaction : TSQLTransaction); overload; virtual;
+    // Unified version
+    function GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual;
+    // Older versions.
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
@@ -1392,6 +1394,10 @@ begin
   GetDBInfo(stSequences,'','SEQUENCE_NAME',List);
 end;
 
+{
+  See if we can integrate/merge this with GetDBInfo. They are virtually identical
+}
+
 Function TSQLConnection.GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList) : Integer; 
 var
   qry : TCustomSQLQuery;
@@ -1426,7 +1432,6 @@ begin
   finally
     qry.free;
   end;
-
 end;
 
 function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
