@@ -269,7 +269,7 @@ procedure TSimpleIPC.SetActive(const AValue: Boolean);
 begin
   if (FActive<>AValue) then
     begin
-    if (csLoading in ComponentState) then
+    if ([]<>([csLoading,csDesigning]*ComponentState)) then
       FActive:=AValue
     else  
       If AValue then
