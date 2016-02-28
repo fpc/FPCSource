@@ -209,6 +209,7 @@ var
 
     function tppumodule.openppustream(strm:TCStream):boolean;
       begin
+        result:=false;
       { Open the ppufile }
         Message1(unit_u_ppu_name,ppufilename);
         ppufile:=tcompilerppufile.create(ppufilename);
