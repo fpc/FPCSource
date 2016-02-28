@@ -375,10 +375,6 @@ function floor64(x: float): Int64;
 procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
 { returns x*(2^p) }
 function ldexp(x : float; const p : Integer) : float;
-{ Error function }
-function erf(const x: float): float;
-{ Complementary error function }
-function erfc(const x: float): float;
 
 { statistical functions }
 
@@ -1094,47 +1090,6 @@ function ldexp(x : float;const p : Integer) : float;
      ldexp:=x*intpower(2.0,p);
   end;
   
-function erfc(const x: float): float;
-
-var
-  t, z, approx: float;
-begin
- z:= abs(x);
- t:= 1 / (1 + 0.5*z);
- approx:= t * exp(-z * z - 1.26551223 + t*(1.00002368 + t*(0.37409196 + t*(0.09678418 +
-          t*(-0.18628806 + t*(0.27886807 + t*(-1.13520398 + t*(1.48851587 +
-          t*(-0.82215223 + t*0.17087277)))))))));
- if x >= 0 then begin
-  Result:= approx;
- end
- else
- begin
-  Result:= 2 - approx;
- end;
-end;
-
-//------------------------------------------------------------------------------
-
-function erf(const x: float): float;
-
-var
-  t, z, approx: float;
-begin
- z:= abs(x);
- t:= 1 / (1 + 0.5*z);
- approx:= t * exp(-z * z - 1.26551223 + t*(1.00002368 + t*(0.37409196 + t*(0.09678418 +
-          t*(-0.18628806 + t*(0.27886807 + t*(-1.13520398 + t*(1.48851587 +
-          t*(-0.82215223 + t*0.17087277)))))))));
- if x >= 0 then begin
-  Result:= 1 - approx;
- end
- else
- begin
-  Result:= approx - 1;
- end;
-end;
-  
-
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function mean(const data : array of Single) : float;
 
