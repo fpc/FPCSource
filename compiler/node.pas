@@ -882,7 +882,7 @@ implementation
                 first:=false;
               write(t, i);
             end;
-        write(t,']');
+        write(t,'], cmplx = ',node_complexity(self));
       end;
 
 
