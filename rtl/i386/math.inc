@@ -158,22 +158,25 @@ const
       + PIC support
       * return +Inf/0 for +Inf/-Inf input, instead of NaN }
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
+      const
+        ln2hi: double=6.9314718036912382E-001;
+        ln2lo: double=1.9082149292705877E-010;
+        large: single=24576.0;
+        two:   single=2.0;
+        half:  single=0.5;
       asm
+        call     .LPIC
+.LPIC:
+        pop         %ecx
         fldt        d
         fldl2e
         fmul        %st(1),%st        { z = d * log2(e) }
         frndint
-      { Calculate frac(z) using modular arithmetic to avoid precision loss.
-        Avoid PIC hacks by using immediate operands (it's not the fastest,
-        but likely the cleanest solution). }
-        pushl       $0x3fe62e42       { ln(2).hi=6.9314718036912382E-001 }
-        pushl       $0xfee00000
-        fldl        (%esp)
+      { Calculate frac(z) using modular arithmetic to avoid precision loss. }
+        fldl        ln2hi-.LPIC(%ecx)
         fmul        %st(1),%st
         fsubrp      %st,%st(2)
-        pushl       $0x3dea39ef       { ln(2).lo=1.9082149292705877E-010 }
-        pushl       $0x35793c76
-        fldl        (%esp)
+        fldl        ln2lo-.LPIC(%ecx)
         fmul        %st(1),%st
         fsubrp      %st,%st(2)
         fxch        %st(1)            { (d-int(z)*ln2_hi)-int(z)*ln2_lo }
@@ -193,8 +196,7 @@ const
         jae         .L1               { frac(z) <= 1 }
         fld         %st(1)
         fabs
-        pushl       $0x46c00000       { single(24576.0) }
-        fcomps      (%esp)
+        fcomps      large-.LPIC(%ecx)
         fstsw       %ax
         sahf
         jb          .L0               { int(z) < 24576 }
@@ -204,12 +206,10 @@ const
         jmp         .L1
 .L0:
         { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
-        pushl       $0x3f000000       { single(0.5) }
-        fmuls       (%esp)
+        fmuls       half-.LPIC(%ecx)
         f2xm1
         fld         %st
-        pushl       $0x40000000       { single(2.0) }
-        fadds       (%esp)
+        fadds       two-.LPIC(%ecx)
         fmulp       %st,%st(1)
         jmp         .L2
 .L1:
