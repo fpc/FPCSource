@@ -165,7 +165,10 @@ unit optcse;
             (actualtargetnode(@n)^.flags*[nf_write,nf_modify,nf_address_taken]=[]) and
             ((((tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable or tstoreddef(n.resultdef).is_const_intregable) and
             { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
-            (not(n.resultdef.typ in [arraydef,recorddef]))) or is_dynamic_array(n.resultdef)) and
+            (not(n.resultdef.typ in [arraydef,recorddef]))) or
+             is_dynamic_array(n.resultdef) or
+             ((n.resultdef.typ in [arraydef,recorddef]) and not(is_special_array(tstoreddef(n.resultdef))) and not(tstoreddef(n.resultdef).is_intregable) and not(tstoreddef(n.resultdef).is_fpuregable))
+            ) and
             { same for voiddef }
             not(is_void(n.resultdef)) and
             { adding tempref and callpara nodes itself is worthless but
