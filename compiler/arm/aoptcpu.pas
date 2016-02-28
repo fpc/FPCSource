@@ -39,6 +39,7 @@ Type
     procedure PeepHoleOptPass2;override;
     Function RegInInstruction(Reg: TRegister; p1: tai): Boolean;override;
     function RemoveSuperfluousMove(const p: tai; movp: tai; const optimizer: string): boolean;
+    function RemoveSuperfluousVMov(const p : tai; movp : tai; const optimizer : string) : boolean;
 
     { gets the next tai object after current that contains info relevant
       to the optimizer in p1 which used the given register or does a
@@ -248,7 +249,8 @@ Implementation
 
       case p.opcode of
         { These operands do not write into a register at all }
-        A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD:
+        A_CMP, A_CMN, A_TST, A_TEQ, A_B, A_BL, A_BX, A_BLX, A_SWI, A_MSR, A_PLD,
+        A_VCMP:
           exit;
         {Take care of post/preincremented store and loads, they will change their base register}
         A_STR, A_LDR:
@@ -264,6 +266,11 @@ Implementation
             if p.opcode = A_STR then
               exit;
           end;
+        A_VSTR:
+          begin
+            Result := false;
+            exit;
+          end;
         { These four are writing into the first 2 register, UMLAL and SMLAL will also read from them }
         A_UMLAL, A_UMULL, A_SMLAL, A_SMULL:
           Result :=
@@ -278,7 +285,7 @@ Implementation
             (p.oper[2]^.reg = reg);
         }
         {Loads to all register in the registerset}
-        A_LDM:
+        A_LDM, A_VLDM:
           Result := (getsupreg(reg) in p.oper[1]^.regset^);
         A_POP:
           Result := (getsupreg(reg) in p.oper[0]^.regset^) or
@@ -394,6 +401,69 @@ Implementation
           if assigned(dealloc) then
             begin
               DebugMsg('Peephole '+optimizer+' removed superfluous mov', movp);
+              result:=true;
+
+              { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
+                and remove it if possible }
+              asml.Remove(dealloc);
+              alloc:=FindRegAllocBackward(taicpu(p).oper[0]^.reg,tai(p.previous));
+              if assigned(alloc) then
+                begin
+                  asml.Remove(alloc);
+                  alloc.free;
+                  dealloc.free;
+                end
+              else
+                asml.InsertAfter(dealloc,p);
+
+              { try to move the allocation of the target register }
+              GetLastInstruction(movp,hp1);
+              alloc:=FindRegAlloc(taicpu(movp).oper[0]^.reg,tai(hp1.Next));
+              if assigned(alloc) then
+                begin
+                  asml.Remove(alloc);
+                  asml.InsertBefore(alloc,p);
+                  { adjust used regs }
+                  IncludeRegInUsedRegs(taicpu(movp).oper[0]^.reg,UsedRegs);
+                end;
+
+              { finally get rid of the mov }
+              taicpu(p).loadreg(0,taicpu(movp).oper[0]^.reg);
+              asml.remove(movp);
+              movp.free;
+            end;
+        end;
+    end;
+
+
+  function TCpuAsmOptimizer.RemoveSuperfluousVMov(const p: tai; movp: tai; const optimizer: string):boolean;
+    var
+      alloc,
+      dealloc : tai_regalloc;
+      hp1 : tai;
+    begin
+      Result:=false;
+      if (MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [taicpu(p).oppostfix]) or
+          ((taicpu(p).oppostfix in [PF_F64F32,PF_F64S16,PF_F64S32,PF_F64U16,PF_F64U32]) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F64])) or
+          ((taicpu(p).oppostfix in [PF_F32F64,PF_F32S16,PF_F32S32,PF_F32U16,PF_F32U32]) and MatchInstruction(movp, A_VMOV, [taicpu(p).condition], [PF_F32]))
+         ) and
+         (taicpu(movp).ops=2) and
+         MatchOperand(taicpu(movp).oper[1]^, taicpu(p).oper[0]^.reg) and
+         { the destination register of the mov might not be used beween p and movp }
+         not(RegUsedBetween(taicpu(movp).oper[0]^.reg,p,movp)) and
+         { Take care to only do this for instructions which REALLY load to the first register.
+           Otherwise
+             vstr reg0, [reg1]
+             vmov reg2, reg0
+           will be optimized to
+             vstr reg2, [reg1]
+         }
+         regLoadedWithNewValue(taicpu(p).oper[0]^.reg, p) then
+        begin
+          dealloc:=FindRegDeAlloc(taicpu(p).oper[0]^.reg,tai(movp.Next));
+          if assigned(dealloc) then
+            begin
+              DebugMsg('Peephole '+optimizer+' removed superfluous vmov', movp);
               result:=true;
 
               { taicpu(p).oper[0]^.reg is not used anymore, try to find its allocation
@@ -2139,7 +2209,19 @@ Implementation
                         DebugMsg('Peephole Bl2B done', p);
                       end;
                   end;
-
+                A_VADD,
+                A_VMUL,
+                A_VDIV,
+                A_VSUB,
+                A_VSQRT,
+                A_VNEG,
+                A_VCVT,
+                A_VABS:
+                  begin
+                    if GetNextInstructionUsingReg(p, hp1, taicpu(p).oper[0]^.reg) and
+                      RemoveSuperfluousVMov(p, hp1, 'VOpVMov2VOp') then
+                      Result:=true;
+                  end
               end;
           end;
       end;
