@@ -86,9 +86,9 @@ interface
 {$if defined(x86_64)}
         'IA64',        // cpu_none,
         'X64',         // cpu_athlon64,
-        'X64',         // cpu_core_i,
-        'X64',         // cpu_core_avx,
-        'X64'          // cpu_core_avx2
+        'IA64',        // cpu_core_i,
+        'IA64',        // cpu_core_avx,
+        'IA64'         // cpu_core_avx2
 {$elseif defined(i386)}
         'IA64',     // cpu_none,
         '386',      // cpu_386,
@@ -97,9 +97,9 @@ interface
         'P3',       // cpu_Pentium3,
         'P4',       // cpu_Pentium4,
         'P4',       // cpu_PentiumM,
-        'PRESCOTT', // cpu_core_i,
-        'PRESCOTT', // cpu_core_avx,
-        'PRESCOTT'  // cpu_core_avx2
+        'IA64',     // cpu_core_i,
+        'IA64',     // cpu_core_avx,
+        'IA64'      // cpu_core_avx2
 {$elseif defined(i8086)}
         'IA64',    // cpu_none
         '8086',    // cpu_8086
