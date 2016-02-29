@@ -151,7 +151,8 @@ interface
          maxfpuregisters : shortint;
 
          cputype,
-         optimizecputype : tcputype;
+         optimizecputype,
+         asmcputype      : tcputype;
          fputype         : tfputype;
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
@@ -417,66 +418,79 @@ interface
 {$ifdef GENERIC_CPU}
         cputype : cpu_none;
         optimizecputype : cpu_none;
+        asmcputype : cpu_none;
         fputype : fpu_none;
 {$else not GENERIC_CPU}
   {$ifdef i386}
         cputype : cpu_Pentium;
         optimizecputype : cpu_Pentium3;
+        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i386}
   {$ifdef m68k}
         cputype : cpu_MC68020;
         optimizecputype : cpu_MC68020;
+        asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif m68k}
   {$ifdef powerpc}
         cputype : cpu_PPC604;
         optimizecputype : cpu_ppc7400;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif powerpc}
   {$ifdef POWERPC64}
         cputype : cpu_PPC970;
         optimizecputype : cpu_ppc970;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
         cputype : cpu_SPARC_V9;
         optimizecputype : cpu_SPARC_V9;
+        asmcputype : cpu_none;
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
         cputype : cpu_armv4;
         optimizecputype : cpu_armv4;
+        asmcputype : cpu_none;
         fputype : fpu_fpa;
   {$endif arm}
   {$ifdef x86_64}
         cputype : cpu_athlon64;
         optimizecputype : cpu_athlon64;
+        asmcputype : cpu_none;
         fputype : fpu_sse64;
   {$endif x86_64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
+        asmcputype : cpu_none;
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
         cputype : cpu_mips2;
         optimizecputype : cpu_mips2;
+        asmcputype : cpu_none;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}
         cputype : cpu_none;
         optimizecputype : cpu_none;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
   {$ifdef aarch64}
         cputype : cpu_armv8;
         optimizecputype : cpu_armv8;
+        asmcputype : cpu_none;
         fputype : fpu_vfp;
   {$endif aarch64}
   {$ifdef i8086}
         cputype : cpu_8086;
         optimizecputype : cpu_8086;
+        asmcputype : cpu_8086;
         fputype : fpu_x87;
   {$endif i8086}
 {$endif not GENERIC_CPU}

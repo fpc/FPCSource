@@ -121,6 +121,7 @@ const
   scan_w_invalid_stacksize=02096;
   scan_w_heapmax_lessthan_heapmin=02097;
   scan_e_illegal_hugepointernormalization=02098;
+  scan_e_illegal_asmcpu_specifier=02099;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -1026,9 +1027,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 76752;
+  MsgTxtSize = 76872;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,99,345,124,96,58,130,33,208,64,
+    27,100,345,124,96,58,130,33,208,64,
     58,20,1,1,1,1,1,1,1,1
   );

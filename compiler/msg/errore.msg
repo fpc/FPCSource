@@ -138,7 +138,7 @@ general_e_exception_raised=01026_E_Compilation raised exception internally
 #
 # Scanner
 #
-# 02098 is the last used one
+# 02099 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -409,6 +409,9 @@ scan_w_heapmax_lessthan_heapmin=02097_W_The specified HeapMax value is smaller t
 scan_e_illegal_hugepointernormalization=02098_E_Illegal argument for HUGEPOINTERNORMALIZATION
 % The only allowed values for HUGEPOINTERNORMALIZATION are BORLANDC, MICROSOFTC
 % and WATCOMC.
+scan_e_illegal_asmcpu_specifier=02099_E_Illegal assembler CPU instruction set specified "$1"
+% When you specify an assembler CPU with the \var{\{\$ASMCPU xxx\}} directive,
+% the compiler didn't recognize the CPU you specified.
 % \end{description}
 #
 # Parser
