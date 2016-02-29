@@ -84,13 +84,13 @@ interface
       );
       nasm_cpu_name : array[tcputype] of string = (
 {$if defined(x86_64)}
-        '',            // cpu_none,
+        'IA64',        // cpu_none,
         'X64',         // cpu_athlon64,
         'X64',         // cpu_core_i,
         'X64',         // cpu_core_avx,
         'X64'          // cpu_core_avx2
 {$elseif defined(i386)}
-        '',         // cpu_none,
+        'IA64',     // cpu_none,
         '386',      // cpu_386,
         'PENTIUM',  // cpu_Pentium,
         'P2',       // cpu_Pentium2,
@@ -101,7 +101,7 @@ interface
         'PRESCOTT', // cpu_core_avx,
         'PRESCOTT'  // cpu_core_avx2
 {$elseif defined(i8086)}
-        '',        // cpu_none
+        'IA64',    // cpu_none
         '8086',    // cpu_8086
         '186',     // cpu_186
         '286',     // cpu_286
