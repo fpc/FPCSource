@@ -1192,19 +1192,6 @@ interface
       begin
 {$if defined(i8086)}
         writer.AsmWriteLn('BITS 16');
-        case current_settings.cputype of
-          cpu_8086: writer.AsmWriteLn('CPU 8086');
-          cpu_186: writer.AsmWriteLn('CPU 186');
-          cpu_286: writer.AsmWriteLn('CPU 286');
-          cpu_386: writer.AsmWriteLn('CPU 386');
-          cpu_Pentium: writer.AsmWriteLn('CPU PENTIUM');
-          cpu_Pentium2: writer.AsmWriteLn('CPU P2');
-          cpu_Pentium3: writer.AsmWriteLn('CPU P3');
-          cpu_Pentium4: writer.AsmWriteLn('CPU P4');
-          cpu_PentiumM: writer.AsmWriteLn('CPU P4');
-          else
-            internalerror(2013050101);
-        end;
 {$elseif defined(i386)}
         writer.AsmWriteLn('BITS 32');
         using_relative:=false;
@@ -1213,6 +1200,7 @@ interface
         writer.AsmWriteLn('default rel');
         using_relative:=true;
 {$endif}
+        writer.AsmWriteLn('CPU '+nasm_cpu_name[current_settings.cputype]);
       end;
 
 
