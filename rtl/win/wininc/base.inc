@@ -638,7 +638,9 @@
 
      PFNPROPSHEETCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM):longint;stdcall;
 
-     LPSERVICE_MAIN_FUNCTION = procedure (_para1:DWORD; _para2:LPPTSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTION  = procedure (_para1:DWORD; _para2:LPPTSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTIONA = procedure (_para1:DWORD; _para2:LPPSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTIONW = procedure (_para1:DWORD; _para2:LPPWSTR);stdcall;
 
      PFNTVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
@@ -653,11 +655,16 @@
      PROC = FARPROC;
 
      ENUMRESTYPEPROC = function (hModule:HMODULE; lpszType:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESTYPEPROCA = function (hModule:HMODULE; lpszType:LPSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESTYPEPROCW = function (hModule:HMODULE; lpszType:LPWSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
      ENUMRESNAMEPROC = function (hModule:HMODULE; lpszType:LPCTSTR; lpszName:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESNAMEPROCA= function (hModule:HMODULE; lpszType:LPCSTR;  lpszName:LPSTR;  lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESNAMEPROCW= function (hModule:HMODULE; lpszType:LPCWSTR; lpszName:LPWSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
      ENUMRESLANGPROC = function (hModule:HMODULE; lpszType:LPCTSTR; lpszName:LPCTSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
-
+     ENUMRESLANGPROCA= function (hModule:HMODULE; lpszType:LPCSTR;  lpszName:LPCSTR;  wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESLANGPROCW= function (hModule:HMODULE; lpszType:LPCWSTR; lpszName:LPCWSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
      DESKTOPENUMPROC = FARPROC;
 
      ENUMWINDOWSPROC = function (_para1:HWND; _para2:LPARAM):WINBOOL;stdcall;
