@@ -1433,7 +1433,7 @@ implementation
 
     procedure TObjData.beforealloc;
       begin
-        FCPUType:=cpu_none;
+        FCPUType:=current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
           begin
@@ -1445,7 +1445,7 @@ implementation
 
     procedure TObjData.beforewrite;
       begin
-        FCPUType:=cpu_none;
+        FCPUType:=current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin
