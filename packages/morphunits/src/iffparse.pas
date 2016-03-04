@@ -223,7 +223,7 @@ CONST
  IFFOFFSET_END       = 1;
  IFFOFFSET_CURRENT   = 2;
 
-VAR IFFParseBase : pLibrary;
+VAR IFFParseBase : pLibrary = nil;
 
 FUNCTION AllocIFF : pIFFHandle; syscall IFFParseBase 030;
 FUNCTION AllocLocalItem(typ : LONGINT location 'd0'; id : LONGINT location 'd1'; ident : LONGINT location 'd2'; dataSize : LONGINT location 'd3') : pLocalContextItem; syscall IFFParseBase 186;
@@ -287,33 +287,17 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-var
-    iffparse_exit : Pointer;
-
-procedure CloseIFFParseLibrary;
-begin
-    ExitProc := iffparse_exit;
-    if IFFParseBase <> nil then begin
-        CloseLibrary(IFFParseBase);
-        IFFParseBase := nil;
-    end;
-end;
-
 function InitIFFParseLibrary: boolean;
 begin
-    IFFParseBase := nil;
-    IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
-    if IFFParseBase <> nil then begin
-        iffparse_exit := ExitProc;
-        ExitProc := @CloseIFFParseLibrary;
-        InitIFFParseLibrary := true;
-    end else begin
-        InitIFFParseLibrary := false;
-    end;
+   InitIFFParseLibrary := Assigned(IFFParseBase);
 end;
 
+initialization
+  IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
+finalization
+  if Assigned(IFFParseBase) then
+    CloseLibrary(IFFParseBase);
 END. (* UNIT IFFPARSE *)

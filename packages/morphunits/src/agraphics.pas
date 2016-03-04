@@ -2193,7 +2193,7 @@ const
 
 
 var
-  GfxBase : Pointer;
+  GfxBase : Pointer = nil;
 
 
 function BltBitMap(srcBitMap : pBitMap location 'a0'; xSrc : LongInt location 'd0'; ySrc : LongInt location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5'; minterm : CARDINAL location 'd6'; mask : CARDINAL location 'd7'; tempA : pCHAR location 'a2') : LongInt;
@@ -2837,29 +2837,14 @@ const
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-var
-  graphics_exit : Pointer;
-
-procedure CloseGraphicsLibrary;
-begin
-  ExitProc := graphics_exit;
-  if GfxBase <> nil then begin
-    CloseLibrary(GfxBase);
-    GfxBase := nil;
-  end;
-end;
-
 function InitGraphicsLibrary : boolean;
 begin
-  GfxBase := nil;
-  GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
-  if GfxBase <> nil then begin
-    graphics_exit := ExitProc;
-    ExitProc := @CloseGraphicsLibrary;
-    InitGraphicsLibrary:=True;
-  end else begin
-    InitGraphicsLibrary:=False;
-  end;
+  InitGraphicsLibrary := Assigned(GfxBase);
 end;
 
+initialization
+  GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
+finalization
+  if Assigned(GfxBase) then
+    CloseLibrary(GfxBase);
 end.

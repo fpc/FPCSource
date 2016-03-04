@@ -435,7 +435,7 @@ Type
 
 
 VAR
-    GadToolsBase : pLibrary;
+    GadToolsBase : pLibrary = nil;
 
 FUNCTION CreateContext(glistptr : pGadget location 'a0'): pGadget; syscall GadToolsBase 114;
 FUNCTION CreateGadgetA(kind : ULONG location 'd0'; gad : pGadget location 'a0'; const ng : pNewGadget location 'a1'; const taglist : pTagItem location 'a2') : pGadget; syscall GadToolsBase 030;
@@ -476,35 +476,19 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-var
-    GadTools_Exit : Pointer;
-
-procedure CloseGadToolsLibrary;
-begin
-    ExitProc := gadtools_exit;
-    if GadToolsBase <> nil then begin
-        CloseLibrary(GadToolsBase);
-        GadToolsBase := nil;
-    end;
-end;
-
 function InitGadToolsLibrary: Boolean;
 begin
-    InitGadToolsLibrary := False;
-    GadToolsBase := nil;
-    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
-    if GadToolsBase <> nil then
-    begin
-        GadTools_Exit := ExitProc;
-        ExitProc := @CloseGadToolsLibrary;
-        InitGadToolsLibrary := True;
-    end;
+  InitGadToolsLibrary := Assigned(GadToolsBase);
 end;
 
+initialization
+  GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
+finalization
+  if Assigned(GadToolsBase) then
+    CloseLibrary(GadToolsBase);
 END. (* UNIT GADTOOLS *)
 
 

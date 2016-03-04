@@ -25,7 +25,7 @@ INTERFACE
 USES
   exec,agraphics,utility;
 
-VAR CyberGfxBase : pLibrary;
+VAR CyberGfxBase : pLibrary = nil;
 
 const
     CYBERGRAPHICSNAME : PChar = 'cybergraphics.library';
@@ -397,33 +397,17 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-var
-    cybergfx_exit : Pointer;
-
-procedure CloseCyberGfxLibrary;
-begin
-    ExitProc := cybergfx_exit;
-    if CyberGfxBase <> nil then begin
-        CloseLibrary(CyberGfxBase);
-        CyberGfxBase := nil;
-    end;
-end;
-
 function InitCyberGfxLibrary: boolean;
 begin
-    CyberGfxBase := nil;
-    CyberGfxBase := OpenLibrary(CYBERGFXNAME,LIBVERSION);
-    if CyberGfxBase <> nil then begin
-        cybergfx_exit := ExitProc;
-        ExitProc := @CloseCyberGfxLibrary;
-        InitCyberGfxLibrary := true;
-    end else begin
-        InitCyberGfxLibrary := false;
-    end;
+  InitCyberGfxLibrary := Assigned(CyberGfxBase);
 end;
 
+initialization
+  CyberGfxBase := OpenLibrary(CYBERGFXNAME,LIBVERSION);
+finalization
+  if Assigned(CyberGfxBase) then
+    CloseLibrary(CyberGfxBase);
 END. (* UNIT CYBERGRAPHICS *)

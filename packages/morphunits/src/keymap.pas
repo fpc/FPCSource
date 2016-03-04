@@ -85,13 +85,13 @@ Const
     DP_2DINDEXMASK      = $0f;  { mask for index for 1st of two dead keys }
     DP_2DFACSHIFT       = 4;    { shift for factor for 1st of two dead keys }
 
-var 
-  KeymapBase : pLibrary;
+var
+  KeymapBase : pLibrary = nil;
 
 const
     KEYMAPNAME : PChar = 'keymap.library';
 
-procedure SetKeyMapDefault(CONST keyMap : pKeyMap location 'a0'); 
+procedure SetKeyMapDefault(CONST keyMap : pKeyMap location 'a0');
 SysCall KeymapBase 030;
 
 function AskKeyMapDefault : pKeyMap;
@@ -113,29 +113,14 @@ const
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-var
-  keymap_exit : Pointer;
-
-procedure CloseKeymapLibrary;
-begin
-  ExitProc := keymap_exit;
-  if KeymapBase <> nil then begin
-    CloseLibrary(PLibrary(KeymapBase));
-    KeymapBase := nil;
-  end;
-end;
-
 function InitKeymapLibrary : boolean;
 begin
-  KeymapBase := nil;
-  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
-  if KeymapBase <> nil then begin
-    keymap_exit := ExitProc;
-    ExitProc := @CloseKeymapLibrary;
-    InitKeymapLibrary:=True;
-  end else begin
-    InitKeymapLibrary:=False;
-  end;
+  InitKeymapLibrary := Assigned(KeymapBase);
 end;
 
+initialization
+  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
+finalization
+  if Assigned(KeymapBase) then
+    CloseLibrary(PLibrary(KeymapBase));
 end.

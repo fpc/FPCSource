@@ -522,7 +522,7 @@ const
 
 
 var
-  AslBase : pLibrary;
+  AslBase : pLibrary = nil;
 
 function AllocFileRequest : pFileRequester;
 SysCall AslBase 030;
@@ -573,38 +573,20 @@ begin
   AslRequestTags:=AslRequest(requester,@tagList);
 end;
 
-
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-var
-  asl_exit: Pointer;
-
-procedure CloseAslLibrary;
-begin
-  ExitProc := asl_exit;
-  if AslBase <> nil then begin
-    CloseLibrary(PLibrary(AslBase));
-    AslBase := nil;
-  end;
-end;
-
 function InitAslLibrary : boolean;
 begin
-  AslBase := nil;
-  AslBase := OpenLibrary(ASLNAME,LIBVERSION);
-  if AslBase <> nil then begin
-    asl_exit := ExitProc;
-    ExitProc := @CloseAslLibrary;
-    InitAslLibrary:=True;
-  end else begin
-    InitAslLibrary:=False;
-  end;
+  InitAslLibrary:=Assigned(AslBase);
 end;
 
-
+initialization
+  AslBase := OpenLibrary(ASLNAME,LIBVERSION);
+finalization
+  if Assigned(AslBase) then
+    CloseLibrary(PLibrary(AslBase));
 end. (* UNIT ASL *)
 
