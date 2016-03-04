@@ -26,14 +26,11 @@ type
 
    TPoint=Types.TPoint;
    TRect=Types.TRect;
+   TSmallPoint=Types.TSmallPoint;
 
 {$ifndef windows}
-   TSmallPoint = record
-      x,y : smallint;
-   end;
    HMODULE = ptrint; // hmodule is handle on windows. Pointer eq.
 {$else}
-   TSmallPoint = Windows.TSmallPoint;
    HModule = System.HModule;
 {$endif}
 
