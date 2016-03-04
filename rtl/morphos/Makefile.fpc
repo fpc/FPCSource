@@ -12,7 +12,7 @@ units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
       sysutils classes fgl math typinfo \
       charset cpall getopts \
       types rtlconsts sysconst \
-      athreads
+      character athreads
 #      exec timer doslib utility hardware inputevent keymap graphics layers 
 #      intuition aboxlib mui 
 # these units are here, because they depend on system interface units above
@@ -128,6 +128,9 @@ sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
 classes$(PPUEXT) : classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) rtlconsts$(PPUEXT) typinfo$(PPUEXT) types$(PPUEXT) fgl$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/classes $(AMIINC)/classes.pp
+
+character$(PPUEXT) : sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
+        $(COMPILER) $(OBJPASDIR)/character.pas
 
 fgl$(PPUEXT) : $(OBJPASDIR)/fgl.pp objpas$(PPUEXT) types$(PPUEXT) system$(PPUEXT) sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/fgl.pp
