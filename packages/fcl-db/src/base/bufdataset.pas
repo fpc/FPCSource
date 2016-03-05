@@ -592,9 +592,10 @@ type
     procedure LoadFromFile(AFileName: string = ''; Format: TDataPacketFormat = dfAny);
     procedure SaveToFile(AFileName: string = ''; Format: TDataPacketFormat = dfBinary);
     procedure CreateDataset;
+    Procedure Clear; // Will close and remove all field definitions.
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
-
+    Procedure CopyFromDataset(DataSet : TDataSet;CopyData : Boolean=True);
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount default 2;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly default false;
@@ -1353,6 +1354,111 @@ begin
   FetchAll;
   with FCurrentIndex do
     SetToLastRecord;
+end;
+
+procedure TCustomBufDataset.CopyFromDataset(DataSet: TDataSet; CopyData: Boolean);
+
+Const
+  UseStreams = ftBlobTypes;
+
+Var
+  I  : Integer;
+  F,F1,F2 : TField;
+  L1,L2  : TList;
+  N : String;
+  OriginalPosition: TBookMark;
+  S : TMemoryStream;
+  
+begin
+  Close;
+  Fields.Clear;
+  FieldDefs.Clear;
+  For I:=0 to Dataset.FieldCount-1 do
+    begin
+    F:=Dataset.Fields[I];
+    TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo);
+    end;
+  CreateDataset;
+  L1:=Nil;
+  L2:=Nil;
+  S:=Nil;
+  If CopyData then
+    try
+      L1:=TList.Create;
+      L2:=TList.Create;
+      Open;
+      For I:=0 to FieldDefs.Count-1 do
+        begin
+        N:=FieldDefs[I].Name;
+        F1:=FieldByName(N);
+        F2:=DataSet.FieldByName(N);
+        L1.Add(F1);
+        L2.Add(F2);
+        If (FieldDefs[I].DataType in UseStreams) and (S=Nil) then
+          S:=TMemoryStream.Create;
+        end;
+      DisableControls;
+      Dataset.DisableControls;
+      OriginalPosition:=Dataset.GetBookmark;
+      Try
+        Dataset.Open;
+        Dataset.First;
+        While not Dataset.EOF do
+          begin
+          Append;
+          For I:=0 to L1.Count-1 do
+            begin
+            F1:=TField(L1[i]);
+            F2:=TField(L2[I]);
+            If Not F2.IsNull then
+              Case F1.DataType of
+                 ftFixedChar,
+                 ftString   : F1.AsString:=F2.AsString;
+                 ftFixedWideChar,
+                 ftWideString : F1.AsWideString:=F2.AsWideString;
+                 ftBoolean  : F1.AsBoolean:=F2.AsBoolean;
+                 ftFloat    : F1.AsFloat:=F2.AsFloat;
+                 ftAutoInc,
+                 ftLargeInt : F1.AsInteger:=F2.AsInteger;
+                 ftSmallInt : F1.AsInteger:=F2.AsInteger;
+                 ftInteger  : F1.AsInteger:=F2.AsInteger;
+                 ftDate     : F1.AsDateTime:=F2.AsDateTime;
+                 ftTime     : F1.AsDateTime:=F2.AsDateTime;
+                 ftTimestamp,
+                 ftDateTime : F1.AsDateTime:=F2.AsDateTime;
+                 ftCurrency : F1.AsCurrency:=F2.AsCurrency;
+                 ftBCD,
+                 ftFmtBCD   : F1.AsBCD:=F2.AsBCD;
+            else
+              if (F1.DataType in UseStreams) then
+                begin
+                S.Clear;
+                TBlobField(F2).SaveToStream(S);
+                S.Position:=0;
+                TBlobField(F1).LoadFromStream(S);
+                end
+              else  
+                F1.AsString:=F2.AsString;
+            end;
+          end;
+          Try
+            Post;
+          except
+            Cancel;
+            Raise;
+          end;
+          Dataset.Next;
+          end;
+      Finally
+        DataSet.GotoBookmark(OriginalPosition); //Return to original record
+        Dataset.EnableControls;
+        EnableControls;
+      end;
+    finally
+      L2.Free;
+      l1.Free;
+      S.Free;
+    end;
 end;
 
 { TBufIndex }
@@ -3076,6 +3182,13 @@ begin
   finally
     FFileName:=AStoreFileName;
   end;
+end;
+
+procedure TCustomBufDataset.Clear;
+begin
+  Close;
+  FieldDefs.Clear;
+  Fields.Clear;
 end;
 
 function TCustomBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
