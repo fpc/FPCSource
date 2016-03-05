@@ -101,13 +101,27 @@ end;
 function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
 var
   i: integer;
+  E,T : TDomElement;
+  
 begin
-  for i := 0 to Pred(aSuite.Tests.Count) do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      TestSuiteAsXML(n, FDoc, TTestSuite(aSuite.Tests.Items[i]))
+  if aSuite.TestName<>'' then
+    begin
+    E:=FDoc.CreateElement('Suite');
+    E['Name']:=aSuite.TestName;
+    N.AppendChild(E);
+    end
+  else
+    E:=N;
+  for i:=0 to Pred(aSuite.CountTestCases) do
+    if TTest(aSuite.Test[i]) is TTestSuite then
+      TestSuiteAsXML(E, FDoc, TTestSuite(aSuite.Test[i]))
     else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        n.AppendChild(FDoc.CreateTextNode(TTestcase(aSuite.Tests.Items[i]).TestName + ' '));
+      if TTest(aSuite.Test[i]) is TTestCase then
+        begin
+        T:=FDoc.CreateElement('Test');
+        T['name']:=TTestCase(aSuite.Test[i]).TestName;
+        E.AppendChild(T);
+        end;
 end;
 
 

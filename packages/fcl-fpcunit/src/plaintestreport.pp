@@ -208,17 +208,28 @@ begin
   FSuiteHeaderIdx.Add(Pointer(FDoc.Count - 1));
 end;
 
-function TestSuiteAsPlain(aSuite:TTestSuite; Options : TTestResultOptions = []): string;
+function DoTestSuiteAsPlain(aSuite:TTestSuite; Prefix : String; Options : TTestResultOptions = []): string;
 var
   i: integer;
+  p : string;
 begin
-  Result := '';
-  for i := 0 to aSuite.Tests.Count - 1 do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsPlain(TTestSuite(aSuite.Tests.Items[i]),Options)
-    else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result + '  ' + ASuite.TestName+'.' + TTestcase(aSuite.Tests.Items[i]).TestName + System.sLineBreak;
+  Result := Prefix+ASuite.TestName+System.sLineBreak;
+  for i := 0 to aSuite.CountTestCases - 1 do
+    if aSuite.Test[i] is TTestSuite then
+      begin
+      P:=Prefix;
+      if (ASuite.TestName<>'') then
+        P:=P+'  ';
+      Result := Result + DoTestSuiteAsPlain(TTestSuite(aSuite.Test[i]),P,Options);
+      end
+    else if aSuite.Test[i] is TTestCase then
+      Result := Result + Prefix+'  ' + ASuite.TestName+'.' + TTestcase(aSuite.Test[i]).TestName + System.sLineBreak;
+end;
+
+function TestSuiteAsPlain(aSuite:TTestSuite; Options : TTestResultOptions = []): string;
+
+begin
+  Result:=DoTestSuiteAsPLain(ASuite,'',Options);
 end;
 
 function GetSuiteAsPlain(aSuite: TTestSuite; Options : TTestResultOptions = []): string;
