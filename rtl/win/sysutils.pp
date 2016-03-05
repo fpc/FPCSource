@@ -78,6 +78,7 @@ function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
 function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: UnicodeString): Cardinal;
 
 procedure GetFormatSettings;
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); platform;
@@ -155,6 +156,39 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end;
   end;
 
+function GetFileVersion(const AFileName:UnicodeString):Cardinal;
+  var
+    { useful only as long as we don't need to touch different stack pages }
+    buf : array[0..3071] of byte;
+    bufp : pointer;
+    fn : unicodestring;
+    valsize,
+    size : DWORD;
+    h : DWORD;
+    valrec : PVSFixedFileInfo;
+  begin
+    result:=$fffffff;
+    fn:=AFileName;
+    UniqueString(fn);
+    size:=GetFileVersionInfoSizeW(pwidechar(fn),@h);
+    if size>sizeof(buf) then
+      begin
+        getmem(bufp,size);
+        try
+          if GetFileVersionInfoW(pwidechar(fn),h,size,bufp) then
+            if VerQueryValue(bufp,'\',valrec,valsize) then
+              result:=valrec^.dwFileVersionMS;
+        finally
+          freemem(bufp);
+        end;
+      end
+    else
+      begin
+        if GetFileVersionInfoW(pwidechar(fn),h,size,@buf) then
+          if VerQueryValueW(@buf,'\',valrec,valsize) then
+            result:=valrec^.dwFileVersionMS;
+      end;
+  end;
 
 {$define HASCREATEGUID}
 {$define HASEXPANDUNCFILENAME}
