@@ -1260,7 +1260,7 @@ Type
 
 { ***************************************************************************}
 
-VAR DataTypesBase : pLibrary;
+VAR DataTypesBase : pLibrary = nil;
 
 const
     DATATYPESNAME : PChar = 'datatypes.library';
@@ -1297,108 +1297,18 @@ FUNCTION ObtainDTDrawInfoA( o : pObject_ location 'a0'; attrs : pTagItem locatio
 FUNCTION DrawDTObjectA(rp : pRastPort location 'a0';  o : pObject_ location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'; w : LONGINT location 'd2'; h : LONGINT location 'd3'; th : LONGINT location 'd4'; tv : LONGINT location 'd5'; attrs : pTagItem location 'a2') : LONGINT; syscall DataTypesBase 126;
 PROCEDURE ReleaseDTDrawInfo( o : pObject_ location 'a0'; handle : POINTER location 'a1'); syscall DataTypesBase 132;
 
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitDATATYPESLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    DATATYPESIsCompiledHow : longint;
-
-
 IMPLEMENTATION
-
-{$ifndef dont_use_openlib}
-uses amsgbox;
-{$endif dont_use_openlib}
-
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of datatypes.library}
-  {$Info don't forget to use InitDATATYPESLibrary in the beginning of your program}
-
-var
-    datatypes_exit : Pointer;
-
-procedure ClosedatatypesLibrary;
-begin
-    ExitProc := datatypes_exit;
-    if DataTypesBase <> nil then begin
-        CloseLibrary(DataTypesBase);
-        DataTypesBase := nil;
-    end;
-end;
-
-procedure InitDATATYPESLibrary;
-begin
-    DataTypesBase := nil;
-    DataTypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
-    if DataTypesBase <> nil then begin
-        datatypes_exit := ExitProc;
-        ExitProc := @ClosedatatypesLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open datatypes.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    DATATYPESIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of datatypes.library}
-
-var
-    datatypes_exit : Pointer;
-
-procedure ClosedatatypesLibrary;
-begin
-    ExitProc := datatypes_exit;
-    if DataTypesBase <> nil then begin
-        CloseLibrary(DataTypesBase);
-        DataTypesBase := nil;
-    end;
-end;
-
-begin
-    DataTypesBase := nil;
-    DataTypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
-    if DataTypesBase <> nil then begin
-        datatypes_exit := ExitProc;
-        ExitProc := @ClosedatatypesLibrary;
-        DATATYPESIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open datatypes.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    DATATYPESIsCompiledHow := 3;
-   {$Warning No autoopening of datatypes.library compiled}
-   {$Warning Make sure you open datatypes.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  DataTypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
+finalization
+  if Assigned(DataTypesBase) then
+    CloseLibrary(DataTypesBase);
 END. (* UNIT DATATYPES *)
 
 

@@ -34,10 +34,6 @@
     nils.sjoholm@mailbox.swipnet.se
 }
 {$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
 
 unit mui;
 
@@ -3473,7 +3469,7 @@ uses exec, intuition,utility,agraphics,iffparse;
          end;
        pMUI_CustomClass = ^tMUI_CustomClass;
 
-VAR MUIMasterBase : pLibrary;
+VAR MUIMasterBase : pLibrary = nil;
 
 FUNCTION MUI_NewObjectA(class_ : pCHar location 'a0'; tags : pTagItem location 'a1') : pObject_; syscall MUIMasterBase 030;
 PROCEDURE MUI_DisposeObject(obj : pObject_ location 'a0'); syscall MUIMasterBase 036;
@@ -3897,84 +3893,12 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of muimaster.library}
-  {$Info don't forget to use InitMUIMASTERLibrary in the beginning of your program}
-
-var
-    muimaster_exit : Pointer;
-
-procedure ClosemuimasterLibrary;
-begin
-    ExitProc := muimaster_exit;
-    if MUIMasterBase <> nil then begin
-        CloseLibrary(MUIMasterBase);
-        MUIMasterBase := nil;
-    end;
-end;
-
-procedure InitMUIMASTERLibrary;
-begin
-    MUIMasterBase := nil;
-    MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-    if MUIMasterBase <> nil then begin
-        muimaster_exit := ExitProc;
-        ExitProc := @ClosemuimasterLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open muimaster.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    MUIMASTERIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of muimaster.library}
-
-var
-    muimaster_exit : Pointer;
-
-procedure ClosemuimasterLibrary;
-begin
-    ExitProc := muimaster_exit;
-    if MUIMasterBase <> nil then begin
-        CloseLibrary(MUIMasterBase);
-        MUIMasterBase := nil;
-    end;
-end;
-
-begin
-    MUIMasterBase := nil;
-    MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-    if MUIMasterBase <> nil then begin
-        muimaster_exit := ExitProc;
-        ExitProc := @ClosemuimasterLibrary;
-        MUIMASTERIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open muimaster.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    MUIMASTERIsCompiledHow := 3;
-   {$Warning No autoopening of muimaster.library compiled}
-   {$Warning Make sure you open muimaster.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
+finalization
+  if Assigned(MUIMasterBase) then
+    CloseLibrary(MUIMasterBase);
 end.

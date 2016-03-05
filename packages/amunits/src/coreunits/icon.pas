@@ -346,7 +346,7 @@ Const
 
     ICONNAME    : PChar = 'icon.library';
 
-VAR IconBase : pLibrary;
+VAR IconBase : pLibrary = nil;
 
 FUNCTION AddFreeList(freelist : pFreeList location 'a0'; const mem : POINTER location 'a1'; size : ULONG location 'a2') : LongBool; syscall IconBase 072;
 FUNCTION BumpRevision(newname : pCHAR location 'a0'; const oldname : pCHAR location 'a1') : pCHAR; syscall IconBase 108;
@@ -390,25 +390,7 @@ FUNCTION PutIconTagList(CONST name : RawByteString; CONST icon : pDiskObject; CO
 {macros}
 function PACK_ICON_ASPECT_RATIO(num,den : longint) : longint;
 
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitICONLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    ICONIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-{$ifndef dont_use_openlib}
-uses
-  amsgbox;
-{$endif dont_use_openlib}
-
 
 function PACK_ICON_ASPECT_RATIO(num,den : longint) : longint;
 begin
@@ -473,86 +455,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of icon.library}
-  {$Info don't forget to use InitICONLibrary in the beginning of your program}
-
-var
-    icon_exit : Pointer;
-
-procedure CloseiconLibrary;
-begin
-    ExitProc := icon_exit;
-    if IconBase <> nil then begin
-        CloseLibrary(IconBase);
-        IconBase := nil;
-    end;
-end;
-
-procedure InitICONLibrary;
-begin
-    IconBase := nil;
-    IconBase := OpenLibrary(ICONNAME,LIBVERSION);
-    if IconBase <> nil then begin
-        icon_exit := ExitProc;
-        ExitProc := @CloseiconLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open icon.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    ICONIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of icon.library}
-
-var
-    icon_exit : Pointer;
-
-procedure CloseiconLibrary;
-begin
-    ExitProc := icon_exit;
-    if IconBase <> nil then begin
-        CloseLibrary(IconBase);
-        IconBase := nil;
-    end;
-end;
-
-begin
-    IconBase := nil;
-    IconBase := OpenLibrary(ICONNAME,LIBVERSION);
-    if IconBase <> nil then begin
-        icon_exit := ExitProc;
-        ExitProc := @CloseiconLibrary;
-        ICONIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open icon.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    ICONIsCompiledHow := 3;
-   {$Warning No autoopening of icon.library compiled}
-   {$Warning Make sure you open icon.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  IconBase := OpenLibrary(ICONNAME,LIBVERSION);
+finalization
+  if Assigned(IconBase) then
+    CloseLibrary(IconBase);
 END. (* UNIT ICON *)
 
 

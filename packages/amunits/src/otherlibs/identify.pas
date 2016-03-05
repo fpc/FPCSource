@@ -38,11 +38,6 @@
 
 {$mode objfpc}
 
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
-
 UNIT IDENTIFY;
 
 INTERFACE
@@ -410,16 +405,16 @@ CONST  IDENTIFYBUFLEN = 50;  { default buffer length }
 
 
 
-VAR IdentifyBase : pLibrary;
+VAR IdentifyBase : pLibrary = nil;
 
-FUNCTION IdExpansion(TagList : pTagItem) : LONGINT;
-FUNCTION IdHardware(Type_ : Ulong; TagList : pTagItem) : pCHAR;
-FUNCTION IdAlert(ID : Ulong; TagList : pTagItem) : LONGINT;
-FUNCTION IdFunction(LibName : pCHAR; Offset : LONGINT; TagList : pTagItem) : LONGINT;
-FUNCTION IdHardwareNum(Type_ : Ulong; TagList : pTagItem) : Ulong;
-PROCEDURE IdHardwareUpdate;
-FUNCTION IdFormatString(String_ : pCHAR; Buffer : pCHAR; Length : Ulong; Tags : pTagItem) : Ulong;
-FUNCTION IdEstimateFormatSize(String_ : pCHAR; Tags : pTagItem) : Ulong;
+FUNCTION IdExpansion(TagList : pTagItem location 'a0') : LONGINT; syscall IdentifyBase 30;
+FUNCTION IdHardware(Type_ : Ulong location 'd0'; TagList : pTagItem location 'a0') : pCHAR; syscall IdentifyBase 36;
+FUNCTION IdAlert(ID : Ulong location 'd0'; TagList : pTagItem location 'a0') : LONGINT; syscall IdentifyBase 42;
+FUNCTION IdFunction(LibName : pCHAR location 'a0'; Offset : LONGINT location 'd0'; TagList : pTagItem location 'a1') : LONGINT; syscall IdentifyBase 48;
+FUNCTION IdHardwareNum(Type_ : Ulong location 'd0'; TagList : pTagItem location 'a0') : Ulong; syscall IdentifyBase 54;
+PROCEDURE IdHardwareUpdate; syscall IdentifyBase 60;
+FUNCTION IdFormatString(String_ : pCHAR location 'a0'; Buffer : pCHAR location 'a1'; Length : Ulong location 'd0'; Tags : pTagItem location 'a2') : Ulong; syscall IdentifyBase 66;
+FUNCTION IdEstimateFormatSize(String_ : pCHAR location 'a0'; Tags : pTagItem location 'a1') : Ulong; syscall IdentifyBase 72;
 
 {
      This is functions and procedures with array of const.
@@ -445,126 +440,10 @@ FUNCTION IdFunctionTags(LibName : string; Offset : LONGINT; const TagList : Arra
 FUNCTION IdFormatStringTags(String_ : string; Buffer : pCHAR; Length : longword; const Tags : Array Of Const) : longword;
 FUNCTION IdEstimateFormatSizeTags(String_ : string; const Tags : Array Of Const) : longword;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitIDENTIFYLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    IDENTIFYIsCompiledHow : longint;
-
 IMPLEMENTATION
 
 uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray,pastoc;
-
-FUNCTION IdExpansion(TagList : pTagItem) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L TagList,A0
-        MOVEA.L IdentifyBase,A6
-        JSR     -030(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IdHardware(Type_ : Ulong; TagList : pTagItem) : pCHAR;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  Type_,D0
-        MOVEA.L TagList,A0
-        MOVEA.L IdentifyBase,A6
-        JSR     -036(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IdAlert(ID : Ulong; TagList : pTagItem) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  ID,D0
-        MOVEA.L TagList,A0
-        MOVEA.L IdentifyBase,A6
-        JSR     -042(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IdFunction(LibName : pCHAR; Offset : LONGINT; TagList : pTagItem) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L LibName,A0
-        MOVE.L  Offset,D0
-        MOVEA.L TagList,A1
-        MOVEA.L IdentifyBase,A6
-        JSR     -048(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IdHardwareNum(Type_ : Ulong; TagList : pTagItem) : Ulong;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  Type_,D0
-        MOVEA.L TagList,A0
-        MOVEA.L IdentifyBase,A6
-        JSR     -054(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE IdHardwareUpdate;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L IdentifyBase,A6
-        JSR     -060(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION IdFormatString(String_ : pCHAR; Buffer : pCHAR; Length : Ulong; Tags : pTagItem) : Ulong;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L String_,A0
-        MOVEA.L Buffer,A1
-        MOVE.L  Length,D0
-        MOVEA.L Tags,A2
-        MOVEA.L IdentifyBase,A6
-        JSR     -066(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IdEstimateFormatSize(String_ : pCHAR; Tags : pTagItem) : Ulong;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L String_,A0
-        MOVEA.L Tags,A1
-        MOVEA.L IdentifyBase,A6
-        JSR     -072(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
+  tagsarray,pastoc;
 
 {
  Functions and procedures with array of const go here
@@ -640,86 +519,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of identify.library}
-  {$Info don't forget to use InitIDENTIFYLibrary in the beginning of your program}
-
-var
-    identify_exit : Pointer;
-
-procedure CloseidentifyLibrary;
-begin
-    ExitProc := identify_exit;
-    if IdentifyBase <> nil then begin
-        CloseLibrary(IdentifyBase);
-        IdentifyBase := nil;
-    end;
-end;
-
-procedure InitIDENTIFYLibrary;
-begin
-    IdentifyBase := nil;
-    IdentifyBase := OpenLibrary(IDENTIFYNAME,LIBVERSION);
-    if IdentifyBase <> nil then begin
-        identify_exit := ExitProc;
-        ExitProc := @CloseidentifyLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open identify.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    IDENTIFYIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of identify.library}
-
-var
-    identify_exit : Pointer;
-
-procedure CloseidentifyLibrary;
-begin
-    ExitProc := identify_exit;
-    if IdentifyBase <> nil then begin
-        CloseLibrary(IdentifyBase);
-        IdentifyBase := nil;
-    end;
-end;
-
-begin
-    IdentifyBase := nil;
-    IdentifyBase := OpenLibrary(IDENTIFYNAME,LIBVERSION);
-    if IdentifyBase <> nil then begin
-        identify_exit := ExitProc;
-        ExitProc := @CloseidentifyLibrary;
-        IDENTIFYIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open identify.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    IDENTIFYIsCompiledHow := 3;
-   {$Warning No autoopening of identify.library compiled}
-   {$Warning Make sure you open identify.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  IdentifyBase := OpenLibrary(IDENTIFYNAME,LIBVERSION);
+finalization
+  if Assigned(IdentifyBase) then
+    CloseLibrary(IdentifyBase);
 END. (* UNIT IDENTIFY *)
 
 

@@ -4061,6 +4061,8 @@ CONST
  *      You should always leave the SGA_REDISPLAY flag set, since Intuition
  *      uses this processing when activating a string gadget.
  }
+var
+  IntuitionBase: PLibrary;
 
 FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool syscall _IntuitionBase 462;
 PROCEDURE ActivateWindow(window : pWindow location 'a0'); syscall _IntuitionBase 450;
@@ -4361,7 +4363,8 @@ begin
       UnlockPubScreen(PChar(RawByteString(name)),screen);
 end;
 
-
+initialization
+  IntuitionBase := _IntuitionBase;
 END. (* UNIT INTUITION *)
 
 

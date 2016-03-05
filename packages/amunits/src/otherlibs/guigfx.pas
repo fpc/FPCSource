@@ -29,10 +29,6 @@
 }
 
 {$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
 
 UNIT GUIGFX;
 
@@ -156,32 +152,32 @@ const
      BMAPATTR_Flags = 6 + TAG_USER;
 
 
-FUNCTION AddPaletteA(psm : POINTER; palette : POINTER; tags : pTagItem) : POINTER;
-FUNCTION AddPictureA(psm : POINTER; pic : POINTER; tags : pTagItem) : POINTER;
-FUNCTION AddPixelArrayA(psm : POINTER; _array : POINTER; width : WORD; height : WORD; tags : pTagItem) : POINTER;
-FUNCTION ClonePictureA(pic : POINTER; tags : pTagItem) : POINTER;
-FUNCTION CreateDirectDrawHandleA(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; tags : pTagItem) : POINTER;
-FUNCTION CreatePenShareMapA(tags : pTagItem) : POINTER;
-FUNCTION CreatePictureBitMapA(drawhandle : POINTER; pic : POINTER; tags : pTagItem) : pBitMap;
-FUNCTION CreatePictureMaskA(pic : POINTER; mask : pCHAR; maskwidth : WORD; tags : pTagItem) : BOOLEAN;
-PROCEDURE DeleteDirectDrawHandle(ddh : POINTER);
-PROCEDURE DeletePenShareMap(psm : POINTER);
-PROCEDURE DeletePicture(pic : POINTER);
-FUNCTION DirectDrawTrueColorA(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; tags : pTagItem) : BOOLEAN;
-FUNCTION DoPictureMethodA(pic : POINTER; method : longword; arguments : pULONG) : longword;
-FUNCTION DrawPictureA(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; tags : pTagItem) : BOOLEAN;
-FUNCTION GetPictureAttrsA(pic : POINTER; tags : pTagItem) : longword;
-FUNCTION IsPictureA(filename : pCHAR; tags : pTagItem) : BOOLEAN;
-FUNCTION LoadPictureA(filename : pCHAR; tags : pTagItem) : POINTER;
-FUNCTION LockPictureA(pic : POINTER; mode : longword; args : pULONG) : longword;
-FUNCTION MakePictureA(_array : POINTER; width : WORD; height : WORD; tags : pTagItem) : POINTER;
-FUNCTION MapPaletteA(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; tags : pTagItem) : BOOLEAN;
-FUNCTION MapPenA(drawhandle : POINTER; rgb : longword; tags : pTagItem) : LONGINT;
-FUNCTION ObtainDrawHandleA(psm : POINTER; a1arg : pRastPort; cm : pColorMap; tags : pTagItem) : POINTER;
-FUNCTION ReadPictureA(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; tags : pTagItem) : POINTER;
-PROCEDURE ReleaseDrawHandle(drawhandle : POINTER);
-PROCEDURE RemColorHandle(colorhandle : POINTER);
-PROCEDURE UnLockPicture(pic : POINTER; mode : longword);
+FUNCTION AddPaletteA(psm : POINTER location 'a0'; palette : POINTER location 'a1'; tags : pTagItem location 'a2') : POINTER; syscall GuiGFXBase 72;
+FUNCTION AddPictureA(psm : POINTER location 'a0'; pic : POINTER location 'a1'; tags : pTagItem location 'a2') : POINTER; syscall GuiGFXBase 66;
+FUNCTION AddPixelArrayA(psm : POINTER location 'a0'; _array : POINTER location 'a1'; width : WORD location 'd0'; height : WORD location 'd1'; tags : pTagItem location 'a2') : POINTER; syscall GuiGFXBase 78;
+FUNCTION ClonePictureA(pic : POINTER location 'a0'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 48;
+FUNCTION CreateDirectDrawHandleA(drawhandle : POINTER location 'a0'; sw : WORD location 'd0'; sh : WORD location 'd1'; dw : WORD location 'd2'; dh : WORD location 'd3'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 168;
+FUNCTION CreatePenShareMapA(tags : pTagItem location 'a0') : POINTER; syscall GuiGFXBase 90;
+FUNCTION CreatePictureBitMapA(drawhandle : POINTER location 'a0'; pic : POINTER location 'a1'; tags : pTagItem location 'a2') : pBitMap; syscall GuiGFXBase 132;
+FUNCTION CreatePictureMaskA(pic : POINTER location 'a0'; mask : pCHAR location 'a1'; maskwidth : WORD location 'd0'; tags : pTagItem location 'a2') : BOOLEAN; syscall GuiGFXBase 186;
+PROCEDURE DeleteDirectDrawHandle(ddh : POINTER location 'a0'); syscall GuiGFXBase 174;
+PROCEDURE DeletePenShareMap(psm : POINTER location 'a0'); syscall GuiGFXBase 96;
+PROCEDURE DeletePicture(pic : POINTER location 'a0'); syscall GuiGFXBase 54;
+FUNCTION DirectDrawTrueColorA(ddh : POINTER location 'a0'; _array : pULONG location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; tags : pTagItem location 'a2') : BOOLEAN; syscall GuiGFXBase 180;
+FUNCTION DoPictureMethodA(pic : POINTER location 'a0'; method : longword location 'd0'; arguments : pULONG location 'a1') : longword; syscall GuiGFXBase 138;
+FUNCTION DrawPictureA(drawhandle : POINTER location 'a0'; pic : POINTER location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; tags : pTagItem location 'a2') : BOOLEAN; syscall GuiGFXBase 114;
+FUNCTION GetPictureAttrsA(pic : POINTER location 'a0'; tags : pTagItem location 'a1') : longword; syscall GuiGFXBase 144;
+FUNCTION IsPictureA(filename : pCHAR location 'a0'; tags : pTagItem location 'a1') : BOOLEAN; syscall GuiGFXBase 162;
+FUNCTION LoadPictureA(filename : pCHAR location 'a0'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 36;
+FUNCTION LockPictureA(pic : POINTER location 'a0'; mode : longword location 'd0'; args : pULONG location 'a1') : longword; syscall GuiGFXBase 150;
+FUNCTION MakePictureA(_array : POINTER location 'a0'; width : WORD location 'd0'; height : WORD location 'd1'; tags : pTagItem location 'a1') : POINTER; syscall GuiGFXBase 30;
+FUNCTION MapPaletteA(drawhandle : POINTER location 'a0'; palette : POINTER location 'a1'; pentab : pCHAR location 'a2'; tags : pTagItem location 'a3') : BOOLEAN; syscall GuiGFXBase 120;
+FUNCTION MapPenA(drawhandle : POINTER location 'a0'; rgb : longword location 'a1'; tags : pTagItem location 'a2') : LONGINT; syscall GuiGFXBase 126;
+FUNCTION ObtainDrawHandleA(psm : POINTER location 'a0'; a1arg : pRastPort location 'a1'; cm : pColorMap location 'a2'; tags : pTagItem location 'a3') : POINTER; syscall GuiGFXBase 102;
+FUNCTION ReadPictureA(a0arg : pRastPort location 'a0'; colormap : pColorMap location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; width : WORD location 'd2'; height : WORD location 'd3'; tags : pTagItem location 'a2') : POINTER; syscall GuiGFXBase 42;
+PROCEDURE ReleaseDrawHandle(drawhandle : POINTER location 'a0'); syscall GuiGFXBase 108;
+PROCEDURE RemColorHandle(colorhandle : POINTER location 'a0'); syscall GuiGFXBase 84;
+PROCEDURE UnLockPicture(pic : POINTER location 'a0'; mode : longword location 'd0'); syscall GuiGFXBase 156;
 {
  Functions and procedures with array of const go here
 }
@@ -206,396 +202,10 @@ FUNCTION MapPen(drawhandle : POINTER; rgb : longword; const tags : Array Of Cons
 FUNCTION ObtainDrawHandle(psm : POINTER; a1arg : pRastPort; cm : pColorMap; const tags : Array Of Const) : POINTER;
 FUNCTION ReadPicture(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitGUIGFXLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    GUIGFXIsCompiledHow : longint;
-
 IMPLEMENTATION
 
 uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray,longarray;
-
-FUNCTION AddPaletteA(psm : POINTER; palette : POINTER; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L psm,A0
-        MOVEA.L palette,A1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -072(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddPictureA(psm : POINTER; pic : POINTER; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L psm,A0
-        MOVEA.L pic,A1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -066(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddPixelArrayA(psm : POINTER; _array : POINTER; width : WORD; height : WORD; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L psm,A0
-        MOVEA.L _array,A1
-        MOVE.L  width,D0
-        MOVE.L  height,D1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -078(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ClonePictureA(pic : POINTER; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVEA.L tags,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -048(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION CreateDirectDrawHandleA(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L drawhandle,A0
-        MOVE.L  sw,D0
-        MOVE.L  sh,D1
-        MOVE.L  dw,D2
-        MOVE.L  dh,D3
-        MOVEA.L tags,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -168(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION CreatePenShareMapA(tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L tags,A0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -090(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION CreatePictureBitMapA(drawhandle : POINTER; pic : POINTER; tags : pTagItem) : pBitMap;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L drawhandle,A0
-        MOVEA.L pic,A1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -132(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION CreatePictureMaskA(pic : POINTER; mask : pCHAR; maskwidth : WORD; tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVEA.L mask,A1
-        MOVE.L  maskwidth,D0
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -186(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-PROCEDURE DeleteDirectDrawHandle(ddh : POINTER);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L ddh,A0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -174(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE DeletePenShareMap(psm : POINTER);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L psm,A0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -096(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE DeletePicture(pic : POINTER);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -054(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION DirectDrawTrueColorA(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L ddh,A0
-        MOVEA.L _array,A1
-        MOVE.L  x,D0
-        MOVE.L  y,D1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -180(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION DoPictureMethodA(pic : POINTER; method : longword; arguments : pULONG) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVE.L  method,D0
-        MOVEA.L arguments,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -138(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION DrawPictureA(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L drawhandle,A0
-        MOVEA.L pic,A1
-        MOVE.L  x,D0
-        MOVE.L  y,D1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -114(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION GetPictureAttrsA(pic : POINTER; tags : pTagItem) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVEA.L tags,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -144(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IsPictureA(filename : pCHAR; tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L filename,A0
-        MOVEA.L tags,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -162(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION LoadPictureA(filename : pCHAR; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L filename,A0
-        MOVEA.L tags,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -036(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION LockPictureA(pic : POINTER; mode : longword; args : pULONG) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVE.L  mode,D0
-        MOVEA.L args,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -150(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION MakePictureA(_array : POINTER; width : WORD; height : WORD; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L _array,A0
-        MOVE.L  width,D0
-        MOVE.L  height,D1
-        MOVEA.L tags,A1
-        MOVEA.L GuiGFXBase,A6
-        JSR     -030(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION MapPaletteA(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L drawhandle,A0
-        MOVEA.L palette,A1
-        MOVEA.L pentab,A2
-        MOVEA.L tags,A3
-        MOVEA.L GuiGFXBase,A6
-        JSR     -120(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION MapPenA(drawhandle : POINTER; rgb : longword; tags : pTagItem) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L drawhandle,A0
-        MOVEA.L rgb,A1
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -126(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ObtainDrawHandleA(psm : POINTER; a1arg : pRastPort; cm : pColorMap; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L psm,A0
-        MOVEA.L a1arg,A1
-        MOVEA.L cm,A2
-        MOVEA.L tags,A3
-        MOVEA.L GuiGFXBase,A6
-        JSR     -102(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ReadPictureA(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; tags : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L a0arg,A0
-        MOVEA.L colormap,A1
-        MOVE.L  x,D0
-        MOVE.L  y,D1
-        MOVE.L  width,D2
-        MOVE.L  height,D3
-        MOVEA.L tags,A2
-        MOVEA.L GuiGFXBase,A6
-        JSR     -042(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE ReleaseDrawHandle(drawhandle : POINTER);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L drawhandle,A0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -108(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE RemColorHandle(colorhandle : POINTER);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L colorhandle,A0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -084(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE UnLockPicture(pic : POINTER; mode : longword);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L pic,A0
-        MOVE.L  mode,D0
-        MOVEA.L GuiGFXBase,A6
-        JSR     -156(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
+  tagsarray,longarray;
 
 {
  Functions and procedures with array of const go here
@@ -702,85 +312,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of guigfx.library}
-  {$Info don't forget to use InitGUIGFXLibrary in the beginning of your program}
-
-var
-    guigfx_exit : Pointer;
-
-procedure CloseguigfxLibrary;
-begin
-    ExitProc := guigfx_exit;
-    if GuiGFXBase <> nil then begin
-        CloseLibrary(GuiGFXBase);
-        GuiGFXBase := nil;
-    end;
-end;
-
-procedure InitGUIGFXLibrary;
-begin
-    GuiGFXBase := nil;
-    GuiGFXBase := OpenLibrary(GUIGFXNAME,LIBVERSION);
-    if GuiGFXBase <> nil then begin
-        guigfx_exit := ExitProc;
-        ExitProc := @CloseguigfxLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open guigfx.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    GUIGFXIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of guigfx.library}
-
-var
-    guigfx_exit : Pointer;
-
-procedure CloseguigfxLibrary;
-begin
-    ExitProc := guigfx_exit;
-    if GuiGFXBase <> nil then begin
-        CloseLibrary(GuiGFXBase);
-        GuiGFXBase := nil;
-    end;
-end;
-
-begin
-    GuiGFXBase := nil;
-    GuiGFXBase := OpenLibrary(GUIGFXNAME,LIBVERSION);
-    if GuiGFXBase <> nil then begin
-        guigfx_exit := ExitProc;
-        ExitProc := @CloseguigfxLibrary;
-        GUIGFXIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open guigfx.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    GUIGFXIsCompiledHow := 3;
-   {$Warning No autoopening of guigfx.library compiled}
-   {$Warning Make sure you open guigfx.library yourself}
-{$endif dont_use_openlib}
-
+initialization
+  GuiGFXBase := OpenLibrary(GUIGFXNAME,LIBVERSION);
+finalization
+  if Assigned(GuiGFXBase) then
+    CloseLibrary(GuiGFXBase);
 END. (* UNIT GUIGFX *)
 
 

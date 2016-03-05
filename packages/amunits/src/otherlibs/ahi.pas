@@ -37,7 +37,7 @@ INTERFACE
 
 USES Exec,utility;
 
-VAR AHIBase : pLibrary;
+VAR AHIBase : pLibrary = nil;
 
 {
         $VER: ahi.h 4.2 (27.4.97)
@@ -532,21 +532,9 @@ FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : Array Of Co
 FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const) : BOOLEAN;
 PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const);
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitAHILibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    AHIIsCompiledHow : longint;
 IMPLEMENTATION
 
 uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
 tagsarray;
 
 {
@@ -589,85 +577,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of ahi.library}
-  {$Info don't forget to use InitAHILibrary in the beginning of your program}
-
-var
-    ahi_exit : Pointer;
-
-procedure CloseahiLibrary;
-begin
-    ExitProc := ahi_exit;
-    if AHIBase <> nil then begin
-        CloseLibrary(AHIBase);
-        AHIBase := nil;
-    end;
-end;
-
-procedure InitAHILibrary;
-begin
-    AHIBase := nil;
-    AHIBase := OpenLibrary(AHINAME,LIBVERSION);
-    if AHIBase <> nil then begin
-        ahi_exit := ExitProc;
-        ExitProc := @CloseahiLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open ahi.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    AHIIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of ahi.library}
-
-var
-    ahi_exit : Pointer;
-
-procedure CloseahiLibrary;
-begin
-    ExitProc := ahi_exit;
-    if AHIBase <> nil then begin
-        CloseLibrary(AHIBase);
-        AHIBase := nil;
-    end;
-end;
-
-begin
-    AHIBase := nil;
-    AHIBase := OpenLibrary(AHINAME,LIBVERSION);
-    if AHIBase <> nil then begin
-        ahi_exit := ExitProc;
-        ExitProc := @CloseahiLibrary;
-        AHIIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open ahi.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    AHIIsCompiledHow := 3;
-   {$Warning No autoopening of ahi.library compiled}
-   {$Warning Make sure you open ahi.library yourself}
-{$endif dont_use_openlib}
-
+initialization
+  AHIBase := OpenLibrary(AHINAME,LIBVERSION);
+finalization
+  if Assigned(AHIBase) then
+    CloseLibrary(AHIBase);
 END. (* UNIT AHI *)
 
 

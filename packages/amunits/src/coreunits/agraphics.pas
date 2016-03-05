@@ -2234,7 +2234,7 @@ const
 
 
 var
-    GfxBase : pLibrary;
+    GfxBase : pLibrary = nil;
 
 PROCEDURE AddAnimOb(anOb : pAnimOb location 'a0'; anKey : ppAnimOb location 'a1'; rp : pRastPort location 'a2'); syscall GfxBase 156;
 PROCEDURE AddBob(bob : pBob location 'a0'; rp : pRastPort location 'a1'); syscall GfxBase 096;
@@ -2424,23 +2424,7 @@ function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inl
 
 function RasSize(w, h: Word): Integer;
 
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitGRAPHICSLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    GRAPHICSIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox;
-{$endif dont_use_openlib}
 
 PROCEDURE BNDRYOFF (w: pRastPort);
 BEGIN
@@ -2554,86 +2538,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of graphics.library}
-  {$Info don't forget to use InitGRAPHICSLibrary in the beginning of your program}
-
-var
-    graphics_exit : Pointer;
-
-procedure ClosegraphicsLibrary;
-begin
-    ExitProc := graphics_exit;
-    if GfxBase <> nil then begin
-        CloseLibrary(GfxBase);
-        GfxBase := nil;
-    end;
-end;
-
-procedure InitGRAPHICSLibrary;
-begin
-    GfxBase := nil;
-    GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
-    if GfxBase <> nil then begin
-        graphics_exit := ExitProc;
-        ExitProc := @ClosegraphicsLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open graphics.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    GRAPHICSIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of graphics.library}
-
-var
-    graphics_exit : Pointer;
-
-procedure ClosegraphicsLibrary;
-begin
-    ExitProc := graphics_exit;
-    if GfxBase <> nil then begin
-        CloseLibrary(GfxBase);
-        GfxBase := nil;
-    end;
-end;
-
-begin
-    GfxBase := nil;
-    GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
-    if GfxBase <> nil then begin
-        graphics_exit := ExitProc;
-        ExitProc := @ClosegraphicsLibrary;
-        GRAPHICSIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open graphics.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    GRAPHICSIsCompiledHow := 3;
-   {$Warning No autoopening of graphics.library compiled}
-   {$Warning Make sure you open graphics.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
+finalization
+  if Assigned(GfxBase) then
+    CloseLibrary(GfxBase);
 END. (* UNIT GRAPHICS *)
 
 

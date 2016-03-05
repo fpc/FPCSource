@@ -239,7 +239,7 @@ Type
     oen_Attrs : pTagItem;          {  R: Additional attributes }
   END;
 
-VAR AmigaGuideBase : pLibrary;
+VAR AmigaGuideBase : pLibrary = nil;
 
 const
     AMIGAGUIDENAME : Pchar = 'amigaguide.library';
@@ -263,106 +263,18 @@ FUNCTION SetAmigaGuideAttrsA(cl : POINTER location 'a0'; attrs : pTagItem locati
 FUNCTION SetAmigaGuideContextA(cl : POINTER location 'a0'; id : ULONG location 'd0'; attrs : pTagItem location 'd1') : LONGINT; syscall AmigaGuideBase 090;
 PROCEDURE UnlockAmigaGuideBase(key : LONGINT location 'd0'); syscall AmigaGuideBase 042;
 
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitAMIGAGUIDELibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    AMIGAGUIDEIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-{$ifndef dont_use_openlib}
-uses amsgbox;
-{$endif dont_use_openlib}
-
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of amigaguide.library}
-  {$Info don't forget to use InitAMIGAGUIDELibrary in the beginning of your program}
-
-var
-    amigaguide_exit : Pointer;
-
-procedure CloseamigaguideLibrary;
-begin
-    ExitProc := amigaguide_exit;
-    if AmigaGuideBase <> nil then begin
-        CloseLibrary(AmigaGuideBase);
-        AmigaGuideBase := nil;
-    end;
-end;
-
-procedure InitAMIGAGUIDELibrary;
-begin
-    AmigaGuideBase := nil;
-    AmigaGuideBase := OpenLibrary(AMIGAGUIDENAME,LIBVERSION);
-    if AmigaGuideBase <> nil then begin
-        amigaguide_exit := ExitProc;
-        ExitProc := @CloseamigaguideLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open amigaguide.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    AMIGAGUIDEIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of amigaguide.library}
-
-var
-    amigaguide_exit : Pointer;
-
-procedure CloseamigaguideLibrary;
-begin
-    ExitProc := amigaguide_exit;
-    if AmigaGuideBase <> nil then begin
-        CloseLibrary(AmigaGuideBase);
-        AmigaGuideBase := nil;
-    end;
-end;
-
-begin
-    AmigaGuideBase := nil;
-    AmigaGuideBase := OpenLibrary(AMIGAGUIDENAME,LIBVERSION);
-    if AmigaGuideBase <> nil then begin
-        amigaguide_exit := ExitProc;
-        ExitProc := @CloseamigaguideLibrary;
-        AMIGAGUIDEIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open amigaguide.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    AMIGAGUIDEIsCompiledHow := 3;
-   {$Warning No autoopening of amigaguide.library compiled}
-   {$Warning Make sure you open amigaguide.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  AmigaGuideBase := OpenLibrary(AMIGAGUIDENAME,LIBVERSION);
+finalization
+  if Assigned(AmigaGuideBase) then
+    CloseLibrary(AmigaGuideBase);
 END. (* UNIT AMIGAGUIDE *)
 
 

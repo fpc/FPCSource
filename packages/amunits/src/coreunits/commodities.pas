@@ -224,7 +224,7 @@ CONST
       IX_NORMALQUALS  = $7FFF;   {     for QualMask field: avoid RELATIVEMOUSE }
 
 
-VAR CxBase : pLibrary;
+VAR CxBase : pLibrary = nil;
 
 const
     COMMODITIESNAME : PChar = 'commodities.library';
@@ -265,7 +265,6 @@ PROCEDURE SetFilter(filter : pCxObj; text : rawbytestring);
 
 IMPLEMENTATION
 
-uses amsgbox;
 
 FUNCTION ParseIX(description : rawbytestring; ix : pInputXpression) : LONGINT;
 begin
@@ -277,47 +276,16 @@ begin
   SetFilter(filter,pchar(text));
 end;
 
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of commodities.library}
-
-var
-    commodities_exit : Pointer;
-
-procedure ClosecommoditiesLibrary;
-begin
-    ExitProc := commodities_exit;
-    if CxBase <> nil then begin
-        CloseLibrary(CxBase);
-        CxBase := nil;
-    end;
-end;
-
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-begin
-    CxBase := nil;
-    CxBase := OpenLibrary(COMMODITIESNAME,LIBVERSION);
-    if CxBase <> nil then begin
-        commodities_exit := ExitProc;
-        ExitProc := @ClosecommoditiesLibrary
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open commodities.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$else}
-   {$Warning No autoopening of commodities.library compiled}
-   {$Info Make sure you open commodities.library yourself}
-{$endif use_auto_openlib}
-
+initialization
+  CxBase := OpenLibrary(COMMODITIESNAME,LIBVERSION);
+finalization
+  if Assigned(CxBase) then
+    CloseLibrary(CxBase);
 END. (* UNIT COMMODITIES *)
 
 

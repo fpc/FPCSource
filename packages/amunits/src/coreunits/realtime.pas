@@ -232,7 +232,7 @@ const
 
 {*--- functions in V37 or higher (Release 2.04) ---*}
 
-VAR RealTimeBase : pRealTimeBase;
+VAR RealTimeBase : pRealTimeBase = nil;
 
 const
     REALTIMENAME : PChar = 'realtime.library';
@@ -248,103 +248,16 @@ FUNCTION SetConductorState(player : pPlayer location 'a0'; state : ULONG locatio
 FUNCTION SetPlayerAttrsA(player : pPlayer location 'a0'; const tagList : pTagItem location 'a1') : WordBool; syscall RealTimeBase 054;
 PROCEDURE UnlockRealTime(lock : POINTER location 'a0'); syscall RealTimeBase 036;
 
-
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitREALTIMELibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    REALTIMEIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-{$ifndef dont_use_openlib}
-uses amsgbox;
-{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of realtime.library}
-  {$Info don't forget to use InitREALTIMELibrary in the beginning of your program}
-
-var
-    realtime_exit : Pointer;
-
-procedure CloserealtimeLibrary;
-begin
-    ExitProc := realtime_exit;
-    if RealTimeBase <> nil then begin
-        CloseLibrary(pLibrary(RealTimeBase));
-        RealTimeBase := nil;
-    end;
-end;
-
-procedure InitREALTIMELibrary;
-begin
-    RealTimeBase := nil;
-    RealTimeBase := pRealTimeBase(OpenLibrary(REALTIMENAME,LIBVERSION));
-    if RealTimeBase <> nil then begin
-        realtime_exit := ExitProc;
-        ExitProc := @CloserealtimeLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open realtime.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    REALTIMEIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of realtime.library}
-
-var
-    realtime_exit : Pointer;
-
-procedure CloserealtimeLibrary;
-begin
-    ExitProc := realtime_exit;
-    if RealTimeBase <> nil then begin
-        CloseLibrary(pLibrary(RealTimeBase));
-        RealTimeBase := nil;
-    end;
-end;
-
-begin
-    RealTimeBase := nil;
-    RealTimeBase := pRealTimeBase(OpenLibrary(REALTIMENAME,LIBVERSION));
-    if RealTimeBase <> nil then begin
-        realtime_exit := ExitProc;
-        ExitProc := @CloserealtimeLibrary;
-        REALTIMEIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open realtime.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    REALTIMEIsCompiledHow := 3;
-   {$Warning No autoopening of realtime.library compiled}
-   {$Warning Make sure you open realtime.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  RealTimeBase := pRealTimeBase(OpenLibrary(REALTIMENAME,LIBVERSION));
+finalization
+  if Assigned(RealTimeBase) then
+    CloseLibrary(pLibrary(RealTimeBase));
 END. (* UNIT REALTIME *)

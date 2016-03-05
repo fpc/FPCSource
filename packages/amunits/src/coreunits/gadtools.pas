@@ -465,7 +465,7 @@ Type
 
 
 VAR
-    GadToolsBase : pLibrary;
+    GadToolsBase : pLibrary = nil;
 
 FUNCTION CreateContext(glistptr : pGadget location 'a0'): pGadget; syscall GadToolsBase 114;
 FUNCTION CreateGadgetA(kind : ULONG location 'd0'; gad : pGadget location 'a0'; const ng : pNewGadget location 'a1'; const taglist : pTagItem location 'a2') : pGadget; syscall GadToolsBase 030;
@@ -490,23 +490,7 @@ FUNCTION LayoutMenusA(firstmenu : pMenu location 'a0'; vi : POINTER location 'a1
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 function GTMENU_USERDATA(menu : pMenu): pointer;
 
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitGADTOOLSLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    GADTOOLSIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox;
-{$endif dont_use_openlib}
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 begin
@@ -520,86 +504,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of gadtools.library}
-  {$Info don't forget to use InitGADTOOLSLibrary in the beginning of your program}
-
-var
-    gadtools_exit : Pointer;
-
-procedure ClosegadtoolsLibrary;
-begin
-    ExitProc := gadtools_exit;
-    if GadToolsBase <> nil then begin
-        CloseLibrary(GadToolsBase);
-        GadToolsBase := nil;
-    end;
-end;
-
-procedure InitGADTOOLSLibrary;
-begin
-    GadToolsBase := nil;
-    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
-    if GadToolsBase <> nil then begin
-        gadtools_exit := ExitProc;
-        ExitProc := @ClosegadtoolsLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open gadtools.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    GADTOOLSIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of gadtools.library}
-
-var
-    gadtools_exit : Pointer;
-
-procedure ClosegadtoolsLibrary;
-begin
-    ExitProc := gadtools_exit;
-    if GadToolsBase <> nil then begin
-        CloseLibrary(GadToolsBase);
-        GadToolsBase := nil;
-    end;
-end;
-
-begin
-    GadToolsBase := nil;
-    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
-    if GadToolsBase <> nil then begin
-        gadtools_exit := ExitProc;
-        ExitProc := @ClosegadtoolsLibrary;
-        GADTOOLSIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open gadtools.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    GADTOOLSIsCompiledHow := 3;
-   {$Warning No autoopening of gadtools.library compiled}
-   {$Warning Make sure you open gadtools.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
+finalization
+  if Assigned(GadToolsBase) then
+    CloseLibrary(GadToolsBase);
 END. (* UNIT GADTOOLS *)
 
 

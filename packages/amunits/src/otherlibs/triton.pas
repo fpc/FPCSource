@@ -34,10 +34,6 @@
 }
 
 {$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
 
 UNIT TRITON;
 
@@ -685,65 +681,51 @@ surrounding array *}
         TRFB_TEXT               = $00000004;     {* A text container *}
 
 
-VAR TritonBase : pLibrary;
+VAR TritonBase : pLibrary = nil;
 
-FUNCTION TR_AddClass(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT;
-datasize : longword; tags : pTagItem) : BOOLEAN;
-PROCEDURE TR_AreaFill(project : pTR_Project; rp : pRastPort; left : ULONG; top :
-ULONG; right : ULONG; bottom : ULONG; typ : ULONG; dummy : POINTER);
-FUNCTION TR_AutoRequest(app : pTR_App; lockproject : pTR_Project; wintags : pTagItem)
-: ULONG;
-PROCEDURE TR_CloseProject(project : pTR_Project);
-PROCEDURE TR_CloseWindowSafely(window : pWindow);
-FUNCTION TR_CreateApp(apptags : pTagItem) : pTR_App;
-FUNCTION TR_CreateMsg(app : pTR_App) : pTR_Message;
-PROCEDURE TR_DeleteApp(app : pTR_App);
-FUNCTION TR_DoMethod(obj : pTROD_Object; messageid : ULONG; data : POINTER) : ULONG;
-FUNCTION TR_DoMethodClass(obj : pTROD_Object; messageid : ULONG; data : POINTER;
-trclass : pTR_Class) : ULONG;
-PROCEDURE TR_DrawFrame(project : pTR_Project; rp : pRastPort; left : WORD; top : WORD;
-width : WORD; height : WORD; typ : WORD; inverted : BOOLEAN);
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; taglist :
-pTagItem) : ULONG;
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; taglist :
-pTagItem) : ULONG;
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; taglist :
-pTagItem) : ULONG;
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : String; taglist :
-pTagItem) : ULONG;
-FUNCTION TR_FirstOccurance(ch : BYTE; str : pCHAR) : LONGINT;
+FUNCTION TR_AddClass(app : pTR_App location 'a1'; d0arg : longword location 'd0'; supertag : longword location 'd1'; defaultmethod : LONGINT location 'a2'; datasize : longword location 'd2'; tags : pTagItem location 'a0') : BOOLEAN; syscall TritonBase 168;
+PROCEDURE TR_AreaFill(project : pTR_Project location 'a0'; rp : pRastPort location 'a1'; left : ULONG location 'd0'; top :ULONG location 'd1'; right : ULONG location 'd2'; bottom : ULONG location 'd3'; typ : ULONG location 'd4'; dummy : POINTER location 'a2'); syscall TritonBase 228;
+FUNCTION TR_AutoRequest(app : pTR_App location 'a1'; lockproject : pTR_Project location 'a0'; wintags : pTagItem location 'a2'): ULONG; syscall TritonBase 84;
+PROCEDURE TR_CloseProject(project : pTR_Project location 'a0'); syscall TritonBase 36;
+PROCEDURE TR_CloseWindowSafely(window : pWindow location 'a0'); syscall TritonBase 126;
+FUNCTION TR_CreateApp(apptags : pTagItem location 'a1') : pTR_App; syscall TritonBase 96;
+FUNCTION TR_CreateMsg(app : pTR_App location 'a1') : pTR_Message; syscall TritonBase 234;
+PROCEDURE TR_DeleteApp(app : pTR_App location 'a1'); syscall TritonBase 102;
+FUNCTION TR_DoMethod(obj : pTROD_Object location 'a0'; messageid : ULONG location 'd0'; data : POINTER location 'a1') : ULONG; syscall TritonBase 216;
+FUNCTION TR_DoMethodClass(obj : pTROD_Object location 'a0'; messageid : ULONG location 'd0'; data : POINTER location 'a1'; trclass : pTR_Class location 'a2') : ULONG; syscall TritonBase 222;
+PROCEDURE TR_DrawFrame(project : pTR_Project location 'a0'; rp : pRastPort location 'a1'; left : WORD location 'd1'; top : WORD location 'd2'; width : WORD location 'd3'; height : WORD location 'd4'; typ : WORD location 'd0'; inverted : BOOLEAN location 'd5'); syscall TritonBase 174;
+FUNCTION TR_EasyRequest(app : pTR_App location 'a1'; bodyfmt : pCHAR location 'a2'; gadfmt : pCHAR location 'a3'; taglist : pTagItem location 'a0') : ULONG; syscall TritonBase 90;
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; taglist : pTagItem) : ULONG;
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; taglist : pTagItem) : ULONG;
+FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : String; gadfmt : String; taglist : pTagItem) : ULONG;
+FUNCTION TR_FirstOccurance(ch : BYTE location 'd0'; str : pCHAR location 'a0') : LONGINT; syscall TritonBase 42;
 FUNCTION TR_FirstOccurance(ch : BYTE; str : String) : LONGINT;
-FUNCTION TR_FrameBorderHeight(project : pTR_Project; typ : WORD) : ULONG;
-FUNCTION TR_FrameBorderWidth(project : pTR_Project; typ : WORD) : ULONG;
-FUNCTION TR_GetAttribute(project : pTR_Project; ID : ULONG; attribute : ULONG) :
-ULONG;
-FUNCTION TR_GetErrorString(num : WORD) : pCHAR;
-FUNCTION TR_GetLastError(app : pTR_App) : WORD;
-FUNCTION TR_GetMsg(app : pTR_App) : pTR_Message;
-FUNCTION TR_GetPen(project : pTR_Project; pentype : ULONG; pendata : ULONG) : ULONG;
-PROCEDURE TR_LockProject(project : pTR_Project);
-FUNCTION TR_LockScreen(project : pTR_Project) : pScreen;
-FUNCTION TR_NumOccurances(ch : BYTE; str : pCHAR) : LONGINT;
+FUNCTION TR_FrameBorderHeight(project : pTR_Project location 'a0'; typ : WORD location 'd0') : ULONG; syscall TritonBase 186;
+FUNCTION TR_FrameBorderWidth(project : pTR_Project location 'a0'; typ : WORD location 'd0') : ULONG; syscall TritonBase 180;
+FUNCTION TR_GetAttribute(project : pTR_Project location 'a0'; ID : ULONG location 'd0'; attribute : ULONG location 'd1') : ULONG; syscall TritonBase 66;
+FUNCTION TR_GetErrorString(num : WORD location 'd0') : pCHAR; syscall TritonBase 54;
+FUNCTION TR_GetLastError(app : pTR_App location 'a1') : WORD; syscall TritonBase 132;
+FUNCTION TR_GetMsg(app : pTR_App location 'a1') : pTR_Message; syscall TritonBase 108;
+FUNCTION TR_GetPen(project : pTR_Project location 'a0'; pentype : ULONG location 'd0'; pendata : ULONG location 'd1') : ULONG; syscall TritonBase 210;
+PROCEDURE TR_LockProject(project : pTR_Project location 'a0'); syscall TritonBase 72;
+FUNCTION TR_LockScreen(project : pTR_Project location 'a0') : pScreen; syscall TritonBase 138;
+FUNCTION TR_NumOccurances(ch : BYTE location 'd0'; str : pCHAR location 'a0') : LONGINT; syscall TritonBase 48;
 FUNCTION TR_NumOccurances(ch : BYTE; str : String) : LONGINT;
-FUNCTION TR_ObtainWindow(project : pTR_Project) : pWindow;
-FUNCTION TR_OpenProject(app : pTR_App; taglist : pTagItem) : pTR_Project;
-PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : pCHAR; x : ULONG;
-y : ULONG; width : ULONG; flags : ULONG);
-PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : String; x : ULONG;
-y : ULONG; width : ULONG; flags : ULONG);
-PROCEDURE TR_ReleaseWindow(window : pWindow);
-PROCEDURE TR_ReplyMsg(message : pTR_Message);
-FUNCTION TR_SendMessage(project : pTR_Project; objectid : ULONG; messageid : ULONG;
-messagedata : POINTER) : ULONG;
-PROCEDURE TR_SetAttribute(project : pTR_Project; ID : ULONG; attribute : ULONG; value
-: ULONG);
-FUNCTION TR_TextHeight(project : pTR_Project; txt : pCHAR; flags : ULONG) : ULONG;
+FUNCTION TR_ObtainWindow(project : pTR_Project location 'a0') : pWindow; syscall TritonBase 150;
+FUNCTION TR_OpenProject(app : pTR_App location 'a1'; taglist : pTagItem location 'a0') : pTR_Project; syscall TritonBase 30;
+PROCEDURE TR_PrintText(project : pTR_Project location 'a0'; rp : pRastPort location 'a1'; txt : pCHAR location 'a2'; x : ULONG location 'd1'; y : ULONG location 'd2'; width : ULONG location 'd3'; flags : ULONG location 'd0'); syscall TritonBase 204;
+PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : String; x : ULONG; y : ULONG; width : ULONG; flags : ULONG);
+PROCEDURE TR_ReleaseWindow(window : pWindow location 'a0'); syscall TritonBase 156;
+PROCEDURE TR_ReplyMsg(message : pTR_Message location 'a1'); syscall TritonBase 114;
+FUNCTION TR_SendMessage(project : pTR_Project location 'a0'; objectid : ULONG location 'd0'; messageid : ULONG location 'd1'; messagedata : POINTER location 'a1') : ULONG; syscall TritonBase 162;
+PROCEDURE TR_SetAttribute(project : pTR_Project location 'a0'; ID : ULONG location 'd0'; attribute : ULONG location 'd1'; value: ULONG location 'd2'); syscall TritonBase 60;
+FUNCTION TR_TextHeight(project : pTR_Project location 'a0'; txt : pCHAR location 'a2'; flags : ULONG location 'd0') : ULONG; syscall TritonBase 198;
 FUNCTION TR_TextHeight(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
-FUNCTION TR_TextWidth(project : pTR_Project; txt : pCHAR; flags : ULONG) : ULONG;
+FUNCTION TR_TextWidth(project : pTR_Project location 'a0'; txt : pCHAR location 'a2'; flags : ULONG location 'd0') : ULONG; syscall TritonBase 192;
 FUNCTION TR_TextWidth(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
-PROCEDURE TR_UnlockProject(project : pTR_Project);
-PROCEDURE TR_UnlockScreen(screen : pScreen);
-FUNCTION TR_Wait(app : pTR_App; otherbits : ULONG) : ULONG;
+PROCEDURE TR_UnlockProject(project : pTR_Project location 'a0'); syscall TritonBase 78;
+PROCEDURE TR_UnlockScreen(screen : pScreen location 'a0'); syscall TritonBase 144;
+FUNCTION TR_Wait(app : pTR_App location 'a1'; otherbits : ULONG location 'd0') : ULONG; syscall TritonBase 120;
 
 {
    Functions with array of const
@@ -778,23 +760,10 @@ procedure TR_SetWindowTitle(p : pTR_Project; thetitle : string);
 procedure TR_SetWindowTitle(p : pTR_Project; thetitle : PChar);
 procedure TR_UpdateListView(p : pTR_Project; gadid : Longint; thelist: pList);
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitTRITONLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    TRITONIsCompiledHow : longint;
-
 IMPLEMENTATION
 
 uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray,pastoc;
+  tagsarray,pastoc;
 
 procedure TR_Disable(p : pTR_Project; id : Longint);
 begin
@@ -881,182 +850,6 @@ begin
     TR_SetAttribute(p,gadid,0,Longint(thelist));
 end;
 
-FUNCTION TR_AddClass(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT; datasize : longword; tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L app,A1
-        MOVE.L  d0arg,D0
-        MOVE.L  supertag,D1
-        MOVEA.L defaultmethod,A2
-        MOVE.L  datasize,D2
-        MOVEA.L tags,A0
-        MOVEA.L TritonBase,A6
-        JSR     -168(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-
-PROCEDURE TR_AreaFill(project : pTR_Project; rp : pRastPort; left : ULONG; top :
-ULONG; right : ULONG; bottom : ULONG; typ : ULONG; dummy : POINTER);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L rp,A1
-    MOVE.L  left,D0
-    MOVE.L  top,D1
-    MOVE.L  right,D2
-    MOVE.L  bottom,D3
-    MOVE.L  typ,D4
-    MOVEA.L dummy,A2
-    MOVEA.L TritonBase,A6
-    JSR -228(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_AutoRequest(app : pTR_App; lockproject : pTR_Project; wintags : pTagItem)
-: ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L lockproject,A0
-    MOVEA.L wintags,A2
-    MOVEA.L TritonBase,A6
-    JSR -084(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE TR_CloseProject(project : pTR_Project);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L TritonBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE TR_CloseWindowSafely(window : pWindow);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L window,A0
-    MOVEA.L TritonBase,A6
-    JSR -126(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_CreateApp(apptags : pTagItem) : pTR_App;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L apptags,A1
-    MOVEA.L TritonBase,A6
-    JSR -096(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_CreateMsg(app : pTR_App) : pTR_Message;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L TritonBase,A6
-    JSR -234(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE TR_DeleteApp(app : pTR_App);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L TritonBase,A6
-    JSR -102(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_DoMethod(obj : pTROD_Object; messageid : ULONG; data : POINTER) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L obj,A0
-    MOVE.L  messageid,D0
-    MOVEA.L data,A1
-    MOVEA.L TritonBase,A6
-    JSR -216(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_DoMethodClass(obj : pTROD_Object; messageid : ULONG; data : POINTER;
-trclass : pTR_Class) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L obj,A0
-    MOVE.L  messageid,D0
-    MOVEA.L data,A1
-    MOVEA.L trclass,A2
-    MOVEA.L TritonBase,A6
-    JSR -222(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE TR_DrawFrame(project : pTR_Project; rp : pRastPort; left : WORD; top : WORD;
-width : WORD; height : WORD; typ : WORD; inverted : BOOLEAN);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L rp,A1
-    MOVE.L  left,D1
-    MOVE.L  top,D2
-    MOVE.L  width,D3
-    MOVE.L  height,D4
-    MOVE.L  typ,D0
-    MOVE.L  inverted,D5
-    MOVEA.L TritonBase,A6
-    JSR -174(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; taglist :
-pTagItem) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L bodyfmt,A2
-    MOVEA.L gadfmt,A3
-    MOVEA.L taglist,A0
-    MOVEA.L TritonBase,A6
-    JSR -090(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
 
 FUNCTION TR_EasyRequest(app : pTR_App; bodyfmt : PChar; gadfmt : String; taglist :
 pTagItem) : ULONG;
@@ -1076,197 +869,14 @@ begin
     TR_EasyRequest := TR_EasyRequest(app,pas2c(bodyfmt),pas2c(gadfmt),taglist);
 end;
 
-FUNCTION TR_FirstOccurance(ch : BYTE; str : pCHAR) : LONGINT;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  ch,D0
-    MOVEA.L str,A0
-    MOVEA.L TritonBase,A6
-    JSR -042(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
 FUNCTION TR_FirstOccurance(ch : BYTE; str : String) : LONGINT;
 BEGIN
     TR_FirstOccurance := TR_FirstOccurance(ch, pas2c(str));
 END;
 
-FUNCTION TR_FrameBorderHeight(project : pTR_Project; typ : WORD) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVE.L  typ,D0
-    MOVEA.L TritonBase,A6
-    JSR -186(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_FrameBorderWidth(project : pTR_Project; typ : WORD) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVE.L  typ,D0
-    MOVEA.L TritonBase,A6
-    JSR -180(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_GetAttribute(project : pTR_Project; ID : ULONG; attribute : ULONG) :
-ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVE.L  ID,D0
-    MOVE.L  attribute,D1
-    MOVEA.L TritonBase,A6
-    JSR -066(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_GetErrorString(num : WORD) : pCHAR;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  num,D0
-    MOVEA.L TritonBase,A6
-    JSR -054(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_GetLastError(app : pTR_App) : WORD;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L TritonBase,A6
-    JSR -132(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_GetMsg(app : pTR_App) : pTR_Message;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L TritonBase,A6
-    JSR -108(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_GetPen(project : pTR_Project; pentype : ULONG; pendata : ULONG) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVE.L  pentype,D0
-    MOVE.L  pendata,D1
-    MOVEA.L TritonBase,A6
-    JSR -210(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE TR_LockProject(project : pTR_Project);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L TritonBase,A6
-    JSR -072(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_LockScreen(project : pTR_Project) : pScreen;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L TritonBase,A6
-    JSR -138(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_NumOccurances(ch : BYTE; str : pCHAR) : LONGINT;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  ch,D0
-    MOVEA.L str,A0
-    MOVEA.L TritonBase,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
 FUNCTION TR_NumOccurances(ch : BYTE; str : String) : LONGINT;
 BEGIN
     TR_NumOccurances := TR_NumOccurances(ch, pas2c(str));
-END;
-
-FUNCTION TR_ObtainWindow(project : pTR_Project) : pWindow;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L TritonBase,A6
-    JSR -150(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION TR_OpenProject(app : pTR_App; taglist : pTagItem) : pTR_Project;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVEA.L taglist,A0
-    MOVEA.L TritonBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : pCHAR; x : ULONG;
-y : ULONG; width : ULONG; flags : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L rp,A1
-    MOVEA.L txt,A2
-    MOVE.L  x,D1
-    MOVE.L  y,D2
-    MOVE.L  width,D3
-    MOVE.L  flags,D0
-    MOVEA.L TritonBase,A6
-    JSR -204(A6)
-    MOVEA.L (A7)+,A6
-  END;
 END;
 
 PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : String; x : ULONG;
@@ -1275,130 +885,14 @@ BEGIN
     TR_PrintText(project,rp,pas2c(txt),x,y,width,flags);
 END;
 
-PROCEDURE TR_ReleaseWindow(window : pWindow);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L window,A0
-    MOVEA.L TritonBase,A6
-    JSR -156(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE TR_ReplyMsg(message : pTR_Message);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L message,A1
-    MOVEA.L TritonBase,A6
-    JSR -114(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_SendMessage(project : pTR_Project; objectid : ULONG; messageid : ULONG;
-messagedata : POINTER) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVE.L  objectid,D0
-    MOVE.L  messageid,D1
-    MOVEA.L messagedata,A1
-    MOVEA.L TritonBase,A6
-    JSR -162(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE TR_SetAttribute(project : pTR_Project; ID : ULONG; attribute : ULONG; value
-: ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVE.L  ID,D0
-    MOVE.L  attribute,D1
-    MOVE.L  value,D2
-    MOVEA.L TritonBase,A6
-    JSR -060(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_TextHeight(project : pTR_Project; txt : pCHAR; flags : ULONG) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L txt,A2
-    MOVE.L  flags,D0
-    MOVEA.L TritonBase,A6
-    JSR -198(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
 FUNCTION TR_TextHeight(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
 BEGIN
     TR_TextHeight :=  TR_TextHeight(project,pas2c(txt),flags);
 END;
 
-FUNCTION TR_TextWidth(project : pTR_Project; txt : pCHAR; flags : ULONG) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L txt,A2
-    MOVE.L  flags,D0
-    MOVEA.L TritonBase,A6
-    JSR -192(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
 FUNCTION TR_TextWidth(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
 BEGIN
     TR_TextWidth := TR_TextWidth(project,pas2c(txt),flags);
-END;
-
-PROCEDURE TR_UnlockProject(project : pTR_Project);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L project,A0
-    MOVEA.L TritonBase,A6
-    JSR -078(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE TR_UnlockScreen(screen : pScreen);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L screen,A0
-    MOVEA.L TritonBase,A6
-    JSR -144(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION TR_Wait(app : pTR_App; otherbits : ULONG) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L app,A1
-    MOVE.L  otherbits,D0
-    MOVEA.L TritonBase,A6
-    JSR -120(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
 END;
 
 {
@@ -1449,86 +943,14 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of triton.library}
-  {$Info don't forget to use InitTRITONLibrary in the beginning of your program}
-
-var
-    triton_exit : Pointer;
-
-procedure ClosetritonLibrary;
-begin
-    ExitProc := triton_exit;
-    if TritonBase <> nil then begin
-        CloseLibrary(TritonBase);
-        TritonBase := nil;
-    end;
-end;
-
-procedure InitTRITONLibrary;
-begin
-    TritonBase := nil;
-    TritonBase := OpenLibrary(TRITONNAME,LIBVERSION);
-    if TritonBase <> nil then begin
-        triton_exit := ExitProc;
-        ExitProc := @ClosetritonLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open triton.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    TRITONIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of triton.library}
-
-var
-    triton_exit : Pointer;
-
-procedure ClosetritonLibrary;
-begin
-    ExitProc := triton_exit;
-    if TritonBase <> nil then begin
-        CloseLibrary(TritonBase);
-        TritonBase := nil;
-    end;
-end;
-
-begin
-    TritonBase := nil;
-    TritonBase := OpenLibrary(TRITONNAME,LIBVERSION);
-    if TritonBase <> nil then begin
-        triton_exit := ExitProc;
-        ExitProc := @ClosetritonLibrary;
-        TRITONIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open triton.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    TRITONIsCompiledHow := 3;
-   {$Warning No autoopening of triton.library compiled}
-   {$Warning Make sure you open triton.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  TritonBase := OpenLibrary(TRITONNAME,LIBVERSION);
+finalization
+  if Assigned(TritonBase) then
+    CloseLibrary(TritonBase);
 END. (* UNIT TRITON *)
 
 

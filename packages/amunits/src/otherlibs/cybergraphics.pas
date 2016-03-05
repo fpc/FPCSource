@@ -35,7 +35,7 @@ UNIT CYBERGRAPHICS;
 INTERFACE
 USES Exec,agraphics,utility;
 
-VAR CyberGfxBase : pLibrary;
+VAR CyberGfxBase : pLibrary = nil;
 
 const
     CYBERGRAPHICSNAME : PChar = 'cybergraphics.library';
@@ -255,23 +255,10 @@ PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
 
 function SHIFT_PIXFMT(fmt : longint) : longint;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitCYBERGRAPHICSLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    CYBERGRAPHICSIsCompiledHow : longint;
-
 IMPLEMENTATION
 
 uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray;
+  tagsarray;
 
 {
  Functions and procedures with array of const go here
@@ -316,89 +303,16 @@ begin
     SHIFT_PIXFMT:=(ULONG(fmt)) shl 24;
 end;
 
-
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of cybergraphics.library}
-  {$Info don't forget to use InitCYBERGRAPHICSLibrary in the beginning of your program}
-
-var
-    cybergraphics_exit : Pointer;
-
-procedure ClosecybergraphicsLibrary;
-begin
-    ExitProc := cybergraphics_exit;
-    if CyberGfxBase <> nil then begin
-        CloseLibrary(CyberGfxBase);
-        CyberGfxBase := nil;
-    end;
-end;
-
-procedure InitCYBERGRAPHICSLibrary;
-begin
-    CyberGfxBase := nil;
-    CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
-    if CyberGfxBase <> nil then begin
-        cybergraphics_exit := ExitProc;
-        ExitProc := @ClosecybergraphicsLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open cybergraphics.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    CYBERGRAPHICSIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of cybergraphics.library}
-
-var
-    cybergraphics_exit : Pointer;
-
-procedure ClosecybergraphicsLibrary;
-begin
-    ExitProc := cybergraphics_exit;
-    if CyberGfxBase <> nil then begin
-        CloseLibrary(CyberGfxBase);
-        CyberGfxBase := nil;
-    end;
-end;
-
-begin
-    CyberGfxBase := nil;
-    CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
-    if CyberGfxBase <> nil then begin
-        cybergraphics_exit := ExitProc;
-        ExitProc := @ClosecybergraphicsLibrary;
-        CYBERGRAPHICSIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open cybergraphics.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    CYBERGRAPHICSIsCompiledHow := 3;
-   {$Warning No autoopening of cybergraphics.library compiled}
-   {$Warning Make sure you open cybergraphics.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
+finalization
+  if Assigned(CyberGfxBase) then
+    CloseLibrary(CyberGfxBase);
 END. (* UNIT CYBERGRAPHICS *)
 
 

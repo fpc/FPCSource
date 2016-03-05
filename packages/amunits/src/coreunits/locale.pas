@@ -262,7 +262,7 @@ Type
 
 { --- functions in V38 or higher (Release 2.1) --- }
 
-VAR LocaleBase : pLocaleBase;
+VAR LocaleBase : pLocaleBase = nil;
 
 const
     LOCALENAME : PChar = 'locale.library';
@@ -292,108 +292,18 @@ FUNCTION ParseDate(locale : pLocale location 'a0'; date : pDateStamp location 'a
 FUNCTION StrConvert(locale : pLocale location 'a0'; string1 : pCHAR location 'a1'; buffer : POINTER location 'a2'; bufferSize : ULONG location 'd0'; typ : ULONG location 'd1') : ULONG; syscall LocaleBase 174;
 FUNCTION StrnCmp(locale : pLocale location 'a0'; string1 : pCHAR location 'a1'; string2 : pCHAR location 'a2'; length : LONGINT location 'd0'; typ : ULONG location 'd1') : LONGINT; syscall LocaleBase 180;
 
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitLOCALELibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    LOCALEIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox;
-{$endif dont_use_openlib}
-
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of locale.library}
-  {$Info don't forget to use InitLOCALELibrary in the beginning of your program}
-
-var
-    locale_exit : Pointer;
-
-procedure CloselocaleLibrary;
-begin
-    ExitProc := locale_exit;
-    if LocaleBase <> nil then begin
-        CloseLibrary(pLibrary(LocaleBase));
-        LocaleBase := nil;
-    end;
-end;
-
-procedure InitLOCALELibrary;
-begin
-    LocaleBase := nil;
-    LocaleBase := pLocaleBase(OpenLibrary(LOCALENAME,LIBVERSION));
-    if LocaleBase <> nil then begin
-        locale_exit := ExitProc;
-        ExitProc := @CloselocaleLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open locale.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    LOCALEIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of locale.library}
-
-var
-    locale_exit : Pointer;
-
-procedure CloselocaleLibrary;
-begin
-    ExitProc := locale_exit;
-    if LocaleBase <> nil then begin
-        CloseLibrary(pLibrary(LocaleBase));
-        LocaleBase := nil;
-    end;
-end;
-
-begin
-    LocaleBase := nil;
-    LocaleBase := pLocaleBase(OpenLibrary(LOCALENAME,LIBVERSION));
-    if LocaleBase <> nil then begin
-        locale_exit := ExitProc;
-        ExitProc := @CloselocaleLibrary;
-        LOCALEIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open locale.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    LOCALEIsCompiledHow := 3;
-   {$Warning No autoopening of locale.library compiled}
-   {$Warning Make sure you open locale.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  LocaleBase := pLocaleBase(OpenLibrary(LOCALENAME,LIBVERSION));
+finalization
+  if Assigned(LocaleBase) then
+    CloseLibrary(pLibrary(LocaleBase));
 END. (* UNIT LOCALE *)
 
 

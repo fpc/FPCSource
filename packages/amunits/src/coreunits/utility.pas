@@ -336,6 +336,9 @@ Type
     ub_Reserved  : Byte;
  END;
 
+var
+  UtilityBase: pUtilityBase;
+
 function AddNamedObject(nameSpace : pNamedObject location 'a0';obj : pNamedObject location 'a1') : LongBool; syscall _UtilityBase 222;
 function AllocateTagItems(num : ULONG location 'd0') : pTagItem; syscall _UtilityBase 066;
 function AllocNamedObjectA(const name : STRPTR location 'a0';const TagList : pTagItem location 'a1') : pNamedObject; syscall _UtilityBase 228;
@@ -429,5 +432,6 @@ begin
        Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
 end;
 
-
+initialization
+  UtilityBase := _UtilityBase;
 end.
