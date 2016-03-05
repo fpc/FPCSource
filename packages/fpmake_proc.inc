@@ -725,3 +725,8 @@ end;
 
 {$include googleapi/fpmake.pp}
 
+procedure add_fcl_pdf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-pdf/fpmake.pp}
+end;

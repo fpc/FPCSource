@@ -126,3 +126,4 @@
   add_libenet(ADirectory+IncludeTrailingPathDelimiter('libenet'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
   add_Google(ADirectory+IncludeTrailingPathDelimiter('googleapi'));
+  add_fcl_pdf(ADirectory+IncludeTrailingPathDelimiter('fcl-pdf'));
