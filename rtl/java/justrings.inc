@@ -794,18 +794,15 @@ function UTF8Encode(const s : UnicodeString) : RawByteString;
 function UTF8Decode(const s : RawByteString): UnicodeString;
   var
     i : SizeInt;
-    hs : UnicodeString;
     chars: array of widechar;
   begin
     result:='';
     if s='' then
       exit;
-    SetLength(chars,length(s));
-    i:=Utf8ToUnicode(pwidechar(chars),length(hs)+1,pchar(s),length(s));
+    SetLength(chars,length(s)+1);
+    i:=Utf8ToUnicode(pwidechar(chars),length(s)+1,pchar(s),length(s));
     if i>0 then
-      begin
-        result:=JLString.Create(chars,0,i);
-      end;
+      result:=JLString.Create(chars,0,i-1);
   end;
 
 
