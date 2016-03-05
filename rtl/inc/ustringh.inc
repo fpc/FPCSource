@@ -136,12 +136,15 @@ function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar
 function UTF8Encode(const s : RawByteString) : RawByteString; inline;
 function UTF8Encode(const s : UnicodeString) : RawByteString;
 function UTF8Decode(const s : RawByteString): UnicodeString;
-function UTF8ToString(const s : UTF8String): UnicodeString;inline;
 function UTF8ToString(const s : RawByteString): UnicodeString;inline;
 function UTF8ToString(const S: ShortString): unicodestring;
 function UTF8ToString(const S: PAnsiChar): unicodestring;
+{ byte and ansichar are the same on the JVM, and "array of" and "pointer to"
+  are as well }
+{$ifndef CPUJVM}
 function UTF8ToString(const S: array of AnsiChar): unicodestring;
-function UTF8ToString(const S: array of Byte): unicodestring; 
+function UTF8ToString(const S: array of Byte): unicodestring;
+{$endif not CPUJVM}
 function AnsiToUtf8(const s : RawByteString): RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
 function Utf8ToAnsi(const s : RawByteString) : RawByteString;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;

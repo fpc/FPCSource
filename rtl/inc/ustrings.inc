@@ -2362,63 +2362,57 @@ Begin
   SetCodePage(Result,DefaultFileSystemCodePage,True);
 End;
 
-function UTF8ToString(const S: UTF8String): UnicodeString; inline;
+{ Delphi compatibility: always interpret the data in the string as UTF-8,
+  ignore any codepage }
+function UTF8ToString(const S: RawByteString): UnicodeString; inline;
 begin
   Result := UTF8Decode(S);
 end;
 
-function UTF8ToString(const S: RawByteString): UnicodeString; inline;
-
-Var
-  UTF8 : UTF8String;
-
-begin
-  UTF8:=S;
-  Result := UTF8Decode(UTF8);
-end;
-
 function UTF8ToString(const S: ShortString): UnicodeString; 
-
 Var
-  UTF8 : UTF8String;
-
+  rs: RawByteString;
 begin
-  UTF8:=S;
-  Result := UTF8Decode(UTF8);
+  rs:=S;
+  Result := UTF8Decode(rs);
 end;
 
 function UTF8ToString(const S: PAnsiChar): UnicodeString;
 var
-  UTF: UTF8String;
+  rs: RawByteString;
   Count: Integer;
 begin
-  Count := StrLen(S);
-  SetLength(UTF, Count);
+  Count := length(S);
+  SetLength(rs, Count);
   if Count > 0 then
-    Move(S^, UTF[1], Count);
-  Result := UTF8ToString(UTF);
+    fpc_pchar_ansistr_intern_charmove(S,0,rs,0,Count);
+  Result := UTF8ToString(rs);
 end;
 
+{ byte and ansichar are the same on the JVM, and "array of" and "pointer to"
+  are as well }
+{$ifndef CPUJVM}
 function UTF8ToString(const S: array of AnsiChar): UnicodeString;
 var
-  UTF: UTF8String;
+  rs: RawByteString;
   Count: Integer;
 begin
   Count := Length(S);
-  SetLength(UTF, Count);
+  SetLength(rs, Count);
   if Count > 0 then
-    Move(S[Low(S)], UTF[1], Count);
-  Result := UTF8ToString(UTF);
+    fpc_pchar_ansistr_intern_charmove(@S,Low(S),rs,0,Count);
+  Result := UTF8ToString(rs);
 end;
 
 function UTF8ToString(const S: array of Byte): UnicodeString;
 var
-  UTF: UTF8String;
+  rs: RawByteString;
   Count: Integer;
 begin
   Count := Length(S);
-  SetLength(UTF, Count);
+  SetLength(rs, Count);
   if Count > 0 then
-    Move(S[Low(S)], UTF[1], Count);
-  Result := UTF8ToString(UTF);
+    fpc_pchar_ansistr_intern_charmove(pchar(@S),Low(S),rs,0,Count);
+  Result := UTF8ToString(rs);
 end;
+{$endif not CPUJVM}
