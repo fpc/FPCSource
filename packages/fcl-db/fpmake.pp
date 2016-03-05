@@ -131,6 +131,8 @@ begin
     T:=P.Targets.AddUnit('dbconst.pas');
     T.ResourceStrings:=true;
 
+    T:=P.Targets.AddUnit('sqltypes.pp');
+
     T:=P.Targets.AddUnit('sqlscript.pp');
     T.ResourceStrings:=true;
 
@@ -500,6 +502,7 @@ begin
         begin
           AddUnit('db');
           AddUnit('sqldb');
+          AddUnit('sqltypes');
           AddUnit('fpdatadict');
         end;
     T:=P.Targets.AddUnit('fpddsqlite3.pp', DatadictOSes);
@@ -743,6 +746,7 @@ begin
           AddUnit('bufdataset');
           AddUnit('dbconst');
           AddUnit('sqlscript');
+          AddUnit('sqltypes');
         end;
     T:=P.Targets.AddUnit('sqldblib.pp');
       with T.Dependencies do

@@ -2108,6 +2108,7 @@ packages/fcl-db/src/base/fields.inc svneol=native#text/plain
 packages/fcl-db/src/base/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/base/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/base/sqlscript.pp svneol=native#text/plain
+packages/fcl-db/src/base/sqltypes.pp svneol=native#text/plain
 packages/fcl-db/src/base/xmldatapacketreader.pp svneol=native#text/plain
 packages/fcl-db/src/codegen/Makefile svneol=native#text/plain
 packages/fcl-db/src/codegen/Makefile.fpc svneol=native#text/plain

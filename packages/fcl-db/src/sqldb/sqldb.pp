@@ -20,23 +20,66 @@ unit sqldb;
 
 interface
 
-uses SysUtils, Classes, DB, bufdataset, sqlscript;
+uses SysUtils, Classes, DB, bufdataset, sqlscript, sqltypes;
 
 type
-  TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata, stSequences);
+  TSchemaType = sqltypes.TSchemaType;
+  TStatementType = sqltypes.TStatementType; 
+  TDBEventType = sqltypes.TDBEventType; 
+  TDBEventTypes = sqltypes.TDBEventTypes;
+  TQuoteChars = sqltypes.TQuoteChars;
 
 const
+  StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
+                  'insert', 'update', 'delete',
+                  'create', 'get', 'put', 'execute',
+                  'start','commit','rollback', '?'
+                 );
   TSchemaObjectNames: array[TSchemaType] of String = ('???', 'table_name',
       '???', 'procedure_name', 'column_name', 'param_name',
       'index_name', 'package_name', 'schema_name','sequence');
+  SingleQuotes : TQuoteChars = ('''','''');
+  DoubleQuotes : TQuoteChars = ('"','"');
+  LogAllEvents      = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
+  LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
 
-type
+  // Backwards compatibility alias constants.
+  
+  stNoSchema         = sqltypes.stNoSchema;
+  stTables           = sqltypes.stTables;
+  stSysTables        = sqltypes.stSysTables;
+  stProcedures       = sqltypes.stProcedures;
+  stColumns          = sqltypes.stColumns;
+  stProcedureParams  = sqltypes.stProcedureParams;
+  stIndexes          = sqltypes.stIndexes;
+  stPackages         = sqltypes.stPackages;
+  stSchemata         = sqltypes.stPackages;
+  stSequences        = sqltypes.stSequences;
 
-  TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
-    stDDL, stGetSegment, stPutSegment, stExecProcedure,
-    stStartTrans, stCommit, stRollback, stSelectForUpd);
+  stUnknown       = sqltypes.stUnknown; 
+  stSelect        = sqltypes.stSelect; 
+  stInsert        = sqltypes.stInsert; 
+  stUpdate        = sqltypes.stUpdate; 
+  stDelete        = sqltypes.stDelete;
+  stDDL           = sqltypes.stDDL; 
+  stGetSegment    = sqltypes.stGetSegment; 
+  stPutSegment    = sqltypes.stPutSegment; 
+  stExecProcedure = sqltypes.stExecProcedure;
+  stStartTrans    = sqltypes.stStartTrans; 
+  stCommit        = sqltypes.stCommit; 
+  stRollback      = sqltypes.stRollback;  
+  stSelectForUpd  = sqltypes.stSelectForUpd;
 
+  detCustom      = sqltypes.detCustom; 
+  detPrepare     = sqltypes.detPrepare; 
+  detExecute     = sqltypes.detExecute; 
+  detFetch       = sqltypes.detFetch; 
+  detCommit      = sqltypes.detCommit; 
+  detRollBack    = sqltypes.detRollBack; 
+  detParamValue  = sqltypes.detParamValue; 
+  detActualSQL   = sqltypes.detActualSQL;
 
+Type
   TRowsCount = LargeInt;
 
   TSQLStatementInfo = Record
@@ -47,18 +90,12 @@ type
     WhereStopPos : integer;
   end;
 
-
   TSQLConnection = class;
   TSQLTransaction = class;
   TCustomSQLQuery = class;
   TCustomSQLStatement = Class;
   TSQLQuery = class;
   TSQLScript = class;
-
-
-  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL);
-  TDBEventTypes = set of TDBEventType;
-  TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
   TSQLHandle = Class(TObject)
   end;
@@ -118,18 +155,6 @@ type
     Class Function ParamClass : TParamClass; override;
   end;
 
-  TQuoteChars = array[0..1] of char;
-
-const
-  SingleQuotes : TQuoteChars = ('''','''');
-  DoubleQuotes : TQuoteChars = ('"','"');
-  LogAllEvents      = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
-  LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
-  StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
-                  'insert', 'update', 'delete',
-                  'create', 'get', 'put', 'execute',
-                  'start','commit','rollback', '?'
-                 );
 
 type
 
@@ -142,36 +167,11 @@ type
     procedure Update; override;
   end;
 
-
-  TSqlObjectIdentifierList = class;
-
-  { TSqlObjectIdenfier }
-
-  TSqlObjectIdenfier = class(TCollectionItem)
-  private
-    FObjectName: String;
-    FSchemaName: String;
-  public
-    constructor Create(ACollection: TSqlObjectIdentifierList; Const AObjectName: String; Const ASchemaName: String = '');
-    property SchemaName: String read FSchemaName write FSchemaName;
-    property ObjectName: String read FObjectName write FObjectName;
-  end;
-
-  { TSqlObjectIdentifierList }
-
-  TSqlObjectIdentifierList = class(TCollection)
-  private
-    function GetIdentifier(Index: integer): TSqlObjectIdenfier;
-    procedure SetIdentifier(Index: integer; AValue: TSqlObjectIdenfier);
-  public
-    function AddIdentifier: TSqlObjectIdenfier; overload;
-    function AddIdentifier(Const AObjectName: String; Const ASchemaName: String = ''): TSqlObjectIdenfier; overload;
-    property Identifiers[Index: integer]: TSqlObjectIdenfier read GetIdentifier write SetIdentifier; default;
-  end;
-
 type
 
   { TSQLConnection }
+  
+  TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
   TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSupportReturning);
   TConnOptions= set of TConnOption;
@@ -3631,40 +3631,6 @@ begin
 end;
 
 
-{ TSqlObjectIdenfier }
-
-constructor TSqlObjectIdenfier.Create(ACollection: TSqlObjectIdentifierList;
-  const AObjectName: String; Const ASchemaName: String = '');
-begin
-  inherited Create(ACollection);
-  FSchemaName:=ASchemaName;
-  FObjectName:=AObjectName;
-end;
-
-{ TSqlObjectIdentifierList }
-
-function TSqlObjectIdentifierList.GetIdentifier(Index: integer): TSqlObjectIdenfier;
-begin
-  Result := Items[Index] as TSqlObjectIdenfier;
-end;
-
-procedure TSqlObjectIdentifierList.SetIdentifier(Index: integer; AValue: TSqlObjectIdenfier);
-begin
-  Items[Index] := AValue;
-end;
-
-function TSqlObjectIdentifierList.AddIdentifier: TSqlObjectIdenfier;
-begin
-  Result:=Add as TSqlObjectIdenfier;
-end;
-
-function TSqlObjectIdentifierList.AddIdentifier(Const AObjectName: String;
-  Const ASchemaName: String = ''): TSqlObjectIdenfier;
-begin
-  Result:=AddIdentifier();
-  Result.SchemaName:=ASchemaName;
-  Result.ObjectName:=AObjectName;
-end;
 
 
 Initialization
