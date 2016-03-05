@@ -382,7 +382,7 @@ begin
       fPlain:         Write(GetSuiteAsPlain(GetTestRegistry));
       fPlainNoTiming: Write(GetSuiteAsPlain(GetTestRegistry));
     else
-      Write(GetSuiteAsLatex(GetTestRegistry));;
+      Write(GetSuiteAsXml(GetTestRegistry));;
     end;
 
   //run the tests
