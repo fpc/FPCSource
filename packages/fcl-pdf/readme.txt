@@ -17,6 +17,7 @@ The PDF generator has the following features:
 - Support for multiple units.
 - Rotation matrix system.
 - PDF creator information.
+- Output validates by several PDF validators.
 
 Todo:
 - Implement TFPCustomCanvas descendent (TPDFCanvas) that draws on a PDF.
@@ -27,3 +28,4 @@ Optionally:
 - PDF Forms.
 - Archive format.
 - Signature.
+- File attachments.
