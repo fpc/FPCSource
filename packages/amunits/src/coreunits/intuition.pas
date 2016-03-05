@@ -4062,7 +4062,7 @@ CONST
  *      uses this processing when activating a string gadget.
  }
 var
-  IntuitionBase: PLibrary;
+  IntuitionBase: pIntuitionBase;
 
 FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool syscall _IntuitionBase 462;
 PROCEDURE ActivateWindow(window : pWindow location 'a0'); syscall _IntuitionBase 450;
@@ -4364,7 +4364,7 @@ begin
 end;
 
 initialization
-  IntuitionBase := _IntuitionBase;
+  IntuitionBase := pIntuitionBase(_IntuitionBase);
 END. (* UNIT INTUITION *)
 
 
