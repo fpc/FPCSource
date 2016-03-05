@@ -677,7 +677,7 @@ implementation
             container:=owner;
             while container.symtabletype=localsymtable do
               begin
-                tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$'+tostr(tprocdef(owner.defowner).procsym.symid)+'$'+tmpresult;
+                tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$$'+tprocdef(owner.defowner).unique_id_str+'$'+tmpresult;
                 container:=container.defowner.owner;
               end;
           end;
