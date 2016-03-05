@@ -18,6 +18,10 @@
 { unicodestring is a plain java.lang.String }
 {$define FPC_UNICODESTRING_TYPE_DEFINED}
 
+{ helpers for converting between Windows and Java code page identifiers }
+
+{$i jwin2javacharset.inc}
+
 {$define FPC_HAS_DEFAULT_UNICODE_2_ANSI_MOVE}
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
 var
@@ -421,12 +425,16 @@ procedure fpc_unicodestr_to_chararray(out res: array of AnsiChar; const src: Uni
 var
   len: longint;
   temp: array of jbyte;
+  csname: unicodestring;
 begin
   len:=length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len>0 then
     begin
-      temp:=JLString(src).getBytes;
+      csname:=win2javacs(DefaultSystemCodePage);
+      if csname='<unsupported>' then
+        csname:='US-ASCII';
+      temp:=JLString(src).getBytes(csname);
       len:=length(temp);
       if len>length(res) then
         len:=length(res);
@@ -911,10 +919,6 @@ Begin
   result:=AnsiString(AnsistringClass.Create(arr,DefaultFileSystemCodePage));
 End;
 
-
-{ helpers for converting between Windows and Java code page identifiers }
-
-{$i jwin2javacharset.inc}
 
 { *************************************************************************** }
 { ************************* Collator threadvar ****************************** }
