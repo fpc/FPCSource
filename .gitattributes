@@ -11614,6 +11614,7 @@ tests/test/jvm/tsetansistr.pp svneol=native#text/plain
 tests/test/jvm/tsetstring.pp svneol=native#text/plain
 tests/test/jvm/tsmallintarr.pp svneol=native#text/plain
 tests/test/jvm/tstr.pp svneol=native#text/plain
+tests/test/jvm/tstring.pp svneol=native#text/plain
 tests/test/jvm/tstring1.pp svneol=native#text/plain
 tests/test/jvm/tstring9.pp svneol=native#text/plain
 tests/test/jvm/tstrreal1.pp svneol=native#text/plain

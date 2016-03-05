@@ -191,3 +191,5 @@ $PPC -O2 -g -B -Sa tprocvaranon
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tprocvaranon
 $PPC -O2 -g -B -Sa tw29585
 java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tw29585
+$PPC -O2 -g -B -Sa tstring
+java -Dfile.encoding=UTF-8 -cp ../../../rtl/units/$RTLDIR:. tstring

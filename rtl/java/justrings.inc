@@ -652,21 +652,21 @@ end;
 
 
 {$define FPC_HAS_POS_UNICODESTR_UNICODESTR}
-Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
+Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
-    Pos:=JLString(Source).indexOf(SubStr)+1;
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
+    Pos:=JLString(Source).indexOf(SubStr,Offset-1)+1
 end;
 
 
 { Faster version for a unicodechar alone }
 {$define FPC_HAS_POS_UNICODECHAR_UNICODESTR}
-Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
+Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 begin
   Pos:=0;
-  if length(S)>0 then
-    Pos:=JLString(s).indexOf(ord(c))+1;
+  if (Offset>0) and (Offset<=Length(s)) then
+    Pos:=JLString(s).indexOf(ord(c),Offset-1)+1;
 end;
 
 
@@ -675,13 +675,13 @@ end;
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 {$define FPC_HAS_POS_CHAR_UNICODESTR}
-Function Pos (c : AnsiChar; Const s : UnicodeString) : SizeInt;
+Function Pos (c : AnsiChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
 var
   i: SizeInt;
   wc : unicodechar;
 begin
   wc:=c;
-  result:=Pos(wc,s);
+  result:=Pos(wc,s,Offset);
 end;
 
 
