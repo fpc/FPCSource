@@ -88,6 +88,7 @@ implementation
             end;
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16,
           fpu_fpv4_s16:
             begin
@@ -128,6 +129,7 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
+              fpu_vfpv4,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               fpu_fpv4_s16:
@@ -158,6 +160,7 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
+              fpu_vfpv4,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               fpu_fpv4_s16:
@@ -188,6 +191,7 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
+              fpu_vfpv4,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               fpu_fpv4_s16:
@@ -260,6 +264,7 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               if singleprec then
@@ -296,6 +301,7 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               if singleprec then
@@ -325,6 +331,7 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               if singleprec then

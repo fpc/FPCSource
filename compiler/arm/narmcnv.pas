@@ -116,6 +116,7 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
+              fpu_vfpv4,
               fpu_vfpv3_d16,
               fpu_fpv4_s16:
                 expectloc:=LOC_MMREGISTER;
@@ -242,6 +243,7 @@ implementation
             end;
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               location_reset(location,LOC_MMREGISTER,def_cgsize(resultdef));

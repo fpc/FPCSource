@@ -47,7 +47,7 @@ implementation
       if (realresdef.typ=floatdef) and 
          (target_info.abi <> abi_eabihf) and
          ((cs_fp_emulation in current_settings.moduleswitches) or
-          (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16])) then
+          (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16])) then
         begin
           { keep the fpu values in integer registers for now, the code
             generator will move them to memory or an mmregister when necessary

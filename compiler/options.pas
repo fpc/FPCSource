@@ -3757,7 +3757,7 @@ begin
         end
       else
         begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
             begin
               Message(option_illegal_fpu_eabihf);
               StopOptions(1);
