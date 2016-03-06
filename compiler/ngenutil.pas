@@ -443,7 +443,11 @@ implementation
           ((vo_is_funcret in tabstractnormalvarsym(p).varoptions) or
            (tabstractnormalvarsym(p).varspez=vs_out)))) and
          not (vo_is_default_var in tabstractnormalvarsym(p).varoptions) and
-         not is_managed_type(tabstractnormalvarsym(p).vardef) and
+         (not is_managed_type(tabstractnormalvarsym(p).vardef) or
+          (is_string(tabstractnormalvarsym(p).vardef) and
+           (vo_is_funcret in tabstractnormalvarsym(p).varoptions)
+          )
+         ) and
          not assigned(tabstractnormalvarsym(p).defaultconstsym);
     end;
 
@@ -468,7 +472,19 @@ implementation
                   the procedure address -> cast to tmethod instead }
                 trashn:=ctypeconvnode.create_explicit(trashn,methodpointertype);
             end;
-          if ((p.typ=localvarsym) and
+          if is_managed_type(p.vardef) then
+            begin
+              if is_string(p.vardef) then
+                trash_small(stat,trashn,
+                  cstringconstnode.createstr(
+                    'uninitialized function result in '+
+                    tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
+                  )
+                )
+              else
+                internalerror(2016030601);
+            end
+          else if ((p.typ=localvarsym) and
               (not(vo_is_funcret in p.varoptions) or
                not is_shortstring(p.vardef))) or
              ((p.typ=paravarsym) and
