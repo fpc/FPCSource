@@ -870,7 +870,8 @@ implementation
               { pocall_stdcall    } 3,
               { pocall_softfloat  } 10,
               { pocall_mwpascal   } 11,
-              { pocall_interrupt  } 12
+              { pocall_interrupt  } 12,
+              { pocall_hardfloat  } 13
              );
 
            procedure write_param_flag(parasym:tparavarsym);

@@ -45,7 +45,8 @@ implementation
   procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
     begin
       if (realresdef.typ=floatdef) and 
-         (target_info.abi <> abi_eabihf) and
+         (target_info.abi<>abi_eabihf) and
+         (procdefinition.proccalloption<>pocall_hardfloat) and
          ((cs_fp_emulation in current_settings.moduleswitches) or
           (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16])) then
         begin

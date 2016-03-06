@@ -2315,12 +2315,24 @@ begin
     pd_external(pd);
 end;
 
+
 procedure pd_winapi(pd:tabstractprocdef);
 begin
   if not(target_info.system in systems_wince) then
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
+end;
+
+
+procedure pd_hardfloat(pd:tabstractprocdef);
+begin
+  if
+{$if defined(arm)}
+    (current_settings.fputype=fpu_soft) or
+{$endif defined(arm)}
+    (cs_fp_emulation in current_settings.moduleswitches) then
+    message(parser_e_cannot_use_hardfloat_in_a_softfloat_environment);
 end;
 
 type
@@ -2337,7 +2349,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=45;
+  num_proc_directives=46;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2757,6 +2769,17 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_HARDFLOAT;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : @pd_hardfloat;
+      pocall   : pocall_hardfloat;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      { it's available with po_external because the libgcc floating point routines on the arm
+        uses this calling convention }
+      mutexclpo     : []
     )
    );
 

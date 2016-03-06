@@ -129,7 +129,7 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if (target_info.abi = abi_eabihf) and
+              if ((target_info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
                  (not isvariadic) then
                 getparaloc:=LOC_MMREGISTER
               else if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or
@@ -626,7 +626,7 @@ unit cpupara;
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
-            if target_info.abi = abi_eabihf then 
+            if (target_info.abi=abi_eabihf) or (p.proccalloption=pocall_hardfloat) then
               begin
                 paraloc^.loc:=LOC_MMREGISTER;
                 case retcgsize of

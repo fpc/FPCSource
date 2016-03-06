@@ -499,7 +499,9 @@ Const
        reference, but that's already done for stdcall) }
      pocall_mwpascal,
      { used for interrupt handling }
-     pocall_interrupt
+     pocall_interrupt,
+     { needed sometimes on android }
+     pocall_hardfloat
    ];
 
    cputypestr : array[tcputype] of string[8] = ('',

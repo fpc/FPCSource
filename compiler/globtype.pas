@@ -523,7 +523,10 @@ interface
          { constant records by reference.                            }
          pocall_mwpascal,
          { Special interrupt handler for embedded systems }
-         pocall_interrupt
+         pocall_interrupt,
+         { Directive for arm: pass floating point values in (v)float registers
+           regardless of the actual calling conventions }
+         pocall_hardfloat
        );
        tproccalloptions = set of tproccalloption;
 
@@ -541,7 +544,8 @@ interface
            'StdCall',
            'SoftFloat',
            'MWPascal',
-           'Interrupt'
+           'Interrupt',
+           'HardFloat'
          );
 
        { Default calling convention }

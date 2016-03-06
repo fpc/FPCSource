@@ -1089,7 +1089,8 @@ implementation
          'STDCALL',
          'SOFTFLOAT',
          'MWPASCAL',
-         'INTERRUPT'
+         'INTERRUPT',
+         'HARDFLOAT'
         );
       var
         t  : tproccalloption;

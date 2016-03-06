@@ -416,7 +416,7 @@ scan_e_illegal_asmcpu_specifier=02099_E_Illegal assembler CPU instruction set sp
 #
 # Parser
 #
-# 03344 is the last used one
+# 03345 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1550,6 +1550,8 @@ parser_e_genfuncs_cannot_be_virtual=03343_E_Generic methods can not be virtual
 parser_e_packages_not_supported=03344_E_Dynamic packages not supported for target OS
 % Support for dynamic packages is not implemented for the specified target OS
 % or it is at least not tested and thus disabled.
+parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345_E_The HardFloat directive cannot be used if soft float code is generated or fpu emulation is turned on
+% The \var{HardFloat} directive can only be used if an instruction set is used which supports floating point operations.
 %
 %
 % \end{description}
