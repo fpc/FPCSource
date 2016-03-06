@@ -191,6 +191,7 @@ interface
           _vardef     : tdef;
           vardefderef : tderef;
 
+          procedure setregable;
           procedure setvardef(def:tdef);
         public
           property vardef: tdef read _vardef write setvardef;
@@ -1693,9 +1694,15 @@ implementation
     procedure tabstractvarsym.setvardef(def:tdef);
       begin
         _vardef := def;
+         setregable;
+      end;
+
+
+    procedure tabstractvarsym.setregable;
+      begin
          { can we load the value into a register ? }
         if not assigned(owner) or
-           (owner.symtabletype in [localsymtable,parasymtable]) or
+           (owner.symtabletype in [localsymtable, parasymtable]) or
            (
             (owner.symtabletype=staticsymtable) and
             not(cs_create_pic in current_settings.moduleswitches)
@@ -1718,19 +1725,13 @@ implementation
                 (typ=paravarsym) and
                 (varspez=vs_const)) then
               varregable:=vr_intreg
-            else
-{ $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }
-              if {(
-                  not assigned(owner) or
-                  (owner.symtabletype<>staticsymtable)
-                 ) and }
-                 tstoreddef(vardef).is_fpuregable then
-                 begin
-                   if use_vectorfpu(vardef) then
-                     varregable:=vr_mmreg
-                   else
-                     varregable:=vr_fpureg;
-                 end;
+            else if tstoreddef(vardef).is_fpuregable then
+              begin
+                if use_vectorfpu(vardef) then
+                  varregable:=vr_mmreg
+                else
+                  varregable:=vr_fpureg;
+              end;
           end;
       end;
 
