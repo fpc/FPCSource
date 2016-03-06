@@ -53,7 +53,7 @@ const
   stProcedureParams  = sqltypes.stProcedureParams;
   stIndexes          = sqltypes.stIndexes;
   stPackages         = sqltypes.stPackages;
-  stSchemata         = sqltypes.stPackages;
+  stSchemata         = sqltypes.stSchemata;
   stSequences        = sqltypes.stSequences;
 
   stUnknown       = sqltypes.stUnknown; 
