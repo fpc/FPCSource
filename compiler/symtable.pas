@@ -3944,7 +3944,7 @@ implementation
                        (for id.randommethod), so only check category methods here
                     }
                     defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
-                    if (oo_is_classhelper in defowner.objectoptions) and
+                    if is_objccategory(defowner) and
                        def_is_related(pd,defowner.childof) then
                       begin
                         { we need to know if a procedure references symbols
