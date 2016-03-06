@@ -93,7 +93,11 @@ Implementation
         (taicpu(p).opcode<>A_CBZ) and
         (taicpu(p).opcode<>A_CBNZ) and
         (taicpu(p).opcode<>A_PLD) and
-        ((taicpu(p).opcode<>A_BLX) or
+        (((taicpu(p).opcode<>A_BLX) and
+          { BL may need to be converted into BLX by the linker -- could possibly
+            be allowed in case it's to a local symbol of which we know that it
+            uses the same instruction set as the current one }
+          (taicpu(p).opcode<>A_BL)) or
          (taicpu(p).oper[0]^.typ=top_reg));
     end;
 
