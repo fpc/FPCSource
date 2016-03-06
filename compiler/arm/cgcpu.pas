@@ -1925,7 +1925,10 @@ unit cgcpu;
               fpu_vfpv4,
               fpu_vfpv3_d16:
                 begin;
-                  mmregs:=rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+                  { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
+                    they have numbers>$1f which is not really correct as they should simply have the same numbers
+                    as the even ones by with a different subtype as it is done on x86 with al/ah }
+                  mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end;
             end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
@@ -2108,7 +2111,8 @@ unit cgcpu;
                        postfix:=PF_IAX
                      else
                        postfix:=PF_IAD;}
-                     list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
+                     if mmregs<>[] then
+                       list.concat(taicpu.op_ref_regset(A_VSTM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                    end;
                end;
              end;
@@ -2163,7 +2167,10 @@ unit cgcpu;
               fpu_vfpv3_d16:
                 begin;
                   { restore vfp registers? }
-                  mmregs:=rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+                  { the *[0..31] is a hack to prevent that the compiler tries to save odd single-type registers,
+                    they have numbers>$1f which is not really correct as they should simply have the same numbers
+                    as the even ones by with a different subtype as it is done on x86 with al/ah }
+                  mmregs:=(rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall))*[0..31];
                 end;
             end;
 
@@ -2210,7 +2217,8 @@ unit cgcpu;
                         mmpostfix:=PF_IAX
                       else
                         mmpostfix:=PF_IAD;}
-                      list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
+                     if mmregs<>[] then
+                       list.concat(taicpu.op_ref_regset(A_VLDM,ref,R_MMREGISTER,R_SUBFD,mmregs));
                     end;
                 end;
               end;
