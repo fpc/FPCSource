@@ -43,19 +43,6 @@ begin
   end;
 end;
 
-Procedure EmptyPage;
-Var
-  D : TPDFDocument;
-begin
-  D:=SetupDocument;
-  try
-    SaveDocument(D);
-  finally
-    D.Free;
-  end;
-end;
-
-
 { all units of measure are in millimeters }
 Procedure SimpleText(D: TPDFDocument; APage: integer);
 Var

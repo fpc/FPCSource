@@ -765,7 +765,7 @@ begin
   S:=TMemoryStream.Create;
   try
     // Speed up the process, read everything in a single mem block.
-    S.CopyFrom(AStream,FUnicodeMap.Length-4);
+    S.CopyFrom(AStream,Int64(FUnicodeMap.Length)-4);
     S.Position:=0;
     FUnicodeMap.LanguageID:=ReadUShort(S);
     FUnicodeMap.SegmentCount2:=ReadUShort(S);            // 2 bytes - Segments count
@@ -828,19 +828,23 @@ var
   TableStartPos: LongWord;
   S : AnsiString;
   W : Widestring;
-  FMT : Word;
   N : TNameRecord;
   E : TNameEntries;
   WA : Array of word;
 
 begin
   TableStartPos:= AStream.Position;                   // memorize Table start position
-  Fmt:=ReadUShort(AStream);                  // skip 2 bytes - Format
+  ReadUShort(AStream);                  // skip 2 bytes - Format
   Count:=ReadUShort(AStream);                        // 2 bytes
   StringOffset:=ReadUShort(AStream);                 // 2 bytes
   E := FNameEntries;
   SetLength(E,Count);
   //  Read Descriptors
+{$IFDEF VER3}  
+  N := Default(TNameRecord);
+{$ELSE}  
+  FillChar(N,SizeOf(TNameRecord),0)
+{$ENDIF}
   for I:=0 to Count-1 do
   begin
     AStream.ReadBuffer(N,SizeOf(TNameRecord));
@@ -855,7 +859,7 @@ begin
   //  Read Values
   for I:=0 to Count-1 do
   begin
-    AStream.Position:=TableStartPos+StringOffset+E[i].Info.StringOffset;
+    AStream.Position:=Int64(TableStartPos)+StringOffset+E[i].Info.StringOffset;
     if E[i].Info.EncodingID=1 then
     begin
       SetLength(WA,E[i].Info.StringLength div 2);
@@ -863,7 +867,7 @@ begin
       AStream.Read(WA[0],SizeOf(Word)*Length(W));    // 1 byte
       For J:=0 to Length(WA)-1 do
         W[J+1]:=WideChar(Beton(WA[J]));
-      E[i].Value:=W;
+      E[i].Value:=string(W);
     end
     else
     begin
