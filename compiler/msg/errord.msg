@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 30725
+#   Based on errore.msg of SVN revision 33053
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2015 by the Free Pascal Development team
@@ -28,7 +28,7 @@
 #   parser_   parser
 #   type_     type checking
 #   general_  general info
-#   exec_     calls to assembler, linker, binder
+#   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
 #
 # <type> the type of the message it should normally used for
@@ -53,7 +53,7 @@
 #
 # General
 #
-# 01025 is the last used one
+# 01026 is the last used one
 #
 # BeginOfTeX
 % \section{General compiler messages}
@@ -136,6 +136,9 @@ general_f_ioerror=01024_F_I/O Fehler: $1
 % During compilation an I/O error happened which allows no further compilation.
 general_f_oserror=01025_F_Betriebsystemfehler: $1
 % During compilation an operating system error happened which allows no further compilation.
+general_e_exception_raised=01026_E_Kompilieren verursachte interne Ausnahme (exception)
+% Compilation was aborted, due to an exception generation.
+%
 %
 % \end{description}
 # EndOfTeX
@@ -198,7 +201,7 @@ scan_e_illegal_pack_records=02015_E_UngÅltige Record Ausrichtung "$1"
 % with an illegal value for \var{n}. For \$PACKRECORDS valid alignments are 1, 2, 4, 8, 16, 32, C,
 % NORMAL, DEFAULT, and for \$ALIGN valid alignments are 1, 2, 4, 8, 16, 32, ON,
 % OFF. Under mode MacPas \$ALIGN also supports MAC68K, POWER and RESET.
-scan_e_illegal_pack_enum=02016_E_UngÅltige minimale Grîsse der AufzÑhlung "$1"
+scan_e_illegal_pack_enum=02016_E_UngÅltige minimale Grî·e der AufzÑhlung "$1"
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2,4, NORMAL or DEFAULT is valid here.
 scan_e_endif_expected=02017_E_$ENDIF erwartet fÅr $1 $2 definiert in $3 Zeile $4
@@ -337,7 +340,7 @@ scan_e_mode_switch_not_allowed=02067_E_Der Modus Umschalter "$1" ist hier nicht 
 % a mode switch occurs after UNIT.
 scan_e_error_macro_undefined=02068_E_Die Compile time Variable oder das Makro "$1" ist nicht definiert.
 % Thus the conditional compile time expression cannot be evaluated. Only in mode MacPas.
-scan_e_utf8_bigger_than_65535=02069_E_Der UTF-8 Code ist grîsser als 65535
+scan_e_utf8_bigger_than_65535=02069_E_Der UTF-8 Code ist grî·er als 65535
 % \fpc handles UTF-8 strings internally as widestrings, i.e. the char codes are limited to 65535.
 scan_e_utf8_malformed=02070_E_UngÅltige UTF-8 Zeichenkette
 % The given string isn't a valid UTF-8 string.
@@ -421,7 +424,7 @@ scan_e_illegal_hugepointernormalization=02098_E_Illegales Argument fÅr HUGEPOINT
 #
 # Parser
 #
-# 03340 is the last used one
+# 03344 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -512,7 +515,7 @@ parser_n_duplicate_enum=03031_N_Werte in AufzÑhlungen mÅssen aufsteigend sein
 parser_e_no_with_for_variable_in_other_segments=03033_E_WITH kann nicht auf Variablen in anderen Segmenten angewendet werden
 % With stores a variable locally on the stack,
 % but this is not possible if the variable belongs to another segment.
-parser_e_too_much_lexlevel=03034_E_Funktionsverschachtelung grîsser als 31
+parser_e_too_much_lexlevel=03034_E_Funktionsverschachtelung grî·er als 31
 % You can nest function definitions only 31 levels deep.
 parser_e_range_check_error=03035_E_BereichsprÅfungsfehler bei Konstantenbestimmung
 % The constants are out of their allowed range.
@@ -862,7 +865,7 @@ parser_e_array_lower_less_than_upper_bound=03140_E_Obere Grenze des Bereichs ist
 parser_w_string_too_long=03141_W_String "$1" ist lÑnger als $2
 % The size of the constant string is larger than the size you specified in
 % string type definition.
-parser_e_string_larger_array=03142_E_StringlÑnge ist grîsser als die LÑnge des "array of char"
+parser_e_string_larger_array=03142_E_StringlÑnge ist grî·er als die LÑnge des "array of char"
 % The size of the constant string is larger than the size you specified in
 % the \var{Array[x..y] of char} definition.
 parser_e_ill_msg_expr=03143_E_UngÅltiger Ausdruck nach der 'Message'-Direktive
@@ -1130,7 +1133,7 @@ parser_e_arithmetic_operation_overflow=03213_E_öberlauf in arithmetischer Operat
 % An operation on two integer values produced an overflow.
 parser_e_protected_or_private_expected=03214_E_Protected oder private erwartet
 % \var{strict} can be only used together with \var{protected} or \var{private}.
-parser_e_illegal_slice=03215_E_SLICE kann nicht ausserhalb der Parameterliste benutzt werden
+parser_e_illegal_slice=03215_E_SLICE kann nicht au·erhalb der Parameterliste benutzt werden
 % \var{slice} can be used only for arguments accepting an open array parameter.
 parser_e_dispinterface_cant_have_parent=03216_E_Ein DISPINTERFACE kann keine Elternklasse haben.
 % A DISPINTERFACE is a special type of interface which cannot have a parent class. Dispinterface always derive from IDispatch type.
@@ -1144,7 +1147,7 @@ parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen 
 % and the way the methods are called.
 parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs mÅssen ganzzahlige Konstanten sein
 % The \var{dispid} keyword must be followed by an ordinal constant (the dispid index).
-parser_e_array_range_out_of_bounds=03220_E_Der Bereich des Array ist zu gross
+parser_e_array_range_out_of_bounds=03220_E_Der Bereich des Array ist zu gro·
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
 % of ptrint.
@@ -1182,7 +1185,7 @@ parser_e_type_object_constants=03230_E_Konstanten eines Objekts, das ein VMT ent
 % If an object requires a VMT either because it contains a constructor or virtual methods,
 % it's not allowed to create constants of it. In TP and Delphi mode this is allowed
 % for compatibility reasons.
-parser_e_label_outside_proc=03231_E_Die Address von Labels, die ausserhalb des aktuellen Scopes definiert wurden, kînnen nicht verwendet werden
+parser_e_label_outside_proc=03231_E_Die Address von Labels, die au·erhalb des aktuellen Scopes definiert wurden, kînnen nicht verwendet werden
 % It isn't allowed to take the address of labels outside the
 % current procedure.
 parser_e_initialized_not_for_external=03233_E_Extern deklarierte Variablen kînnen nicht intialisiert werden 
@@ -1545,6 +1548,17 @@ parser_e_global_generic_references_static=03339_E_Ein globales, generisches Temp
 parser_u_already_compiled=03340_UL_Die Unit $1 wurde inzwischen bereits kompiliert.
 % This tells you that the recursive reading of the uses clauses triggered already
 % a compilation of the current unit, so the current compilation can be aborted.
+parser_e_explicit_method_implementation_for_specializations_not_allowed=03341_E_Die explizite Implementierung von Methoden ist bei der Spezialisierung von "Generics" nicht erlaubt
+% Methods introduced in a generic must be implemented for the generic. It is not possible to implement them only for specializations.
+parser_e_no_genfuncs_in_interfaces=03342_E_Generische Methoden sind in Interfaces nicht erlaubt
+% Generic methods are not allowed in interfaces, because there is no way to specialize a suitable
+% implementation.
+parser_e_genfuncs_cannot_be_virtual=03343_E_Generische Methoden kînnen nicht virtuell sein
+% Generic methods can not be declared as virtual as there'd need to be a VMT entry for each
+% specialization. This is however not possible with a static VMT.
+parser_e_packages_not_supported=03344_E_Dynamische Pakete werden fÅr das Ziel-OS nicht unterstÅtzt
+% Support for dynamic packages is not implemented for the specified target OS
+% or it is at least not tested and thus disabled.
 %
 % \end{description}
 # EndOfTeX
@@ -1715,7 +1729,7 @@ type_w_mixed_signed_unsigned2=04036_W_Mischen von signed AusdrÅcken und kardinal
 % such a case both operands are converted to longword before the operation is
 % carried out. You can avoid this by typecasting one operand so it
 % matches the result type of the other one.
-type_e_typecast_wrong_size_for_assignment=04037_E_Typecast hat verschiedene Grîssen ($1 -> $2) in der Zuweisung
+type_e_typecast_wrong_size_for_assignment=04037_E_Typecast hat verschiedene Grî·en ($1 -> $2) in der Zuweisung
 % Type casting to a type with a different size is not allowed when the variable is
 % used in an assignment.
 type_e_array_index_enums_with_assign_not_possible=04038_E_enums mit Zuweisungen kînnen nicht als Array-Index verwendet werden
@@ -1753,16 +1767,16 @@ type_w_instance_with_abstract=04046_W_Konstruktion der Klasse "$1" mit der abstr
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overridden.
-type_h_in_range_check=04047_H_Der linke Operand des IN Operators sollte byte Grîsse haben
+type_h_in_range_check=04047_H_Der linke Operand des IN Operators sollte byte Grî·e haben
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8 bits. This may lead to range check errors. The \var{in} operator
 % currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
-type_w_smaller_possible_range_check=04048_W_Unpassende Typgrîssen, Gefahr des Datenverlusts oder der BereichsÅberschreitung
+type_w_smaller_possible_range_check=04048_W_Unpassende Typgrî·en, Gefahr des Datenverlusts oder der BereichsÅberschreitung
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
-type_h_smaller_possible_range_check=04049_H_Unpassende Typgrîssen, Gefahr des Datenverlusts oder der BereichsÅberschreitung
+type_h_smaller_possible_range_check=04049_H_Unpassende Typgrî·en, Gefahr des Datenverlusts oder der BereichsÅberschreitung
 % There is an assignment to a smaller type than the source type. This means that
 % this may cause a range-check error, or may lead to possible loss of data.
 type_e_cant_take_address_of_abstract_method=04050_E_Die Adresse einer abstrakten Methode kann nicht verwendet werden
@@ -2106,7 +2120,7 @@ sym_h_param_list=05039_H_Deklaration gefunden: $1
 % You get this when you use the \var{-vh} switch.In the case of an overloaded procedure
 % not being found. Then all candidate overloaded procedures are
 % listed, with their parameter lists.
-sym_e_segment_too_large=05040_E_Datensegment zu gross (max. 2GB)
+sym_e_segment_too_large=05040_E_Datensegment zu gro· (max. 2GB)
 % You get this when you declare a data element whose size exceeds the
 % prescribed limit (2 Gb on 80386+/68020+ processors).
 sym_e_no_matching_implementation_found=05042_E_Keine passende Implementation der Interface Methode "$1" gefunden
@@ -2223,7 +2237,7 @@ sym_w_experimental_unit=05079_W_Unit "$1" ist experimentell
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
-sym_e_formal_class_not_resolved=05080_E_Die vollstÑndige Definition der formal deklarierten ObjC-Klasse "$1" fehlt in diesem Geltungsbereich
+sym_e_formal_class_not_resolved=05080_E_Die vollstÑndige Definition der formal deklarierten ObjC-Klasse "$1" fehlt in diesem Geltungsbereich. ErgÑnzen sie die uses-Anweisung um die Unit mit der vollstÑndigen Definition
 % Objecive-C and Java classes can be imported formally, without using the unit in which it is fully declared.
 % This enables making forward references to such classes and breaking circular dependencies amongst units.
 % However, as soon as you wish to actually do something with an entity of this class type (such as
@@ -2314,7 +2328,7 @@ sym_w_duplicate_id=05095_W_Duplikat des Bezeichners "$1"
 % This section lists all messages that can be displayed if the code
 % generator encounters an error condition.
 % \begin{description}
-cg_e_parasize_too_big=06009_E_Grîsse der Parameterliste Åbersteigt 65535 Bytes
+cg_e_parasize_too_big=06009_E_Grî·e der Parameterliste Åbersteigt 65535 Bytes
 % The I386 processor limits the parameter list to 65535 bytes. (The \var{RET}
 % instruction causes this).
 cg_e_file_must_call_by_reference=06012_E_Dateitypen mÅssen VAR Parameter sein
@@ -2406,13 +2420,13 @@ cg_e_control_flow_outside_finally=06040_E_Kontrollfluss-Anweisungen sind in eine
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exit the procedure or search for another exception handler.
-cg_w_parasize_too_big=06041_W_Grîsse der Parameter Åberschreitet die Grenze fÅr bestimmte CPUs
+cg_w_parasize_too_big=06041_W_Grî·e der Parameter Åberschreitet die Grenze fÅr bestimmte CPUs
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
-cg_w_localsize_too_big=06042_W_Grîsse der lokalen Variablen Åberschreitet die Grenze fÅr bestimmte CPUs
+cg_w_localsize_too_big=06042_W_Grî·e der lokalen Variablen Åberschreitet die Grenze fÅr bestimmte CPUs
 % This indicates that you are declaring more than 32K of local variables, which
 % might not be supported on other processor targets.
-cg_e_localsize_too_big=06043_E_Grîsse der lokalen Variablen Åberschreitet die unterstÅtzte Grenze
+cg_e_localsize_too_big=06043_E_Grî·e der lokalen Variablen Åberschreitet die unterstÅtzte Grenze
 % This indicates that you are declaring more than 32K of local variables, which
 % is not supported by this processor.
 cg_e_break_not_allowed=06044_E_BREAK nicht zulÑssig
@@ -2452,7 +2466,7 @@ cg_e_mod_only_defined_for_pos_quotient=06054_E_Im ISO-Modus ist der Operator mod
 % In ISO pascal, only positive values are allowed for the quotient: \var{n mod m} is only valid if \var{m>0}.
 cg_d_autoinlining=06055_DL_Automatisches inlining: $1
 % Due to auto inlining turned on, the compiler auto inlines this subroutine.
-cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Funktion wird vom ausgewÑhlten Instruction-Set nicht unterstÅtzt: $1
+cg_e_function_not_support_by_selected_instruction_set=06056_E_Die verwendete Funktion wird vom ausgewÑhlten Instruktionen-Satz nicht unterstÅtzt: $1
 % Some functions cannot be implemented efficiently for certain instruction sets, one example is fused multiply/add.
 % To avoid very inefficient code, the compiler complains in this case, so either select another instruction set
 % or replace the function call by alternative code
@@ -2466,7 +2480,7 @@ cg_f_max_units_reached=06057_F_Maximale Anzahl an Units ($1) für das aktuelle Zi
 #
 # Assembler reader
 #
-# 07125 is the last used one
+# 07129 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starte $1 Stil Assembler Parsen
 % This informs you that an assembler block is being parsed
@@ -2544,7 +2558,7 @@ asmr_w_calling_overload_func=07032_W_Aufruf einer Åberladenen Funktion in Assemb
 % There is a call to an overloaded method in the assembler block,
 % this might be the sign there is a problem
 asmr_e_unsupported_symbol_type=07033_E_Nicht unterstÅtzter Symboltyp fÅr Operand
-asmr_e_constant_out_of_bounds=07034_E_Wert der Konstante ausserhalb des zulÑssigen Bereichs
+asmr_e_constant_out_of_bounds=07034_E_Wert der Konstante au·erhalb des zulÑssigen Bereichs
 asmr_e_error_converting_decimal=07035_E_Fehler beim Umwandeln in Dezimal $1
 % A constant decimal value does not have the correct syntax
 asmr_e_error_converting_octal=07036_E_Fehler beim Umwandeln in Oktal $1
@@ -2555,20 +2569,20 @@ asmr_e_error_converting_hexadecimal=07038_E_Fehler beim Umwandeln in Hexadezimal
 % A constant hexadecimal value does not have the correct syntax
 asmr_h_direct_global_to_mangled=07039_H_$1 Åbersetzt nach $2
 asmr_w_direct_global_is_overloaded_func=07040_W_$1 ist einer Åberladenen Funktion zugeordnet
-asmr_e_cannot_use_SELF_outside_a_method=07041_E_Kann SELF nicht ausserhalb einer Methode verwenden
+asmr_e_cannot_use_SELF_outside_a_method=07041_E_Kann SELF nicht au·erhalb einer Methode verwenden
 % There is a reference to the \var{self} symbol while it is not
 % allowed. \var{self} can only be referenced inside methods
-asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Kann OLDEBP ausserhalb einer verschachtelten Prozedur nicht verwenden
+asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Kann OLDEBP au·erhalb einer verschachtelten Prozedur nicht verwenden
 % There is a reference to the \var{oldebp} symbol while it is not
 % allowed. \var{oldebp} can only be referenced inside nested routines
 asmr_e_void_function=07043_W_Prozeduren kînnen keinen Wert im Assembler-Code zurÅckliefern
 % Trying to return a value while in a procedure. A procedure
 % does not have any return value
 asmr_e_SEG_not_supported=07044_E_SEG nicht unterstÅtzt
-asmr_e_size_suffix_and_dest_dont_match=07045_E_Grîssensuffix und Ziel- oder Quellgrîsse passen nicht zusammen
+asmr_e_size_suffix_and_dest_dont_match=07045_E_Grî·ensuffix und Ziel- oder Quellgrî·e passen nicht zusammen
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
-asmr_w_size_suffix_and_dest_dont_match=07046_W_Grîssensuffix und Ziel- oder Quellgrîsse passen nicht zusammen
+asmr_w_size_suffix_and_dest_dont_match=07046_W_Grî·ensuffix und Ziel- oder Quellgrî·e passen nicht zusammen
 % The register size and the opcode size suffix don't match. This is
 % probably an error in the assembler statement
 asmr_e_syntax_error=07047_E_Assembler Syntaxfehler
@@ -2642,7 +2656,7 @@ asmr_e_cannot_access_object_field_directly=07082_E_Kann auf Felder von Objekten/
 % You should load the self pointer first into a register and then access the
 % fields using the register as base. By default the self pointer is available
 % in the esi register on i386.
-asmr_e_unable_to_determine_reference_size=07083_E_Grîsse nicht spezifiziert und auch keine Mîglichkeit die Grîsse der Operanden zu bestimmen
+asmr_e_unable_to_determine_reference_size=07083_E_Grî·e nicht spezifiziert und auch keine Mîglichkeit die Grî·e der Operanden zu bestimmen
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference.
@@ -2670,7 +2684,7 @@ asmr_e_higher_cpu_mode_required=07097_E_Hîherer cpu Modus notwendig ($1)
 % Trying to use an instruction which is not supported in the current
 % cpu mode. Use a higher cpu generation to be able to use this
 % opcode in your assembler block
-asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Grîsse nicht spezifiziert und auch keine Mîglichkeit die Grîsse der Operanden zu bestimmen. Es wird DWORD als Voreinstellung verwendet
+asmr_w_unable_to_determine_reference_size_using_dword=07098_W_Grî·e nicht spezifiziert und auch keine Mîglichkeit die Grî·e der Operanden zu bestimmen. Es wird DWORD als Voreinstellung verwendet
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
@@ -2690,7 +2704,7 @@ asmr_e_packed_element=07100_E_Die Adresse der packed Komponente ist nicht an ein
 % message when trying to index arrays with elements whose size is not a multiple
 % of 8 bits. The same goes for accessing record fields with such an address.
 % multiple of 8 bits.
-asmr_w_unable_to_determine_reference_size_using_byte=07101_W_Grîsse nicht angegeben und kann auch nicht aus der Grîsse der Operanden bestimmt werden. Verwende BYTE als Voreinstellung
+asmr_w_unable_to_determine_reference_size_using_byte=07101_W_Grî·e nicht angegeben und kann auch nicht aus der Grî·e der Operanden bestimmt werden. Verwende BYTE als Voreinstellung
 % You should specify explicitly a size for the reference, because
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
@@ -2767,6 +2781,17 @@ asmr_e_invalid_ref_register=07125_E_UngÅltiges Register in Speicherreferenzausdr
 % FPU, vector and sometimes integer registers cannot be used in memory reference
 % expressions, due to limitations of the cpu architecture or simple because
 % it is not meaningful.
+asmr_e_seg_without_identifier=07126_E_SEG ohne Bezeichner benutzt
+% You can only use SEG with an identifier. Other syntaxes are not
+% supported
+asmr_e_CODE_or_DATA_without_SEG=07127_E_@CODE und @DATA kînnen nur mit dem SEG-Operator benutzt werden
+% You can only use @CODE and @DATA symbols together with the SEG operator
+asmr_e_const16bit_for_segment=07128_E_Nicht ausreichend Platz (16 Bit benîtigt) fÅr die Segment-Konstante des Symbols $1
+% Specifying a segment constant for a symbol via the SEG operator requires at
+% least 16 bits of space for the segment. This error occurs, if you specify
+% less, for example, if you use 'DB SEG symbol' instead of 'DW SEG symbol'.
+asmr_e_invalid_code_value=07129_E_UngÅltiger Wert des Arguments fÅr die .code-Direktive
+% The ARM assembler only allows the values 16 and 32 to be used as arguments to the .code directive
 %
 % \end{description}
 # EndOfTeX
@@ -2791,7 +2816,7 @@ asmw_e_16bit_not_supported=08008_E_Asm: 16-Bit-Verweise werden nicht unterstÅtzt
 asmw_e_invalid_effective_address=08009_E_Asm: UngÅltige effektive Adresse
 asmw_e_immediate_or_reference_expected=08010_E_Asm: Konstanter Ausdruck oder Referenz erwartet
 asmw_e_value_exceeds_bounds=08011_E_Asm: $1 Wert Åberschreitet Grenzen $2
-asmw_e_short_jmp_out_of_range=08012_E_Asm: "Short jump" ist ausserhalb des Bereichs $1
+asmw_e_short_jmp_out_of_range=08012_E_Asm: "Short jump" ist au·erhalb des Bereichs $1
 asmw_e_undefined_label=08013_E_Asm: Undefiniertes Label: $1
 asmw_e_comp_not_supported=08014_E_Asm: Comp wird fÅr dieses Ziel nicht unterstÅtzt
 asmw_e_extended_not_supported=08015_E_Asm: Extended Typ wird fÅr dieses Ziel nicht unterstÅtzt
@@ -2827,6 +2852,7 @@ asmw_h_changing_bind_type=08028_H_énderung des Bind-Typs des Symbols $1 von $2 n
 asmw_e_32bit_not_supported=08029_E_Asm: 32 Bit Referenzen werden nicht unterstÅtzt
 asmw_f_code_segment_too_large=08030_F_Code-Segment zu gro·
 asmw_f_data_segment_too_large=08031_F_Data-Segment zu gro·
+asmw_e_instruction_not_supported_by_cpu=08032_E_Instruktion wird vom ausgewÑhlten Instruktionen-Satz nicht unterstÅtzt
 %
 % \end{description}
 # EndOfTeX
@@ -2895,7 +2921,7 @@ exec_e_exe_not_supported=09018_E_Erzeugen von ausfÅhrbaren Dateien nicht unterst
 exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstÅtzt
 % Creating dynamically loadable libraries is not supported for this platform, because it was
 % not yet implemented in the compiler.
-exec_i_closing_script=09020_I_Schliesse Skript $1
+exec_i_closing_script=09020_I_Schlie·e Skript $1
 % Informational message showing when writing of the external assembling and linking script is finished.
 exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
 % An external resource compiler was not found. The compiler will produce a script that
@@ -2950,11 +2976,11 @@ execinfo_f_cant_process_executable=09128_F_Kann ausfÅhrbare Datei nicht nachbear
 % Fatal error when the compiler is unable to post-process an executable.
 execinfo_f_cant_open_executable=09129_F_Kann ausfÅhrbare Datei nicht îffnen: $1
 % Fatal error when the compiler cannot open the file for the executable.
-execinfo_x_codesize=09130_X_Grîsse des Codes: $1 Bytes
+execinfo_x_codesize=09130_X_Grî·e des Codes: $1 Bytes
 % Informational message showing the size of the produced code section.
-execinfo_x_initdatasize=09131_X_Grîsse der initialisierten Daten: $1 Bytes
+execinfo_x_initdatasize=09131_X_Grî·e der initialisierten Daten: $1 Bytes
 % Informational message showing the size of the initialized data section.
-execinfo_x_uninitdatasize=09132_X_Grîsse der nicht initialisierten Daten: $1 Bytes
+execinfo_x_uninitdatasize=09132_X_Grî·e der nicht initialisierten Daten: $1 Bytes
 % Informational message showing the size of the uninitialized data section.
 execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Bytes
 % Informational message showing the stack size that the compiler reserved for the executable.
@@ -2967,7 +2993,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 #
 # Internal linker messages
 #
-# 09201 is the last used one
+# 09207 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -2979,6 +3005,23 @@ link_w_32bit_absolute_reloc=09201_W_Objektdatei "$1" enthÑlt eine 32-bit absolut
 % Warning when 64-bit object file contains 32-bit absolute relocations.
 % In such case an executable image can be loaded into lower 4Gb of
 % address space only.
+link_e_program_segment_too_large=09202_E_Program-Segment zu gro· (Åbersteigt 64k um $1 Byte)
+% Error when a 16-bit program is compiled in the tiny memory model, but its size exceeds 64k
+link_e_code_segment_too_large=09203_E_Code-Segment zu gro· (Åbersteigt 64k um $1 Byte)
+% Error when a 16-bit program's code segment exceeds 64k bytes
+link_e_data_segment_too_large=09204_E_Data-Segment zu gro· (Åbersteigt 64k um $1 Byte)
+% Error when a 16-bit program's data segment exceeds 64k bytes
+link_e_segment_too_large=09205_E_Segment "$1" zu gro· (Åbersteigt 64k um $2 Byte)
+% Error when a 16-bit program contains a segment that exceeds 64k bytes
+link_e_group_too_large=09206_E_Gruppe "$1" zu gro· (Åbersteigt 64k um $2 Byte)
+% Error when a 16-bit program's object modules define a segment group that
+% exceeds 64k bytes
+link_e_com_program_uses_segment_relocations=09207_E_Eine .COM-Datei kann nicht erzeugt werden, weil das Programm Segement-Relocations enthÑlt
+% Error occurs, when creating a tiny model DOS .COM file, but at least one of
+% the program's object modules contains segment relocations. Segment relocations
+% might be caused by the use of the Seg() function or by the SEG assembler
+% directive (either in pascal's built-in inline assembler, or in an externally
+% linked assembly module).
 %
 % \end{description}
 # EndOfTeX
@@ -2986,7 +3029,7 @@ link_w_32bit_absolute_reloc=09201_W_Objektdatei "$1" enthÑlt eine 32-bit absolut
 #
 # Unit loading
 #
-# 10062 is the last used one
+# 10063 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3571,24 +3614,24 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Cc<x>_Setze "default calling convention" zu <x>
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstÅtzt)
 **2Ce_öbersetze mit emulierten Fliesskomma opcodes
-**2Cf<x>_WÑhle den Fliesskomma-Instruction-Set aus; fpc -i oder fpc -if geben die mîglichen Werte aus
+**2Cf<x>_WÑhle den Fliesskomma-Instruktionen-Satz aus; fpc -i oder fpc -if geben die mîglichen Werte aus
 **2CF<x>_Minimale PrÑzission von Fliesskommakonstanten (default, 32, 64)
 **2Cg_Erzeuge PIC code
 **2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
 **2Ci_I/O-PrÅfung
-A*2CI<x>_WÑhle den Instruction-Set fÅr ARM aus: ARM oder THUMB
+A*2CI<x>_WÑhle den Instruktionen-Satz fÅr ARM aus: ARM oder THUMB
 **2Cn_Lasse die Linkstufe aus
 P*2CN_Erzeuge öberprÅfungen auf Nil-Zeiger (nur AIX)
 **2Co_PrÅfe auf öberlauf von Integer-Operationen
 **2CO_PrÅfe auf mîglichen öberlauf von Integer-Operationen
-**2Cp<x>_WÑhle Instruction-Set aus; fpc -i oder fpc -ic geben die mîglichen Werte aus
+**2Cp<x>_WÑhle Instruktionen-Satz aus; fpc -i oder fpc -ic geben die mîglichen Werte aus
 **2CP<x>=<y>_ Einstellungen fÅr packing
 **3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
 **3CPPACKENUM=<y>_ <y> Packen von AufzÑhlungen: 0, 1, 2 und 4 oder DEFAULT oder NORMAL
 **3CPPACKRECORD=<y>_ <y> Packen von Records: 0 oder DEFAULT oder NORMAL, 1, 2, 4, 8, 16 und 32
 **2Cr_FÅhre BereichsprÅfung durch
 **2CR_Verifiziere die GÅltigkiet des Aufrufs der Objektmethoden
-**2Cs<n>_Setze die PrÅfgrîsse des Stacks auf <n>
+**2Cs<n>_Setze die PrÅfgrî·e des Stacks auf <n>
 **2Ct_FÅhre StackprÅfung durch (nur zum Testen, siehe Handbuch)
 8*2CT<x>_Optionen fÅr die ziel-spezifische Code-Erzeugung
 3*2CT<x>_Optionen fÅr die ziel-spezifische Code-Erzeugung
@@ -3604,6 +3647,7 @@ J*3CTautosetterprefix=X_  Erzeuge automatisch Setter fÅr Eigenschaften mit dem P
 8*3CTcld_                 Emittiere eine CLD-Instruktion vor der x86-String-Instruktion
 3*3CTcld_                 Emittiere eine CLD-Instruktion vor der x86-String-Instruktion
 4*3CTcld_                 Emittiere eine CLD-Instruktion vor der x86-String-Instruktion
+8*3CTfarprocspushoddbp_ Erhîhe BP vor dem Verschieben in den Prolog von "far"-Funktionen
 J*3CTcompactintarrayinit_ Erzeuge kleineren (aber mîglicherweise langsameren) Code fÅr die Initialisierung von Integer-Array-Konstanten
 J*3CTenumfieldinit_       Initialisiere AufzÑhlungsfelder in Konstruktoren mit enumtype(0), nach dem Aufruf geerbter Konstruktoren
 J*3CTinitlocals_          Initialisiere lokale Variablen, die einen JVM bytecode Verifikationfehler auslîsen, wenn uninitialisiert verwendet (verzîgert den Code)
@@ -3648,7 +3692,7 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 *g3godwarfsets_Schalte DWARF Debug Informationen fÅr Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
 *g3gostabsabsincludes_ Absolute/volle Include-Datei-Pfade in Stabs speichern
 *g3godwarfmethodclassprefix_ Stelle Methodennamen in DWARF den Namen der Klasse voran
-*g2gp_Erhalte Gross/Kleinschreibung in Stabs-Symbolnamen
+*g2gp_Erhalte Gro·/Kleinschreibung in Stabs-Symbolnamen
 *g2gs_Erzeuge Stabs-Debug-Informationen
 *g2gt_Lîsche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden; mehrere 't' Ñndern den Wert, mit dem Åberschrieben wird)
 *g2gv_Erzeuge ein mit Valgrind verfolgbares (traceable) Programm
@@ -3665,8 +3709,8 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 **2iV_Zeige kurze Compilerversion
 **2iW_Zeige vollstÑndige Compilerversion
 **2ia_Zeige Liste der unterstÅtzten ABI-Ziele
-**2ic_Zeige Liste der unterstÅtzten CPU-Instruction-Sets
-**2if_Zeige Liste der unterstÅtzten Fliesskomma-Instruction-Sets
+**2ic_Zeige Liste der unterstÅtzten CPU-Instruktionen-Satz
+**2if_Zeige Liste der unterstÅtzten Fliesskomma-Instruktionen-Satz
 **2ii_Zeige Liste der unterstÅtzten Inline-Assembler-Modi
 **2io_Zeige Liste der unterstÅtzten Optimierungen
 **2ir_Zeige Liste der erkannten Compiler- und RTL-Feature
@@ -3678,10 +3722,13 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 **1l_Zeige Logo
 **1M<x>_Setze Sprachmodus zu <x>
 **2Mfpc_Free Pascal Dialekt (Voreinstellung)
-**2Mobjfpc_Schalte einige Delphi 2 Erweiterungen ein
-**2Mdelphi_Versuche zu Delphi kompatibel zu sein
-**2Mtp_Versuche zu TP/BP 7.0 kompatibel zu sein
-**2Mmacpas_Versuche zu den MacIntosh Pascal-Dialekten kompatibel zu sein
+**2Mobjfpc_FPC Modus mit UnterstÅtzung von Object-Pascal
+**2Mdelphi_KompatibilitÑts-Modus fÅr Delphi
+**2Mtp_KompatibilitÑts-Modus fÅr TP/BP 7.0
+**2Mmacpas_KompatibilitÑts-Modus fÅr MacIntosh Pascal-Dialekte
+**2Miso_ISO 7185 Modus
+**2Mextendedpascal_ISO 10206 Modus
+**2Mdelphiunicode_KompatibilitÑts-Modus fÅr  Delphi 2009 und spÑter
 **1n_Standard-Konfigurationsdatei ignorieren
 **1o<x>_Die erzeugte, ausfÅhrbare Datei bekommt den Namen <x>
 **1O<x>_Optimierungen:
@@ -3700,7 +3747,7 @@ J*2Cv_Var/out Parameter copy-out öberprÅfung
 F*1P<x>_Ziel CPU / Compiler bezogene Optionen:
 F*2PB_Zeige die voreingestellte CompilerbinÑrdatei
 F*2PP_Zeige die voreingestellte Ziel-CPU
-F*2P<x>_Setze die Ziel-CPU (arm, avr, i386, jvm, m68k, mips, mipsel, powerpc, powerpc64, sparc, x86_64)
+F*2P<x>_Setze die Ziel-CPU (arm,avr,i386,i8086,jvm,m68k,mips,mipsel,powerpc,powerpc64,sparc,x86_64)
 **1R<x>_Assembler Code-Format:
 **2Rdefault_Benutze den voreingestellten Assembler
 3*2Ratt_Lese Assembler Code im AT&T-Format
@@ -3740,7 +3787,7 @@ F*2P<x>_Setze die Ziel-CPU (arm, avr, i386, jvm, m68k, mips, mipsel, powerpc, po
 3*2Tbeos_BeOS
 3*2Tdarwin_Darwin/Mac OS X
 3*2Tembedded_Embedded
-3*2Temx_OS/2 via EMX (einschliesslich EMX/RSX extender)
+3*2Temx_OS/2 via EMX (einschlie·lich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 des DJ Delorie DOS extender
 3*2Thaiku_Haiku
@@ -3806,7 +3853,7 @@ V*2Tembedded_Embedded
 **2Ur_Erzeuge "release unit"-Dateien
 **2Us_Erzeuge eine Systemunit
 **1v<x>_Meldungen, <x> ist eine Kombination der folgenden Zeichen:
-**2*_e : Fehler (Standard)             0 : Nichts (ausser Fehlern)
+**2*_e : Fehler (Standard)             0 : Nichts (au·er Fehlern)
 **2*_w : Warnungen                     u : Unit Informationen
 **2*_n : Anmerkungen                   t : Angesprochene/benutzte Dateien
 **2*_h : Hinweise                      c : Preprozessordirektiven
@@ -3831,11 +3878,11 @@ a*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 A*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 4*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 3*2WB_Erzeuge ein relozierbares Image (Windows, Symbian)
-3*2WBxxxx_Setze die Imagebasis auf xxxx (Windows, Symbian)
+3*2WB<x>_Setze die Imagebasis auf <x> (Windows, Symbian)
 4*2WB_Erzeuge ein relozierbares Image (Windows)
-4*2WBxxxx_Setze die Imagebasis auf xxxx (Windows, Symbian)
+4*2WB<x>_Setze die Imagebasis auf <x> (Windows, Symbian)
 A*2WB_Erzeuge ein relozierbares Image (Windows, Symbian)
-A*2WBxxxx_Setze die Imagebasis auf xxxx (Windows)
+A*2WB<x>_Setze die Imagebasis auf <x> (Windows)
 3*2WC_Spezifiziere "console type application" (EMX, OS/2, Windows)
 4*2WC_Spezifiziere "console type application" (Windows)
 A*2WC_Spezifiziere "console type application" (Windows)
@@ -3869,6 +3916,7 @@ A*2WI_Die Verwendung der "import"-Abschnitte ein/ausschalten (Windows)
 8*3WmMedium_Mittleres (medium) Speichermodell
 8*3WmCompact_Kompaktes (compact) Speichermodell
 8*3WmLarge_Gro·es (large) Speichermodell
+8*3WmHuge_Riesiges (huge) Speichermodell
 3*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
 4*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
 p*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
@@ -3876,9 +3924,9 @@ P*2WM<x>_Minimale Mac OS X Deployment Version: 10.4, 10.5.1, ... (Darwin)
 3*2WN_Erzeuge keinen "relocation code" (notwendig fÅr debugging) (Windows)
 4*2WN_Erzeuge keinen "relocation code" (notwendig fÅr debugging) (Windows)
 A*2WN_Erzeuge keinen "relocation code" (notwendig fÅr debugging) (Windows)
-A*2Wpxxxx_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Werte aus
-m*2Wpxxxx_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Werte aus
-V*2Wpxxxx_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu  geben mîgliche Werte aus
+A*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Werte aus
+m*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Werte aus
+V*2Wp<x>_Spezifiziere den Kontrollertyp; fpc -i oder fpc -iu geben mîgliche Werte aus
 3*2WP<x>_Minimale iOS Deployment Version: 3.0, 5.0.1, ... (iphonesim)
 4*2WP<x>_Minimale iOS Deployment Version: 8.0, 8.0.2, ... (iphonesim)
 a*2WP<x>_Minimale iOS Deployment Version: 7.0, 7.1.2, ... (Darwin)
@@ -3892,6 +3940,7 @@ A*2WR_Erzeuge "relocation code" (Windows)
 P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2WX_Ermîgliche den executable stack (Linux)
 **1X_Programm-Optionen:
+**2X9_Erzeuge Linkerscript fÅr GNU Binutils ld Ñlter als Version 2.19.1 (Linux)
 **2Xc_öbergebe --shared an den Linker (BeOS, Darwin, FreeBSD, Linux)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benîtigt fÅr cross compile, wenn nicht -XR verwendet wird)
 **2Xe_Verwende den externen Linker
@@ -3903,7 +3952,7 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **2XLO_Definiere die Reihenfolge der Bibliotheken fÅr das Linken
 **2XLD_Schlie·e die voreingestellte Reihenfolge der Standard-Bibliotheken aus
 **2Xm_Erzeuge die "link map"
-**2XM<x>_Setze den Namen der 'main' Programm-Routine (default ist 'main')
+**2XM<x>_Setze den Namen der 'main' Programm-Routine (Voreinstellung ist 'main')
 **2Xn_Nutze den plattformeigenen Linker des Zielsystem anstelle des GNU ld (Solaris, AIX)
 F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
 **2XP<x>_Stelle dem Namen der Compiler-Hilfsprogramme (binutils) den Prefix <x> voran
@@ -3913,6 +3962,7 @@ F*2Xp<x>_Suche nach der Compilerbinary zuerst im Verzeichnis <x>
 **2XS_Versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
 **2Xt_Linke mit statischen Bibliotheken              (-static wird an den Linker Åbergeben)
 **2Xv_Erzeuge eine Tabelle mit den virtuellen Entry-Aufrufen
+**2XV_Benutze VLink als externen linker              (Voreinstellung fÅr Amiga, MorphOS)
 **2XX_Versuche Units smart zu linken                 (definiert FPC_LINK_SMART)
 **1*_
 **1?_Zeigt diese Hilfe an
