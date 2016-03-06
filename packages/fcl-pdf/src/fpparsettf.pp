@@ -843,7 +843,7 @@ begin
 {$IFDEF VER3}  
   N := Default(TNameRecord);
 {$ELSE}  
-  FillChar(N,SizeOf(TNameRecord),0)
+  FillChar(N,SizeOf(TNameRecord),0);
 {$ENDIF}
   for I:=0 to Count-1 do
   begin
