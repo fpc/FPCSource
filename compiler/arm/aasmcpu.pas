@@ -872,6 +872,7 @@ implementation
                 result:=operand_write
               else
                 result:=operand_read;
+            A_VFMA,A_VFMS,A_VFNMA,A_VFNMS,
             A_BFC:
               if opnr in [0] then
                 result:=operand_readwrite
