@@ -34,6 +34,7 @@ interface
           function  GetResFlags(unsigned:Boolean):TResFlags;
           function  GetFpuResFlags:TResFlags;
        public
+          function use_fma : boolean;override;
           function pass_1 : tnode;override;
           function use_generic_mul32to64: boolean; override;
           function use_generic_mul64bit: boolean; override;
@@ -155,6 +156,12 @@ interface
           else
             internalerror(201408207);
         end;
+      end;
+
+
+    function tarmaddnode.use_fma : boolean;
+      begin
+       Result:=current_settings.fputype in [fpu_vfpv4];
       end;
 
 
