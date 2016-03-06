@@ -192,9 +192,10 @@ interface
           vardefderef : tderef;
 
           procedure setregable;
-          procedure setvardef(def:tdef);
+          procedure setvardef(const def: tdef);
+          procedure setvardef_and_regable(def:tdef);
         public
-          property vardef: tdef read _vardef write setvardef;
+          property vardef: tdef read _vardef write setvardef_and_regable;
       end;
 
       tfieldvarsym = class(tabstractvarsym)
@@ -1616,16 +1617,12 @@ implementation
 
 
     procedure tabstractvarsym.deref;
-      var
-        oldvarregable: tvarregable;
       begin
-        { setting the vardef also updates varregable. We just loaded this }
+        { assigning vardef also updates varregable. We just loaded this   }
         { value from a ppu, so it must not be changed (e.g. tw7817a.pp/   }
         { tw7817b.pp: the address is taken of a local variable in an      }
         { inlined procedure -> must remain non-regable when inlining)     }
-        oldvarregable:=varregable;
-        vardef:=tdef(vardefderef.resolve);
-        varregable:=oldvarregable;
+        setvardef(tdef(vardefderef.resolve));
       end;
 
 
@@ -1691,9 +1688,9 @@ implementation
       end;
 
 
-    procedure tabstractvarsym.setvardef(def:tdef);
+    procedure tabstractvarsym.setvardef_and_regable(def:tdef);
       begin
-        _vardef := def;
+        setvardef(def);
          setregable;
       end;
 
@@ -1733,6 +1730,12 @@ implementation
                   varregable:=vr_fpureg;
               end;
           end;
+      end;
+
+
+    procedure tabstractvarsym.setvardef(const def: tdef);
+      begin
+        _vardef := def;
       end;
 
 
