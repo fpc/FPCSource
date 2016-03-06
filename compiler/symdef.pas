@@ -2116,8 +2116,8 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                not trecorddef(self).contains_cross_aword_field and
                 ((recsize<=sizeof(aint)*2) and
+                 not trecorddef(self).contains_cross_aword_field and
                  { records cannot go into registers on 16 bit targets for now }
                  (sizeof(aint)>2) and
                  (not trecorddef(self).contains_float_field) or
