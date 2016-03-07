@@ -3147,7 +3147,7 @@ end;
                               Callable Routines
 ****************************************************************************}
 
-function check_configfile(const fn:string;var foundfn:string):boolean;
+function check_configfile(fn:string; var foundfn:string):boolean;
 
   function CfgFileExists(const fn:string):boolean;
   begin
