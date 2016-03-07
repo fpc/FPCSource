@@ -4385,6 +4385,7 @@ implementation
              trecordsymtable(symtable).recordalignmin:=shortint(ppufile.getbyte);
              trecordsymtable(symtable).datasize:=ppufile.getasizeint;
              trecordsymtable(symtable).paddingsize:=ppufile.getword;
+             ppufile.getsmallset(trecordsymtable(symtable).managementoperators);
              trecordsymtable(symtable).ppuload(ppufile);
              { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
                but because iso mode supports no units, there is no need to store the variantrecdesc
@@ -4423,7 +4424,8 @@ implementation
 
     function trecorddef.needs_inittable : boolean;
       begin
-        needs_inittable:=trecordsymtable(symtable).needs_init_final
+        needs_inittable:=(trecordsymtable(symtable).managementoperators<>[]) or
+          trecordsymtable(symtable).needs_init_final
       end;
 
     function trecorddef.needs_separate_initrtti : boolean;
@@ -4510,6 +4512,7 @@ implementation
              ppufile.putbyte(byte(trecordsymtable(symtable).recordalignmin));
              ppufile.putasizeint(trecordsymtable(symtable).datasize);
              ppufile.putword(trecordsymtable(symtable).paddingsize);
+             ppufile.putsmallset(trecordsymtable(symtable).managementoperators);
              { the variantrecdesc is needed only for iso-like new statements new(prec,1,2,3 ...);
                but because iso mode supports no units, there is no need to store the variantrecdesc
                in the ppu

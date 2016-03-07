@@ -840,6 +840,51 @@ implementation
         end;
 
         procedure recorddef_rtti(def:trecorddef);
+
+          procedure write_record_operators;
+          var
+            rttilab: Tasmsymbol;
+            rttidef: tdef;
+            tcb: ttai_typedconstbuilder;
+            mop: tmanagementoperator;
+            procdef: tprocdef;
+          begin
+            rttilab := current_asmdata.DefineAsmSymbol(
+                internaltypeprefixName[itp_init_record_operators]+def.rtti_mangledname(rt),
+                AB_GLOBAL,AT_DATA);
+            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+
+            tcb.begin_anonymous_record(
+              rttilab.Name,
+              defaultpacking,reqalign,
+              targetinfos[target_info.system]^.alignment.recordalignmin,
+              targetinfos[target_info.system]^.alignment.maxCrecordalign
+            );
+
+            { use "succ" to omit first enum item "mop_none" }
+            for mop := succ(low(tmanagementoperator)) to high(tmanagementoperator) do
+            begin
+              if not (mop in trecordsymtable(def.symtable).managementoperators) then
+                tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype)
+              else
+                begin
+                  procdef := search_management_operator(mop, def);
+                  if procdef = nil then
+                    internalerror(201603021)
+                  else
+                    tcb.emit_tai(Tai_const.Createname(procdef.mangledname,AT_FUNCTION,0),
+                      cprocvardef.getreusableprocaddr(procdef));
+                end;
+            end;
+
+            rttidef := tcb.end_anonymous_record;
+
+            current_asmdata.AsmLists[al_rtti].concatList(
+              tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,
+              const_align(sizeof(pint))));
+            tcb.free;
+          end;
+
         begin
            write_header(tcb,def,tkRecord);
            { need extra reqalign record, because otherwise the u32 int will
@@ -849,8 +894,33 @@ implementation
              targetinfos[target_info.system]^.alignment.recordalignmin,
              targetinfos[target_info.system]^.alignment.maxCrecordalign);
            tcb.emit_ord_const(def.size,u32inttype);
+
+           { store rtti management operators only for init table }
+           if (rt=initrtti) then
+           begin
+             tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype);
+             if (trecordsymtable(def.symtable).managementoperators=[]) then
+               tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype)
+             else
+               tcb.emit_tai(Tai_const.Createname(
+                 internaltypeprefixName[itp_init_record_operators]+def.rtti_mangledname(rt),AT_DATA,0),voidpointertype);
+           end else
+           begin
+             Include(def.defstates, ds_init_table_used);
+             write_rtti_reference(tcb,def,initrtti);
+           end;
+
            fields_write_rtti_data(tcb,def,rt);
            tcb.end_anonymous_record;
+
+           { write pointers to operators if needed }
+           if (rt=initrtti) and (trecordsymtable(def.symtable).managementoperators<>[]) then
+             write_record_operators;
+
+           { guarantee initrtti for any record for fpc_initialize, fpc_finalize, fpc_copy and fpc_addref }
+           if (rt = fullrtti) and (ds_init_table_used in def.defstates) and
+              not (ds_init_table_written in def.defstates) then
+             write_rtti(def, initrtti);
         end;
 
 
@@ -1033,6 +1103,10 @@ implementation
           procedure objectdef_rtti_fields(def:tobjectdef);
           begin
             tcb.emit_ord_const(def.size, u32inttype);
+            { inittable terminator for vmt vInitTable }
+            tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype);
+            { pointer to management operators }
+            tcb.emit_tai(Tai_const.Create_nil_codeptr,voidpointertype);
             { enclosing record takes care of alignment }
             fields_write_rtti_data(tcb,def,rt);
           end;

@@ -39,6 +39,11 @@ interface
         op_overloading_supported : boolean;
       end;
 
+      Ttok2opRec=record
+        tok : ttoken;
+        managementoperator: tmanagementoperator;
+      end;
+
       pcandidate = ^tcandidate;
       tcandidate = record
          next         : pcandidate;
@@ -132,10 +137,17 @@ interface
         (tok:_OP_DEC     ;nod:inlinen;inr:in_dec_x;op_overloading_supported:true) { unary overloading supported }
       );
 
+      tok2ops=2;
+      tok2op: array[1..tok2ops] of ttok2oprec = (
+        (tok:_OP_INITIALIZE; managementoperator: mop_initialize),
+        (tok:_OP_FINALIZE  ; managementoperator: mop_finalize)
+      );
+
       { true, if we are parsing stuff which allows array constructors }
       allow_array_constructor : boolean = false;
 
     function node2opstr(nt:tnodetype):string;
+    function token2managementoperator(optoken : ttoken): tmanagementoperator;
 
     { check operator args and result type }
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
@@ -217,6 +229,18 @@ implementation
             end;
        end;
 
+    function token2managementoperator(optoken: ttoken): tmanagementoperator;
+    var
+      i : integer;
+    begin
+      result:=mop_none;
+      for i:=1 to tok2ops do
+        if tok2op[i].tok=optoken then
+          begin
+            result:=tok2op[i].managementoperator;
+            break;
+          end;
+     end;
 
     function isbinaryoperatoroverloadable(treetyp:tnodetype;ld:tdef;lt:tnodetype;rd:tdef;rt:tnodetype) : boolean;
 

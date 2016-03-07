@@ -327,6 +327,9 @@
 
       class function TObject.InitInstance(instance : pointer) : tobject; {$ifdef SYSTEMINLINE} inline; {$ENDIF}
 
+        var
+           vmt  : PVmt;
+           temp : pointer;
         begin
            { the size is saved at offset 0 }
            fillchar(instance^, InstanceSize, 0);
@@ -335,6 +338,19 @@
            ppointer(instance)^:=pointer(self);
            if PVmt(self)^.vIntfTable <> @emptyintf then
              InitInterfacePointers(self,instance);
+
+           { for record operators like initialize/finalize call int_initialize }
+           vmt := PVmt(self);
+           while vmt<>nil do
+             begin
+               Temp:= vmt^.vInitTable;
+               { The RTTI format matches one for records, except the type is tkClass.
+                 Since RecordRTTI does not check the type, calling it yields the desired result. }
+               if Assigned(Temp) then
+                 RecordRTTI(Instance,Temp,@int_initialize);
+               vmt:= vmt^.vParent;
+             end;
+
            InitInstance:=TObject(Instance);
         end;
 

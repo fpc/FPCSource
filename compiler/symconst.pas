@@ -572,6 +572,15 @@ type
   );
   tvaroptions=set of tvaroption;
 
+  tmanagementoperator=(mop_none,
+    mop_initialize,
+    mop_finalize,
+    { reserved for future usage }
+    mop_addref,
+    mop_copy
+  );
+  tmanagementoperators=set of tmanagementoperator;
+
   { register variable }
   tvarregable=(vr_none,
     vr_intreg,
@@ -690,6 +699,7 @@ type
     itp_rtti_normal_array,
     itp_rtti_dyn_array,
     itp_rtti_proc_param,
+    itp_init_record_operators,
     itp_threadvar_record,
     itp_objc_method_list,
     itp_objc_proto_list,
@@ -826,6 +836,7 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_normal_array$',
        '$rtti_dyn_array$',
        '$rtti_proc_param$',
+       '$init_record_operators$',
        '$threadvar_record$',
        '$objc_method_list$',
        '$objc_proto_list$',
