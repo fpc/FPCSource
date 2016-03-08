@@ -306,6 +306,7 @@ end;
 destructor TDecoratorTestSuite.Destroy;
 begin
   FreeDecorators(Self);
+  // We need to find something for this.
   Tests.Clear;
   inherited Destroy;
 end;
