@@ -214,7 +214,7 @@ var
   p : string;
 begin
   Result := Prefix+ASuite.TestName+System.sLineBreak;
-  for i := 0 to aSuite.CountTestCases - 1 do
+  for i := 0 to aSuite.ChildTestCount - 1 do
     if aSuite.Test[i] is TTestSuite then
       begin
       P:=Prefix;

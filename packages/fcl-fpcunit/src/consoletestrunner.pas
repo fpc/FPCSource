@@ -295,8 +295,8 @@ Var
   I : Integer;
 begin
   If (T is TTestSuite) then
-    for I:=0 to TTestSuite(t).Tests.Count-1 do
-      FreeDecorators(TTest(TTestSuite(t).Tests[i]));
+    for I:=0 to TTestSuite(t).ChildTestCount-1 do
+      FreeDecorators(TTest(TTestSuite(t).Test[i]));
   if (T is TTestDecorator) and (TTestDecorator(T).Test is TDecoratorTestSuite) then
     T.free;
 end;
@@ -339,7 +339,7 @@ procedure TTestRunner.DoRun;
         begin
         if (test is ttestsuite) then
           begin
-          for I := 0 to TTestSuite(test).Tests.Count - 1 do
+          for I := 0 to TTestSuite(test).ChildTestCount - 1 do
              CheckTestRegistry ((test as TTestSuite).Test[I], c, res)
           end
         else if (test is TTestDecorator) then
@@ -391,7 +391,7 @@ begin
     S := '';
     S := GetOptionValue('suite');
     if S = '' then
-      for I := 0 to GetTestRegistry.Tests.Count - 1 do
+      for I := 0 to GetTestRegistry.ChildTestCount - 1 do
         writeln(GetTestRegistry[i].TestName)
     else
       begin
@@ -402,13 +402,13 @@ begin
             P:=Pos(',',S);
             if P = 0 Then
               begin
-                for I := 0 to GetTestRegistry.Tests.count-1 do
+                for I := 0 to GetTestRegistry.ChildTestCount-1 do
                   CheckTestRegistry (GetTestregistry[I], S, TS);
                 S := '';
               end
             else
               begin
-                for I := 0 to GetTestRegistry.Tests.count-1 do
+                for I := 0 to GetTestRegistry.ChildTestCount-1 do
                   CheckTestRegistry (GetTestregistry[I],Copy(S, 1,P - 1), TS);
                 Delete(S, 1, P);
               end;

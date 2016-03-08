@@ -257,7 +257,7 @@ var
 begin
   Result := TLatexResultsWriter.EscapeText(aSuite.TestSuiteName) + System.sLineBreak;
   Result := Result + '\begin{itemize}'+ System.sLineBreak;
-  for i := 0 to aSuite.CountTestCases - 1 do
+  for i := 0 to aSuite.ChildTestCount - 1 do
     if ASuite.Test[i] is TTestSuite then
       begin
       Result:=Result + '\item[-] ';

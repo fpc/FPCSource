@@ -112,7 +112,7 @@ begin
     end
   else
     E:=N;
-  for i:=0 to Pred(aSuite.CountTestCases) do
+  for i:=0 to Pred(aSuite.ChildTestCount) do
     if TTest(aSuite.Test[i]) is TTestSuite then
       TestSuiteAsXML(E, FDoc, TTestSuite(aSuite.Test[i]))
     else
