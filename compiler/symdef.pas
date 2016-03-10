@@ -1215,6 +1215,7 @@ implementation
     function getansistringdef:tstringdef;
       var
         symtable:tsymtable;
+        oldstack : tsymtablestack;
       begin
         { if a codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
@@ -1231,9 +1232,16 @@ implementation
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
+                { create a temporary stack as it's not good (TM) to mess around
+                  with the order if the unit contains generics or helpers; don't
+                  use a def aware symtablestack though }
+                oldstack:=symtablestack;
+                symtablestack:=tsymtablestack.create;
                 symtablestack.push(symtable);
                 current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
                 symtablestack.pop(symtable);
+                symtablestack.free;
+                symtablestack:=oldstack;
               end;
             result:=tstringdef(current_module.ansistrdef);
           end
