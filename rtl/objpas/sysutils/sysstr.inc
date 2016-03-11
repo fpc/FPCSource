@@ -347,7 +347,7 @@ end;
 
 function GenericAnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 
-Var I : cardinal;
+Var I : PtrUInt;
 
 begin
   Result:=0;
@@ -375,7 +375,7 @@ end;
 
 function GenericAnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 
-Var I : cardinal;
+Var I : PtrUInt;
 
 begin
   Result:=0;
