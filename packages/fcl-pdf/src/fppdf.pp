@@ -2713,10 +2713,17 @@ end;
 function TPDFDocument.IndexOfGlobalXRef(const AValue: string): integer;
 var
   i: integer;
+  p : TPDFObject;
 begin
-  for i:=1 to Pred(FGlobalXRefs.Count) do
-    if TPDFName(GetX(i).Dict.Elements[0].Value).Name=AValue then
+  Result:=-1;
+  I:=0;
+  While (Result=-1) and (I<FGlobalXRefs.Count) do
+    begin
+    p:=GetX(i).Dict.Elements[0].Value;
+    if (p is TPDFName) and (TPDFName(p).Name=AValue) then
       Result:=i;
+    Inc(I);    
+    end;
 end;
 
 function TPDFDocument.FindGlobalXRef(const AName: String): TPDFXRef;
