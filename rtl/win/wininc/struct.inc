@@ -1607,19 +1607,46 @@ Const
      TCREATETHREADDEBUGINFO = CREATE_THREAD_DEBUG_INFO;
      PCREATETHREADDEBUGINFO = ^CREATE_THREAD_DEBUG_INFO;
 
-     CURRENCYFMT = record
-          NumDigits : UINT;
-          LeadingZero : UINT;
-          Grouping : UINT;
-          lpDecimalSep : LPTSTR;
-          lpThousandSep : LPTSTR;
+     CURRENCYFMTA = record
+          NumDigits     : UINT;
+          LeadingZero   : UINT;
+          Grouping      : UINT;
+          lpDecimalSep  : LPSTR;
+          lpThousandSep : LPSTR;
           NegativeOrder : UINT;
           PositiveOrder : UINT;
-          lpCurrencySymbol : LPTSTR;
+          lpCurrencySymbol : LPSTR;
        end;
-     _currencyfmt = CURRENCYFMT;
-     Tcurrencyfmt = CURRENCYFMT;
-     Pcurrencyfmt = ^CURRENCYFMT;
+     _currencyfmtA = CURRENCYFMTA;
+     TcurrencyfmtA = CURRENCYFMTA;
+     PcurrencyfmtA = ^CURRENCYFMTA;
+
+     CURRENCYFMTW = record
+          NumDigits     : UINT;
+          LeadingZero   : UINT;
+          Grouping      : UINT;
+          lpDecimalSep  : LPWSTR;
+          lpThousandSep : LPWSTR;
+          NegativeOrder : UINT;
+          PositiveOrder : UINT;
+          lpCurrencySymbol : LPWSTR;
+       end;
+
+     _CURRENCYFMTW = CURRENCYFMTW;
+     TCURRENCYFMTW = CURRENCYFMTW;
+     PCURRENCYFMTW = ^CURRENCYFMTW;
+
+     {$ifdef Unicode}
+     _CURRENCYFMT  = CURRENCYFMTW;
+     CURRENCYFMT   = CURRENCYFMTW;
+     TCURRENCYFMT  = CURRENCYFMTW;
+     PCURRENCYFMT  = ^CURRENCYFMTW;
+     {$else}
+     _CURRENCYFMT  = CURRENCYFMTA;
+     CURRENCYFMT   = CURRENCYFMTA;
+     TCURRENCYFMT  = CURRENCYFMTA;
+     PCURRENCYFMT  = ^CURRENCYFMTA;
+     {$endif}
 
      CURSORSHAPE = record
           xHotSpot : longint;
@@ -2292,16 +2319,35 @@ Const
      TDOCINFO2 = DOC_INFO_2;
      PDOCINFO2 = ^DOC_INFO_2;
 
-     DOCINFO = record
+     DOCINFOA = record
           cbSize : longint;
-          lpszDocName : LPCTSTR;
-          lpszOutput : LPCTSTR;
-          lpszDatatype : LPCTSTR;
+          lpszDocName  : LPCSTR;
+          lpszOutput   : LPCSTR;
+          lpszDatatype : LPCSTR;
           fwType : DWORD;
        end;
-     TDOCINFO = DOCINFO;
-     TDOCINFOA = DOCINFO;
-     PDOCINFO = ^DOCINFO;
+     TDOCINFOA = DOCINFOA;
+     PDOCINFOa = ^DOCINFOA;
+
+     DOCINFOW = record
+          cbSize : longint;
+          lpszDocName  : LPCWSTR;
+          lpszOutput   : LPCWSTR;
+          lpszDatatype : LPCWSTR;
+          fwType : DWORD;
+       end;
+     TDOCINFOW = DOCINFOW;
+     PDOCINFOW = ^DOCINFOW;
+
+     {$ifdef Unicode}
+     DOCINFO   = DOCINFOW;
+     TDOCINFO  = DOCINFOW;
+     PDOCINFO  = ^DOCINFOW;
+     {$else}
+     DOCINFO   = DOCINFOA;
+     TDOCINFO  = DOCINFOA;
+     PDOCINFO  = ^DOCINFOA;
+     {$endif}
 
      DRAGLISTINFO = record
           uNotification : UINT;
@@ -3614,16 +3660,6 @@ Const
      TSERVICESTATUS = SERVICE_STATUS;
      PSERVICESTATUS = ^SERVICE_STATUS;
 
-     ENUM_SERVICE_STATUS = record
-          lpServiceName : LPTSTR;
-          lpDisplayName : LPTSTR;
-          ServiceStatus : SERVICE_STATUS;
-       end;
-     LPENUM_SERVICE_STATUS = ^ENUM_SERVICE_STATUS;
-     _ENUM_SERVICE_STATUS = ENUM_SERVICE_STATUS;
-     TENUMSERVICESTATUS = ENUM_SERVICE_STATUS;
-     PENUMSERVICESTATUS = ^ENUM_SERVICE_STATUS;
-
      ENUM_SERVICE_STATUSA= record
           lpServiceName : LPSTR;
           lpDisplayName : LPSTR;
@@ -3644,35 +3680,90 @@ Const
      TENUMSERVICESTATUSW    = ENUM_SERVICE_STATUSW;
      PENUMSERVICESTATUSW    = ^ENUM_SERVICE_STATUSW;
 
-     ENUMLOGFONT = record
-          elfLogFont : LOGFONT;
-          elfFullName : array[0..(LF_FULLFACESIZE)-1] of TCHAR;
-          elfStyle : array[0..(LF_FACESIZE)-1] of TCHAR;
-       end;
-     tagENUMLOGFONT = ENUMLOGFONT;
-     TENUMLOGFONT = ENUMLOGFONT;
-     PENUMLOGFONT = ^ENUMLOGFONT;
+     {$ifdef Unicode}
+     LPENUM_SERVICE_STATUS = ^ENUM_SERVICE_STATUSW;
+     _ENUM_SERVICE_STATUS  = ENUM_SERVICE_STATUSW;
+     TENUMSERVICESTATUS    = ENUM_SERVICE_STATUSW;
+     ENUMSERVICESTATUS     = ENUM_SERVICE_STATUSW;
+     PENUMSERVICESTATUS    = ^ENUM_SERVICE_STATUSW;
+     {$else}
+     LPENUM_SERVICE_STATUS = ^ENUM_SERVICE_STATUSA;
+     _ENUM_SERVICE_STATUS  = ENUM_SERVICE_STATUSA;
+     TENUMSERVICESTATUS    = ENUM_SERVICE_STATUSA;
+     ENUMSERVICESTATUS     = ENUM_SERVICE_STATUSA;
+     PENUMSERVICESTATUS    = ^ENUM_SERVICE_STATUSA;
+     {$endif}
 
-     ENUMLOGFONTEX = record
-          elfLogFont : LOGFONT;
-          elfFullName : array[0..(LF_FULLFACESIZE)-1] of TCHAR;
-          elfStyle : array[0..(LF_FACESIZE)-1] of TCHAR;
-          elfScript : array[0..(LF_FACESIZE)-1] of TCHAR;
+     ENUMLOGFONTA = record
+          elfLogFont : LOGFONTA;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of AnsiCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of AnsiCHAR;
        end;
-     tagENUMLOGFONTEX = ENUMLOGFONTEX;
-     TENUMLOGFONTEX = ENUMLOGFONTEX;
-     PENUMLOGFONTEX = ^ENUMLOGFONTEX;
-  {
-    Then follow:
+     tagENUMLOGFONTA =  ENUMLOGFONTA;
+     TENUMLOGFONTA   =  ENUMLOGFONTA;
+     PENUMLOGFONTA   = ^ENUMLOGFONTA;
 
-    TCHAR SourceName[]
-    TCHAR Computername[]
-    SID   UserSid
-    TCHAR Strings[]
-    BYTE  Data[]
-    CHAR  Pad[]
-    DWORD Length;
-   }
+     ENUMLOGFONTW = record
+          elfLogFont : LOGFONTW;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of WCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of WCHAR;
+       end;
+     tagENUMLOGFONTW = ENUMLOGFONTW;
+     TENUMLOGFONTW   = ENUMLOGFONTW;
+     PENUMLOGFONTW   = ^ENUMLOGFONTW;
+     {$ifdef Unicode}
+     tagENUMLOGFONT  = ENUMLOGFONTW;
+     TENUMLOGFONT    = ENUMLOGFONTW;
+     ENUMLOGFONT     = ENUMLOGFONTW;
+     PENUMLOGFONT    = ^ENUMLOGFONTW;
+     {$else}
+     tagENUMLOGFONT  = ENUMLOGFONTA;
+     TENUMLOGFONT    = ENUMLOGFONTA;
+     ENUMLOGFONT     = ENUMLOGFONTA;
+     PENUMLOGFONT    = ^ENUMLOGFONTA;
+     {$endif}
+     ENUMLOGFONTEXA = record
+          elfLogFont : LOGFONTA;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of AnsiCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of AnsiCHAR;
+          elfScript : array[0..(LF_FACESIZE)-1] of AnsiCHAR;
+       end;
+     tagENUMLOGFONTEXA = ENUMLOGFONTEXA;
+     TENUMLOGFONTEXA   = ENUMLOGFONTEXA;
+     PENUMLOGFONTEXA   = ^ENUMLOGFONTEXA;
+
+     ENUMLOGFONTEXW = record
+          elfLogFont : LOGFONTW;
+          elfFullName : array[0..(LF_FULLFACESIZE)-1] of WCHAR;
+          elfStyle : array[0..(LF_FACESIZE)-1] of WCHAR;
+          elfScript : array[0..(LF_FACESIZE)-1] of WCHAR;
+       end;
+          {
+            Then follow:
+
+            TCHAR SourceName[]
+            TCHAR Computername[]
+            SID   UserSid
+            TCHAR Strings[]
+            BYTE  Data[]
+            CHAR  Pad[]
+            DWORD Length;
+           }
+     tagENUMLOGFONTEXW = ENUMLOGFONTEXW;
+     TENUMLOGFONTEXW   = ENUMLOGFONTEXW;
+     PENUMLOGFONTEXW   = ^ENUMLOGFONTEXW;
+
+     {$ifdef Unicode}
+     tagENUMLOGFONTEX  = ENUMLOGFONTEXW;
+     ENUMLOGFONTEX     = ENUMLOGFONTEXW;
+     TENUMLOGFONTEX    = ENUMLOGFONTEXW;
+     PENUMLOGFONTEX    = ^ENUMLOGFONTEXW;
+     {$else}
+     tagENUMLOGFONTEX  = ENUMLOGFONTEXA;
+     ENUMLOGFONTEX     = ENUMLOGFONTEXA;
+     TENUMLOGFONTEX    = ENUMLOGFONTEXA;
+     PENUMLOGFONTEX    = ^ENUMLOGFONTEXA;
+     {$endif}
 
      EVENTLOGRECORD = record
           Length : DWORD;
@@ -3940,9 +4031,9 @@ Const
      Tformatrange = FORMATRANGE;
      Pformatrange = ^FORMATRANGE;
 
-     GCP_RESULTS = record
+     GCP_RESULTSA = record
           lStructSize : DWORD;
-          lpOutString : LPTSTR;
+          lpOutString : LPSTR;
           lpOrder : ^UINT;
           lpDx : ^WINT;
           lpCaretPos : ^WINT;
@@ -3951,10 +4042,40 @@ Const
           nGlyphs : UINT;
           nMaxFit : WINT;
        end;
-     LPGCP_RESULTS = ^GCP_RESULTS;
-     tagGCP_RESULTS = GCP_RESULTS;
-     TGCPRESULTS = GCP_RESULTS;
-     PGCPRESULTS = ^GCP_RESULTS;
+     LPGCP_RESULTSA = ^GCP_RESULTSA;
+     tagGCP_RESULTSA= GCP_RESULTSA;
+     TGCPRESULTSA   = GCP_RESULTSA;
+     PGCPRESULTSA   = ^GCP_RESULTSA;
+
+     GCP_RESULTSW = record
+          lStructSize : DWORD;
+          lpOutString : LPWSTR;
+          lpOrder : ^UINT;
+          lpDx : ^WINT;
+          lpCaretPos : ^WINT;
+          lpClass : LPSTR;           { Unicode-independent, i.e. not LPTSTR }
+          lpGlyphs : LPWSTR;         { Unicode-independent }
+          nGlyphs : UINT;
+          nMaxFit : WINT;
+       end;
+     LPGCP_RESULTSW  = ^GCP_RESULTSW;
+     tagGCP_RESULTSW = GCP_RESULTSW;
+     TGCPRESULTSW    = GCP_RESULTSW;
+     PGCPRESULTSW    = ^GCP_RESULTSW;
+
+     {$ifdef Unicode}
+     LPGCP_RESULTS   = ^GCP_RESULTSW;
+     tagGCP_RESULTS  = GCP_RESULTSW;
+     TGCPRESULTS     = GCP_RESULTSW;
+     GCPRESULTS      = GCP_RESULTSW;
+     PGCPRESULTS     = ^GCP_RESULTSW;
+     {$else}
+     LPGCP_RESULTS   = ^GCP_RESULTSA;
+     tagGCP_RESULTS  = GCP_RESULTSA;
+     TGCPRESULTS     = GCP_RESULTSA;
+     GCPRESULTS      = GCP_RESULTSA;
+     PGCPRESULTS     = ^GCP_RESULTSA;
+     {$endif}
 
      GENERIC_MAPPING = record
           GenericRead : ACCESS_MASK;
@@ -5078,22 +5199,49 @@ Const
      TNDDESHAREINFO = NDDESHAREINFO;
      PNDDESHAREINFO = ^NDDESHAREINFO;
 
-     NETRESOURCE = record
+     NETRESOURCEA = record
           dwScope : DWORD;
           dwType : DWORD;
           dwDisplayType : DWORD;
           dwUsage : DWORD;
-          lpLocalName : LPTSTR;
-          lpRemoteName : LPTSTR;
-          lpComment : LPTSTR;
-          lpProvider : LPTSTR;
+          lpLocalName : LPSTR;
+          lpRemoteName : LPSTR;
+          lpComment : LPSTR;
+          lpProvider : LPSTR;
        end;
-     LPNETRESOURCE = ^NETRESOURCE;
-     _NETRESOURCE = NETRESOURCE;
-     TNETRESOURCE = NETRESOURCE;
-     TNETRESOURCEA = NETRESOURCE;
-     PNETRESOURCE = ^NETRESOURCE;
-     PNETRESOURCEA = ^NETRESOURCE;
+     LPNETRESOURCEA = ^NETRESOURCEA;
+     _NETRESOURCEA  = NETRESOURCEA;
+     TNETRESOURCEA  = NETRESOURCEA;
+     PNETRESOURCEA  = ^NETRESOURCEA;
+
+     NETRESOURCEW = record
+          dwScope : DWORD;
+          dwType : DWORD;
+          dwDisplayType : DWORD;
+          dwUsage : DWORD;
+          lpLocalName : LPWSTR;
+          lpRemoteName : LPWSTR;
+          lpComment : LPWSTR;
+          lpProvider : LPWSTR;
+       end;
+     LPNETRESOURCEW = ^NETRESOURCEW;
+     _NETRESOURCEW = NETRESOURCEW;
+     TNETRESOURCEW = NETRESOURCEW;
+     PNETRESOURCEW = ^NETRESOURCEW;
+
+     {$ifdef Unicode}
+     LPNETRESOURCE = ^NETRESOURCEW;
+     _NETRESOURCE  = NETRESOURCEW;
+     TNETRESOURCE  = NETRESOURCEW;
+     NETRESOURCE   = NETRESOURCEW;
+     PNETRESOURCE  = ^NETRESOURCEW;
+     {$else}
+     LPNETRESOURCE = ^NETRESOURCEA;
+     _NETRESOURCE  = NETRESOURCEA;
+     TNETRESOURCE  = NETRESOURCEA;
+     NETRESOURCE   = NETRESOURCEA;
+     PNETRESOURCE  = ^NETRESOURCEA;
+     {$endif}
 
      NEWCPLINFOA = record
           dwSize : DWORD;
@@ -5379,17 +5527,41 @@ Const
      TNSSERVICEINFO = NS_SERVICE_INFO;
      PNSSERVICEINFO = ^NS_SERVICE_INFO;
 
-     NUMBERFMT = record
+     NUMBERFMTA = record
           NumDigits : UINT;
           LeadingZero : UINT;
           Grouping : UINT;
-          lpDecimalSep : LPTSTR;
-          lpThousandSep : LPTSTR;
+          lpDecimalSep : LPSTR;
+          lpThousandSep : LPSTR;
           NegativeOrder : UINT;
        end;
-     _numberfmt = NUMBERFMT;
-     Tnumberfmt = NUMBERFMT;
-     Pnumberfmt = ^NUMBERFMT;
+     _numberfmtA = NUMBERFMTA;
+     TnumberfmtA = NUMBERFMTA;
+     PnumberfmtA = ^NUMBERFMTA;
+
+     NUMBERFMTW = record
+          NumDigits : UINT;
+          LeadingZero : UINT;
+          Grouping : UINT;
+          lpDecimalSep : LPWSTR;
+          lpThousandSep : LPWSTR;
+          NegativeOrder : UINT;
+       end;
+     _numberfmtW = NUMBERFMTW;
+     TnumberfmtW = NUMBERFMTW;
+     PnumberfmtW = ^NUMBERFMTW;
+
+     {$ifdef Unicode}
+     _NUMBERFMT = NUMBERFMTW;
+     TNUMBERFMT = NUMBERFMTW;
+     NUMBERFMT  = NUMBERFMTW;
+     PNUMBERFMT = ^NUMBERFMTW;
+     {$else}
+     _NUMBERFMT = NUMBERFMTA;
+     TNUMBERFMT = NUMBERFMTA;
+     NUMBERFMT  = NUMBERFMTA;
+     PNUMBERFMT = ^NUMBERFMTA;
+     {$endif}
 
      OFSTRUCT = record
           cBytes : BYTE;
@@ -5571,7 +5743,6 @@ Const
      _TEXTMETRICW   = TEXTMETRICW;
      TTEXTMETRICW = TEXTMETRICW;
      PTEXTMETRICW = ^TEXTMETRICW;
-
 
      {$IFNDEF UNICODE}
        LPTEXTMETRIC       = ^TEXTMETRICA;
@@ -5823,18 +5994,43 @@ Const
      TPERFOBJECTTYPE = PERF_OBJECT_TYPE;
      PPERFOBJECTTYPE = ^PERF_OBJECT_TYPE;
 
-     POLYTEXT = record
+     POLYTEXTA = record
           x : longint;
           y : longint;
           n : UINT;
-          lpstr : LPCTSTR;
+          lpstr : LPCSTR;
           uiFlags : UINT;
           rcl : RECT;
           pdx : ^longint;
        end;
-     _POLYTEXT = POLYTEXT;
-     TPOLYTEXT = POLYTEXT;
-     PPOLYTEXT = ^POLYTEXT;
+     _POLYTEXTA = POLYTEXTA;
+     TPOLYTEXTA = POLYTEXTA;
+     PPOLYTEXTA = ^POLYTEXTA;
+
+     POLYTEXTW = record
+          x : longint;
+          y : longint;
+          n : UINT;
+          lpstr : LPCWSTR;
+          uiFlags : UINT;
+          rcl : RECT;
+          pdx : ^longint;
+       end;
+     _POLYTEXTW = POLYTEXTW;
+     TPOLYTEXTW = POLYTEXTW;
+     PPOLYTEXTW = ^POLYTEXTW;
+
+     {$ifdef unicode}
+     _POLYTEXT = POLYTEXTW;
+     TPOLYTEXT = POLYTEXTW;
+     POLYTEXT  = POLYTEXTW;
+     PPOLYTEXT = ^POLYTEXTW;
+     {$else}
+     _POLYTEXT = POLYTEXTA;
+     TPOLYTEXT = POLYTEXTA;
+     POLYTEXT  = POLYTEXTA;
+     PPOLYTEXT = ^POLYTEXTA;
+     {$endif}
 
      PORT_INFO_1 = record
           pName : LPTSTR;
@@ -6228,17 +6424,6 @@ Const
      TQUERYSERVICECONFIGW    = QUERY_SERVICE_CONFIGW;
      PQUERYSERVICECONFIGW    = ^QUERY_SERVICE_CONFIGW;
 
-
-     QUERY_SERVICE_LOCK_STATUS = record
-          fIsLocked : DWORD;
-          lpLockOwner : LPTSTR;
-          dwLockDuration : DWORD;
-       end;
-     LPQUERY_SERVICE_LOCK_STATUS = ^QUERY_SERVICE_LOCK_STATUS;
-     _QUERY_SERVICE_LOCK_STATUS = QUERY_SERVICE_LOCK_STATUS;
-     TQUERYSERVICELOCKSTATUS = QUERY_SERVICE_LOCK_STATUS;
-     PQUERYSERVICELOCKSTATUS = ^QUERY_SERVICE_LOCK_STATUS;
-
      QUERY_SERVICE_LOCK_STATUSA = record
           fIsLocked : DWORD;
           lpLockOwner : LPSTR;
@@ -6258,6 +6443,19 @@ Const
      _QUERY_SERVICE_LOCK_STATUSW = QUERY_SERVICE_LOCK_STATUSW;
      TQUERYSERVICELOCKSTATUSW = QUERY_SERVICE_LOCK_STATUSW;
      PQUERYSERVICELOCKSTATUSW = ^QUERY_SERVICE_LOCK_STATUSW;
+     {$ifdef Unicode}
+     LPQUERY_SERVICE_LOCK_STATUS = ^QUERY_SERVICE_LOCK_STATUSW;
+     _QUERY_SERVICE_LOCK_STATUS  = QUERY_SERVICE_LOCK_STATUSW;
+     QUERY_SERVICE_LOCK_STATUS   = QUERY_SERVICE_LOCK_STATUSW;
+     TQUERYSERVICELOCKSTATUS     = QUERY_SERVICE_LOCK_STATUSW;
+     PQUERYSERVICELOCKSTATUS     = ^QUERY_SERVICE_LOCK_STATUSW;
+     {$else}
+     LPQUERY_SERVICE_LOCK_STATUS = ^QUERY_SERVICE_LOCK_STATUSA;
+     _QUERY_SERVICE_LOCK_STATUS  = QUERY_SERVICE_LOCK_STATUSA;
+     QUERY_SERVICE_LOCK_STATUS   = QUERY_SERVICE_LOCK_STATUSA;
+     TQUERYSERVICELOCKSTATUS     = QUERY_SERVICE_LOCK_STATUSA;
+     PQUERYSERVICELOCKSTATUS     = ^QUERY_SERVICE_LOCK_STATUSA;
+     {$endif}
 
      RASAMBA = record
           dwSize : DWORD;
@@ -7358,17 +7556,41 @@ Const
      TTOOLINFO = TOOLINFO;
      PTOOLINFO = ^TOOLINFO;
 
-     TOOLTIPTEXT = record
+     TOOLTIPTEXTA = record
           hdr : NMHDR;
-          lpszText : LPTSTR;
-          szText : array[0..79] of TCHAR;
+          lpszText : LPSTR;
+          szText : array[0..79] of AnsiCHAR;
           hinst : HINST;
           uFlags : UINT;
           lParam : LPARAM;
        end;
-     LPTOOLTIPTEXT = ^TOOLTIPTEXT;
-     TTOOLTIPTEXT = TOOLTIPTEXT;
-     PTOOLTIPTEXT = ^TOOLTIPTEXT;
+     LPTOOLTIPTEXTA = ^TOOLTIPTEXTA;
+     TTOOLTIPTEXTA  = TOOLTIPTEXTA;
+     PTOOLTIPTEXTA  = ^TOOLTIPTEXTA;
+
+     TOOLTIPTEXTW = record
+          hdr : NMHDR;
+          lpszText : LPWSTR;
+          szText : array[0..79] of WideCHAR;
+          hinst : HINST;
+          uFlags : UINT;
+          lParam : LPARAM;
+       end;
+     LPTOOLTIPTEXTW = ^TOOLTIPTEXTW;
+     TTOOLTIPTEXTW  = TOOLTIPTEXTW;
+     PTOOLTIPTEXTW  = ^TOOLTIPTEXTW;
+
+     {$ifdef Unicode}
+     LPTOOLTIPTEXT  = ^TOOLTIPTEXTW;
+     TOOLTIPTEXT    = TOOLTIPTEXTW;
+     TTOOLTIPTEXT   = TOOLTIPTEXTW;
+     PTOOLTIPTEXT   = ^TOOLTIPTEXTW;
+     {$else}
+     LPTOOLTIPTEXT  = ^TOOLTIPTEXTA;
+     TOOLTIPTEXT    = TOOLTIPTEXTA;
+     TTOOLTIPTEXT   = TOOLTIPTEXTA;
+     PTOOLTIPTEXT   = ^TOOLTIPTEXTA;
+     {$endif}
 
      TPMPARAMS = record
           cbSize : UINT;
@@ -7506,14 +7728,33 @@ Const
      TUSEROBJECTFLAGS = USEROBJECTFLAGS;
      PUSEROBJECTFLAGS = ^USEROBJECTFLAGS;
 
-     VALENT = record
-          ve_valuename : LPTSTR;
+     VALENTA = record
+          ve_valuename : LPSTR;
           ve_valuelen : DWORD;
           ve_valueptr : DWORD_PTR;
           ve_type : DWORD;
        end;
-     TVALENT = VALENT;
-     PVALENT = ^VALENT;
+     TVALENTA = VALENTA;
+     PVALENTA = ^VALENTA;
+
+     VALENTW = record
+          ve_valuename : LPWSTR;
+          ve_valuelen : DWORD;
+          ve_valueptr : DWORD_PTR;
+          ve_type : DWORD;
+       end;
+     TVALENTW = VALENTW;
+     PVALENTW = ^VALENTW;
+
+     {$ifdef Unicode}
+     VALENT  = VALENTW;
+     TVALENT = VALENTW;
+     PVALENT = ^VALENTW;
+     {$else}
+     VALENT  = VALENTA;
+     TVALENT = VALENTA;
+     PVALENT = ^VALENTA;
+     {$endif}
 
      value_ent = VALENT;
      Tvalue_ent = VALENT;
@@ -7722,30 +7963,80 @@ Const
      WNDClassEx    = WNDClassExA;
      {$endif}
 
-     CONNECTDLGSTRUCT = record
+     CONNECTDLGSTRUCTA = record
           cbStructure : DWORD;
-          hwndOwner : HWND;
-          lpConnRes : LPNETRESOURCE;
-          dwFlags : DWORD;
-          dwDevNum : DWORD;
+          hwndOwner   : HWND;
+          lpConnRes   : LPNETRESOURCEA;
+          dwFlags     : DWORD;
+          dwDevNum    : DWORD;
        end;
-     LPCONNECTDLGSTRUCT = ^CONNECTDLGSTRUCT;
-     _CONNECTDLGSTRUCT = CONNECTDLGSTRUCT;
-     TCONNECTDLGSTRUCT = CONNECTDLGSTRUCT;
-     PCONNECTDLGSTRUCT = ^CONNECTDLGSTRUCT;
+     LPCONNECTDLGSTRUCTA = ^CONNECTDLGSTRUCTA;
+     _CONNECTDLGSTRUCTA  = CONNECTDLGSTRUCTA;
+     TCONNECTDLGSTRUCTA  = CONNECTDLGSTRUCTA;
+     PCONNECTDLGSTRUCTA  = ^CONNECTDLGSTRUCTA;
 
-     DISCDLGSTRUCT = record
+     CONNECTDLGSTRUCTW = record
+          cbStructure : DWORD;
+          hwndOwner   : HWND;
+          lpConnRes   : LPNETRESOURCEW;
+          dwFlags     : DWORD;
+          dwDevNum    : DWORD;
+       end;
+     LPCONNECTDLGSTRUCTW = ^CONNECTDLGSTRUCTW;
+     _CONNECTDLGSTRUCTW = CONNECTDLGSTRUCTW;
+     TCONNECTDLGSTRUCTW = CONNECTDLGSTRUCTW;
+     PCONNECTDLGSTRUCTW = ^CONNECTDLGSTRUCTW;
+
+     {$ifdef Unicode}
+     LPCONNECTDLGSTRUCT = ^CONNECTDLGSTRUCTW;
+     _CONNECTDLGSTRUCT  = CONNECTDLGSTRUCTW;
+     CONNECTDLGSTRUCT   = CONNECTDLGSTRUCTW;
+     TCONNECTDLGSTRUCT  = CONNECTDLGSTRUCTW;
+     PCONNECTDLGSTRUCT  = ^CONNECTDLGSTRUCTW;
+     {$else}
+     LPCONNECTDLGSTRUCT = ^CONNECTDLGSTRUCTA;
+     _CONNECTDLGSTRUCT  = CONNECTDLGSTRUCTA;
+     CONNECTDLGSTRUCT   = CONNECTDLGSTRUCTA;
+     TCONNECTDLGSTRUCT  = CONNECTDLGSTRUCTA;
+     PCONNECTDLGSTRUCT  = ^CONNECTDLGSTRUCTA;
+     {$endif}
+
+     DISCDLGSTRUCTA = record
           cbStructure : DWORD;
           hwndOwner : HWND;
-          lpLocalName : LPTSTR;
-          lpRemoteName : LPTSTR;
+          lpLocalName : LPSTR;
+          lpRemoteName : LPSTR;
           dwFlags : DWORD;
        end;
-     LPDISCDLGSTRUCT = ^DISCDLGSTRUCT;
-     _DISCDLGSTRUCT = DISCDLGSTRUCT;
-     TDISCDLGSTRUCT = DISCDLGSTRUCT;
-     TDISCDLGSTRUCTA = DISCDLGSTRUCT;
-     PDISCDLGSTRUCT = ^DISCDLGSTRUCT;
+     LPDISCDLGSTRUCTA = ^DISCDLGSTRUCTA;
+     _DISCDLGSTRUCTA  = DISCDLGSTRUCTA;
+     TDISCDLGSTRUCTA  = DISCDLGSTRUCTA;
+     PDISCDLGSTRUCTA  = ^DISCDLGSTRUCTA;
+
+     DISCDLGSTRUCTW = record
+          cbStructure : DWORD;
+          hwndOwner : HWND;
+          lpLocalName : LPWSTR;
+          lpRemoteName : LPWSTR;
+          dwFlags : DWORD;
+       end;
+     LPDISCDLGSTRUCTW = ^DISCDLGSTRUCTW;
+     _DISCDLGSTRUCTW  = DISCDLGSTRUCTW;
+     TDISCDLGSTRUCTW  = DISCDLGSTRUCTW;
+     PDISCDLGSTRUCTW  = ^DISCDLGSTRUCTW;
+     {$ifdef Unicode}
+     LPDISCDLGSTRUCT = ^DISCDLGSTRUCTW;
+     _DISCDLGSTRUCT  = DISCDLGSTRUCTW;
+     TDISCDLGSTRUCT  = DISCDLGSTRUCTW;
+     DISCDLGSTRUCT   = DISCDLGSTRUCTW;
+     PDISCDLGSTRUCT  = ^DISCDLGSTRUCTW;
+     {$else}
+     LPDISCDLGSTRUCT = ^DISCDLGSTRUCTA;
+     _DISCDLGSTRUCT  = DISCDLGSTRUCTA;
+     TDISCDLGSTRUCT  = DISCDLGSTRUCTA;
+     DISCDLGSTRUCT   = DISCDLGSTRUCTA;
+     PDISCDLGSTRUCT  = ^DISCDLGSTRUCTA;
+     {$endif}
 
      NETINFOSTRUCT = record
           cbStructure : DWORD;
@@ -7779,10 +8070,15 @@ Const
      ENHMETAFILEPROC = function (_para1:HDC; _para2:HANDLETABLE; _para3:ENHMETARECORD; _para4:longint; _para5:LPARAM):longint;stdcall;
 
      ENUMFONTSPROC = function (_para1:LPLOGFONT; _para2:LPTEXTMETRIC; _para3:DWORD; _para4:LPARAM):longint;stdcall;
+     ENUMFONTSPROCA= function (_para1:LPLOGFONTA; _para2:LPTEXTMETRICA; _para3:DWORD; _para4:LPARAM):longint;stdcall;
+     ENUMFONTSPROCW= function (_para1:LPLOGFONTW; _para2:LPTEXTMETRICW; _para3:DWORD; _para4:LPARAM):longint;stdcall;
 
-     FONTENUMPROC = function (var _para1:ENUMLOGFONT; var _para2:NEWTEXTMETRIC; _para3:longint; _para4:LPARAM):longint;stdcall;
-
+     FONTENUMPROC   = function (var _para1:ENUMLOGFONT; var _para2:NEWTEXTMETRIC; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMPROCA  = function (var _para1:ENUMLOGFONTA; var _para2:NEWTEXTMETRICA; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMPROCW  = function (var _para1:ENUMLOGFONTW; var _para2:NEWTEXTMETRICW; _para3:longint; _para4:LPARAM):longint;stdcall;
      FONTENUMEXPROC = function (var _para1:ENUMLOGFONTEX;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMEXPROCA= function (var _para1:ENUMLOGFONTEXA;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
+     FONTENUMEXPROCW= function (var _para1:ENUMLOGFONTEXW;var _para2:NEWTEXTMETRICEX; _para3:longint; _para4:LPARAM):longint;stdcall;
 
      LPOVERLAPPED_COMPLETION_ROUTINE = procedure (_para1:DWORD; _para2:DWORD; _para3:LPOVERLAPPED);stdcall;
 
@@ -8036,7 +8332,9 @@ Const
                  //guidItem : TGUID;     // #if (_WIN32_IE >= 0x600)}
                 );
      end;
-     _NOTIFYICONDATA = _NOTIFYICONDATAA;
+     TNotifyIconDataA = _NOTIFYICONDATAA;
+     NOTIFYICONDATAA = _NOTIFYICONDATAA;
+     PNotifyIconDataA = ^TNotifyIconDataA;
 
      _NOTIFYICONDATAW = record
          cbSize: DWORD;
@@ -8057,15 +8355,21 @@ Const
                 //guidItem : TGUID;     // #if (_WIN32_IE >= 0x600)}
                );
      end;
-     TNotifyIconDataA = _NOTIFYICONDATAA;
      TNotifyIconDataW = _NOTIFYICONDATAW;
-     TNotifyIconData = TNotifyIconDataA;
-     NOTIFYICONDATAA = _NOTIFYICONDATAA;
      NOTIFYICONDATAW = _NOTIFYICONDATAW;
-     NOTIFYICONDATA = NOTIFYICONDATAA;
-     PNotifyIconDataA = ^TNotifyIconDataA;
      PNotifyIconDataW = ^TNotifyIconDataW;
+
+     {$ifdef Unicode}
+     _NOTIFYICONDATA = _NOTIFYICONDATAW;
+     TNotifyIconData = TNotifyIconDataW;
+     NOTIFYICONDATA  = NOTIFYICONDATAW;
+     PNotifyIconData = PNotifyIconDataW;
+     {$else}
+     _NOTIFYICONDATA = _NOTIFYICONDATAA;
+     TNotifyIconData = TNotifyIconDataA;
+     NOTIFYICONDATA  = NOTIFYICONDATAA;
      PNotifyIconData = PNotifyIconDataA;
+     {$endif}
 
      TWOHandleArray = array[0..MAXIMUM_WAIT_OBJECTS-1] of HANDLE;
      PWOHandleArray = ^TWOHandleArray;
