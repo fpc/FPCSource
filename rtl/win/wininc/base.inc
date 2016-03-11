@@ -670,6 +670,8 @@
      ENUMWINDOWSPROC = function (_para1:HWND; _para2:LPARAM):WINBOOL;stdcall;
 
      ENUMWINDOWSTATIONPROC = function (_para1:LPTSTR; _para2:LPARAM):WINBOOL;stdcall;
+     ENUMWINDOWSTATIONPROCA = function (_para1:LPSTR; _para2:LPARAM):WINBOOL;stdcall;
+     ENUMWINDOWSTATIONPROCW = function (_para1:LPWSTR; _para2:LPARAM):WINBOOL;stdcall;
 
      SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:ULONG_PTR; _para4:LRESULT);stdcall;
 

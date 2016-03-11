@@ -4604,7 +4604,7 @@ Const
      TMENUINFO = MENUINFO;
      PMENUINFO = ^MENUINFO;
 
-     MENUITEMINFO = record
+     MENUITEMINFOA = record
           cbSize : UINT;
           fMask : UINT;
           fType : UINT;
@@ -4614,16 +4614,50 @@ Const
           hbmpChecked : HBITMAP;
           hbmpUnchecked : HBITMAP;
           dwItemData : ULONG_PTR;
-          dwTypeData : LPTSTR;
+          dwTypeData : LPSTR;
           cch : UINT;
           hbmpItem : HBITMAP;
        end;
-     LPMENUITEMINFO = ^MENUITEMINFO;
-     LPCMENUITEMINFO = ^MENUITEMINFO;
-     tagMENUITEMINFO = MENUITEMINFO;
-     TMENUITEMINFO = MENUITEMINFO;
-     TMENUITEMINFOA = MENUITEMINFO;
-     PMENUITEMINFO = ^MENUITEMINFO;
+     LPMENUITEMINFOA = ^MENUITEMINFOA;
+     LPCMENUITEMINFOA = ^MENUITEMINFOA;
+     tagMENUITEMINFOA = MENUITEMINFOA;
+     TMENUITEMINFOA = MENUITEMINFOA;
+     PMENUITEMINFOA = ^MENUITEMINFOA;
+
+     MENUITEMINFOW = record
+          cbSize : UINT;
+          fMask : UINT;
+          fType : UINT;
+          fState : UINT;
+          wID : UINT;
+          hSubMenu : HMENU;
+          hbmpChecked : HBITMAP;
+          hbmpUnchecked : HBITMAP;
+          dwItemData : ULONG_PTR;
+          dwTypeData : LPWSTR;
+          cch : UINT;
+          hbmpItem : HBITMAP;
+       end;
+     LPMENUITEMINFOW = ^MENUITEMINFOW;
+     LPCMENUITEMINFOW = ^MENUITEMINFOW;
+     tagMENUITEMINFOW = MENUITEMINFOW;
+     TMENUITEMINFOW = MENUITEMINFOW;
+     PMENUITEMINFOW = ^MENUITEMINFOW;
+     {$ifdef unicode}
+     LPMENUITEMINFO   = ^MENUITEMINFOW;
+     LPCMENUITEMINFO  = ^MENUITEMINFOW;
+     tagMENUITEMINFO  =  MENUITEMINFOW;
+     TMENUITEMINFO    =  MENUITEMINFOW;
+     PMENUITEMINFO    = ^MENUITEMINFOW;
+     MENUITEMINFO     =  MENUITEMINFOW;
+     {$ELSE}
+     LPMENUITEMINFO   = ^MENUITEMINFOA;
+     LPCMENUITEMINFO  = ^MENUITEMINFOA;
+     tagMENUITEMINFO  = MENUITEMINFOA;
+     TMENUITEMINFO    = MENUITEMINFOA;
+     PMENUITEMINFO    = ^MENUITEMINFOA;
+     MENUITEMINFO     =  MENUITEMINFOA;
+     {$ENDIF}
 
      MENUITEMTEMPLATE = record
           mtOption : WORD;
@@ -4905,22 +4939,49 @@ Const
      MSGBOXCALLBACK = procedure (lpHelpInfo:LPHELPINFO);stdcall;
      TMSGBOXCALLBACK = MSGBOXCALLBACK;
 
-     MSGBOXPARAMS = record
+     MSGBOXPARAMSA = record
           cbSize : UINT;
           hwndOwner : HWND;
           hInstance : HINST;
-          lpszText : LPCTSTR;
-          lpszCaption : LPCTSTR;
+          lpszText : LPCSTR;
+          lpszCaption : LPCSTR;
           dwStyle : DWORD;
-          lpszIcon : LPCTSTR;
+          lpszIcon : LPCSTR;
           dwContextHelpId : DWORD_PTR;
           lpfnMsgBoxCallback : MSGBOXCALLBACK;
           dwLanguageId : DWORD;
        end;
-     LPMSGBOXPARAMS = ^MSGBOXPARAMS;
-     TMSGBOXPARAMS = MSGBOXPARAMS;
-     TMSGBOXPARAMSA = MSGBOXPARAMS;
-     PMSGBOXPARAMS = ^MSGBOXPARAMS;
+     LPMSGBOXPARAMSA = ^MSGBOXPARAMSA;
+     TMSGBOXPARAMSA  =  MSGBOXPARAMSA;
+     PMSGBOXPARAMSA  = ^MSGBOXPARAMSA;
+
+     MSGBOXPARAMSW = record
+          cbSize : UINT;
+          hwndOwner : HWND;
+          hInstance : HINST;
+          lpszText : LPCWSTR;
+          lpszCaption : LPCWSTR;
+          dwStyle : DWORD;
+          lpszIcon : LPCWSTR;
+          dwContextHelpId : DWORD_PTR;
+          lpfnMsgBoxCallback : MSGBOXCALLBACK;
+          dwLanguageId : DWORD;
+     end;
+     LPMSGBOXPARAMSW = ^MSGBOXPARAMSW;
+     TMSGBOXPARAMSW  =  MSGBOXPARAMSW;
+     PMSGBOXPARAMSW  = ^MSGBOXPARAMSW;
+
+     {$ifdef Unicode}
+     LPMSGBOXPARAMS  = ^MSGBOXPARAMSW;
+     TMSGBOXPARAMS   =  MSGBOXPARAMSW;
+     PMSGBOXPARAMS   = ^MSGBOXPARAMSW;
+     MSGBOXPARAMS    =  MSGBOXPARAMSW;
+     {$else}
+     LPMSGBOXPARAMS  = ^MSGBOXPARAMSA;
+     TMSGBOXPARAMS   =  MSGBOXPARAMSA;
+     PMSGBOXPARAMS   = ^MSGBOXPARAMSA;
+     MSGBOXPARAMS    =  MSGBOXPARAMSA;
+     {$endif}
 
      MSGFILTER = record
           nmhdr : NMHDR;

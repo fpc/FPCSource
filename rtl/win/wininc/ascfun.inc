@@ -176,7 +176,7 @@ function OpenDesktopA(lpszDesktop:LPSTR; dwFlags:DWORD; fInherit:WINBOOL; dwDesi
 function EnumDesktopsA(hwinsta:HWINSTA; lpEnumFunc:DESKTOPENUMPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumDesktopsA';
 function CreateWindowStationA(lpwinsta:LPSTR; dwReserved:DWORD; dwDesiredAccess:DWORD; lpsa:LPSECURITY_ATTRIBUTES):HWINSTA; external 'user32' name 'CreateWindowStationA';
 function OpenWindowStationA(lpszWinSta:LPSTR; fInherit:WINBOOL; dwDesiredAccess:DWORD):HWINSTA; external 'user32' name 'OpenWindowStationA';
-function EnumWindowStationsA(lpEnumFunc:ENUMWINDOWSTATIONPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumWindowStationsA';
+function EnumWindowStationsA(lpEnumFunc:ENUMWINDOWSTATIONPROCA; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumWindowStationsA';
 function GetUserObjectInformationA(hObj:HANDLE; nIndex:longint; pvInfo:PVOID; nLength:DWORD; lpnLengthNeeded:LPDWORD):WINBOOL; external 'user32' name 'GetUserObjectInformationA';
 function SetUserObjectInformationA(hObj:HANDLE; nIndex:longint; pvInfo:PVOID; nLength:DWORD):WINBOOL; external 'user32' name 'SetUserObjectInformationA';
 function RegisterWindowMessageA(lpString:LPCSTR):UINT; external 'user32' name 'RegisterWindowMessageA';
@@ -193,9 +193,9 @@ function DefWindowProcA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESU
 function CallWindowProcA(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'CallWindowProcA';
 function RegisterClassA(lpWndClass:LPWNDCLASS):ATOM; external 'user32' name 'RegisterClassA';
 function UnregisterClassA(lpClassName:LPCSTR; hInstance:HINST):WINBOOL; external 'user32' name 'UnregisterClassA';
-function GetClassInfoA(hInstance:HINST; lpClassName:LPCSTR; lpWndClass:LPWNDCLASS):WINBOOL; external 'user32' name 'GetClassInfoA';
-function RegisterClassExA(_para1:LPWNDCLASSEX):ATOM; external 'user32' name 'RegisterClassExA';
-function GetClassInfoExA(_para1:HINST; _para2:LPCSTR; _para3:LPWNDCLASSEX):WINBOOL; external 'user32' name 'GetClassInfoExA';
+function GetClassInfoA(hInstance:HINST; lpClassName:LPCSTR; lpWndClass:LPWNDCLASSA):WINBOOL; external 'user32' name 'GetClassInfoA';
+function RegisterClassExA(_para1:LPWNDCLASSEXA):ATOM; external 'user32' name 'RegisterClassExA';
+function GetClassInfoExA(_para1:HINST; _para2:LPCSTR; _para3:LPWNDCLASSEXA):WINBOOL; external 'user32' name 'GetClassInfoExA';
 function CreateWindowExA(dwExStyle:DWORD; lpClassName:LPCSTR; lpWindowName:LPCSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
   external 'user32' name 'CreateWindowExA';
 function CreateDialogParamA(hInstance:HINST; lpTemplateName:LPCSTR; hWndParent:HWND; lpDialogFunc:DLGPROC; dwInitParam:LPARAM):HWND; external 'user32' name 'CreateDialogParamA';
@@ -239,9 +239,9 @@ function GetMenuStringA(hMenu:HMENU; uIDItem:UINT; lpString:LPSTR; nMaxCount:lon
 function InsertMenuA(hMenu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32' name 'InsertMenuA';
 function AppendMenuA(hMenu:HMENU; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32' name 'AppendMenuA';
 function ModifyMenuA(hMnu:HMENU; uPosition:UINT; uFlags:UINT; uIDNewItem:UINT; lpNewItem:LPCSTR):WINBOOL; external 'user32' name 'ModifyMenuA';
-function InsertMenuItemA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external 'user32' name 'InsertMenuItemA';
-function GetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPMENUITEMINFO):WINBOOL; external 'user32' name 'GetMenuItemInfoA';
-function SetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFO):WINBOOL; external 'user32' name 'SetMenuItemInfoA';
+function InsertMenuItemA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFOA):WINBOOL; external 'user32' name 'InsertMenuItemA';
+function GetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPMENUITEMINFOA):WINBOOL; external 'user32' name 'GetMenuItemInfoA';
+function SetMenuItemInfoA(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPCMENUITEMINFOA):WINBOOL; external 'user32' name 'SetMenuItemInfoA';
 function DrawTextA(hDC:HDC; lpString:LPCSTR; nCount:longint; lpRect:LPRECT; uFormat:UINT):longint; external 'user32' name 'DrawTextA';
 function DrawTextExA(_para1:HDC; _para2:LPSTR; _para3:longint; _para4:LPRECT; _para5:UINT;_para6:LPDRAWTEXTPARAMS):longint; external 'user32' name 'DrawTextExA';
 function GrayStringA(hDC:HDC; hBrush:HBRUSH; lpOutputFunc:GRAYSTRINGPROC; lpData:LPARAM; nCount:longint;X:longint; Y:longint; nWidth:longint; nHeight:longint):WINBOOL; external 'user32' name 'GrayStringA';
@@ -258,7 +258,7 @@ function GetWindowTextA(hWnd:HWND; lpString:LPSTR; nMaxCount:longint):longint; e
 function GetWindowTextLengthA(hWnd:HWND):longint; external 'user32' name 'GetWindowTextLengthA';
 function MessageBoxA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT):longint; external 'user32' name 'MessageBoxA';
 function MessageBoxExA(hWnd:HWND; lpText:LPCSTR; lpCaption:LPCSTR; uType:UINT; wLanguageId:WORD):longint; external 'user32' name 'MessageBoxExA';
-function MessageBoxIndirectA(_para1:LPMSGBOXPARAMS):longint; external 'user32' name 'MessageBoxIndirectA';
+function MessageBoxIndirectA(_para1:LPMSGBOXPARAMSA):longint; external 'user32' name 'MessageBoxIndirectA';
 function GetWindowLongA(hWnd:HWND; nIndex:longint):LONG; external 'user32' name 'GetWindowLongA';
 function SetWindowLongA(hWnd:HWND; nIndex:longint; dwNewLong:LONG):LONG; external 'user32' name 'SetWindowLongA';
 function GetClassLongA(hWnd:HWND; nIndex:longint):DWORD; external 'user32' name 'GetClassLongA';
