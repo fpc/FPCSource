@@ -543,8 +543,13 @@ begin
 end;
 
 procedure TCustomIniFile.SetOptions(AValue: TIniFileOptions);
+
+Const
+  CreateOnlyOptions = [ifoStripComments,ifoStripInvalid];
 begin
   if FOptions=AValue then Exit;
+  if (Foptions*CreateOnlyOptions)<>(AValue*CreateOnlyOptions) then
+    Raise Exception.Create('Can only change StripComments or StripInvalid in constructor');
   FOptions:=AValue;
 end;
 
