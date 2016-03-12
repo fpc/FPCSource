@@ -1956,13 +1956,7 @@ end;
 
 Function THTCustomNode.HasKey(const AKey: string): boolean;
 begin
-  if Length(AKey) <> Length(FKey) then
-    begin
-    Result:=false;
-    Exit;
-    end
-  else
-    Result:=CompareMem(PChar(FKey), PChar(AKey), Length(AKey));
+  Result:=(AKey=FKey);
 end;
 
 { TFPCustomHashTable }
@@ -2070,11 +2064,8 @@ begin
   if Assigned(chn) then
     if chn.count>0 then
       for i:=0 to chn.Count - 1 do
-        if THTCustomNode(chn[i]).HasKey(aKey) then
-          begin
-          Result:=THTCustomNode(chn[i]);
-          Exit;
-          end;
+        if THTCustomNode(chn[i]).Key=aKey then
+          Exit(THTCustomNode(chn[i]));
   Result:=nil;
 end;
 
@@ -2089,7 +2080,7 @@ begin
     begin
     if Result.count>0 then
       for i:=0 to Result.Count - 1 do
-        if THTCustomNode(Result[i]).HasKey(aKey) then
+        if (THTCustomNode(Result[i]).Key=aKey) then
           raise EDuplicate.CreateFmt(DuplicateMsg, [aKey]);
     end
   else
@@ -2112,7 +2103,7 @@ begin
   if Assigned(chn) then
     if chn.count>0 then
       for i:=0 to chn.Count - 1 do
-        if THTCustomNode(chn[i]).HasKey(aKey) then
+        if THTCustomNode(chn[i]).Key=aKey then
           begin
           chn.Delete(i);
           dec(FCount);
@@ -2176,11 +2167,8 @@ begin
     begin
     if chn.count>0 then
       for i:=0 to chn.Count - 1 do
-        if THTCustomNode(chn[i]).HasKey(aKey) then
-          begin
-          Result:=THTNode(chn[i]);
-          Exit;
-          end
+        if (THTCustomNode(chn[i]).Key=aKey) then
+          Exit(THTNode(chn[i]));
     end
   else
     begin
