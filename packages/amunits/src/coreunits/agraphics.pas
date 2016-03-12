@@ -2400,6 +2400,17 @@ FUNCTION WritePixelLine8(rp : pRastPort location 'a0'; xstart : ULONG location '
 FUNCTION XorRectRegion(region : pRegion location 'a0';const rectangle : pRectangle location 'a1') : LongBool; syscall GfxBase 558;
 FUNCTION XorRegionRegion(const srcRegion : pRegion location 'a0'; destRegion : pRegion location 'a1') : LongBool; syscall GfxBase 618;
 
+function AllocSpriteData(bm : pBitMap; Const argv : array of PtrUInt) : pExtSprite;
+function BestModeID(Const argv : array of PtrUInt) : ULONG;
+function ChangeExtSprite(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite; Const argv : array of PtrUInt) : LONGINT;
+function ExtendFontTags(font : pTextFont; Const argv : array of PtrUInt) : ULONG;
+function GetExtSprite(ss : pExtSprite; Const argv : array of PtrUInt) : LONGINT;
+procedure GetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
+function ObtainBestPen(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; Const argv : array of PtrUInt) : LONGINT;
+procedure SetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
+function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : BOOLEAN;
+function WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : array of PtrUInt) : smallint;
+
 { gfxmacros }
 
 PROCEDURE BNDRYOFF (w: pRastPort);
@@ -2425,6 +2436,56 @@ function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inl
 function RasSize(w, h: Word): Integer;
 
 IMPLEMENTATION
+
+function AllocSpriteData(bm : pBitMap; Const argv : array of PtrUInt) : pExtSprite;
+begin
+    AllocSpriteData := AllocSpriteDataA(bm,@argv);
+end;
+
+function BestModeID(Const argv : array of PtrUInt) : ULONG;
+begin
+    BestModeID := BestModeIDA(@argv);
+end;
+
+function ChangeExtSprite(vp : pViewPort; oldsprite : pExtSprite; newsprite : pExtSprite; Const argv : array of PtrUInt) : LONGINT;
+begin
+    ChangeExtSprite := ChangeExtSpriteA(vp,oldsprite,newsprite,@argv);
+end;
+
+function ExtendFontTags(font : pTextFont; Const argv : array of PtrUInt) : ULONG;
+begin
+    ExtendFontTags := ExtendFont(font,@argv);
+end;
+
+function GetExtSprite(ss : pExtSprite; Const argv : array of PtrUInt) : LONGINT;
+begin
+    GetExtSprite := GetExtSpriteA(ss,@argv);
+end;
+
+procedure GetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
+begin
+    GetRPAttrsA(rp,@argv);
+end;
+
+function ObtainBestPen(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; Const argv : array of PtrUInt) : LONGINT;
+begin
+    ObtainBestPen := ObtainBestPenA(cm,r,g,b,@argv);
+end;
+
+procedure SetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
+begin
+    SetRPAttrsA(rp,@argv);
+end;
+
+function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    VideoControlTags := VideoControl(colorMap,@argv);
+end;
+
+function WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : array of PtrUInt) : smallint;
+begin
+    WeighTAMatchTags := WeighTAMatch(reqTextAttr,targetTextAttr,@argv);
+end;
 
 PROCEDURE BNDRYOFF (w: pRastPort);
 BEGIN

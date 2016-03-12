@@ -34,7 +34,6 @@
     nils.sjoholm@mailbox.swipnet.se
 
 }
-{$mode objfpc}
 
 UNIT PICASSO96API;
 
@@ -430,69 +429,66 @@ FUNCTION p96GetRTGDataTagList(Tags : pTagItem location 'a0') : LONGINT; syscall 
 FUNCTION p96GetBoardDataTagList(Board : Ulong location 'd0'; Tags : pTagItem location 'a0') : LONGINT; syscall P96Base 186;
 FUNCTION p96EncodeColor(RGBFormat : RGBFTYPE location 'd0'; Color : Ulong location 'd1') : Ulong; syscall P96Base 192;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : longword;
-FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : longword;
-FUNCTION p96AllocModeListTags(const Tags : Array Of Const) : pList;
-FUNCTION p96OpenScreenTags(const Tags : Array Of Const) : pScreen;
-FUNCTION p96PIP_OpenTags(const Tags : Array Of Const) : pWindow;
-FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
-FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
-FUNCTION p96GetRTGDataTags(const Tags : Array Of Const) : LONGINT;
-FUNCTION p96GetBoardDataTags(Board : longword; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96BestModeIDTags(const Tags : array of PtrUInt) : longword;
+FUNCTION p96RequestModeIDTags(const Tags : array of PtrUInt) : longword;
+FUNCTION p96AllocModeListTags(const Tags : array of PtrUInt) : pList;
+FUNCTION p96OpenScreenTags(const Tags : array of PtrUInt) : pScreen;
+FUNCTION p96PIP_OpenTags(const Tags : array of PtrUInt) : pWindow;
+FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96GetRTGDataTags(const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96GetBoardDataTags(Board : longword; const Tags : array of PtrUInt) : LONGINT;
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : longword;
+FUNCTION p96BestModeIDTags(const Tags : array of PtrUInt) : longword;
 begin
-    p96BestModeIDTags := p96BestModeIDTagList(readintags(Tags));
+    p96BestModeIDTags := p96BestModeIDTagList(@Tags);
 end;
 
-FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : longword;
+FUNCTION p96RequestModeIDTags(const Tags : array of PtrUInt) : longword;
 begin
-    p96RequestModeIDTags := p96RequestModeIDTagList(readintags(Tags));
+    p96RequestModeIDTags := p96RequestModeIDTagList(@Tags);
 end;
 
-FUNCTION p96AllocModeListTags(const Tags : Array Of Const) : pList;
+FUNCTION p96AllocModeListTags(const Tags : array of PtrUInt) : pList;
 begin
-    p96AllocModeListTags := p96AllocModeListTagList(readintags(Tags));
+    p96AllocModeListTags := p96AllocModeListTagList(@Tags);
 end;
 
-FUNCTION p96OpenScreenTags(const Tags : Array Of Const) : pScreen;
+FUNCTION p96OpenScreenTags(const Tags : array of PtrUInt) : pScreen;
 begin
-    p96OpenScreenTags := p96OpenScreenTagList(readintags(Tags));
+    p96OpenScreenTags := p96OpenScreenTagList(@Tags);
 end;
 
-FUNCTION p96PIP_OpenTags(const Tags : Array Of Const) : pWindow;
+FUNCTION p96PIP_OpenTags(const Tags : array of PtrUInt) : pWindow;
 begin
-    p96PIP_OpenTags := p96PIP_OpenTagList(readintags(Tags));
+    p96PIP_OpenTags := p96PIP_OpenTagList(@Tags);
 end;
 
-FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
 begin
-    p96PIP_SetTags := p96PIP_SetTagList(Window , readintags(Tags));
+    p96PIP_SetTags := p96PIP_SetTagList(Window , @Tags);
 end;
 
-FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
 begin
-    p96PIP_GetTags := p96PIP_GetTagList(Window , readintags(Tags));
+    p96PIP_GetTags := p96PIP_GetTagList(Window , @Tags);
 end;
 
-FUNCTION p96GetRTGDataTags(const Tags : Array Of Const) : LONGINT;
+FUNCTION p96GetRTGDataTags(const Tags : array of PtrUInt) : LONGINT;
 begin
-    p96GetRTGDataTags := p96GetRTGDataTagList(readintags(Tags));
+    p96GetRTGDataTags := p96GetRTGDataTagList(@Tags);
 end;
 
-FUNCTION p96GetBoardDataTags(Board : longword; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96GetBoardDataTags(Board : longword; const Tags : array of PtrUInt) : LONGINT;
 begin
-    p96GetBoardDataTags := p96GetBoardDataTagList(Board , readintags(Tags));
+    p96GetBoardDataTags := p96GetBoardDataTagList(Board , @Tags);
 end;
 
 const

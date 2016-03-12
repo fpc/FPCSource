@@ -487,10 +487,59 @@ PROCEDURE GT_SetGadgetAttrsA(gad : pGadget location 'a0'; win : pWindow location
 FUNCTION LayoutMenuItemsA(firstitem : pMenuItem location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : LongBool; syscall GadToolsBase 060;
 FUNCTION LayoutMenusA(firstmenu : pMenu location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : LongBool; syscall GadToolsBase 066;
 
+function CreateGadget(kind : ULONG; gad : pGadget; ng : pNewGadget; Const argv : array of PtrUInt) : pGadget;
+function CreateMenus(newmenu : pNewMenu; Const argv : array of PtrUInt) : pMenu;
+procedure DrawBevelBox(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT; Const argv : array of PtrUInt);
+function GetVisualInfo(screen : pScreen; Const argv : array of PtrUInt) : POINTER;
+function GT_GetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt) : LONGINT;
+procedure GT_SetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt);
+function LayoutMenuItems(firstitem : pMenuItem; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+function LayoutMenus(firstmenu : pMenu; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 function GTMENU_USERDATA(menu : pMenu): pointer;
 
 IMPLEMENTATION
+
+function CreateGadget(kind : ULONG; gad : pGadget; ng : pNewGadget; Const argv : array of PtrUInt) : pGadget;
+begin
+    CreateGadget := CreateGadgetA(kind,gad,ng,@argv);
+end;
+
+function CreateMenus(newmenu : pNewMenu; Const argv : array of PtrUInt) : pMenu;
+begin
+    CreateMenus := CreateMenusA(newmenu,@argv);
+end;
+
+procedure DrawBevelBox(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT; Const argv : array of PtrUInt);
+begin
+    DrawBevelBoxA(rport,left,top,width,height,@argv);
+end;
+
+function GetVisualInfo(screen : pScreen; Const argv : array of PtrUInt) : POINTER;
+begin
+    GetVisualInfo := GetVisualInfoA(screen,@argv);
+end;
+
+function GT_GetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt) : LONGINT;
+begin
+    GT_GetGadgetAttrs := GT_GetGadgetAttrsA(gad,win,req,@argv);
+end;
+
+procedure GT_SetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt);
+begin
+    GT_SetGadgetAttrsA(gad,win,req,@argv);
+end;
+
+function LayoutMenuItems(firstitem : pMenuItem; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    LayoutMenuItems := LayoutMenuItemsA(firstitem,vi,@argv);
+end;
+
+function LayoutMenus(firstmenu : pMenu; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    LayoutMenus := LayoutMenusA(firstmenu,vi,@argv);
+end;
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 begin

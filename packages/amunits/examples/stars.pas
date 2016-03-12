@@ -1,7 +1,7 @@
 PROGRAM Sterne;
 
 
-uses Exec, AGraphics, Intuition, Utility, systemvartags;
+uses Exec, AGraphics, Intuition, Utility;
 
 
 

@@ -24,7 +24,7 @@
     Added MessageBox for error report.
     31 Jul 2000.
 
-    Added functions and procedures with array of const.
+    Added functions and procedures with array of PtrUInt.
     For use with fpc 1.0.
     06 Jan 2003.
 
@@ -38,8 +38,6 @@
     nils.sjoholm@mailbox.swipnet.se
 
 }
-{$mode objfpc}
-
 
 UNIT GTLAYOUT;
 
@@ -599,86 +597,83 @@ PROCEDURE LT_CatchUpRefresh(last : pLayoutHandle location 'a0'); syscall GTLayou
 FUNCTION LT_GetWindowUserData(par1 : pWindow location 'a0'; last : POINTER location 'a1') : POINTER; syscall GTLayoutBase 276;
 
 {
-     This is functions and procedures with array of const.
+     This is functions and procedures with array of PtrUInt.
      For use with fpc 1.0.7 and above.
 }
 
-FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : Array Of Const) : pLayoutHandle;
-FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const) : LONGINT;
-PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const);
-PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : Array Of Const);
-PROCEDURE LT_New(handle : pLayoutHandle; const tagList : Array Of Const);
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : Array Of Const) : pWindow;
-FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : Array Of Const) : pMenu;
-FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : Array Of Const) : pWindow;
-FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : Array Of Const) : BOOLEAN;
-FUNCTION LT_NewMenuTags(const tagList : Array Of Const) : pMenu;
-PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : Array Of Const);
+FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : array of PtrUInt) : pLayoutHandle;
+FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt) : LONGINT;
+PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt);
+PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : array of PtrUInt);
+PROCEDURE LT_New(handle : pLayoutHandle; const tagList : array of PtrUInt);
+FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
+FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : array of PtrUInt) : pMenu;
+FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : array of PtrUInt) : pWindow;
+FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION LT_NewMenuTags(const tagList : array of PtrUInt) : pMenu;
+PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : array of PtrUInt);
 
 
 
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : Array Of Const) : pLayoutHandle;
+FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : array of PtrUInt) : pLayoutHandle;
 begin
-    LT_CreateHandleTags := LT_CreateHandleTagList(screen , readintags(tagList));
+    LT_CreateHandleTags := LT_CreateHandleTagList(screen , @tagList);
 end;
 
-FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const) : LONGINT;
+FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt) : LONGINT;
 begin
-    LT_GetAttributes := LT_GetAttributesA(handle , id , readintags(tagList));
+    LT_GetAttributes := LT_GetAttributesA(handle , id , @tagList);
 end;
 
-PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const);
+PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt);
 begin
-    LT_SetAttributesA(handle , id , readintags(tagList));
+    LT_SetAttributesA(handle , id , @tagList);
 end;
 
-PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : Array Of Const);
+PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : array of PtrUInt);
 begin
-    LT_AddA(handle , _type , _label , id , readintags(tagList));
+    LT_AddA(handle , _type , _label , id , @tagList);
 end;
 
-PROCEDURE LT_New(handle : pLayoutHandle; const tagList : Array Of Const);
+PROCEDURE LT_New(handle : pLayoutHandle; const tagList : array of PtrUInt);
 begin
-    LT_NewA(handle , readintags(tagList));
+    LT_NewA(handle , @tagList);
 end;
 
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : Array Of Const) : pWindow;
+FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
 begin
-    LT_Layout := LT_LayoutA(handle , title , bounds , extraWidth , extraHeight , idcmp , align , readintags(tagParams));
+    LT_Layout := LT_LayoutA(handle , title , bounds , extraWidth , extraHeight , idcmp , align , @tagParams);
 end;
 
-FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : Array Of Const) : pMenu;
+FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : array of PtrUInt) : pMenu;
 begin
-    LT_LayoutMenus := LT_LayoutMenusA(handle , menuTemplate , readintags(tagParams));
+    LT_LayoutMenus := LT_LayoutMenusA(handle , menuTemplate , @tagParams);
 end;
 
-FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : Array Of Const) : pWindow;
+FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : array of PtrUInt) : pWindow;
 begin
-    LT_Build := LT_BuildA(handle , readintags(tagParams));
+    LT_Build := LT_BuildA(handle , @tagParams);
 end;
 
-FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : Array Of Const) : BOOLEAN;
+FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    LT_RebuildTags := LT_RebuildTagList(handle , clear , readintags(tags));
+    LT_RebuildTags := LT_RebuildTagList(handle , clear , @tags);
 end;
 
-FUNCTION LT_NewMenuTags(const tagList : Array Of Const) : pMenu;
+FUNCTION LT_NewMenuTags(const tagList : array of PtrUInt) : pMenu;
 begin
-    LT_NewMenuTags := LT_NewMenuTagList(readintags(tagList));
+    LT_NewMenuTags := LT_NewMenuTagList(@tagList);
 end;
 
-PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : Array Of Const);
+PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : array of PtrUInt);
 begin
-    LT_MenuControlTagList(window , intuitionMenu , readintags(tags));
+    LT_MenuControlTagList(window , intuitionMenu , @tags);
 end;
 
 const

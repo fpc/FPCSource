@@ -24,7 +24,7 @@ PROGRAM RTDemo;
 
 }
 
-uses reqtools, strings, utility,longarray;
+uses reqtools, strings, utility;
 
 
 
@@ -88,8 +88,7 @@ BEGIN
     IF (ret=0) THEN
         rtEZRequestA('You entered nothing','I''m sorry', NIL, NIL, NIL)
     ELSE
-        rtEZRequestA('You entered this string:' + #10 + '%s','So I did', NIL,
-        readinlongs([buffer]),NIL);
+        rtEZRequestA('You entered this string:' + #10 + '%s','So I did', NIL, @buffer, NIL);
 
     ret := rtGetString(buffer, 127, 'Enter anything:', NIL,[
                 RTGS_GadFmt, ' _Ok |New _2.0 feature!|_Cancel',

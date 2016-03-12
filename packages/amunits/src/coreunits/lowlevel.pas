@@ -279,7 +279,20 @@ PROCEDURE StartTimerInt(intHandle : POINTER location 'a1'; timeInterval : ULONG 
 PROCEDURE StopTimerInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 090;
 FUNCTION SystemControlA(const tagList : pTagItem location 'a1') : ULONG; syscall LowLevelBase 072;
 
+function SetJoyPortAttrs(portNumber : ULONG; Const argv : array of PtrUInt) : BOOLEAN;
+function SystemControl(Const argv : array of PtrUInt) : ULONG;
+
 IMPLEMENTATION
+
+function SetJoyPortAttrs(portNumber : ULONG; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    SetJoyPortAttrs := SetJoyPortAttrsA(portNumber,@argv);
+end;
+
+function SystemControl(Const argv : array of PtrUInt) : ULONG;
+begin
+    SystemControl := SystemControlA(@argv);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }

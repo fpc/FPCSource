@@ -559,7 +559,21 @@ FUNCTION RequestFile(fileReq : pFileRequester location 'a0') : LongInt; syscall 
 PROCEDURE AbortAslRequest(requester : POINTER location 'a0'); syscall AslBase 078;
 PROCEDURE ActivateAslRequest(requester : POINTER location 'a0'); syscall AslBase 084;
 
+function AllocAslRequestTags(reqType : ULONG; Const argv : array of PtrUInt) : POINTER;
+function AslRequestTags(requester : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+
 IMPLEMENTATION
+
+function AllocAslRequestTags(reqType : ULONG; Const argv : array of PtrUInt) : POINTER;
+begin
+    AllocAslRequestTags := AllocAslRequest(reqType,@argv);
+end;
+
+function AslRequestTags(requester : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    AslRequestTags := AslRequest(requester,@argv) <> 0;
+end;
+
 
 const
     { Change VERSION and LIBVERSION to proper values }

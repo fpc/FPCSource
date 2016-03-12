@@ -23,7 +23,7 @@ takes a long time, and frankly doesn't look as good as level 5.  }
 }
 
 
-uses exec,intuition,agraphics,utility,systemvartags;
+uses exec,intuition,agraphics,utility;
 
 
 

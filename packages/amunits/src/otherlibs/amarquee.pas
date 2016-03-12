@@ -22,7 +22,7 @@
   in here. If you find any bugs please let me know.
   25 Aug 2000.
 
-  Added functions and procedures with array of const.
+  Added functions and procedures with array of PtrUInt.
   For use with fpc 1.0.7
   30 Nov 2002.
 
@@ -37,7 +37,6 @@
 
 }
 
-{$mode objfpc}
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
     {$smartlink on}
@@ -249,17 +248,17 @@ PROCEDURE QDeleteSharedMessagePort(mp : pQSharedMessagePort location 'a0'); sysc
 FUNCTION QGetLocalIP(session : pQSession location 'a0') : pCHAR; syscall AMarqueeBase 312;
 
 {
-     This is functions and procedures with array of const.
+     This is functions and procedures with array of PtrUInt.
      For use with fpc 1.0 and above.
 
 }
-FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
-FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : Array Of Const) : pQSession;
-FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : array of PtrUInt) : pQSession;
 
 
 FUNCTION QDebugOp(session : pQSession; string_ : string) : LONGINT;
@@ -286,21 +285,21 @@ FUNCTION QNewHostSession(hostnames : string; port : pLONGINT; names : string; ta
 FUNCTION QNewServerSession(hostNames : string; progNames : string; taglist : pTagItem) : pQSession;
 
 {
-     This is functions and procedures with array of const.
+     This is functions and procedures with array of PtrUInt.
      For use with fpc 1.0 and above.
 }
 
-FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
-FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
-FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : Array Of Const) : pQSession;
-FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : array of PtrUInt) : pQSession;
 
 IMPLEMENTATION
 
 uses
-  pastoc,tagsarray;
+  pastoc;
 
 FUNCTION QDebugOp(session : pQSession; string_ : string) : LONGINT;
 begin
@@ -412,70 +411,70 @@ begin
     QNewServerSession := QNewServerSession(pas2c(hostnames),pas2c(prognames),taglist);
 end;
 
-FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSocketSessiontags := QNewSocketSession(host,port,readintags(argv));
+    QNewSocketSessiontags := QNewSocketSession(host,port,@argv);
 end;
 
-FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,readintags(argv));
+    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,@argv);
 end;
 
-FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSocketServerSessionTags := QNewSocketServerSession(port,readintags(argv));
+    QNewSocketServerSessionTags := QNewSocketServerSession(port,@argv);
 end;
 
-FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSessionTags := QNewSession(host,port,name,readintags(argv));
+    QNewSessionTags := QNewSession(host,port,name,@argv);
 end;
 
-FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,readintags(argv));
+    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,@argv);
 end;
 
-FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewHostSessionTags := QNewHostSession(hostnames,port,names,readintags(argv));
+    QNewHostSessionTags := QNewHostSession(hostnames,port,names,@argv);
 end;
 
-FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewServerSessionTags := QNewServerSession(hostnames,prognames,readintags(argv));
+    QNewServerSessionTags := QNewServerSession(hostnames,prognames,@argv);
 end;
 
 
-FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSocketSessionTags := QNewSocketSession(host,port,readintags(argv));
+    QNewSocketSessionTags := QNewSocketSession(host,port,@argv);
 end;
 
-FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,readintags(argv));
+    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,@argv);
 end;
 
-FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSessionTags := QNewSession(host,port,name,readintags(argv));
+    QNewSessionTags := QNewSession(host,port,name,@argv);
 end;
 
-FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,readintags(argv));
+    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,@argv);
 end;
 
-FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewHostSessionTags := QNewHostSession(hostnames,port,names,readintags(argv));
+    QNewHostSessionTags := QNewHostSession(hostnames,port,names,@argv);
 end;
 
-FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : array of PtrUInt) : pQSession;
 begin
-    QNewServerSessionTags := QNewServerSession(hostnames,prognames,readintags(argv));
+    QNewServerSessionTags := QNewServerSession(hostnames,prognames,@argv);
 end;
 
 const

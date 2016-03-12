@@ -248,7 +248,26 @@ FUNCTION SetConductorState(player : pPlayer location 'a0'; state : ULONG locatio
 FUNCTION SetPlayerAttrsA(player : pPlayer location 'a0'; const tagList : pTagItem location 'a1') : WordBool; syscall RealTimeBase 054;
 PROCEDURE UnlockRealTime(lock : POINTER location 'a0'); syscall RealTimeBase 036;
 
+function CreatePlayer(Const argv : array of PtrUInt) : pPlayer;
+function GetPlayerAttrs(player : pPlayer; Const argv : array of PtrUInt) : ULONG;
+function SetPlayerAttrs(player : pPlayer; Const argv : array of PtrUInt) : BOOLEAN;
+
 IMPLEMENTATION
+
+function CreatePlayer(Const argv : array of PtrUInt) : pPlayer;
+begin
+    CreatePlayer := CreatePlayerA(@argv);
+end;
+
+function GetPlayerAttrs(player : pPlayer; Const argv : array of PtrUInt) : ULONG;
+begin
+    GetPlayerAttrs := GetPlayerAttrsA(player,@argv);
+end;
+
+function SetPlayerAttrs(player : pPlayer; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    SetPlayerAttrs := SetPlayerAttrsA(player,@argv);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }

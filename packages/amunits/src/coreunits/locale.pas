@@ -292,7 +292,14 @@ FUNCTION ParseDate(locale : pLocale location 'a0'; date : pDateStamp location 'a
 FUNCTION StrConvert(locale : pLocale location 'a0'; string1 : pCHAR location 'a1'; buffer : POINTER location 'a2'; bufferSize : ULONG location 'd0'; typ : ULONG location 'd1') : ULONG; syscall LocaleBase 174;
 FUNCTION StrnCmp(locale : pLocale location 'a0'; string1 : pCHAR location 'a1'; string2 : pCHAR location 'a2'; length : LONGINT location 'd0'; typ : ULONG location 'd1') : LONGINT; syscall LocaleBase 180;
 
+function OpenCatalog(locale : pLocale; name : pCHAR; Const argv : array of PtrUInt) : pCatalog;
+
 IMPLEMENTATION
+
+function OpenCatalog(locale : pLocale; name : pCHAR; Const argv : array of PtrUInt) : pCatalog;
+begin
+    OpenCatalog := OpenCatalogA(locale,name,@argv);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }

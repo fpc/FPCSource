@@ -38,7 +38,7 @@ PROGRAM SortDemo;
     so you have to wait until it's finished.
 }
 
-uses Exec, Intuition, AGraphics, Utility, GadTools, amsgbox,systemvartags;
+uses Exec, Intuition, AGraphics, Utility, GadTools, amsgbox;
 
 
 CONST

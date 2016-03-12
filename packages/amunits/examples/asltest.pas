@@ -1,6 +1,6 @@
 PROGRAM AslTest;
 
-uses Exec, Utility, Asl, amsgbox, systemvartags;
+uses Exec, Utility, Asl, amsgbox;
 
 
 {

@@ -16,7 +16,7 @@ Program GadtoolsMenu;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses Exec, Intuition, Utility, GadTools, systemvartags;
+uses Exec, Intuition, Utility, GadTools;
 
 
 

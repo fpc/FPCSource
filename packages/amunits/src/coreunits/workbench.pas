@@ -866,6 +866,9 @@ FUNCTION OpenWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem 
 FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppWindowDropZone location 'a1') : longbool; syscall WorkbenchBase 120;
 FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 108;
 
+function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
+function AddAppWindow(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppWindow;
+
 { overlays }
 FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
 FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
@@ -878,6 +881,16 @@ FUNCTION OpenWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) 
 FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 
 IMPLEMENTATION
+
+function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
+begin
+    AddAppMenuItem := AddAppMenuItemA(id,userdata,text_,msgport,@argv);
+end;
+
+function AddAppWindow(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppWindow;
+begin
+    AddAppWindow := AddAppWindowA(id,userdata,window,msgport,@argv);
+end;
 
 FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
 begin

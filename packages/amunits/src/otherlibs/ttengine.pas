@@ -28,7 +28,6 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
 
 UNIT TTENGINE;
 
@@ -207,45 +206,42 @@ PROCEDURE TT_TextExtent(rp : pRastPort location 'a1'; _string : POINTER location
 FUNCTION TT_TextFit(rp : pRastPort location 'a1'; _string : POINTER location 'a0'; count : longword location 'd0'; te : pTextExtent location 'a2'; tec : pTextExtent location 'a3'; dir : LONGINT location 'd1'; cwidth : longword location 'd2'; cheight : longword location 'd3') : longword; syscall TTEngineBase 78;
 FUNCTION TT_TextLength(rp : pRastPort location 'a1'; _string : POINTER location 'a0'; count : longword location 'd0') : longword; syscall TTEngineBase 66;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
-FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : Array Of Const) : pTT_Pixmap;
-FUNCTION TT_OpenFont(const taglist : Array Of Const) : POINTER;
-FUNCTION TT_Request(request : POINTER; const taglist : Array Of Const) : pTagItem;
-FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
+FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
+FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : array of PtrUInt) : pTT_Pixmap;
+FUNCTION TT_OpenFont(const taglist : array of PtrUInt) : POINTER;
+FUNCTION TT_Request(request : POINTER; const taglist : array of PtrUInt) : pTagItem;
+FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
+FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
 begin
-    TT_GetAttrs := TT_GetAttrsA(rp , readintags(taglist));
+    TT_GetAttrs := TT_GetAttrsA(rp , @taglist);
 end;
 
-FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : Array Of Const) : pTT_Pixmap;
+FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : array of PtrUInt) : pTT_Pixmap;
 begin
-    TT_GetPixmap := TT_GetPixmapA(font , _string , count , readintags(taglist));
+    TT_GetPixmap := TT_GetPixmapA(font , _string , count , @taglist);
 end;
 
-FUNCTION TT_OpenFont(const taglist : Array Of Const) : POINTER;
+FUNCTION TT_OpenFont(const taglist : array of PtrUInt) : POINTER;
 begin
-    TT_OpenFont := TT_OpenFontA(readintags(taglist));
+    TT_OpenFont := TT_OpenFontA(@taglist);
 end;
 
-FUNCTION TT_Request(request : POINTER; const taglist : Array Of Const) : pTagItem;
+FUNCTION TT_Request(request : POINTER; const taglist : array of PtrUInt) : pTagItem;
 begin
-    TT_Request := TT_RequestA(request , readintags(taglist));
+    TT_Request := TT_RequestA(request , @taglist);
 end;
 
-FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
+FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
 begin
-    TT_SetAttrs := TT_SetAttrsA(rp , readintags(taglist));
+    TT_SetAttrs := TT_SetAttrsA(rp , @taglist);
 end;
 
 const

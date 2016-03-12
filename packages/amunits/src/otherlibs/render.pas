@@ -28,7 +28,6 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
 
 UNIT RENDER;
 
@@ -397,195 +396,192 @@ FUNCTION ScaleOrdinate(source : WORD location 'd0'; dest : WORD location 'd1'; o
 FUNCTION SortPaletteA(palette : POINTER location 'a0'; mode : longword location 'd0'; taglist : pTagItem location 'a1') : longword; syscall RenderBase 216;
 PROCEDURE TintRGBArrayA(source : pULONG location 'a0'; width : WORD location 'd0'; height : WORD location 'd1'; RGB : longword location 'd2'; ratio : WORD location 'd3'; dest : pULONG location 'a1'; taglist : pTagItem location 'a2'); syscall RenderBase 324;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AddChunkyImage(histogram : POINTER; chunky : pByte; width : WORD; height : WORD; palette : POINTER; const taglist : Array Of Const) : longword;
-FUNCTION AddHistogram(histogram1 : POINTER; histogram2 : POINTER; const taglist : Array Of Const) : longword;
-FUNCTION AddRGBImage(histogram : POINTER; rgb : pULONG; width : WORD; height : WORD; const taglist : Array Of Const) : longword;
-PROCEDURE ApplyAlphaChannel(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; const taglist : Array Of Const);
-PROCEDURE Chunky2BitMap(chunky : pByte; sx : WORD; sy : WORD; width : WORD; height : WORD; bitmap : pBitMap; dx : WORD; dy : WORD; const taglist : Array Of Const);
-FUNCTION Chunky2RGB(chunky : pByte; width : WORD; height : WORD; rgb : pULONG; palette : POINTER; const taglist : Array Of Const) : longword;
-FUNCTION ChunkyArrayDiversity(chunky : pByte; palette : POINTER; width : WORD; height : WORD; const taglist : Array Of Const) : LONGINT;
-FUNCTION ConvertChunky(source : pByte; oldpalette : POINTER; width : WORD; height : WORD; dest : pByte; newpalette : POINTER; const taglist : Array Of Const) : longword;
-PROCEDURE CreateAlphaArray(rgbarray : pULONG; width : WORD; height : WORD; const taglist : Array Of Const);
-FUNCTION CreateHistogram(const taglist : Array Of Const) : POINTER;
-FUNCTION CreateMapEngine(palette : POINTER; const taglist : Array Of Const) : POINTER;
-FUNCTION CreatePalette(const taglist : Array Of Const) : POINTER;
-PROCEDURE CreatePenTable(chunky : pByte; oldpalette : POINTER; width : WORD; height : WORD; newpalette : POINTER; convtab : pByte; const taglist : Array Of Const);
-FUNCTION CreateRMHandler(const taglist : Array Of Const) : POINTER;
-FUNCTION CreateScaleEngine(sourcewidth : WORD; sourceheight : WORD; destwidth : WORD; destheight : WORD; const taglist : Array Of Const) : POINTER;
-PROCEDURE ExportPalette(palette : POINTER; coltab : POINTER; const taglist : Array Of Const);
-PROCEDURE ExtractAlphaChannel(rgbarray : pULONG; width : WORD; height : WORD; chunkyarray : pByte; const taglist : Array Of Const);
-FUNCTION ExtractPalette(histogram : POINTER; palette : pULONG; numcolors : WORD; const taglist : Array Of Const) : longword;
-PROCEDURE ImportPalette(palette : POINTER; coltab : POINTER; numcols : WORD; const taglist : Array Of Const);
-PROCEDURE InsertAlphaChannel(maskarray : pByte; width : WORD; height : WORD; rgbarray : pULONG; const taglist : Array Of Const);
-FUNCTION MapChunkyArray(engine : POINTER; source : pByte; palette : POINTER; width : WORD; height : WORD; dest : pByte; const taglist : Array Of Const) : longword;
-FUNCTION MapRGBArray(engine : POINTER; rgb : pULONG; width : WORD; height : WORD; chunky : pByte; const taglist : Array Of Const) : longword;
-PROCEDURE MixAlphaChannel(source1 : pULONG; source2 : pULONG; width : WORD; height : WORD; dest : pULONG; const taglist : Array Of Const);
-PROCEDURE MixRGBArray(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; ratio : WORD; const taglist : Array Of Const);
-PROCEDURE Planar2Chunky(planetab : pPLANEPTR; bytewidth : WORD; height : WORD; depth : WORD; bytesperrow : WORD; chunky : pByte; const taglist : Array Of Const);
-FUNCTION RenderTags(rgb : pULONG; width : WORD; height : WORD; chunky : pByte; palette : POINTER; const taglist : Array Of Const) : longword;
-FUNCTION RGBArrayDiversity(rgb : pULONG; width : WORD; height : WORD; const taglist : Array Of Const) : LONGINT;
-FUNCTION Scale(engine : POINTER; source : POINTER; dest : POINTER; const taglist : Array Of Const) : longword;
-FUNCTION SortPalette(palette : POINTER; mode : longword; const taglist : Array Of Const) : longword;
-PROCEDURE TintRGBArray(source : pULONG; width : WORD; height : WORD; RGB : longword; ratio : WORD; dest : pULONG; const taglist : Array Of Const);
+FUNCTION AddChunkyImage(histogram : POINTER; chunky : pByte; width : WORD; height : WORD; palette : POINTER; const taglist : array of PtrUInt) : longword;
+FUNCTION AddHistogram(histogram1 : POINTER; histogram2 : POINTER; const taglist : array of PtrUInt) : longword;
+FUNCTION AddRGBImage(histogram : POINTER; rgb : pULONG; width : WORD; height : WORD; const taglist : array of PtrUInt) : longword;
+PROCEDURE ApplyAlphaChannel(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; const taglist : array of PtrUInt);
+PROCEDURE Chunky2BitMap(chunky : pByte; sx : WORD; sy : WORD; width : WORD; height : WORD; bitmap : pBitMap; dx : WORD; dy : WORD; const taglist : array of PtrUInt);
+FUNCTION Chunky2RGB(chunky : pByte; width : WORD; height : WORD; rgb : pULONG; palette : POINTER; const taglist : array of PtrUInt) : longword;
+FUNCTION ChunkyArrayDiversity(chunky : pByte; palette : POINTER; width : WORD; height : WORD; const taglist : array of PtrUInt) : LONGINT;
+FUNCTION ConvertChunky(source : pByte; oldpalette : POINTER; width : WORD; height : WORD; dest : pByte; newpalette : POINTER; const taglist : array of PtrUInt) : longword;
+PROCEDURE CreateAlphaArray(rgbarray : pULONG; width : WORD; height : WORD; const taglist : array of PtrUInt);
+FUNCTION CreateHistogram(const taglist : array of PtrUInt) : POINTER;
+FUNCTION CreateMapEngine(palette : POINTER; const taglist : array of PtrUInt) : POINTER;
+FUNCTION CreatePalette(const taglist : array of PtrUInt) : POINTER;
+PROCEDURE CreatePenTable(chunky : pByte; oldpalette : POINTER; width : WORD; height : WORD; newpalette : POINTER; convtab : pByte; const taglist : array of PtrUInt);
+FUNCTION CreateRMHandler(const taglist : array of PtrUInt) : POINTER;
+FUNCTION CreateScaleEngine(sourcewidth : WORD; sourceheight : WORD; destwidth : WORD; destheight : WORD; const taglist : array of PtrUInt) : POINTER;
+PROCEDURE ExportPalette(palette : POINTER; coltab : POINTER; const taglist : array of PtrUInt);
+PROCEDURE ExtractAlphaChannel(rgbarray : pULONG; width : WORD; height : WORD; chunkyarray : pByte; const taglist : array of PtrUInt);
+FUNCTION ExtractPalette(histogram : POINTER; palette : pULONG; numcolors : WORD; const taglist : array of PtrUInt) : longword;
+PROCEDURE ImportPalette(palette : POINTER; coltab : POINTER; numcols : WORD; const taglist : array of PtrUInt);
+PROCEDURE InsertAlphaChannel(maskarray : pByte; width : WORD; height : WORD; rgbarray : pULONG; const taglist : array of PtrUInt);
+FUNCTION MapChunkyArray(engine : POINTER; source : pByte; palette : POINTER; width : WORD; height : WORD; dest : pByte; const taglist : array of PtrUInt) : longword;
+FUNCTION MapRGBArray(engine : POINTER; rgb : pULONG; width : WORD; height : WORD; chunky : pByte; const taglist : array of PtrUInt) : longword;
+PROCEDURE MixAlphaChannel(source1 : pULONG; source2 : pULONG; width : WORD; height : WORD; dest : pULONG; const taglist : array of PtrUInt);
+PROCEDURE MixRGBArray(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; ratio : WORD; const taglist : array of PtrUInt);
+PROCEDURE Planar2Chunky(planetab : pPLANEPTR; bytewidth : WORD; height : WORD; depth : WORD; bytesperrow : WORD; chunky : pByte; const taglist : array of PtrUInt);
+FUNCTION RenderTags(rgb : pULONG; width : WORD; height : WORD; chunky : pByte; palette : POINTER; const taglist : array of PtrUInt) : longword;
+FUNCTION RGBArrayDiversity(rgb : pULONG; width : WORD; height : WORD; const taglist : array of PtrUInt) : LONGINT;
+FUNCTION Scale(engine : POINTER; source : POINTER; dest : POINTER; const taglist : array of PtrUInt) : longword;
+FUNCTION SortPalette(palette : POINTER; mode : longword; const taglist : array of PtrUInt) : longword;
+PROCEDURE TintRGBArray(source : pULONG; width : WORD; height : WORD; RGB : longword; ratio : WORD; dest : pULONG; const taglist : array of PtrUInt);
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AddChunkyImage(histogram : POINTER; chunky : pByte; width : WORD; height : WORD; palette : POINTER; const taglist : Array Of Const) : longword;
+FUNCTION AddChunkyImage(histogram : POINTER; chunky : pByte; width : WORD; height : WORD; palette : POINTER; const taglist : array of PtrUInt) : longword;
 begin
-    AddChunkyImage := AddChunkyImageA(histogram , chunky , width , height , palette , readintags(taglist));
+    AddChunkyImage := AddChunkyImageA(histogram , chunky , width , height , palette , @taglist);
 end;
 
-FUNCTION AddHistogram(histogram1 : POINTER; histogram2 : POINTER; const taglist : Array Of Const) : longword;
+FUNCTION AddHistogram(histogram1 : POINTER; histogram2 : POINTER; const taglist : array of PtrUInt) : longword;
 begin
-    AddHistogram := AddHistogramA(histogram1 , histogram2 , readintags(taglist));
+    AddHistogram := AddHistogramA(histogram1 , histogram2 , @taglist);
 end;
 
-FUNCTION AddRGBImage(histogram : POINTER; rgb : pULONG; width : WORD; height : WORD; const taglist : Array Of Const) : longword;
+FUNCTION AddRGBImage(histogram : POINTER; rgb : pULONG; width : WORD; height : WORD; const taglist : array of PtrUInt) : longword;
 begin
-    AddRGBImage := AddRGBImageA(histogram , rgb , width , height , readintags(taglist));
+    AddRGBImage := AddRGBImageA(histogram , rgb , width , height , @taglist);
 end;
 
-PROCEDURE ApplyAlphaChannel(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; const taglist : Array Of Const);
+PROCEDURE ApplyAlphaChannel(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; const taglist : array of PtrUInt);
 begin
-    ApplyAlphaChannelA(sourcearray , width , height , destarray , readintags(taglist));
+    ApplyAlphaChannelA(sourcearray , width , height , destarray , @taglist);
 end;
 
-PROCEDURE Chunky2BitMap(chunky : pByte; sx : WORD; sy : WORD; width : WORD; height : WORD; bitmap : pBitMap; dx : WORD; dy : WORD; const taglist : Array Of Const);
+PROCEDURE Chunky2BitMap(chunky : pByte; sx : WORD; sy : WORD; width : WORD; height : WORD; bitmap : pBitMap; dx : WORD; dy : WORD; const taglist : array of PtrUInt);
 begin
-    Chunky2BitMapA(chunky , sx , sy , width , height , bitmap , dx , dy , readintags(taglist));
+    Chunky2BitMapA(chunky , sx , sy , width , height , bitmap , dx , dy , @taglist);
 end;
 
-FUNCTION Chunky2RGB(chunky : pByte; width : WORD; height : WORD; rgb : pULONG; palette : POINTER; const taglist : Array Of Const) : longword;
+FUNCTION Chunky2RGB(chunky : pByte; width : WORD; height : WORD; rgb : pULONG; palette : POINTER; const taglist : array of PtrUInt) : longword;
 begin
-    Chunky2RGB := Chunky2RGBA(chunky , width , height , rgb , palette , readintags(taglist));
+    Chunky2RGB := Chunky2RGBA(chunky , width , height , rgb , palette , @taglist);
 end;
 
-FUNCTION ChunkyArrayDiversity(chunky : pByte; palette : POINTER; width : WORD; height : WORD; const taglist : Array Of Const) : LONGINT;
+FUNCTION ChunkyArrayDiversity(chunky : pByte; palette : POINTER; width : WORD; height : WORD; const taglist : array of PtrUInt) : LONGINT;
 begin
-    ChunkyArrayDiversity := ChunkyArrayDiversityA(chunky , palette , width , height , readintags(taglist));
+    ChunkyArrayDiversity := ChunkyArrayDiversityA(chunky , palette , width , height , @taglist);
 end;
 
-FUNCTION ConvertChunky(source : pByte; oldpalette : POINTER; width : WORD; height : WORD; dest : pByte; newpalette : POINTER; const taglist : Array Of Const) : longword;
+FUNCTION ConvertChunky(source : pByte; oldpalette : POINTER; width : WORD; height : WORD; dest : pByte; newpalette : POINTER; const taglist : array of PtrUInt) : longword;
 begin
-    ConvertChunky := ConvertChunkyA(source , oldpalette , width , height , dest , newpalette , readintags(taglist));
+    ConvertChunky := ConvertChunkyA(source , oldpalette , width , height , dest , newpalette , @taglist);
 end;
 
-PROCEDURE CreateAlphaArray(rgbarray : pULONG; width : WORD; height : WORD; const taglist : Array Of Const);
+PROCEDURE CreateAlphaArray(rgbarray : pULONG; width : WORD; height : WORD; const taglist : array of PtrUInt);
 begin
-    CreateAlphaArrayA(rgbarray , width , height , readintags(taglist));
+    CreateAlphaArrayA(rgbarray , width , height , @taglist);
 end;
 
-FUNCTION CreateHistogram(const taglist : Array Of Const) : POINTER;
+FUNCTION CreateHistogram(const taglist : array of PtrUInt) : POINTER;
 begin
-    CreateHistogram := CreateHistogramA(readintags(taglist));
+    CreateHistogram := CreateHistogramA(@taglist);
 end;
 
-FUNCTION CreateMapEngine(palette : POINTER; const taglist : Array Of Const) : POINTER;
+FUNCTION CreateMapEngine(palette : POINTER; const taglist : array of PtrUInt) : POINTER;
 begin
-    CreateMapEngine := CreateMapEngineA(palette , readintags(taglist));
+    CreateMapEngine := CreateMapEngineA(palette , @taglist);
 end;
 
-FUNCTION CreatePalette(const taglist : Array Of Const) : POINTER;
+FUNCTION CreatePalette(const taglist : array of PtrUInt) : POINTER;
 begin
-    CreatePalette := CreatePaletteA(readintags(taglist));
+    CreatePalette := CreatePaletteA(@taglist);
 end;
 
-PROCEDURE CreatePenTable(chunky : pByte; oldpalette : POINTER; width : WORD; height : WORD; newpalette : POINTER; convtab : pByte; const taglist : Array Of Const);
+PROCEDURE CreatePenTable(chunky : pByte; oldpalette : POINTER; width : WORD; height : WORD; newpalette : POINTER; convtab : pByte; const taglist : array of PtrUInt);
 begin
-    CreatePenTableA(chunky , oldpalette , width , height , newpalette , convtab , readintags(taglist));
+    CreatePenTableA(chunky , oldpalette , width , height , newpalette , convtab , @taglist);
 end;
 
-FUNCTION CreateRMHandler(const taglist : Array Of Const) : POINTER;
+FUNCTION CreateRMHandler(const taglist : array of PtrUInt) : POINTER;
 begin
-    CreateRMHandler := CreateRMHandlerA(readintags(taglist));
+    CreateRMHandler := CreateRMHandlerA(@taglist);
 end;
 
-FUNCTION CreateScaleEngine(sourcewidth : WORD; sourceheight : WORD; destwidth : WORD; destheight : WORD; const taglist : Array Of Const) : POINTER;
+FUNCTION CreateScaleEngine(sourcewidth : WORD; sourceheight : WORD; destwidth : WORD; destheight : WORD; const taglist : array of PtrUInt) : POINTER;
 begin
-    CreateScaleEngine := CreateScaleEngineA(sourcewidth , sourceheight , destwidth , destheight , readintags(taglist));
+    CreateScaleEngine := CreateScaleEngineA(sourcewidth , sourceheight , destwidth , destheight , @taglist);
 end;
 
-PROCEDURE ExportPalette(palette : POINTER; coltab : POINTER; const taglist : Array Of Const);
+PROCEDURE ExportPalette(palette : POINTER; coltab : POINTER; const taglist : array of PtrUInt);
 begin
-    ExportPaletteA(palette , coltab , readintags(taglist));
+    ExportPaletteA(palette , coltab , @taglist);
 end;
 
-PROCEDURE ExtractAlphaChannel(rgbarray : pULONG; width : WORD; height : WORD; chunkyarray : pByte; const taglist : Array Of Const);
+PROCEDURE ExtractAlphaChannel(rgbarray : pULONG; width : WORD; height : WORD; chunkyarray : pByte; const taglist : array of PtrUInt);
 begin
-    ExtractAlphaChannelA(rgbarray , width , height , chunkyarray , readintags(taglist));
+    ExtractAlphaChannelA(rgbarray , width , height , chunkyarray , @taglist);
 end;
 
-FUNCTION ExtractPalette(histogram : POINTER; palette : pULONG; numcolors : WORD; const taglist : Array Of Const) : longword;
+FUNCTION ExtractPalette(histogram : POINTER; palette : pULONG; numcolors : WORD; const taglist : array of PtrUInt) : longword;
 begin
-    ExtractPalette := ExtractPaletteA(histogram , palette , numcolors , readintags(taglist));
+    ExtractPalette := ExtractPaletteA(histogram , palette , numcolors , @taglist);
 end;
 
-PROCEDURE ImportPalette(palette : POINTER; coltab : POINTER; numcols : WORD; const taglist : Array Of Const);
+PROCEDURE ImportPalette(palette : POINTER; coltab : POINTER; numcols : WORD; const taglist : array of PtrUInt);
 begin
-    ImportPaletteA(palette , coltab , numcols , readintags(taglist));
+    ImportPaletteA(palette , coltab , numcols , @taglist);
 end;
 
-PROCEDURE InsertAlphaChannel(maskarray : pByte; width : WORD; height : WORD; rgbarray : pULONG; const taglist : Array Of Const);
+PROCEDURE InsertAlphaChannel(maskarray : pByte; width : WORD; height : WORD; rgbarray : pULONG; const taglist : array of PtrUInt);
 begin
-    InsertAlphaChannelA(maskarray , width , height , rgbarray , readintags(taglist));
+    InsertAlphaChannelA(maskarray , width , height , rgbarray , @taglist);
 end;
 
-FUNCTION MapChunkyArray(engine : POINTER; source : pByte; palette : POINTER; width : WORD; height : WORD; dest : pByte; const taglist : Array Of Const) : longword;
+FUNCTION MapChunkyArray(engine : POINTER; source : pByte; palette : POINTER; width : WORD; height : WORD; dest : pByte; const taglist : array of PtrUInt) : longword;
 begin
-    MapChunkyArray := MapChunkyArrayA(engine , source , palette , width , height , dest , readintags(taglist));
+    MapChunkyArray := MapChunkyArrayA(engine , source , palette , width , height , dest , @taglist);
 end;
 
-FUNCTION MapRGBArray(engine : POINTER; rgb : pULONG; width : WORD; height : WORD; chunky : pByte; const taglist : Array Of Const) : longword;
+FUNCTION MapRGBArray(engine : POINTER; rgb : pULONG; width : WORD; height : WORD; chunky : pByte; const taglist : array of PtrUInt) : longword;
 begin
-    MapRGBArray := MapRGBArrayA(engine , rgb , width , height , chunky , readintags(taglist));
+    MapRGBArray := MapRGBArrayA(engine , rgb , width , height , chunky , @taglist);
 end;
 
-PROCEDURE MixAlphaChannel(source1 : pULONG; source2 : pULONG; width : WORD; height : WORD; dest : pULONG; const taglist : Array Of Const);
+PROCEDURE MixAlphaChannel(source1 : pULONG; source2 : pULONG; width : WORD; height : WORD; dest : pULONG; const taglist : array of PtrUInt);
 begin
-    MixAlphaChannelA(source1 , source2 , width , height , dest , readintags(taglist));
+    MixAlphaChannelA(source1 , source2 , width , height , dest , @taglist);
 end;
 
-PROCEDURE MixRGBArray(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; ratio : WORD; const taglist : Array Of Const);
+PROCEDURE MixRGBArray(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; ratio : WORD; const taglist : array of PtrUInt);
 begin
-    MixRGBArrayA(sourcearray , width , height , destarray , ratio , readintags(taglist));
+    MixRGBArrayA(sourcearray , width , height , destarray , ratio , @taglist);
 end;
 
-PROCEDURE Planar2Chunky(planetab : pPLANEPTR; bytewidth : WORD; height : WORD; depth : WORD; bytesperrow : WORD; chunky : pByte; const taglist : Array Of Const);
+PROCEDURE Planar2Chunky(planetab : pPLANEPTR; bytewidth : WORD; height : WORD; depth : WORD; bytesperrow : WORD; chunky : pByte; const taglist : array of PtrUInt);
 begin
-    Planar2ChunkyA(planetab , bytewidth , height , depth , bytesperrow , chunky , readintags(taglist));
+    Planar2ChunkyA(planetab , bytewidth , height , depth , bytesperrow , chunky , @taglist);
 end;
 
-FUNCTION RenderTags(rgb : pULONG; width : WORD; height : WORD; chunky : pByte; palette : POINTER; const taglist : Array Of Const) : longword;
+FUNCTION RenderTags(rgb : pULONG; width : WORD; height : WORD; chunky : pByte; palette : POINTER; const taglist : array of PtrUInt) : longword;
 begin
-    RenderTags := RenderA(rgb , width , height , chunky , palette , readintags(taglist));
+    RenderTags := RenderA(rgb , width , height , chunky , palette , @taglist);
 end;
 
-FUNCTION RGBArrayDiversity(rgb : pULONG; width : WORD; height : WORD; const taglist : Array Of Const) : LONGINT;
+FUNCTION RGBArrayDiversity(rgb : pULONG; width : WORD; height : WORD; const taglist : array of PtrUInt) : LONGINT;
 begin
-    RGBArrayDiversity := RGBArrayDiversityA(rgb , width , height , readintags(taglist));
+    RGBArrayDiversity := RGBArrayDiversityA(rgb , width , height , @taglist);
 end;
 
-FUNCTION Scale(engine : POINTER; source : POINTER; dest : POINTER; const taglist : Array Of Const) : longword;
+FUNCTION Scale(engine : POINTER; source : POINTER; dest : POINTER; const taglist : array of PtrUInt) : longword;
 begin
-    Scale := ScaleA(engine , source , dest , readintags(taglist));
+    Scale := ScaleA(engine , source , dest , @taglist);
 end;
 
-FUNCTION SortPalette(palette : POINTER; mode : longword; const taglist : Array Of Const) : longword;
+FUNCTION SortPalette(palette : POINTER; mode : longword; const taglist : array of PtrUInt) : longword;
 begin
-    SortPalette := SortPaletteA(palette , mode , readintags(taglist));
+    SortPalette := SortPaletteA(palette , mode , @taglist);
 end;
 
-PROCEDURE TintRGBArray(source : pULONG; width : WORD; height : WORD; RGB : longword; ratio : WORD; dest : pULONG; const taglist : Array Of Const);
+PROCEDURE TintRGBArray(source : pULONG; width : WORD; height : WORD; RGB : longword; ratio : WORD; dest : pULONG; const taglist : array of PtrUInt);
 begin
-    TintRGBArrayA(source , width , height , RGB , ratio , dest , readintags(taglist));
+    TintRGBArrayA(source , width , height , RGB , ratio , dest , @taglist);
 end;
 
 const

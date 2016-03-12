@@ -28,7 +28,6 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
 
 UNIT GUIGFX;
 
@@ -179,135 +178,132 @@ PROCEDURE ReleaseDrawHandle(drawhandle : POINTER location 'a0'); syscall GuiGFXB
 PROCEDURE RemColorHandle(colorhandle : POINTER location 'a0'); syscall GuiGFXBase 84;
 PROCEDURE UnLockPicture(pic : POINTER location 'a0'; mode : longword location 'd0'); syscall GuiGFXBase 156;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AddPalette(psm : POINTER; palette : POINTER; const tags : Array Of Const) : POINTER;
-FUNCTION AddPicture(psm : POINTER; pic : POINTER; const tags : Array Of Const) : POINTER;
-FUNCTION AddPixelArray(psm : POINTER; _array : POINTER; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
-FUNCTION ClonePicture(pic : POINTER; const tags : Array Of Const) : POINTER;
-FUNCTION CreateDirectDrawHandle(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; const tags : Array Of Const) : POINTER;
-FUNCTION CreatePenShareMap(const tags : Array Of Const) : POINTER;
-FUNCTION CreatePictureBitMap(drawhandle : POINTER; pic : POINTER; const tags : Array Of Const) : pBitMap;
-FUNCTION CreatePictureMask(pic : POINTER; mask : pCHAR; maskwidth : WORD; const tags : Array Of Const) : BOOLEAN;
-FUNCTION DirectDrawTrueColor(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; const tags : Array Of Const) : BOOLEAN;
-FUNCTION DoPictureMethod(pic : POINTER; method : longword; const arguments : Array Of Const) : longword;
-FUNCTION DrawPicture(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; const tags : Array Of Const) : BOOLEAN;
-FUNCTION GetPictureAttrs(pic : POINTER; const tags : Array Of Const) : longword;
-FUNCTION IsPicture(filename : pCHAR; const tags : Array Of Const) : BOOLEAN;
-FUNCTION LoadPicture(filename : pCHAR; const tags : Array Of Const) : POINTER;
-FUNCTION LockPicture(pic : POINTER; mode : longword; const args : Array Of Const) : longword;
-FUNCTION MakePicture(_array : POINTER; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
-FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; const tags : Array Of Const) : BOOLEAN;
-FUNCTION MapPen(drawhandle : POINTER; rgb : longword; const tags : Array Of Const) : LONGINT;
-FUNCTION ObtainDrawHandle(psm : POINTER; a1arg : pRastPort; cm : pColorMap; const tags : Array Of Const) : POINTER;
-FUNCTION ReadPicture(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
+FUNCTION AddPalette(psm : POINTER; palette : POINTER; const tags : array of PtrUInt) : POINTER;
+FUNCTION AddPicture(psm : POINTER; pic : POINTER; const tags : array of PtrUInt) : POINTER;
+FUNCTION AddPixelArray(psm : POINTER; _array : POINTER; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
+FUNCTION ClonePicture(pic : POINTER; const tags : array of PtrUInt) : POINTER;
+FUNCTION CreateDirectDrawHandle(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; const tags : array of PtrUInt) : POINTER;
+FUNCTION CreatePenShareMap(const tags : array of PtrUInt) : POINTER;
+FUNCTION CreatePictureBitMap(drawhandle : POINTER; pic : POINTER; const tags : array of PtrUInt) : pBitMap;
+FUNCTION CreatePictureMask(pic : POINTER; mask : pCHAR; maskwidth : WORD; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION DirectDrawTrueColor(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION DoPictureMethod(pic : POINTER; method : longword; const arguments : array of PtrUInt) : longword;
+FUNCTION DrawPicture(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION GetPictureAttrs(pic : POINTER; const tags : array of PtrUInt) : longword;
+FUNCTION IsPicture(filename : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION LoadPicture(filename : pCHAR; const tags : array of PtrUInt) : POINTER;
+FUNCTION LockPicture(pic : POINTER; mode : longword; const args : array of PtrUInt) : longword;
+FUNCTION MakePicture(_array : POINTER; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
+FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION MapPen(drawhandle : POINTER; rgb : longword; const tags : array of PtrUInt) : LONGINT;
+FUNCTION ObtainDrawHandle(psm : POINTER; a1arg : pRastPort; cm : pColorMap; const tags : array of PtrUInt) : POINTER;
+FUNCTION ReadPicture(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
 
 IMPLEMENTATION
 
-uses
-  tagsarray,longarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AddPalette(psm : POINTER; palette : POINTER; const tags : Array Of Const) : POINTER;
+FUNCTION AddPalette(psm : POINTER; palette : POINTER; const tags : array of PtrUInt) : POINTER;
 begin
-    AddPalette := AddPaletteA(psm , palette , readintags(tags));
+    AddPalette := AddPaletteA(psm , palette , @tags);
 end;
 
-FUNCTION AddPicture(psm : POINTER; pic : POINTER; const tags : Array Of Const) : POINTER;
+FUNCTION AddPicture(psm : POINTER; pic : POINTER; const tags : array of PtrUInt) : POINTER;
 begin
-    AddPicture := AddPictureA(psm , pic , readintags(tags));
+    AddPicture := AddPictureA(psm , pic , @tags);
 end;
 
-FUNCTION AddPixelArray(psm : POINTER; _array : POINTER; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
+FUNCTION AddPixelArray(psm : POINTER; _array : POINTER; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
 begin
-    AddPixelArray := AddPixelArrayA(psm , _array , width , height , readintags(tags));
+    AddPixelArray := AddPixelArrayA(psm , _array , width , height , @tags);
 end;
 
-FUNCTION ClonePicture(pic : POINTER; const tags : Array Of Const) : POINTER;
+FUNCTION ClonePicture(pic : POINTER; const tags : array of PtrUInt) : POINTER;
 begin
-    ClonePicture := ClonePictureA(pic , readintags(tags));
+    ClonePicture := ClonePictureA(pic , @tags);
 end;
 
-FUNCTION CreateDirectDrawHandle(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; const tags : Array Of Const) : POINTER;
+FUNCTION CreateDirectDrawHandle(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; const tags : array of PtrUInt) : POINTER;
 begin
-    CreateDirectDrawHandle := CreateDirectDrawHandleA(drawhandle , sw , sh , dw , dh , readintags(tags));
+    CreateDirectDrawHandle := CreateDirectDrawHandleA(drawhandle , sw , sh , dw , dh , @tags);
 end;
 
-FUNCTION CreatePenShareMap(const tags : Array Of Const) : POINTER;
+FUNCTION CreatePenShareMap(const tags : array of PtrUInt) : POINTER;
 begin
-    CreatePenShareMap := CreatePenShareMapA(readintags(tags));
+    CreatePenShareMap := CreatePenShareMapA(@tags);
 end;
 
-FUNCTION CreatePictureBitMap(drawhandle : POINTER; pic : POINTER; const tags : Array Of Const) : pBitMap;
+FUNCTION CreatePictureBitMap(drawhandle : POINTER; pic : POINTER; const tags : array of PtrUInt) : pBitMap;
 begin
-    CreatePictureBitMap := CreatePictureBitMapA(drawhandle , pic , readintags(tags));
+    CreatePictureBitMap := CreatePictureBitMapA(drawhandle , pic , @tags);
 end;
 
-FUNCTION CreatePictureMask(pic : POINTER; mask : pCHAR; maskwidth : WORD; const tags : Array Of Const) : BOOLEAN;
+FUNCTION CreatePictureMask(pic : POINTER; mask : pCHAR; maskwidth : WORD; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    CreatePictureMask := CreatePictureMaskA(pic , mask , maskwidth , readintags(tags));
+    CreatePictureMask := CreatePictureMaskA(pic , mask , maskwidth , @tags);
 end;
 
-FUNCTION DirectDrawTrueColor(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; const tags : Array Of Const) : BOOLEAN;
+FUNCTION DirectDrawTrueColor(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    DirectDrawTrueColor := DirectDrawTrueColorA(ddh , _array , x , y , readintags(tags));
+    DirectDrawTrueColor := DirectDrawTrueColorA(ddh , _array , x , y , @tags);
 end;
 
-FUNCTION DoPictureMethod(pic : POINTER; method : longword; const arguments : Array Of Const) : longword;
+FUNCTION DoPictureMethod(pic : POINTER; method : longword; const arguments : array of PtrUInt) : longword;
 begin
-    DoPictureMethod := DoPictureMethodA(pic , method , readinlongs(arguments));
+    DoPictureMethod := DoPictureMethodA(pic , method , @arguments);
 end;
 
-FUNCTION DrawPicture(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; const tags : Array Of Const) : BOOLEAN;
+FUNCTION DrawPicture(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    DrawPicture := DrawPictureA(drawhandle , pic , x , y , readintags(tags));
+    DrawPicture := DrawPictureA(drawhandle , pic , x , y , @tags);
 end;
 
-FUNCTION GetPictureAttrs(pic : POINTER; const tags : Array Of Const) : longword;
+FUNCTION GetPictureAttrs(pic : POINTER; const tags : array of PtrUInt) : longword;
 begin
-    GetPictureAttrs := GetPictureAttrsA(pic , readintags(tags));
+    GetPictureAttrs := GetPictureAttrsA(pic , @tags);
 end;
 
-FUNCTION IsPicture(filename : pCHAR; const tags : Array Of Const) : BOOLEAN;
+FUNCTION IsPicture(filename : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    IsPicture := IsPictureA(filename , readintags(tags));
+    IsPicture := IsPictureA(filename , @tags);
 end;
 
-FUNCTION LoadPicture(filename : pCHAR; const tags : Array Of Const) : POINTER;
+FUNCTION LoadPicture(filename : pCHAR; const tags : array of PtrUInt) : POINTER;
 begin
-    LoadPicture := LoadPictureA(filename , readintags(tags));
+    LoadPicture := LoadPictureA(filename , @tags);
 end;
 
-FUNCTION LockPicture(pic : POINTER; mode : longword; const args : Array Of Const) : longword;
+FUNCTION LockPicture(pic : POINTER; mode : longword; const args : array of PtrUInt) : longword;
 begin
-    LockPicture := LockPictureA(pic , mode , readinlongs(args));
+    LockPicture := LockPictureA(pic , mode , @args);
 end;
 
-FUNCTION MakePicture(_array : POINTER; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
+FUNCTION MakePicture(_array : POINTER; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
 begin
-    MakePicture := MakePictureA(_array , width , height , readintags(tags));
+    MakePicture := MakePictureA(_array , width , height , @tags);
 end;
 
-FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; const tags : Array Of Const) : BOOLEAN;
+FUNCTION MapPalette(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    MapPalette := MapPaletteA(drawhandle , palette , pentab , readintags(tags));
+    MapPalette := MapPaletteA(drawhandle , palette , pentab , @tags);
 end;
 
-FUNCTION MapPen(drawhandle : POINTER; rgb : longword; const tags : Array Of Const) : LONGINT;
+FUNCTION MapPen(drawhandle : POINTER; rgb : longword; const tags : array of PtrUInt) : LONGINT;
 begin
-    MapPen := MapPenA(drawhandle , rgb , readintags(tags));
+    MapPen := MapPenA(drawhandle , rgb , @tags);
 end;
 
-FUNCTION ObtainDrawHandle(psm : POINTER; a1arg : pRastPort; cm : pColorMap; const tags : Array Of Const) : POINTER;
+FUNCTION ObtainDrawHandle(psm : POINTER; a1arg : pRastPort; cm : pColorMap; const tags : array of PtrUInt) : POINTER;
 begin
-    ObtainDrawHandle := ObtainDrawHandleA(psm , a1arg , cm , readintags(tags));
+    ObtainDrawHandle := ObtainDrawHandleA(psm , a1arg , cm , @tags);
 end;
 
-FUNCTION ReadPicture(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; const tags : Array Of Const) : POINTER;
+FUNCTION ReadPicture(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; const tags : array of PtrUInt) : POINTER;
 begin
-    ReadPicture := ReadPictureA(a0arg , colormap , x , y , width , height , readintags(tags));
+    ReadPicture := ReadPictureA(a0arg , colormap , x , y , width , height , @tags);
 end;
 
 const

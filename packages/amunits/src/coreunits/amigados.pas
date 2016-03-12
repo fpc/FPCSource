@@ -1740,6 +1740,12 @@ FUNCTION WriteChars(const buf : pCHAR location 'd1'; buflen : ULONG location 'd2
 FUNCTION BADDR(bval :BPTR): POINTER;
 FUNCTION MKBADDR(adr: Pointer): BPTR;
 
+// var args version
+FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
+FUNCTION CreateNewProcTags(Const argv : Array of PtrUInt) : pProcess;
+FUNCTION NewLoadSegTags(file_ : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+FUNCTION SystemTags(command : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+
 { overlay function and procedures}
 
 FUNCTION AddBuffers(const name : string; number : LONGINT) : BOOLEAN;
@@ -1823,6 +1829,26 @@ FUNCTION MKBADDR(adr : POINTER): BPTR; inline;
 BEGIN
     MKBADDR := BPTR( LONGINT(adr) shr 2);
 END;
+
+FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
+begin
+     AllocDosObjectTags := AllocDosObjectTagList(type_, @argv);
+end;
+
+FUNCTION CreateNewProcTags(Const argv : Array of PtrUInt) : pProcess;
+begin
+     CreateNewProcTags := CreateNewProcTagList(@argv);
+end;
+
+FUNCTION NewLoadSegTags(file_ : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+begin
+     NewLoadSegTags := NewLoadSegTagList(file_, @argv);
+end;
+
+FUNCTION SystemTags(command : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+begin
+     SystemTags := SystemTagList(command, @argv);
+end;
 
 FUNCTION AddBuffers(const name : string; number : LONGINT) : BOOLEAN;
 begin

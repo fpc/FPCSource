@@ -33,7 +33,6 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-{$mode objfpc}
 
 unit mui;
 
@@ -3566,31 +3565,16 @@ function MUIV_Window_Width_Visible(p : longint) : longint;
 function MUIV_Window_Width_Screen(p : longint) : longint;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : POINTER;
-FUNCTION MUI_AslRequestTags(req : POINTER; const tags : Array Of Const) : BOOLEAN;
-FUNCTION MUI_MakeObject(_type : LONGINT; const params : Array Of Const) : pULONG;
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pULONG;
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LONGINT;
+FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
+FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
+FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitMUIMASTERLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    MUIMASTERIsCompiledHow : longint;
 
 implementation
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray,longarray;
 
 function MUINotifyData(obj : APTR) : pMUI_NotifyData;
 begin
@@ -3864,31 +3848,31 @@ begin
 end;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : POINTER;
+FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
 begin
-    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , readintags(tags));
+    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , @tags);
 end;
 
-FUNCTION MUI_AslRequestTags(req : POINTER; const tags : Array Of Const) : BOOLEAN;
+FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    MUI_AslRequestTags := MUI_AslRequest(req , readintags(tags));
+    MUI_AslRequestTags := MUI_AslRequest(req , @tags);
 end;
 
-FUNCTION MUI_MakeObject(_type : LONGINT; const params : Array Of Const) : pULONG;
+FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
 begin
-    MUI_MakeObject := MUI_MakeObjectA(_type , readinlongs(params));
+    MUI_MakeObject := MUI_MakeObjectA(_type , @params);
 end;
 
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pULONG;
+FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
 begin
-    MUI_NewObject := MUI_NewObjectA(a0arg , readintags(tags));
+    MUI_NewObject := MUI_NewObjectA(a0arg , @tags);
 end;
 
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LONGINT;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
 begin
-    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , readintags(params));
+    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , @params);
 end;
 
 const

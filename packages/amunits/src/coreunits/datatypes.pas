@@ -1297,7 +1297,38 @@ FUNCTION ObtainDTDrawInfoA( o : pObject_ location 'a0'; attrs : pTagItem locatio
 FUNCTION DrawDTObjectA(rp : pRastPort location 'a0';  o : pObject_ location 'a1'; x : LONGINT location 'd0'; y : LONGINT location 'd1'; w : LONGINT location 'd2'; h : LONGINT location 'd3'; th : LONGINT location 'd4'; tv : LONGINT location 'd5'; attrs : pTagItem location 'a2') : LONGINT; syscall DataTypesBase 126;
 PROCEDURE ReleaseDTDrawInfo( o : pObject_ location 'a0'; handle : POINTER location 'a1'); syscall DataTypesBase 132;
 
+function GetDTAttrs(o : pObject_; Const argv : array of PtrUInt) : ULONG;
+function NewDTObject(name : POINTER; Const argv : array of PtrUInt): POINTER;
+function ObtainDataType(typ : ULONG; handle : POINTER; Const argv : array of PtrUInt) : pDataType;
+procedure RefreshDTObject(o : pObject_; win : pWindow; req : pRequester; Const argv : array of PtrUInt);
+function SetDTAttrs(o : pObject_; win : pWindow; req : pRequester; Const argv : array of PtrUInt) : ULONG;
+
 IMPLEMENTATION
+
+function GetDTAttrs(o : pObject_; Const argv : array of PtrUInt) : ULONG;
+begin
+    GetDTAttrs := GetDTAttrsA(o,@argv);
+end;
+
+function NewDTObject(name : POINTER; Const argv : array of PtrUInt): POINTER;
+begin
+    NewDTObject := NewDTObjectA(name,@argv);
+end;
+
+function ObtainDataType(typ : ULONG; handle : POINTER; Const argv : array of PtrUInt) : pDataType;
+begin
+    ObtainDataType := ObtainDataTypeA(typ,handle,@argv);
+end;
+procedure RefreshDTObject(o : pObject_; win : pWindow; req : pRequester; Const argv : array of PtrUInt);
+begin
+    RefreshDTObjectA(o,win,req,@argv);
+end;
+
+function SetDTAttrs(o : pObject_; win : pWindow; req : pRequester; Const argv : array of PtrUInt) : ULONG;
+begin
+    SetDTAttrs := SetDTAttrsA(o,win,req,@argv);
+end;
+
 
 const
     { Change VERSION and LIBVERSION to proper values }

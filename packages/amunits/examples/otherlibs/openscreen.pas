@@ -20,7 +20,7 @@ PROGRAM OpenScreen;
 }
 
 
-uses exec, amigados, agraphics, intuition, picasso96api, utility,systemvartags;
+uses exec, amigados, agraphics, intuition, picasso96api, utility;
 
 Const
 
@@ -89,11 +89,11 @@ BEGIN
     Dimensions[2]:=sc^.Width;
     Dimensions[3]:=sc^.Height-sc^.BarHeight-1;
 
-    wdp:=OpenWindowTags(NIL,[WA_CustomScreen, sc,
-                             WA_Title,'Writepixel',
+    wdp:=OpenWindowTags(NIL,[WA_CustomScreen, PtrUInt(sc),
+                             WA_Title,PtrUInt(PChar('Writepixel')),
                              WA_Left, (sc^.Width DIV 2-200) DIV 2+sc^.Width DIV 2,
                              WA_Top, (sc^.Height-sc^.BarHeight-300) DIV 2,
-                             WA_Zoom, @Dimensions,
+                             WA_Zoom, PtrUInt(@Dimensions),
                              WA_Width, 200,
                              WA_Height, 300,
                              WA_MinWidth, 100,
@@ -109,17 +109,17 @@ BEGIN
                              WA_SizeGadget, lTRUE,
                              WA_SizeBBottom, lTRUE,
                              WA_GimmeZeroZero, lTRUE,
-                             WA_ScreenTitle,ScreenTitle,
+                             WA_ScreenTitle, PtrUInt(PChar(ScreenTitle)),
                              WA_IDCMP, IDCMP_RAWKEY + IDCMP_CLOSEWINDOW,
                              TAG_DONE]);
 
     If wdp = Nil Then CleanUp('Unable to open window 1.');
 
-    wdf:=OpenWindowTags(NIL,[WA_CustomScreen,sc,
-                             WA_Title, 'FillRect',
+    wdf:=OpenWindowTags(NIL,[WA_CustomScreen, PtrUInt(sc),
+                             WA_Title, PtrUInt(PChar('FillRect')),
                              WA_Left,(sc^.Width div 2-200) div 2,
                              WA_Top,(sc^.Height-sc^.BarHeight-300)div 2,
-                             WA_Zoom, @Dimensions,
+                             WA_Zoom, PtrUInt(@Dimensions),
                              WA_Width, 200,
                              WA_Height, 300,
                              WA_MinWidth, 100,
@@ -135,7 +135,7 @@ BEGIN
                              WA_SizeGadget, lTRUE,
                              WA_SizeBBottom, lTRUE,
                              WA_GimmeZeroZero, lTRUE,
-                             WA_ScreenTitle, ScreenTitle,
+                             WA_ScreenTitle, PtrUInt(PChar(ScreenTitle)),
                              WA_IDCMP, IDCMP_RAWKEY or IDCMP_CLOSEWINDOW,
                              TAG_DONE]);
 

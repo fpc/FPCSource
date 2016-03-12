@@ -28,8 +28,6 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
-
 UNIT CYBERGRAPHICS;
 
 INTERFACE
@@ -243,59 +241,56 @@ FUNCTION WriteLUTPixelArray(srcRect : POINTER location 'a0'; SrcX : WORD locatio
 FUNCTION WritePixelArray(srcRect : POINTER location 'a0'; SrcX : WORD location 'd0'; SrcY : WORD location 'd1'; SrcMod : WORD location 'd2'; a1arg : pRastPort location 'a1'; DestX : WORD location 'd3'; DestY : WORD location 'd4'; SizeX : WORD location 'd5'; SizeY : WORD location 'd6'; SrcFormat : byte location 'd7') : longword; syscall CyberGfxBase 126;
 FUNCTION WriteRGBPixel(a1arg : pRastPort location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; argb : longword location 'd2') : LONGINT; syscall CyberGfxBase 114;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AllocCModeListTags(const ModeListTags : Array Of Const) : pList;
-FUNCTION BestCModeIDTags(const BestModeIDTags : Array Of Const) : longword;
-FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : Array Of Const) : longword;
-PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : Array Of Const);
-PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : Array Of Const);
-FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : Array Of Const) : POINTER;
-PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
+FUNCTION AllocCModeListTags(const ModeListTags : array of PtrUInt) : pList;
+FUNCTION BestCModeIDTags(const BestModeIDTags : array of PtrUInt) : longword;
+FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : array of PtrUInt) : longword;
+PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : array of PtrUInt);
+PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : array of PtrUInt);
+FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : array of PtrUInt) : POINTER;
+PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : array of PtrUInt);
 
 function SHIFT_PIXFMT(fmt : longint) : longint;
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AllocCModeListTags(const ModeListTags : Array Of Const) : pList;
+FUNCTION AllocCModeListTags(const ModeListTags : array of PtrUInt) : pList;
 begin
-    AllocCModeListTags := AllocCModeListTagList(readintags(ModeListTags));
+    AllocCModeListTags := AllocCModeListTagList(@ModeListTags);
 end;
 
-FUNCTION BestCModeIDTags(const BestModeIDTags : Array Of Const) : longword;
+FUNCTION BestCModeIDTags(const BestModeIDTags : array of PtrUInt) : longword;
 begin
-    BestCModeIDTags := BestCModeIDTagList(readintags(BestModeIDTags));
+    BestCModeIDTags := BestCModeIDTagList(@BestModeIDTags);
 end;
 
-FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : Array Of Const) : longword;
+FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : array of PtrUInt) : longword;
 begin
-    CModeRequestTags := CModeRequestTagList(ModeRequest , readintags(ModeRequestTags));
+    CModeRequestTags := CModeRequestTagList(ModeRequest , @ModeRequestTags);
 end;
 
-PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : Array Of Const);
+PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : array of PtrUInt);
 begin
-    CVideoCtrlTagList(ViewPort , readintags(TagList));
+    CVideoCtrlTagList(ViewPort , @TagList);
 end;
 
-PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : Array Of Const);
+PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : array of PtrUInt);
 begin
-    DoCDrawMethodTagList(Hook , a1arg , readintags(TagList));
+    DoCDrawMethodTagList(Hook , a1arg , @TagList);
 end;
 
-FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : Array Of Const) : POINTER;
+FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : array of PtrUInt) : POINTER;
 begin
-    LockBitMapTags := LockBitMapTagList(BitMap , readintags(TagList));
+    LockBitMapTags := LockBitMapTagList(BitMap , @TagList);
 end;
 
-PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
+PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : array of PtrUInt);
 begin
-    UnLockBitMapTagList(Handle , readintags(TagList));
+    UnLockBitMapTagList(Handle , @TagList);
 end;
 
 function SHIFT_PIXFMT(fmt : longint) : longint;

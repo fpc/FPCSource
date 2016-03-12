@@ -379,6 +379,8 @@ function UMult32(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG;
 function UMult64(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG; syscall _UtilityBase 204;
 function UnpackStructureTags(const pac: APTR location 'a0';const packTable: pULONG location 'a1';TagList : pTagItem location 'a2') : ULONG; syscall _UtilityBase 216;
 
+function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
+
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
 FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
@@ -390,6 +392,11 @@ FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGI
 
 
 IMPLEMENTATION
+
+function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
+begin
+    AllocNamedObject := AllocNamedObjectA(name,@argv);
+end;
 
 
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;

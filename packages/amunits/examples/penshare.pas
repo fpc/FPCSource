@@ -32,7 +32,7 @@ Program PenShare;
   nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, agraphics, intuition, utility,systemvartags;
+uses exec, agraphics, intuition, utility;
 
 VAR RP : pRastPort;
     Win : pWindow;

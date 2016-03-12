@@ -4187,6 +4187,16 @@ PROCEDURE WindowToBack(window : pWindow location 'a0'); syscall _IntuitionBase 3
 PROCEDURE WindowToFront(window : pWindow location 'a0'); syscall _IntuitionBase 312;
 PROCEDURE ZipWindow(window : pWindow location 'a0'); syscall _IntuitionBase 504;
 
+function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
+function OpenWindowTags(newWindow : pNewWindow; tagList : array of PtrUInt) : pWindow;
+function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
+function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
+function SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : array of PtrUInt) : ULONG;
+function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
+function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
+procedure SetWindowPointer(win : pWindow; tags: array of DWord);
+
+
 { Intuition macros }
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 function SIZEOF_INSTANCE (cl: pIClass): Longint;
@@ -4218,6 +4228,46 @@ FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : 
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
 IMPLEMENTATION
+
+function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
+begin
+    OpenScreenTags := OpenScreenTagList(newScreen, @tagList);
+end;
+
+function OpenWindowTags(newWindow : pNewWindow; tagList : array of PtrUInt) : pWindow;
+begin
+    OpenWindowTags := OpenWindowTagList(newWindow, @tagList);
+end;
+
+function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
+begin
+    NewObject := NewObjectA(classPtr,classID, @argv);
+end;
+
+function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
+begin
+      NewObject := NewObjectA(classPtr,PChar(RawByteString(classID)),@argv);
+end;
+
+function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
+begin
+  SetAttrs := SetAttrsA(obj, @tags);
+end;
+
+function SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : array of PtrUInt) : ULONG;
+begin
+    SetGadgetAttrs := SetGadgetAttrsA(gadget,window,requester,@argv);
+end;
+
+function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
+begin
+  EasyRequest := EasyRequestArgs(window, easystruct, idcmpptr, @args);
+end;
+
+procedure SetWindowPointer(win : pWindow; tags: array of DWord);
+begin
+  SetWindowPointerA(win, @tags);
+end;
 
 function INST_DATA (cl: pIClass; o: p_Object): Pointer; inline;
 begin

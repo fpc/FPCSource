@@ -17,7 +17,7 @@
 {
     History
 
-    Updated to triton 2.0. Added function with array of const.
+    Updated to triton 2.0. Added function with array of PtrUInt.
     09 Jan 2003.
 
     Added the defines use_amiga_smartlink and
@@ -33,7 +33,6 @@
 
 }
 
-{$mode objfpc}
 
 UNIT TRITON;
 
@@ -728,17 +727,17 @@ PROCEDURE TR_UnlockScreen(screen : pScreen location 'a0'); syscall TritonBase 14
 FUNCTION TR_Wait(app : pTR_App location 'a1'; otherbits : ULONG location 'd0') : ULONG; syscall TritonBase 120;
 
 {
-   Functions with array of const
+   Functions with array of PtrUInt
 }
 FUNCTION TR_AddClassTags(app : pTR_App; d0arg : longword; supertag : longword;
-defaultmethod : LONGINT; datasize : longword; const tags : Array Of Const) : BOOLEAN;
-FUNCTION TR_OpenProjectTags(app : pTR_App; const taglist : Array Of Const) : pTR_Project;
-FUNCTION TR_AutoRequestTags(app : pTR_App; lockproject : pTR_Project; const wintags : Array Of Const): ULONG;
-FUNCTION TR_CreateAppTags(const apptags : Array of Const) : pTR_App;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; const taglist : Array Of Const) : ULONG;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; Const taglist : Array Of Const) : ULONG;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; Const taglist : Array Of Const) : ULONG;
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Const taglist : Array Of Const) : ULONG;
+defaultmethod : LONGINT; datasize : longword; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION TR_OpenProjectTags(app : pTR_App; const taglist : array of PtrUInt) : pTR_Project;
+FUNCTION TR_AutoRequestTags(app : pTR_App; lockproject : pTR_Project; const wintags : array of PtrUInt): ULONG;
+FUNCTION TR_CreateAppTags(const apptags : array of PtrUInt) : pTR_App;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; Const taglist : array of PtrUInt) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
 
 {  This are a few support functions for triton.
    Could be handy.
@@ -763,7 +762,7 @@ procedure TR_UpdateListView(p : pTR_Project; gadid : Longint; thelist: pList);
 IMPLEMENTATION
 
 uses
-  tagsarray,pastoc;
+  pastoc;
 
 procedure TR_Disable(p : pTR_Project; id : Longint);
 begin
@@ -896,49 +895,49 @@ BEGIN
 END;
 
 {
-   Functions with array of const
+   Functions with array of PtrUInt
 }
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION TR_AddClassTags(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT; datasize : longword; const tags : Array Of Const) : BOOLEAN;
+FUNCTION TR_AddClassTags(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT; datasize : longword; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    TR_AddClassTags := TR_AddClass(app , d0arg , supertag , defaultmethod , datasize , readintags(tags));
+    TR_AddClassTags := TR_AddClass(app , d0arg , supertag , defaultmethod , datasize , @tags);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; const taglist : Array Of Const) : Ulong;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : pCHAR; const taglist : array of PtrUInt) : Ulong;
 begin
-    TR_EasyRequestTags := TR_EasyRequest(app , bodyfmt , gadfmt , readintags(taglist));
+    TR_EasyRequestTags := TR_EasyRequest(app , bodyfmt , gadfmt , @taglist);
 end;
 
-FUNCTION TR_OpenProjectTags(app : pTR_App; const taglist : Array Of Const) : pTR_Project;
+FUNCTION TR_OpenProjectTags(app : pTR_App; const taglist : array of PtrUInt) : pTR_Project;
 begin
-    TR_OpenProjectTags := TR_OpenProject(app , readintags(taglist));
+    TR_OpenProjectTags := TR_OpenProject(app , @taglist);
 end;
 
-FUNCTION TR_AutoRequestTags(app : pTR_App; lockproject : pTR_Project; const wintags : Array Of Const): ULONG;
+FUNCTION TR_AutoRequestTags(app : pTR_App; lockproject : pTR_Project; const wintags : array of PtrUInt): ULONG;
 begin
-    TR_AutoRequestTags := TR_AutoRequest(app,lockproject,readintags(wintags));
+    TR_AutoRequestTags := TR_AutoRequest(app,lockproject, @wintags);
 end;
 
-FUNCTION TR_CreateAppTags(const apptags : Array of Const) : pTR_App;
+FUNCTION TR_CreateAppTags(const apptags : array of PtrUInt) : pTR_App;
 begin
-    TR_CreateAppTags := TR_CreateApp(readintags(apptags));
+    TR_CreateAppTags := TR_CreateApp(@apptags);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; Const taglist : Array Of Const) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : pCHAR; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
 begin
-    TR_EasyRequestTags := TR_EasyRequest(app,bodyfmt,pas2c(gadfmt),readintags(taglist));
+    TR_EasyRequestTags := TR_EasyRequest(app,bodyfmt,pas2c(gadfmt), @taglist);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; Const taglist : Array Of Const) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : pCHAR; Const taglist : array of PtrUInt) : ULONG;
 begin
-    TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),gadfmt,readintags(taglist));
+    TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),gadfmt, @taglist);
 end;
 
-FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Const taglist : Array Of Const) : ULONG;
+FUNCTION TR_EasyRequestTags(app : pTR_App; bodyfmt : String; gadfmt : String; Const taglist : array of PtrUInt) : ULONG;
 begin
-    TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),pas2c(gadfmt),readintags(taglist));
+    TR_EasyRequestTags := TR_EasyRequest(app,pas2c(bodyfmt),pas2c(gadfmt), @taglist);
 end;
 
 const

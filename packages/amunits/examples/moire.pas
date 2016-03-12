@@ -21,7 +21,7 @@ Program Moire;
       nils.sjoholm@mailbox.swipnet.se
 }
 
-uses Exec, Intuition, AGraphics, Utility, systemvartags;
+uses Exec, Intuition, AGraphics, Utility;
 
 
 const

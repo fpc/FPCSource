@@ -35,7 +35,7 @@ Program Bezier;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, agraphics, utility, systemvartags;
+uses exec, intuition, agraphics, utility;
 
 type
     PointRec = packed Record

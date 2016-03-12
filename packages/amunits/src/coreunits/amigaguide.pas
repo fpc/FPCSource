@@ -17,7 +17,7 @@
 {
     History:
 
-    Added functions and procedures with array of const.
+    Added functions and procedures with array of PtrUInt.
     For use with fpc 1.0.7. They are in systemvartags.
     10 Nov 2002.
 
@@ -158,7 +158,7 @@ Type
 CONST
 { Types of cross reference nodes }
     XR_GENERIC     = 0;
-    XR_FUNCTION    = 1;
+    XR_function    = 1;
     XR_COMMAND     = 2;
     XR_INCLUDE     = 3;
     XR_MACRO       = 4;
@@ -244,31 +244,80 @@ VAR AmigaGuideBase : pLibrary = nil;
 const
     AMIGAGUIDENAME : Pchar = 'amigaguide.library';
 
-FUNCTION AddAmigaGuideHostA(h : pHook location 'a0'; name : pCHAR location 'd0'; attrs : pTagItem location 'a1') : POINTER; syscall AmigaGuideBase 138;
-FUNCTION AmigaGuideSignal(cl : POINTER location 'a0') : ULONG; syscall AmigaGuideBase 072;
-PROCEDURE CloseAmigaGuide(cl : POINTER location 'a0'); syscall AmigaGuideBase 066;
-PROCEDURE ExpungeXRef; syscall AmigaGuideBase 132;
-FUNCTION GetAmigaGuideAttr(tag : ULONG location 'd0'; cl : POINTER location 'a0'; storage : POINTER location 'a1') : LONGINT; syscall AmigaGuideBase 114;
-FUNCTION GetAmigaGuideMsg(cl : POINTER location 'a0') : pAmigaGuideMsg; syscall AmigaGuideBase 078;
-FUNCTION GetAmigaGuideString(id : LONGINT location 'd0') : pCHAR; syscall AmigaGuideBase 210;
-FUNCTION LoadXRef(lock : LONGINT location 'a0'; name : pCHAR location 'a1') : LONGINT; syscall AmigaGuideBase 126;
-FUNCTION LockAmigaGuideBase(handle : POINTER location 'a0') : LONGINT; syscall AmigaGuideBase 036;
-FUNCTION OpenAmigaGuideA(nag : pNewAmigaGuide location 'a0'; taglist : pTagItem location 'a1') : POINTER; syscall AmigaGuideBase 054;
-FUNCTION OpenAmigaGuideAsyncA(nag : pNewAmigaGuide location 'a0'; attrs : pTagItem location 'd0') : POINTER; syscall AmigaGuideBase 060;
-FUNCTION RemoveAmigaGuideHostA(hh : POINTER location 'a0'; attrs : pTagItem location 'a1') : LONGINT; syscall AmigaGuideBase 144;
-PROCEDURE ReplyAmigaGuideMsg(amsg : pAmigaGuideMsg location 'a0'); syscall AmigaGuideBase 084;
-FUNCTION SendAmigaGuideCmdA(cl : POINTER location 'a0'; cmd : pCHAR location 'd0'; attrs : pTagItem location 'd1') : LONGINT; syscall AmigaGuideBase 102;
-FUNCTION SendAmigaGuideContextA(cl : POINTER location 'a0'; attrs : pTagItem location 'd0') : LONGINT; syscall AmigaGuideBase 096;
-FUNCTION SetAmigaGuideAttrsA(cl : POINTER location 'a0'; attrs : pTagItem location 'a1') : LONGINT; syscall AmigaGuideBase 108;
-FUNCTION SetAmigaGuideContextA(cl : POINTER location 'a0'; id : ULONG location 'd0'; attrs : pTagItem location 'd1') : LONGINT; syscall AmigaGuideBase 090;
-PROCEDURE UnlockAmigaGuideBase(key : LONGINT location 'd0'); syscall AmigaGuideBase 042;
+function AddAmigaGuideHostA(h : pHook location 'a0'; name : pCHAR location 'd0'; attrs : pTagItem location 'a1') : POINTER; syscall AmigaGuideBase 138;
+function AmigaGuideSignal(cl : POINTER location 'a0') : ULONG; syscall AmigaGuideBase 072;
+procedure CloseAmigaGuide(cl : POINTER location 'a0'); syscall AmigaGuideBase 066;
+procedure ExpungeXRef; syscall AmigaGuideBase 132;
+function GetAmigaGuideAttr(tag : ULONG location 'd0'; cl : POINTER location 'a0'; storage : POINTER location 'a1') : LONGINT; syscall AmigaGuideBase 114;
+function GetAmigaGuideMsg(cl : POINTER location 'a0') : pAmigaGuideMsg; syscall AmigaGuideBase 078;
+function GetAmigaGuideString(id : LONGINT location 'd0') : pCHAR; syscall AmigaGuideBase 210;
+function LoadXRef(lock : LONGINT location 'a0'; name : pCHAR location 'a1') : LONGINT; syscall AmigaGuideBase 126;
+function LockAmigaGuideBase(handle : POINTER location 'a0') : LONGINT; syscall AmigaGuideBase 036;
+function OpenAmigaGuideA(nag : pNewAmigaGuide location 'a0'; taglist : pTagItem location 'a1') : POINTER; syscall AmigaGuideBase 054;
+function OpenAmigaGuideAsyncA(nag : pNewAmigaGuide location 'a0'; attrs : pTagItem location 'd0') : POINTER; syscall AmigaGuideBase 060;
+function RemoveAmigaGuideHostA(hh : POINTER location 'a0'; attrs : pTagItem location 'a1') : LONGINT; syscall AmigaGuideBase 144;
+procedure ReplyAmigaGuideMsg(amsg : pAmigaGuideMsg location 'a0'); syscall AmigaGuideBase 084;
+function SendAmigaGuideCmdA(cl : POINTER location 'a0'; cmd : pCHAR location 'd0'; attrs : pTagItem location 'd1') : LONGINT; syscall AmigaGuideBase 102;
+function SendAmigaGuideContextA(cl : POINTER location 'a0'; attrs : pTagItem location 'd0') : LONGINT; syscall AmigaGuideBase 096;
+function SetAmigaGuideAttrsA(cl : POINTER location 'a0'; attrs : pTagItem location 'a1') : LONGINT; syscall AmigaGuideBase 108;
+function SetAmigaGuideContextA(cl : POINTER location 'a0'; id : ULONG location 'd0'; attrs : pTagItem location 'd1') : LONGINT; syscall AmigaGuideBase 090;
+procedure UnlockAmigaGuideBase(key : LONGINT location 'd0'); syscall AmigaGuideBase 042;
 
-IMPLEMENTATION
+function AddAmigaGuideHost(h : pHook; name : pCHAR; Const argv : array of PtrUInt) : POINTER;
+function OpenAmigaGuide(nag : pNewAmigaGuide; Const argv : array of PtrUInt) : POINTER;
+function OpenAmigaGuideAsync(nag : pNewAmigaGuide; Const argv : array of PtrUInt) : POINTER;
+function RemoveAmigaGuideHost(hh : POINTER; Const argv : array of PtrUInt) : LONGINT;
+function SendAmigaGuideCmd(cl : POINTER; cmd : pCHAR; Const argv : array of PtrUInt) : LONGINT;
+function SendAmigaGuideContext(cl : POINTER; Const argv : array of PtrUInt) : LONGINT;
+function SetAmigaGuideAttrs(cl : POINTER; Const argv : array of PtrUInt) : LONGINT;
+function SetAmigaGuideContext(cl : POINTER; id : ULONG; Const argv : array of PtrUInt) : LONGINT;
+
+implementation
 
 const
     { Change VERSION and LIBVERSION to proper values }
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
+
+function AddAmigaGuideHost(h : pHook; name : pCHAR; Const argv : array of PtrUInt) : POINTER;
+begin
+    AddAmigaGuideHost := AddAmigaGuideHostA(h, name, @argv);
+end;
+
+function OpenAmigaGuide(nag : pNewAmigaGuide; Const argv : array of PtrUInt) : POINTER;
+begin
+    OpenAmigaGuide := OpenAmigaGuideA(nag, @argv);
+end;
+
+function OpenAmigaGuideAsync(nag : pNewAmigaGuide; Const argv : array of PtrUInt) : POINTER;
+begin
+    OpenAmigaGuideAsync := OpenAmigaGuideAsyncA(nag,@argv);
+end;
+
+function RemoveAmigaGuideHost(hh : POINTER; Const argv : array of PtrUInt) : LONGINT;
+begin
+    RemoveAmigaGuideHost := RemoveAmigaGuideHostA(hh, @argv);
+end;
+
+function SendAmigaGuideCmd(cl : POINTER; cmd : pCHAR; Const argv : array of PtrUInt) : LONGINT;
+begin
+    SendAmigaGuideCmd := SendAmigaGuideCmdA(cl,cmd,@argv);
+end;
+
+function SendAmigaGuideContext(cl : POINTER; Const argv : array of PtrUInt) : LONGINT;
+begin
+    SendAmigaGuideContext := SendAmigaGuideContextA(cl, @argv);
+end;
+
+function SetAmigaGuideAttrs(cl : POINTER; Const argv : array of PtrUInt) : LONGINT;
+begin
+    SetAmigaGuideAttrs := SetAmigaGuideAttrsA(cl, @argv);
+end;
+
+function SetAmigaGuideContext(cl : POINTER; id : ULONG; Const argv : array of PtrUInt) : LONGINT;
+begin
+    SetAmigaGuideContext := SetAmigaGuideContextA(cl,id,@argv);
+end;
 
 initialization
   AmigaGuideBase := OpenLibrary(AMIGAGUIDENAME,LIBVERSION);

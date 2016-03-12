@@ -22,7 +22,6 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
 
 UNIT XADMASTER;
 
@@ -1207,117 +1206,114 @@ FUNCTION xadHookAccess(command : longword location 'd0'; data : LONGINT location
 FUNCTION xadHookTagAccessA(command : longword location 'd0'; data : LONGINT location 'd1'; buffer : POINTER location 'a0'; ai : pxadArchiveInfo location 'a1'; CONST tags : pTagItem location 'a2') : LONGINT; syscall xadMasterBase 120;
 FUNCTION xadRecogFileA(size : longword location 'd0'; memory : POINTER location 'a0'; CONST tags : pTagItem location 'a1') : pxadClient; syscall xadMasterBase 42;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadAllocObject(_type : LONGINT; const tags : Array Of Const) : POINTER;
-FUNCTION xadConvertDates(const tags : Array Of Const) : LONGINT;
-FUNCTION xadConvertName(charset : longword; const tags : Array Of Const) : pCHAR;
-FUNCTION xadConvertProtection(const tags : Array Of Const) : LONGINT;
-FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-PROCEDURE xadFreeObject(obj : POINTER; const tags : Array Of Const);
-FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : Array Of Const) : LONGINT;
-FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
-FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : Array Of Const) : pxadClient;
+FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadAllocObject(_type : LONGINT; const tags : array of PtrUInt) : POINTER;
+FUNCTION xadConvertDates(const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : pCHAR;
+FUNCTION xadConvertProtection(const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+PROCEDURE xadFreeObject(obj : POINTER; const tags : array of PtrUInt);
+FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : array of PtrUInt) : pxadClient;
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadAddDiskEntry := xadAddDiskEntryA(di , ai , readintags(tags));
+    xadAddDiskEntry := xadAddDiskEntryA(di , ai , @tags);
 end;
 
-FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadAddFileEntry := xadAddFileEntryA(fi , ai , readintags(tags));
+    xadAddFileEntry := xadAddFileEntryA(fi , ai , @tags);
 end;
 
-FUNCTION xadAllocObject(_type : LONGINT; const tags : Array Of Const) : POINTER;
+FUNCTION xadAllocObject(_type : LONGINT; const tags : array of PtrUInt) : POINTER;
 begin
-    xadAllocObject := xadAllocObjectA(_type , readintags(tags));
+    xadAllocObject := xadAllocObjectA(_type , @tags);
 end;
 
-FUNCTION xadConvertDates(const tags : Array Of Const) : LONGINT;
+FUNCTION xadConvertDates(const tags : array of PtrUInt) : LONGINT;
 begin
-    xadConvertDates := xadConvertDatesA(readintags(tags));
+    xadConvertDates := xadConvertDatesA(@tags);
 end;
 
-FUNCTION xadConvertName(charset : longword; const tags : Array Of Const) : pCHAR;
+FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : pCHAR;
 begin
-    xadConvertName := xadConvertNameA(charset , readintags(tags));
+    xadConvertName := xadConvertNameA(charset , @tags);
 end;
 
-FUNCTION xadConvertProtection(const tags : Array Of Const) : LONGINT;
+FUNCTION xadConvertProtection(const tags : array of PtrUInt) : LONGINT;
 begin
-    xadConvertProtection := xadConvertProtectionA(readintags(tags));
+    xadConvertProtection := xadConvertProtectionA(@tags);
 end;
 
-FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadDiskFileUnArc := xadDiskFileUnArcA(ai , readintags(tags));
+    xadDiskFileUnArc := xadDiskFileUnArcA(ai , @tags);
 end;
 
-FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadDiskUnArc := xadDiskUnArcA(ai , readintags(tags));
+    xadDiskUnArc := xadDiskUnArcA(ai , @tags);
 end;
 
-FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadFileUnArc := xadFileUnArcA(ai , readintags(tags));
+    xadFileUnArc := xadFileUnArcA(ai , @tags);
 end;
 
-FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadFreeHookAccess := xadFreeHookAccessA(ai , readintags(tags));
+    xadFreeHookAccess := xadFreeHookAccessA(ai , @tags);
 end;
 
-PROCEDURE xadFreeObject(obj : POINTER; const tags : Array Of Const);
+PROCEDURE xadFreeObject(obj : POINTER; const tags : array of PtrUInt);
 begin
-    xadFreeObjectA(obj , readintags(tags));
+    xadFreeObjectA(obj , @tags);
 end;
 
-FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadGetDiskInfo := xadGetDiskInfoA(ai , readintags(tags));
+    xadGetDiskInfo := xadGetDiskInfoA(ai , @tags);
 end;
 
-FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadGetFilename := xadGetFilenameA(buffersize , buffer , path , name , readintags(tags));
+    xadGetFilename := xadGetFilenameA(buffersize , buffer , path , name , @tags);
 end;
 
-FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadGetHookAccess := xadGetHookAccessA(ai , readintags(tags));
+    xadGetHookAccess := xadGetHookAccessA(ai , @tags);
 end;
 
-FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadGetInfo := xadGetInfoA(ai , readintags(tags));
+    xadGetInfo := xadGetInfoA(ai , @tags);
 end;
 
-FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
 begin
-    xadHookTagAccess := xadHookTagAccessA(command , data , buffer , ai , readintags(tags));
+    xadHookTagAccess := xadHookTagAccessA(command , data , buffer , ai , @tags);
 end;
 
-FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : Array Of Const) : pxadClient;
+FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : array of PtrUInt) : pxadClient;
 begin
-    xadRecogFile := xadRecogFileA(size , memory , readintags(tags));
+    xadRecogFile := xadRecogFileA(size , memory , @tags);
 end;
 
 const

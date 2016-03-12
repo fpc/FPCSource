@@ -27,7 +27,6 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
 
 UNIT MYSTICVIEW;
 
@@ -155,33 +154,30 @@ PROCEDURE MV_SetAttrsA(mview : POINTER location 'a0'; tags : pTagItem location '
 PROCEDURE MV_SetViewRelative(mview : POINTER location 'a0'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall MysticBase 78;
 PROCEDURE MV_SetViewStart(mview : POINTER location 'a0'; x : LONGINT location 'd0'; y : LONGINT location 'd1'); syscall MysticBase 72;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MV_Create(screen : pScreen; a1arg : pRastPort; const tags : Array Of Const) : POINTER;
-PROCEDURE MV_GetAttrs(mview : POINTER; const tags : Array Of Const);
-PROCEDURE MV_SetAttrs(mview : POINTER; const tags : Array Of Const);
+FUNCTION MV_Create(screen : pScreen; a1arg : pRastPort; const tags : array of PtrUInt) : POINTER;
+PROCEDURE MV_GetAttrs(mview : POINTER; const tags : array of PtrUInt);
+PROCEDURE MV_SetAttrs(mview : POINTER; const tags : array of PtrUInt);
 
 IMPLEMENTATION
 
-uses
-  tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MV_Create(screen : pScreen; a1arg : pRastPort; const tags : Array Of Const) : POINTER;
+FUNCTION MV_Create(screen : pScreen; a1arg : pRastPort; const tags : array of PtrUInt) : POINTER;
 begin
-    MV_Create := MV_CreateA(screen , a1arg , readintags(tags));
+    MV_Create := MV_CreateA(screen , a1arg , @tags);
 end;
 
-PROCEDURE MV_GetAttrs(mview : POINTER; const tags : Array Of Const);
+PROCEDURE MV_GetAttrs(mview : POINTER; const tags : array of PtrUInt);
 begin
-    MV_GetAttrsA(mview , readintags(tags));
+    MV_GetAttrsA(mview , @tags);
 end;
 
-PROCEDURE MV_SetAttrs(mview : POINTER; const tags : Array Of Const);
+PROCEDURE MV_SetAttrs(mview : POINTER; const tags : array of PtrUInt);
 begin
-    MV_SetAttrsA(mview , readintags(tags));
+    MV_SetAttrsA(mview , @tags);
 end;
 
 const

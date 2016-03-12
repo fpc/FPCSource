@@ -21,7 +21,7 @@ PROGRAM ImageGadget;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-USES Intuition, Exec, AGraphics, GadTools, Utility, systemvartags,pastoc;
+USES Intuition, Exec, AGraphics, GadTools, Utility,pastoc;
 
 
 CONST

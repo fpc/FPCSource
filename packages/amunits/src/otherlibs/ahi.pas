@@ -29,7 +29,6 @@
 }
 {$PACKRECORDS 2}
 
-{$mode objfpc}
 
 UNIT AHI;
 
@@ -522,57 +521,54 @@ PROCEDURE AHI_SetVol(Channel : WORD location 'd0'; Volume : LONGINT location 'd1
 PROCEDURE AHI_UnloadSound(Sound : WORD location 'd0'; Audioctrl : pAHIAudioCtrl location 'a2'); syscall AHIBase 96;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AHI_AllocAudio(const tagList : Array Of Const) : pAHIAudioCtrl;
-FUNCTION AHI_AllocAudioRequest(const tagList : Array Of Const) : pAHIAudioModeRequester;
-FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : Array Of Const) : BOOLEAN;
-FUNCTION AHI_BestAudioID(const tagList : Array Of Const) : longword;
-FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : Array Of Const) : longword;
-FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const) : BOOLEAN;
-PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const);
+FUNCTION AHI_AllocAudio(const tagList : array of PtrUInt) : pAHIAudioCtrl;
+FUNCTION AHI_AllocAudioRequest(const tagList : array of PtrUInt) : pAHIAudioModeRequester;
+FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : array of PtrUInt) : BOOLEAN;
+FUNCTION AHI_BestAudioID(const tagList : array of PtrUInt) : longword;
+FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : longword;
+FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : BOOLEAN;
+PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt);
 
 IMPLEMENTATION
 
-uses
-tagsarray;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AHI_AllocAudio(const tagList : Array Of Const) : pAHIAudioCtrl;
+FUNCTION AHI_AllocAudio(const tagList : array of PtrUInt) : pAHIAudioCtrl;
 begin
-    AHI_AllocAudio := AHI_AllocAudioA(readintags(tagList));
+    AHI_AllocAudio := AHI_AllocAudioA(@TagList);
 end;
 
-FUNCTION AHI_AllocAudioRequest(const tagList : Array Of Const) : pAHIAudioModeRequester;
+FUNCTION AHI_AllocAudioRequest(const tagList : array of PtrUInt) : pAHIAudioModeRequester;
 begin
-    AHI_AllocAudioRequest := AHI_AllocAudioRequestA(readintags(tagList));
+    AHI_AllocAudioRequest := AHI_AllocAudioRequestA(@TagList);
 end;
 
-FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : Array Of Const) : BOOLEAN;
+FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : array of PtrUInt) : BOOLEAN;
 begin
-    AHI_AudioRequest := AHI_AudioRequestA(Requester , readintags(tagList));
+    AHI_AudioRequest := AHI_AudioRequestA(Requester , @TagList);
 end;
 
-FUNCTION AHI_BestAudioID(const tagList : Array Of Const) : longword;
+FUNCTION AHI_BestAudioID(const tagList : array of PtrUInt) : longword;
 begin
-    AHI_BestAudioID := AHI_BestAudioIDA(readintags(tagList));
+    AHI_BestAudioID := AHI_BestAudioIDA(@TagList);
 end;
 
-FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : Array Of Const) : longword;
+FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : longword;
 begin
-    AHI_ControlAudio := AHI_ControlAudioA(AudioCtrl , readintags(tagList));
+    AHI_ControlAudio := AHI_ControlAudioA(AudioCtrl , @TagList);
 end;
 
-FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const) : BOOLEAN;
+FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : BOOLEAN;
 begin
-    AHI_GetAudioAttrs := AHI_GetAudioAttrsA(ID , Audioctrl , readintags(tagList));
+    AHI_GetAudioAttrs := AHI_GetAudioAttrsA(ID , Audioctrl , @TagList);
 end;
 
-PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const);
+PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt);
 begin
-    AHI_PlayA(Audioctrl , readintags(tagList));
+    AHI_PlayA(Audioctrl , @TagList);
 end;
 
 const

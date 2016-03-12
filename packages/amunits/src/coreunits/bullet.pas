@@ -380,8 +380,26 @@ FUNCTION OpenEngine : pGlyphEngine; syscall BulletBase 030;
 FUNCTION ReleaseInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 054;
 FUNCTION SetInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 042;
 
+function ObtainInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+function ReleaseInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+function SetInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
 
 IMPLEMENTATION
+
+function ObtainInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+begin
+    ObtainInfo := ObtainInfoA(glyphEngine,@argv);
+end;
+
+function ReleaseInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+begin
+    ReleaseInfo := releaseInfoA(glyphEngine,@argv);
+end;
+
+function SetInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+begin
+    SetInfo := SetInfoA(glyphEngine,@argv);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
