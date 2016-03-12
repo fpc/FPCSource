@@ -9103,6 +9103,12 @@ type
     PMENUBARINFO = ^tagMENUBARINFO;
     LPMENUBARINFO = ^tagMENUBARINFO;
 
+
+    // defined here because large_integer is defined in struct.inc
+    LPPROGRESS_ROUTINE = function(TotalFileSize,TotalBytesTransferred,StreamSize,StreamBytesTransferred:LARGE_INTEGER;dwStreamNumber,dwCallbackReason:DWord;hSourceFile,hDestinationFile :THandle;lpdata:pointer):Dword; Stdcall;
+    TPROGRESS_ROUTINE = LPPROGRESS_ROUTINE;
+
+
 {$endif read_interface}
 
 

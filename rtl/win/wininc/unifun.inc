@@ -481,6 +481,7 @@ function OpenWaitableTimerW(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerNam
 function FindFirstFileExW(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external 'kernel32' name 'FindFirstFileExW';
 // winver>$0600 
 function FindFirstFileTransactedW(lpfilename : LPCWStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external 'kernel32' name 'FindFirstFileTransactedW';
+function CopyFileExW(lpExistingFileName,lpNewFileName : LPCWSTR;lpProgressRoutine:LPPROGRESS_ROUTINE;lpdata:Pointer;pbcancel:LPBOOL;dwCopyFlags:DWord):DWord; stdcall; external 'kernel32' name 'CopyFileExW';
 
 {$endif read_interface}
 

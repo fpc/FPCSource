@@ -6044,6 +6044,58 @@ const
       MBIFB_BAR_FOCUSED = $00000001;
       MBIFB_FOCUSED     = $00000002;
 
+
+const 
+//
+// Define possible return codes from the CopyFileEx callback routine
+//
+
+    PROGRESS_CONTINUE   = 0;
+    PROGRESS_CANCEL     = 1;
+    PROGRESS_STOP       = 2;
+    PROGRESS_QUIET      = 3;
+
+//
+// Define CopyFileEx callback routine state change values
+//
+
+    CALLBACK_CHUNK_FINISHED         = $00000000;
+    CALLBACK_STREAM_SWITCH          = $00000001;
+
+//
+// Define CopyFileEx option flags
+//
+
+    COPY_FILE_FAIL_IF_EXISTS              = $00000001;
+    COPY_FILE_RESTARTABLE                 = $00000002;
+    COPY_FILE_OPEN_SOURCE_FOR_WRITE       = $00000004;
+    COPY_FILE_ALLOW_DECRYPTED_DESTINATION = $00000008;
+
+//
+//  Gap for private copyfile flags
+//
+
+    COPY_FILE_COPY_SYMLINK                = $00000800;
+    COPY_FILE_NO_BUFFERING                = $00001000;
+
+//
+//  CopyFile2 flags
+//
+
+    COPY_FILE_REQUEST_SECURITY_PRIVILEGES        = $00002000;
+    COPY_FILE_RESUME_FROM_PAUSE                  = $00004000;
+
+
+    COPY_FILE_NO_OFFLOAD                         = $00040000;
+
+//
+// Define ReplaceFile option flags
+//
+
+    REPLACEFILE_WRITE_THROUGH       = $00000001;
+    REPLACEFILE_IGNORE_MERGE_ERRORS = $00000002;
+    REPLACEFILE_IGNORE_ACL_ERRORS   = $00000004;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
