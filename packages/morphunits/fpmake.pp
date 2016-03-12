@@ -57,6 +57,8 @@ begin
     T:=P.Targets.AddUnit('cybergraphics.pas');
     T:=P.Targets.AddUnit('cgxvideo.pas');
     T:=P.Targets.AddUnit('gadtools.pas');
+    T:=P.Targets.AddUnit('workbench.pas');
+    T:=P.Targets.AddUnit('icon.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
