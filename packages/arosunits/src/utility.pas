@@ -255,6 +255,16 @@ function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR; inline;
 function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject;
 function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR;
 
+function TAG_(Value: Pointer): PtrUInt; overload; inline;
+function TAG_(Value: PChar): PtrUInt; overload; inline;
+function TAG_(Value: boolean): PtrUInt; overload; inline;
+function TAG_(Value: integer): PtrUInt; overload; inline;
+
+function AsTag(Value: Pointer): PtrUInt; overload; inline;
+function AsTag(Value: PChar): PtrUInt; overload; inline;
+function AsTag(Value: boolean): PtrUInt; overload; inline;
+function AsTag(Value: integer): PtrUInt; overload; inline;
+
 implementation
 
 function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
@@ -278,6 +288,52 @@ begin
     Exit;
   FuncPtr := THookFunctionProc(Hook^.h_Entry);
   CALLHOOKPKT_ := FuncPtr(Hook, Object_, Message);
+end;
+
+function TAG_(Value: pointer): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function TAG_(value: pchar): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function TAG_(value: boolean): PtrUInt; inline;
+begin
+  if Value then
+    TAG_ := LTrue
+  else
+    TAG_ := LFalse;
+end;
+
+function TAG_(Value: Integer): PtrUInt; inline;
+begin
+  TAG_ := PtrUInt(Value);
+end;
+
+function AsTag(Value: pointer): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
+end;
+
+function AsTag(value: pchar): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
+end;
+
+function AsTag(value: boolean): PtrUInt; inline;
+begin
+  if Value then
+    AsTag := LTrue
+  else
+    AsTag := LFalse;
+end;
+
+function AsTag(Value: Integer): PtrUInt; inline;
+begin
+  AsTag := PtrUInt(Value);
 end;
 
 end.

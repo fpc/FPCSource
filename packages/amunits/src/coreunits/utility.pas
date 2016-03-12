@@ -391,6 +391,16 @@ FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGIN
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
 
 
+function TAG_(value: pointer): PtrUInt; overload; inline;
+function TAG_(value: pchar): PtrUInt; overload; inline;
+function TAG_(value: boolean): PtrUInt; overload; inline;
+function TAG_(value: integer): PtrUInt; overload; inline;
+
+function AsTag(value: pointer): PtrUInt; overload; inline;
+function AsTag(value: pchar): PtrUInt; overload; inline;
+function AsTag(value: boolean): PtrUInt; overload; inline;
+function AsTag(value: integer): PtrUInt; overload; inline;
+
 IMPLEMENTATION
 
 function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
@@ -437,6 +447,52 @@ end;
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
 begin
        Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
+end;
+
+function TAG_(value: pointer): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
+
+function TAG_(value: pchar): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
+
+function TAG_(value: boolean): PtrUInt; inline;
+begin
+  if value then
+    TAG_ := LTrue
+  else
+    TAG_ := LFalse;
+end;
+
+function TAG_(value: integer): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
+
+function AsTag(value: pointer): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(value: pchar): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(value: boolean): PtrUInt; inline;
+begin
+  if value then
+    AsTag := LTrue
+  else
+    AsTag := LFalse;
+end;
+
+function AsTag(value: integer): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
 end;
 
 initialization
