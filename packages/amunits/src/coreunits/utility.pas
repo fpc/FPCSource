@@ -286,13 +286,13 @@ const
  * In practice, an array (or chain of arrays) of TagItems is used.
  }
 Type
-    Tag = LongInt;
+    Tag = LongWord;
     pTag = ^Tag;
 
     pTagItem = ^tTagItem;
     tTagItem = record
      ti_Tag  : Tag;
-     ti_Data : LongInt;
+     ti_Data : LongWord;
     END;
 
     ppTagItem = ^pTagItem;

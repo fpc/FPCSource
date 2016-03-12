@@ -2274,7 +2274,7 @@ SysCall GfxBase 180;
 function AreaEllipse(rp : pRastPort location 'a1'; xCenter : LongInt location 'd0'; yCenter : LongInt location 'd1'; a : LongInt location 'd2'; b : LongInt location 'd3') : LongInt;
 SysCall GfxBase 186;
 
-procedure LoadRGB4(vp : pViewPort location 'a0'; VAR colors : Integer location 'a1'; count : LongInt location 'd0');
+procedure LoadRGB4(vp : pViewPort location 'a0'; Colors : PWord location 'a1'; count : LongInt location 'd0');
 SysCall GfxBase 192;
 
 procedure InitRastPort(rp : pRastPort location 'a1');
@@ -2328,7 +2328,7 @@ SysCall GfxBase 288;
 procedure QBSBlit(blit : pbltnode location 'a1');
 SysCall GfxBase 294;
 
-procedure BltClear(memBlock : pCHAR location 'a1'; byteCount : CARDINAL location 'd0'; flags : CARDINAL location 'd1');
+procedure BltClear(memBlock : Pointer location 'a1'; byteCount : CARDINAL location 'd0'; flags : CARDINAL location 'd1');
 SysCall GfxBase 300;
 
 procedure RectFill(rp : pRastPort location 'a1'; xMin : LongInt location 'd0'; yMin : LongInt location 'd1'; xMax : LongInt location 'd2'; yMax : LongInt location 'd3');
@@ -2526,7 +2526,7 @@ SysCall GfxBase 696;
 function GfxLookUp(associateNode : POINTER location 'a0') : POINTER;
 SysCall GfxBase 702;
 
-function VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongBool;
+function VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongWord;
 SysCall GfxBase 708;
 
 function OpenMonitor(monitorName : pSHORTINT location 'a1'; displayID : CARDINAL location 'd0') : pMonitorSpec;

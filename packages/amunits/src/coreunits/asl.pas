@@ -551,10 +551,10 @@ VAR AslBase : pLibrary = nil;
 
 FUNCTION AllocAslRequest(reqType : ULONG location 'd0'; tagList : pTagItem location 'a0') : POINTER; syscall AslBase 048;
 FUNCTION AllocFileRequest : pFileRequester; syscall AslBase 030;
-FUNCTION AslRequest(requester : POINTER location 'a0'; tagList : pTagItem location 'a1') : LongInt; syscall AslBase 060;
+FUNCTION AslRequest(requester : POINTER location 'a0'; tagList : pTagItem location 'a1') : LongBool; syscall AslBase 060;
 PROCEDURE FreeAslRequest(requester : POINTER location 'a0'); syscall AslBase 054;
 PROCEDURE FreeFileRequest(fileReq : pFileRequester location 'a0'); syscall AslBase 036;
-FUNCTION RequestFile(fileReq : pFileRequester location 'a0') : LongInt; syscall AslBase 042;
+FUNCTION RequestFile(fileReq : pFileRequester location 'a0') : LongBool; syscall AslBase 042;
 
 PROCEDURE AbortAslRequest(requester : POINTER location 'a0'); syscall AslBase 078;
 PROCEDURE ActivateAslRequest(requester : POINTER location 'a0'); syscall AslBase 084;
@@ -571,7 +571,7 @@ end;
 
 function AslRequestTags(requester : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
 begin
-    AslRequestTags := AslRequest(requester,@argv) <> 0;
+    AslRequestTags := AslRequest(requester,@argv);
 end;
 
 

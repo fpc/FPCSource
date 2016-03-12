@@ -486,7 +486,7 @@ const
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'); syscall RexxSysBase 156;
 FUNCTION CreateArgstring(const argstring : pCHAR location 'a0'; length : ULONG location 'd0') : pCHAR; syscall RexxSysBase 126;
 FUNCTION CreateRexxMsg(const port : pMsgPort location 'a0'; const extension : pCHAR location 'a1'; host : pCHAR location 'd0') : pRexxMsg; syscall RexxSysBase 144;
-PROCEDURE DeleteArgstring(argstring : pCHAR location 'd0'); syscall RexxSysBase 132;
+PROCEDURE DeleteArgstring(argstring : pCHAR location 'a0'); syscall RexxSysBase 132;
 PROCEDURE DeleteRexxMsg(packet : pRexxMsg location 'a0'); syscall RexxSysBase 150;
 FUNCTION FillRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'; mask : ULONG location 'd1') : LongBool; syscall RexxSysBase 162;
 FUNCTION IsRexxMsg(const msgptr : pRexxMsg location 'a0') : LongBool; syscall RexxSysBase 168;

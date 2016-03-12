@@ -4165,7 +4165,7 @@ SysCall IntuitionBase 258;
 function SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool;
 SysCall IntuitionBase 264;
 
-procedure SetPointer(window : pWindow location 'a0'; VAR pointer : Word location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
+procedure SetPointer(window : pWindow location 'a0'; pointer : PWord location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
 SysCall IntuitionBase 270;
 
 procedure SetWindowTitles(window : pWindow location 'a0'; windowTitle : PChar location 'a1'; screenTitle : PChar location 'a2');

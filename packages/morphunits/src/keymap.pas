@@ -97,10 +97,10 @@ SysCall KeymapBase 030;
 function AskKeyMapDefault : pKeyMap;
 SysCall KeymapBase 036;
 
-function MapRawKey(CONST event : pInputEvent location 'a0'; buffer : pSHORTINT location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : INTEGER;
+function MapRawKey(CONST event : pInputEvent location 'a0'; buffer : PChar location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : INTEGER;
 SysCall KeymapBase 042;
 
-function MapANSI(CONST strg : pSHORTINT location 'a0'; count : longint location 'd0'; buffer : pSHORTINT location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : longint;
+function MapANSI(CONST strg : PChar location 'a0'; count : longint location 'd0'; buffer : PChar location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : longint;
 SysCall KeymapBase 048;
 
 { Helper calls }

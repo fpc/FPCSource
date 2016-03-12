@@ -2259,7 +2259,7 @@ FUNCTION BestModeIDA(const tags : pTagItem location 'a0') : ULONG; syscall GfxBa
 PROCEDURE BitMapScale(bitScaleArgs : pBitScaleArgs location 'a0'); syscall GfxBase 678;
 FUNCTION BltBitMap(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'; mask : ULONG location 'd7'; tempA : pCHAR location 'a2') : LONGINT; syscall GfxBase 030;
 PROCEDURE BltBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6'); syscall GfxBase 606;
-PROCEDURE BltClear(memBlock : pCHAR location 'a1'; byteCount : ULONG location 'd0'; flags : ULONG location 'd1'); syscall GfxBase 300;
+PROCEDURE BltClear(memBlock : pointer location 'a1'; byteCount : ULONG location 'd0'; flags : ULONG location 'd1'); syscall GfxBase 300;
 PROCEDURE BltMaskBitMapRastPort(const srcBitMap : pBitMap location 'a0'; xSrc : LONGINT location 'd0'; ySrc : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'; minterm : ULONG location 'd6';const bltMask : pCHAR location 'a2'); syscall GfxBase 636;
 PROCEDURE BltPattern(rp : pRastPort location 'a1';const mask : pCHAR location 'a0'; xMin : LONGINT location 'd0'; yMin : LONGINT location 'd1'; xMax : LONGINT location 'd2'; yMax : LONGINT location 'd3'; maskBPR : ULONG location 'd4'); syscall GfxBase 312;
 PROCEDURE BltTemplate(const source : pWORD location 'a0'; xSrc : LONGINT location 'd0'; srcMod : LONGINT location 'd1'; destRP : pRastPort location 'a1'; xDest : LONGINT location 'd2'; yDest : LONGINT location 'd3'; xSize : LONGINT location 'd4'; ySize : LONGINT location 'd5'); syscall GfxBase 036;
@@ -2388,7 +2388,7 @@ FUNCTION TextLength(rp : pRastPort location 'a1';const string_ : pCHAR location 
 FUNCTION UCopperListInit(uCopList : pUCopList location 'a0'; n : LONGINT location 'd0') : pCopList; syscall GfxBase 594;
 PROCEDURE UnlockLayerRom(layer : pLayer location 'a5'); syscall GfxBase 438;
 FUNCTION VBeamPos : LONGINT; syscall GfxBase 384;
-FUNCTION VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongBool; syscall GfxBase 708;
+FUNCTION VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongWord; syscall GfxBase 708;
 PROCEDURE WaitBlit; syscall GfxBase 228;
 PROCEDURE WaitBOVP(vp : pViewPort location 'a0'); syscall GfxBase 402;
 PROCEDURE WaitTOF; syscall GfxBase 270;
@@ -2408,7 +2408,7 @@ function GetExtSprite(ss : pExtSprite; Const argv : array of PtrUInt) : LONGINT;
 procedure GetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
 function ObtainBestPen(cm : pColorMap; r : ULONG; g : ULONG; b : ULONG; Const argv : array of PtrUInt) : LONGINT;
 procedure SetRPAttrs(rp : pRastPort; Const argv : array of PtrUInt);
-function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : BOOLEAN;
+function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : LongWord;
 function WeighTAMatchTags(reqTextAttr : pTextAttr; targetTextAttr : pTextAttr; Const argv : array of PtrUInt) : smallint;
 
 { gfxmacros }
@@ -2477,7 +2477,7 @@ begin
     SetRPAttrsA(rp,@argv);
 end;
 
-function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : BOOLEAN;
+function VideoControlTags(colorMap : pColorMap; Const argv : array of PtrUInt) : LongWord;
 begin
     VideoControlTags := VideoControl(colorMap,@argv);
 end;
