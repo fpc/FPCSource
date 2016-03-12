@@ -55,7 +55,7 @@ uses
 
 {$MACRO ON}
 
-//{$DEFINE DEBUG_DWARF_PARSER}
+{ $DEFINE DEBUG_DWARF_PARSER}
 {$ifdef DEBUG_DWARF_PARSER}
   {$define DEBUG_WRITELN := WriteLn}
   {$define DEBUG_COMMENT :=  }
@@ -78,8 +78,14 @@ var
   EBuf: Array [0..EBUF_SIZE-1] of Byte;
   EBufCnt, EBufPos: Integer;
   { the offset and size of the DWARF debug_line section in the file }
-  DwarfOffset : longint;
-  DwarfSize : longint;
+  Dwarf_Debug_Line_Section_Offset,
+  Dwarf_Debug_Line_Section_Size,
+  { the offset and size of the DWARF debug_info section in the file }
+  Dwarf_Debug_Info_Section_Offset,
+  Dwarf_Debug_Info_Section_Size,
+{ the offset and size of the DWARF debug_abbrev section in the file }
+  Dwarf_Debug_Abbrev_Section_Offset,
+  Dwarf_Debug_Abbrev_Section_Size : longint;
 
 { DWARF 2 default opcodes}
 const
@@ -100,6 +106,28 @@ const
   DW_LNS_SET_PROLOGUE_END = 10;
   DW_LNS_SET_EPILOGUE_BEGIN = 11;
   DW_LNS_SET_ISA = 12;
+
+  DW_FORM_addr = $1;
+  DW_FORM_block2 = $3;
+  DW_FORM_block4 = $4;
+  DW_FORM_data2 = $5;
+  DW_FORM_data4 = $6;
+  DW_FORM_data8 = $7;
+  DW_FORM_string = $8;
+  DW_FORM_block = $9;
+  DW_FORM_block1 = $a;
+  DW_FORM_data1 = $b;
+  DW_FORM_flag = $c;
+  DW_FORM_sdata = $d;
+  DW_FORM_strp = $e;
+  DW_FORM_udata = $f;
+  DW_FORM_ref_addr = $10;
+  DW_FORM_ref1 = $11;
+  DW_FORM_ref2 = $12;
+  DW_FORM_ref4 = $13;
+  DW_FORM_ref8 = $14;
+  DW_FORM_ref_udata = $15;
+  DW_FORM_indirect = $16;
 
 type
   { state record for the line info state machine }
@@ -140,6 +168,21 @@ type
     line_base : ShortInt;
     line_range : Byte;
     opcode_base : Byte;
+  end;
+
+  TDebugInfoProgramHeader64 = packed record
+    magic : DWord;
+    unit_length : QWord;
+    version : Word;
+    debug_abbrev_offset : QWord;
+    address_size : Byte;
+  end;
+
+  TDebugInfoProgramHeader32= packed record
+    unit_length : DWord;
+    version : Word;
+    debug_abbrev_offset : DWord;
+    address_size : Byte;
   end;
 
 {---------------------------------------------------------------------------
@@ -204,10 +247,15 @@ begin
 
   // Find debug data section
   e.processaddress:=ptruint(baseaddr)-e.processaddress;
-  if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
+  if FindExeSection(e,'.debug_line',Dwarf_Debug_Line_Section_offset,dwarf_Debug_Line_Section_size) and
+    FindExeSection(e,'.debug_info',Dwarf_Debug_Info_Section_offset,dwarf_Debug_Info_Section_size) and
+    FindExeSection(e,'.debug_abbrev',Dwarf_Debug_Abbrev_Section_offset,dwarf_Debug_Abbrev_Section_size) then
   begin
     lastopendwarf:=true;
     OpenDwarf:=true;
+    DEBUG_WRITELN('.debug_line starts at offset $',hexstr(Dwarf_Debug_Line_Section_offset,8),' with a size of ',Dwarf_Debug_Line_Section_Size,' Bytes');
+    DEBUG_WRITELN('.debug_info starts at offset $',hexstr(Dwarf_Debug_Info_Section_offset,8),' with a size of ',Dwarf_Debug_Info_Section_Size,' Bytes');
+    DEBUG_WRITELN('.debug_abbrev starts at offset $',hexstr(Dwarf_Debug_Abbrev_Section_offset,8),' with a size of ',Dwarf_Debug_Abbrev_Section_Size,' Bytes');
   end
   else
     CloseExeFile(e);
@@ -767,6 +815,226 @@ begin
   end;
 end;
 
+
+var
+  Abbrev_Offsets : array of QWord;
+  Abbrev_Tags : array of QWord;
+  Abbrev_Children : array of Byte;
+  Abbrev_Attrs : array of array of record attr,form : QWord; end;
+
+procedure ReadAbbrevTable;
+  var
+   i : PtrInt;
+   tag,
+   nr,
+   attr,
+   form,
+   PrevHigh : Int64;
+  begin
+    DEBUG_WRITELN('Starting to read abbrev. section at $',hexstr(Dwarf_Debug_Abbrev_Section_Offset+Pos,16));
+    repeat
+      nr:=ReadULEB128;
+      if nr=0 then
+        break;
+
+      if nr>high(Abbrev_Offsets) then
+        begin
+          SetLength(Abbrev_Offsets,nr+1024);
+          SetLength(Abbrev_Tags,nr+1024);
+          SetLength(Abbrev_Attrs,nr+1024);
+          SetLength(Abbrev_Children,nr+1024);
+        end;
+
+      Abbrev_Offsets[nr]:=Pos;
+
+      { skip tag }
+      tag:=ReadULEB128;
+      Abbrev_Tags[nr]:=tag;
+      DEBUG_WRITELN('Abbrev ',nr,' at offset ',Pos,' has tag $',hexstr(tag,4));
+      { children }
+      Abbrev_Children[nr]:=ReadNext;
+      i:=0;
+      repeat
+        attr:=ReadULEB128;
+        form:=ReadULEB128;
+        if attr<>0 then
+          begin
+            SetLength(Abbrev_Attrs[nr],i+1);
+            Abbrev_Attrs[nr][i].attr:=attr;
+            Abbrev_Attrs[nr][i].form:=form;
+          end;
+        inc(i);
+      until attr=0;
+      DEBUG_WRITELN('Abbrev ',nr,' has ',Length(Abbrev_Attrs[nr]),' attributes');
+    until false;
+  end;
+
+
+
+function ParseCompilationUnitForFunctionName(const addr : PtrUInt; const file_offset : QWord;
+  var func : String; var found : Boolean) : QWord;
+var
+  state : TMachineState;
+  { we need both headers on the stack, although we only use the 64 bit one internally }
+  header64 : TDebugInfoProgramHeader64;
+  header32 : TDebugInfoProgramHeader32;
+  isdwarf64 : boolean;
+  abbrev,
+  high_pc,
+  low_pc : QWord;
+  temp_length : DWord;
+  unit_length : QWord;
+  i : PtrUInt;
+  name : String;
+  level : Integer;
+
+procedure SkipAttr(form : QWord);
+  var
+    dummy : array[0..7] of byte;
+  begin
+    case form of
+      DW_FORM_addr:
+        ReadNext(dummy,header64.address_size);
+      DW_FORM_block2:
+        ReadNext(dummy,2);
+      DW_FORM_block4:
+        ReadNext(dummy,4);
+      DW_FORM_data2:
+        ReadNext(dummy,2);
+      DW_FORM_data4:
+        ReadNext(dummy,4);
+      DW_FORM_data8:
+        ReadNext(dummy,8);
+      DW_FORM_string:
+        ReadString;
+      DW_FORM_block:
+        ReadULEB128;
+      DW_FORM_block1,
+      DW_FORM_data1,
+      DW_FORM_flag:
+        ReadNext(dummy,1);
+      DW_FORM_sdata:
+        ReadLEB128;
+      DW_FORM_ref_addr,
+      DW_FORM_strp:
+        if isdwarf64 then
+          ReadNext(dummy,8)
+        else
+          ReadNext(dummy,4);
+      DW_FORM_udata:
+        ReadULEB128;
+      DW_FORM_ref1:
+        ReadNext(dummy,1);
+      DW_FORM_ref2:
+        ReadNext(dummy,2);
+      DW_FORM_ref4:
+        ReadNext(dummy,4);
+      DW_FORM_ref8:
+        ReadNext(dummy,8);
+      DW_FORM_ref_udata:
+        ReadULEB128;
+      DW_FORM_indirect:
+        SkipAttr(ReadULEB128);
+      else
+        begin
+          writeln(stderr,'Internal error: unknown dwarf form: $',hexstr(form,2));
+          ReadNext;
+          exit;
+        end;
+    end;
+  end;
+
+begin
+  found := false;
+
+  ReadNext(temp_length, sizeof(temp_length));
+  if (temp_length <> $ffffffff) then begin
+    unit_length := temp_length + sizeof(temp_length)
+  end else begin
+    ReadNext(unit_length, sizeof(unit_length));
+    inc(unit_length, 12);
+  end;
+
+  ParseCompilationUnitForFunctionName := file_offset + unit_length;
+
+  Init(file_offset, unit_length);
+
+  DEBUG_WRITELN('Unit length: ', unit_length);
+  if (temp_length <> $ffffffff) then begin
+    DEBUG_WRITELN('32 bit DWARF detected');
+    ReadNext(header32, sizeof(header32));
+    header64.magic := $ffffffff;
+    header64.unit_length := header32.unit_length;
+    header64.version := header32.version;
+    header64.debug_abbrev_offset := header32.debug_abbrev_offset;
+    header64.address_size := header32.address_size;
+    isdwarf64:=false;
+  end else begin
+    DEBUG_WRITELN('64 bit DWARF detected');
+    ReadNext(header64, sizeof(header64));
+    isdwarf64:=true;
+  end;
+
+  abbrev:=ReadULEB128;
+  level:=0;
+  while (abbrev <> 0) and (not found) do
+    begin
+      DEBUG_WRITELN('Next abbrev: ',abbrev);
+      if Abbrev_Children[abbrev]<>0 then
+        inc(level);
+      if Abbrev_Tags[abbrev]=$2e then
+        begin
+          low_pc:=1;
+          high_pc:=0;
+          name:='';
+          for i:=0 to high(Abbrev_Attrs[abbrev]) do
+            begin
+              { DW_AT_low_pc }
+              if (Abbrev_Attrs[abbrev][i].attr=$11) and
+               (Abbrev_Attrs[abbrev][i].form=DW_FORM_addr) then
+                begin
+                  low_pc:=0;
+                  ReadNext(low_pc,header64.address_size);
+                end
+              { DW_AT_high_pc }
+              else if (Abbrev_Attrs[abbrev][i].attr=$12) and
+               (Abbrev_Attrs[abbrev][i].form=DW_FORM_addr) then
+                begin
+                  high_pc:=0;
+                  ReadNext(high_pc,header64.address_size);
+                end
+              { DW_AT_name }
+              else if (Abbrev_Attrs[abbrev][i].attr=$3) and
+                { avoid that we accidently read an DW_FORM_strp entry accidently }
+                (Abbrev_Attrs[abbrev][i].form=DW_FORM_string) then
+                begin
+                  name:=ReadString;
+                end
+              else
+                SkipAttr(Abbrev_Attrs[abbrev][i].form);
+            end;
+          DEBUG_WRITELN('Got DW_TAG_subprogram with low pc = $',hexStr(low_pc,header64.address_size*2),', high pc = $',hexStr(high_pc,header64.address_size*2),', name = ',name);
+          if (addr>low_pc) and (addr<high_pc) then
+            begin
+              found:=true;
+              func:=name;
+            end;
+        end
+      else
+        begin
+          for i:=0 to high(Abbrev_Attrs[abbrev]) do
+            SkipAttr(Abbrev_Attrs[abbrev][i].form);
+        end;
+      abbrev:=ReadULEB128;
+      while (level>0) and (abbrev=0) do
+        begin
+          dec(level);
+          abbrev:=ReadULEB128;
+        end;
+    end;
+end;
+
+
 function GetLineInfo(addr : ptruint; var func, source : string; var line : longint) : boolean;
 var
   current_offset : QWord;
@@ -777,7 +1045,6 @@ var
 begin
   func := '';
   source := '';
-  found := false;
   GetLineInfo:=false;
 
   if not OpenDwarf(pointer(addr)) then
@@ -785,13 +1052,26 @@ begin
 
   addr := addr - e.processaddress;
 
-  current_offset := DwarfOffset;
-  end_offset := DwarfOffset + DwarfSize;
+  current_offset := Dwarf_Debug_Line_Section_Offset;
+  end_offset := Dwarf_Debug_Line_Section_Offset + Dwarf_Debug_Line_Section_Size;
 
+  found := false;
   while (current_offset < end_offset) and (not found) do begin
     Init(current_offset, end_offset - current_offset);
     current_offset := ParseCompilationUnit(addr, current_offset,
       source, line, found);
+  end;
+
+  Init(Dwarf_Debug_Abbrev_Section_Offset, Dwarf_Debug_Abbrev_Section_Size);
+  ReadAbbrevTable;
+
+  current_offset := Dwarf_Debug_Info_Section_Offset;
+  end_offset := Dwarf_Debug_Info_Section_Offset + Dwarf_Debug_Info_Section_Size;
+
+  found := false;
+  while (current_offset < end_offset) and (not found) do begin
+    Init(current_offset, end_offset - current_offset);
+    current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
   end;
 
   if not AllowReuseOfLineInfoData then
