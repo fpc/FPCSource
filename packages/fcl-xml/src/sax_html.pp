@@ -119,10 +119,6 @@ procedure ReadHTMLFragment(AParentNode: TDOMNode; f: TStream);
 implementation
 
 
-const
-  WhitespaceChars = [#9, #10, #13, ' '];
-
-
 constructor THTMLReader.Create;
 begin
   inherited Create;
@@ -354,80 +350,83 @@ end;
 
 function SplitTagString(const s: SAXString; var Attr: TSAXAttributes): SAXString;
 var
-  i, j: Integer;
+  i, j, len: Integer;
   AttrName: SAXString;
   ValueDelimiter: WideChar;
-  DoIncJ: Boolean;
+  haseq, hasname: Boolean;
 begin
   Attr := nil;
   i := 0;
+  len := Length(s);
   repeat
     Inc(i)
-  until (i > Length(s)) or IsXMLWhitespace(s[i]);
+  until (i > len) or IsXMLWhitespace(s[i]);
 
-  if i > Length(s) then
-    Result := s
-  else
-  begin
-    Result := Copy(s, 1, i - 1);
-    Attr := TSAXAttributes.Create;
-    Inc(i);
+  Result := Copy(s, 1, i - 1);
+  WStrLower(Result);
+  if i > len then
+    exit;
+  Attr := TSAXAttributes.Create;
+  Inc(i);
 
-    while (i <= Length(s)) and IsXMLWhitespace(s[i]) do
+  repeat
+    while (i <= len) and IsXMLWhitespace(s[i]) do
       Inc(i);
-
-    SetLength(AttrName, 0);
+    if (i > len) then
+      break;
     j := i;
-
-    while j <= Length(s) do
-      if s[j] = '=' then
+    haseq := false;
+    hasname := false;
+    ValueDelimiter := #0;
+    // Attr Name
+    while (j <= len) and not (IsXMLWhitespace(s[j]) or (s[j] = '='))  do
+      Inc(j);
+    // j points on =, whitespace or after s
+    AttrName := Copy(s, i, j - i);
+    WStrLower(AttrName);
+    hasname := IsXMLName(AttrName);
+    // Look for = and following whitespaces (maybe j already points on =)
+    while (j <= len) and (IsXMLWhitespace(s[j]) or (s[j] = '=')) do
+    begin
+      if (s[j] = '=') then
+        haseq := true;
+      Inc(j);
+    end;
+    // Value (j points on first nonblank or after end)
+    if haseq then
+    begin
+      if (j > len) then  { terminal case <tag attr=> }
       begin
-        AttrName := Copy(s, i, j - i);
-        WStrLower(AttrName);
-        Inc(j);
-        if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
+        if hasname then
+          Attr.AddAttribute('', AttrName, '', '', '');
+        break;
+      end
+      else
+      begin
+        if (s[j]='''') or (s[j]='"') then
         begin
           ValueDelimiter := s[j];
           Inc(j);
-        end else
-          ValueDelimiter := #0;
+        end;
         i := j;
-        DoIncJ := False;
-        while j <= Length(s) do
-          if ValueDelimiter = #0 then
-            if IsXMLWhitespace(s[j]) then
-              break
-            else
-              Inc(j)
-          else if s[j] = ValueDelimiter then
-          begin
-            DoIncJ := True;
-            break
-          end else
-            Inc(j);
-
-        if IsXMLName(AttrName) then
-          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
-
-        if DoIncJ then
+        while (j <= len) do
+        begin
+          if (s[j]=ValueDelimiter) then
+            break;
+          if (ValueDelimiter=#0) and IsXMLWhitespace(s[j]) then
+            break;
           Inc(j);
+        end;
+        if hasname then
+          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i))
+      end;
+    end
+    else if hasname then   { html boolean-style attribute }
+      Attr.AddAttribute('', AttrName, '', '', AttrName);
 
-        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
-          Inc(j);
-        i := j;
-      end
-      else if IsXMLWhitespace(s[j]) then
-      begin
-        if IsXMLName(@s[i], j-i) then
-          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
-        Inc(j);
-        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
-          Inc(j);
-        i := j;
-      end else
-        Inc(j);
-  end;
-  WStrLower(result);
+    { skip closing quote if one is present }
+    i := j + ord(ValueDelimiter<>#0);
+  until false;
 end;
 
 function RightTrimmedLength(const s: SAXString): Integer;
