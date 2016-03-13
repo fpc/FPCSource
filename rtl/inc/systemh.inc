@@ -433,8 +433,8 @@ Type
     used in the FPC RTL. Note that on i8086 their size changes between 16-bit
     and 32-bit according to the memory model, so they're not really a 'native
     int' type there at all. }
-  NativeInt  = PtrInt;
-  NativeUInt = PtrUInt;
+  NativeInt  = Type PtrInt;
+  NativeUInt = Type PtrUInt;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
