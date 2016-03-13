@@ -65,7 +65,11 @@ begin
 end;
 
 Begin
-
+  if not Assigned(P96Base) then
+  begin
+    writeln('Cannot open ', PICASSO96APINAME);
+    Halt(5);
+  end;
  width:=640;
  height:=480;
  depth:=24;
@@ -91,8 +95,8 @@ Begin
                           P96SA_Height, height,
                           P96SA_Depth, depth,
                           P96SA_AutoScroll, lTRUE,
-                          P96SA_Pens, PtrUInt(@Pens),
-                          P96SA_Title, PtrUInt(PChar('WriteTrueColorData Test')),
+                          P96SA_Pens, AsTag(@Pens),
+                          P96SA_Title, AsTag('WriteTrueColorData Test'),
                           TAG_DONE]);
 
 if sc = nil then CleanUp('Can''t open screen');
@@ -100,7 +104,7 @@ if sc = nil then CleanUp('Can''t open screen');
 
 
 
- win := OpenWindowTags(Nil,[WA_CustomScreen, PtrUInt(sc),
+ win := OpenWindowTags(Nil,[WA_CustomScreen, AsTag(sc),
                             WA_Backdrop, lTRUE,
                             WA_Borderless, lTRUE,
                             WA_SimpleRefresh, lTRUE,

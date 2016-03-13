@@ -58,7 +58,7 @@ Begin
 
   Win:=OpenWindowTags(nil,[WA_Width,150,
                         WA_Height,100,
-                        WA_Title,'PenShare',
+                        WA_Title,AsTag('PenShare'),
                         WA_Flags,WFLG_CLOSEGADGET+WFLG_DRAGBAR,
                         WA_IDCMP,IDCMP_CLOSEWINDOW,
                         TAG_END]);

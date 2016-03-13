@@ -114,10 +114,10 @@ begin
     nc := readcycles();
     initarrays;
 
-    s := OpenScreenTags(nil, [SA_Pens,   @pens,
+    s := OpenScreenTags(nil, [SA_Pens,   AsTag(@pens),
       SA_Depth,     2,
       SA_DisplayID, HIRES_KEY,
-      SA_Title,     'Simple Fractal SnowFlakes',
+      SA_Title,     AsTag('Simple Fractal SnowFlakes'),
       TAG_END]);
 
     if s = NIL then CleanUp('No screen',20);
@@ -134,8 +134,8 @@ begin
          WA_ReportMouse,  ltrue,
          WA_SmartRefresh, ltrue,
          WA_Activate,     ltrue,
-         WA_Title,        'Close the Window to Quit',
-         WA_CustomScreen, s,
+         WA_Title,        AsTag('Close the Window to Quit'),
+         WA_CustomScreen, AsTag(s),
          TAG_END]);
 
     if w = nil then CleanUp('No window',20);

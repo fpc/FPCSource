@@ -24,7 +24,7 @@ PROGRAM RTDemo;
 
 }
 
-uses reqtools, strings, utility;
+uses reqtools, strings, utility, exec, amigados;
 
 
 
@@ -45,6 +45,7 @@ VAR
     ret             : Longint;
     color           : Longint;
     undertag        : Array [0..1] of tTagItem;
+    Param           : array of PtrUInt;
 
 FUNCTION GetScrollValue(value : INTEGER): STRING;
 BEGIN
@@ -61,6 +62,11 @@ BEGIN
 END;
 
 BEGIN
+  if not Assigned(ReqToolsBase) then
+  begin
+    writeln('Cannot open ', REQTOOLSNAME);
+    Halt(5);
+  end;
     dummy:= StrAlloc(400);
     dummy2 := StrAlloc(200);
 
@@ -91,10 +97,10 @@ BEGIN
         rtEZRequestA('You entered this string:' + #10 + '%s','So I did', NIL, @buffer, NIL);
 
     ret := rtGetString(buffer, 127, 'Enter anything:', NIL,[
-                RTGS_GadFmt, ' _Ok |New _2.0 feature!|_Cancel',
-                RTGS_TextFmt,'These are two new features of ReqTools 2.0:' + #10
-                + 'Text above the entry gadget and more than' + #10 + 'one response gadget.',
-                TAG_MORE, @undertag]);
+                RTGS_GadFmt, AsTag(' _Ok |New _2.0 feature!|_Cancel'),
+                RTGS_TextFmt, AsTag('These are two new features of ReqTools 2.0:' + #10
+                + 'Text above the entry gadget and more than' + #10 + 'one response gadget.'),
+                TAG_MORE, AsTag(@undertag)]);
 
 
 
@@ -103,15 +109,15 @@ BEGIN
                        'Oh boy!',NIL,NIL,NIL);
 
     ret := rtGetString(buffer, 127, 'Enter anything:',NIL,[
-                        RTGS_GadFmt,' _Ok | _Abort |_Cancel',
-                        RTGS_TextFmt,'New is also the ability to switch off the' + #10 +
+                        RTGS_GadFmt, AsTag(' _Ok | _Abort |_Cancel'),
+                        RTGS_TextFmt, AsTag('New is also the ability to switch off the' + #10 +
                         'backfill pattern.  You can also center the' + #10 +
                         'text above the entry gadget.' + #10 +
                         'These new features are also available in' + #10 +
-                        'the rtGetLong() requester.',
-                        RTGS_BackFill, FALSE,
+                        'the rtGetLong() requester.'),
+                        RTGS_BackFill, LFALSE,
                         RTGS_Flags, GSREQF_CENTERTEXT + GSREQF_HIGHLIGHTTEXT,
-                        TAG_MORE, @undertag]);
+                        TAG_MORE, AsTag(@undertag)]);
 
     IF ret = 2 THEN
         rtEZRequestA('What!! You pressed abort!?!' + #10 + 'You must be joking :-)',
@@ -121,7 +127,7 @@ BEGIN
                      'Show me', NIL, NIL, NIL);
 
     ret := rtGetLong(longnum, 'Enter a number:',NIL,[
-                      RTGL_ShowDefault, FALSE,
+                      RTGL_ShowDefault, LFALSE,
                       RTGL_Min, 0,
                       RTGL_Max, 666,
                       TAG_DONE]);
@@ -130,7 +136,7 @@ BEGIN
         rtEZRequestA('You entered nothing','I''m sorry', NIL, NIL, NIL)
     ELSE
         rtEZRequestA('The number You entered was:'  + #10 + '%ld' ,
-                     'So it was', NIL, readinlongs([longnum]), NIL);
+                     'So it was', NIL, @longnum, NIL);
 
     rtEZRequestA ('NUMBER 3:' + #10 + 'Notification requester, the requester' + #10 +
                          'you''ve been using all the time!' + #10 +
@@ -175,7 +181,7 @@ BEGIN
                             RTEZ_DefaultResponse, 4,
                             TAG_DONE]);
 
-    rtEZRequestA('You picked ''%ld''.', 'How true', NIL, readinlongs([ret]),NIL);
+    rtEZRequestA('You picked ''%ld''.', 'How true', NIL, @ret, NIL);
 
     {
       If i used just a string for this text is will be truncated
@@ -201,20 +207,22 @@ BEGIN
     strcat(dummy,dummy2);
 
     rtEZRequestA(dummy,'_Great|_Fantastic|_Swell|Oh _Boy',NIL,NIL,@undertag);
-
+    SetLength(Param, 2);
+    Param[0] := 5;
+    Param[1] := AsTag('five');
     rtEZRequestA('You may also use C-style formatting codes in the body text.' + #10 +
                         'Like this:' + #10 +  #10 +
                         'The number %%ld is written %%s. will give:' + #10 +  #10 +
                         'The number %ld is written %s.' + #10 +  #10 +
                         'if you also pass ''5'' and ''five'' to rtEZRequestA().',
-                        '_Proceed',NIL,readinlongs([5,'five']),@undertag);
+                        '_Proceed',NIL, @Param, @undertag);
 
     ret := rtEZRequest('It is also possible to pass extra IDCMP flags' + #10 +
                         'that will satisfy rtEZRequest(). This requester' + #10 +
                         'has had DISKINSERTED passed to it.' + #10 +
                         '(Try inserting a disk).', '_Continue', NIL,NIL,[
                         RT_IDCMPFlags, DISKINSERTED,
-                        TAG_MORE,@undertag]);
+                        TAG_MORE, AsTag(@undertag)]);
 
     IF ((ret = DISKINSERTED)) THEN
         rtEZRequestA('You inserted a disk.', 'I did', NIL, NIL, NIL)
@@ -228,14 +236,14 @@ BEGIN
                         'This works for all requesters, not just rtEZRequest()!',
                         '_Amazing', NIL,NIL,[
                         RT_ReqPos, REQPOS_TOPLEFTSCR,
-                        TAG_MORE,@undertag]);
+                        TAG_MORE, AsTag(@undertag)]);
 
     rtEZRequest('Alternatively, you can center the' + #10 +
                         'requester on the screen.' + #10 +
                         'Check out ''reqtools.doc'' for all the possibilities.',
                         'I''ll do that', NIL,NIL,[
                         RT_ReqPos, REQPOS_CENTERSCR,
-                        TAG_MORE,@undertag]);
+                        TAG_MORE, AsTag(@undertag)]);
 
 
     ret := rtEZRequestA('NUMBER 4:' + #10 + 'File requester' + #10 + 'function: rtFileRequest()',
@@ -252,9 +260,11 @@ BEGIN
         }
         ret := Longint(rtFileRequestA(filereq, filename, 'Pick a file', NIL));
         IF (ret)<>0 THEN begin
+            SetLength(Param, 2);
+            Param[0] := AsTag(filename);
+            Param[1] := AsTag(filereq^.Dir);
             rtEZRequestA('You picked the file:' + #10 + '%s' + #10 + 'in directory:'
-                                + #10 + '%s', 'Right', NIL, readinlongs([
-                                                          filename,filereq^.Dir]),NIL);
+                                + #10 + '%s', 'Right', NIL, @Param, NIL);
         END
         ELSE
             rtEZRequestA('You didn''t pick a file.', 'No', NIL, NIL, NIL);
@@ -275,7 +285,7 @@ BEGIN
                           '"%s"' + #10 +
                           'All the files are returned as a linked' + #10 +
                           'list (see demo.c and reqtools.h).',
-                          'Aha', NIL, readinlongs([filelist^.Name]),NIL);
+                          'Aha', NIL, @(filelist^.Name),NIL);
             (* Traverse all selected files *)
             (*
             tempflist = flist;
@@ -304,7 +314,7 @@ BEGIN
 
          IF(ret=1) THEN begin
              rtEZRequestA('You picked the directory:' + #10 +'%s',
-                          'Right', NIL, readinlongs([filereq^.Dir]), NIL);
+                          'Right', NIL, @(filereq^.Dir), NIL);
          end ELSE
              rtEZRequestA('You didn''t pick a directory.', 'No', NIL, NIL, NIL);
 
@@ -321,10 +331,12 @@ BEGIN
          fontreq^.Flags := FREQF_STYLE OR FREQF_COLORFONTS;
          ret := rtFontRequestA (fontreq, 'Pick a font', NIL);
          IF(ret<>0) THEN begin
+             SetLength(Param, 2);
+             Param[0] := AsTag(fontreq^.Attr.ta_Name);
+             Param[1] := AsTag(fontreq^.Attr.ta_YSize);
              rtEZRequestA('You picked the font:' + #10 + '%s' + #10 + 'with size:' +
                           #10 + '%ld',
-                         'Right', NIL, readinlongs([fontreq^.Attr.ta_Name,
-                                                    fontreq^.Attr.ta_YSize]),NIL);
+                         'Right', NIL, @Param, NIL);
          end ELSE
              ret := rtEZRequestA('You didn''t pick a font','I know', NIL, NIL, NIL);
          rtFreeRequest(fontreq);
@@ -341,7 +353,7 @@ BEGIN
                          'Nah', NIL, NIL, NIL)
     ELSE begin
         rtEZRequestA('You picked color number %ld.', 'Sure did',
-                         NIL, readinlongs([color]), NIL);
+                         NIL, @color, NIL);
     END;
 
     rtEZRequestA('NUMBER 7: (ReqTools 2.0)' + #10 +
@@ -358,7 +370,7 @@ BEGIN
                                       TAG_END]));
         IF (ret = 1) THEN begin
             rtEZRequestA('You picked the volume:' + #10 + '%s',
-                        'Right',NIL,readinlongs([filereq^.Dir]),NIL);
+                        'Right',NIL, @filereq^.Dir,NIL);
         end
         ELSE
             rtEZRequestA('You didn''t pick a volume.','I did not',NIL,NIL,NIL);
@@ -382,6 +394,13 @@ BEGIN
                                      TAG_END]);
 
         IF(ret=1) THEN BEGIN
+            SetLength(Param, 6);
+            Param[0] := scrnreq^.DisplayID;
+            Param[1] := scrnreq^.DisplayWidth;
+            Param[2] := scrnreq^.DisplayHeight;
+            Param[3] := scrnreq^.DisplayDepth;
+            Param[4] := scrnreq^.OverscanType;
+            Param[5] := AsTag(PChar(AnsiString(GetScrollValue(scrnreq^.AutoScroll))));
             rtEZRequestA('You picked this mode:' + #10 +
                          'ModeID  : 0x%lx' + #10 +
                          'Size    : %ld x %ld' + #10 +
@@ -389,12 +408,7 @@ BEGIN
                          'Overscan: %ld' + #10 +
                          'AutoScroll %s',
                          'Right', NIL,
-                         readinlongs([scrnreq^.DisplayID,
-                                      scrnreq^.DisplayWidth,
-                                      scrnreq^.DisplayHeight,
-                                      scrnreq^.DisplayDepth,
-                                      scrnreq^.OverscanType,
-                                      GetScrollValue(scrnreq^.AutoScroll)]),NIL);
+                         @Param,NIL);
         END
         ELSE
             rtEZRequestA('You didn''t pick a screen mode.', 'Sorry', NIL, NIL, NIL);

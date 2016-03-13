@@ -61,6 +61,11 @@ begin
 end;
 
 BEGIN
+  if not Assigned(P96Base) then
+  begin
+    writeln('Cannot open ', PICASSO96APINAME);
+    Halt(5);
+  end;
     Width:=640;
     Height:=480;
     Depth:=8;
@@ -77,8 +82,8 @@ BEGIN
                            P96SA_Height, Height,
                            P96SA_Depth, Depth,
                            P96SA_AutoScroll, lTRUE,
-                           P96SA_Pens, @Pens,
-                           P96SA_Title, ScreenTitle,
+                           P96SA_Pens, AsTag(@Pens),
+                           P96SA_Title, AsTag(ScreenTitle),
                            TAG_DONE]);
 
 
@@ -89,11 +94,11 @@ BEGIN
     Dimensions[2]:=sc^.Width;
     Dimensions[3]:=sc^.Height-sc^.BarHeight-1;
 
-    wdp:=OpenWindowTags(NIL,[WA_CustomScreen, PtrUInt(sc),
-                             WA_Title,PtrUInt(PChar('Writepixel')),
+    wdp:=OpenWindowTags(NIL,[WA_CustomScreen, AsTag(sc),
+                             WA_Title, AsTag('Writepixel'),
                              WA_Left, (sc^.Width DIV 2-200) DIV 2+sc^.Width DIV 2,
                              WA_Top, (sc^.Height-sc^.BarHeight-300) DIV 2,
-                             WA_Zoom, PtrUInt(@Dimensions),
+                             WA_Zoom, AsTag(@Dimensions),
                              WA_Width, 200,
                              WA_Height, 300,
                              WA_MinWidth, 100,
@@ -109,7 +114,7 @@ BEGIN
                              WA_SizeGadget, lTRUE,
                              WA_SizeBBottom, lTRUE,
                              WA_GimmeZeroZero, lTRUE,
-                             WA_ScreenTitle, PtrUInt(PChar(ScreenTitle)),
+                             WA_ScreenTitle, AsTag(ScreenTitle),
                              WA_IDCMP, IDCMP_RAWKEY + IDCMP_CLOSEWINDOW,
                              TAG_DONE]);
 

@@ -46,7 +46,6 @@ Begin
       ('O') : tmp := tmp + strpas(Month);
       ('Y') : tmp := tmp + strpas(Year);
      end;
-     i:=i+1;
     end
    else
     tmp := tmp + Str[i];
