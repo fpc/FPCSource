@@ -133,8 +133,8 @@ function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}in
     S1 > S2  > 0
     S1 = S2  = 0     }
 
-function CompareStr(const S1, S2: string): Integer;
-var count, count1, count2: integer;
+function CompareStr(const S1, S2: string): SizeInt;
+var count, count1, count2: SizeInt;
 begin
   result := 0;
   Count1 := Length(S1);
@@ -173,7 +173,7 @@ end;
     S1 > S2  > 0
     S1 = S2  = 0     }
 
-function CompareText(const S1, S2: string): integer;
+function CompareText(const S1, S2: string): SizeInt;
 
 var
   i, count, count1, count2: integer; Chr1, Chr2: byte;
@@ -471,37 +471,37 @@ function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$
   end;
 
 
-function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareStr(const S1, S2: string): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
   end;
 
 
-function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareText(const S1, S2: string): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
   end;
 
 
-function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PChar): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
   end;
 
 
-function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PChar): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrICompAnsiStringProc(s1,s2);
   end;
 
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
   end;
 
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUint): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
     result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
   end;
@@ -2640,10 +2640,11 @@ for i := 0 to SizeOf(Value) shl 1 - 1 do begin
    end ;
 end ;
 
-Function LastDelimiter(const Delimiters, S: string): Integer;
+Function LastDelimiter(const Delimiters, S: string): SizeInt;
 var
   chs: TSysCharSet;
-  I: LongInt;
+  I: SizeInt;
+  
 begin
   chs := [];
   for I := 1 to Length(Delimiters) do
@@ -2669,7 +2670,7 @@ Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplace
 {$undef SRPCHAR}
 {$undef SRCHAR}
 
-Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 
 begin
   Result:=False;
@@ -2677,7 +2678,7 @@ begin
     Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
 end;
 
-Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
+Function ByteToCharLen(const S: string; MaxLen: SizeInt): SizeInt;
 
 begin
   Result:=Length(S);
@@ -2685,14 +2686,14 @@ begin
     Result:=MaxLen;
 end;
 
-Function ByteToCharIndex(const S: string; Index: Integer): Integer;
+Function ByteToCharIndex(const S: string; Index: SizeInt): SizeInt;
 
 begin
   Result:=Index;
 end;
 
 
-Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
+Function CharToByteLen(const S: string; MaxLen: SizeInt): SizeInt;
 
 begin
   Result:=Length(S);
@@ -2700,26 +2701,26 @@ begin
     Result:=MaxLen;
 end;
 
-Function CharToByteIndex(const S: string; Index: Integer): Integer;
+Function CharToByteIndex(const S: string; Index: SizeInt): SizeInt;
 
 begin
   Result:=Index;
 end;
 
-Function ByteType(const S: string; Index: Integer): TMbcsByteType;
+Function ByteType(const S: string; Index: SizeUInt): TMbcsByteType;
 
 begin
   Result:=mbSingleByte;
 end;
 
 
-Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
+Function StrByteType(Str: PChar; Index: SizeUInt): TMbcsByteType;
 begin
   Result:=mbSingleByte;
 end;
 
 
-Function StrCharLength(const Str: PChar): Integer;
+Function StrCharLength(const Str: PChar): SizeInt;
 begin
   result:=widestringmanager.CharLengthPCharProc(Str);
 end;
