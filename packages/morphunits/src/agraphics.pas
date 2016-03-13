@@ -2388,7 +2388,7 @@ SysCall GfxBase 408;
 procedure FreeSprite(num : LongInt location 'd0');
 SysCall GfxBase 414;
 
-procedure ChangeSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; VAR newData : Integer location 'a2');
+procedure ChangeSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; newData : PWord location 'a2');
 SysCall GfxBase 420;
 
 procedure MoveSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1');
