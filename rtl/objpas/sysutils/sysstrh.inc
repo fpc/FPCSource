@@ -78,6 +78,7 @@ function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSU
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareText(const S1, S2: string): integer;
 function SameText(const s1,s2:String):Boolean;
+function SameStr(const s1,s2:String):Boolean;
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}

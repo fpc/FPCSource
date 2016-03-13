@@ -218,6 +218,12 @@ begin
  Result:=CompareText(S1,S2)=0;
 end;
 
+function SameStr(const s1,s2:String):Boolean;
+
+begin
+ Result:=CompareStr(S1,S2)=0;
+end;
+
 {$ifndef FPC_NOGENERICANSIROUTINES}
 {==============================================================================}
 {   Ansi string functions                                                      }
