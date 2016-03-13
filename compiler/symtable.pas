@@ -437,11 +437,7 @@ interface
       managementoperator2tok:array[tmanagementoperator] of ttoken = (
     { mop_none       }  NOTOKEN,
     { mop_initialize }  _OP_INITIALIZE,
-    { mop_finalize   }  _OP_FINALIZE,
-
-    { reserved for future usage }
-    { mop_addref     }  NOTOKEN,
-    { mop_copy       }  NOTOKEN);
+    { mop_finalize   }  _OP_FINALIZE);
 
 
 implementation

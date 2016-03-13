@@ -917,7 +917,7 @@ implementation
            if (rt=initrtti) and (trecordsymtable(def.symtable).managementoperators<>[]) then
              write_record_operators;
 
-           { guarantee initrtti for any record for fpc_initialize, fpc_finalize, fpc_copy and fpc_addref }
+           { guarantee initrtti for any record for fpc_initialize, fpc_finalize }
            if (rt = fullrtti) and (ds_init_table_used in def.defstates) and
               not (ds_init_table_written in def.defstates) then
              write_rtti(def, initrtti);

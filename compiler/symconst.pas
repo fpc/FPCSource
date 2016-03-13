@@ -574,10 +574,7 @@ type
 
   tmanagementoperator=(mop_none,
     mop_initialize,
-    mop_finalize,
-    { reserved for future usage }
-    mop_addref,
-    mop_copy
+    mop_finalize
   );
   tmanagementoperators=set of tmanagementoperator;
 
