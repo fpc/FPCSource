@@ -490,6 +490,7 @@ unit optloop;
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
+            initcode:=nil;
             addstatement(newcodestatements,node);
             addstatement(newcodestatements,deletecode);
           end;
