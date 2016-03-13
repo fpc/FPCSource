@@ -6,7 +6,7 @@
 #   Based on errore.msg of SVN revision 33053
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2015 by the Free Pascal Development team
+#   Copyright (c) 1998-2016 by the Free Pascal Development team
 #
 #   See the file COPYING.v2, included in this distribution,
 #   for details about the copyright.
@@ -3473,7 +3473,7 @@ wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1"
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] fÅr $FPCTARGET
-Copyright (c) 1993-2015 Florian KlÑmpfl und andere
+Copyright (c) 1993-2016 Florian KlÑmpfl und andere
 ]
 
 #
