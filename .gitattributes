@@ -11706,6 +11706,7 @@ tests/test/opt/tdfa14.pp svneol=native#text/pascal
 tests/test/opt/tdfa15.pp svneol=native#text/pascal
 tests/test/opt/tdfa16.pp svneol=native#text/pascal
 tests/test/opt/tdfa17.pp svneol=native#text/pascal
+tests/test/opt/tdfa18.pp svneol=native#text/pascal
 tests/test/opt/tdfa2.pp svneol=native#text/pascal
 tests/test/opt/tdfa3.pp svneol=native#text/pascal
 tests/test/opt/tdfa4.pp svneol=native#text/pascal
