@@ -232,8 +232,7 @@ override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 help:
         @$(ECHO)
         @$(ECHO) Targets
-        @$(ECHO)    all         Alias for build
-        @$(ECHO)    build       Build a new compiler and all packages
+        @$(ECHO)    all         Build a new compiler and all packages
         @$(ECHO)    install     Install newly build files
         @$(ECHO)    zipinstall  Create zip/tar of installed files
         @$(ECHO)    singlezipinstall  Alias for zipinstall
