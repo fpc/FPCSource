@@ -18,10 +18,9 @@
   This file contains the implementation of the WideString type,
   and all things that are needed for it.
   WideString is defined as a 'silent' pwidechar :
-  a pwidechar that points to :
+  a pwidechar that points to:
 
-  @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size; size=number of bytes, not the number of chars. Divide or multiply
+  @-4  : DWord for size; size=number of bytes, not the number of chars. Divide or multiply
          with sizeof(WideChar) to convert. This is needed to be compatible with Delphi and
          Windows COM BSTR.
   @    : String + Terminating #0;

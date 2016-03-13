@@ -21,12 +21,12 @@
   This file contains the implementation of the UnicodeString type,
   and all things that are needed for it.
   UnicodeString is defined as a 'silent' punicodechar :
-  a punicodechar that points to :
+  a punicodechar that points to (S = SizeOf(SizeInt)) :
 
-  @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size; size=number of chars. Multiply with
-         sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
-  @    : String + Terminating #0;
+  @-2*S : SizeInt for reference count;
+  @-S   : SizeInt for size; size=number of chars. Multiply with
+          sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
+  @      : String + Terminating #0;
   Punicodechar(Unicodestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
 
