@@ -847,13 +847,16 @@ procedure ReadAbbrevTable;
 
       Abbrev_Offsets[nr]:=Pos;
 
-      { skip tag }
+      { read tag }
       tag:=ReadULEB128;
       Abbrev_Tags[nr]:=tag;
       DEBUG_WRITELN('Abbrev ',nr,' at offset ',Pos,' has tag $',hexstr(tag,4));
-      { children }
+      { read flag for children }
       Abbrev_Children[nr]:=ReadNext;
       i:=0;
+      { ensure that length(Abbrev_Attrs)=0 if an entry is overwritten (not sure if this will ever happen) and
+        the new entry has no attributes }
+      Abbrev_Attrs[nr]:=nil;
       repeat
         attr:=ReadULEB128;
         form:=ReadULEB128;
@@ -982,6 +985,7 @@ begin
       DEBUG_WRITELN('Next abbrev: ',abbrev);
       if Abbrev_Children[abbrev]<>0 then
         inc(level);
+      { DW_TAG_subprogram? }
       if Abbrev_Tags[abbrev]=$2e then
         begin
           low_pc:=1;
@@ -1026,6 +1030,7 @@ begin
             SkipAttr(Abbrev_Attrs[abbrev][i].form);
         end;
       abbrev:=ReadULEB128;
+      { skip entries signaling that no more child entries are following }
       while (level>0) and (abbrev=0) do
         begin
           dec(level);
