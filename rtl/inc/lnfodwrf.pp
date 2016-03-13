@@ -887,21 +887,33 @@ var
   low_pc : QWord;
   temp_length : DWord;
   unit_length : QWord;
-  i : PtrUInt;
   name : String;
   level : Integer;
 
 procedure SkipAttr(form : QWord);
   var
     dummy : array[0..7] of byte;
+    bl : byte;
+    wl : word;
+    dl : dword;
+    ql : qword;
+    i : PtrUInt;
   begin
     case form of
       DW_FORM_addr:
         ReadNext(dummy,header64.address_size);
       DW_FORM_block2:
-        ReadNext(dummy,2);
+        begin
+          ReadNext(wl,SizeOf(wl));
+          for i:=1 to wl do
+            ReadNext;
+        end;
       DW_FORM_block4:
-        ReadNext(dummy,4);
+        begin
+          ReadNext(dl,SizeOf(dl));
+          for i:=1 to dl do
+            ReadNext;
+        end;
       DW_FORM_data2:
         ReadNext(dummy,2);
       DW_FORM_data4:
@@ -911,8 +923,17 @@ procedure SkipAttr(form : QWord);
       DW_FORM_string:
         ReadString;
       DW_FORM_block:
-        ReadULEB128;
-      DW_FORM_block1,
+        begin
+          ql:=ReadULEB128;
+          for i:=1 to ql do
+            ReadNext;
+        end;
+      DW_FORM_block1:
+        begin
+          bl:=ReadNext;
+          for i:=1 to bl do
+            ReadNext;
+        end;
       DW_FORM_data1,
       DW_FORM_flag:
         ReadNext(dummy,1);
@@ -946,6 +967,9 @@ procedure SkipAttr(form : QWord);
         end;
     end;
   end;
+
+var
+  i : PtrUInt;
 
 begin
   found := false;
