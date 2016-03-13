@@ -969,7 +969,9 @@ procedure SkipAttr(form : QWord);
   end;
 
 var
-  i : PtrUInt;
+  i : PtrInt;
+  prev_base,prev_limit : SizeInt;
+  prev_pos : Int64;
 
 begin
   found := false;
@@ -1001,6 +1003,19 @@ begin
     ReadNext(header64, sizeof(header64));
     isdwarf64:=true;
   end;
+
+  DEBUG_WRITELN('debug_abbrev_offset: ',header64.debug_abbrev_offset);
+
+  { not nice, but we have to read the abbrev section after the start of the debug_info section has been read }
+  prev_limit:=limit;
+  prev_base:=base;
+  prev_pos:=Pos;
+  Init(Dwarf_Debug_Abbrev_Section_Offset+header64.debug_abbrev_offset,Dwarf_Debug_Abbrev_Section_Size);
+  ReadAbbrevTable;
+
+  { restore previous reading state and position }
+  Init(prev_base,prev_limit);
+  Seek(prev_pos);
 
   abbrev:=ReadULEB128;
   level:=0;
@@ -1090,9 +1105,6 @@ begin
     current_offset := ParseCompilationUnit(addr, current_offset,
       source, line, found);
   end;
-
-  Init(Dwarf_Debug_Abbrev_Section_Offset, Dwarf_Debug_Abbrev_Section_Size);
-  ReadAbbrevTable;
 
   current_offset := Dwarf_Debug_Info_Section_Offset;
   end_offset := Dwarf_Debug_Info_Section_Offset + Dwarf_Debug_Info_Section_Size;
