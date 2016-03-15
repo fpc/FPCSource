@@ -742,7 +742,8 @@ implementation
               callparan:
                 begin
                   { call to decr? }
-                  if is_managed_type(tunarynode(p).left.resultdef) and (tcallparanode(p).parasym.varspez=vs_out) then
+                  if is_managed_type(tunarynode(p).left.resultdef) and
+                     assigned(tcallparanode(p).parasym) and (tcallparanode(p).parasym.varspez=vs_out) then
                     begin
                       result:=NODE_COMPLEXITY_INF;
                       exit;
