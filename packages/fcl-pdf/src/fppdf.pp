@@ -2716,7 +2716,7 @@ var
   p : TPDFObject;
 begin
   Result:=-1;
-  I:=0;
+  I:=1;
   While (Result=-1) and (I<FGlobalXRefs.Count) do
     begin
     p:=GetX(i).Dict.Elements[0].Value;
