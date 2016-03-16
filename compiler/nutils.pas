@@ -814,7 +814,7 @@ implementation
               ordconstn:
                 begin
 {$ifdef ARM}
-                  if not(is_shifter_const(tordconstnode(p).value.svalue,dummy)) then
+                  if not(is_shifter_const(aint(tordconstnode(p).value.svalue),dummy)) then
                     result:=2;
 {$endif ARM}
                   exit;
