@@ -992,7 +992,7 @@ end;
 var
   strofpaths : string;
 
-function SystemTags(const command: PChar; const tags: array of DWord): LongInt;
+function SystemTags(const command: PChar; const tags: array of PtrUInt): LongInt;
 begin
   SystemTags:=SystemTagList(command,@tags);
 end;
