@@ -54,6 +54,9 @@ procedure RawPutChar(c: Char); syscall AOS_ExecBase 86;
 //function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : tPROCEDURE; putChData : POINTER): pointer;
 function RawDoFmt(const formatString : pCHAR;const dataStream : POINTER; putChProc : POINTER; putChData : POINTER): pointer; syscall LocalExecBase 87;
 
+// Debugbase
+function DecodeLocation(Addr1: Pointer; Tags: Pointer): Integer; syscall SysDebugBase 7;
+
 function GetLibAdress(Base: Pointer; Offset: LongInt): Pointer; inline;
 begin
   if Base = nil then
@@ -61,7 +64,7 @@ begin
     RawDoFmt('FPC_FILE_DEBUG: Error! Illegal library access with not opened library: %d !'+#10,@Offset,pointer(1),nil);
     Debugln('Illegal library access with not opened library');
     Halt(1);
-  end;  
+  end;
   GetLibAdress := Pointer((Base -(Offset * SizeOf(Pointer)))^);
 end;
 
