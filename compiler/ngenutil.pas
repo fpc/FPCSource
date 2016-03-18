@@ -562,6 +562,8 @@ implementation
 
 
   class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+    var
+      symind : tasmsymbol;
     begin
       if sym.globalasmsym then
         begin
@@ -581,6 +583,13 @@ implementation
         end
       else
         list.concat(Tai_datablock.create(sym.mangledname,size));
+
+      { add the indirect symbol if needed }
+      new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
+      symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA);
+      list.concat(Tai_symbol.Create_Global(symind,0));
+      list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
+      list.concat(tai_symbol_end.Create(symind));
     end;
 
 
