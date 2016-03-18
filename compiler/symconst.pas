@@ -887,6 +887,9 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       { blocks-related constants }
       blocks_procvar_invoke_type_name = '__FPC_invoke_pvtype';
 
+      { suffix for indirect symbols (AB_INDIRECT) }
+      suffix_indirect = '$indirect';
+
 implementation
 
 end.

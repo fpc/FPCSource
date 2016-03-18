@@ -42,7 +42,10 @@ interface
          { global in the current program/library, but not visible outside it }
          AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
          { a symbol that's internal to the compiler and used as a temp }
-         AB_TEMP);
+         AB_TEMP,
+         { a global symbol that points to another global symbol and is only used
+           to allow indirect loading in case of packages and indirect imports }
+         AB_INDIRECT,AB_EXTERNAL_INDIRECT);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -65,7 +68,9 @@ interface
     const
        asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',
-       'local','global','weak external','private external','lazy','import','internal temp');
+       'local','global','weak external','private external','lazy','import','internal temp',
+       'indirect','external indirect');
+       asmsymbindindirect = [AB_INDIRECT,AB_EXTERNAL_INDIRECT];
 
     type
        TAsmSectiontype=(sec_none,

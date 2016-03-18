@@ -169,7 +169,7 @@ interface
         function  DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
         function  DefineAsmSymbol(const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
         function  WeakRefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
-        function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
+        function  RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE;indirect:boolean=false) : TAsmSymbol;
         function  GetAsmSymbol(const s : TSymStr) : TAsmSymbol;
         { create new assembler label }
         procedure getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
@@ -217,6 +217,7 @@ implementation
 
     uses
       verbose,
+      symconst,
       aasmtai;
 
 {$ifdef MEMDEBUG}
@@ -406,8 +407,12 @@ implementation
     function TAsmData.DefineAsmSymbolByClass(symclass: TAsmSymbolClass; const s : TSymStr;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
       var
         hp : TAsmSymbol;
+        namestr : TSymStr;
       begin
-        hp:=TAsmSymbol(FAsmSymbolDict.Find(s));
+        namestr:=s;
+        if _bind in asmsymbindindirect then
+          namestr:=namestr+suffix_indirect;
+        hp:=TAsmSymbol(FAsmSymbolDict.Find(namestr));
         if assigned(hp) then
          begin
            { Redefine is allowed, but the types must be the same. The redefine
@@ -429,9 +434,9 @@ implementation
                  should be ignored; a used cannot change anything about this,
                  so printing a warning/hint is not useful }
                if (_bind=AB_LOCAL) then
-                 Message3(asmw_w_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind])
+                 Message3(asmw_w_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind])
                else
-                 Message3(asmw_h_changing_bind_type,s,asmsymbindname[hp.bind],asmsymbindname[_bind]);
+                 Message3(asmw_h_changing_bind_type,namestr,asmsymbindname[hp.bind],asmsymbindname[_bind]);
 {$endif extdebug}
              end;
            hp.bind:=_bind;
@@ -439,7 +444,7 @@ implementation
         else
          begin
            { Not found, insert it. }
-           hp:=symclass.create(AsmSymbolDict,s,_bind,_typ);
+           hp:=symclass.create(AsmSymbolDict,namestr,_bind,_typ);
          end;
         result:=hp;
       end;
@@ -451,14 +456,27 @@ implementation
       end;
 
 
-    function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype=AT_NONE) : TAsmSymbol;
+    function TAsmData.RefAsmSymbol(const s : TSymStr;_typ:Tasmsymtype;indirect:boolean) : TAsmSymbol;
+      var
+        namestr : TSymStr;
+        bind : tasmsymbind;
       begin
-        result:=TAsmSymbol(FAsmSymbolDict.Find(s));
+        namestr:=s;
+        if indirect then
+          begin
+            namestr:=namestr+suffix_indirect;
+            bind:=AB_EXTERNAL_INDIRECT;
+          end
+        else
+          begin
+            bind:=AB_EXTERNAL;
+          end;
+        result:=TAsmSymbol(FAsmSymbolDict.Find(namestr));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,_typ)
+          result:=TAsmSymbol.create(AsmSymbolDict,namestr,bind,_typ)
         { one normal reference removes the "weak" character of a symbol }
         else if (result.bind=AB_WEAK_EXTERNAL) then
-          result.bind:=AB_EXTERNAL;
+          result.bind:=bind;
       end;
 
 
