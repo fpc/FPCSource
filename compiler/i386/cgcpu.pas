@@ -221,9 +221,15 @@ unit cgcpu;
       var
         tmpreg : tregister;
         opsize : topsize;
-        tmpref : treference;
+        tmpref,dirref : treference;
       begin
-        with r do
+        dirref:=r;
+
+        { this could probably done in a more optimized way, but for now this
+          is sufficent }
+        make_direct_ref(list,dirref);
+
+        with dirref do
           begin
             if use_push(cgpara) then
               begin
@@ -234,11 +240,11 @@ unit cgcpu;
                     if assigned(symbol) then
                       begin
                         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                           ((r.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                           ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                             (cs_create_pic in current_settings.moduleswitches)) then
                           begin
                             tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            a_loadaddr_ref_reg(list,dirref,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                           end
                         else if cs_create_pic in current_settings.moduleswitches then
@@ -246,12 +252,12 @@ unit cgcpu;
                             if offset<>0 then
                               begin
                                 tmpreg:=getaddressregister(list);
-                                a_loadaddr_ref_reg(list,r,tmpreg);
+                                a_loadaddr_ref_reg(list,dirref,tmpreg);
                                 list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                               end
                             else
                               begin
-                                reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
+                                reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
 {$ifdef EXTDEBUG}
@@ -277,12 +283,12 @@ unit cgcpu;
                 else
                   begin
                     tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
+                    a_loadaddr_ref_reg(list,dirref,tmpreg);
                     list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                   end;
               end
             else
-              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,dirref,cgpara);
           end;
       end;
 

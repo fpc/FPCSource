@@ -126,11 +126,14 @@ unit cgx86;
         procedure g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);override;
 
         procedure make_simple_ref(list:TAsmList;var ref: treference);
+        procedure make_direct_ref(list:TAsmList;var ref: treference);
 
         function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
 
         procedure generate_leave(list : TAsmList);
       protected
+        in_make_direct_ref : boolean;
+
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
 
@@ -424,6 +427,9 @@ unit cgx86;
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
           exit;
 
+        { handle indirect symbols first }
+        make_direct_ref(list,ref);
+
 {$if defined(x86_64)}
         { Only 32bit is allowed }
         { Note that this isn't entirely correct: for RIP-relative targets/memory models,
@@ -645,6 +651,28 @@ unit cgx86;
               ref.segment:=NR_NO;
           end;
 {$endif}
+      end;
+
+
+    procedure tcgx86.make_direct_ref(list:tasmlist;var ref:treference);
+      var
+        href : treference;
+        hreg : tregister;
+      begin
+        if in_make_direct_ref then
+          exit;
+        in_make_direct_ref:=true;
+        if assigned(ref.symbol) and (ref.symbol.bind in asmsymbindindirect) then
+          begin
+            hreg:=getaddressregister(list);
+            reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+            a_op_ref_reg(list,OP_MOVE,OS_ADDR,href,hreg);
+            if ref.base<>NR_NO then
+              a_op_reg_reg(list,OP_ADD,OS_ADDR,ref.base,hreg);
+            ref.symbol:=nil;
+            ref.base:=hreg;
+          end;
+        in_make_direct_ref:=false;
       end;
 
 
@@ -1012,31 +1040,38 @@ unit cgx86;
 
     procedure tcgx86.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
-        tmpref  : treference;
+        dirref,tmpref : treference;
+        hreg : tregister;
       begin
-        with ref do
+        dirref:=ref;
+
+        { this could probably done in a more optimized way, but for now this
+          is sufficent }
+        make_direct_ref(list,dirref);
+
+        with dirref do
           begin
             if (base=NR_NO) and (index=NR_NO) then
               begin
-                if assigned(ref.symbol) then
+                if assigned(dirref.symbol) then
                   begin
                     if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                       ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                       ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                         (cs_create_pic in current_settings.moduleswitches)) then
                       begin
-                        if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                        if (dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                            ((cs_create_pic in current_settings.moduleswitches) and
-                            (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
+                            (dirref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
                           begin
                              reference_reset_base(tmpref,
-                               g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol)),
+                               g_indirect_sym_load(list,dirref.symbol.name,asmsym2indsymflags(dirref.symbol)),
                                offset,sizeof(pint));
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end
                        else
                          begin
                            include(current_procinfo.flags,pi_needs_got);
-                           reference_reset_base(tmpref,current_procinfo.got,offset,ref.alignment);
+                           reference_reset_base(tmpref,current_procinfo.got,offset,dirref.alignment);
                            tmpref.symbol:=symbol;
                            tmpref.relsymbol:=current_procinfo.CurrGOTLabel;
                            list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
@@ -1044,17 +1079,17 @@ unit cgx86;
                       end
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
-                             and not(ref.symbol.bind=AB_LOCAL)
+                             and not(dirref.symbol.bind=AB_LOCAL)
 {$endif x86_64}
                             then
                       begin
 {$ifdef x86_64}
-                        reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
+                        reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=NR_RIP;
                         list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                        reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
+                        reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=current_procinfo.got;
                         include(current_procinfo.flags,pi_needs_got);
@@ -1069,7 +1104,7 @@ unit cgx86;
 			 then
                       begin
                         { Win64 and Darwin/x86_64 always require RIP-relative addressing }
-                        tmpref:=ref;
+                        tmpref:=dirref;
                         tmpref.base:=NR_RIP;
                         tmpref.refaddr:=addr_pic_no_got;
                         list.concat(Taicpu.op_ref_reg(A_LEA,S_Q,tmpref,r));
@@ -1077,7 +1112,7 @@ unit cgx86;
 {$endif x86_64}
                     else
                       begin
-                        tmpref:=ref;
+                        tmpref:=dirref;
                         tmpref.refaddr:=ADDR_FULL;
                         list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
                       end
@@ -1093,7 +1128,7 @@ unit cgx86;
                 a_load_reg_reg(list,OS_ADDR,OS_ADDR,base,r)
             else
               begin
-                tmpref:=ref;
+                tmpref:=dirref;
                 make_simple_ref(list,tmpref);
                 list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
               end;
@@ -1113,7 +1148,7 @@ unit cgx86;
                       system_i386_linux,system_i386_android:
                         if segment=NR_GS then
                           begin
-                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,ref.alignment);
+                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,dirref.alignment);
                             tmpref.segment:=NR_GS;
                             list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
                           end
