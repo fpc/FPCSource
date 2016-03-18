@@ -997,6 +997,10 @@ uses
                     begin
                       handle_calling_convention(tprocdef(result),hcc_all);
                       proc_add_definition(tprocdef(result));
+                      { for partial specializations we implicitely declare the routine as
+                        having its implementation although we'll not specialize it in reality }
+                      if parse_generic then
+                        unset_forwarddef(result);
                     end;
                   else
                     { parse hint directives for records and arrays }
