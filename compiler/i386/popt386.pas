@@ -1422,10 +1422,8 @@ begin
                          { reg2 must not be used after the sequence considered, so
                            it must be either deallocated or loaded with a new value }
                          (GetNextInstruction(hp2,hp3) and
-                          (FindRegDealloc(getsupreg(taicpu(hp2).oper[0]^.reg),tai(hp3))
-                          { TODO: implement RegLoadedWithNewValue for i386, x86_64 and maybe also i8086 }
-                          {or
-                          RegLoadedWithNewValue(getsupreg(taicpu(hp2).oper[0]^.reg), false, hp3)})) then
+                          (FindRegDealloc(getsupreg(taicpu(hp2).oper[0]^.reg),tai(hp3)) or
+                          RegLoadedWithNewValue(getsupreg(taicpu(hp2).oper[0]^.reg), false, hp3))) then
                       { change   movsX/movzX    reg/ref, reg2             }
                       {          add/sub/or/... reg3/$const, reg2         }
                       {          mov            reg2 reg/ref              }
