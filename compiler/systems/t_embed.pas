@@ -649,18 +649,18 @@ begin
       Add('     .text :');
       Add('    {');
       Add('    _text_start = .;');
-      Add('    KEEP(*(.init, .init.*))');
+      Add('    KEEP(*(.init .init.*))');
       if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
          or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
          or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
          or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
         begin
           Add('    . = 0x400;');
-          Add('    KEEP(*(.flash_config, *.flash_config.*))');
+          Add('    KEEP(*(.flash_config *.flash_config.*))');
         end;
-      Add('    *(.text, .text.*)');
+      Add('    *(.text .text.*)');
       Add('    *(.strings)');
-      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
@@ -677,7 +677,7 @@ begin
       Add('    .data :');
       Add('    {');
       Add('    _data = .;');
-      Add('    *(.data, .data.*)');
+      Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
@@ -691,7 +691,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    } >ram');
       Add('. = ALIGN(4);');
