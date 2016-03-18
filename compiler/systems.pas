@@ -314,6 +314,9 @@ interface
                                          system_x86_64_win64,
                                          system_i8086_win16]+systems_linux+systems_android;
 
+       { all systems that reference symbols in other binaries using indirect imports }
+       systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
+
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
