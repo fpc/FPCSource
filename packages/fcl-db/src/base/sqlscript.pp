@@ -481,7 +481,10 @@ begin
         InternalCommit(true)
       else if FUseSetTerm
         and (Directive = 'SET TERM' {Firebird/Interbase only}) then
-        FTerminator:=S
+          begin
+          FTerminator:=S;
+          RecalcSeps;
+          end
       else
         InternalDirective (Directive,S,FAborted)
       end
@@ -642,6 +645,7 @@ procedure TCustomSQLScript.DefaultDirectives;
 begin
   With FDirectives do
     begin
+  FreeAndNil(FDollarStrings);
     // Insertion order matters as testing for directives will be done with StartsWith
     if FUseSetTerm then
       Add('SET TERM');
