@@ -1919,7 +1919,7 @@ end;
 
 class function TPDFObject.FloatStr(F: TPDFFloat): String;
 begin
-  Result:=FormatFloat('0.##',F);
+  Str(F:5:2,Result);
 end;
 
 procedure TPDFObject.Write(const AStream: TStream);
