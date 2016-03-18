@@ -395,7 +395,7 @@ interface
         globalswitches : [cs_check_unit_name,cs_link_static];
         targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath{$ifdef i8086},cs_force_far_calls{$endif}];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath,cs_imported_data{$ifdef i8086},cs_force_far_calls{$endif}];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];

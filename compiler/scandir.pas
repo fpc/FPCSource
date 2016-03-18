@@ -490,6 +490,11 @@ unit scandir;
         do_moduleswitch(cs_implicit_exceptions);
       end;
 
+    procedure dir_importeddata;
+      begin
+        do_delphiswitch('G');
+      end;
+
     procedure dir_includepath;
       begin
         if not current_module.in_global then
@@ -1772,6 +1777,7 @@ unit scandir;
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
+        AddDirective('IMPORTEDDATA',directive_all, @dir_importeddata);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
         AddDirective('INFO',directive_all, @dir_info);
         AddDirective('INLINE',directive_all, @dir_inline);

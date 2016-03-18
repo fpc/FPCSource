@@ -141,7 +141,7 @@ interface
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
-         cs_check_low_addr_load,
+         cs_check_low_addr_load,cs_imported_data,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
