@@ -1168,14 +1168,22 @@ unit cgx86;
 
 
     procedure tcgx86.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
+       var
+         tmpref : treference;
        begin
-         floatload(list,fromsize,ref);
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
+         floatload(list,fromsize,tmpref);
          a_loadfpu_reg_reg(list,fromsize,tosize,NR_ST,reg);
        end;
 
 
     procedure tcgx86.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
+       var
+         tmpref : treference;
        begin
+         tmpref:=ref;
+         make_simple_ref(list,tmpref);
          { in case a record returned in a floating point register
            (LOC_FPUREGISTER with OS_F32/OS_F64) is stored in memory
            (LOC_REFERENCE with OS_32/OS_64), we have to adjust the
@@ -1190,7 +1198,7 @@ unit cgx86;
           end;
          if reg<>NR_ST then
            a_loadfpu_reg_reg(list,fromsize,tosize,reg,NR_ST);
-         floatstore(list,tosize,ref);
+         floatstore(list,tosize,tmpref);
        end;
 
 
@@ -2308,6 +2316,10 @@ unit cgx86;
         saved_ds,saved_es: Boolean;
 
     begin
+      srcref:=source;
+      dstref:=dest;
+      make_simple_ref(list,srcref);
+      make_simple_ref(list,dstref);
       cm:=copy_move;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
@@ -2345,15 +2357,13 @@ unit cgx86;
          not(len in copy_len_sizes) then
         cm:=copy_string;
 {$ifndef i8086}
-      if (source.segment<>NR_NO) or
-         (dest.segment<>NR_NO) then
+      if (srcref.segment<>NR_NO) or
+         (dstref.segment<>NR_NO) then
         cm:=copy_string;
 {$endif not i8086}
       case cm of
         copy_move:
           begin
-            dstref:=dest;
-            srcref:=source;
             copysize:=sizeof(aint);
             cgsize:=int_cgsize(copysize);
             while len<>0 do
@@ -2394,8 +2404,6 @@ unit cgx86;
 
         copy_mmx:
           begin
-            dstref:=dest;
-            srcref:=source;
             r0:=getmmxregister(list);
             r1:=NR_NO;
             r2:=NR_NO;
@@ -2439,8 +2447,6 @@ unit cgx86;
 
         copy_mm:
           begin
-            dstref:=dest;
-            srcref:=source;
             r0:=NR_NO;
             r1:=NR_NO;
             r2:=NR_NO;
@@ -2492,8 +2498,6 @@ unit cgx86;
 
         copy_avx:
           begin
-            dstref:=dest;
-            srcref:=source;
             r0:=NR_NO;
             r1:=NR_NO;
             r2:=NR_NO;
@@ -2502,61 +2506,45 @@ unit cgx86;
               begin
                 r0:=getmmregister(list,OS_M128);
                 { we want to force the use of vmovups, so do not use a_loadmm_ref_reg }
-                tmpref:=srcref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r0));
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r0));
                 inc(srcref.offset,16);
               end;
             if len>=32 then
               begin
                 r1:=getmmregister(list,OS_M128);
-                tmpref:=srcref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r1));
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r1));
                 inc(srcref.offset,16);
               end;
             if len>=48 then
               begin
                 r2:=getmmregister(list,OS_M128);
-                tmpref:=srcref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r2));
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r2));
                 inc(srcref.offset,16);
               end;
             if (len=8) or (len=24) or (len=40) then
               begin
                 r3:=getmmregister(list,OS_M64);
-                tmpref:=srcref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,tmpref,r3));
+                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,srcref,r3));
               end;
 
             if len>=16 then
               begin
-                tmpref:=dstref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,tmpref));
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,dstref));
                 inc(dstref.offset,16);
               end;
             if len>=32 then
               begin
-                tmpref:=dstref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,tmpref));
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,dstref));
                 inc(dstref.offset,16);
               end;
             if len>=48 then
               begin
-                tmpref:=dstref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,tmpref));
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,dstref));
                 inc(dstref.offset,16);
               end;
             if (len=8) or (len=24) or (len=40) then
               begin
-                tmpref:=dstref;
-                make_simple_ref(list,tmpref);
-                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,tmpref));
+                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,dstref));
               end;
           end
         else {copy_string, should be a good fallback in case of unhandled}
@@ -2565,7 +2553,7 @@ unit cgx86;
             if (dest.segment=NR_NO) and
                (segment_regs_equal(NR_SS,NR_DS) or ((dest.base<>NR_BP) and (dest.base<>NR_SP))) then
               begin
-                a_loadaddr_ref_reg(list,dest,REGDI);
+                a_loadaddr_ref_reg(list,dstref,REGDI);
                 saved_es:=false;
 {$ifdef volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
@@ -2574,7 +2562,6 @@ unit cgx86;
               end
             else
               begin
-                dstref:=dest;
                 dstref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,dstref,REGDI);
 {$ifdef volatile_es}
@@ -2595,14 +2582,12 @@ unit cgx86;
             if ((source.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP)))) or
                (is_segment_reg(source.segment) and segment_regs_equal(source.segment,NR_DS)) then
               begin
-                srcref:=source;
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
                 saved_ds:=false;
               end
             else
               begin
-                srcref:=source;
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));

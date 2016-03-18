@@ -209,7 +209,11 @@ unit cgcpu;
               end
           end
         else
-          inherited a_load_ref_cgpara(list,size,r,cgpara);
+          begin
+            href:=r;
+            make_simple_ref(list,href);
+            inherited a_load_ref_cgpara(list,size,href,cgpara);
+          end;
       end;
 
 
