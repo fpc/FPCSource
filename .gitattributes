@@ -12921,6 +12921,7 @@ tests/test/tutf8cpl.pp svneol=native#text/plain
 tests/test/tvarpropsetter1.pp svneol=native#text/plain
 tests/test/tvarpropsetter2.pp svneol=native#text/plain
 tests/test/tvarset1.pp svneol=native#text/plain
+tests/test/tw29833.pp svneol=native#text/plain
 tests/test/twarn1.pp svneol=native#text/pascal
 tests/test/tweaklib1.pp svneol=native#text/plain
 tests/test/tweaklib2.pp svneol=native#text/plain
