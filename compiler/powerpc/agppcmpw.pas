@@ -904,47 +904,9 @@ interface
 
             ait_realconst:
               begin
-                { update for tai_realconst change, see aggas.pas and commented
-                  old code below }
-                internalerror(2014050607);
-              end;
-(*
-            ait_real_64bit :
-              begin
-                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_real_64bit(hp).value));
-                d:=tai_real_64bit(hp).value;
-                { swap the values to correct endian if required }
-                if source_info.endian <> target_info.endian then
-                  swap64bitarray(t64bitarray(d));
-                writer.AsmWrite(#9'dc.b'#9);
-                  begin
-                    for i:=0 to 7 do
-                      begin
-                        if i<>0 then
-                          writer.AsmWrite(',');
-                        writer.AsmWrite(tostr(t64bitarray(d)[i]));
-                      end;
-                  end;
-                writer.AsmLn;
+                WriteRealConstAsBytes(tai_realconst(hp),#9'dc.b'#9,do_line);
               end;
 
-            ait_real_32bit :
-              begin
-                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_real_32bit(hp).value));
-                sin:=tai_real_32bit(hp).value;
-                { swap the values to correct endian if required }
-                if source_info.endian <> target_info.endian then
-                  swap32bitarray(t32bitarray(sin));
-                writer.AsmWrite(#9'dc.b'#9);
-                for i:=0 to 3 do
-                  begin
-                    if i<>0 then
-                      writer.AsmWrite(',');
-                    writer.AsmWrite(tostr(t32bitarray(sin)[i]));
-                  end;
-                writer.AsmLn;
-              end;
-*)
             ait_string:
               begin
                 {NOTE When a single quote char is encountered, it is
