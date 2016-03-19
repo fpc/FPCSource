@@ -751,3 +751,21 @@ begin
     OnBeep;
 end;
 
+// OSes that only provide 1 byte versions can enable the following define
+{$ifdef executeprocuni}
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
+begin
+  result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ToSingleByteFileSystemEncodedFileName(ComLine));
+end;
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
+var 
+  ComLineA : array of RawByteString;
+  I        : Integer;
+begin
+  SetLength(ComLineA,high(comline)-low(comline)+1);
+  For I:=0 to length(ComLineA)-1 Do
+    ComLineA[i]:=ToSingleByteFileSystemEncodedFileName(ComLine[I]);
+  result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ComLineA);
+end;
+{$endif}

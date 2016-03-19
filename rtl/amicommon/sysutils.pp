@@ -837,11 +837,11 @@ begin
   Result:=Dos.EnvStr(Index);
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
+function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
-  tmpPath: AnsiString;
-  convPath: AnsiString;
+  tmpPath,
+  convPath: RawByteString;
   CommandLine: AnsiString;
   tmpLock: longint;
 
@@ -849,8 +849,8 @@ var
 begin
   DosError:= 0;
   
-  convPath:=PathConv(Path);
-  tmpPath:=convPath+' '+ComLine;
+  convPath:=PathConv((ToSingleByteFileSystemEncodedFileName(Path));
+  tmpPath:=convPath+' '+ToSingleByteFileSystemEncodedFileName(ComLine);
   
   { Here we must first check if the command we wish to execute }
   { actually exists, because this is NOT handled by the        }
@@ -883,19 +883,19 @@ begin
   end;
 end;
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
   I: integer;
 
 begin
   Commandline := '';
   for I := 0 to High (ComLine) do
    if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+    CommandLine := CommandLine + ' ' + '"' + ToSingleByteFileSystemEncodedFileName(ComLine [I]) + '"'
    else
-    CommandLine := CommandLine + ' ' + Comline [I];
+    CommandLine := CommandLine + ' ' + ToSingleByteFileSystemEncodedFileName(Comline [I]);
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
 end;
 

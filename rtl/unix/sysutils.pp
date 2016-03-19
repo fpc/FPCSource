@@ -280,6 +280,8 @@ procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
 {$DEFINE FPC_FEXPAND_GETENVPCHAR} { GetEnv result is a PChar }
 
 { Include platform independent implementation part }
+
+{$define executeprocuni}
 {$i sysutils.inc}
 
 { Include SysCreateGUID function }
@@ -1291,11 +1293,12 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
 var
   pid    : longint;
   e      : EOSError;
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
+  LPath  : RawByteString;
   cmdline2 : ppchar;
 
 Begin
@@ -1306,19 +1309,24 @@ Begin
 
    // Only place we still parse
    cmdline2:=nil;
+   LPath:=Path;
+   UniqueString(LPath);
+   SetCodePage(LPath,DefaultFileSystemCodePage,true);
    if Comline<>'' Then
      begin
        CommandLine:=ComLine;
+
        { Make an unique copy because stringtoppchar modifies the
-         string }
+         string, and force conversion to intended fscp }
        UniqueString(CommandLine);
+       SetCodePage(CommandLine,DefaultFileSystemCodePage,true);
        cmdline2:=StringtoPPChar(CommandLine,1);
-       cmdline2^:=pchar(pointer(Path));
+       cmdline2^:=pchar(pointer(LPath));
      end
    else
      begin
        getmem(cmdline2,2*sizeof(pchar));
-       cmdline2^:=pchar(Path);
+       cmdline2^:=pchar(LPath);
        cmdline2[1]:=nil;
      end;
 
@@ -1330,14 +1338,14 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-      fpexecv(pchar(pointer(Path)),Cmdline2);
+      fpexecv(pchar(pointer(LPath)),Cmdline2);
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
   else
    if pid=-1 then         {Fork failed}
     begin
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,-1]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[LPath,-1]);
       e.ErrorCode:=-1;
       raise e;
     end;
@@ -1350,18 +1358,17 @@ Begin
 
   if (result<0) or (result=127) then
     begin
-    E:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
+    E:=EOSError.CreateFmt(SExecuteProcessFailed,[LPath,result]);
     E.ErrorCode:=result;
     Raise E;
     end;
 End;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array Of RawByteString;Flags:TExecuteFlags=[]):integer;
 
 var
   pid    : longint;
-  e : EOSError;
-
+  e      : EOSError;
 Begin
   pid:=fpFork;
   if pid=0 then

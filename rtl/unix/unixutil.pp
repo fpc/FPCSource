@@ -31,8 +31,8 @@ var
   Tzseconds : Longint;
 
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
-Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
+function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint; deprecated 'use DateUtils.DateTimeToUnix';
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word); deprecated 'use DateUtils.UnixToDateTime';
 Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word); deprecated 'use DateUtils.DateTimetoJulianDate';
@@ -40,7 +40,7 @@ Function GregorianToJulian(Year,Month,Day:Longint):LongInt; deprecated 'use Date
 
 implementation
 
-function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
+function ArrayStringToPPchar(const S:Array of RawByteString;reserveentries:Longint):ppchar; // const ?
 // Extra allocate reserveentries pchar's at the beginning (default param=0 after 1.0.x ?)
 // Note: for internal use by skilled programmers only
 // if "s" goes out of scope in the parent procedure, the pointer is dangling.
@@ -64,7 +64,7 @@ begin
   ArrayStringToPPchar:=p;
 end;
 
-Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
+Function StringToPPChar(Var S:RawByteString;ReserveEntries:integer):ppchar;
 {
   Create a PPChar to structure of pchars which are the arguments specified
   in the string S. Especially useful for creating an ArgV for Exec-calls
