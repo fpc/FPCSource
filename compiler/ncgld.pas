@@ -392,7 +392,7 @@ implementation
                    toaddr :
                      generate_absaddr_access(tabsolutevarsym(symtableentry));
                    toasm :
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname);
+                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname,AT_DATA);
                    else
                      internalerror(200310283);
                  end;
@@ -422,9 +422,9 @@ implementation
                  begin
                    hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                    if not(vo_is_weak_external in gvs.varoptions) then
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname)
+                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA)
                    else
-                     location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
+                     location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA);
                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
                    reference_reset_base(location.reference,hregister,0,location.reference.alignment);
                  end
@@ -590,7 +590,7 @@ implementation
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,procdef.address_type.alignment);
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment);
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef));
                          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef),href,location.register);
                        end;
@@ -610,9 +610,9 @@ implementation
                       { def_cgsize does not work for tprocdef, so we use pd.address_type }
                       location.size:=def_cgsize(pd.address_type);
                       if not(po_weakexternal in pd.procoptions) then
-                        location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
+                        location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)
                       else
-                        location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname);
+                        location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname,AT_FUNCTION);
                    end;
               end;
            labelsym :

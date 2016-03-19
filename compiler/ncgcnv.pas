@@ -295,7 +295,7 @@ interface
                 begin
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                   hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
                 end
@@ -680,7 +680,7 @@ interface
          hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
-         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;
