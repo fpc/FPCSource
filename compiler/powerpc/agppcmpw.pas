@@ -264,6 +264,20 @@ interface
         top_ref:
           if o.ref^.refaddr=addr_no then
             getopstr:=getreferencestring(o.ref^)
+          else if o.ref^.refaddr=addr_pic_no_got then
+            begin
+              if (o.ref^.base<>NR_RTOC) or
+                 (o.ref^.index<>NR_NO) or
+                 (o.ref^.offset<>0) or
+                 not assigned(o.ref^.symbol) then
+                internalerror(2011122701);
+              hs:=o.ref^.symbol.name;
+              ReplaceForbiddenChars(hs);
+              if o.ref^.symbol.bind=AB_EXTERNAL then
+                hs:=hs+'[TC]';
+              hs:=hs+'(RTOC)';
+              getopstr:=hs;
+            end
           else
             begin
               hs:=o.ref^.symbol.name;
