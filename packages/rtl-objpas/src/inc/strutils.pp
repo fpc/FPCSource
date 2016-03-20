@@ -2591,7 +2591,7 @@ begin
     end;
 end;
 
-Function isMatch(level : Integer; inputstr,wilds : string; CWild, CinputWord: integer;MaxInputword,maxwilds : word; Out EOS : Boolean) : Boolean;
+Function isMatch(level : integer;inputstr,wilds : string; CWild, CinputWord: integer;MaxInputword,maxwilds : word; Out EOS : Boolean) : Boolean;
 
 begin
   EOS:=False;
@@ -2636,7 +2636,7 @@ begin
     Exit;
   until (CinputWord > MaxinputWord) or (CWild > MaxWilds);
   { no completed evaluation, we need to check what happened }
-  if (CinputWord < MaxinputWord) or (CWild < MaxWilds) then
+  if (CinputWord <= MaxinputWord) or (CWild < MaxWilds) then
     Result:=false
   else if (CWild>Maxwilds) then
     EOS:=False
