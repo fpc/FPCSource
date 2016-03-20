@@ -73,7 +73,7 @@ type
     FtestValue : String;
   Protected
     //Property setters
-    Procedure SettestValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SettestValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property testValue : String Index 0 Read FtestValue Write SettestValue;
@@ -91,7 +91,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -111,8 +111,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _label : String Index 0 Read F_label Write Set_label;
@@ -158,7 +158,7 @@ type
     FtestValue : String;
   Protected
     //Property setters
-    Procedure SettestValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SettestValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property testValue : String Index 0 Read FtestValue Write SettestValue;
@@ -176,8 +176,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _label : String Index 0 Read F_label Write Set_label;
@@ -273,7 +273,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregatedStatsReply.SettestValue(AIndex : Integer; AValue : String); 
+Procedure TAggregatedStatsReply.SettestValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtestValue=AValue) then exit;
@@ -290,7 +290,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDoubleValue.Set_label(AIndex : Integer; AValue : String); 
+Procedure TDoubleValue.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -328,7 +328,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIntValue.Set_label(AIndex : Integer; AValue : String); 
+Procedure TIntValue.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -338,7 +338,7 @@ end;
 
 
 
-Procedure TIntValue.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TIntValue.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -428,7 +428,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStatsReply.SettestValue(AIndex : Integer; AValue : String); 
+Procedure TStatsReply.SettestValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtestValue=AValue) then exit;
@@ -445,7 +445,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStringValue.Set_label(AIndex : Integer; AValue : String); 
+Procedure TStringValue.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -455,7 +455,7 @@ end;
 
 
 
-Procedure TStringValue.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TStringValue.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;

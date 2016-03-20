@@ -104,7 +104,7 @@ type
     Ftimestamp : TDatetime;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
     Procedure Settimestamp(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -124,9 +124,9 @@ type
     Fplatform : String;
   Protected
     //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
     Procedure Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); virtual;
-    Procedure Setplatform(AIndex : Integer; AValue : String); virtual;
+    Procedure Setplatform(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -174,7 +174,7 @@ type
     //Property setters
     Procedure Setfirst_detected(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setlast_crawled(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetpageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
     Procedure SeturlDetails(AIndex : Integer; AValue : TUrlSampleDetails); virtual;
   Public
@@ -240,8 +240,8 @@ type
     FsiteUrl : String;
   Protected
     //Property setters
-    Procedure SetpermissionLevel(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsiteUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpermissionLevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsiteUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property permissionLevel : String Index 0 Read FpermissionLevel Write SetpermissionLevel;
@@ -268,14 +268,14 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcontents(AIndex : Integer; AValue : TWmxSitemapTypecontentsArray); virtual;
-    Procedure Seterrors(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisPending(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisSitemapsIndex(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetlastDownloaded(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetlastSubmitted(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -306,9 +306,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setindexed(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsubmitted(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setindexed(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsubmitted(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property indexed : String Index 0 Read Findexed Write Setindexed;
@@ -538,7 +538,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorCount.Setcount(AIndex : Integer; AValue : String); 
+Procedure TUrlCrawlErrorCount.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -565,7 +565,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorCountsPerType.Setcategory(AIndex : Integer; AValue : String); 
+Procedure TUrlCrawlErrorCountsPerType.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -585,7 +585,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorCountsPerType.Setplatform(AIndex : Integer; AValue : String); 
+Procedure TUrlCrawlErrorCountsPerType.Setplatform(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fplatform=AValue) then exit;
@@ -665,7 +665,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorsSample.SetpageUrl(AIndex : Integer; AValue : String); 
+Procedure TUrlCrawlErrorsSample.SetpageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageUrl=AValue) then exit;
@@ -773,7 +773,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWmxSite.SetpermissionLevel(AIndex : Integer; AValue : String); 
+Procedure TWmxSite.SetpermissionLevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpermissionLevel=AValue) then exit;
@@ -783,7 +783,7 @@ end;
 
 
 
-Procedure TWmxSite.SetsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TWmxSite.SetsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsiteUrl=AValue) then exit;
@@ -810,7 +810,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Seterrors(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemap.Seterrors(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -860,7 +860,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Setpath(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemap.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -870,7 +870,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Set_type(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemap.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 
 
-Procedure TWmxSitemap.Setwarnings(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemap.Setwarnings(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -921,7 +921,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWmxSitemapContent.Setindexed(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemapContent.Setindexed(AIndex : Integer; const AValue : String); 
 
 begin
   If (Findexed=AValue) then exit;
@@ -931,7 +931,7 @@ end;
 
 
 
-Procedure TWmxSitemapContent.Setsubmitted(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemapContent.Setsubmitted(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsubmitted=AValue) then exit;
@@ -941,7 +941,7 @@ end;
 
 
 
-Procedure TWmxSitemapContent.Set_type(AIndex : Integer; AValue : String); 
+Procedure TWmxSitemapContent.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;

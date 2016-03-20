@@ -96,26 +96,26 @@ type
   Protected
     //Property setters
     Procedure SetallowPublisherCreatedLinks(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcommissionDuration(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcontactEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontactPhone(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLinkId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontactEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontactPhone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLinkId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitem(AIndex : Integer; AValue : TAdvertiser); virtual;
     Procedure SetjoinDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlogoUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlogoUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmerchantCenterIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpayoutRank(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpayoutRank(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductFeedsEnabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetredirectDomains(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetsiteUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsiteUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -158,8 +158,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAdvertisersTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -183,7 +183,7 @@ type
   Protected
     //Property setters
     Procedure Setamount(AIndex : Integer; AValue : double); virtual;
-    Procedure Setdetails(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdetails(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amount : double Index 0 Read Famount Write Setamount;
@@ -203,10 +203,10 @@ type
     FrateType : String;
   Protected
     //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxRate(AIndex : Integer; AValue : double); virtual;
     Procedure SetminRate(AIndex : Integer; AValue : double); virtual;
-    Procedure SetrateType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrateType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property category : String Index 0 Read Fcategory Write Setcategory;
@@ -230,9 +230,9 @@ type
     FminRewardTier : double;
   Protected
     //Property setters
-    Procedure SetadditionalDetails(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadditionalDetails(AIndex : Integer; const AValue : String); virtual;
     Procedure Setamount(AIndex : Integer; AValue : double); virtual;
-    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexpirationMonths(AIndex : Integer; AValue : double); virtual;
     Procedure SetmaxRewardTier(AIndex : Integer; AValue : double); virtual;
     Procedure SetminRewardTier(AIndex : Integer; AValue : double); virtual;
@@ -319,68 +319,68 @@ type
   Protected
     //Property setters
     Procedure SetadditionalCardBenefits(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetadditionalCardHolderFee(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadditionalCardHolderFee(AIndex : Integer; const AValue : String); virtual;
     Procedure SetageMinimum(AIndex : Integer; AValue : double); virtual;
-    Procedure SetageMinimumDetails(AIndex : Integer; AValue : String); virtual;
+    Procedure SetageMinimumDetails(AIndex : Integer; const AValue : String); virtual;
     Procedure SetannualFee(AIndex : Integer; AValue : double); virtual;
-    Procedure SetannualFeeDisplay(AIndex : Integer; AValue : String); virtual;
+    Procedure SetannualFeeDisplay(AIndex : Integer; const AValue : String); virtual;
     Procedure SetannualRewardMaximum(AIndex : Integer; AValue : double); virtual;
     Procedure SetapprovedCategories(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetaprDisplay(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbalanceComputationMethod(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbalanceTransferTerms(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaprDisplay(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbalanceComputationMethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbalanceTransferTerms(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbonusRewards(AIndex : Integer; AValue : TCcOfferTypebonusRewardsArray); virtual;
-    Procedure SetcarRentalInsurance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcarRentalInsurance(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcardBenefits(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetcardName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcardType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcashAdvanceTerms(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcardName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcardType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcashAdvanceTerms(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreditLimitMax(AIndex : Integer; AValue : double); virtual;
     Procedure SetcreditLimitMin(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcreditRatingDisplay(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreditRatingDisplay(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdefaultFees(AIndex : Integer; AValue : TCcOfferTypedefaultFeesArray); virtual;
-    Procedure Setdisclaimer(AIndex : Integer; AValue : String); virtual;
-    Procedure SetemergencyInsurance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdisclaimer(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetemergencyInsurance(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexistingCustomerOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetextendedWarranty(AIndex : Integer; AValue : String); virtual;
+    Procedure SetextendedWarranty(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfirstYearAnnualFee(AIndex : Integer; AValue : double); virtual;
-    Procedure SetflightAccidentInsurance(AIndex : Integer; AValue : String); virtual;
-    Procedure SetforeignCurrencyTransactionFee(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfraudLiability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgracePeriodDisplay(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinitialSetupAndProcessingFee(AIndex : Integer; AValue : String); virtual;
-    Procedure SetintroBalanceTransferTerms(AIndex : Integer; AValue : String); virtual;
-    Procedure SetintroCashAdvanceTerms(AIndex : Integer; AValue : String); virtual;
-    Procedure SetintroPurchaseTerms(AIndex : Integer; AValue : String); virtual;
-    Procedure Setissuer(AIndex : Integer; AValue : String); virtual;
-    Procedure SetissuerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetissuerWebsite(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlandingPageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlatePaymentFee(AIndex : Integer; AValue : String); virtual;
-    Procedure SetluggageInsurance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetflightAccidentInsurance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetforeignCurrencyTransactionFee(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfraudLiability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgracePeriodDisplay(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinitialSetupAndProcessingFee(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetintroBalanceTransferTerms(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetintroCashAdvanceTerms(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetintroPurchaseTerms(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setissuer(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetissuerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetissuerWebsite(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlandingPageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlatePaymentFee(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetluggageInsurance(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxPurchaseRate(AIndex : Integer; AValue : double); virtual;
     Procedure SetminPurchaseRate(AIndex : Integer; AValue : double); virtual;
-    Procedure SetminimumFinanceCharge(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
-    Procedure SetofferId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetminimumFinanceCharge(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetofferId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoffersImmediateCashReward(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetoverLimitFee(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoverLimitFee(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprohibitedCategories(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetpurchaseRateAdditionalDetails(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpurchaseRateType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreturnedPaymentFee(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrewardPartner(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrewardUnit(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpurchaseRateAdditionalDetails(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpurchaseRateType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreturnedPaymentFee(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrewardPartner(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrewardUnit(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrewards(AIndex : Integer; AValue : TCcOfferTyperewardsArray); virtual;
     Procedure SetrewardsExpire(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetrewardsHaveBlackoutDates(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetstatementCopyFee(AIndex : Integer; AValue : String); virtual;
-    Procedure SettrackingUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SettravelInsurance(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvariableRatesLastUpdated(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvariableRatesUpdateFrequency(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatementCopyFee(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettrackingUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettravelInsurance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvariableRatesLastUpdated(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvariableRatesUpdateFrequency(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -464,7 +464,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCcOffersTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -493,14 +493,14 @@ type
     FunitPrice : TMoney;
   Protected
     //Property setters
-    Procedure SetcategoryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcategoryName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcategoryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcategoryName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setearnings(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetnetworkFee(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetpublisherFee(AIndex : Integer; AValue : TMoney); virtual;
-    Procedure Setquantity(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsku(AIndex : Integer; AValue : String); virtual;
-    Procedure SetskuName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setquantity(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsku(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetskuName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetunitPrice(AIndex : Integer; AValue : TMoney); virtual;
   Public
   Published
@@ -543,24 +543,24 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetadvertiserId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetadvertiserName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchargeId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchargeType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadvertiserId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetadvertiserName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchargeId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchargeType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcommissionableSales(AIndex : Integer; AValue : TMoney); virtual;
     Procedure Setearnings(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SeteventDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmemberId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmemberId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmodifyDate(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetnetworkFee(AIndex : Integer; AValue : TMoney); virtual;
-    Procedure SetorderId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetorderId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproducts(AIndex : Integer; AValue : TEventTypeproductsArray); virtual;
     Procedure SetpublisherFee(AIndex : Integer; AValue : TMoney); virtual;
-    Procedure SetpublisherId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublisherName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublisherId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublisherName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -600,8 +600,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TEventsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -684,25 +684,25 @@ type
     FstartDate : TDatetime;
   Protected
     //Property setters
-    Procedure SetadvertiserId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setauthorship(AIndex : Integer; AValue : String); virtual;
-    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclickTrackingUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadvertiserId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setauthorship(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setavailability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclickTrackingUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreateDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdestinationUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdestinationUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setduration(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendDate(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimageAltText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimpressionTrackingUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageAltText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimpressionTrackingUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisActive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlinkType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpromotionType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlinkType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpromotionType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetspecialOffers(AIndex : Integer; AValue : TLinkTypespecialOffers); virtual;
     Procedure SetstartDate(AIndex : Integer; AValue : TDatetime); virtual;
   Public
@@ -743,8 +743,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLinksTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -768,7 +768,7 @@ type
   Protected
     //Property setters
     Procedure Setamount(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amount : double Index 0 Read Famount Write Setamount;
@@ -795,17 +795,17 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure Setclassification(AIndex : Integer; AValue : String); virtual;
+    Procedure Setclassification(AIndex : Integer; const AValue : String); virtual;
     Procedure SetepcNinetyDayAverage(AIndex : Integer; AValue : TMoney); virtual;
     Procedure SetepcSevenDayAverage(AIndex : Integer; AValue : TMoney); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitem(AIndex : Integer; AValue : TPublisher); virtual;
     Procedure SetjoinDate(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpayoutRank(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpayoutRank(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsites(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -838,8 +838,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPublishersTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -870,13 +870,13 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcolumn_names(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setend_date(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmatching_row_count(AIndex : Integer; AValue : String); virtual;
+    Procedure Setend_date(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmatching_row_count(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
-    Procedure Setstart_date(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart_date(AIndex : Integer; const AValue : String); virtual;
     Procedure Settotals_rows(AIndex : Integer; AValue : TReportTypetotals_rowsArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1164,7 +1164,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setcategory(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -1184,7 +1184,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetcontactEmail(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.SetcontactEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontactEmail=AValue) then exit;
@@ -1194,7 +1194,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetcontactPhone(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.SetcontactPhone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontactPhone=AValue) then exit;
@@ -1204,7 +1204,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetdefaultLinkId(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.SetdefaultLinkId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLinkId=AValue) then exit;
@@ -1214,7 +1214,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1244,7 +1244,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setid(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1274,7 +1274,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1284,7 +1284,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetlogoUrl(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.SetlogoUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlogoUrl=AValue) then exit;
@@ -1304,7 +1304,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setname(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1314,7 +1314,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetpayoutRank(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.SetpayoutRank(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpayoutRank=AValue) then exit;
@@ -1344,7 +1344,7 @@ end;
 
 
 
-Procedure TAdvertiser.SetsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.SetsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsiteUrl=AValue) then exit;
@@ -1354,7 +1354,7 @@ end;
 
 
 
-Procedure TAdvertiser.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TAdvertiser.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1395,7 +1395,7 @@ end;
 
 
 
-Procedure TAdvertisers.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAdvertisers.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1405,7 +1405,7 @@ end;
 
 
 
-Procedure TAdvertisers.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAdvertisers.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1445,7 +1445,7 @@ end;
 
 
 
-Procedure TCcOfferTypebonusRewardsItem.Setdetails(AIndex : Integer; AValue : String); 
+Procedure TCcOfferTypebonusRewardsItem.Setdetails(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOfferTypedefaultFeesItem.Setcategory(AIndex : Integer; AValue : String); 
+Procedure TCcOfferTypedefaultFeesItem.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -1492,7 +1492,7 @@ end;
 
 
 
-Procedure TCcOfferTypedefaultFeesItem.SetrateType(AIndex : Integer; AValue : String); 
+Procedure TCcOfferTypedefaultFeesItem.SetrateType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrateType=AValue) then exit;
@@ -1509,7 +1509,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCcOfferTyperewardsItem.SetadditionalDetails(AIndex : Integer; AValue : String); 
+Procedure TCcOfferTyperewardsItem.SetadditionalDetails(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadditionalDetails=AValue) then exit;
@@ -1529,7 +1529,7 @@ end;
 
 
 
-Procedure TCcOfferTyperewardsItem.Setcategory(AIndex : Integer; AValue : String); 
+Procedure TCcOfferTyperewardsItem.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -1586,7 +1586,7 @@ end;
 
 
 
-Procedure TCcOffer.SetadditionalCardHolderFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetadditionalCardHolderFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadditionalCardHolderFee=AValue) then exit;
@@ -1606,7 +1606,7 @@ end;
 
 
 
-Procedure TCcOffer.SetageMinimumDetails(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetageMinimumDetails(AIndex : Integer; const AValue : String); 
 
 begin
   If (FageMinimumDetails=AValue) then exit;
@@ -1626,7 +1626,7 @@ end;
 
 
 
-Procedure TCcOffer.SetannualFeeDisplay(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetannualFeeDisplay(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannualFeeDisplay=AValue) then exit;
@@ -1656,7 +1656,7 @@ end;
 
 
 
-Procedure TCcOffer.SetaprDisplay(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetaprDisplay(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaprDisplay=AValue) then exit;
@@ -1666,7 +1666,7 @@ end;
 
 
 
-Procedure TCcOffer.SetbalanceComputationMethod(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetbalanceComputationMethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbalanceComputationMethod=AValue) then exit;
@@ -1676,7 +1676,7 @@ end;
 
 
 
-Procedure TCcOffer.SetbalanceTransferTerms(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetbalanceTransferTerms(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbalanceTransferTerms=AValue) then exit;
@@ -1696,7 +1696,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcarRentalInsurance(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetcarRentalInsurance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcarRentalInsurance=AValue) then exit;
@@ -1716,7 +1716,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcardName(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetcardName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcardName=AValue) then exit;
@@ -1726,7 +1726,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcardType(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetcardType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcardType=AValue) then exit;
@@ -1736,7 +1736,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcashAdvanceTerms(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetcashAdvanceTerms(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcashAdvanceTerms=AValue) then exit;
@@ -1766,7 +1766,7 @@ end;
 
 
 
-Procedure TCcOffer.SetcreditRatingDisplay(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetcreditRatingDisplay(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreditRatingDisplay=AValue) then exit;
@@ -1786,7 +1786,7 @@ end;
 
 
 
-Procedure TCcOffer.Setdisclaimer(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.Setdisclaimer(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdisclaimer=AValue) then exit;
@@ -1796,7 +1796,7 @@ end;
 
 
 
-Procedure TCcOffer.SetemergencyInsurance(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetemergencyInsurance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FemergencyInsurance=AValue) then exit;
@@ -1816,7 +1816,7 @@ end;
 
 
 
-Procedure TCcOffer.SetextendedWarranty(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetextendedWarranty(AIndex : Integer; const AValue : String); 
 
 begin
   If (FextendedWarranty=AValue) then exit;
@@ -1836,7 +1836,7 @@ end;
 
 
 
-Procedure TCcOffer.SetflightAccidentInsurance(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetflightAccidentInsurance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FflightAccidentInsurance=AValue) then exit;
@@ -1846,7 +1846,7 @@ end;
 
 
 
-Procedure TCcOffer.SetforeignCurrencyTransactionFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetforeignCurrencyTransactionFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FforeignCurrencyTransactionFee=AValue) then exit;
@@ -1856,7 +1856,7 @@ end;
 
 
 
-Procedure TCcOffer.SetfraudLiability(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetfraudLiability(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfraudLiability=AValue) then exit;
@@ -1866,7 +1866,7 @@ end;
 
 
 
-Procedure TCcOffer.SetgracePeriodDisplay(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetgracePeriodDisplay(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgracePeriodDisplay=AValue) then exit;
@@ -1876,7 +1876,7 @@ end;
 
 
 
-Procedure TCcOffer.SetimageUrl(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetimageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -1886,7 +1886,7 @@ end;
 
 
 
-Procedure TCcOffer.SetinitialSetupAndProcessingFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetinitialSetupAndProcessingFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinitialSetupAndProcessingFee=AValue) then exit;
@@ -1896,7 +1896,7 @@ end;
 
 
 
-Procedure TCcOffer.SetintroBalanceTransferTerms(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetintroBalanceTransferTerms(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintroBalanceTransferTerms=AValue) then exit;
@@ -1906,7 +1906,7 @@ end;
 
 
 
-Procedure TCcOffer.SetintroCashAdvanceTerms(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetintroCashAdvanceTerms(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintroCashAdvanceTerms=AValue) then exit;
@@ -1916,7 +1916,7 @@ end;
 
 
 
-Procedure TCcOffer.SetintroPurchaseTerms(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetintroPurchaseTerms(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintroPurchaseTerms=AValue) then exit;
@@ -1926,7 +1926,7 @@ end;
 
 
 
-Procedure TCcOffer.Setissuer(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.Setissuer(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fissuer=AValue) then exit;
@@ -1936,7 +1936,7 @@ end;
 
 
 
-Procedure TCcOffer.SetissuerId(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetissuerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FissuerId=AValue) then exit;
@@ -1946,7 +1946,7 @@ end;
 
 
 
-Procedure TCcOffer.SetissuerWebsite(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetissuerWebsite(AIndex : Integer; const AValue : String); 
 
 begin
   If (FissuerWebsite=AValue) then exit;
@@ -1956,7 +1956,7 @@ end;
 
 
 
-Procedure TCcOffer.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1966,7 +1966,7 @@ end;
 
 
 
-Procedure TCcOffer.SetlandingPageUrl(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetlandingPageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlandingPageUrl=AValue) then exit;
@@ -1976,7 +1976,7 @@ end;
 
 
 
-Procedure TCcOffer.SetlatePaymentFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetlatePaymentFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlatePaymentFee=AValue) then exit;
@@ -1986,7 +1986,7 @@ end;
 
 
 
-Procedure TCcOffer.SetluggageInsurance(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetluggageInsurance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FluggageInsurance=AValue) then exit;
@@ -2016,7 +2016,7 @@ end;
 
 
 
-Procedure TCcOffer.SetminimumFinanceCharge(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetminimumFinanceCharge(AIndex : Integer; const AValue : String); 
 
 begin
   If (FminimumFinanceCharge=AValue) then exit;
@@ -2026,7 +2026,7 @@ end;
 
 
 
-Procedure TCcOffer.Setnetwork(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -2036,7 +2036,7 @@ end;
 
 
 
-Procedure TCcOffer.SetofferId(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetofferId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FofferId=AValue) then exit;
@@ -2056,7 +2056,7 @@ end;
 
 
 
-Procedure TCcOffer.SetoverLimitFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetoverLimitFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoverLimitFee=AValue) then exit;
@@ -2076,7 +2076,7 @@ end;
 
 
 
-Procedure TCcOffer.SetpurchaseRateAdditionalDetails(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetpurchaseRateAdditionalDetails(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpurchaseRateAdditionalDetails=AValue) then exit;
@@ -2086,7 +2086,7 @@ end;
 
 
 
-Procedure TCcOffer.SetpurchaseRateType(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetpurchaseRateType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpurchaseRateType=AValue) then exit;
@@ -2096,7 +2096,7 @@ end;
 
 
 
-Procedure TCcOffer.SetreturnedPaymentFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetreturnedPaymentFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreturnedPaymentFee=AValue) then exit;
@@ -2106,7 +2106,7 @@ end;
 
 
 
-Procedure TCcOffer.SetrewardPartner(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetrewardPartner(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrewardPartner=AValue) then exit;
@@ -2116,7 +2116,7 @@ end;
 
 
 
-Procedure TCcOffer.SetrewardUnit(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetrewardUnit(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrewardUnit=AValue) then exit;
@@ -2156,7 +2156,7 @@ end;
 
 
 
-Procedure TCcOffer.SetstatementCopyFee(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetstatementCopyFee(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatementCopyFee=AValue) then exit;
@@ -2166,7 +2166,7 @@ end;
 
 
 
-Procedure TCcOffer.SettrackingUrl(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SettrackingUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrackingUrl=AValue) then exit;
@@ -2176,7 +2176,7 @@ end;
 
 
 
-Procedure TCcOffer.SettravelInsurance(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SettravelInsurance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtravelInsurance=AValue) then exit;
@@ -2186,7 +2186,7 @@ end;
 
 
 
-Procedure TCcOffer.SetvariableRatesLastUpdated(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetvariableRatesLastUpdated(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvariableRatesLastUpdated=AValue) then exit;
@@ -2196,7 +2196,7 @@ end;
 
 
 
-Procedure TCcOffer.SetvariableRatesUpdateFrequency(AIndex : Integer; AValue : String); 
+Procedure TCcOffer.SetvariableRatesUpdateFrequency(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvariableRatesUpdateFrequency=AValue) then exit;
@@ -2242,7 +2242,7 @@ end;
 
 
 
-Procedure TCcOffers.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCcOffers.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2272,7 +2272,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypeproductsItem.SetcategoryId(AIndex : Integer; AValue : String); 
+Procedure TEventTypeproductsItem.SetcategoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcategoryId=AValue) then exit;
@@ -2282,7 +2282,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetcategoryName(AIndex : Integer; AValue : String); 
+Procedure TEventTypeproductsItem.SetcategoryName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcategoryName=AValue) then exit;
@@ -2322,7 +2322,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.Setquantity(AIndex : Integer; AValue : String); 
+Procedure TEventTypeproductsItem.Setquantity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fquantity=AValue) then exit;
@@ -2332,7 +2332,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.Setsku(AIndex : Integer; AValue : String); 
+Procedure TEventTypeproductsItem.Setsku(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsku=AValue) then exit;
@@ -2342,7 +2342,7 @@ end;
 
 
 
-Procedure TEventTypeproductsItem.SetskuName(AIndex : Integer; AValue : String); 
+Procedure TEventTypeproductsItem.SetskuName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FskuName=AValue) then exit;
@@ -2369,7 +2369,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvent.SetadvertiserId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetadvertiserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -2379,7 +2379,7 @@ end;
 
 
 
-Procedure TEvent.SetadvertiserName(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetadvertiserName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserName=AValue) then exit;
@@ -2389,7 +2389,7 @@ end;
 
 
 
-Procedure TEvent.SetchargeId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetchargeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchargeId=AValue) then exit;
@@ -2399,7 +2399,7 @@ end;
 
 
 
-Procedure TEvent.SetchargeType(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetchargeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchargeType=AValue) then exit;
@@ -2439,7 +2439,7 @@ end;
 
 
 
-Procedure TEvent.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2449,7 +2449,7 @@ end;
 
 
 
-Procedure TEvent.SetmemberId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetmemberId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmemberId=AValue) then exit;
@@ -2479,7 +2479,7 @@ end;
 
 
 
-Procedure TEvent.SetorderId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetorderId(AIndex : Integer; const AValue : String); 
 
 begin
   If (ForderId=AValue) then exit;
@@ -2509,7 +2509,7 @@ end;
 
 
 
-Procedure TEvent.SetpublisherId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetpublisherId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublisherId=AValue) then exit;
@@ -2519,7 +2519,7 @@ end;
 
 
 
-Procedure TEvent.SetpublisherName(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetpublisherName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublisherName=AValue) then exit;
@@ -2529,7 +2529,7 @@ end;
 
 
 
-Procedure TEvent.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2539,7 +2539,7 @@ end;
 
 
 
-Procedure TEvent.Set_type(AIndex : Integer; AValue : String); 
+Procedure TEvent.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2590,7 +2590,7 @@ end;
 
 
 
-Procedure TEvents.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEvents.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2600,7 +2600,7 @@ end;
 
 
 
-Procedure TEvents.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TEvents.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2730,7 +2730,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLink.SetadvertiserId(AIndex : Integer; AValue : String); 
+Procedure TLink.SetadvertiserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -2740,7 +2740,7 @@ end;
 
 
 
-Procedure TLink.Setauthorship(AIndex : Integer; AValue : String); 
+Procedure TLink.Setauthorship(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fauthorship=AValue) then exit;
@@ -2750,7 +2750,7 @@ end;
 
 
 
-Procedure TLink.Setavailability(AIndex : Integer; AValue : String); 
+Procedure TLink.Setavailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -2760,7 +2760,7 @@ end;
 
 
 
-Procedure TLink.SetclickTrackingUrl(AIndex : Integer; AValue : String); 
+Procedure TLink.SetclickTrackingUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclickTrackingUrl=AValue) then exit;
@@ -2780,7 +2780,7 @@ end;
 
 
 
-Procedure TLink.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TLink.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2790,7 +2790,7 @@ end;
 
 
 
-Procedure TLink.SetdestinationUrl(AIndex : Integer; AValue : String); 
+Procedure TLink.SetdestinationUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationUrl=AValue) then exit;
@@ -2800,7 +2800,7 @@ end;
 
 
 
-Procedure TLink.Setduration(AIndex : Integer; AValue : String); 
+Procedure TLink.Setduration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -2840,7 +2840,7 @@ end;
 
 
 
-Procedure TLink.Setid(AIndex : Integer; AValue : String); 
+Procedure TLink.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2850,7 +2850,7 @@ end;
 
 
 
-Procedure TLink.SetimageAltText(AIndex : Integer; AValue : String); 
+Procedure TLink.SetimageAltText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageAltText=AValue) then exit;
@@ -2860,7 +2860,7 @@ end;
 
 
 
-Procedure TLink.SetimpressionTrackingUrl(AIndex : Integer; AValue : String); 
+Procedure TLink.SetimpressionTrackingUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimpressionTrackingUrl=AValue) then exit;
@@ -2880,7 +2880,7 @@ end;
 
 
 
-Procedure TLink.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLink.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2890,7 +2890,7 @@ end;
 
 
 
-Procedure TLink.SetlinkType(AIndex : Integer; AValue : String); 
+Procedure TLink.SetlinkType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlinkType=AValue) then exit;
@@ -2900,7 +2900,7 @@ end;
 
 
 
-Procedure TLink.Setname(AIndex : Integer; AValue : String); 
+Procedure TLink.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2910,7 +2910,7 @@ end;
 
 
 
-Procedure TLink.SetpromotionType(AIndex : Integer; AValue : String); 
+Procedure TLink.SetpromotionType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpromotionType=AValue) then exit;
@@ -2957,7 +2957,7 @@ end;
 
 
 
-Procedure TLinks.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLinks.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2967,7 +2967,7 @@ end;
 
 
 
-Procedure TLinks.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLinks.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3007,7 +3007,7 @@ end;
 
 
 
-Procedure TMoney.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TMoney.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -3024,7 +3024,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublisher.Setclassification(AIndex : Integer; AValue : String); 
+Procedure TPublisher.Setclassification(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fclassification=AValue) then exit;
@@ -3054,7 +3054,7 @@ end;
 
 
 
-Procedure TPublisher.Setid(AIndex : Integer; AValue : String); 
+Procedure TPublisher.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3084,7 +3084,7 @@ end;
 
 
 
-Procedure TPublisher.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPublisher.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3094,7 +3094,7 @@ end;
 
 
 
-Procedure TPublisher.Setname(AIndex : Integer; AValue : String); 
+Procedure TPublisher.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3104,7 +3104,7 @@ end;
 
 
 
-Procedure TPublisher.SetpayoutRank(AIndex : Integer; AValue : String); 
+Procedure TPublisher.SetpayoutRank(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpayoutRank=AValue) then exit;
@@ -3124,7 +3124,7 @@ end;
 
 
 
-Procedure TPublisher.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TPublisher.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3164,7 +3164,7 @@ end;
 
 
 
-Procedure TPublishers.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPublishers.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3174,7 +3174,7 @@ end;
 
 
 
-Procedure TPublishers.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPublishers.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3214,7 +3214,7 @@ end;
 
 
 
-Procedure TReport.Setend_date(AIndex : Integer; AValue : String); 
+Procedure TReport.Setend_date(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fend_date=AValue) then exit;
@@ -3224,7 +3224,7 @@ end;
 
 
 
-Procedure TReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3234,7 +3234,7 @@ end;
 
 
 
-Procedure TReport.Setmatching_row_count(AIndex : Integer; AValue : String); 
+Procedure TReport.Setmatching_row_count(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmatching_row_count=AValue) then exit;
@@ -3254,7 +3254,7 @@ end;
 
 
 
-Procedure TReport.Setstart_date(AIndex : Integer; AValue : String); 
+Procedure TReport.Setstart_date(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart_date=AValue) then exit;
@@ -3274,7 +3274,7 @@ end;
 
 
 
-Procedure TReport.Set_type(AIndex : Integer; AValue : String); 
+Procedure TReport.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;

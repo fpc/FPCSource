@@ -66,10 +66,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -95,10 +95,10 @@ type
     FprofileId : String;
   Protected
     //Property setters
-    Procedure SetcallerType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcallerType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property callerType : String Index 0 Read FcallerType Write SetcallerType;
@@ -123,11 +123,11 @@ type
   Protected
     //Property setters
     Procedure SetboolValue(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetintValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetintValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmultiIntValue(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetmultiValue(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -155,9 +155,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -182,10 +182,10 @@ type
     FuniqueQualifier : String;
   Protected
     //Property setters
-    Procedure SetapplicationName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapplicationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Settime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetuniqueQualifier(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuniqueQualifier(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property applicationName : String Index 0 Read FapplicationName Write SetapplicationName;
@@ -211,12 +211,12 @@ type
   Protected
     //Property setters
     Procedure Setactor(AIndex : Integer; AValue : TActivityTypeactor); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setevents(AIndex : Integer; AValue : TActivityTypeeventsArray); virtual;
     Procedure Setid(AIndex : Integer; AValue : TActivityTypeid); virtual;
-    Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetownerDomain(AIndex : Integer; AValue : String); virtual;
+    Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetownerDomain(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -266,16 +266,16 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : String); virtual;
-    Procedure Setexpiration(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setexpiration(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparams(AIndex : Integer; AValue : TChannelTypeparams); virtual;
     Procedure Setpayload(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetresourceId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetresourceUri(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresourceUri(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property address : String Index 0 Read Faddress Write Setaddress;
@@ -304,10 +304,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserEmail(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property customerId : String Index 0 Read FcustomerId Write SetcustomerId;
@@ -347,10 +347,10 @@ type
     //Property setters
     Procedure SetboolValue(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdatetimeValue(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetintValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetintValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmsgValue(AIndex : Integer; AValue : TUsageReportTypeparametersItemTypemsgValueArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstringValue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -379,10 +379,10 @@ type
     Fparameters : TUsageReportTypeparametersArray;
   Protected
     //Property setters
-    Procedure Setdate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setentity(AIndex : Integer; AValue : TUsageReportTypeentity); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TUsageReportTypeparametersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -408,8 +408,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property key : String Index 0 Read Fkey Write Setkey;
@@ -428,9 +428,9 @@ type
     Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TUsageReportsTypewarningsItemTypedataArray); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -456,9 +456,9 @@ type
     Fwarnings : TUsageReportsTypewarningsArray;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetusageReports(AIndex : Integer; AValue : TUsageReportsTypeusageReportsArray); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TUsageReportsTypewarningsArray); virtual;
     //2.6.4. bug workaround
@@ -636,7 +636,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TActivities.Setetag(AIndex : Integer; AValue : String); 
+Procedure TActivities.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -656,7 +656,7 @@ end;
 
 
 
-Procedure TActivities.Setkind(AIndex : Integer; AValue : String); 
+Procedure TActivities.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -666,7 +666,7 @@ end;
 
 
 
-Procedure TActivities.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TActivities.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -696,7 +696,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcallerType=AValue) then exit;
@@ -706,7 +706,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.Setemail(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -716,7 +716,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.Setkey(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -726,7 +726,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -753,7 +753,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.SetintValue(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.SetintValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintValue=AValue) then exit;
@@ -783,7 +783,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -793,7 +793,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -824,7 +824,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -844,7 +844,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -885,7 +885,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeid.SetapplicationName(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeid.SetapplicationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationName=AValue) then exit;
@@ -895,7 +895,7 @@ end;
 
 
 
-Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -915,7 +915,7 @@ end;
 
 
 
-Procedure TActivityTypeid.SetuniqueQualifier(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeid.SetuniqueQualifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuniqueQualifier=AValue) then exit;
@@ -942,7 +942,7 @@ end;
 
 
 
-Procedure TActivity.Setetag(AIndex : Integer; AValue : String); 
+Procedure TActivity.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -972,7 +972,7 @@ end;
 
 
 
-Procedure TActivity.SetipAddress(AIndex : Integer; AValue : String); 
+Procedure TActivity.SetipAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FipAddress=AValue) then exit;
@@ -982,7 +982,7 @@ end;
 
 
 
-Procedure TActivity.Setkind(AIndex : Integer; AValue : String); 
+Procedure TActivity.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -992,7 +992,7 @@ end;
 
 
 
-Procedure TActivity.SetownerDomain(AIndex : Integer; AValue : String); 
+Procedure TActivity.SetownerDomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (FownerDomain=AValue) then exit;
@@ -1035,7 +1035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setaddress(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -1045,7 +1045,7 @@ end;
 
 
 
-Procedure TChannel.Setexpiration(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -1055,7 +1055,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1065,7 +1065,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1095,7 +1095,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceId(AIndex : Integer; AValue : String); 
+Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceId=AValue) then exit;
@@ -1105,7 +1105,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceUri(AIndex : Integer; AValue : String); 
+Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceUri=AValue) then exit;
@@ -1115,7 +1115,7 @@ end;
 
 
 
-Procedure TChannel.Settoken(AIndex : Integer; AValue : String); 
+Procedure TChannel.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -1125,7 +1125,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; AValue : String); 
+Procedure TChannel.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1153,7 +1153,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsageReportTypeentity.SetcustomerId(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeentity.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -1163,7 +1163,7 @@ end;
 
 
 
-Procedure TUsageReportTypeentity.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeentity.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -1173,7 +1173,7 @@ end;
 
 
 
-Procedure TUsageReportTypeentity.Set_type(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeentity.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1183,7 +1183,7 @@ end;
 
 
 
-Procedure TUsageReportTypeentity.SetuserEmail(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeentity.SetuserEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserEmail=AValue) then exit;
@@ -1244,7 +1244,7 @@ end;
 
 
 
-Procedure TUsageReportTypeparametersItem.SetintValue(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeparametersItem.SetintValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintValue=AValue) then exit;
@@ -1264,7 +1264,7 @@ end;
 
 
 
-Procedure TUsageReportTypeparametersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeparametersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1274,7 +1274,7 @@ end;
 
 
 
-Procedure TUsageReportTypeparametersItem.SetstringValue(AIndex : Integer; AValue : String); 
+Procedure TUsageReportTypeparametersItem.SetstringValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;
@@ -1304,7 +1304,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsageReport.Setdate(AIndex : Integer; AValue : String); 
+Procedure TUsageReport.Setdate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdate=AValue) then exit;
@@ -1324,7 +1324,7 @@ end;
 
 
 
-Procedure TUsageReport.Setetag(AIndex : Integer; AValue : String); 
+Procedure TUsageReport.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1334,7 +1334,7 @@ end;
 
 
 
-Procedure TUsageReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUsageReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1374,7 +1374,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsageReportsTypewarningsItemTypedataItem.Setkey(AIndex : Integer; AValue : String); 
+Procedure TUsageReportsTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1384,7 +1384,7 @@ end;
 
 
 
-Procedure TUsageReportsTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TUsageReportsTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsageReportsTypewarningsItem.Setcode(AIndex : Integer; AValue : String); 
+Procedure TUsageReportsTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1421,7 +1421,7 @@ end;
 
 
 
-Procedure TUsageReportsTypewarningsItem.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TUsageReportsTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1451,7 +1451,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsageReports.Setetag(AIndex : Integer; AValue : String); 
+Procedure TUsageReports.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1461,7 +1461,7 @@ end;
 
 
 
-Procedure TUsageReports.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUsageReports.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 
 
-Procedure TUsageReports.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TUsageReports.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

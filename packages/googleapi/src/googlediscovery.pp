@@ -71,8 +71,8 @@ type
     Fx32 : String;
   Protected
     //Property setters
-    Procedure Setx16(AIndex : Integer; AValue : String); virtual;
-    Procedure Setx32(AIndex : Integer; AValue : String); virtual;
+    Procedure Setx16(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setx32(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property x16 : String Index 0 Read Fx16 Write Setx16;
@@ -100,18 +100,18 @@ type
     Fversion : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdiscoveryLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdiscoveryRestUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdocumentationLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiscoveryLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiscoveryRestUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdocumentationLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Seticons(AIndex : Integer; AValue : TDirectoryListTypeitemsItemTypeicons); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlabels(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpreferred(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -144,9 +144,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetdiscoveryVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdiscoveryVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TDirectoryListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -204,8 +204,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setref(AIndex : Integer; AValue : String); virtual;
-    Procedure Settype_value(AIndex : Integer; AValue : String); virtual;
+    Procedure Setref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settype_value(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ref : String Index 0 Read Fref Write Setref;
@@ -223,7 +223,7 @@ type
     Fmap : TJsonSchemaTypevariantTypemapArray;
   Protected
     //Property setters
-    Procedure Setdiscriminant(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdiscriminant(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmap(AIndex : Integer; AValue : TJsonSchemaTypevariantTypemapArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -265,25 +265,25 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setref(AIndex : Integer; AValue : String); virtual;
+    Procedure Setref(AIndex : Integer; const AValue : String); virtual;
     Procedure SetadditionalProperties(AIndex : Integer; AValue : TJsonSchema); virtual;
     Procedure Setannotations(AIndex : Integer; AValue : TJsonSchemaTypeannotations); virtual;
-    Procedure Setdefault(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdefault(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setenum(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetenumDescriptions(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TJsonSchema); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmaximum(AIndex : Integer; AValue : String); virtual;
-    Procedure Setminimum(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpattern(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmaximum(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setminimum(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpattern(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproperties(AIndex : Integer; AValue : TJsonSchemaTypeproperties); virtual;
     Procedure SetreadOnly(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setrepeated(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setrequired(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : TJsonSchemaTypevariant); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -370,8 +370,8 @@ type
     Fx32 : String;
   Protected
     //Property setters
-    Procedure Setx16(AIndex : Integer; AValue : String); virtual;
-    Procedure Setx32(AIndex : Integer; AValue : String); virtual;
+    Procedure Setx16(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setx32(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property x16 : String Index 0 Read Fx16 Write Setx16;
@@ -472,33 +472,33 @@ type
   Protected
     //Property setters
     Procedure Setauth(AIndex : Integer; AValue : TRestDescriptionTypeauth); virtual;
-    Procedure SetbasePath(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbaseUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbatchPath(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcanonicalName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdiscoveryVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdocumentationLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbasePath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbaseUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbatchPath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcanonicalName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiscoveryVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdocumentationLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfeatures(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Seticons(AIndex : Integer; AValue : TRestDescriptionTypeicons); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlabels(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmethods(AIndex : Integer; AValue : TRestDescriptionTypemethods); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetownerDomain(AIndex : Integer; AValue : String); virtual;
-    Procedure SetownerName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpackagePath(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetownerDomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetownerName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpackagePath(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TRestDescriptionTypeparameters); virtual;
-    Procedure Setprotocol(AIndex : Integer; AValue : String); virtual;
+    Procedure Setprotocol(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TRestDescriptionTyperesources); virtual;
-    Procedure Setrevision(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrootUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrevision(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrootUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setschemas(AIndex : Integer; AValue : TRestDescriptionTypeschemas); virtual;
-    Procedure SetservicePath(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetservicePath(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -547,7 +547,7 @@ type
   Protected
     //Property setters
     Procedure Setmultipart(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property multipart : boolean Index 0 Read Fmultipart Write Setmultipart;
@@ -566,7 +566,7 @@ type
   Protected
     //Property setters
     Procedure Setmultipart(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property multipart : boolean Index 0 Read Fmultipart Write Setmultipart;
@@ -605,7 +605,7 @@ type
   Protected
     //Property setters
     Procedure Setaccept(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetmaxSize(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmaxSize(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprotocols(AIndex : Integer; AValue : TRestMethodTypemediaUploadTypeprotocols); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -644,8 +644,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setref(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparameterName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setref(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparameterName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ref : String Index 0 Read Fref Write Setref;
@@ -663,7 +663,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setref(AIndex : Integer; AValue : String); virtual;
+    Procedure Setref(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ref : String Index 0 Read Fref Write Setref;
@@ -693,14 +693,14 @@ type
     FuseMediaDownloadService : boolean;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetetagRequired(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SethttpMethod(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SethttpMethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmediaUpload(AIndex : Integer; AValue : TRestMethodTypemediaUpload); virtual;
     Procedure SetparameterOrder(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TRestMethodTypeparameters); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrequest(AIndex : Integer; AValue : TRestMethodTyperequest); virtual;
     Procedure Setresponse(AIndex : Integer; AValue : TRestMethodTyperesponse); virtual;
     Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
@@ -846,7 +846,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDirectoryListTypeitemsItemTypeicons.Setx16(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItemTypeicons.Setx16(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fx16=AValue) then exit;
@@ -856,7 +856,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItemTypeicons.Setx32(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItemTypeicons.Setx32(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fx32=AValue) then exit;
@@ -873,7 +873,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDirectoryListTypeitemsItem.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -883,7 +883,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.SetdiscoveryLink(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.SetdiscoveryLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiscoveryLink=AValue) then exit;
@@ -893,7 +893,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.SetdiscoveryRestUrl(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.SetdiscoveryRestUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiscoveryRestUrl=AValue) then exit;
@@ -903,7 +903,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.SetdocumentationLink(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.SetdocumentationLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdocumentationLink=AValue) then exit;
@@ -923,7 +923,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -933,7 +933,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -953,7 +953,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -973,7 +973,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Settitle(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -983,7 +983,7 @@ end;
 
 
 
-Procedure TDirectoryListTypeitemsItem.Setversion(AIndex : Integer; AValue : String); 
+Procedure TDirectoryListTypeitemsItem.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -1013,7 +1013,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDirectoryList.SetdiscoveryVersion(AIndex : Integer; AValue : String); 
+Procedure TDirectoryList.SetdiscoveryVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiscoveryVersion=AValue) then exit;
@@ -1033,7 +1033,7 @@ end;
 
 
 
-Procedure TDirectoryList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDirectoryList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1106,7 +1106,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchemaTypevariantTypemapItem.Setref(AIndex : Integer; AValue : String); 
+Procedure TJsonSchemaTypevariantTypemapItem.Setref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fref=AValue) then exit;
@@ -1116,7 +1116,7 @@ end;
 
 
 
-Procedure TJsonSchemaTypevariantTypemapItem.Settype_value(AIndex : Integer; AValue : String); 
+Procedure TJsonSchemaTypevariantTypemapItem.Settype_value(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftype_value=AValue) then exit;
@@ -1144,7 +1144,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchemaTypevariant.Setdiscriminant(AIndex : Integer; AValue : String); 
+Procedure TJsonSchemaTypevariant.Setdiscriminant(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdiscriminant=AValue) then exit;
@@ -1184,7 +1184,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJsonSchema.Setref(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fref=AValue) then exit;
@@ -1214,7 +1214,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setdefault(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setdefault(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdefault=AValue) then exit;
@@ -1224,7 +1224,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1254,7 +1254,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setformat(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1264,7 +1264,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setid(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1284,7 +1284,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1294,7 +1294,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setmaximum(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setmaximum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmaximum=AValue) then exit;
@@ -1304,7 +1304,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setminimum(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setminimum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fminimum=AValue) then exit;
@@ -1314,7 +1314,7 @@ end;
 
 
 
-Procedure TJsonSchema.Setpattern(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Setpattern(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpattern=AValue) then exit;
@@ -1364,7 +1364,7 @@ end;
 
 
 
-Procedure TJsonSchema.Set_type(AIndex : Integer; AValue : String); 
+Procedure TJsonSchema.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1464,7 +1464,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestDescriptionTypeicons.Setx16(AIndex : Integer; AValue : String); 
+Procedure TRestDescriptionTypeicons.Setx16(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fx16=AValue) then exit;
@@ -1474,7 +1474,7 @@ end;
 
 
 
-Procedure TRestDescriptionTypeicons.Setx32(AIndex : Integer; AValue : String); 
+Procedure TRestDescriptionTypeicons.Setx32(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fx32=AValue) then exit;
@@ -1553,7 +1553,7 @@ end;
 
 
 
-Procedure TRestDescription.SetbasePath(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetbasePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbasePath=AValue) then exit;
@@ -1563,7 +1563,7 @@ end;
 
 
 
-Procedure TRestDescription.SetbaseUrl(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetbaseUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbaseUrl=AValue) then exit;
@@ -1573,7 +1573,7 @@ end;
 
 
 
-Procedure TRestDescription.SetbatchPath(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetbatchPath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbatchPath=AValue) then exit;
@@ -1583,7 +1583,7 @@ end;
 
 
 
-Procedure TRestDescription.SetcanonicalName(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetcanonicalName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcanonicalName=AValue) then exit;
@@ -1593,7 +1593,7 @@ end;
 
 
 
-Procedure TRestDescription.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1603,7 +1603,7 @@ end;
 
 
 
-Procedure TRestDescription.SetdiscoveryVersion(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetdiscoveryVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiscoveryVersion=AValue) then exit;
@@ -1613,7 +1613,7 @@ end;
 
 
 
-Procedure TRestDescription.SetdocumentationLink(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetdocumentationLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdocumentationLink=AValue) then exit;
@@ -1623,7 +1623,7 @@ end;
 
 
 
-Procedure TRestDescription.Setetag(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1653,7 +1653,7 @@ end;
 
 
 
-Procedure TRestDescription.Setid(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1663,7 +1663,7 @@ end;
 
 
 
-Procedure TRestDescription.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
 
 
 
-Procedure TRestDescription.Setname(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1703,7 +1703,7 @@ end;
 
 
 
-Procedure TRestDescription.SetownerDomain(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetownerDomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (FownerDomain=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 
 
-Procedure TRestDescription.SetownerName(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetownerName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FownerName=AValue) then exit;
@@ -1723,7 +1723,7 @@ end;
 
 
 
-Procedure TRestDescription.SetpackagePath(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetpackagePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpackagePath=AValue) then exit;
@@ -1743,7 +1743,7 @@ end;
 
 
 
-Procedure TRestDescription.Setprotocol(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setprotocol(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fprotocol=AValue) then exit;
@@ -1763,7 +1763,7 @@ end;
 
 
 
-Procedure TRestDescription.Setrevision(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setrevision(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frevision=AValue) then exit;
@@ -1773,7 +1773,7 @@ end;
 
 
 
-Procedure TRestDescription.SetrootUrl(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetrootUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrootUrl=AValue) then exit;
@@ -1793,7 +1793,7 @@ end;
 
 
 
-Procedure TRestDescription.SetservicePath(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.SetservicePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FservicePath=AValue) then exit;
@@ -1803,7 +1803,7 @@ end;
 
 
 
-Procedure TRestDescription.Settitle(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1813,7 +1813,7 @@ end;
 
 
 
-Procedure TRestDescription.Setversion(AIndex : Integer; AValue : String); 
+Procedure TRestDescription.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -1854,7 +1854,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocolsTyperesumable.Setpath(AIndex : Integer; AValue : String); 
+Procedure TRestMethodTypemediaUploadTypeprotocolsTyperesumable.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -1881,7 +1881,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUploadTypeprotocolsTypesimple.Setpath(AIndex : Integer; AValue : String); 
+Procedure TRestMethodTypemediaUploadTypeprotocolsTypesimple.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -1935,7 +1935,7 @@ end;
 
 
 
-Procedure TRestMethodTypemediaUpload.SetmaxSize(AIndex : Integer; AValue : String); 
+Procedure TRestMethodTypemediaUpload.SetmaxSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxSize=AValue) then exit;
@@ -1988,7 +1988,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTyperequest.Setref(AIndex : Integer; AValue : String); 
+Procedure TRestMethodTyperequest.Setref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fref=AValue) then exit;
@@ -1998,7 +1998,7 @@ end;
 
 
 
-Procedure TRestMethodTyperequest.SetparameterName(AIndex : Integer; AValue : String); 
+Procedure TRestMethodTyperequest.SetparameterName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparameterName=AValue) then exit;
@@ -2026,7 +2026,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethodTyperesponse.Setref(AIndex : Integer; AValue : String); 
+Procedure TRestMethodTyperesponse.Setref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fref=AValue) then exit;
@@ -2054,7 +2054,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestMethod.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TRestMethod.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2074,7 +2074,7 @@ end;
 
 
 
-Procedure TRestMethod.SethttpMethod(AIndex : Integer; AValue : String); 
+Procedure TRestMethod.SethttpMethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhttpMethod=AValue) then exit;
@@ -2084,7 +2084,7 @@ end;
 
 
 
-Procedure TRestMethod.Setid(AIndex : Integer; AValue : String); 
+Procedure TRestMethod.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2124,7 +2124,7 @@ end;
 
 
 
-Procedure TRestMethod.Setpath(AIndex : Integer; AValue : String); 
+Procedure TRestMethod.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;

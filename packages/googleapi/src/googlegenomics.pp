@@ -227,10 +227,10 @@ type
   Protected
     //Property setters
     Procedure SetbamSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinterleavedFastqSource(AIndex : Integer; AValue : TInterleavedFastqSource); virtual;
     Procedure SetpairedFastqSource(AIndex : Integer; AValue : TPairedFastqSource); virtual;
-    Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupSetId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -254,7 +254,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -292,13 +292,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetannotationSetId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetannotationSetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TAnnotationTypeinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TRangePosition); virtual;
     Procedure Settranscript(AIndex : Integer; AValue : TTranscript); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : TVariantAnnotation); virtual;
   Public
   Published
@@ -343,13 +343,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TAnnotationSetTypeinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsourceUri(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceUri(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -412,7 +412,7 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property code : integer Index 0 Read Fcode Write Setcode;
@@ -468,12 +468,12 @@ type
     Fphaseset : String;
   Protected
     //Property setters
-    Procedure SetcallSetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcallSetName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcallSetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcallSetName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setgenotype(AIndex : Integer; AValue : TintegerArray); virtual;
     Procedure SetgenotypeLikelihood(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TCallTypeinfo); virtual;
-    Procedure Setphaseset(AIndex : Integer; AValue : String); virtual;
+    Procedure Setphaseset(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -500,8 +500,8 @@ type
     FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreadGroupSetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -524,7 +524,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -559,11 +559,11 @@ type
     FvariantSetIds : TStringArray;
   Protected
     //Property setters
-    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcreated(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TCallSetTypeinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsampleId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsampleId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -591,9 +591,9 @@ type
     FreferenceSequence : String;
   Protected
     //Property setters
-    Procedure Setoperation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoperationLength(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceSequence(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoperation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationLength(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceSequence(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property operation : String Index 0 Read Foperation Write Setoperation;
@@ -633,10 +633,10 @@ type
     FprojectNumber : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisPublic(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -662,9 +662,9 @@ type
     //Property setters
     Procedure Setalign(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetcallVariants(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetgcsOutputPath(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgcsOutputPath(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpairedSourceUris(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -690,7 +690,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -709,8 +709,8 @@ type
     FreferenceNames : TStringArray;
   Protected
     //Property setters
-    Procedure SetexportUri(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexportUri(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetreferenceNames(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
@@ -735,7 +735,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -755,11 +755,11 @@ type
     FprojectNumber : String;
   Protected
     //Property setters
-    Procedure SetbigqueryDataset(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbigqueryTable(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbigqueryDataset(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbigqueryTable(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcallSetIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -783,7 +783,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -800,8 +800,8 @@ type
     FsourceName : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsourceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -822,11 +822,11 @@ type
     FsampleName : String;
   Protected
     //Property setters
-    Procedure SetlibraryName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplatformName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplatformUnit(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreadGroupName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsampleName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlibraryName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplatformName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplatformUnit(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreadGroupName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsampleName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property libraryName : String Index 0 Read FlibraryName Write SetlibraryName;
@@ -849,9 +849,9 @@ type
     FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpartitionStrategy(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpartitionStrategy(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -875,7 +875,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -892,7 +892,7 @@ type
     FsourceUris : TStringArray;
   Protected
     //Property setters
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceUris(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -914,7 +914,7 @@ type
     FjobId : String;
   Protected
     //Property setters
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property jobId : String Index 0 Read FjobId Write SetjobId;
@@ -977,14 +977,14 @@ type
     Fwarnings : TStringArray;
   Protected
     //Property setters
-    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdetailedStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcreated(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdetailedStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetimportedIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrequest(AIndex : Integer; AValue : TJobRequest); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1018,7 +1018,7 @@ type
     //Property setters
     Procedure Setdestination(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1068,9 +1068,9 @@ type
     Fsequence : String;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure Setoffset(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsequence(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setoffset(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsequence(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1090,9 +1090,9 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure SetbucketWidth(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbucketWidth(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcoverageBuckets(AIndex : Integer; AValue : TListCoverageBucketsResponseTypecoverageBucketsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1116,7 +1116,7 @@ type
   Protected
     //Property setters
     Procedure Setdatasets(AIndex : Integer; AValue : TListDatasetsResponseTypedatasetsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1178,13 +1178,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TMetadataTypeinfo); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnumber(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnumber(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -1234,8 +1234,8 @@ type
     FreverseStrand : boolean;
   Protected
     //Property setters
-    Procedure Setposition(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setposition(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreverseStrand(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -1258,10 +1258,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -1283,9 +1283,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -1308,11 +1308,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreverseStrand(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -1363,19 +1363,19 @@ type
   Protected
     //Property setters
     Procedure SetalignedQuality(AIndex : Integer; AValue : TintegerArray); virtual;
-    Procedure SetalignedSequence(AIndex : Integer; AValue : String); virtual;
+    Procedure SetalignedSequence(AIndex : Integer; const AValue : String); virtual;
     Procedure Setalignment(AIndex : Integer; AValue : TLinearAlignment); virtual;
     Procedure SetduplicateFragment(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetfailedVendorQualityChecks(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetfragmentLength(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetfragmentName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfragmentName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TReadTypeinfo); virtual;
     Procedure SetnextMatePosition(AIndex : Integer; AValue : TPosition); virtual;
     Procedure SetnumberReads(AIndex : Integer; AValue : integer); virtual;
     Procedure SetproperPlacement(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetreadGroupId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreadGroupSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadGroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreadGroupSetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreadNumber(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsecondaryAlignment(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsupplementaryAlignment(AIndex : Integer; AValue : boolean); virtual;
@@ -1437,16 +1437,16 @@ type
     FsampleId : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setexperiment(AIndex : Integer; AValue : TReadGroupExperiment); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TReadGroupTypeinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpredictedInsertSize(AIndex : Integer; AValue : integer); virtual;
     Procedure Setprograms(AIndex : Integer; AValue : TReadGroupTypeprogramsArray); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsampleId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsampleId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1478,10 +1478,10 @@ type
     FsequencingCenter : String;
   Protected
     //Property setters
-    Procedure SetinstrumentModel(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlibraryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplatformUnit(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsequencingCenter(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinstrumentModel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlibraryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplatformUnit(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsequencingCenter(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property instrumentModel : String Index 0 Read FinstrumentModel Write SetinstrumentModel;
@@ -1504,11 +1504,11 @@ type
     Fversion : String;
   Protected
     //Property setters
-    Procedure SetcommandLine(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprevProgramId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcommandLine(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprevProgramId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property commandLine : String Index 0 Read FcommandLine Write SetcommandLine;
@@ -1548,13 +1548,13 @@ type
     FreferenceSetId : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfilename(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfilename(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TReadGroupSetTypeinfo); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreadGroups(AIndex : Integer; AValue : TReadGroupSetTypereadGroupsArray); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1586,13 +1586,13 @@ type
     FsourceURI : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_length(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmd5checksum(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_length(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmd5checksum(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetncbiTaxonId(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsourceAccessions(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetsourceURI(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceURI(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1619,8 +1619,8 @@ type
     FupperBound : String;
   Protected
     //Property setters
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetupperBound(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetupperBound(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property referenceName : String Index 0 Read FreferenceName Write SetreferenceName;
@@ -1644,14 +1644,14 @@ type
     FsourceURI : String;
   Protected
     //Property setters
-    Procedure SetassemblyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmd5checksum(AIndex : Integer; AValue : String); virtual;
+    Procedure SetassemblyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmd5checksum(AIndex : Integer; const AValue : String); virtual;
     Procedure SetncbiTaxonId(AIndex : Integer; AValue : integer); virtual;
     Procedure SetreferenceIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceAccessions(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetsourceURI(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceURI(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1684,10 +1684,10 @@ type
   Protected
     //Property setters
     Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; const AValue : String); virtual;
     Procedure Settypes(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1715,7 +1715,7 @@ type
   Protected
     //Property setters
     Procedure SetannotationSets(AIndex : Integer; AValue : TSearchAnnotationSetsResponseTypeannotationSetsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1741,7 +1741,7 @@ type
     //Property setters
     Procedure SetannotationSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrange(AIndex : Integer; AValue : TQueryRange); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1767,7 +1767,7 @@ type
   Protected
     //Property setters
     Procedure Setannotations(AIndex : Integer; AValue : TSearchAnnotationsResponseTypeannotationsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1791,9 +1791,9 @@ type
     FvariantSetIds : TStringArray;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1819,7 +1819,7 @@ type
   Protected
     //Property setters
     Procedure SetcallSets(AIndex : Integer; AValue : TSearchCallSetsResponseTypecallSetsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1845,11 +1845,11 @@ type
     Fstatus : TStringArray;
   Protected
     //Property setters
-    Procedure SetcreatedAfter(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcreatedBefore(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatedAfter(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreatedBefore(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1877,7 +1877,7 @@ type
   Protected
     //Property setters
     Procedure Setjobs(AIndex : Integer; AValue : TSearchJobsResponseTypejobsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1902,9 +1902,9 @@ type
   Protected
     //Property setters
     Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1928,7 +1928,7 @@ type
     FreadGroupSets : TSearchReadGroupSetsResponseTypereadGroupSetsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreadGroupSets(AIndex : Integer; AValue : TSearchReadGroupSetsResponseTypereadGroupSetsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1957,13 +1957,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreadGroupIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetreadGroupSetIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1991,7 +1991,7 @@ type
   Protected
     //Property setters
     Procedure Setalignments(AIndex : Integer; AValue : TSearchReadsResponseTypealignmentsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2017,10 +2017,10 @@ type
   Protected
     //Property setters
     Procedure Setaccessions(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetassemblyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetassemblyId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmd5checksums(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2045,7 +2045,7 @@ type
     FreferenceSets : TSearchReferenceSetsResponseTypereferenceSetsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreferenceSets(AIndex : Integer; AValue : TSearchReferenceSetsResponseTypereferenceSetsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2074,8 +2074,8 @@ type
     Procedure Setaccessions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setmd5checksums(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceSetId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2100,7 +2100,7 @@ type
     Freferences : TSearchReferencesResponseTypereferencesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setreferences(AIndex : Integer; AValue : TSearchReferencesResponseTypereferencesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2126,7 +2126,7 @@ type
     //Property setters
     Procedure SetdatasetIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2149,7 +2149,7 @@ type
     FvariantSets : TSearchVariantSetsResponseTypevariantSetsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvariantSets(AIndex : Integer; AValue : TSearchVariantSetsResponseTypevariantSetsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2181,13 +2181,13 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetcallSetIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxCalls(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpageSize(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvariantName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvariantName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvariantSetIds(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2217,7 +2217,7 @@ type
     Fvariants : TSearchVariantsResponseTypevariantsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariants(AIndex : Integer; AValue : TSearchVariantsResponseTypevariantsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2243,7 +2243,7 @@ type
     //Property setters
     Procedure SetcodingSequence(AIndex : Integer; AValue : TTranscriptCodingSequence); virtual;
     Procedure Setexons(AIndex : Integer; AValue : TTranscriptTypeexonsArray); virtual;
-    Procedure SetgeneId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgeneId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2267,8 +2267,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -2288,9 +2288,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
     Procedure Setframe(AIndex : Integer; AValue : TInt32Value); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -2337,17 +2337,17 @@ type
     //Property setters
     Procedure SetalternateBases(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setcalls(AIndex : Integer; AValue : TVariantTypecallsArray); virtual;
-    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcreated(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfilter(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfo(AIndex : Integer; AValue : TVariantTypeinfo); virtual;
     Procedure Setnames(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setquality(AIndex : Integer; AValue : double); virtual;
-    Procedure SetreferenceBases(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvariantSetId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreferenceBases(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvariantSetId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2386,13 +2386,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetalternateBases(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclinicalSignificance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetalternateBases(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclinicalSignificance(AIndex : Integer; const AValue : String); virtual;
     Procedure Setconditions(AIndex : Integer; AValue : TVariantAnnotationTypeconditionsArray); virtual;
-    Procedure Seteffect(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgeneId(AIndex : Integer; AValue : String); virtual;
+    Procedure Seteffect(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgeneId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettranscriptIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2421,10 +2421,10 @@ type
     FomimId : String;
   Protected
     //Property setters
-    Procedure SetconceptId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconceptId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexternalIds(AIndex : Integer; AValue : TVariantAnnotationConditionTypeexternalIdsArray); virtual;
     Procedure Setnames(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetomimId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetomimId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2450,8 +2450,8 @@ type
     FreferenceBounds : TVariantSetTypereferenceBoundsArray;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TVariantSetTypemetadataArray); virtual;
     Procedure SetreferenceBounds(AIndex : Integer; AValue : TVariantSetTypereferenceBoundsArray); virtual;
     //2.6.4. bug workaround
@@ -2868,7 +2868,7 @@ end;
 
 
 
-Procedure TAlignReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TAlignReadGroupSetsRequest.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -2898,7 +2898,7 @@ end;
 
 
 
-Procedure TAlignReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; AValue : String); 
+Procedure TAlignReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -2928,7 +2928,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlignReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TAlignReadGroupSetsResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -2958,7 +2958,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotation.SetannotationSetId(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetannotationSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationSetId=AValue) then exit;
@@ -2968,7 +2968,7 @@ end;
 
 
 
-Procedure TAnnotation.Setid(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2988,7 +2988,7 @@ end;
 
 
 
-Procedure TAnnotation.Setname(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3018,7 +3018,7 @@ end;
 
 
 
-Procedure TAnnotation.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3069,7 +3069,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotationSet.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TAnnotationSet.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -3079,7 +3079,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setid(AIndex : Integer; AValue : String); 
+Procedure TAnnotationSet.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3099,7 +3099,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Setname(AIndex : Integer; AValue : String); 
+Procedure TAnnotationSet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3109,7 +3109,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetreferenceSetId(AIndex : Integer; AValue : String); 
+Procedure TAnnotationSet.SetreferenceSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -3119,7 +3119,7 @@ end;
 
 
 
-Procedure TAnnotationSet.SetsourceUri(AIndex : Integer; AValue : String); 
+Procedure TAnnotationSet.SetsourceUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceUri=AValue) then exit;
@@ -3129,7 +3129,7 @@ end;
 
 
 
-Procedure TAnnotationSet.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAnnotationSet.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3224,7 +3224,7 @@ end;
 
 
 
-Procedure TBatchAnnotationsResponseEntryStatus.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TBatchAnnotationsResponseEntryStatus.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -3284,7 +3284,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCall.SetcallSetId(AIndex : Integer; AValue : String); 
+Procedure TCall.SetcallSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcallSetId=AValue) then exit;
@@ -3294,7 +3294,7 @@ end;
 
 
 
-Procedure TCall.SetcallSetName(AIndex : Integer; AValue : String); 
+Procedure TCall.SetcallSetName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcallSetName=AValue) then exit;
@@ -3334,7 +3334,7 @@ end;
 
 
 
-Procedure TCall.Setphaseset(AIndex : Integer; AValue : String); 
+Procedure TCall.Setphaseset(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fphaseset=AValue) then exit;
@@ -3365,7 +3365,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCallReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TCallReadGroupSetsRequest.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -3375,7 +3375,7 @@ end;
 
 
 
-Procedure TCallReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; AValue : String); 
+Procedure TCallReadGroupSetsRequest.SetreadGroupSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -3415,7 +3415,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCallReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TCallReadGroupSetsResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -3445,7 +3445,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCallSet.Setcreated(AIndex : Integer; AValue : String); 
+Procedure TCallSet.Setcreated(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -3455,7 +3455,7 @@ end;
 
 
 
-Procedure TCallSet.Setid(AIndex : Integer; AValue : String); 
+Procedure TCallSet.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3475,7 +3475,7 @@ end;
 
 
 
-Procedure TCallSet.Setname(AIndex : Integer; AValue : String); 
+Procedure TCallSet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3485,7 +3485,7 @@ end;
 
 
 
-Procedure TCallSet.SetsampleId(AIndex : Integer; AValue : String); 
+Procedure TCallSet.SetsampleId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleId=AValue) then exit;
@@ -3525,7 +3525,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCigarUnit.Setoperation(AIndex : Integer; AValue : String); 
+Procedure TCigarUnit.Setoperation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foperation=AValue) then exit;
@@ -3535,7 +3535,7 @@ end;
 
 
 
-Procedure TCigarUnit.SetoperationLength(AIndex : Integer; AValue : String); 
+Procedure TCigarUnit.SetoperationLength(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoperationLength=AValue) then exit;
@@ -3545,7 +3545,7 @@ end;
 
 
 
-Procedure TCigarUnit.SetreferenceSequence(AIndex : Integer; AValue : String); 
+Procedure TCigarUnit.SetreferenceSequence(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSequence=AValue) then exit;
@@ -3589,7 +3589,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.Setid(AIndex : Integer; AValue : String); 
+Procedure TDataset.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3609,7 +3609,7 @@ end;
 
 
 
-Procedure TDataset.Setname(AIndex : Integer; AValue : String); 
+Procedure TDataset.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3619,7 +3619,7 @@ end;
 
 
 
-Procedure TDataset.SetprojectNumber(AIndex : Integer; AValue : String); 
+Procedure TDataset.SetprojectNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -3656,7 +3656,7 @@ end;
 
 
 
-Procedure TExperimentalCreateJobRequest.SetgcsOutputPath(AIndex : Integer; AValue : String); 
+Procedure TExperimentalCreateJobRequest.SetgcsOutputPath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgcsOutputPath=AValue) then exit;
@@ -3676,7 +3676,7 @@ end;
 
 
 
-Procedure TExperimentalCreateJobRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
+Procedure TExperimentalCreateJobRequest.SetprojectNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -3717,7 +3717,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExperimentalCreateJobResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TExperimentalCreateJobResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -3734,7 +3734,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportReadGroupSetsRequest.SetexportUri(AIndex : Integer; AValue : String); 
+Procedure TExportReadGroupSetsRequest.SetexportUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexportUri=AValue) then exit;
@@ -3744,7 +3744,7 @@ end;
 
 
 
-Procedure TExportReadGroupSetsRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
+Procedure TExportReadGroupSetsRequest.SetprojectNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -3795,7 +3795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TExportReadGroupSetsResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -3812,7 +3812,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportVariantSetRequest.SetbigqueryDataset(AIndex : Integer; AValue : String); 
+Procedure TExportVariantSetRequest.SetbigqueryDataset(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbigqueryDataset=AValue) then exit;
@@ -3822,7 +3822,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetbigqueryTable(AIndex : Integer; AValue : String); 
+Procedure TExportVariantSetRequest.SetbigqueryTable(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbigqueryTable=AValue) then exit;
@@ -3842,7 +3842,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.Setformat(AIndex : Integer; AValue : String); 
+Procedure TExportVariantSetRequest.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -3852,7 +3852,7 @@ end;
 
 
 
-Procedure TExportVariantSetRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
+Procedure TExportVariantSetRequest.SetprojectNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -3882,7 +3882,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportVariantSetResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TExportVariantSetResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -3899,7 +3899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExternalId.Setid(AIndex : Integer; AValue : String); 
+Procedure TExternalId.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3909,7 +3909,7 @@ end;
 
 
 
-Procedure TExternalId.SetsourceName(AIndex : Integer; AValue : String); 
+Procedure TExternalId.SetsourceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceName=AValue) then exit;
@@ -3926,7 +3926,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFastqMetadata.SetlibraryName(AIndex : Integer; AValue : String); 
+Procedure TFastqMetadata.SetlibraryName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlibraryName=AValue) then exit;
@@ -3936,7 +3936,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetplatformName(AIndex : Integer; AValue : String); 
+Procedure TFastqMetadata.SetplatformName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplatformName=AValue) then exit;
@@ -3946,7 +3946,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetplatformUnit(AIndex : Integer; AValue : String); 
+Procedure TFastqMetadata.SetplatformUnit(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplatformUnit=AValue) then exit;
@@ -3956,7 +3956,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetreadGroupName(AIndex : Integer; AValue : String); 
+Procedure TFastqMetadata.SetreadGroupName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreadGroupName=AValue) then exit;
@@ -3966,7 +3966,7 @@ end;
 
 
 
-Procedure TFastqMetadata.SetsampleName(AIndex : Integer; AValue : String); 
+Procedure TFastqMetadata.SetsampleName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleName=AValue) then exit;
@@ -3983,7 +3983,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportReadGroupSetsRequest.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TImportReadGroupSetsRequest.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -3993,7 +3993,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetpartitionStrategy(AIndex : Integer; AValue : String); 
+Procedure TImportReadGroupSetsRequest.SetpartitionStrategy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpartitionStrategy=AValue) then exit;
@@ -4003,7 +4003,7 @@ end;
 
 
 
-Procedure TImportReadGroupSetsRequest.SetreferenceSetId(AIndex : Integer; AValue : String); 
+Procedure TImportReadGroupSetsRequest.SetreferenceSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -4043,7 +4043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportReadGroupSetsResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TImportReadGroupSetsResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4060,7 +4060,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportVariantsRequest.Setformat(AIndex : Integer; AValue : String); 
+Procedure TImportVariantsRequest.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -4100,7 +4100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportVariantsResponse.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TImportVariantsResponse.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -4174,7 +4174,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJob.Setcreated(AIndex : Integer; AValue : String); 
+Procedure TJob.Setcreated(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -4184,7 +4184,7 @@ end;
 
 
 
-Procedure TJob.SetdetailedStatus(AIndex : Integer; AValue : String); 
+Procedure TJob.SetdetailedStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdetailedStatus=AValue) then exit;
@@ -4204,7 +4204,7 @@ end;
 
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : String); 
+Procedure TJob.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4224,7 +4224,7 @@ end;
 
 
 
-Procedure TJob.SetprojectNumber(AIndex : Integer; AValue : String); 
+Procedure TJob.SetprojectNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -4244,7 +4244,7 @@ end;
 
 
 
-Procedure TJob.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TJob.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -4306,7 +4306,7 @@ end;
 
 
 
-Procedure TJobRequest.Set_type(AIndex : Integer; AValue : String); 
+Procedure TJobRequest.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4398,7 +4398,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListBasesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListBasesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4408,7 +4408,7 @@ end;
 
 
 
-Procedure TListBasesResponse.Setoffset(AIndex : Integer; AValue : String); 
+Procedure TListBasesResponse.Setoffset(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foffset=AValue) then exit;
@@ -4418,7 +4418,7 @@ end;
 
 
 
-Procedure TListBasesResponse.Setsequence(AIndex : Integer; AValue : String); 
+Procedure TListBasesResponse.Setsequence(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsequence=AValue) then exit;
@@ -4435,7 +4435,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListCoverageBucketsResponse.SetbucketWidth(AIndex : Integer; AValue : String); 
+Procedure TListCoverageBucketsResponse.SetbucketWidth(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbucketWidth=AValue) then exit;
@@ -4455,7 +4455,7 @@ end;
 
 
 
-Procedure TListCoverageBucketsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListCoverageBucketsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4495,7 +4495,7 @@ end;
 
 
 
-Procedure TListDatasetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListDatasetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4568,7 +4568,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4578,7 +4578,7 @@ end;
 
 
 
-Procedure TMetadata.Setid(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4598,7 +4598,7 @@ end;
 
 
 
-Procedure TMetadata.Setkey(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -4608,7 +4608,7 @@ end;
 
 
 
-Procedure TMetadata.Setnumber(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setnumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnumber=AValue) then exit;
@@ -4618,7 +4618,7 @@ end;
 
 
 
-Procedure TMetadata.Set_type(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4628,7 +4628,7 @@ end;
 
 
 
-Procedure TMetadata.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -4707,7 +4707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPosition.Setposition(AIndex : Integer; AValue : String); 
+Procedure TPosition.Setposition(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fposition=AValue) then exit;
@@ -4717,7 +4717,7 @@ end;
 
 
 
-Procedure TPosition.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TPosition.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -4744,7 +4744,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryRange.Set_end(AIndex : Integer; AValue : String); 
+Procedure TQueryRange.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -4754,7 +4754,7 @@ end;
 
 
 
-Procedure TQueryRange.SetreferenceId(AIndex : Integer; AValue : String); 
+Procedure TQueryRange.SetreferenceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -4764,7 +4764,7 @@ end;
 
 
 
-Procedure TQueryRange.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TQueryRange.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -4774,7 +4774,7 @@ end;
 
 
 
-Procedure TQueryRange.Setstart(AIndex : Integer; AValue : String); 
+Procedure TQueryRange.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -4802,7 +4802,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRange.Set_end(AIndex : Integer; AValue : String); 
+Procedure TRange.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -4812,7 +4812,7 @@ end;
 
 
 
-Procedure TRange.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TRange.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -4822,7 +4822,7 @@ end;
 
 
 
-Procedure TRange.Setstart(AIndex : Integer; AValue : String); 
+Procedure TRange.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -4850,7 +4850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRangePosition.Set_end(AIndex : Integer; AValue : String); 
+Procedure TRangePosition.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -4860,7 +4860,7 @@ end;
 
 
 
-Procedure TRangePosition.SetreferenceId(AIndex : Integer; AValue : String); 
+Procedure TRangePosition.SetreferenceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceId=AValue) then exit;
@@ -4870,7 +4870,7 @@ end;
 
 
 
-Procedure TRangePosition.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TRangePosition.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -4890,7 +4890,7 @@ end;
 
 
 
-Procedure TRangePosition.Setstart(AIndex : Integer; AValue : String); 
+Procedure TRangePosition.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -4941,7 +4941,7 @@ end;
 
 
 
-Procedure TRead.SetalignedSequence(AIndex : Integer; AValue : String); 
+Procedure TRead.SetalignedSequence(AIndex : Integer; const AValue : String); 
 
 begin
   If (FalignedSequence=AValue) then exit;
@@ -4991,7 +4991,7 @@ end;
 
 
 
-Procedure TRead.SetfragmentName(AIndex : Integer; AValue : String); 
+Procedure TRead.SetfragmentName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfragmentName=AValue) then exit;
@@ -5001,7 +5001,7 @@ end;
 
 
 
-Procedure TRead.Setid(AIndex : Integer; AValue : String); 
+Procedure TRead.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5051,7 +5051,7 @@ end;
 
 
 
-Procedure TRead.SetreadGroupId(AIndex : Integer; AValue : String); 
+Procedure TRead.SetreadGroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreadGroupId=AValue) then exit;
@@ -5061,7 +5061,7 @@ end;
 
 
 
-Procedure TRead.SetreadGroupSetId(AIndex : Integer; AValue : String); 
+Procedure TRead.SetreadGroupSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreadGroupSetId=AValue) then exit;
@@ -5134,7 +5134,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroup.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TReadGroup.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -5144,7 +5144,7 @@ end;
 
 
 
-Procedure TReadGroup.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TReadGroup.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5164,7 +5164,7 @@ end;
 
 
 
-Procedure TReadGroup.Setid(AIndex : Integer; AValue : String); 
+Procedure TReadGroup.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5184,7 +5184,7 @@ end;
 
 
 
-Procedure TReadGroup.Setname(AIndex : Integer; AValue : String); 
+Procedure TReadGroup.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5214,7 +5214,7 @@ end;
 
 
 
-Procedure TReadGroup.SetreferenceSetId(AIndex : Integer; AValue : String); 
+Procedure TReadGroup.SetreferenceSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -5224,7 +5224,7 @@ end;
 
 
 
-Procedure TReadGroup.SetsampleId(AIndex : Integer; AValue : String); 
+Procedure TReadGroup.SetsampleId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleId=AValue) then exit;
@@ -5254,7 +5254,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupExperiment.SetinstrumentModel(AIndex : Integer; AValue : String); 
+Procedure TReadGroupExperiment.SetinstrumentModel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinstrumentModel=AValue) then exit;
@@ -5264,7 +5264,7 @@ end;
 
 
 
-Procedure TReadGroupExperiment.SetlibraryId(AIndex : Integer; AValue : String); 
+Procedure TReadGroupExperiment.SetlibraryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlibraryId=AValue) then exit;
@@ -5274,7 +5274,7 @@ end;
 
 
 
-Procedure TReadGroupExperiment.SetplatformUnit(AIndex : Integer; AValue : String); 
+Procedure TReadGroupExperiment.SetplatformUnit(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplatformUnit=AValue) then exit;
@@ -5284,7 +5284,7 @@ end;
 
 
 
-Procedure TReadGroupExperiment.SetsequencingCenter(AIndex : Integer; AValue : String); 
+Procedure TReadGroupExperiment.SetsequencingCenter(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsequencingCenter=AValue) then exit;
@@ -5301,7 +5301,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupProgram.SetcommandLine(AIndex : Integer; AValue : String); 
+Procedure TReadGroupProgram.SetcommandLine(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommandLine=AValue) then exit;
@@ -5311,7 +5311,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.Setid(AIndex : Integer; AValue : String); 
+Procedure TReadGroupProgram.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5321,7 +5321,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.Setname(AIndex : Integer; AValue : String); 
+Procedure TReadGroupProgram.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5331,7 +5331,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.SetprevProgramId(AIndex : Integer; AValue : String); 
+Procedure TReadGroupProgram.SetprevProgramId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevProgramId=AValue) then exit;
@@ -5341,7 +5341,7 @@ end;
 
 
 
-Procedure TReadGroupProgram.Setversion(AIndex : Integer; AValue : String); 
+Procedure TReadGroupProgram.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -5371,7 +5371,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadGroupSet.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TReadGroupSet.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -5381,7 +5381,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setfilename(AIndex : Integer; AValue : String); 
+Procedure TReadGroupSet.Setfilename(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilename=AValue) then exit;
@@ -5391,7 +5391,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setid(AIndex : Integer; AValue : String); 
+Procedure TReadGroupSet.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5411,7 +5411,7 @@ end;
 
 
 
-Procedure TReadGroupSet.Setname(AIndex : Integer; AValue : String); 
+Procedure TReadGroupSet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5431,7 +5431,7 @@ end;
 
 
 
-Procedure TReadGroupSet.SetreferenceSetId(AIndex : Integer; AValue : String); 
+Procedure TReadGroupSet.SetreferenceSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -5461,7 +5461,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReference.Setid(AIndex : Integer; AValue : String); 
+Procedure TReference.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5471,7 +5471,7 @@ end;
 
 
 
-Procedure TReference.Set_length(AIndex : Integer; AValue : String); 
+Procedure TReference.Set_length(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_length=AValue) then exit;
@@ -5481,7 +5481,7 @@ end;
 
 
 
-Procedure TReference.Setmd5checksum(AIndex : Integer; AValue : String); 
+Procedure TReference.Setmd5checksum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmd5checksum=AValue) then exit;
@@ -5491,7 +5491,7 @@ end;
 
 
 
-Procedure TReference.Setname(AIndex : Integer; AValue : String); 
+Procedure TReference.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5521,7 +5521,7 @@ end;
 
 
 
-Procedure TReference.SetsourceURI(AIndex : Integer; AValue : String); 
+Procedure TReference.SetsourceURI(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceURI=AValue) then exit;
@@ -5551,7 +5551,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReferenceBound.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TReferenceBound.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -5561,7 +5561,7 @@ end;
 
 
 
-Procedure TReferenceBound.SetupperBound(AIndex : Integer; AValue : String); 
+Procedure TReferenceBound.SetupperBound(AIndex : Integer; const AValue : String); 
 
 begin
   If (FupperBound=AValue) then exit;
@@ -5578,7 +5578,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReferenceSet.SetassemblyId(AIndex : Integer; AValue : String); 
+Procedure TReferenceSet.SetassemblyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FassemblyId=AValue) then exit;
@@ -5588,7 +5588,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TReferenceSet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5598,7 +5598,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setid(AIndex : Integer; AValue : String); 
+Procedure TReferenceSet.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5608,7 +5608,7 @@ end;
 
 
 
-Procedure TReferenceSet.Setmd5checksum(AIndex : Integer; AValue : String); 
+Procedure TReferenceSet.Setmd5checksum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmd5checksum=AValue) then exit;
@@ -5648,7 +5648,7 @@ end;
 
 
 
-Procedure TReferenceSet.SetsourceURI(AIndex : Integer; AValue : String); 
+Procedure TReferenceSet.SetsourceURI(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceURI=AValue) then exit;
@@ -5689,7 +5689,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.Setname(AIndex : Integer; AValue : String); 
+Procedure TSearchAnnotationSetsRequest.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5709,7 +5709,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchAnnotationSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -5719,7 +5719,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsRequest.SetreferenceSetId(AIndex : Integer; AValue : String); 
+Procedure TSearchAnnotationSetsRequest.SetreferenceSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -5770,7 +5770,7 @@ end;
 
 
 
-Procedure TSearchAnnotationSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchAnnotationSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5820,7 +5820,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchAnnotationsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -5870,7 +5870,7 @@ end;
 
 
 
-Procedure TSearchAnnotationsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchAnnotationsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5900,7 +5900,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchCallSetsRequest.Setname(AIndex : Integer; AValue : String); 
+Procedure TSearchCallSetsRequest.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5920,7 +5920,7 @@ end;
 
 
 
-Procedure TSearchCallSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchCallSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -5970,7 +5970,7 @@ end;
 
 
 
-Procedure TSearchCallSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchCallSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6000,7 +6000,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchJobsRequest.SetcreatedAfter(AIndex : Integer; AValue : String); 
+Procedure TSearchJobsRequest.SetcreatedAfter(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatedAfter=AValue) then exit;
@@ -6010,7 +6010,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.SetcreatedBefore(AIndex : Integer; AValue : String); 
+Procedure TSearchJobsRequest.SetcreatedBefore(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatedBefore=AValue) then exit;
@@ -6030,7 +6030,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchJobsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6040,7 +6040,7 @@ end;
 
 
 
-Procedure TSearchJobsRequest.SetprojectNumber(AIndex : Integer; AValue : String); 
+Procedure TSearchJobsRequest.SetprojectNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectNumber=AValue) then exit;
@@ -6090,7 +6090,7 @@ end;
 
 
 
-Procedure TSearchJobsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchJobsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6130,7 +6130,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.Setname(AIndex : Integer; AValue : String); 
+Procedure TSearchReadGroupSetsRequest.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6150,7 +6150,7 @@ end;
 
 
 
-Procedure TSearchReadGroupSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReadGroupSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6180,7 +6180,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadGroupSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReadGroupSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6220,7 +6220,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReadsRequest.Set_end(AIndex : Integer; AValue : String); 
+Procedure TSearchReadsRequest.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -6240,7 +6240,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReadsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6270,7 +6270,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TSearchReadsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6280,7 +6280,7 @@ end;
 
 
 
-Procedure TSearchReadsRequest.Setstart(AIndex : Integer; AValue : String); 
+Procedure TSearchReadsRequest.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -6332,7 +6332,7 @@ end;
 
 
 
-Procedure TSearchReadsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReadsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6372,7 +6372,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetassemblyId(AIndex : Integer; AValue : String); 
+Procedure TSearchReferenceSetsRequest.SetassemblyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FassemblyId=AValue) then exit;
@@ -6402,7 +6402,7 @@ end;
 
 
 
-Procedure TSearchReferenceSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReferenceSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6433,7 +6433,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferenceSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReferenceSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6503,7 +6503,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReferencesRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6513,7 +6513,7 @@ end;
 
 
 
-Procedure TSearchReferencesRequest.SetreferenceSetId(AIndex : Integer; AValue : String); 
+Procedure TSearchReferencesRequest.SetreferenceSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceSetId=AValue) then exit;
@@ -6544,7 +6544,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchReferencesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchReferencesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6604,7 +6604,7 @@ end;
 
 
 
-Procedure TSearchVariantSetsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantSetsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6634,7 +6634,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantSetsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantSetsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6684,7 +6684,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.Set_end(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantsRequest.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -6714,7 +6714,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetpageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantsRequest.SetpageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpageToken=AValue) then exit;
@@ -6724,7 +6724,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantsRequest.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -6734,7 +6734,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.Setstart(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantsRequest.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -6744,7 +6744,7 @@ end;
 
 
 
-Procedure TSearchVariantsRequest.SetvariantName(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantsRequest.SetvariantName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvariantName=AValue) then exit;
@@ -6796,7 +6796,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchVariantsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchVariantsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6856,7 +6856,7 @@ end;
 
 
 
-Procedure TTranscript.SetgeneId(AIndex : Integer; AValue : String); 
+Procedure TTranscript.SetgeneId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgeneId=AValue) then exit;
@@ -6886,7 +6886,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranscriptCodingSequence.Set_end(AIndex : Integer; AValue : String); 
+Procedure TTranscriptCodingSequence.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -6896,7 +6896,7 @@ end;
 
 
 
-Procedure TTranscriptCodingSequence.Setstart(AIndex : Integer; AValue : String); 
+Procedure TTranscriptCodingSequence.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -6924,7 +6924,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranscriptExon.Set_end(AIndex : Integer; AValue : String); 
+Procedure TTranscriptExon.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -6944,7 +6944,7 @@ end;
 
 
 
-Procedure TTranscriptExon.Setstart(AIndex : Integer; AValue : String); 
+Procedure TTranscriptExon.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7005,7 +7005,7 @@ end;
 
 
 
-Procedure TVariant.Setcreated(AIndex : Integer; AValue : String); 
+Procedure TVariant.Setcreated(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -7015,7 +7015,7 @@ end;
 
 
 
-Procedure TVariant.Set_end(AIndex : Integer; AValue : String); 
+Procedure TVariant.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -7035,7 +7035,7 @@ end;
 
 
 
-Procedure TVariant.Setid(AIndex : Integer; AValue : String); 
+Procedure TVariant.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7075,7 +7075,7 @@ end;
 
 
 
-Procedure TVariant.SetreferenceBases(AIndex : Integer; AValue : String); 
+Procedure TVariant.SetreferenceBases(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceBases=AValue) then exit;
@@ -7085,7 +7085,7 @@ end;
 
 
 
-Procedure TVariant.SetreferenceName(AIndex : Integer; AValue : String); 
+Procedure TVariant.SetreferenceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceName=AValue) then exit;
@@ -7095,7 +7095,7 @@ end;
 
 
 
-Procedure TVariant.Setstart(AIndex : Integer; AValue : String); 
+Procedure TVariant.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -7105,7 +7105,7 @@ end;
 
 
 
-Procedure TVariant.SetvariantSetId(AIndex : Integer; AValue : String); 
+Procedure TVariant.SetvariantSetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvariantSetId=AValue) then exit;
@@ -7149,7 +7149,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantAnnotation.SetalternateBases(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotation.SetalternateBases(AIndex : Integer; const AValue : String); 
 
 begin
   If (FalternateBases=AValue) then exit;
@@ -7159,7 +7159,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetclinicalSignificance(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotation.SetclinicalSignificance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclinicalSignificance=AValue) then exit;
@@ -7179,7 +7179,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Seteffect(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotation.Seteffect(AIndex : Integer; const AValue : String); 
 
 begin
   If (Feffect=AValue) then exit;
@@ -7189,7 +7189,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.SetgeneId(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotation.SetgeneId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgeneId=AValue) then exit;
@@ -7209,7 +7209,7 @@ end;
 
 
 
-Procedure TVariantAnnotation.Set_type(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotation.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7251,7 +7251,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantAnnotationCondition.SetconceptId(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotationCondition.SetconceptId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconceptId=AValue) then exit;
@@ -7281,7 +7281,7 @@ end;
 
 
 
-Procedure TVariantAnnotationCondition.SetomimId(AIndex : Integer; AValue : String); 
+Procedure TVariantAnnotationCondition.SetomimId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FomimId=AValue) then exit;
@@ -7312,7 +7312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariantSet.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TVariantSet.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -7322,7 +7322,7 @@ end;
 
 
 
-Procedure TVariantSet.Setid(AIndex : Integer; AValue : String); 
+Procedure TVariantSet.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;

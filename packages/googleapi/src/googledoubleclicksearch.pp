@@ -82,12 +82,12 @@ type
     FsegmentationType : String;
   Protected
     //Property setters
-    Procedure SetadvertiserId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetagencyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetavailabilityTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentationName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentationType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadvertiserId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetagencyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetavailabilityTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentationType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property advertiserId : String Index 0 Read FadvertiserId Write SetadvertiserId;
@@ -141,39 +141,39 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetadGroupId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetadId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetadvertiserId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetagencyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetattributionModel(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcampaignId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setchannel(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclickId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetconversionId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetconversionModifiedTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure SetconversionTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcountMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcriterionId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadGroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetadId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetadvertiserId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetagencyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetattributionModel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcampaignId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setchannel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclickId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetconversionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetconversionModifiedTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetconversionTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcountMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcriterionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomDimension(AIndex : Integer; AValue : TConversionTypecustomDimensionArray); virtual;
     Procedure SetcustomMetric(AIndex : Integer; AValue : TConversionTypecustomMetricArray); virtual;
-    Procedure SetdeviceType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdsConversionId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetengineAccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfeedId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfloodlightOrderId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductCountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductGroupId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetquantityMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrevenueMicros(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentationName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentationType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstoreId(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeviceType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdsConversionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetengineAccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfeedId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfloodlightOrderId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductCountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductGroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetquantityMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrevenueMicros(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstoreId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -227,7 +227,7 @@ type
   Protected
     //Property setters
     Procedure Setconversion(AIndex : Integer; AValue : TConversionListTypeconversionArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -249,8 +249,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -268,7 +268,7 @@ type
     Fvalue : double;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -287,8 +287,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure SetbyteCount(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbyteCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property byteCount : String Index 0 Read FbyteCount Write SetbyteCount;
@@ -314,14 +314,14 @@ type
   Protected
     //Property setters
     Procedure Setfiles(AIndex : Integer; AValue : TReportTypefilesArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisReportReady(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrequest(AIndex : Integer; AValue : TReportRequest); virtual;
     Procedure SetrowCount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
-    Procedure SetstatisticsCurrencyCode(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstatisticsTimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatisticsCurrencyCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatisticsTimeZone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -357,15 +357,15 @@ type
     FstartDate : String;
   Protected
     //Property setters
-    Procedure SetcolumnName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomDimensionName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomMetricName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomDimensionName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomMetricName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
     Procedure SetgroupByColumn(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetheaderText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplatformSource(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsavedColumnName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetheaderText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplatformSource(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsavedColumnName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property columnName : String Index 0 Read FcolumnName Write SetcolumnName;
@@ -393,7 +393,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); virtual;
-    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_operator(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalues(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -418,7 +418,7 @@ type
   Protected
     //Property setters
     Procedure Setcolumn(AIndex : Integer; AValue : TReportApiColumnSpec); virtual;
-    Procedure SetsortOrder(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsortOrder(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property column : TReportApiColumnSpec Index 0 Read Fcolumn Write Setcolumn;
@@ -441,13 +441,13 @@ type
     FkeywordId : String;
   Protected
     //Property setters
-    Procedure SetadGroupId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetadId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetadvertiserId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetagencyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcampaignId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetengineAccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetkeywordId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadGroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetadId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetadvertiserId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetagencyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcampaignId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetengineAccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetkeywordId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property adGroupId : String Index 0 Read FadGroupId Write SetadGroupId;
@@ -474,8 +474,8 @@ type
     //Property setters
     Procedure SetchangedAttributesSinceTimestamp(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetchangedMetricsSinceTimestamp(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetendDate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property changedAttributesSinceTimestamp : TDatetime Index 0 Read FchangedAttributesSinceTimestamp Write SetchangedAttributesSinceTimestamp;
@@ -508,17 +508,17 @@ type
   Protected
     //Property setters
     Procedure Setcolumns(AIndex : Integer; AValue : TReportRequestTypecolumnsArray); virtual;
-    Procedure SetdownloadFormat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdownloadFormat(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfilters(AIndex : Integer; AValue : TReportRequestTypefiltersArray); virtual;
     Procedure SetincludeDeletedEntities(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetincludeRemovedEntities(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetmaxRowsPerFile(AIndex : Integer; AValue : integer); virtual;
     Procedure SetorderBy(AIndex : Integer; AValue : TReportRequestTypeorderByArray); virtual;
     Procedure SetreportScope(AIndex : Integer; AValue : TReportRequestTypereportScope); virtual;
-    Procedure SetreportType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrowCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetstartRow(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstatisticsCurrency(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstatisticsCurrency(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeRange(AIndex : Integer; AValue : TReportRequestTypetimeRange); virtual;
     Procedure SetverifySingleTimeZone(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -570,9 +570,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsavedColumnName(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsavedColumnName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -592,7 +592,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSavedColumnListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -771,7 +771,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAvailability.SetadvertiserId(AIndex : Integer; AValue : String); 
+Procedure TAvailability.SetadvertiserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -781,7 +781,7 @@ end;
 
 
 
-Procedure TAvailability.SetagencyId(AIndex : Integer; AValue : String); 
+Procedure TAvailability.SetagencyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FagencyId=AValue) then exit;
@@ -791,7 +791,7 @@ end;
 
 
 
-Procedure TAvailability.SetavailabilityTimestamp(AIndex : Integer; AValue : String); 
+Procedure TAvailability.SetavailabilityTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FavailabilityTimestamp=AValue) then exit;
@@ -801,7 +801,7 @@ end;
 
 
 
-Procedure TAvailability.SetsegmentationId(AIndex : Integer; AValue : String); 
+Procedure TAvailability.SetsegmentationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentationId=AValue) then exit;
@@ -811,7 +811,7 @@ end;
 
 
 
-Procedure TAvailability.SetsegmentationName(AIndex : Integer; AValue : String); 
+Procedure TAvailability.SetsegmentationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentationName=AValue) then exit;
@@ -821,7 +821,7 @@ end;
 
 
 
-Procedure TAvailability.SetsegmentationType(AIndex : Integer; AValue : String); 
+Procedure TAvailability.SetsegmentationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentationType=AValue) then exit;
@@ -838,7 +838,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TConversion.SetadGroupId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetadGroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadGroupId=AValue) then exit;
@@ -848,7 +848,7 @@ end;
 
 
 
-Procedure TConversion.SetadId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetadId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadId=AValue) then exit;
@@ -858,7 +858,7 @@ end;
 
 
 
-Procedure TConversion.SetadvertiserId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetadvertiserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -868,7 +868,7 @@ end;
 
 
 
-Procedure TConversion.SetagencyId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetagencyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FagencyId=AValue) then exit;
@@ -878,7 +878,7 @@ end;
 
 
 
-Procedure TConversion.SetattributionModel(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetattributionModel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FattributionModel=AValue) then exit;
@@ -888,7 +888,7 @@ end;
 
 
 
-Procedure TConversion.SetcampaignId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetcampaignId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcampaignId=AValue) then exit;
@@ -898,7 +898,7 @@ end;
 
 
 
-Procedure TConversion.Setchannel(AIndex : Integer; AValue : String); 
+Procedure TConversion.Setchannel(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fchannel=AValue) then exit;
@@ -908,7 +908,7 @@ end;
 
 
 
-Procedure TConversion.SetclickId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetclickId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclickId=AValue) then exit;
@@ -918,7 +918,7 @@ end;
 
 
 
-Procedure TConversion.SetconversionId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetconversionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconversionId=AValue) then exit;
@@ -928,7 +928,7 @@ end;
 
 
 
-Procedure TConversion.SetconversionModifiedTimestamp(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetconversionModifiedTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconversionModifiedTimestamp=AValue) then exit;
@@ -938,7 +938,7 @@ end;
 
 
 
-Procedure TConversion.SetconversionTimestamp(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetconversionTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconversionTimestamp=AValue) then exit;
@@ -948,7 +948,7 @@ end;
 
 
 
-Procedure TConversion.SetcountMillis(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetcountMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcountMillis=AValue) then exit;
@@ -958,7 +958,7 @@ end;
 
 
 
-Procedure TConversion.SetcriterionId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetcriterionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcriterionId=AValue) then exit;
@@ -968,7 +968,7 @@ end;
 
 
 
-Procedure TConversion.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -998,7 +998,7 @@ end;
 
 
 
-Procedure TConversion.SetdeviceType(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetdeviceType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeviceType=AValue) then exit;
@@ -1008,7 +1008,7 @@ end;
 
 
 
-Procedure TConversion.SetdsConversionId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetdsConversionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdsConversionId=AValue) then exit;
@@ -1018,7 +1018,7 @@ end;
 
 
 
-Procedure TConversion.SetengineAccountId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetengineAccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FengineAccountId=AValue) then exit;
@@ -1028,7 +1028,7 @@ end;
 
 
 
-Procedure TConversion.SetfeedId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetfeedId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfeedId=AValue) then exit;
@@ -1038,7 +1038,7 @@ end;
 
 
 
-Procedure TConversion.SetfloodlightOrderId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetfloodlightOrderId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfloodlightOrderId=AValue) then exit;
@@ -1048,7 +1048,7 @@ end;
 
 
 
-Procedure TConversion.SetproductCountry(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetproductCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductCountry=AValue) then exit;
@@ -1058,7 +1058,7 @@ end;
 
 
 
-Procedure TConversion.SetproductGroupId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetproductGroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductGroupId=AValue) then exit;
@@ -1068,7 +1068,7 @@ end;
 
 
 
-Procedure TConversion.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1078,7 +1078,7 @@ end;
 
 
 
-Procedure TConversion.SetproductLanguage(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetproductLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductLanguage=AValue) then exit;
@@ -1088,7 +1088,7 @@ end;
 
 
 
-Procedure TConversion.SetquantityMillis(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetquantityMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FquantityMillis=AValue) then exit;
@@ -1098,7 +1098,7 @@ end;
 
 
 
-Procedure TConversion.SetrevenueMicros(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetrevenueMicros(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrevenueMicros=AValue) then exit;
@@ -1108,7 +1108,7 @@ end;
 
 
 
-Procedure TConversion.SetsegmentationId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetsegmentationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentationId=AValue) then exit;
@@ -1118,7 +1118,7 @@ end;
 
 
 
-Procedure TConversion.SetsegmentationName(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetsegmentationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentationName=AValue) then exit;
@@ -1128,7 +1128,7 @@ end;
 
 
 
-Procedure TConversion.SetsegmentationType(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetsegmentationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentationType=AValue) then exit;
@@ -1138,7 +1138,7 @@ end;
 
 
 
-Procedure TConversion.Setstate(AIndex : Integer; AValue : String); 
+Procedure TConversion.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -1148,7 +1148,7 @@ end;
 
 
 
-Procedure TConversion.SetstoreId(AIndex : Integer; AValue : String); 
+Procedure TConversion.SetstoreId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstoreId=AValue) then exit;
@@ -1158,7 +1158,7 @@ end;
 
 
 
-Procedure TConversion.Set_type(AIndex : Integer; AValue : String); 
+Procedure TConversion.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1210,7 +1210,7 @@ end;
 
 
 
-Procedure TConversionList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TConversionList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1240,7 +1240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomDimension.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1250,7 +1250,7 @@ end;
 
 
 
-Procedure TCustomDimension.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomMetric.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1294,7 +1294,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportTypefilesItem.SetbyteCount(AIndex : Integer; AValue : String); 
+Procedure TReportTypefilesItem.SetbyteCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbyteCount=AValue) then exit;
@@ -1304,7 +1304,7 @@ end;
 
 
 
-Procedure TReportTypefilesItem.Seturl(AIndex : Integer; AValue : String); 
+Procedure TReportTypefilesItem.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1331,7 +1331,7 @@ end;
 
 
 
-Procedure TReport.Setid(AIndex : Integer; AValue : String); 
+Procedure TReport.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1351,7 +1351,7 @@ end;
 
 
 
-Procedure TReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1391,7 +1391,7 @@ end;
 
 
 
-Procedure TReport.SetstatisticsCurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TReport.SetstatisticsCurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatisticsCurrencyCode=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
 
 
 
-Procedure TReport.SetstatisticsTimeZone(AIndex : Integer; AValue : String); 
+Procedure TReport.SetstatisticsTimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatisticsTimeZone=AValue) then exit;
@@ -1432,7 +1432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportApiColumnSpec.SetcolumnName(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetcolumnName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnName=AValue) then exit;
@@ -1442,7 +1442,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetcustomDimensionName(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetcustomDimensionName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomDimensionName=AValue) then exit;
@@ -1452,7 +1452,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetcustomMetricName(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetcustomMetricName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomMetricName=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetendDate(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetendDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendDate=AValue) then exit;
@@ -1482,7 +1482,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetheaderText(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetheaderText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FheaderText=AValue) then exit;
@@ -1492,7 +1492,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetplatformSource(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetplatformSource(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplatformSource=AValue) then exit;
@@ -1502,7 +1502,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetsavedColumnName(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetsavedColumnName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsavedColumnName=AValue) then exit;
@@ -1512,7 +1512,7 @@ end;
 
 
 
-Procedure TReportApiColumnSpec.SetstartDate(AIndex : Integer; AValue : String); 
+Procedure TReportApiColumnSpec.SetstartDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartDate=AValue) then exit;
@@ -1539,7 +1539,7 @@ end;
 
 
 
-Procedure TReportRequestTypefiltersItem.Set_operator(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypefiltersItem.Set_operator(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -1600,7 +1600,7 @@ end;
 
 
 
-Procedure TReportRequestTypeorderByItem.SetsortOrder(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypeorderByItem.SetsortOrder(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsortOrder=AValue) then exit;
@@ -1617,7 +1617,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportRequestTypereportScope.SetadGroupId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetadGroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadGroupId=AValue) then exit;
@@ -1627,7 +1627,7 @@ end;
 
 
 
-Procedure TReportRequestTypereportScope.SetadId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetadId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadId=AValue) then exit;
@@ -1637,7 +1637,7 @@ end;
 
 
 
-Procedure TReportRequestTypereportScope.SetadvertiserId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetadvertiserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserId=AValue) then exit;
@@ -1647,7 +1647,7 @@ end;
 
 
 
-Procedure TReportRequestTypereportScope.SetagencyId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetagencyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FagencyId=AValue) then exit;
@@ -1657,7 +1657,7 @@ end;
 
 
 
-Procedure TReportRequestTypereportScope.SetcampaignId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetcampaignId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcampaignId=AValue) then exit;
@@ -1667,7 +1667,7 @@ end;
 
 
 
-Procedure TReportRequestTypereportScope.SetengineAccountId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetengineAccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FengineAccountId=AValue) then exit;
@@ -1677,7 +1677,7 @@ end;
 
 
 
-Procedure TReportRequestTypereportScope.SetkeywordId(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypereportScope.SetkeywordId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FkeywordId=AValue) then exit;
@@ -1714,7 +1714,7 @@ end;
 
 
 
-Procedure TReportRequestTypetimeRange.SetendDate(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypetimeRange.SetendDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendDate=AValue) then exit;
@@ -1724,7 +1724,7 @@ end;
 
 
 
-Procedure TReportRequestTypetimeRange.SetstartDate(AIndex : Integer; AValue : String); 
+Procedure TReportRequestTypetimeRange.SetstartDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartDate=AValue) then exit;
@@ -1751,7 +1751,7 @@ end;
 
 
 
-Procedure TReportRequest.SetdownloadFormat(AIndex : Integer; AValue : String); 
+Procedure TReportRequest.SetdownloadFormat(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdownloadFormat=AValue) then exit;
@@ -1821,7 +1821,7 @@ end;
 
 
 
-Procedure TReportRequest.SetreportType(AIndex : Integer; AValue : String); 
+Procedure TReportRequest.SetreportType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportType=AValue) then exit;
@@ -1851,7 +1851,7 @@ end;
 
 
 
-Procedure TReportRequest.SetstatisticsCurrency(AIndex : Integer; AValue : String); 
+Procedure TReportRequest.SetstatisticsCurrency(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatisticsCurrency=AValue) then exit;
@@ -1916,7 +1916,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedColumn.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSavedColumn.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1926,7 +1926,7 @@ end;
 
 
 
-Procedure TSavedColumn.SetsavedColumnName(AIndex : Integer; AValue : String); 
+Procedure TSavedColumn.SetsavedColumnName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsavedColumnName=AValue) then exit;
@@ -1936,7 +1936,7 @@ end;
 
 
 
-Procedure TSavedColumn.Set_type(AIndex : Integer; AValue : String); 
+Procedure TSavedColumn.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1974,7 +1974,7 @@ end;
 
 
 
-Procedure TSavedColumnList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSavedColumnList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

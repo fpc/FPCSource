@@ -45,8 +45,8 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -68,9 +68,9 @@ type
   Protected
     //Property setters
     Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setlang(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlang(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotable(AIndex : Integer; AValue : TReconcileCandidateTypenotable); virtual;
   Public
   Published
@@ -112,9 +112,9 @@ type
     Freason : String;
   Protected
     //Property setters
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property location : String Index 0 Read Flocation Write Setlocation;
@@ -192,7 +192,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileCandidateTypenotable.Setid(AIndex : Integer; AValue : String); 
+Procedure TReconcileCandidateTypenotable.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -202,7 +202,7 @@ end;
 
 
 
-Procedure TReconcileCandidateTypenotable.Setname(AIndex : Integer; AValue : String); 
+Procedure TReconcileCandidateTypenotable.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -229,7 +229,7 @@ end;
 
 
 
-Procedure TReconcileCandidate.Setlang(AIndex : Integer; AValue : String); 
+Procedure TReconcileCandidate.Setlang(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flang=AValue) then exit;
@@ -239,7 +239,7 @@ end;
 
 
 
-Procedure TReconcileCandidate.Setmid(AIndex : Integer; AValue : String); 
+Procedure TReconcileCandidate.Setmid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmid=AValue) then exit;
@@ -249,7 +249,7 @@ end;
 
 
 
-Procedure TReconcileCandidate.Setname(AIndex : Integer; AValue : String); 
+Procedure TReconcileCandidate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -303,7 +303,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReconcileGetTypewarningItem.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TReconcileGetTypewarningItem.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -313,7 +313,7 @@ end;
 
 
 
-Procedure TReconcileGetTypewarningItem.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TReconcileGetTypewarningItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -323,7 +323,7 @@ end;
 
 
 
-Procedure TReconcileGetTypewarningItem.Setreason(AIndex : Integer; AValue : String); 
+Procedure TReconcileGetTypewarningItem.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;

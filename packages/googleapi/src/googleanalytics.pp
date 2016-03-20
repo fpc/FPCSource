@@ -217,8 +217,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -264,11 +264,11 @@ type
     //Property setters
     Procedure SetchildLink(AIndex : Integer; AValue : TAccountTypechildLink); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpermissions(AIndex : Integer; AValue : TAccountTypepermissions); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -295,10 +295,10 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -326,12 +326,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAccountSummariesTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -361,9 +361,9 @@ type
     FwebProperties : TAccountSummaryTypewebPropertiesArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwebProperties(AIndex : Integer; AValue : TAccountSummaryTypewebPropertiesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -393,10 +393,10 @@ type
   Protected
     //Property setters
     Procedure Setaccount(AIndex : Integer; AValue : TAccount); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprofile(AIndex : Integer; AValue : TProfile); virtual;
-    Procedure SetredirectUri(AIndex : Integer; AValue : String); virtual;
+    Procedure SetredirectUri(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwebproperty(AIndex : Integer; AValue : TWebproperty); virtual;
   Public
   Published
@@ -427,12 +427,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -462,8 +462,8 @@ type
   Protected
     //Property setters
     Procedure SetautoTaggingEnabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoTaggingEnabled : boolean Index 0 Read FautoTaggingEnabled Write SetautoTaggingEnabled;
@@ -518,8 +518,8 @@ type
   Protected
     //Property setters
     Procedure Setattributes(AIndex : Integer; AValue : TColumnTypeattributes); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attributes : TColumnTypeattributes Index 0 Read Fattributes Write Setattributes;
@@ -542,9 +542,9 @@ type
   Protected
     //Property setters
     Procedure SetattributeNames(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TColumnsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -571,8 +571,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -591,8 +591,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -624,21 +624,21 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetchildLink(AIndex : Integer; AValue : TCustomDataSourceTypechildLink); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimportBehavior(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimportBehavior(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TCustomDataSourceTypeparentLink); virtual;
     Procedure SetprofilesLinked(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetuploadType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuploadType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -681,12 +681,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCustomDataSourcesTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -715,8 +715,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -744,18 +744,18 @@ type
     FwebPropertyId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TCustomDimensionTypeparentLink); virtual;
-    Procedure Setscope(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setscope(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -791,12 +791,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCustomDimensionsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -825,8 +825,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -858,21 +858,21 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmax_value(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmin_value(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmax_value(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmin_value(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TCustomMetricTypeparentLink); virtual;
-    Procedure Setscope(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setscope(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -911,12 +911,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCustomMetricsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -967,11 +967,11 @@ type
     //Property setters
     Procedure SetadWordsAccounts(AIndex : Integer; AValue : TEntityAdWordsLinkTypeadWordsAccountsArray); virtual;
     Procedure Setentity(AIndex : Integer; AValue : TEntityAdWordsLinkTypeentity); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprofileIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1005,9 +1005,9 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TEntityAdWordsLinksTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
@@ -1086,10 +1086,10 @@ type
   Protected
     //Property setters
     Procedure Setentity(AIndex : Integer; AValue : TEntityUserLinkTypeentity); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpermissions(AIndex : Integer; AValue : TEntityUserLinkTypepermissions); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserRef(AIndex : Integer; AValue : TUserRef); virtual;
   Public
   Published
@@ -1119,9 +1119,9 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TEntityUserLinksTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
@@ -1151,8 +1151,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -1173,9 +1173,9 @@ type
     Fwon : boolean;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setweight(AIndex : Integer; AValue : double); virtual;
     Procedure Setwon(AIndex : Integer; AValue : boolean); virtual;
   Public
@@ -1224,32 +1224,32 @@ type
     FwinnerFound : boolean;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SeteditableInGaUi(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetendTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetequalWeighting(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetminimumExperimentLengthInDays(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetobjectiveMetric(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoptimizationType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetobjectiveMetric(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoptimizationType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TExperimentTypeparentLink); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreasonExperimentEnded(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreasonExperimentEnded(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrewriteVariationUrlsAsOriginal(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetservingFramework(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetservingFramework(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsnippet(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SettrafficCoverage(AIndex : Integer; AValue : double); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setvariations(AIndex : Integer; AValue : TExperimentTypevariationsArray); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwinnerConfidenceLevel(AIndex : Integer; AValue : double); virtual;
     Procedure SetwinnerFound(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -1307,12 +1307,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TExperimentsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1352,16 +1352,16 @@ type
   Protected
     //Property setters
     Procedure SetcaseSensitive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetextractA(AIndex : Integer; AValue : String); virtual;
-    Procedure SetextractB(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfieldA(AIndex : Integer; AValue : String); virtual;
+    Procedure SetextractA(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetextractB(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfieldA(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfieldAIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SetfieldARequired(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetfieldB(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfieldB(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfieldBIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SetfieldBRequired(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetoutputConstructor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoutputToField(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputConstructor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoutputToField(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoutputToFieldIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SetoverrideOutputField(AIndex : Integer; AValue : boolean); virtual;
   Public
@@ -1392,7 +1392,7 @@ type
     FfieldIndex : integer;
   Protected
     //Property setters
-    Procedure Setfield(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfield(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfieldIndex(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -1412,8 +1412,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -1435,10 +1435,10 @@ type
   Protected
     //Property setters
     Procedure SetcaseSensitive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setfield(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfield(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfieldIndex(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetreplaceString(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsearchString(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreplaceString(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsearchString(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property caseSensitive : boolean Index 0 Read FcaseSensitive Write SetcaseSensitive;
@@ -1459,7 +1459,7 @@ type
     FfieldIndex : integer;
   Protected
     //Property setters
-    Procedure Setfield(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfield(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfieldIndex(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -1492,19 +1492,19 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetadvancedDetails(AIndex : Integer; AValue : TFilterTypeadvancedDetails); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetexcludeDetails(AIndex : Integer; AValue : TFilterExpression); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetincludeDetails(AIndex : Integer; AValue : TFilterExpression); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlowercaseDetails(AIndex : Integer; AValue : TFilterTypelowercaseDetails); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TFilterTypeparentLink); virtual;
     Procedure SetsearchAndReplaceDetails(AIndex : Integer; AValue : TFilterTypesearchAndReplaceDetails); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetuppercaseDetails(AIndex : Integer; AValue : TFilterTypeuppercaseDetails); virtual;
   Public
@@ -1542,11 +1542,11 @@ type
   Protected
     //Property setters
     Procedure SetcaseSensitive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetexpressionValue(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfield(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexpressionValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfield(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfieldIndex(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmatchType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmatchType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property caseSensitive : boolean Index 0 Read FcaseSensitive Write SetcaseSensitive;
@@ -1571,11 +1571,11 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -1604,12 +1604,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TFiltersTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1638,9 +1638,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetcolumnType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdataType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property columnType : String Index 0 Read FcolumnType Write SetcolumnType;
@@ -1661,9 +1661,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1681,7 +1681,7 @@ type
     Fv : String;
   Protected
     //Property setters
-    Procedure Setv(AIndex : Integer; AValue : String); virtual;
+    Procedure Setv(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property v : String Index 0 Read Fv Write Setv;
@@ -1745,12 +1745,12 @@ type
     FwebPropertyId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileName(AIndex : Integer; AValue : String); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -1782,16 +1782,16 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdimensions(AIndex : Integer; AValue : String); virtual;
-    Procedure Setenddate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfilters(AIndex : Integer; AValue : String); virtual;
-    Procedure Setids(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdimensions(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setenddate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfilters(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setids(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmaxresults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetsamplingLevel(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsegment(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsamplingLevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsegment(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsort(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setstartdate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstartdate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstartindex(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1854,17 +1854,17 @@ type
     Procedure SetcolumnHeaders(AIndex : Integer; AValue : TGaDataTypecolumnHeadersArray); virtual;
     Procedure SetcontainsSampledData(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdataTable(AIndex : Integer; AValue : TGaDataTypedataTable); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprofileInfo(AIndex : Integer; AValue : TGaDataTypeprofileInfo); virtual;
     Procedure Setquery(AIndex : Integer; AValue : TGaDataTypequery); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TGaDataTyperowsArray); virtual;
-    Procedure SetsampleSize(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsampleSpace(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsampleSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsampleSpace(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalsForAllResults(AIndex : Integer; AValue : TGaDataTypetotalsForAllResults); virtual;
     //2.6.4. bug workaround
@@ -1906,11 +1906,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcomparisonType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcomparisonValue(AIndex : Integer; AValue : String); virtual;
-    Procedure Setexpression(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmatchType(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomparisonType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcomparisonValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setexpression(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmatchType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property comparisonType : String Index 0 Read FcomparisonType Write SetcomparisonType;
@@ -1955,8 +1955,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -1975,9 +1975,9 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnumber(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -2001,9 +2001,9 @@ type
     //Property setters
     Procedure SetcaseSensitive(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetfirstStepRequired(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetmatchType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmatchType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsteps(AIndex : Integer; AValue : TGoalTypeurlDestinationDetailsTypestepsArray); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2028,8 +2028,8 @@ type
     FcomparisonValue : String;
   Protected
     //Property setters
-    Procedure SetcomparisonType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcomparisonValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomparisonType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcomparisonValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property comparisonType : String Index 0 Read FcomparisonType Write SetcomparisonType;
@@ -2047,8 +2047,8 @@ type
     FcomparisonValue : String;
   Protected
     //Property setters
-    Procedure SetcomparisonType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcomparisonValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomparisonType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcomparisonValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property comparisonType : String Index 0 Read FcomparisonType Write SetcomparisonType;
@@ -2083,24 +2083,24 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SeteventDetails(AIndex : Integer; AValue : TGoalTypeeventDetails); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TGoalTypeparentLink); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SeturlDestinationDetails(AIndex : Integer; AValue : TGoalTypeurlDestinationDetails); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : integer); virtual;
     Procedure SetvisitNumPagesDetails(AIndex : Integer; AValue : TGoalTypevisitNumPagesDetails); virtual;
     Procedure SetvisitTimeOnSiteDetails(AIndex : Integer; AValue : TGoalTypevisitTimeOnSiteDetails); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -2142,12 +2142,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TGoalsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2176,9 +2176,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetcolumnType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdataType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property columnType : String Index 0 Read FcolumnType Write SetcolumnType;
@@ -2201,12 +2201,12 @@ type
     FwebPropertyId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileName(AIndex : Integer; AValue : String); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -2238,16 +2238,16 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdimensions(AIndex : Integer; AValue : String); virtual;
-    Procedure Setenddate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfilters(AIndex : Integer; AValue : String); virtual;
-    Procedure Setids(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdimensions(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setenddate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfilters(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setids(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmaxresults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetsamplingLevel(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsegment(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsamplingLevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsegment(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsort(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setstartdate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstartdate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstartindex(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2279,8 +2279,8 @@ type
     FnodeValue : String;
   Protected
     //Property setters
-    Procedure SetinteractionType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnodeValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinteractionType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnodeValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property interactionType : String Index 0 Read FinteractionType Write SetinteractionType;
@@ -2299,7 +2299,7 @@ type
   Protected
     //Property setters
     Procedure SetconversionPathValue(AIndex : Integer; AValue : TMcfDataTyperowsItemItemTypeconversionPathValueArray); virtual;
-    Procedure SetprimitiveValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprimitiveValue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2350,17 +2350,17 @@ type
     //Property setters
     Procedure SetcolumnHeaders(AIndex : Integer; AValue : TMcfDataTypecolumnHeadersArray); virtual;
     Procedure SetcontainsSampledData(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprofileInfo(AIndex : Integer; AValue : TMcfDataTypeprofileInfo); virtual;
     Procedure Setquery(AIndex : Integer; AValue : TMcfDataTypequery); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TMcfDataTyperowsArray); virtual;
-    Procedure SetsampleSize(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsampleSpace(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsampleSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsampleSpace(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalsForAllResults(AIndex : Integer; AValue : TMcfDataTypetotalsForAllResults); virtual;
     //2.6.4. bug workaround
@@ -2398,8 +2398,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -2418,8 +2418,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -2480,30 +2480,30 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetchildLink(AIndex : Integer; AValue : TProfileTypechildLink); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setcurrency(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultPage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcurrency(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultPage(AIndex : Integer; const AValue : String); virtual;
     Procedure SeteCommerceTracking(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetenhancedECommerceTracking(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetexcludeQueryParameters(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexcludeQueryParameters(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TProfileTypeparentLink); virtual;
     Procedure Setpermissions(AIndex : Integer; AValue : TProfileTypepermissions); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsiteSearchCategoryParameters(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsiteSearchQueryParameters(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsiteSearchCategoryParameters(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsiteSearchQueryParameters(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstripSiteSearchCategoryParameters(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetstripSiteSearchQueryParameters(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settimezone(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Settimezone(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -2548,11 +2548,11 @@ type
   Protected
     //Property setters
     Procedure SetfilterRef(AIndex : Integer; AValue : TFilterRef); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprofileRef(AIndex : Integer; AValue : TProfileRef); virtual;
     Procedure Setrank(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property filterRef : TFilterRef Index 0 Read FfilterRef Write SetfilterRef;
@@ -2582,12 +2582,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TProfileFilterLinksTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2620,13 +2620,13 @@ type
     FwebPropertyId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -2652,10 +2652,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -2683,12 +2683,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TProfilesTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2717,9 +2717,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetcolumnType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdataType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property columnType : String Index 0 Read FcolumnType Write SetcolumnType;
@@ -2742,12 +2742,12 @@ type
     FwebPropertyId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileName(AIndex : Integer; AValue : String); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -2774,9 +2774,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdimensions(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfilters(AIndex : Integer; AValue : String); virtual;
-    Procedure Setids(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdimensions(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfilters(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setids(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmaxresults(AIndex : Integer; AValue : integer); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsort(AIndex : Integer; AValue : TStringArray); virtual;
@@ -2827,12 +2827,12 @@ type
   Protected
     //Property setters
     Procedure SetcolumnHeaders(AIndex : Integer; AValue : TRealtimeDataTypecolumnHeadersArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprofileInfo(AIndex : Integer; AValue : TRealtimeDataTypeprofileInfo); virtual;
     Procedure Setquery(AIndex : Integer; AValue : TRealtimeDataTypequery); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TRealtimeDataTyperowsArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalsForAllResults(AIndex : Integer; AValue : TRealtimeDataTypetotalsForAllResults); virtual;
     //2.6.4. bug workaround
@@ -2872,13 +2872,13 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdefinition(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdefinition(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -2912,12 +2912,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSegmentsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2945,8 +2945,8 @@ type
     FobjectId : String;
   Protected
     //Property setters
-    Procedure SetbucketId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetobjectId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbucketId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetobjectId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property bucketId : String Index 0 Read FbucketId Write SetbucketId;
@@ -2963,7 +2963,7 @@ type
     FdocumentId : String;
   Protected
     //Property setters
-    Procedure SetdocumentId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdocumentId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property documentId : String Index 0 Read FdocumentId Write SetdocumentId;
@@ -2998,25 +2998,25 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcloudStorageDownloadDetails(AIndex : Integer; AValue : TUnsampledReportTypecloudStorageDownloadDetails); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdimensions(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdownloadType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdimensions(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdownloadType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdriveDownloadDetails(AIndex : Integer; AValue : TUnsampledReportTypedriveDownloadDetails); virtual;
-    Procedure Setenddate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfilters(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmetrics(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprofileId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsegment(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstartdate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setenddate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfilters(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmetrics(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsegment(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstartdate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetwebPropertyId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebPropertyId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -3059,12 +3059,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TUnsampledReportsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3096,12 +3096,12 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomDataSourceId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomDataSourceId(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3134,9 +3134,9 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TUploadsTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
@@ -3166,9 +3166,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property email : String Index 0 Read Femail Write Setemail;
@@ -3191,12 +3191,12 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -3223,13 +3223,13 @@ type
     FwebsiteUrl : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlevel(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprofiles(AIndex : Integer; AValue : TWebPropertySummaryTypeprofilesArray); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3264,12 +3264,12 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TWebpropertiesTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3298,8 +3298,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -3318,8 +3318,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Sethref(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethref(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property href : String Index 0 Read Fhref Write Sethref;
@@ -3371,22 +3371,22 @@ type
     FwebsiteUrl : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetchildLink(AIndex : Integer; AValue : TWebpropertyTypechildLink); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetdefaultProfileId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetindustryVertical(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinternalWebPropertyId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlevel(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultProfileId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetindustryVertical(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinternalWebPropertyId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlevel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparentLink(AIndex : Integer; AValue : TWebpropertyTypeparentLink); virtual;
     Procedure Setpermissions(AIndex : Integer; AValue : TWebpropertyTypepermissions); virtual;
     Procedure SetprofileCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -4298,7 +4298,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccountTypechildLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TAccountTypechildLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -4308,7 +4308,7 @@ end;
 
 
 
-Procedure TAccountTypechildLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAccountTypechildLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4386,7 +4386,7 @@ end;
 
 
 
-Procedure TAccount.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4396,7 +4396,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4406,7 +4406,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4426,7 +4426,7 @@ end;
 
 
 
-Procedure TAccount.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TAccount.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -4453,7 +4453,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountRef.Sethref(AIndex : Integer; AValue : String); 
+Procedure TAccountRef.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -4463,7 +4463,7 @@ end;
 
 
 
-Procedure TAccountRef.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccountRef.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4473,7 +4473,7 @@ end;
 
 
 
-Procedure TAccountRef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountRef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4483,7 +4483,7 @@ end;
 
 
 
-Procedure TAccountRef.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccountRef.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4520,7 +4520,7 @@ end;
 
 
 
-Procedure TAccountSummaries.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountSummaries.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4530,7 +4530,7 @@ end;
 
 
 
-Procedure TAccountSummaries.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TAccountSummaries.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -4540,7 +4540,7 @@ end;
 
 
 
-Procedure TAccountSummaries.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TAccountSummaries.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -4570,7 +4570,7 @@ end;
 
 
 
-Procedure TAccountSummaries.Setusername(AIndex : Integer; AValue : String); 
+Procedure TAccountSummaries.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -4600,7 +4600,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountSummary.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccountSummary.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4610,7 +4610,7 @@ end;
 
 
 
-Procedure TAccountSummary.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountSummary.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4620,7 +4620,7 @@ end;
 
 
 
-Procedure TAccountSummary.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccountSummary.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4670,7 +4670,7 @@ end;
 
 
 
-Procedure TAccountTicket.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccountTicket.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4680,7 +4680,7 @@ end;
 
 
 
-Procedure TAccountTicket.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountTicket.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4700,7 +4700,7 @@ end;
 
 
 
-Procedure TAccountTicket.SetredirectUri(AIndex : Integer; AValue : String); 
+Procedure TAccountTicket.SetredirectUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FredirectUri=AValue) then exit;
@@ -4747,7 +4747,7 @@ end;
 
 
 
-Procedure TAccounts.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccounts.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4757,7 +4757,7 @@ end;
 
 
 
-Procedure TAccounts.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TAccounts.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -4767,7 +4767,7 @@ end;
 
 
 
-Procedure TAccounts.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TAccounts.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -4797,7 +4797,7 @@ end;
 
 
 
-Procedure TAccounts.Setusername(AIndex : Integer; AValue : String); 
+Procedure TAccounts.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -4837,7 +4837,7 @@ end;
 
 
 
-Procedure TAdWordsAccount.SetcustomerId(AIndex : Integer; AValue : String); 
+Procedure TAdWordsAccount.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -4847,7 +4847,7 @@ end;
 
 
 
-Procedure TAdWordsAccount.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAdWordsAccount.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4917,7 +4917,7 @@ end;
 
 
 
-Procedure TColumn.Setid(AIndex : Integer; AValue : String); 
+Procedure TColumn.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4927,7 +4927,7 @@ end;
 
 
 
-Procedure TColumn.Setkind(AIndex : Integer; AValue : String); 
+Procedure TColumn.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4954,7 +4954,7 @@ end;
 
 
 
-Procedure TColumns.Setetag(AIndex : Integer; AValue : String); 
+Procedure TColumns.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -4974,7 +4974,7 @@ end;
 
 
 
-Procedure TColumns.Setkind(AIndex : Integer; AValue : String); 
+Procedure TColumns.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5015,7 +5015,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomDataSourceTypechildLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSourceTypechildLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -5025,7 +5025,7 @@ end;
 
 
 
-Procedure TCustomDataSourceTypechildLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSourceTypechildLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5053,7 +5053,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomDataSourceTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSourceTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -5063,7 +5063,7 @@ end;
 
 
 
-Procedure TCustomDataSourceTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSourceTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5091,7 +5091,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomDataSource.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5121,7 +5121,7 @@ end;
 
 
 
-Procedure TCustomDataSource.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5131,7 +5131,7 @@ end;
 
 
 
-Procedure TCustomDataSource.Setid(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5141,7 +5141,7 @@ end;
 
 
 
-Procedure TCustomDataSource.SetimportBehavior(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.SetimportBehavior(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimportBehavior=AValue) then exit;
@@ -5151,7 +5151,7 @@ end;
 
 
 
-Procedure TCustomDataSource.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5161,7 +5161,7 @@ end;
 
 
 
-Procedure TCustomDataSource.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5191,7 +5191,7 @@ end;
 
 
 
-Procedure TCustomDataSource.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -5201,7 +5201,7 @@ end;
 
 
 
-Procedure TCustomDataSource.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5221,7 +5221,7 @@ end;
 
 
 
-Procedure TCustomDataSource.SetuploadType(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.SetuploadType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuploadType=AValue) then exit;
@@ -5231,7 +5231,7 @@ end;
 
 
 
-Procedure TCustomDataSource.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSource.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -5292,7 +5292,7 @@ end;
 
 
 
-Procedure TCustomDataSources.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSources.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5302,7 +5302,7 @@ end;
 
 
 
-Procedure TCustomDataSources.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSources.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -5312,7 +5312,7 @@ end;
 
 
 
-Procedure TCustomDataSources.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSources.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -5342,7 +5342,7 @@ end;
 
 
 
-Procedure TCustomDataSources.Setusername(AIndex : Integer; AValue : String); 
+Procedure TCustomDataSources.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -5372,7 +5372,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomDimensionTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TCustomDimensionTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -5382,7 +5382,7 @@ end;
 
 
 
-Procedure TCustomDimensionTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomDimensionTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5410,7 +5410,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomDimension.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5440,7 +5440,7 @@ end;
 
 
 
-Procedure TCustomDimension.Setid(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5460,7 +5460,7 @@ end;
 
 
 
-Procedure TCustomDimension.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5470,7 +5470,7 @@ end;
 
 
 
-Procedure TCustomDimension.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5490,7 +5490,7 @@ end;
 
 
 
-Procedure TCustomDimension.Setscope(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.Setscope(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscope=AValue) then exit;
@@ -5500,7 +5500,7 @@ end;
 
 
 
-Procedure TCustomDimension.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -5520,7 +5520,7 @@ end;
 
 
 
-Procedure TCustomDimension.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TCustomDimension.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -5557,7 +5557,7 @@ end;
 
 
 
-Procedure TCustomDimensions.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomDimensions.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5567,7 +5567,7 @@ end;
 
 
 
-Procedure TCustomDimensions.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TCustomDimensions.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -5577,7 +5577,7 @@ end;
 
 
 
-Procedure TCustomDimensions.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TCustomDimensions.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -5607,7 +5607,7 @@ end;
 
 
 
-Procedure TCustomDimensions.Setusername(AIndex : Integer; AValue : String); 
+Procedure TCustomDimensions.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -5637,7 +5637,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomMetricTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TCustomMetricTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -5647,7 +5647,7 @@ end;
 
 
 
-Procedure TCustomMetricTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomMetricTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5675,7 +5675,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomMetric.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5705,7 +5705,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setid(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5725,7 +5725,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5735,7 +5735,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setmax_value(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setmax_value(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmax_value=AValue) then exit;
@@ -5745,7 +5745,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setmin_value(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setmin_value(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmin_value=AValue) then exit;
@@ -5755,7 +5755,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5775,7 +5775,7 @@ end;
 
 
 
-Procedure TCustomMetric.Setscope(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Setscope(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscope=AValue) then exit;
@@ -5785,7 +5785,7 @@ end;
 
 
 
-Procedure TCustomMetric.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -5795,7 +5795,7 @@ end;
 
 
 
-Procedure TCustomMetric.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5815,7 +5815,7 @@ end;
 
 
 
-Procedure TCustomMetric.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TCustomMetric.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -5863,7 +5863,7 @@ end;
 
 
 
-Procedure TCustomMetrics.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomMetrics.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5873,7 +5873,7 @@ end;
 
 
 
-Procedure TCustomMetrics.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TCustomMetrics.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -5883,7 +5883,7 @@ end;
 
 
 
-Procedure TCustomMetrics.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TCustomMetrics.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -5913,7 +5913,7 @@ end;
 
 
 
-Procedure TCustomMetrics.Setusername(AIndex : Integer; AValue : String); 
+Procedure TCustomMetrics.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -5980,7 +5980,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLink.Setid(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLink.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5990,7 +5990,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLink.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLink.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6000,7 +6000,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLink.Setname(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLink.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6020,7 +6020,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLink.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLink.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -6071,7 +6071,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLinks.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLinks.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6081,7 +6081,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLinks.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLinks.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -6091,7 +6091,7 @@ end;
 
 
 
-Procedure TEntityAdWordsLinks.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TEntityAdWordsLinks.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -6229,7 +6229,7 @@ end;
 
 
 
-Procedure TEntityUserLink.Setid(AIndex : Integer; AValue : String); 
+Procedure TEntityUserLink.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6239,7 +6239,7 @@ end;
 
 
 
-Procedure TEntityUserLink.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntityUserLink.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6259,7 +6259,7 @@ end;
 
 
 
-Procedure TEntityUserLink.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TEntityUserLink.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -6306,7 +6306,7 @@ end;
 
 
 
-Procedure TEntityUserLinks.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntityUserLinks.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6316,7 +6316,7 @@ end;
 
 
 
-Procedure TEntityUserLinks.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TEntityUserLinks.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -6326,7 +6326,7 @@ end;
 
 
 
-Procedure TEntityUserLinks.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TEntityUserLinks.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -6376,7 +6376,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExperimentTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TExperimentTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -6386,7 +6386,7 @@ end;
 
 
 
-Procedure TExperimentTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TExperimentTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -6414,7 +6414,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExperimentTypevariationsItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TExperimentTypevariationsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6424,7 +6424,7 @@ end;
 
 
 
-Procedure TExperimentTypevariationsItem.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TExperimentTypevariationsItem.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -6434,7 +6434,7 @@ end;
 
 
 
-Procedure TExperimentTypevariationsItem.Seturl(AIndex : Integer; AValue : String); 
+Procedure TExperimentTypevariationsItem.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -6471,7 +6471,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExperiment.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -6491,7 +6491,7 @@ end;
 
 
 
-Procedure TExperiment.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TExperiment.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6531,7 +6531,7 @@ end;
 
 
 
-Procedure TExperiment.Setid(AIndex : Integer; AValue : String); 
+Procedure TExperiment.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6541,7 +6541,7 @@ end;
 
 
 
-Procedure TExperiment.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -6551,7 +6551,7 @@ end;
 
 
 
-Procedure TExperiment.Setkind(AIndex : Integer; AValue : String); 
+Procedure TExperiment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6571,7 +6571,7 @@ end;
 
 
 
-Procedure TExperiment.Setname(AIndex : Integer; AValue : String); 
+Procedure TExperiment.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6581,7 +6581,7 @@ end;
 
 
 
-Procedure TExperiment.SetobjectiveMetric(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetobjectiveMetric(AIndex : Integer; const AValue : String); 
 
 begin
   If (FobjectiveMetric=AValue) then exit;
@@ -6591,7 +6591,7 @@ end;
 
 
 
-Procedure TExperiment.SetoptimizationType(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetoptimizationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoptimizationType=AValue) then exit;
@@ -6611,7 +6611,7 @@ end;
 
 
 
-Procedure TExperiment.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -6621,7 +6621,7 @@ end;
 
 
 
-Procedure TExperiment.SetreasonExperimentEnded(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetreasonExperimentEnded(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreasonExperimentEnded=AValue) then exit;
@@ -6641,7 +6641,7 @@ end;
 
 
 
-Procedure TExperiment.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -6651,7 +6651,7 @@ end;
 
 
 
-Procedure TExperiment.SetservingFramework(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetservingFramework(AIndex : Integer; const AValue : String); 
 
 begin
   If (FservingFramework=AValue) then exit;
@@ -6661,7 +6661,7 @@ end;
 
 
 
-Procedure TExperiment.Setsnippet(AIndex : Integer; AValue : String); 
+Procedure TExperiment.Setsnippet(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -6681,7 +6681,7 @@ end;
 
 
 
-Procedure TExperiment.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TExperiment.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -6721,7 +6721,7 @@ end;
 
 
 
-Procedure TExperiment.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TExperiment.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -6791,7 +6791,7 @@ end;
 
 
 
-Procedure TExperiments.Setkind(AIndex : Integer; AValue : String); 
+Procedure TExperiments.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6801,7 +6801,7 @@ end;
 
 
 
-Procedure TExperiments.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TExperiments.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -6811,7 +6811,7 @@ end;
 
 
 
-Procedure TExperiments.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TExperiments.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -6841,7 +6841,7 @@ end;
 
 
 
-Procedure TExperiments.Setusername(AIndex : Integer; AValue : String); 
+Procedure TExperiments.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -6881,7 +6881,7 @@ end;
 
 
 
-Procedure TFilterTypeadvancedDetails.SetextractA(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeadvancedDetails.SetextractA(AIndex : Integer; const AValue : String); 
 
 begin
   If (FextractA=AValue) then exit;
@@ -6891,7 +6891,7 @@ end;
 
 
 
-Procedure TFilterTypeadvancedDetails.SetextractB(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeadvancedDetails.SetextractB(AIndex : Integer; const AValue : String); 
 
 begin
   If (FextractB=AValue) then exit;
@@ -6901,7 +6901,7 @@ end;
 
 
 
-Procedure TFilterTypeadvancedDetails.SetfieldA(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeadvancedDetails.SetfieldA(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfieldA=AValue) then exit;
@@ -6931,7 +6931,7 @@ end;
 
 
 
-Procedure TFilterTypeadvancedDetails.SetfieldB(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeadvancedDetails.SetfieldB(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfieldB=AValue) then exit;
@@ -6961,7 +6961,7 @@ end;
 
 
 
-Procedure TFilterTypeadvancedDetails.SetoutputConstructor(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeadvancedDetails.SetoutputConstructor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoutputConstructor=AValue) then exit;
@@ -6971,7 +6971,7 @@ end;
 
 
 
-Procedure TFilterTypeadvancedDetails.SetoutputToField(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeadvancedDetails.SetoutputToField(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoutputToField=AValue) then exit;
@@ -7008,7 +7008,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterTypelowercaseDetails.Setfield(AIndex : Integer; AValue : String); 
+Procedure TFilterTypelowercaseDetails.Setfield(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffield=AValue) then exit;
@@ -7035,7 +7035,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -7045,7 +7045,7 @@ end;
 
 
 
-Procedure TFilterTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7083,7 +7083,7 @@ end;
 
 
 
-Procedure TFilterTypesearchAndReplaceDetails.Setfield(AIndex : Integer; AValue : String); 
+Procedure TFilterTypesearchAndReplaceDetails.Setfield(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffield=AValue) then exit;
@@ -7103,7 +7103,7 @@ end;
 
 
 
-Procedure TFilterTypesearchAndReplaceDetails.SetreplaceString(AIndex : Integer; AValue : String); 
+Procedure TFilterTypesearchAndReplaceDetails.SetreplaceString(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreplaceString=AValue) then exit;
@@ -7113,7 +7113,7 @@ end;
 
 
 
-Procedure TFilterTypesearchAndReplaceDetails.SetsearchString(AIndex : Integer; AValue : String); 
+Procedure TFilterTypesearchAndReplaceDetails.SetsearchString(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsearchString=AValue) then exit;
@@ -7130,7 +7130,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterTypeuppercaseDetails.Setfield(AIndex : Integer; AValue : String); 
+Procedure TFilterTypeuppercaseDetails.Setfield(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffield=AValue) then exit;
@@ -7157,7 +7157,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilter.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TFilter.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -7197,7 +7197,7 @@ end;
 
 
 
-Procedure TFilter.Setid(AIndex : Integer; AValue : String); 
+Procedure TFilter.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7217,7 +7217,7 @@ end;
 
 
 
-Procedure TFilter.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFilter.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7237,7 +7237,7 @@ end;
 
 
 
-Procedure TFilter.Setname(AIndex : Integer; AValue : String); 
+Procedure TFilter.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7267,7 +7267,7 @@ end;
 
 
 
-Procedure TFilter.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TFilter.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7277,7 +7277,7 @@ end;
 
 
 
-Procedure TFilter.Set_type(AIndex : Integer; AValue : String); 
+Procedure TFilter.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7335,7 +7335,7 @@ end;
 
 
 
-Procedure TFilterExpression.SetexpressionValue(AIndex : Integer; AValue : String); 
+Procedure TFilterExpression.SetexpressionValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpressionValue=AValue) then exit;
@@ -7345,7 +7345,7 @@ end;
 
 
 
-Procedure TFilterExpression.Setfield(AIndex : Integer; AValue : String); 
+Procedure TFilterExpression.Setfield(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffield=AValue) then exit;
@@ -7365,7 +7365,7 @@ end;
 
 
 
-Procedure TFilterExpression.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFilterExpression.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7375,7 +7375,7 @@ end;
 
 
 
-Procedure TFilterExpression.SetmatchType(AIndex : Integer; AValue : String); 
+Procedure TFilterExpression.SetmatchType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmatchType=AValue) then exit;
@@ -7392,7 +7392,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterRef.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TFilterRef.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -7402,7 +7402,7 @@ end;
 
 
 
-Procedure TFilterRef.Sethref(AIndex : Integer; AValue : String); 
+Procedure TFilterRef.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -7412,7 +7412,7 @@ end;
 
 
 
-Procedure TFilterRef.Setid(AIndex : Integer; AValue : String); 
+Procedure TFilterRef.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7422,7 +7422,7 @@ end;
 
 
 
-Procedure TFilterRef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFilterRef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7432,7 +7432,7 @@ end;
 
 
 
-Procedure TFilterRef.Setname(AIndex : Integer; AValue : String); 
+Procedure TFilterRef.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7469,7 +7469,7 @@ end;
 
 
 
-Procedure TFilters.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFilters.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7479,7 +7479,7 @@ end;
 
 
 
-Procedure TFilters.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TFilters.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -7489,7 +7489,7 @@ end;
 
 
 
-Procedure TFilters.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TFilters.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -7519,7 +7519,7 @@ end;
 
 
 
-Procedure TFilters.Setusername(AIndex : Integer; AValue : String); 
+Procedure TFilters.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -7549,7 +7549,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGaDataTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnType=AValue) then exit;
@@ -7559,7 +7559,7 @@ end;
 
 
 
-Procedure TGaDataTypecolumnHeadersItem.SetdataType(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypecolumnHeadersItem.SetdataType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataType=AValue) then exit;
@@ -7569,7 +7569,7 @@ end;
 
 
 
-Procedure TGaDataTypecolumnHeadersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypecolumnHeadersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7586,7 +7586,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGaDataTypedataTableTypecolsItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypedataTableTypecolsItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7596,7 +7596,7 @@ end;
 
 
 
-Procedure TGaDataTypedataTableTypecolsItem.Set_label(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypedataTableTypecolsItem.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -7606,7 +7606,7 @@ end;
 
 
 
-Procedure TGaDataTypedataTableTypecolsItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypedataTableTypecolsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7635,7 +7635,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGaDataTypedataTableTyperowsItemTypecItem.Setv(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypedataTableTyperowsItemTypecItem.Setv(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fv=AValue) then exit;
@@ -7723,7 +7723,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGaDataTypeprofileInfo.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypeprofileInfo.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -7733,7 +7733,7 @@ end;
 
 
 
-Procedure TGaDataTypeprofileInfo.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypeprofileInfo.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -7743,7 +7743,7 @@ end;
 
 
 
-Procedure TGaDataTypeprofileInfo.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypeprofileInfo.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -7753,7 +7753,7 @@ end;
 
 
 
-Procedure TGaDataTypeprofileInfo.SetprofileName(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypeprofileInfo.SetprofileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileName=AValue) then exit;
@@ -7763,7 +7763,7 @@ end;
 
 
 
-Procedure TGaDataTypeprofileInfo.SettableId(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypeprofileInfo.SettableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -7773,7 +7773,7 @@ end;
 
 
 
-Procedure TGaDataTypeprofileInfo.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypeprofileInfo.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -7790,7 +7790,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGaDataTypequery.Setdimensions(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.Setdimensions(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -7800,7 +7800,7 @@ end;
 
 
 
-Procedure TGaDataTypequery.Setenddate(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.Setenddate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fenddate=AValue) then exit;
@@ -7810,7 +7810,7 @@ end;
 
 
 
-Procedure TGaDataTypequery.Setfilters(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.Setfilters(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -7820,7 +7820,7 @@ end;
 
 
 
-Procedure TGaDataTypequery.Setids(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.Setids(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fids=AValue) then exit;
@@ -7850,7 +7850,7 @@ end;
 
 
 
-Procedure TGaDataTypequery.SetsamplingLevel(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.SetsamplingLevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsamplingLevel=AValue) then exit;
@@ -7860,7 +7860,7 @@ end;
 
 
 
-Procedure TGaDataTypequery.Setsegment(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.Setsegment(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsegment=AValue) then exit;
@@ -7880,7 +7880,7 @@ end;
 
 
 
-Procedure TGaDataTypequery.Setstartdate(AIndex : Integer; AValue : String); 
+Procedure TGaDataTypequery.Setstartdate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstartdate=AValue) then exit;
@@ -7978,7 +7978,7 @@ end;
 
 
 
-Procedure TGaData.Setid(AIndex : Integer; AValue : String); 
+Procedure TGaData.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7998,7 +7998,7 @@ end;
 
 
 
-Procedure TGaData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGaData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8008,7 +8008,7 @@ end;
 
 
 
-Procedure TGaData.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TGaData.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -8018,7 +8018,7 @@ end;
 
 
 
-Procedure TGaData.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TGaData.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -8058,7 +8058,7 @@ end;
 
 
 
-Procedure TGaData.SetsampleSize(AIndex : Integer; AValue : String); 
+Procedure TGaData.SetsampleSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleSize=AValue) then exit;
@@ -8068,7 +8068,7 @@ end;
 
 
 
-Procedure TGaData.SetsampleSpace(AIndex : Integer; AValue : String); 
+Procedure TGaData.SetsampleSpace(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleSpace=AValue) then exit;
@@ -8078,7 +8078,7 @@ end;
 
 
 
-Procedure TGaData.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TGaData.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8129,7 +8129,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGoalTypeeventDetailsTypeeventConditionsItem.SetcomparisonType(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeeventDetailsTypeeventConditionsItem.SetcomparisonType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomparisonType=AValue) then exit;
@@ -8139,7 +8139,7 @@ end;
 
 
 
-Procedure TGoalTypeeventDetailsTypeeventConditionsItem.SetcomparisonValue(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeeventDetailsTypeeventConditionsItem.SetcomparisonValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomparisonValue=AValue) then exit;
@@ -8149,7 +8149,7 @@ end;
 
 
 
-Procedure TGoalTypeeventDetailsTypeeventConditionsItem.Setexpression(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeeventDetailsTypeeventConditionsItem.Setexpression(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fexpression=AValue) then exit;
@@ -8159,7 +8159,7 @@ end;
 
 
 
-Procedure TGoalTypeeventDetailsTypeeventConditionsItem.SetmatchType(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeeventDetailsTypeeventConditionsItem.SetmatchType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmatchType=AValue) then exit;
@@ -8169,7 +8169,7 @@ end;
 
 
 
-Procedure TGoalTypeeventDetailsTypeeventConditionsItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeeventDetailsTypeeventConditionsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -8237,7 +8237,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGoalTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -8247,7 +8247,7 @@ end;
 
 
 
-Procedure TGoalTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -8275,7 +8275,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGoalTypeurlDestinationDetailsTypestepsItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeurlDestinationDetailsTypestepsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -8295,7 +8295,7 @@ end;
 
 
 
-Procedure TGoalTypeurlDestinationDetailsTypestepsItem.Seturl(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeurlDestinationDetailsTypestepsItem.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -8332,7 +8332,7 @@ end;
 
 
 
-Procedure TGoalTypeurlDestinationDetails.SetmatchType(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeurlDestinationDetails.SetmatchType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmatchType=AValue) then exit;
@@ -8352,7 +8352,7 @@ end;
 
 
 
-Procedure TGoalTypeurlDestinationDetails.Seturl(AIndex : Integer; AValue : String); 
+Procedure TGoalTypeurlDestinationDetails.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -8382,7 +8382,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGoalTypevisitNumPagesDetails.SetcomparisonType(AIndex : Integer; AValue : String); 
+Procedure TGoalTypevisitNumPagesDetails.SetcomparisonType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomparisonType=AValue) then exit;
@@ -8392,7 +8392,7 @@ end;
 
 
 
-Procedure TGoalTypevisitNumPagesDetails.SetcomparisonValue(AIndex : Integer; AValue : String); 
+Procedure TGoalTypevisitNumPagesDetails.SetcomparisonValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomparisonValue=AValue) then exit;
@@ -8409,7 +8409,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGoalTypevisitTimeOnSiteDetails.SetcomparisonType(AIndex : Integer; AValue : String); 
+Procedure TGoalTypevisitTimeOnSiteDetails.SetcomparisonType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomparisonType=AValue) then exit;
@@ -8419,7 +8419,7 @@ end;
 
 
 
-Procedure TGoalTypevisitTimeOnSiteDetails.SetcomparisonValue(AIndex : Integer; AValue : String); 
+Procedure TGoalTypevisitTimeOnSiteDetails.SetcomparisonValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomparisonValue=AValue) then exit;
@@ -8436,7 +8436,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGoal.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TGoal.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -8476,7 +8476,7 @@ end;
 
 
 
-Procedure TGoal.Setid(AIndex : Integer; AValue : String); 
+Procedure TGoal.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8486,7 +8486,7 @@ end;
 
 
 
-Procedure TGoal.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TGoal.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -8496,7 +8496,7 @@ end;
 
 
 
-Procedure TGoal.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGoal.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8506,7 +8506,7 @@ end;
 
 
 
-Procedure TGoal.Setname(AIndex : Integer; AValue : String); 
+Procedure TGoal.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -8526,7 +8526,7 @@ end;
 
 
 
-Procedure TGoal.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TGoal.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -8536,7 +8536,7 @@ end;
 
 
 
-Procedure TGoal.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TGoal.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8546,7 +8546,7 @@ end;
 
 
 
-Procedure TGoal.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGoal.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -8606,7 +8606,7 @@ end;
 
 
 
-Procedure TGoal.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TGoal.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -8654,7 +8654,7 @@ end;
 
 
 
-Procedure TGoals.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGoals.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8664,7 +8664,7 @@ end;
 
 
 
-Procedure TGoals.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TGoals.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -8674,7 +8674,7 @@ end;
 
 
 
-Procedure TGoals.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TGoals.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -8704,7 +8704,7 @@ end;
 
 
 
-Procedure TGoals.Setusername(AIndex : Integer; AValue : String); 
+Procedure TGoals.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -8734,7 +8734,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMcfDataTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnType=AValue) then exit;
@@ -8744,7 +8744,7 @@ end;
 
 
 
-Procedure TMcfDataTypecolumnHeadersItem.SetdataType(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypecolumnHeadersItem.SetdataType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataType=AValue) then exit;
@@ -8754,7 +8754,7 @@ end;
 
 
 
-Procedure TMcfDataTypecolumnHeadersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypecolumnHeadersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -8771,7 +8771,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMcfDataTypeprofileInfo.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypeprofileInfo.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -8781,7 +8781,7 @@ end;
 
 
 
-Procedure TMcfDataTypeprofileInfo.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypeprofileInfo.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -8791,7 +8791,7 @@ end;
 
 
 
-Procedure TMcfDataTypeprofileInfo.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypeprofileInfo.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -8801,7 +8801,7 @@ end;
 
 
 
-Procedure TMcfDataTypeprofileInfo.SetprofileName(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypeprofileInfo.SetprofileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileName=AValue) then exit;
@@ -8811,7 +8811,7 @@ end;
 
 
 
-Procedure TMcfDataTypeprofileInfo.SettableId(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypeprofileInfo.SettableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -8821,7 +8821,7 @@ end;
 
 
 
-Procedure TMcfDataTypeprofileInfo.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypeprofileInfo.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -8838,7 +8838,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMcfDataTypequery.Setdimensions(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.Setdimensions(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -8848,7 +8848,7 @@ end;
 
 
 
-Procedure TMcfDataTypequery.Setenddate(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.Setenddate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fenddate=AValue) then exit;
@@ -8858,7 +8858,7 @@ end;
 
 
 
-Procedure TMcfDataTypequery.Setfilters(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.Setfilters(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -8868,7 +8868,7 @@ end;
 
 
 
-Procedure TMcfDataTypequery.Setids(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.Setids(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fids=AValue) then exit;
@@ -8898,7 +8898,7 @@ end;
 
 
 
-Procedure TMcfDataTypequery.SetsamplingLevel(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.SetsamplingLevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsamplingLevel=AValue) then exit;
@@ -8908,7 +8908,7 @@ end;
 
 
 
-Procedure TMcfDataTypequery.Setsegment(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.Setsegment(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsegment=AValue) then exit;
@@ -8928,7 +8928,7 @@ end;
 
 
 
-Procedure TMcfDataTypequery.Setstartdate(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTypequery.Setstartdate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstartdate=AValue) then exit;
@@ -8983,7 +8983,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMcfDataTyperowsItemItemTypeconversionPathValueItem.SetinteractionType(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTyperowsItemItemTypeconversionPathValueItem.SetinteractionType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinteractionType=AValue) then exit;
@@ -8993,7 +8993,7 @@ end;
 
 
 
-Procedure TMcfDataTyperowsItemItemTypeconversionPathValueItem.SetnodeValue(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTyperowsItemItemTypeconversionPathValueItem.SetnodeValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnodeValue=AValue) then exit;
@@ -9020,7 +9020,7 @@ end;
 
 
 
-Procedure TMcfDataTyperowsItemItem.SetprimitiveValue(AIndex : Integer; AValue : String); 
+Procedure TMcfDataTyperowsItemItem.SetprimitiveValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimitiveValue=AValue) then exit;
@@ -9083,7 +9083,7 @@ end;
 
 
 
-Procedure TMcfData.Setid(AIndex : Integer; AValue : String); 
+Procedure TMcfData.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9103,7 +9103,7 @@ end;
 
 
 
-Procedure TMcfData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TMcfData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9113,7 +9113,7 @@ end;
 
 
 
-Procedure TMcfData.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TMcfData.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -9123,7 +9123,7 @@ end;
 
 
 
-Procedure TMcfData.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TMcfData.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -9163,7 +9163,7 @@ end;
 
 
 
-Procedure TMcfData.SetsampleSize(AIndex : Integer; AValue : String); 
+Procedure TMcfData.SetsampleSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleSize=AValue) then exit;
@@ -9173,7 +9173,7 @@ end;
 
 
 
-Procedure TMcfData.SetsampleSpace(AIndex : Integer; AValue : String); 
+Procedure TMcfData.SetsampleSpace(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsampleSpace=AValue) then exit;
@@ -9183,7 +9183,7 @@ end;
 
 
 
-Procedure TMcfData.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TMcfData.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9234,7 +9234,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfileTypechildLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TProfileTypechildLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -9244,7 +9244,7 @@ end;
 
 
 
-Procedure TProfileTypechildLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TProfileTypechildLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -9272,7 +9272,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfileTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TProfileTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -9282,7 +9282,7 @@ end;
 
 
 
-Procedure TProfileTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TProfileTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -9340,7 +9340,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfile.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -9370,7 +9370,7 @@ end;
 
 
 
-Procedure TProfile.Setcurrency(AIndex : Integer; AValue : String); 
+Procedure TProfile.Setcurrency(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -9380,7 +9380,7 @@ end;
 
 
 
-Procedure TProfile.SetdefaultPage(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetdefaultPage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultPage=AValue) then exit;
@@ -9410,7 +9410,7 @@ end;
 
 
 
-Procedure TProfile.SetexcludeQueryParameters(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetexcludeQueryParameters(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexcludeQueryParameters=AValue) then exit;
@@ -9420,7 +9420,7 @@ end;
 
 
 
-Procedure TProfile.Setid(AIndex : Integer; AValue : String); 
+Procedure TProfile.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9430,7 +9430,7 @@ end;
 
 
 
-Procedure TProfile.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -9440,7 +9440,7 @@ end;
 
 
 
-Procedure TProfile.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProfile.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9450,7 +9450,7 @@ end;
 
 
 
-Procedure TProfile.Setname(AIndex : Integer; AValue : String); 
+Procedure TProfile.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9480,7 +9480,7 @@ end;
 
 
 
-Procedure TProfile.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9490,7 +9490,7 @@ end;
 
 
 
-Procedure TProfile.SetsiteSearchCategoryParameters(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetsiteSearchCategoryParameters(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsiteSearchCategoryParameters=AValue) then exit;
@@ -9500,7 +9500,7 @@ end;
 
 
 
-Procedure TProfile.SetsiteSearchQueryParameters(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetsiteSearchQueryParameters(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsiteSearchQueryParameters=AValue) then exit;
@@ -9530,7 +9530,7 @@ end;
 
 
 
-Procedure TProfile.Settimezone(AIndex : Integer; AValue : String); 
+Procedure TProfile.Settimezone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftimezone=AValue) then exit;
@@ -9540,7 +9540,7 @@ end;
 
 
 
-Procedure TProfile.Set_type(AIndex : Integer; AValue : String); 
+Procedure TProfile.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -9560,7 +9560,7 @@ end;
 
 
 
-Procedure TProfile.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -9570,7 +9570,7 @@ end;
 
 
 
-Procedure TProfile.SetwebsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -9608,7 +9608,7 @@ end;
 
 
 
-Procedure TProfileFilterLink.Setid(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLink.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9618,7 +9618,7 @@ end;
 
 
 
-Procedure TProfileFilterLink.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLink.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9648,7 +9648,7 @@ end;
 
 
 
-Procedure TProfileFilterLink.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLink.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -9685,7 +9685,7 @@ end;
 
 
 
-Procedure TProfileFilterLinks.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLinks.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9695,7 +9695,7 @@ end;
 
 
 
-Procedure TProfileFilterLinks.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLinks.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -9705,7 +9705,7 @@ end;
 
 
 
-Procedure TProfileFilterLinks.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLinks.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -9735,7 +9735,7 @@ end;
 
 
 
-Procedure TProfileFilterLinks.Setusername(AIndex : Integer; AValue : String); 
+Procedure TProfileFilterLinks.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -9765,7 +9765,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfileRef.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -9775,7 +9775,7 @@ end;
 
 
 
-Procedure TProfileRef.Sethref(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -9785,7 +9785,7 @@ end;
 
 
 
-Procedure TProfileRef.Setid(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9795,7 +9795,7 @@ end;
 
 
 
-Procedure TProfileRef.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -9805,7 +9805,7 @@ end;
 
 
 
-Procedure TProfileRef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9815,7 +9815,7 @@ end;
 
 
 
-Procedure TProfileRef.Setname(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9825,7 +9825,7 @@ end;
 
 
 
-Procedure TProfileRef.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TProfileRef.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -9842,7 +9842,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfileSummary.Setid(AIndex : Integer; AValue : String); 
+Procedure TProfileSummary.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9852,7 +9852,7 @@ end;
 
 
 
-Procedure TProfileSummary.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProfileSummary.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9862,7 +9862,7 @@ end;
 
 
 
-Procedure TProfileSummary.Setname(AIndex : Integer; AValue : String); 
+Procedure TProfileSummary.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9872,7 +9872,7 @@ end;
 
 
 
-Procedure TProfileSummary.Set_type(AIndex : Integer; AValue : String); 
+Procedure TProfileSummary.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -9920,7 +9920,7 @@ end;
 
 
 
-Procedure TProfiles.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProfiles.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9930,7 +9930,7 @@ end;
 
 
 
-Procedure TProfiles.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TProfiles.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -9940,7 +9940,7 @@ end;
 
 
 
-Procedure TProfiles.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TProfiles.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -9970,7 +9970,7 @@ end;
 
 
 
-Procedure TProfiles.Setusername(AIndex : Integer; AValue : String); 
+Procedure TProfiles.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -10000,7 +10000,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRealtimeDataTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnType=AValue) then exit;
@@ -10010,7 +10010,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypecolumnHeadersItem.SetdataType(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypecolumnHeadersItem.SetdataType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataType=AValue) then exit;
@@ -10020,7 +10020,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypecolumnHeadersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypecolumnHeadersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10037,7 +10037,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRealtimeDataTypeprofileInfo.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypeprofileInfo.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -10047,7 +10047,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypeprofileInfo.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypeprofileInfo.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -10057,7 +10057,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypeprofileInfo.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypeprofileInfo.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -10067,7 +10067,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypeprofileInfo.SetprofileName(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypeprofileInfo.SetprofileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileName=AValue) then exit;
@@ -10077,7 +10077,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypeprofileInfo.SettableId(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypeprofileInfo.SettableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -10087,7 +10087,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypeprofileInfo.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypeprofileInfo.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -10104,7 +10104,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRealtimeDataTypequery.Setdimensions(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypequery.Setdimensions(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -10114,7 +10114,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypequery.Setfilters(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypequery.Setfilters(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -10124,7 +10124,7 @@ end;
 
 
 
-Procedure TRealtimeDataTypequery.Setids(AIndex : Integer; AValue : String); 
+Procedure TRealtimeDataTypequery.Setids(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fids=AValue) then exit;
@@ -10219,7 +10219,7 @@ end;
 
 
 
-Procedure TRealtimeData.Setid(AIndex : Integer; AValue : String); 
+Procedure TRealtimeData.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10229,7 +10229,7 @@ end;
 
 
 
-Procedure TRealtimeData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRealtimeData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10269,7 +10269,7 @@ end;
 
 
 
-Procedure TRealtimeData.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TRealtimeData.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10330,7 +10330,7 @@ end;
 
 
 
-Procedure TSegment.Setdefinition(AIndex : Integer; AValue : String); 
+Procedure TSegment.Setdefinition(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdefinition=AValue) then exit;
@@ -10340,7 +10340,7 @@ end;
 
 
 
-Procedure TSegment.Setid(AIndex : Integer; AValue : String); 
+Procedure TSegment.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10350,7 +10350,7 @@ end;
 
 
 
-Procedure TSegment.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSegment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10360,7 +10360,7 @@ end;
 
 
 
-Procedure TSegment.Setname(AIndex : Integer; AValue : String); 
+Procedure TSegment.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10370,7 +10370,7 @@ end;
 
 
 
-Procedure TSegment.SetsegmentId(AIndex : Integer; AValue : String); 
+Procedure TSegment.SetsegmentId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentId=AValue) then exit;
@@ -10380,7 +10380,7 @@ end;
 
 
 
-Procedure TSegment.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TSegment.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10390,7 +10390,7 @@ end;
 
 
 
-Procedure TSegment.Set_type(AIndex : Integer; AValue : String); 
+Procedure TSegment.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -10448,7 +10448,7 @@ end;
 
 
 
-Procedure TSegments.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSegments.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10458,7 +10458,7 @@ end;
 
 
 
-Procedure TSegments.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TSegments.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -10468,7 +10468,7 @@ end;
 
 
 
-Procedure TSegments.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TSegments.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -10498,7 +10498,7 @@ end;
 
 
 
-Procedure TSegments.Setusername(AIndex : Integer; AValue : String); 
+Procedure TSegments.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -10528,7 +10528,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUnsampledReportTypecloudStorageDownloadDetails.SetbucketId(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReportTypecloudStorageDownloadDetails.SetbucketId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbucketId=AValue) then exit;
@@ -10538,7 +10538,7 @@ end;
 
 
 
-Procedure TUnsampledReportTypecloudStorageDownloadDetails.SetobjectId(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReportTypecloudStorageDownloadDetails.SetobjectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FobjectId=AValue) then exit;
@@ -10555,7 +10555,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUnsampledReportTypedriveDownloadDetails.SetdocumentId(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReportTypedriveDownloadDetails.SetdocumentId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdocumentId=AValue) then exit;
@@ -10572,7 +10572,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUnsampledReport.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -10602,7 +10602,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setdimensions(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setdimensions(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdimensions=AValue) then exit;
@@ -10612,7 +10612,7 @@ end;
 
 
 
-Procedure TUnsampledReport.SetdownloadType(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.SetdownloadType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdownloadType=AValue) then exit;
@@ -10632,7 +10632,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setenddate(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setenddate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fenddate=AValue) then exit;
@@ -10642,7 +10642,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setfilters(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setfilters(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilters=AValue) then exit;
@@ -10652,7 +10652,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setid(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10662,7 +10662,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10672,7 +10672,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setmetrics(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setmetrics(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmetrics=AValue) then exit;
@@ -10682,7 +10682,7 @@ end;
 
 
 
-Procedure TUnsampledReport.SetprofileId(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.SetprofileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileId=AValue) then exit;
@@ -10692,7 +10692,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setsegment(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setsegment(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsegment=AValue) then exit;
@@ -10702,7 +10702,7 @@ end;
 
 
 
-Procedure TUnsampledReport.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -10712,7 +10712,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setstartdate(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setstartdate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstartdate=AValue) then exit;
@@ -10722,7 +10722,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -10732,7 +10732,7 @@ end;
 
 
 
-Procedure TUnsampledReport.Settitle(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -10752,7 +10752,7 @@ end;
 
 
 
-Procedure TUnsampledReport.SetwebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReport.SetwebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebPropertyId=AValue) then exit;
@@ -10801,7 +10801,7 @@ end;
 
 
 
-Procedure TUnsampledReports.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReports.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10811,7 +10811,7 @@ end;
 
 
 
-Procedure TUnsampledReports.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReports.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -10821,7 +10821,7 @@ end;
 
 
 
-Procedure TUnsampledReports.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReports.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -10851,7 +10851,7 @@ end;
 
 
 
-Procedure TUnsampledReports.Setusername(AIndex : Integer; AValue : String); 
+Procedure TUnsampledReports.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -10881,7 +10881,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpload.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TUpload.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -10891,7 +10891,7 @@ end;
 
 
 
-Procedure TUpload.SetcustomDataSourceId(AIndex : Integer; AValue : String); 
+Procedure TUpload.SetcustomDataSourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomDataSourceId=AValue) then exit;
@@ -10911,7 +10911,7 @@ end;
 
 
 
-Procedure TUpload.Setid(AIndex : Integer; AValue : String); 
+Procedure TUpload.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10921,7 +10921,7 @@ end;
 
 
 
-Procedure TUpload.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUpload.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10931,7 +10931,7 @@ end;
 
 
 
-Procedure TUpload.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TUpload.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -10981,7 +10981,7 @@ end;
 
 
 
-Procedure TUploads.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUploads.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10991,7 +10991,7 @@ end;
 
 
 
-Procedure TUploads.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TUploads.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -11001,7 +11001,7 @@ end;
 
 
 
-Procedure TUploads.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TUploads.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -11051,7 +11051,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserRef.Setemail(AIndex : Integer; AValue : String); 
+Procedure TUserRef.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -11061,7 +11061,7 @@ end;
 
 
 
-Procedure TUserRef.Setid(AIndex : Integer; AValue : String); 
+Procedure TUserRef.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11071,7 +11071,7 @@ end;
 
 
 
-Procedure TUserRef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUserRef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11088,7 +11088,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebPropertyRef.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TWebPropertyRef.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -11098,7 +11098,7 @@ end;
 
 
 
-Procedure TWebPropertyRef.Sethref(AIndex : Integer; AValue : String); 
+Procedure TWebPropertyRef.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -11108,7 +11108,7 @@ end;
 
 
 
-Procedure TWebPropertyRef.Setid(AIndex : Integer; AValue : String); 
+Procedure TWebPropertyRef.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11118,7 +11118,7 @@ end;
 
 
 
-Procedure TWebPropertyRef.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TWebPropertyRef.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -11128,7 +11128,7 @@ end;
 
 
 
-Procedure TWebPropertyRef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWebPropertyRef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11138,7 +11138,7 @@ end;
 
 
 
-Procedure TWebPropertyRef.Setname(AIndex : Integer; AValue : String); 
+Procedure TWebPropertyRef.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -11155,7 +11155,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebPropertySummary.Setid(AIndex : Integer; AValue : String); 
+Procedure TWebPropertySummary.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11165,7 +11165,7 @@ end;
 
 
 
-Procedure TWebPropertySummary.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TWebPropertySummary.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -11175,7 +11175,7 @@ end;
 
 
 
-Procedure TWebPropertySummary.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWebPropertySummary.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11185,7 +11185,7 @@ end;
 
 
 
-Procedure TWebPropertySummary.Setlevel(AIndex : Integer; AValue : String); 
+Procedure TWebPropertySummary.Setlevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flevel=AValue) then exit;
@@ -11195,7 +11195,7 @@ end;
 
 
 
-Procedure TWebPropertySummary.Setname(AIndex : Integer; AValue : String); 
+Procedure TWebPropertySummary.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -11215,7 +11215,7 @@ end;
 
 
 
-Procedure TWebPropertySummary.SetwebsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TWebPropertySummary.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -11265,7 +11265,7 @@ end;
 
 
 
-Procedure TWebproperties.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWebproperties.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11275,7 +11275,7 @@ end;
 
 
 
-Procedure TWebproperties.SetnextLink(AIndex : Integer; AValue : String); 
+Procedure TWebproperties.SetnextLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextLink=AValue) then exit;
@@ -11285,7 +11285,7 @@ end;
 
 
 
-Procedure TWebproperties.SetpreviousLink(AIndex : Integer; AValue : String); 
+Procedure TWebproperties.SetpreviousLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousLink=AValue) then exit;
@@ -11315,7 +11315,7 @@ end;
 
 
 
-Procedure TWebproperties.Setusername(AIndex : Integer; AValue : String); 
+Procedure TWebproperties.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -11345,7 +11345,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebpropertyTypechildLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TWebpropertyTypechildLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -11355,7 +11355,7 @@ end;
 
 
 
-Procedure TWebpropertyTypechildLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TWebpropertyTypechildLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -11383,7 +11383,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebpropertyTypeparentLink.Sethref(AIndex : Integer; AValue : String); 
+Procedure TWebpropertyTypeparentLink.Sethref(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhref=AValue) then exit;
@@ -11393,7 +11393,7 @@ end;
 
 
 
-Procedure TWebpropertyTypeparentLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TWebpropertyTypeparentLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -11451,7 +11451,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebproperty.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -11481,7 +11481,7 @@ end;
 
 
 
-Procedure TWebproperty.SetdefaultProfileId(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.SetdefaultProfileId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultProfileId=AValue) then exit;
@@ -11491,7 +11491,7 @@ end;
 
 
 
-Procedure TWebproperty.Setid(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11501,7 +11501,7 @@ end;
 
 
 
-Procedure TWebproperty.SetindustryVertical(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.SetindustryVertical(AIndex : Integer; const AValue : String); 
 
 begin
   If (FindustryVertical=AValue) then exit;
@@ -11511,7 +11511,7 @@ end;
 
 
 
-Procedure TWebproperty.SetinternalWebPropertyId(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.SetinternalWebPropertyId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinternalWebPropertyId=AValue) then exit;
@@ -11521,7 +11521,7 @@ end;
 
 
 
-Procedure TWebproperty.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11531,7 +11531,7 @@ end;
 
 
 
-Procedure TWebproperty.Setlevel(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.Setlevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flevel=AValue) then exit;
@@ -11541,7 +11541,7 @@ end;
 
 
 
-Procedure TWebproperty.Setname(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -11581,7 +11581,7 @@ end;
 
 
 
-Procedure TWebproperty.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -11601,7 +11601,7 @@ end;
 
 
 
-Procedure TWebproperty.SetwebsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TWebproperty.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;

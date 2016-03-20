@@ -86,7 +86,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -102,7 +102,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -120,9 +120,9 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TListMetricDescriptorsResponseTypemetricsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -144,7 +144,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -164,8 +164,8 @@ type
     Fyoungest : TDatetime;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesDescriptorsResponseTypetimeseriesArray); virtual;
     Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
@@ -192,7 +192,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -212,8 +212,8 @@ type
     Fyoungest : TDatetime;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoldest(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Settimeseries(AIndex : Integer; AValue : TListTimeseriesResponseTypetimeseriesArray); virtual;
     Procedure Setyoungest(AIndex : Integer; AValue : TDatetime); virtual;
@@ -244,10 +244,10 @@ type
     FtypeDescriptor : TMetricDescriptorTypeDescriptor;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlabels(AIndex : Integer; AValue : TMetricDescriptorTypelabelsArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
     Procedure SettypeDescriptor(AIndex : Integer; AValue : TMetricDescriptorTypeDescriptor); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -273,8 +273,8 @@ type
     Fkey : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -292,8 +292,8 @@ type
     FvalueType : String;
   Protected
     //Property setters
-    Procedure SetmetricType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvalueType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmetricType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalueType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property metricType : String Index 0 Read FmetricType Write SetmetricType;
@@ -321,9 +321,9 @@ type
     Procedure SetdistributionValue(AIndex : Integer; AValue : TPointDistribution); virtual;
     Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
     Procedure Set_end(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setint64Value(AIndex : Integer; AValue : String); virtual;
+    Procedure Setint64Value(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstart(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstringValue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property boolValue : boolean Index 0 Read FboolValue Write SetboolValue;
@@ -373,7 +373,7 @@ type
     FupperBound : double;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlowerBound(AIndex : Integer; AValue : double); virtual;
     Procedure SetupperBound(AIndex : Integer; AValue : double); virtual;
   Public
@@ -394,7 +394,7 @@ type
     FlowerBound : double;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlowerBound(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -413,7 +413,7 @@ type
     FupperBound : double;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
     Procedure SetupperBound(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -471,8 +471,8 @@ type
   Protected
     //Property setters
     Procedure Setlabels(AIndex : Integer; AValue : TTimeseriesDescriptorTypelabels); virtual;
-    Procedure Setmetric(AIndex : Integer; AValue : String); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmetric(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property labels : TTimeseriesDescriptorTypelabels Index 0 Read Flabels Write Setlabels;
@@ -491,8 +491,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property key : String Index 0 Read Fkey Write Setkey;
@@ -565,7 +565,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -706,7 +706,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDeleteMetricDescriptorResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDeleteMetricDescriptorResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -723,7 +723,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMetricDescriptorsRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListMetricDescriptorsRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -740,7 +740,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListMetricDescriptorsResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListMetricDescriptorsResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -760,7 +760,7 @@ end;
 
 
 
-Procedure TListMetricDescriptorsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListMetricDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -790,7 +790,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesDescriptorsRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListTimeseriesDescriptorsRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -807,7 +807,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesDescriptorsResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListTimeseriesDescriptorsResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -817,7 +817,7 @@ end;
 
 
 
-Procedure TListTimeseriesDescriptorsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListTimeseriesDescriptorsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -877,7 +877,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListTimeseriesRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -894,7 +894,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTimeseriesResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListTimeseriesResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -904,7 +904,7 @@ end;
 
 
 
-Procedure TListTimeseriesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListTimeseriesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -964,7 +964,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptor.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -984,7 +984,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setname(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptor.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -994,7 +994,7 @@ end;
 
 
 
-Procedure TMetricDescriptor.Setproject(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptor.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -1034,7 +1034,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptorLabelDescriptor.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptorLabelDescriptor.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1044,7 +1044,7 @@ end;
 
 
 
-Procedure TMetricDescriptorLabelDescriptor.Setkey(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptorLabelDescriptor.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetricDescriptorTypeDescriptor.SetmetricType(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptorTypeDescriptor.SetmetricType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmetricType=AValue) then exit;
@@ -1071,7 +1071,7 @@ end;
 
 
 
-Procedure TMetricDescriptorTypeDescriptor.SetvalueType(AIndex : Integer; AValue : String); 
+Procedure TMetricDescriptorTypeDescriptor.SetvalueType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalueType=AValue) then exit;
@@ -1128,7 +1128,7 @@ end;
 
 
 
-Procedure TPoint.Setint64Value(AIndex : Integer; AValue : String); 
+Procedure TPoint.Setint64Value(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fint64Value=AValue) then exit;
@@ -1148,7 +1148,7 @@ end;
 
 
 
-Procedure TPoint.SetstringValue(AIndex : Integer; AValue : String); 
+Procedure TPoint.SetstringValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;
@@ -1226,7 +1226,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistributionBucket.Setcount(AIndex : Integer; AValue : String); 
+Procedure TPointDistributionBucket.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1263,7 +1263,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistributionOverflowBucket.Setcount(AIndex : Integer; AValue : String); 
+Procedure TPointDistributionOverflowBucket.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1290,7 +1290,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointDistributionUnderflowBucket.Setcount(AIndex : Integer; AValue : String); 
+Procedure TPointDistributionUnderflowBucket.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1380,7 +1380,7 @@ end;
 
 
 
-Procedure TTimeseriesDescriptor.Setmetric(AIndex : Integer; AValue : String); 
+Procedure TTimeseriesDescriptor.Setmetric(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmetric=AValue) then exit;
@@ -1390,7 +1390,7 @@ end;
 
 
 
-Procedure TTimeseriesDescriptor.Setproject(AIndex : Integer; AValue : String); 
+Procedure TTimeseriesDescriptor.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -1407,7 +1407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeseriesDescriptorLabel.Setkey(AIndex : Integer; AValue : String); 
+Procedure TTimeseriesDescriptorLabel.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1417,7 +1417,7 @@ end;
 
 
 
-Procedure TTimeseriesDescriptorLabel.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TTimeseriesDescriptorLabel.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1514,7 +1514,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteTimeseriesResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWriteTimeseriesResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

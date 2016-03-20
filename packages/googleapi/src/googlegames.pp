@@ -279,19 +279,19 @@ type
     FunlockedIconUrl : String;
   Protected
     //Property setters
-    Procedure SetachievementType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetexperiencePoints(AIndex : Integer; AValue : String); virtual;
-    Procedure SetformattedTotalSteps(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinitialState(AIndex : Integer; AValue : String); virtual;
+    Procedure SetachievementType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetformattedTotalSteps(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinitialState(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisRevealedIconUrlDefault(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisUnlockedIconUrlDefault(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrevealedIconUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrevealedIconUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalSteps(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetunlockedIconUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetunlockedIconUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property achievementType : String Index 0 Read FachievementType Write SetachievementType;
@@ -322,8 +322,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAchievementDefinitionsListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -348,7 +348,7 @@ type
   Protected
     //Property setters
     Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -368,8 +368,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetcurrentState(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentState(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property currentState : String Index 0 Read FcurrentState Write SetcurrentState;
@@ -389,7 +389,7 @@ type
   Protected
     //Property setters
     Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -409,7 +409,7 @@ type
     FnewlyUnlocked : boolean;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -428,7 +428,7 @@ type
     Fupdates : TAchievementUpdateMultipleRequestTypeupdatesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdates(AIndex : Integer; AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -451,7 +451,7 @@ type
     FupdatedAchievements : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetupdatedAchievements(AIndex : Integer; AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -477,11 +477,11 @@ type
     FupdateType : String;
   Protected
     //Property setters
-    Procedure SetachievementId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetachievementId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetincrementPayload(AIndex : Integer; AValue : TGamesAchievementIncrement); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsetStepsAtLeastPayload(AIndex : Integer; AValue : TGamesAchievementSetStepsAtLeast); virtual;
-    Procedure SetupdateType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetupdateType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property achievementId : String Index 0 Read FachievementId Write SetachievementId;
@@ -506,10 +506,10 @@ type
     FupdateOccurred : boolean;
   Protected
     //Property setters
-    Procedure SetachievementId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcurrentState(AIndex : Integer; AValue : String); virtual;
+    Procedure SetachievementId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentState(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetupdateOccurred(AIndex : Integer; AValue : boolean); virtual;
   Public
@@ -536,11 +536,11 @@ type
     Fsum : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmax(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmin(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsum(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmax(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmin(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsum(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -562,9 +562,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetavatarImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetavatarImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property avatarImageUrl : String Index 0 Read FavatarImageUrl Write SetavatarImageUrl;
@@ -596,17 +596,17 @@ type
     //Property setters
     Procedure Setachievement_count(AIndex : Integer; AValue : integer); virtual;
     Procedure Setassets(AIndex : Integer; AValue : TApplicationTypeassetsArray); virtual;
-    Procedure Setauthor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setauthor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcategory(AIndex : Integer; AValue : TApplicationCategory); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetenabledFeatures(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinstances(AIndex : Integer; AValue : TApplicationTypeinstancesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastUpdatedTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure Setleaderboard_count(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetthemeColor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetthemeColor(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -640,9 +640,9 @@ type
     Fsecondary : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setprimary(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsecondary(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprimary(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsecondary(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -662,9 +662,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
-    Procedure SetexperiencePoints(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property category : String Index 0 Read Fcategory Write Setcategory;
@@ -685,8 +685,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCategoryListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -710,8 +710,8 @@ type
     Frange : TEventPeriodRange;
   Protected
     //Property setters
-    Procedure SetfailureCause(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfailureCause(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrange(AIndex : Integer; AValue : TEventPeriodRange); virtual;
   Public
   Published
@@ -731,8 +731,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetchildId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchildId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property childId : String Index 0 Read FchildId Write SetchildId;
@@ -757,13 +757,13 @@ type
   Protected
     //Property setters
     Procedure SetchildEvents(AIndex : Integer; AValue : TEventDefinitionTypechildEventsArray); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisDefaultImageUrl(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -793,8 +793,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TEventDefinitionListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -818,9 +818,9 @@ type
     FperiodStartMillis : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetperiodEndMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetperiodStartMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetperiodEndMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetperiodStartMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -840,7 +840,7 @@ type
     Fupdates : TEventPeriodUpdateTypeupdatesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimePeriod(AIndex : Integer; AValue : TEventPeriodRange); virtual;
     Procedure Setupdates(AIndex : Integer; AValue : TEventPeriodUpdateTypeupdatesArray); virtual;
     //2.6.4. bug workaround
@@ -866,9 +866,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfailureCause(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfailureCause(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property eventId : String Index 0 Read FeventId Write SeteventId;
@@ -889,9 +889,9 @@ type
     FtimePeriods : TEventRecordRequestTypetimePeriodsArray;
   Protected
     //Property setters
-    Procedure SetcurrentTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimePeriods(AIndex : Integer; AValue : TEventRecordRequestTypetimePeriodsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -917,9 +917,9 @@ type
     FupdateCount : String;
   Protected
     //Property setters
-    Procedure SetdefinitionId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetupdateCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefinitionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetupdateCount(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property definitionId : String Index 0 Read FdefinitionId Write SetdefinitionId;
@@ -942,7 +942,7 @@ type
     //Property setters
     Procedure SetbatchFailures(AIndex : Integer; AValue : TEventUpdateResponseTypebatchFailuresArray); virtual;
     Procedure SeteventFailures(AIndex : Integer; AValue : TEventUpdateResponseTypeeventFailuresArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplayerEvents(AIndex : Integer; AValue : TEventUpdateResponseTypeplayerEventsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -968,8 +968,8 @@ type
     Fsteps : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsteps(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -989,7 +989,7 @@ type
     Fsteps : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsteps(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -1012,9 +1012,9 @@ type
   Protected
     //Property setters
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -1043,12 +1043,12 @@ type
     FwebInstance : TInstanceWebDetails;
   Protected
     //Property setters
-    Procedure SetacquisitionUri(AIndex : Integer; AValue : String); virtual;
+    Procedure SetacquisitionUri(AIndex : Integer; const AValue : String); virtual;
     Procedure SetandroidInstance(AIndex : Integer; AValue : TInstanceAndroidDetails); virtual;
     Procedure SetiosInstance(AIndex : Integer; AValue : TInstanceIosDetails); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplatformType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplatformType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrealtimePlay(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetturnBasedPlay(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetwebInstance(AIndex : Integer; AValue : TInstanceWebDetails); virtual;
@@ -1079,8 +1079,8 @@ type
   Protected
     //Property setters
     Procedure SetenablePiracyCheck(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpackageName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpreferred(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -1106,9 +1106,9 @@ type
     FsupportIphone : boolean;
   Protected
     //Property setters
-    Procedure SetbundleIdentifier(AIndex : Integer; AValue : String); virtual;
-    Procedure SetitunesAppId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbundleIdentifier(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetitunesAppId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpreferredForIpad(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetpreferredForIphone(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsupportIpad(AIndex : Integer; AValue : boolean); virtual;
@@ -1136,8 +1136,8 @@ type
     Fpreferred : boolean;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlaunchUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlaunchUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpreferred(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -1161,12 +1161,12 @@ type
     Forder : String;
   Protected
     //Property setters
-    Procedure SeticonUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisIconUrlDefault(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setorder(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setorder(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property iconUrl : String Index 0 Read FiconUrl Write SeticonUrl;
@@ -1195,15 +1195,15 @@ type
     FwriteTimestampMillis : String;
   Protected
     //Property setters
-    Procedure SetformattedScore(AIndex : Integer; AValue : String); virtual;
-    Procedure SetformattedScoreRank(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetformattedScore(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetformattedScoreRank(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
-    Procedure SetscoreRank(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreTag(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreValue(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeSpan(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwriteTimestampMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscoreRank(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeSpan(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwriteTimestampMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property formattedScore : String Index 0 Read FformattedScore Write SetformattedScore;
@@ -1230,8 +1230,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLeaderboardListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1257,11 +1257,11 @@ type
     Frank : String;
   Protected
     //Property setters
-    Procedure SetformattedNumScores(AIndex : Integer; AValue : String); virtual;
-    Procedure SetformattedRank(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumScores(AIndex : Integer; AValue : String); virtual;
-    Procedure Setrank(AIndex : Integer; AValue : String); virtual;
+    Procedure SetformattedNumScores(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetformattedRank(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumScores(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrank(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property formattedNumScores : String Index 0 Read FformattedNumScores Write SetformattedNumScores;
@@ -1287,11 +1287,11 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLeaderboardScoresTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumScores(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumScores(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplayerScore(AIndex : Integer; AValue : TLeaderboardEntry); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1319,7 +1319,7 @@ type
   Protected
     //Property setters
     Procedure SetcurrentVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplayerLevels(AIndex : Integer; AValue : TMetagameConfigTypeplayerLevelsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1351,9 +1351,9 @@ type
     Procedure SetandroidNetworkSubtype(AIndex : Integer; AValue : integer); virtual;
     Procedure SetandroidNetworkType(AIndex : Integer; AValue : integer); virtual;
     Procedure SetiosNetworkType(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnetworkOperatorCode(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnetworkOperatorName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkOperatorCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkOperatorName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetregistrationLatencyMillis(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -1379,10 +1379,10 @@ type
     Fresult : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplacing(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setresult(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresult(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1410,7 +1410,7 @@ type
     //Property setters
     Procedure SetbytesReceived(AIndex : Integer; AValue : TAggregateStats); virtual;
     Procedure SetbytesSent(AIndex : Integer; AValue : TAggregateStats); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumMessagesLost(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumMessagesReceived(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumMessagesSent(AIndex : Integer; AValue : integer); virtual;
@@ -1442,9 +1442,9 @@ type
     FunreliableChannel : TPeerChannelDiagnostics;
   Protected
     //Property setters
-    Procedure SetconnectedTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconnectedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreliableChannel(AIndex : Integer; AValue : TPeerChannelDiagnostics); virtual;
     Procedure SetunreliableChannel(AIndex : Integer; AValue : TPeerChannelDiagnostics); virtual;
   Public
@@ -1469,8 +1469,8 @@ type
   Protected
     //Property setters
     Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoMatched : boolean Index 0 Read FautoMatched Write SetautoMatched;
@@ -1489,8 +1489,8 @@ type
     FgivenName : String;
   Protected
     //Property setters
-    Procedure SetfamilyName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgivenName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfamilyName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgivenName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property familyName : String Index 0 Read FfamilyName Write SetfamilyName;
@@ -1514,14 +1514,14 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetavatarImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetavatarImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexperienceInfo(AIndex : Integer; AValue : TPlayerExperienceInfo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastPlayedWith(AIndex : Integer; AValue : TPlayed); virtual;
     Procedure Setname(AIndex : Integer; AValue : TPlayerTypename); virtual;
-    Procedure SetplayerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property avatarImageUrl : String Index 0 Read FavatarImageUrl Write SetavatarImageUrl;
@@ -1550,13 +1550,13 @@ type
     FlastUpdatedTimestamp : String;
   Protected
     //Property setters
-    Procedure SetachievementState(AIndex : Integer; AValue : String); virtual;
+    Procedure SetachievementState(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetexperiencePoints(AIndex : Integer; AValue : String); virtual;
-    Procedure SetformattedCurrentStepsString(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastUpdatedTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetformattedCurrentStepsString(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property achievementState : String Index 0 Read FachievementState Write SetachievementState;
@@ -1581,8 +1581,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPlayerAchievementListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1608,11 +1608,11 @@ type
     FplayerId : String;
   Protected
     //Property setters
-    Procedure SetdefinitionId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetformattedNumEvents(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumEvents(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplayerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefinitionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetformattedNumEvents(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumEvents(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplayerId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property definitionId : String Index 0 Read FdefinitionId Write SetdefinitionId;
@@ -1635,8 +1635,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPlayerEventListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1662,10 +1662,10 @@ type
     FnextLevel : TPlayerLevel;
   Protected
     //Property setters
-    Procedure SetcurrentExperiencePoints(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrentLevel(AIndex : Integer; AValue : TPlayerLevel); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextLevel(AIndex : Integer; AValue : TPlayerLevel); virtual;
   Public
   Published
@@ -1694,15 +1694,15 @@ type
     FwriteTimestamp : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setleaderboard_id(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setleaderboard_id(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublicRank(AIndex : Integer; AValue : TLeaderboardScoreRank); virtual;
-    Procedure SetscoreString(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreTag(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscoreString(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsocialRank(AIndex : Integer; AValue : TLeaderboardScoreRank); virtual;
-    Procedure SettimeSpan(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwriteTimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeSpan(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwriteTimestamp(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1730,8 +1730,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1758,10 +1758,10 @@ type
     FminExperiencePoints : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlevel(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaxExperiencePoints(AIndex : Integer; AValue : String); virtual;
-    Procedure SetminExperiencePoints(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmaxExperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetminExperiencePoints(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1783,8 +1783,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPlayerListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1810,11 +1810,11 @@ type
     FtimeSpan : String;
   Protected
     //Property setters
-    Procedure SetformattedScore(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setscore(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreTag(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeSpan(AIndex : Integer; AValue : String); virtual;
+    Procedure SetformattedScore(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setscore(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeSpan(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property formattedScore : String Index 0 Read FformattedScore Write SetformattedScore;
@@ -1835,7 +1835,7 @@ type
     FsubmittedScores : TPlayerScoreListResponseTypesubmittedScoresArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsubmittedScores(AIndex : Integer; AValue : TPlayerScoreListResponseTypesubmittedScoresArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1863,10 +1863,10 @@ type
   Protected
     //Property setters
     Procedure SetbeatenScoreTimeSpans(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetformattedScore(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetleaderboardId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreTag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetformattedScore(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetleaderboardId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
     Procedure SetunbeatenScores(AIndex : Integer; AValue : TPlayerScoreResponseTypeunbeatenScoresArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1893,7 +1893,7 @@ type
     Fscores : TPlayerScoreSubmissionListTypescoresArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setscores(AIndex : Integer; AValue : TPlayerScoreSubmissionListTypescoresArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1918,10 +1918,10 @@ type
     Flanguage : String;
   Protected
     //Property setters
-    Procedure SetclientRevision(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclientRevision(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : TPushTokenId); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property clientRevision : String Index 0 Read FclientRevision Write SetclientRevision;
@@ -1941,8 +1941,8 @@ type
     Fapns_environment : String;
   Protected
     //Property setters
-    Procedure Setapns_device_token(AIndex : Integer; AValue : String); virtual;
-    Procedure Setapns_environment(AIndex : Integer; AValue : String); virtual;
+    Procedure Setapns_device_token(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setapns_environment(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property apns_device_token : String Index 0 Read Fapns_device_token Write Setapns_device_token;
@@ -1961,7 +1961,7 @@ type
   Protected
     //Property setters
     Procedure Setios(AIndex : Integer; AValue : TPushTokenIdTypeios); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ios : TPushTokenIdTypeios Index 0 Read Fios Write Setios;
@@ -1993,22 +1993,22 @@ type
     Fstate : String;
   Protected
     //Property setters
-    Procedure SetacceptedTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetapplicationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SeticonUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetacceptedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisDefaultBannerUrl(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisDefaultIconUrl(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastUpdatedTimestampMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastUpdatedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmilestones(AIndex : Integer; AValue : TQuestTypemilestonesArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnotifyTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnotifyTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2045,9 +2045,9 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure SetformattedValue(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetformattedValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property formattedValue : String Index 0 Read FformattedValue Write SetformattedValue;
@@ -2071,9 +2071,9 @@ type
     //Property setters
     Procedure SetcompletionContribution(AIndex : Integer; AValue : TQuestContribution); virtual;
     Procedure SetcurrentContribution(AIndex : Integer; AValue : TQuestContribution); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinitialPlayerProgress(AIndex : Integer; AValue : TQuestContribution); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property completionContribution : TQuestContribution Index 0 Read FcompletionContribution Write SetcompletionContribution;
@@ -2096,8 +2096,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TQuestListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2123,11 +2123,11 @@ type
     Fstate : String;
   Protected
     //Property setters
-    Procedure SetcompletionRewardData(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcompletionRewardData(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcriteria(AIndex : Integer; AValue : TQuestMilestoneTypecriteriaArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2153,9 +2153,9 @@ type
     FrevisionStatus : String;
   Protected
     //Property setters
-    Procedure SetapiVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrevisionStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapiVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrevisionStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property apiVersion : String Index 0 Read FapiVersion Write SetapiVersion;
@@ -2185,18 +2185,18 @@ type
     Fvariant : integer;
   Protected
     //Property setters
-    Procedure SetapplicationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TRoomAutoMatchingCriteria); virtual;
     Procedure SetautoMatchingStatus(AIndex : Integer; AValue : TRoomAutoMatchStatus); virtual;
     Procedure SetcreationDetails(AIndex : Integer; AValue : TRoomModification); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinviterId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinviterId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastUpdateDetails(AIndex : Integer; AValue : TRoomModification); virtual;
     Procedure Setparticipants(AIndex : Integer; AValue : TRoomTypeparticipantsArray); virtual;
-    Procedure SetroomId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetroomId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetroomStatusVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2230,7 +2230,7 @@ type
     FwaitEstimateSeconds : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwaitEstimateSeconds(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -2251,8 +2251,8 @@ type
     FminAutoMatchingPlayers : integer;
   Protected
     //Property setters
-    Procedure SetexclusiveBitmask(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexclusiveBitmask(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
     Procedure SetminAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
   Public
@@ -2274,8 +2274,8 @@ type
     FxmppAddress : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetxmppAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetxmppAddress(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2303,9 +2303,9 @@ type
     Procedure Setcapabilities(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
     Procedure SetinvitedPlayerIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); virtual;
-    Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2338,7 +2338,7 @@ type
     //Property setters
     Procedure Setcapabilities(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2372,9 +2372,9 @@ type
     Procedure SetandroidNetworkSubtype(AIndex : Integer; AValue : integer); virtual;
     Procedure SetandroidNetworkType(AIndex : Integer; AValue : integer); virtual;
     Procedure SetiosNetworkType(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnetworkOperatorCode(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnetworkOperatorName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkOperatorCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkOperatorName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpeerSession(AIndex : Integer; AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); virtual;
     Procedure SetsocketsUsed(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -2405,9 +2405,9 @@ type
     Freason : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetleaveDiagnostics(AIndex : Integer; AValue : TRoomLeaveDiagnostics); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2428,8 +2428,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TRoomListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2453,9 +2453,9 @@ type
     FparticipantId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmodifiedTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2480,11 +2480,11 @@ type
   Protected
     //Property setters
     Procedure SetconnectionSetupLatencyMillis(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : String); virtual;
-    Procedure Seterror_reason(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparticipantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seterror_reason(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetunreliableRoundtripLatencyMillis(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -2508,7 +2508,7 @@ type
     Fupdates : TRoomP2PStatusesTypeupdatesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdates(AIndex : Integer; AValue : TRoomP2PStatusesTypeupdatesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2544,11 +2544,11 @@ type
     Procedure Setcapabilities(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
     Procedure Setconnected(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetleaveReason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetleaveReason(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2583,10 +2583,10 @@ type
   Protected
     //Property setters
     Procedure SetautoMatchingStatus(AIndex : Integer; AValue : TRoomAutoMatchStatus); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparticipants(AIndex : Integer; AValue : TRoomStatusTypeparticipantsArray); virtual;
-    Procedure SetroomId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetroomId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstatusVersion(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2616,11 +2616,11 @@ type
     Fsignature : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetleaderboardId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setscore(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreTag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsignature(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetleaderboardId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setscore(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsignature(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2652,16 +2652,16 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetcoverImage(AIndex : Integer; AValue : TSnapshotImage); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdriveId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdurationMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastModifiedMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprogressValue(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuniqueName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdriveId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdurationMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastModifiedMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprogressValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuniqueName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property coverImage : TSnapshotImage Index 0 Read FcoverImage Write SetcoverImage;
@@ -2692,9 +2692,9 @@ type
   Protected
     //Property setters
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmime_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmime_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -2718,8 +2718,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSnapshotListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2744,8 +2744,8 @@ type
     FminAutoMatchingPlayers : integer;
   Protected
     //Property setters
-    Procedure SetexclusiveBitmask(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexclusiveBitmask(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
     Procedure SetminAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
   Public
@@ -2785,26 +2785,26 @@ type
     FwithParticipantId : String;
   Protected
     //Property setters
-    Procedure SetapplicationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TTurnBasedAutoMatchingCriteria); virtual;
     Procedure SetcreationDetails(AIndex : Integer; AValue : TTurnBasedMatchModification); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TTurnBasedMatchData); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinviterId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinviterId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastUpdateDetails(AIndex : Integer; AValue : TTurnBasedMatchModification); virtual;
-    Procedure SetmatchId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmatchId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmatchNumber(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
     Procedure Setparticipants(AIndex : Integer; AValue : TTurnBasedMatchTypeparticipantsArray); virtual;
-    Procedure SetpendingParticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpendingParticipantId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpreviousMatchData(AIndex : Integer; AValue : TTurnBasedMatchData); virtual;
-    Procedure SetrematchId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrematchId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchTyperesultsArray); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserMatchStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserMatchStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetwithParticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwithParticipantId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2849,8 +2849,8 @@ type
     //Property setters
     Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TTurnBasedAutoMatchingCriteria); virtual;
     Procedure SetinvitedPlayerIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2877,9 +2877,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdataAvailable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property data : String Index 0 Read Fdata Write Setdata;
@@ -2898,8 +2898,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property data : String Index 0 Read Fdata Write Setdata;
@@ -2919,8 +2919,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTurnBasedMatchListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2944,9 +2944,9 @@ type
     FparticipantId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmodifiedTimestampMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2971,10 +2971,10 @@ type
     //Property setters
     Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetautoMatchedPlayer(AIndex : Integer; AValue : TAnonymousPlayer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoMatched : boolean Index 0 Read FautoMatched Write SetautoMatched;
@@ -2997,7 +2997,7 @@ type
     Frematch : TTurnBasedMatch;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpreviousMatch(AIndex : Integer; AValue : TTurnBasedMatch); virtual;
     Procedure Setrematch(AIndex : Integer; AValue : TTurnBasedMatch); virtual;
   Public
@@ -3021,7 +3021,7 @@ type
   Protected
     //Property setters
     Procedure Setdata(AIndex : Integer; AValue : TTurnBasedMatchDataRequest); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchResultsTyperesultsArray); virtual;
     //2.6.4. bug workaround
@@ -3050,9 +3050,9 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTurnBasedMatchSyncTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmoreAvailable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3080,9 +3080,9 @@ type
   Protected
     //Property setters
     Procedure Setdata(AIndex : Integer; AValue : TTurnBasedMatchDataRequest); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpendingParticipantId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpendingParticipantId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchTurnTyperesultsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -3814,7 +3814,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementDefinition.SetachievementType(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.SetachievementType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FachievementType=AValue) then exit;
@@ -3824,7 +3824,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3834,7 +3834,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetexperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.SetexperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexperiencePoints=AValue) then exit;
@@ -3844,7 +3844,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetformattedTotalSteps(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.SetformattedTotalSteps(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedTotalSteps=AValue) then exit;
@@ -3854,7 +3854,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setid(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3864,7 +3864,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetinitialState(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.SetinitialState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinitialState=AValue) then exit;
@@ -3894,7 +3894,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3904,7 +3904,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.Setname(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3914,7 +3914,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetrevealedIconUrl(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.SetrevealedIconUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrevealedIconUrl=AValue) then exit;
@@ -3934,7 +3934,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetunlockedIconUrl(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinition.SetunlockedIconUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FunlockedIconUrl=AValue) then exit;
@@ -3961,7 +3961,7 @@ end;
 
 
 
-Procedure TAchievementDefinitionsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinitionsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3971,7 +3971,7 @@ end;
 
 
 
-Procedure TAchievementDefinitionsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAchievementDefinitionsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4011,7 +4011,7 @@ end;
 
 
 
-Procedure TAchievementIncrementResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementIncrementResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4038,7 +4038,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementRevealResponse.SetcurrentState(AIndex : Integer; AValue : String); 
+Procedure TAchievementRevealResponse.SetcurrentState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -4048,7 +4048,7 @@ end;
 
 
 
-Procedure TAchievementRevealResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementRevealResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4075,7 +4075,7 @@ end;
 
 
 
-Procedure TAchievementSetStepsAtLeastResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementSetStepsAtLeastResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4102,7 +4102,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUnlockResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementUnlockResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4129,7 +4129,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateMultipleRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateMultipleRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4169,7 +4169,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateMultipleResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateMultipleResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4209,7 +4209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateRequest.SetachievementId(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateRequest.SetachievementId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FachievementId=AValue) then exit;
@@ -4229,7 +4229,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4249,7 +4249,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.SetupdateType(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateRequest.SetupdateType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FupdateType=AValue) then exit;
@@ -4266,7 +4266,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementUpdateResponse.SetachievementId(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateResponse.SetachievementId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FachievementId=AValue) then exit;
@@ -4276,7 +4276,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetcurrentState(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateResponse.SetcurrentState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -4296,7 +4296,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementUpdateResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4333,7 +4333,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAggregateStats.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAggregateStats.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -4343,7 +4343,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAggregateStats.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4353,7 +4353,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setmax(AIndex : Integer; AValue : String); 
+Procedure TAggregateStats.Setmax(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmax=AValue) then exit;
@@ -4363,7 +4363,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setmin(AIndex : Integer; AValue : String); 
+Procedure TAggregateStats.Setmin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmin=AValue) then exit;
@@ -4373,7 +4373,7 @@ end;
 
 
 
-Procedure TAggregateStats.Setsum(AIndex : Integer; AValue : String); 
+Procedure TAggregateStats.Setsum(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsum=AValue) then exit;
@@ -4390,7 +4390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnonymousPlayer.SetavatarImageUrl(AIndex : Integer; AValue : String); 
+Procedure TAnonymousPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FavatarImageUrl=AValue) then exit;
@@ -4400,7 +4400,7 @@ end;
 
 
 
-Procedure TAnonymousPlayer.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TAnonymousPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -4410,7 +4410,7 @@ end;
 
 
 
-Procedure TAnonymousPlayer.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnonymousPlayer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4447,7 +4447,7 @@ end;
 
 
 
-Procedure TApplication.Setauthor(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setauthor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fauthor=AValue) then exit;
@@ -4467,7 +4467,7 @@ end;
 
 
 
-Procedure TApplication.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4487,7 +4487,7 @@ end;
 
 
 
-Procedure TApplication.Setid(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4507,7 +4507,7 @@ end;
 
 
 
-Procedure TApplication.Setkind(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4517,7 +4517,7 @@ end;
 
 
 
-Procedure TApplication.SetlastUpdatedTimestamp(AIndex : Integer; AValue : String); 
+Procedure TApplication.SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastUpdatedTimestamp=AValue) then exit;
@@ -4537,7 +4537,7 @@ end;
 
 
 
-Procedure TApplication.Setname(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4547,7 +4547,7 @@ end;
 
 
 
-Procedure TApplication.SetthemeColor(AIndex : Integer; AValue : String); 
+Procedure TApplication.SetthemeColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FthemeColor=AValue) then exit;
@@ -4579,7 +4579,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplicationCategory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TApplicationCategory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4589,7 +4589,7 @@ end;
 
 
 
-Procedure TApplicationCategory.Setprimary(AIndex : Integer; AValue : String); 
+Procedure TApplicationCategory.Setprimary(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fprimary=AValue) then exit;
@@ -4599,7 +4599,7 @@ end;
 
 
 
-Procedure TApplicationCategory.Setsecondary(AIndex : Integer; AValue : String); 
+Procedure TApplicationCategory.Setsecondary(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsecondary=AValue) then exit;
@@ -4616,7 +4616,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCategory.Setcategory(AIndex : Integer; AValue : String); 
+Procedure TCategory.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -4626,7 +4626,7 @@ end;
 
 
 
-Procedure TCategory.SetexperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TCategory.SetexperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexperiencePoints=AValue) then exit;
@@ -4636,7 +4636,7 @@ end;
 
 
 
-Procedure TCategory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCategory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4663,7 +4663,7 @@ end;
 
 
 
-Procedure TCategoryListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCategoryListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4673,7 +4673,7 @@ end;
 
 
 
-Procedure TCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TCategoryListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4703,7 +4703,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventBatchRecordFailure.SetfailureCause(AIndex : Integer; AValue : String); 
+Procedure TEventBatchRecordFailure.SetfailureCause(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfailureCause=AValue) then exit;
@@ -4713,7 +4713,7 @@ end;
 
 
 
-Procedure TEventBatchRecordFailure.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventBatchRecordFailure.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4740,7 +4740,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventChild.SetchildId(AIndex : Integer; AValue : String); 
+Procedure TEventChild.SetchildId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchildId=AValue) then exit;
@@ -4750,7 +4750,7 @@ end;
 
 
 
-Procedure TEventChild.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventChild.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4777,7 +4777,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TEventDefinition.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4787,7 +4787,7 @@ end;
 
 
 
-Procedure TEventDefinition.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TEventDefinition.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -4797,7 +4797,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setid(AIndex : Integer; AValue : String); 
+Procedure TEventDefinition.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4807,7 +4807,7 @@ end;
 
 
 
-Procedure TEventDefinition.SetimageUrl(AIndex : Integer; AValue : String); 
+Procedure TEventDefinition.SetimageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -4827,7 +4827,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventDefinition.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4837,7 +4837,7 @@ end;
 
 
 
-Procedure TEventDefinition.Setvisibility(AIndex : Integer; AValue : String); 
+Procedure TEventDefinition.Setvisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -4877,7 +4877,7 @@ end;
 
 
 
-Procedure TEventDefinitionListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventDefinitionListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4887,7 +4887,7 @@ end;
 
 
 
-Procedure TEventDefinitionListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TEventDefinitionListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4917,7 +4917,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventPeriodRange.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventPeriodRange.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4927,7 +4927,7 @@ end;
 
 
 
-Procedure TEventPeriodRange.SetperiodEndMillis(AIndex : Integer; AValue : String); 
+Procedure TEventPeriodRange.SetperiodEndMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FperiodEndMillis=AValue) then exit;
@@ -4937,7 +4937,7 @@ end;
 
 
 
-Procedure TEventPeriodRange.SetperiodStartMillis(AIndex : Integer; AValue : String); 
+Procedure TEventPeriodRange.SetperiodStartMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FperiodStartMillis=AValue) then exit;
@@ -4954,7 +4954,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventPeriodUpdate.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventPeriodUpdate.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5004,7 +5004,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventRecordFailure.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TEventRecordFailure.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -5014,7 +5014,7 @@ end;
 
 
 
-Procedure TEventRecordFailure.SetfailureCause(AIndex : Integer; AValue : String); 
+Procedure TEventRecordFailure.SetfailureCause(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfailureCause=AValue) then exit;
@@ -5024,7 +5024,7 @@ end;
 
 
 
-Procedure TEventRecordFailure.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventRecordFailure.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5041,7 +5041,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventRecordRequest.SetcurrentTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TEventRecordRequest.SetcurrentTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentTimeMillis=AValue) then exit;
@@ -5051,7 +5051,7 @@ end;
 
 
 
-Procedure TEventRecordRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventRecordRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5061,7 +5061,7 @@ end;
 
 
 
-Procedure TEventRecordRequest.SetrequestId(AIndex : Integer; AValue : String); 
+Procedure TEventRecordRequest.SetrequestId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestId=AValue) then exit;
@@ -5101,7 +5101,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventUpdateRequest.SetdefinitionId(AIndex : Integer; AValue : String); 
+Procedure TEventUpdateRequest.SetdefinitionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -5111,7 +5111,7 @@ end;
 
 
 
-Procedure TEventUpdateRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5121,7 +5121,7 @@ end;
 
 
 
-Procedure TEventUpdateRequest.SetupdateCount(AIndex : Integer; AValue : String); 
+Procedure TEventUpdateRequest.SetupdateCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FupdateCount=AValue) then exit;
@@ -5158,7 +5158,7 @@ end;
 
 
 
-Procedure TEventUpdateResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventUpdateResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5200,7 +5200,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesAchievementIncrement.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGamesAchievementIncrement.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5210,7 +5210,7 @@ end;
 
 
 
-Procedure TGamesAchievementIncrement.SetrequestId(AIndex : Integer; AValue : String); 
+Procedure TGamesAchievementIncrement.SetrequestId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestId=AValue) then exit;
@@ -5237,7 +5237,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesAchievementSetStepsAtLeast.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGamesAchievementSetStepsAtLeast.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5274,7 +5274,7 @@ end;
 
 
 
-Procedure TImageAsset.Setkind(AIndex : Integer; AValue : String); 
+Procedure TImageAsset.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5284,7 +5284,7 @@ end;
 
 
 
-Procedure TImageAsset.Setname(AIndex : Integer; AValue : String); 
+Procedure TImageAsset.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5294,7 +5294,7 @@ end;
 
 
 
-Procedure TImageAsset.Seturl(AIndex : Integer; AValue : String); 
+Procedure TImageAsset.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -5321,7 +5321,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstance.SetacquisitionUri(AIndex : Integer; AValue : String); 
+Procedure TInstance.SetacquisitionUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FacquisitionUri=AValue) then exit;
@@ -5351,7 +5351,7 @@ end;
 
 
 
-Procedure TInstance.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstance.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5361,7 +5361,7 @@ end;
 
 
 
-Procedure TInstance.Setname(AIndex : Integer; AValue : String); 
+Procedure TInstance.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5371,7 +5371,7 @@ end;
 
 
 
-Procedure TInstance.SetplatformType(AIndex : Integer; AValue : String); 
+Procedure TInstance.SetplatformType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplatformType=AValue) then exit;
@@ -5428,7 +5428,7 @@ end;
 
 
 
-Procedure TInstanceAndroidDetails.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstanceAndroidDetails.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5438,7 +5438,7 @@ end;
 
 
 
-Procedure TInstanceAndroidDetails.SetpackageName(AIndex : Integer; AValue : String); 
+Procedure TInstanceAndroidDetails.SetpackageName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpackageName=AValue) then exit;
@@ -5465,7 +5465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceIosDetails.SetbundleIdentifier(AIndex : Integer; AValue : String); 
+Procedure TInstanceIosDetails.SetbundleIdentifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbundleIdentifier=AValue) then exit;
@@ -5475,7 +5475,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetitunesAppId(AIndex : Integer; AValue : String); 
+Procedure TInstanceIosDetails.SetitunesAppId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitunesAppId=AValue) then exit;
@@ -5485,7 +5485,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstanceIosDetails.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5542,7 +5542,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceWebDetails.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstanceWebDetails.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5552,7 +5552,7 @@ end;
 
 
 
-Procedure TInstanceWebDetails.SetlaunchUrl(AIndex : Integer; AValue : String); 
+Procedure TInstanceWebDetails.SetlaunchUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlaunchUrl=AValue) then exit;
@@ -5579,7 +5579,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboard.SeticonUrl(AIndex : Integer; AValue : String); 
+Procedure TLeaderboard.SeticonUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -5589,7 +5589,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setid(AIndex : Integer; AValue : String); 
+Procedure TLeaderboard.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5609,7 +5609,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboard.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5619,7 +5619,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setname(AIndex : Integer; AValue : String); 
+Procedure TLeaderboard.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5629,7 +5629,7 @@ end;
 
 
 
-Procedure TLeaderboard.Setorder(AIndex : Integer; AValue : String); 
+Procedure TLeaderboard.Setorder(AIndex : Integer; const AValue : String); 
 
 begin
   If (Forder=AValue) then exit;
@@ -5646,7 +5646,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardEntry.SetformattedScore(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SetformattedScore(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedScore=AValue) then exit;
@@ -5656,7 +5656,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetformattedScoreRank(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SetformattedScoreRank(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedScoreRank=AValue) then exit;
@@ -5666,7 +5666,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5686,7 +5686,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetscoreRank(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SetscoreRank(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreRank=AValue) then exit;
@@ -5696,7 +5696,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetscoreTag(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SetscoreTag(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -5706,7 +5706,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetscoreValue(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SetscoreValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreValue=AValue) then exit;
@@ -5716,7 +5716,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SettimeSpan(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SettimeSpan(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -5726,7 +5726,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.SetwriteTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardEntry.SetwriteTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwriteTimestampMillis=AValue) then exit;
@@ -5753,7 +5753,7 @@ end;
 
 
 
-Procedure TLeaderboardListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5763,7 +5763,7 @@ end;
 
 
 
-Procedure TLeaderboardListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5793,7 +5793,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardScoreRank.SetformattedNumScores(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScoreRank.SetformattedNumScores(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedNumScores=AValue) then exit;
@@ -5803,7 +5803,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.SetformattedRank(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScoreRank.SetformattedRank(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedRank=AValue) then exit;
@@ -5813,7 +5813,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScoreRank.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5823,7 +5823,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.SetnumScores(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScoreRank.SetnumScores(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumScores=AValue) then exit;
@@ -5833,7 +5833,7 @@ end;
 
 
 
-Procedure TLeaderboardScoreRank.Setrank(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScoreRank.Setrank(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frank=AValue) then exit;
@@ -5860,7 +5860,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScores.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5870,7 +5870,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScores.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5880,7 +5880,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetnumScores(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScores.SetnumScores(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumScores=AValue) then exit;
@@ -5900,7 +5900,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardScores.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -5940,7 +5940,7 @@ end;
 
 
 
-Procedure TMetagameConfig.Setkind(AIndex : Integer; AValue : String); 
+Procedure TMetagameConfig.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6010,7 +6010,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.Setkind(AIndex : Integer; AValue : String); 
+Procedure TNetworkDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6020,7 +6020,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetnetworkOperatorCode(AIndex : Integer; AValue : String); 
+Procedure TNetworkDiagnostics.SetnetworkOperatorCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkOperatorCode=AValue) then exit;
@@ -6030,7 +6030,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetnetworkOperatorName(AIndex : Integer; AValue : String); 
+Procedure TNetworkDiagnostics.SetnetworkOperatorName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkOperatorName=AValue) then exit;
@@ -6057,7 +6057,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParticipantResult.Setkind(AIndex : Integer; AValue : String); 
+Procedure TParticipantResult.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6067,7 +6067,7 @@ end;
 
 
 
-Procedure TParticipantResult.SetparticipantId(AIndex : Integer; AValue : String); 
+Procedure TParticipantResult.SetparticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -6087,7 +6087,7 @@ end;
 
 
 
-Procedure TParticipantResult.Setresult(AIndex : Integer; AValue : String); 
+Procedure TParticipantResult.Setresult(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fresult=AValue) then exit;
@@ -6124,7 +6124,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPeerChannelDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6191,7 +6191,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPeerSessionDiagnostics.SetconnectedTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TPeerSessionDiagnostics.SetconnectedTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconnectedTimestampMillis=AValue) then exit;
@@ -6201,7 +6201,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPeerSessionDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6211,7 +6211,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.SetparticipantId(AIndex : Integer; AValue : String); 
+Procedure TPeerSessionDiagnostics.SetparticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -6258,7 +6258,7 @@ end;
 
 
 
-Procedure TPlayed.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayed.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6268,7 +6268,7 @@ end;
 
 
 
-Procedure TPlayed.SettimeMillis(AIndex : Integer; AValue : String); 
+Procedure TPlayed.SettimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeMillis=AValue) then exit;
@@ -6285,7 +6285,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; AValue : String); 
+Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -6295,7 +6295,7 @@ end;
 
 
 
-Procedure TPlayerTypename.SetgivenName(AIndex : Integer; AValue : String); 
+Procedure TPlayerTypename.SetgivenName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgivenName=AValue) then exit;
@@ -6312,7 +6312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; AValue : String); 
+Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FavatarImageUrl=AValue) then exit;
@@ -6322,7 +6322,7 @@ end;
 
 
 
-Procedure TPlayer.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -6342,7 +6342,7 @@ end;
 
 
 
-Procedure TPlayer.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6372,7 +6372,7 @@ end;
 
 
 
-Procedure TPlayer.SetplayerId(AIndex : Integer; AValue : String); 
+Procedure TPlayer.SetplayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplayerId=AValue) then exit;
@@ -6382,7 +6382,7 @@ end;
 
 
 
-Procedure TPlayer.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPlayer.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -6399,7 +6399,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerAchievement.SetachievementState(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievement.SetachievementState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FachievementState=AValue) then exit;
@@ -6419,7 +6419,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetexperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievement.SetexperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexperiencePoints=AValue) then exit;
@@ -6429,7 +6429,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetformattedCurrentStepsString(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievement.SetformattedCurrentStepsString(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedCurrentStepsString=AValue) then exit;
@@ -6439,7 +6439,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.Setid(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievement.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6449,7 +6449,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievement.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6459,7 +6459,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetlastUpdatedTimestamp(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievement.SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastUpdatedTimestamp=AValue) then exit;
@@ -6486,7 +6486,7 @@ end;
 
 
 
-Procedure TPlayerAchievementListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievementListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6496,7 +6496,7 @@ end;
 
 
 
-Procedure TPlayerAchievementListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlayerAchievementListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6526,7 +6526,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerEvent.SetdefinitionId(AIndex : Integer; AValue : String); 
+Procedure TPlayerEvent.SetdefinitionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -6536,7 +6536,7 @@ end;
 
 
 
-Procedure TPlayerEvent.SetformattedNumEvents(AIndex : Integer; AValue : String); 
+Procedure TPlayerEvent.SetformattedNumEvents(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedNumEvents=AValue) then exit;
@@ -6546,7 +6546,7 @@ end;
 
 
 
-Procedure TPlayerEvent.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerEvent.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6556,7 +6556,7 @@ end;
 
 
 
-Procedure TPlayerEvent.SetnumEvents(AIndex : Integer; AValue : String); 
+Procedure TPlayerEvent.SetnumEvents(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumEvents=AValue) then exit;
@@ -6566,7 +6566,7 @@ end;
 
 
 
-Procedure TPlayerEvent.SetplayerId(AIndex : Integer; AValue : String); 
+Procedure TPlayerEvent.SetplayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplayerId=AValue) then exit;
@@ -6593,7 +6593,7 @@ end;
 
 
 
-Procedure TPlayerEventListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerEventListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6603,7 +6603,7 @@ end;
 
 
 
-Procedure TPlayerEventListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlayerEventListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6633,7 +6633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerExperienceInfo.SetcurrentExperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TPlayerExperienceInfo.SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentExperiencePoints=AValue) then exit;
@@ -6653,7 +6653,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerExperienceInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6663,7 +6663,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.SetlastLevelUpTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TPlayerExperienceInfo.SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastLevelUpTimestampMillis=AValue) then exit;
@@ -6690,7 +6690,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerLeaderboardScore.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6700,7 +6700,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.Setleaderboard_id(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.Setleaderboard_id(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fleaderboard_id=AValue) then exit;
@@ -6720,7 +6720,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetscoreString(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.SetscoreString(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreString=AValue) then exit;
@@ -6730,7 +6730,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetscoreTag(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.SetscoreTag(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -6740,7 +6740,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetscoreValue(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.SetscoreValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreValue=AValue) then exit;
@@ -6760,7 +6760,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SettimeSpan(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.SettimeSpan(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -6770,7 +6770,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetwriteTimestamp(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScore.SetwriteTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwriteTimestamp=AValue) then exit;
@@ -6797,7 +6797,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScoreListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScoreListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6807,7 +6807,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScoreListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlayerLeaderboardScoreListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6847,7 +6847,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerLevel.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerLevel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6867,7 +6867,7 @@ end;
 
 
 
-Procedure TPlayerLevel.SetmaxExperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TPlayerLevel.SetmaxExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxExperiencePoints=AValue) then exit;
@@ -6877,7 +6877,7 @@ end;
 
 
 
-Procedure TPlayerLevel.SetminExperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TPlayerLevel.SetminExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FminExperiencePoints=AValue) then exit;
@@ -6904,7 +6904,7 @@ end;
 
 
 
-Procedure TPlayerListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6914,7 +6914,7 @@ end;
 
 
 
-Procedure TPlayerListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlayerListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6944,7 +6944,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScore.SetformattedScore(AIndex : Integer; AValue : String); 
+Procedure TPlayerScore.SetformattedScore(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedScore=AValue) then exit;
@@ -6954,7 +6954,7 @@ end;
 
 
 
-Procedure TPlayerScore.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerScore.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6964,7 +6964,7 @@ end;
 
 
 
-Procedure TPlayerScore.Setscore(AIndex : Integer; AValue : String); 
+Procedure TPlayerScore.Setscore(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscore=AValue) then exit;
@@ -6974,7 +6974,7 @@ end;
 
 
 
-Procedure TPlayerScore.SetscoreTag(AIndex : Integer; AValue : String); 
+Procedure TPlayerScore.SetscoreTag(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -6984,7 +6984,7 @@ end;
 
 
 
-Procedure TPlayerScore.SettimeSpan(AIndex : Integer; AValue : String); 
+Procedure TPlayerScore.SettimeSpan(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeSpan=AValue) then exit;
@@ -7001,7 +7001,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7051,7 +7051,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetformattedScore(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResponse.SetformattedScore(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedScore=AValue) then exit;
@@ -7061,7 +7061,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7071,7 +7071,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetleaderboardId(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResponse.SetleaderboardId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleaderboardId=AValue) then exit;
@@ -7081,7 +7081,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetscoreTag(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResponse.SetscoreTag(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -7122,7 +7122,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreSubmissionList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreSubmissionList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7162,7 +7162,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushToken.SetclientRevision(AIndex : Integer; AValue : String); 
+Procedure TPushToken.SetclientRevision(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclientRevision=AValue) then exit;
@@ -7182,7 +7182,7 @@ end;
 
 
 
-Procedure TPushToken.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPushToken.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7192,7 +7192,7 @@ end;
 
 
 
-Procedure TPushToken.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TPushToken.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -7209,7 +7209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushTokenIdTypeios.Setapns_device_token(AIndex : Integer; AValue : String); 
+Procedure TPushTokenIdTypeios.Setapns_device_token(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fapns_device_token=AValue) then exit;
@@ -7219,7 +7219,7 @@ end;
 
 
 
-Procedure TPushTokenIdTypeios.Setapns_environment(AIndex : Integer; AValue : String); 
+Procedure TPushTokenIdTypeios.Setapns_environment(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fapns_environment=AValue) then exit;
@@ -7246,7 +7246,7 @@ end;
 
 
 
-Procedure TPushTokenId.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPushTokenId.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7263,7 +7263,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuest.SetacceptedTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetacceptedTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FacceptedTimestampMillis=AValue) then exit;
@@ -7273,7 +7273,7 @@ end;
 
 
 
-Procedure TQuest.SetapplicationId(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -7283,7 +7283,7 @@ end;
 
 
 
-Procedure TQuest.SetbannerUrl(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetbannerUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerUrl=AValue) then exit;
@@ -7293,7 +7293,7 @@ end;
 
 
 
-Procedure TQuest.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TQuest.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7303,7 +7303,7 @@ end;
 
 
 
-Procedure TQuest.SetendTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetendTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTimestampMillis=AValue) then exit;
@@ -7313,7 +7313,7 @@ end;
 
 
 
-Procedure TQuest.SeticonUrl(AIndex : Integer; AValue : String); 
+Procedure TQuest.SeticonUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -7323,7 +7323,7 @@ end;
 
 
 
-Procedure TQuest.Setid(AIndex : Integer; AValue : String); 
+Procedure TQuest.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7353,7 +7353,7 @@ end;
 
 
 
-Procedure TQuest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7363,7 +7363,7 @@ end;
 
 
 
-Procedure TQuest.SetlastUpdatedTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetlastUpdatedTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastUpdatedTimestampMillis=AValue) then exit;
@@ -7383,7 +7383,7 @@ end;
 
 
 
-Procedure TQuest.Setname(AIndex : Integer; AValue : String); 
+Procedure TQuest.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7393,7 +7393,7 @@ end;
 
 
 
-Procedure TQuest.SetnotifyTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetnotifyTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnotifyTimestampMillis=AValue) then exit;
@@ -7403,7 +7403,7 @@ end;
 
 
 
-Procedure TQuest.SetstartTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TQuest.SetstartTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTimestampMillis=AValue) then exit;
@@ -7413,7 +7413,7 @@ end;
 
 
 
-Procedure TQuest.Setstate(AIndex : Integer; AValue : String); 
+Procedure TQuest.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -7443,7 +7443,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestContribution.SetformattedValue(AIndex : Integer; AValue : String); 
+Procedure TQuestContribution.SetformattedValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformattedValue=AValue) then exit;
@@ -7453,7 +7453,7 @@ end;
 
 
 
-Procedure TQuestContribution.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuestContribution.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7463,7 +7463,7 @@ end;
 
 
 
-Procedure TQuestContribution.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TQuestContribution.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7500,7 +7500,7 @@ end;
 
 
 
-Procedure TQuestCriterion.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TQuestCriterion.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -7520,7 +7520,7 @@ end;
 
 
 
-Procedure TQuestCriterion.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuestCriterion.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7547,7 +7547,7 @@ end;
 
 
 
-Procedure TQuestListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuestListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7557,7 +7557,7 @@ end;
 
 
 
-Procedure TQuestListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TQuestListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7587,7 +7587,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestMilestone.SetcompletionRewardData(AIndex : Integer; AValue : String); 
+Procedure TQuestMilestone.SetcompletionRewardData(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcompletionRewardData=AValue) then exit;
@@ -7607,7 +7607,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setid(AIndex : Integer; AValue : String); 
+Procedure TQuestMilestone.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7617,7 +7617,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuestMilestone.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7627,7 +7627,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setstate(AIndex : Integer; AValue : String); 
+Procedure TQuestMilestone.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -7657,7 +7657,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRevisionCheckResponse.SetapiVersion(AIndex : Integer; AValue : String); 
+Procedure TRevisionCheckResponse.SetapiVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapiVersion=AValue) then exit;
@@ -7667,7 +7667,7 @@ end;
 
 
 
-Procedure TRevisionCheckResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRevisionCheckResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7677,7 +7677,7 @@ end;
 
 
 
-Procedure TRevisionCheckResponse.SetrevisionStatus(AIndex : Integer; AValue : String); 
+Procedure TRevisionCheckResponse.SetrevisionStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrevisionStatus=AValue) then exit;
@@ -7694,7 +7694,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoom.SetapplicationId(AIndex : Integer; AValue : String); 
+Procedure TRoom.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -7734,7 +7734,7 @@ end;
 
 
 
-Procedure TRoom.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TRoom.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7744,7 +7744,7 @@ end;
 
 
 
-Procedure TRoom.SetinviterId(AIndex : Integer; AValue : String); 
+Procedure TRoom.SetinviterId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinviterId=AValue) then exit;
@@ -7754,7 +7754,7 @@ end;
 
 
 
-Procedure TRoom.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoom.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7784,7 +7784,7 @@ end;
 
 
 
-Procedure TRoom.SetroomId(AIndex : Integer; AValue : String); 
+Procedure TRoom.SetroomId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FroomId=AValue) then exit;
@@ -7804,7 +7804,7 @@ end;
 
 
 
-Procedure TRoom.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TRoom.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -7844,7 +7844,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomAutoMatchStatus.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomAutoMatchStatus.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7871,7 +7871,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; AValue : String); 
+Procedure TRoomAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexclusiveBitmask=AValue) then exit;
@@ -7881,7 +7881,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchingCriteria.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomAutoMatchingCriteria.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7918,7 +7918,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomClientAddress.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomClientAddress.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7928,7 +7928,7 @@ end;
 
 
 
-Procedure TRoomClientAddress.SetxmppAddress(AIndex : Integer; AValue : String); 
+Procedure TRoomClientAddress.SetxmppAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FxmppAddress=AValue) then exit;
@@ -7985,7 +7985,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomCreateRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8005,7 +8005,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetrequestId(AIndex : Integer; AValue : String); 
+Procedure TRoomCreateRequest.SetrequestId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestId=AValue) then exit;
@@ -8066,7 +8066,7 @@ end;
 
 
 
-Procedure TRoomJoinRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomJoinRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8136,7 +8136,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomLeaveDiagnostics.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8146,7 +8146,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetnetworkOperatorCode(AIndex : Integer; AValue : String); 
+Procedure TRoomLeaveDiagnostics.SetnetworkOperatorCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkOperatorCode=AValue) then exit;
@@ -8156,7 +8156,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetnetworkOperatorName(AIndex : Integer; AValue : String); 
+Procedure TRoomLeaveDiagnostics.SetnetworkOperatorName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkOperatorName=AValue) then exit;
@@ -8206,7 +8206,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomLeaveRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomLeaveRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8226,7 +8226,7 @@ end;
 
 
 
-Procedure TRoomLeaveRequest.Setreason(AIndex : Integer; AValue : String); 
+Procedure TRoomLeaveRequest.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -8253,7 +8253,7 @@ end;
 
 
 
-Procedure TRoomList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8263,7 +8263,7 @@ end;
 
 
 
-Procedure TRoomList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TRoomList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8293,7 +8293,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomModification.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomModification.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8303,7 +8303,7 @@ end;
 
 
 
-Procedure TRoomModification.SetmodifiedTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TRoomModification.SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodifiedTimestampMillis=AValue) then exit;
@@ -8313,7 +8313,7 @@ end;
 
 
 
-Procedure TRoomModification.SetparticipantId(AIndex : Integer; AValue : String); 
+Procedure TRoomModification.SetparticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -8340,7 +8340,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Seterror(AIndex : Integer; AValue : String); 
+Procedure TRoomP2PStatus.Seterror(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -8350,7 +8350,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Seterror_reason(AIndex : Integer; AValue : String); 
+Procedure TRoomP2PStatus.Seterror_reason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ferror_reason=AValue) then exit;
@@ -8360,7 +8360,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomP2PStatus.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8370,7 +8370,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.SetparticipantId(AIndex : Integer; AValue : String); 
+Procedure TRoomP2PStatus.SetparticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -8380,7 +8380,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TRoomP2PStatus.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8407,7 +8407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomP2PStatuses.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomP2PStatuses.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8497,7 +8497,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setid(AIndex : Integer; AValue : String); 
+Procedure TRoomParticipant.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8507,7 +8507,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomParticipant.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8517,7 +8517,7 @@ end;
 
 
 
-Procedure TRoomParticipant.SetleaveReason(AIndex : Integer; AValue : String); 
+Procedure TRoomParticipant.SetleaveReason(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleaveReason=AValue) then exit;
@@ -8537,7 +8537,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TRoomParticipant.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8577,7 +8577,7 @@ end;
 
 
 
-Procedure TRoomStatus.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRoomStatus.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8597,7 +8597,7 @@ end;
 
 
 
-Procedure TRoomStatus.SetroomId(AIndex : Integer; AValue : String); 
+Procedure TRoomStatus.SetroomId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FroomId=AValue) then exit;
@@ -8607,7 +8607,7 @@ end;
 
 
 
-Procedure TRoomStatus.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TRoomStatus.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -8647,7 +8647,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScoreSubmission.Setkind(AIndex : Integer; AValue : String); 
+Procedure TScoreSubmission.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8657,7 +8657,7 @@ end;
 
 
 
-Procedure TScoreSubmission.SetleaderboardId(AIndex : Integer; AValue : String); 
+Procedure TScoreSubmission.SetleaderboardId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleaderboardId=AValue) then exit;
@@ -8667,7 +8667,7 @@ end;
 
 
 
-Procedure TScoreSubmission.Setscore(AIndex : Integer; AValue : String); 
+Procedure TScoreSubmission.Setscore(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscore=AValue) then exit;
@@ -8677,7 +8677,7 @@ end;
 
 
 
-Procedure TScoreSubmission.SetscoreTag(AIndex : Integer; AValue : String); 
+Procedure TScoreSubmission.SetscoreTag(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreTag=AValue) then exit;
@@ -8687,7 +8687,7 @@ end;
 
 
 
-Procedure TScoreSubmission.Setsignature(AIndex : Integer; AValue : String); 
+Procedure TScoreSubmission.Setsignature(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsignature=AValue) then exit;
@@ -8714,7 +8714,7 @@ end;
 
 
 
-Procedure TSnapshot.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8724,7 +8724,7 @@ end;
 
 
 
-Procedure TSnapshot.SetdriveId(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.SetdriveId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdriveId=AValue) then exit;
@@ -8734,7 +8734,7 @@ end;
 
 
 
-Procedure TSnapshot.SetdurationMillis(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.SetdurationMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdurationMillis=AValue) then exit;
@@ -8744,7 +8744,7 @@ end;
 
 
 
-Procedure TSnapshot.Setid(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8754,7 +8754,7 @@ end;
 
 
 
-Procedure TSnapshot.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8764,7 +8764,7 @@ end;
 
 
 
-Procedure TSnapshot.SetlastModifiedMillis(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.SetlastModifiedMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifiedMillis=AValue) then exit;
@@ -8774,7 +8774,7 @@ end;
 
 
 
-Procedure TSnapshot.SetprogressValue(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.SetprogressValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprogressValue=AValue) then exit;
@@ -8784,7 +8784,7 @@ end;
 
 
 
-Procedure TSnapshot.Settitle(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8794,7 +8794,7 @@ end;
 
 
 
-Procedure TSnapshot.Set_type(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -8804,7 +8804,7 @@ end;
 
 
 
-Procedure TSnapshot.SetuniqueName(AIndex : Integer; AValue : String); 
+Procedure TSnapshot.SetuniqueName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuniqueName=AValue) then exit;
@@ -8842,7 +8842,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSnapshotImage.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8852,7 +8852,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Setmime_type(AIndex : Integer; AValue : String); 
+Procedure TSnapshotImage.Setmime_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmime_type=AValue) then exit;
@@ -8862,7 +8862,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Seturl(AIndex : Integer; AValue : String); 
+Procedure TSnapshotImage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -8899,7 +8899,7 @@ end;
 
 
 
-Procedure TSnapshotListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSnapshotListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8909,7 +8909,7 @@ end;
 
 
 
-Procedure TSnapshotListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSnapshotListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8939,7 +8939,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedAutoMatchingCriteria.SetexclusiveBitmask(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexclusiveBitmask=AValue) then exit;
@@ -8949,7 +8949,7 @@ end;
 
 
 
-Procedure TTurnBasedAutoMatchingCriteria.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedAutoMatchingCriteria.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8986,7 +8986,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatch.SetapplicationId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -9026,7 +9026,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -9036,7 +9036,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetinviterId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetinviterId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinviterId=AValue) then exit;
@@ -9046,7 +9046,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9066,7 +9066,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetmatchId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetmatchId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmatchId=AValue) then exit;
@@ -9106,7 +9106,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetpendingParticipantId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetpendingParticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpendingParticipantId=AValue) then exit;
@@ -9126,7 +9126,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetrematchId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetrematchId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrematchId=AValue) then exit;
@@ -9146,7 +9146,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -9156,7 +9156,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetuserMatchStatus(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetuserMatchStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserMatchStatus=AValue) then exit;
@@ -9176,7 +9176,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetwithParticipantId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatch.SetwithParticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwithParticipantId=AValue) then exit;
@@ -9227,7 +9227,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchCreateRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9237,7 +9237,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.SetrequestId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchCreateRequest.SetrequestId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestId=AValue) then exit;
@@ -9277,7 +9277,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchData.Setdata(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchData.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -9297,7 +9297,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9314,7 +9314,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchDataRequest.Setdata(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchDataRequest.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -9324,7 +9324,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchDataRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchDataRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9351,7 +9351,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9361,7 +9361,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9391,7 +9391,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchModification.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchModification.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9401,7 +9401,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchModification.SetmodifiedTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchModification.SetmodifiedTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodifiedTimestampMillis=AValue) then exit;
@@ -9411,7 +9411,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchModification.SetparticipantId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchModification.SetparticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparticipantId=AValue) then exit;
@@ -9448,7 +9448,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setid(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchParticipant.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9458,7 +9458,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchParticipant.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9478,7 +9478,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchParticipant.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -9495,7 +9495,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchRematch.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchRematch.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9542,7 +9542,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchResults.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchResults.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9602,7 +9602,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchSync.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchSync.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9622,7 +9622,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchSync.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchSync.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9662,7 +9662,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchTurn.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9682,7 +9682,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.SetpendingParticipantId(AIndex : Integer; AValue : String); 
+Procedure TTurnBasedMatchTurn.SetpendingParticipantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpendingParticipantId=AValue) then exit;

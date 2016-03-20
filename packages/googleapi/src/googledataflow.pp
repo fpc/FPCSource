@@ -230,7 +230,7 @@ type
     //Property setters
     Procedure SetpercentComplete(AIndex : Integer; AValue : integer); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TPosition); virtual;
-    Procedure SetremainingTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetremainingTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property percentComplete : integer Index 0 Read FpercentComplete Write SetpercentComplete;
@@ -249,7 +249,7 @@ type
     FmaxNumWorkers : integer;
   Protected
     //Property setters
-    Procedure Setalgorithm(AIndex : Integer; AValue : String); virtual;
+    Procedure Setalgorithm(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxNumWorkers(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -270,7 +270,7 @@ type
     Foutputs : TComputationTopologyTypeoutputsArray;
   Protected
     //Property setters
-    Procedure SetcomputationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomputationId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinputs(AIndex : Integer; AValue : TComputationTopologyTypeinputsArray); virtual;
     Procedure SetkeyRanges(AIndex : Integer; AValue : TComputationTopologyTypekeyRangesArray); virtual;
     Procedure Setoutputs(AIndex : Integer; AValue : TComputationTopologyTypeoutputsArray); virtual;
@@ -298,7 +298,7 @@ type
   Protected
     //Property setters
     Procedure SetdataDisks(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetvmInstance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvmInstance(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -320,7 +320,7 @@ type
     Fsource : TSource;
   Protected
     //Property setters
-    Procedure SetderivationMode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetderivationMode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TSource); virtual;
   Public
   Published
@@ -340,8 +340,8 @@ type
     FsizeGb : integer;
   Protected
     //Property setters
-    Procedure SetdiskType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmountPoint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdiskType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmountPoint(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsizeGb(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -428,11 +428,11 @@ type
     FworkerPools : TEnvironmentTypeworkerPoolsArray;
   Protected
     //Property setters
-    Procedure SetclusterManagerApiService(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdataset(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclusterManagerApiService(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdataset(AIndex : Integer; const AValue : String); virtual;
     Procedure Setexperiments(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsdkPipelineOptions(AIndex : Integer; AValue : TEnvironmentTypesdkPipelineOptions); virtual;
-    Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
+    Procedure SettempStoragePrefix(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserAgent(AIndex : Integer; AValue : TEnvironmentTypeuserAgent); virtual;
     Procedure Setversion(AIndex : Integer; AValue : TEnvironmentTypeversion); virtual;
     Procedure SetworkerPools(AIndex : Integer; AValue : TEnvironmentTypeworkerPoolsArray); virtual;
@@ -517,7 +517,7 @@ type
   Protected
     //Property setters
     Procedure Setcodec(AIndex : Integer; AValue : TInstructionOutputTypecodec); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property codec : TInstructionOutputTypecodec Index 0 Read Fcodec Write Setcodec;
@@ -545,17 +545,17 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcreateTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcurrentState(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcurrentStateTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreateTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentState(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrentStateTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setenvironment(AIndex : Integer; AValue : TEnvironment); virtual;
     Procedure SetexecutionInfo(AIndex : Integer; AValue : TJobExecutionInfo); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestedState(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestedState(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsteps(AIndex : Integer; AValue : TJobTypestepsArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -638,10 +638,10 @@ type
     Ftime : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmessageImportance(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmessageText(AIndex : Integer; AValue : String); virtual;
-    Procedure Settime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmessageImportance(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmessageText(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -661,7 +661,7 @@ type
     Fmetrics : TJobMetricsTypemetricsArray;
   Protected
     //Property setters
-    Procedure SetmetricTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmetricTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TJobMetricsTypemetricsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -686,9 +686,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdataDisk(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataDisk(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dataDisk : String Index 0 Read FdataDisk Write SetdataDisk;
@@ -711,11 +711,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdataDisk(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdeliveryEndpoint(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpersistentDirectory(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataDisk(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdeliveryEndpoint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpersistentDirectory(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dataDisk : String Index 0 Read FdataDisk Write SetdataDisk;
@@ -739,11 +739,11 @@ type
     FworkerId : String;
   Protected
     //Property setters
-    Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestedLeaseDuration(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentWorkerTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestedLeaseDuration(AIndex : Integer; const AValue : String); virtual;
     Procedure SetworkItemTypes(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetworkerCapabilities(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkerId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -789,7 +789,7 @@ type
   Protected
     //Property setters
     Procedure SetjobMessages(AIndex : Integer; AValue : TListJobMessagesResponseTypejobMessagesArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -812,7 +812,7 @@ type
   Protected
     //Property setters
     Procedure Setjobs(AIndex : Integer; AValue : TListJobsResponseTypejobsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -836,8 +836,8 @@ type
   Protected
     //Property setters
     Procedure Setinstructions(AIndex : Integer; AValue : TMapTaskTypeinstructionsArray); virtual;
-    Procedure SetstageName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstageName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsystemName(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -876,8 +876,8 @@ type
   Protected
     //Property setters
     Procedure Setcontext(AIndex : Integer; AValue : TMetricStructuredNameTypecontext); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property context : TMetricStructuredNameTypecontext Index 0 Read Fcontext Write Setcontext;
@@ -906,13 +906,13 @@ type
     //Property setters
     Procedure Setcumulative(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setinternal(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmeanCount(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
     Procedure SetmeanSum(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
     Procedure Setname(AIndex : Integer; AValue : TMetricStructuredName); virtual;
     Procedure Setscalar(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
     Procedure Set_set(AIndex : Integer; AValue : TGoogleprotobufValue); virtual;
-    Procedure SetupdateTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetupdateTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property cumulative : boolean Index 0 Read Fcumulative Write Setcumulative;
@@ -936,7 +936,7 @@ type
     FdataDisk : String;
   Protected
     //Property setters
-    Procedure SetdataDisk(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataDisk(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dataDisk : String Index 0 Read FdataDisk Write SetdataDisk;
@@ -952,7 +952,7 @@ type
     Ftag : String;
   Protected
     //Property setters
-    Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property tag : String Index 0 Read Ftag Write Settag;
@@ -969,8 +969,8 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property location : String Index 0 Read Flocation Write Setlocation;
@@ -1041,12 +1041,12 @@ type
   Protected
     //Property setters
     Procedure Setflatten(AIndex : Integer; AValue : TFlattenInstruction); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoutputs(AIndex : Integer; AValue : TParallelInstructionTypeoutputsArray); virtual;
     Procedure SetparDo(AIndex : Integer; AValue : TParDoInstruction); virtual;
     Procedure SetpartialGroupByKey(AIndex : Integer; AValue : TPartialGroupByKeyInstruction); virtual;
     Procedure Setread(AIndex : Integer; AValue : TReadInstruction); virtual;
-    Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsystemName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwrite(AIndex : Integer; AValue : TWriteInstruction); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1129,11 +1129,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetbyteOffset(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbyteOffset(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_end(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrecordIndex(AIndex : Integer; AValue : String); virtual;
-    Procedure SetshufflePosition(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrecordIndex(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetshufflePosition(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property byteOffset : String Index 0 Read FbyteOffset Write SetbyteOffset;
@@ -1159,11 +1159,11 @@ type
   Protected
     //Property setters
     Procedure SetdropLateData(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetidLabel(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsubscription(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimestampLabel(AIndex : Integer; AValue : String); virtual;
-    Procedure Settopic(AIndex : Integer; AValue : String); virtual;
-    Procedure SettrackingSubscription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetidLabel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsubscription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimestampLabel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settopic(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettrackingSubscription(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dropLateData : boolean Index 0 Read FdropLateData Write SetdropLateData;
@@ -1202,9 +1202,9 @@ type
     FworkerId : String;
   Protected
     //Property setters
-    Procedure SetcurrentWorkerTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentWorkerTime(AIndex : Integer; const AValue : String); virtual;
     Procedure SetworkItemStatuses(AIndex : Integer; AValue : TReportWorkItemStatusRequestTypeworkItemStatusesArray); virtual;
-    Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkerId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1266,10 +1266,10 @@ type
   Protected
     //Property setters
     Procedure Setinputs(AIndex : Integer; AValue : TSeqMapTaskTypeinputsArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoutputInfos(AIndex : Integer; AValue : TSeqMapTaskTypeoutputInfosArray); virtual;
-    Procedure SetstageName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsystemName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstageName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsystemName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserFn(AIndex : Integer; AValue : TSeqMapTaskTypeuserFn); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1297,7 +1297,7 @@ type
   Protected
     //Property setters
     Procedure Setsink(AIndex : Integer; AValue : TSink); virtual;
-    Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property sink : TSink Index 0 Read Fsink Write Setsink;
@@ -1315,7 +1315,7 @@ type
     FexitCode : integer;
   Protected
     //Property setters
-    Procedure Setcommand(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcommand(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexitCode(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -1351,7 +1351,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; AValue : TSideInputInfoTypekind); virtual;
     Procedure Setsources(AIndex : Integer; AValue : TSideInputInfoTypesourcesArray); virtual;
-    Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1553,7 +1553,7 @@ type
     FproducesSortedKeys : boolean;
   Protected
     //Property setters
-    Procedure SetestimatedSizeBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetestimatedSizeBytes(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinfinite(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetproducesSortedKeys(AIndex : Integer; AValue : boolean); virtual;
   Public
@@ -1612,8 +1612,8 @@ type
     FdesiredShardSizeBytes : String;
   Protected
     //Property setters
-    Procedure SetdesiredBundleSizeBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdesiredShardSizeBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdesiredBundleSizeBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdesiredShardSizeBytes(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property desiredBundleSizeBytes : String Index 0 Read FdesiredBundleSizeBytes Write SetdesiredBundleSizeBytes;
@@ -1652,7 +1652,7 @@ type
   Protected
     //Property setters
     Procedure Setbundles(AIndex : Integer; AValue : TSourceSplitResponseTypebundlesArray); virtual;
-    Procedure Setoutcome(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoutcome(AIndex : Integer; const AValue : String); virtual;
     Procedure Setshards(AIndex : Integer; AValue : TSourceSplitResponseTypeshardsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1676,7 +1676,7 @@ type
     Fsource : TSource;
   Protected
     //Property setters
-    Procedure SetderivationMode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetderivationMode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TSource); virtual;
   Public
   Published
@@ -1712,7 +1712,7 @@ type
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
     Procedure Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1750,8 +1750,8 @@ type
     Fproperties : TStepTypeproperties;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproperties(AIndex : Integer; AValue : TStepTypeproperties); virtual;
   Public
   Published
@@ -1793,7 +1793,7 @@ type
     FrangeAssignments : TStreamingComputationRangesTyperangeAssignmentsArray;
   Protected
     //Property setters
-    Procedure SetcomputationId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomputationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrangeAssignments(AIndex : Integer; AValue : TStreamingComputationRangesTyperangeAssignmentsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1819,7 +1819,7 @@ type
     //Property setters
     Procedure SetcomputationRanges(AIndex : Integer; AValue : TStreamingComputationTaskTypecomputationRangesArray); virtual;
     Procedure SetdataDisks(AIndex : Integer; AValue : TStreamingComputationTaskTypedataDisksArray); virtual;
-    Procedure SettaskType(AIndex : Integer; AValue : String); virtual;
+    Procedure SettaskType(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1863,7 +1863,7 @@ type
     Ftag : String;
   Protected
     //Property setters
-    Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property tag : String Index 0 Read Ftag Write Settag;
@@ -1879,7 +1879,7 @@ type
     FstreamId : String;
   Protected
     //Property setters
-    Procedure SetstreamId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstreamId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property streamId : String Index 0 Read FstreamId Write SetstreamId;
@@ -1914,24 +1914,24 @@ type
   Protected
     //Property setters
     Procedure Setalsologtostderr(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetbaseTaskDir(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbaseUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcommandlinesFileName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbaseTaskDir(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbaseUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcommandlinesFileName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontinueOnException(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetdataflowApiVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure SetharnessCommand(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlanguageHint(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlogDir(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataflowApiVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetharnessCommand(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlanguageHint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlogDir(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlogToSerialconsole(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetlogUploadLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlogUploadLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoauthScopes(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetparallelWorkerSettings(AIndex : Integer; AValue : TWorkerSettings); virtual;
-    Procedure SetstreamingWorkerMainClass(AIndex : Integer; AValue : String); virtual;
-    Procedure SettaskGroup(AIndex : Integer; AValue : String); virtual;
-    Procedure SettaskUser(AIndex : Integer; AValue : String); virtual;
-    Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvmId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetworkflowFileName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstreamingWorkerMainClass(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettaskGroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettaskUser(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettempStoragePrefix(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvmId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetworkflowFileName(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2005,15 +2005,15 @@ type
     FstreamingSetupTask : TStreamingSetupTask;
   Protected
     //Property setters
-    Procedure Setconfiguration(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinitialReportIndex(AIndex : Integer; AValue : String); virtual;
-    Procedure SetjobId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetleaseExpireTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setconfiguration(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinitialReportIndex(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetjobId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetleaseExpireTime(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmapTask(AIndex : Integer; AValue : TMapTask); virtual;
     Procedure Setpackages(AIndex : Integer; AValue : TWorkItemTypepackagesArray); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportStatusInterval(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportStatusInterval(AIndex : Integer; const AValue : String); virtual;
     Procedure SetseqMapTask(AIndex : Integer; AValue : TSeqMapTask); virtual;
     Procedure SetshellTask(AIndex : Integer; AValue : TShellTask); virtual;
     Procedure SetsourceOperationTask(AIndex : Integer; AValue : TSourceOperationRequest); virtual;
@@ -2071,9 +2071,9 @@ type
   Protected
     //Property setters
     Procedure SetharnessData(AIndex : Integer; AValue : TWorkItemServiceStateTypeharnessData); virtual;
-    Procedure SetleaseExpireTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextReportIndex(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportStatusInterval(AIndex : Integer; AValue : String); virtual;
+    Procedure SetleaseExpireTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextReportIndex(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportStatusInterval(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsuggestedStopPoint(AIndex : Integer; AValue : TApproximateProgress); virtual;
     Procedure SetsuggestedStopPosition(AIndex : Integer; AValue : TPosition); virtual;
   Public
@@ -2111,12 +2111,12 @@ type
     Procedure Seterrors(AIndex : Integer; AValue : TWorkItemStatusTypeerrorsArray); virtual;
     Procedure SetmetricUpdates(AIndex : Integer; AValue : TWorkItemStatusTypemetricUpdatesArray); virtual;
     Procedure Setprogress(AIndex : Integer; AValue : TApproximateProgress); virtual;
-    Procedure SetreportIndex(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestedLeaseDuration(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportIndex(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestedLeaseDuration(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceFork(AIndex : Integer; AValue : TSourceFork); virtual;
     Procedure SetsourceOperationResponse(AIndex : Integer; AValue : TSourceOperationResponse); virtual;
     Procedure SetstopPosition(AIndex : Integer; AValue : TPosition); virtual;
-    Procedure SetworkItemId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetworkItemId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2191,20 +2191,20 @@ type
     //Property setters
     Procedure SetautoscalingSettings(AIndex : Integer; AValue : TAutoscalingSettings); virtual;
     Procedure SetdataDisks(AIndex : Integer; AValue : TWorkerPoolTypedataDisksArray); virtual;
-    Procedure SetdefaultPackageSet(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultPackageSet(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdiskSizeGb(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdiskSourceImage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdiskType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdiskSourceImage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TWorkerPoolTypemetadata); virtual;
     Procedure SetnumWorkers(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetonHostMaintenance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetonHostMaintenance(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpackages(AIndex : Integer; AValue : TWorkerPoolTypepackagesArray); virtual;
     Procedure SetpoolArgs(AIndex : Integer; AValue : TWorkerPoolTypepoolArgs); virtual;
     Procedure SettaskrunnerSettings(AIndex : Integer; AValue : TTaskRunnerSettings); virtual;
-    Procedure SetteardownPolicy(AIndex : Integer; AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure SetteardownPolicy(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2244,12 +2244,12 @@ type
     FworkerId : String;
   Protected
     //Property setters
-    Procedure SetbaseUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbaseUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreportingEnabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetservicePath(AIndex : Integer; AValue : String); virtual;
-    Procedure SetshuffleServicePath(AIndex : Integer; AValue : String); virtual;
-    Procedure SettempStoragePrefix(AIndex : Integer; AValue : String); virtual;
-    Procedure SetworkerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetservicePath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetshuffleServicePath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettempStoragePrefix(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetworkerId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property baseUrl : String Index 0 Read FbaseUrl Write SetbaseUrl;
@@ -2487,7 +2487,7 @@ end;
 
 
 
-Procedure TApproximateProgress.SetremainingTime(AIndex : Integer; AValue : String); 
+Procedure TApproximateProgress.SetremainingTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FremainingTime=AValue) then exit;
@@ -2504,7 +2504,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingSettings.Setalgorithm(AIndex : Integer; AValue : String); 
+Procedure TAutoscalingSettings.Setalgorithm(AIndex : Integer; const AValue : String); 
 
 begin
   If (Falgorithm=AValue) then exit;
@@ -2531,7 +2531,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComputationTopology.SetcomputationId(AIndex : Integer; AValue : String); 
+Procedure TComputationTopology.SetcomputationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomputationId=AValue) then exit;
@@ -2603,7 +2603,7 @@ end;
 
 
 
-Procedure TDataDiskAssignment.SetvmInstance(AIndex : Integer; AValue : String); 
+Procedure TDataDiskAssignment.SetvmInstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvmInstance=AValue) then exit;
@@ -2633,7 +2633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDerivedSource.SetderivationMode(AIndex : Integer; AValue : String); 
+Procedure TDerivedSource.SetderivationMode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FderivationMode=AValue) then exit;
@@ -2660,7 +2660,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDisk.SetdiskType(AIndex : Integer; AValue : String); 
+Procedure TDisk.SetdiskType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -2670,7 +2670,7 @@ end;
 
 
 
-Procedure TDisk.SetmountPoint(AIndex : Integer; AValue : String); 
+Procedure TDisk.SetmountPoint(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmountPoint=AValue) then exit;
@@ -2763,7 +2763,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnvironment.SetclusterManagerApiService(AIndex : Integer; AValue : String); 
+Procedure TEnvironment.SetclusterManagerApiService(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclusterManagerApiService=AValue) then exit;
@@ -2773,7 +2773,7 @@ end;
 
 
 
-Procedure TEnvironment.Setdataset(AIndex : Integer; AValue : String); 
+Procedure TEnvironment.Setdataset(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdataset=AValue) then exit;
@@ -2803,7 +2803,7 @@ end;
 
 
 
-Procedure TEnvironment.SettempStoragePrefix(AIndex : Integer; AValue : String); 
+Procedure TEnvironment.SettempStoragePrefix(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtempStoragePrefix=AValue) then exit;
@@ -2944,7 +2944,7 @@ end;
 
 
 
-Procedure TInstructionOutput.Setname(AIndex : Integer; AValue : String); 
+Procedure TInstructionOutput.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2961,7 +2961,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJob.SetcreateTime(AIndex : Integer; AValue : String); 
+Procedure TJob.SetcreateTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -2971,7 +2971,7 @@ end;
 
 
 
-Procedure TJob.SetcurrentState(AIndex : Integer; AValue : String); 
+Procedure TJob.SetcurrentState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -2981,7 +2981,7 @@ end;
 
 
 
-Procedure TJob.SetcurrentStateTime(AIndex : Integer; AValue : String); 
+Procedure TJob.SetcurrentStateTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentStateTime=AValue) then exit;
@@ -3011,7 +3011,7 @@ end;
 
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : String); 
+Procedure TJob.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3021,7 +3021,7 @@ end;
 
 
 
-Procedure TJob.Setname(AIndex : Integer; AValue : String); 
+Procedure TJob.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3031,7 +3031,7 @@ end;
 
 
 
-Procedure TJob.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TJob.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3041,7 +3041,7 @@ end;
 
 
 
-Procedure TJob.SetrequestedState(AIndex : Integer; AValue : String); 
+Procedure TJob.SetrequestedState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestedState=AValue) then exit;
@@ -3061,7 +3061,7 @@ end;
 
 
 
-Procedure TJob.Set_type(AIndex : Integer; AValue : String); 
+Procedure TJob.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3162,7 +3162,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobMessage.Setid(AIndex : Integer; AValue : String); 
+Procedure TJobMessage.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3172,7 +3172,7 @@ end;
 
 
 
-Procedure TJobMessage.SetmessageImportance(AIndex : Integer; AValue : String); 
+Procedure TJobMessage.SetmessageImportance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmessageImportance=AValue) then exit;
@@ -3182,7 +3182,7 @@ end;
 
 
 
-Procedure TJobMessage.SetmessageText(AIndex : Integer; AValue : String); 
+Procedure TJobMessage.SetmessageText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmessageText=AValue) then exit;
@@ -3192,7 +3192,7 @@ end;
 
 
 
-Procedure TJobMessage.Settime(AIndex : Integer; AValue : String); 
+Procedure TJobMessage.Settime(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftime=AValue) then exit;
@@ -3209,7 +3209,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobMetrics.SetmetricTime(AIndex : Integer; AValue : String); 
+Procedure TJobMetrics.SetmetricTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmetricTime=AValue) then exit;
@@ -3249,7 +3249,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKeyRangeDataDiskAssignment.SetdataDisk(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeDataDiskAssignment.SetdataDisk(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataDisk=AValue) then exit;
@@ -3259,7 +3259,7 @@ end;
 
 
 
-Procedure TKeyRangeDataDiskAssignment.Set_end(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeDataDiskAssignment.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -3269,7 +3269,7 @@ end;
 
 
 
-Procedure TKeyRangeDataDiskAssignment.Setstart(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeDataDiskAssignment.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -3297,7 +3297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKeyRangeLocation.SetdataDisk(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeLocation.SetdataDisk(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataDisk=AValue) then exit;
@@ -3307,7 +3307,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.SetdeliveryEndpoint(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeLocation.SetdeliveryEndpoint(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeliveryEndpoint=AValue) then exit;
@@ -3317,7 +3317,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.Set_end(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeLocation.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -3327,7 +3327,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.SetpersistentDirectory(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeLocation.SetpersistentDirectory(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpersistentDirectory=AValue) then exit;
@@ -3337,7 +3337,7 @@ end;
 
 
 
-Procedure TKeyRangeLocation.Setstart(AIndex : Integer; AValue : String); 
+Procedure TKeyRangeLocation.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -3365,7 +3365,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaseWorkItemRequest.SetcurrentWorkerTime(AIndex : Integer; AValue : String); 
+Procedure TLeaseWorkItemRequest.SetcurrentWorkerTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentWorkerTime=AValue) then exit;
@@ -3375,7 +3375,7 @@ end;
 
 
 
-Procedure TLeaseWorkItemRequest.SetrequestedLeaseDuration(AIndex : Integer; AValue : String); 
+Procedure TLeaseWorkItemRequest.SetrequestedLeaseDuration(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestedLeaseDuration=AValue) then exit;
@@ -3405,7 +3405,7 @@ end;
 
 
 
-Procedure TLeaseWorkItemRequest.SetworkerId(AIndex : Integer; AValue : String); 
+Procedure TLeaseWorkItemRequest.SetworkerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FworkerId=AValue) then exit;
@@ -3476,7 +3476,7 @@ end;
 
 
 
-Procedure TListJobMessagesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListJobMessagesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3516,7 +3516,7 @@ end;
 
 
 
-Procedure TListJobsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListJobsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3556,7 +3556,7 @@ end;
 
 
 
-Procedure TMapTask.SetstageName(AIndex : Integer; AValue : String); 
+Procedure TMapTask.SetstageName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstageName=AValue) then exit;
@@ -3566,7 +3566,7 @@ end;
 
 
 
-Procedure TMapTask.SetsystemName(AIndex : Integer; AValue : String); 
+Procedure TMapTask.SetsystemName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsystemName=AValue) then exit;
@@ -3619,7 +3619,7 @@ end;
 
 
 
-Procedure TMetricStructuredName.Setname(AIndex : Integer; AValue : String); 
+Procedure TMetricStructuredName.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3629,7 +3629,7 @@ end;
 
 
 
-Procedure TMetricStructuredName.Setorigin(AIndex : Integer; AValue : String); 
+Procedure TMetricStructuredName.Setorigin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -3666,7 +3666,7 @@ end;
 
 
 
-Procedure TMetricUpdate.Setkind(AIndex : Integer; AValue : String); 
+Procedure TMetricUpdate.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3726,7 +3726,7 @@ end;
 
 
 
-Procedure TMetricUpdate.SetupdateTime(AIndex : Integer; AValue : String); 
+Procedure TMetricUpdate.SetupdateTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FupdateTime=AValue) then exit;
@@ -3754,7 +3754,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMountedDataDisk.SetdataDisk(AIndex : Integer; AValue : String); 
+Procedure TMountedDataDisk.SetdataDisk(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataDisk=AValue) then exit;
@@ -3771,7 +3771,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMultiOutputInfo.Settag(AIndex : Integer; AValue : String); 
+Procedure TMultiOutputInfo.Settag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -3788,7 +3788,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPackage.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TPackage.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -3798,7 +3798,7 @@ end;
 
 
 
-Procedure TPackage.Setname(AIndex : Integer; AValue : String); 
+Procedure TPackage.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3909,7 +3909,7 @@ end;
 
 
 
-Procedure TParallelInstruction.Setname(AIndex : Integer; AValue : String); 
+Procedure TParallelInstruction.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3959,7 +3959,7 @@ end;
 
 
 
-Procedure TParallelInstruction.SetsystemName(AIndex : Integer; AValue : String); 
+Procedure TParallelInstruction.SetsystemName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsystemName=AValue) then exit;
@@ -4062,7 +4062,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPosition.SetbyteOffset(AIndex : Integer; AValue : String); 
+Procedure TPosition.SetbyteOffset(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbyteOffset=AValue) then exit;
@@ -4082,7 +4082,7 @@ end;
 
 
 
-Procedure TPosition.Setkey(AIndex : Integer; AValue : String); 
+Procedure TPosition.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -4092,7 +4092,7 @@ end;
 
 
 
-Procedure TPosition.SetrecordIndex(AIndex : Integer; AValue : String); 
+Procedure TPosition.SetrecordIndex(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrecordIndex=AValue) then exit;
@@ -4102,7 +4102,7 @@ end;
 
 
 
-Procedure TPosition.SetshufflePosition(AIndex : Integer; AValue : String); 
+Procedure TPosition.SetshufflePosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshufflePosition=AValue) then exit;
@@ -4140,7 +4140,7 @@ end;
 
 
 
-Procedure TPubsubLocation.SetidLabel(AIndex : Integer; AValue : String); 
+Procedure TPubsubLocation.SetidLabel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FidLabel=AValue) then exit;
@@ -4150,7 +4150,7 @@ end;
 
 
 
-Procedure TPubsubLocation.Setsubscription(AIndex : Integer; AValue : String); 
+Procedure TPubsubLocation.Setsubscription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsubscription=AValue) then exit;
@@ -4160,7 +4160,7 @@ end;
 
 
 
-Procedure TPubsubLocation.SettimestampLabel(AIndex : Integer; AValue : String); 
+Procedure TPubsubLocation.SettimestampLabel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimestampLabel=AValue) then exit;
@@ -4170,7 +4170,7 @@ end;
 
 
 
-Procedure TPubsubLocation.Settopic(AIndex : Integer; AValue : String); 
+Procedure TPubsubLocation.Settopic(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftopic=AValue) then exit;
@@ -4180,7 +4180,7 @@ end;
 
 
 
-Procedure TPubsubLocation.SettrackingSubscription(AIndex : Integer; AValue : String); 
+Procedure TPubsubLocation.SettrackingSubscription(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrackingSubscription=AValue) then exit;
@@ -4214,7 +4214,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportWorkItemStatusRequest.SetcurrentWorkerTime(AIndex : Integer; AValue : String); 
+Procedure TReportWorkItemStatusRequest.SetcurrentWorkerTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentWorkerTime=AValue) then exit;
@@ -4234,7 +4234,7 @@ end;
 
 
 
-Procedure TReportWorkItemStatusRequest.SetworkerId(AIndex : Integer; AValue : String); 
+Procedure TReportWorkItemStatusRequest.SetworkerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FworkerId=AValue) then exit;
@@ -4317,7 +4317,7 @@ end;
 
 
 
-Procedure TSeqMapTask.Setname(AIndex : Integer; AValue : String); 
+Procedure TSeqMapTask.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4337,7 +4337,7 @@ end;
 
 
 
-Procedure TSeqMapTask.SetstageName(AIndex : Integer; AValue : String); 
+Procedure TSeqMapTask.SetstageName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstageName=AValue) then exit;
@@ -4347,7 +4347,7 @@ end;
 
 
 
-Procedure TSeqMapTask.SetsystemName(AIndex : Integer; AValue : String); 
+Procedure TSeqMapTask.SetsystemName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsystemName=AValue) then exit;
@@ -4398,7 +4398,7 @@ end;
 
 
 
-Procedure TSeqMapTaskOutputInfo.Settag(AIndex : Integer; AValue : String); 
+Procedure TSeqMapTaskOutputInfo.Settag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -4415,7 +4415,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TShellTask.Setcommand(AIndex : Integer; AValue : String); 
+Procedure TShellTask.Setcommand(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcommand=AValue) then exit;
@@ -4475,7 +4475,7 @@ end;
 
 
 
-Procedure TSideInputInfo.Settag(AIndex : Integer; AValue : String); 
+Procedure TSideInputInfo.Settag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -4748,7 +4748,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceMetadata.SetestimatedSizeBytes(AIndex : Integer; AValue : String); 
+Procedure TSourceMetadata.SetestimatedSizeBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FestimatedSizeBytes=AValue) then exit;
@@ -4839,7 +4839,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceSplitOptions.SetdesiredBundleSizeBytes(AIndex : Integer; AValue : String); 
+Procedure TSourceSplitOptions.SetdesiredBundleSizeBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdesiredBundleSizeBytes=AValue) then exit;
@@ -4849,7 +4849,7 @@ end;
 
 
 
-Procedure TSourceSplitOptions.SetdesiredShardSizeBytes(AIndex : Integer; AValue : String); 
+Procedure TSourceSplitOptions.SetdesiredShardSizeBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdesiredShardSizeBytes=AValue) then exit;
@@ -4903,7 +4903,7 @@ end;
 
 
 
-Procedure TSourceSplitResponse.Setoutcome(AIndex : Integer; AValue : String); 
+Procedure TSourceSplitResponse.Setoutcome(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foutcome=AValue) then exit;
@@ -4944,7 +4944,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSourceSplitShard.SetderivationMode(AIndex : Integer; AValue : String); 
+Procedure TSourceSplitShard.SetderivationMode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FderivationMode=AValue) then exit;
@@ -5004,7 +5004,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -5047,7 +5047,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStep.Setkind(AIndex : Integer; AValue : String); 
+Procedure TStep.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5057,7 +5057,7 @@ end;
 
 
 
-Procedure TStep.Setname(AIndex : Integer; AValue : String); 
+Procedure TStep.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5121,7 +5121,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingComputationRanges.SetcomputationId(AIndex : Integer; AValue : String); 
+Procedure TStreamingComputationRanges.SetcomputationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomputationId=AValue) then exit;
@@ -5181,7 +5181,7 @@ end;
 
 
 
-Procedure TStreamingComputationTask.SettaskType(AIndex : Integer; AValue : String); 
+Procedure TStreamingComputationTask.SettaskType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtaskType=AValue) then exit;
@@ -5249,7 +5249,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingSideInputLocation.Settag(AIndex : Integer; AValue : String); 
+Procedure TStreamingSideInputLocation.Settag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -5266,7 +5266,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStreamingStageLocation.SetstreamId(AIndex : Integer; AValue : String); 
+Procedure TStreamingStageLocation.SetstreamId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstreamId=AValue) then exit;
@@ -5293,7 +5293,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetbaseTaskDir(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetbaseTaskDir(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbaseTaskDir=AValue) then exit;
@@ -5303,7 +5303,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetbaseUrl(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetbaseUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbaseUrl=AValue) then exit;
@@ -5313,7 +5313,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetcommandlinesFileName(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetcommandlinesFileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommandlinesFileName=AValue) then exit;
@@ -5333,7 +5333,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetdataflowApiVersion(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetdataflowApiVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataflowApiVersion=AValue) then exit;
@@ -5343,7 +5343,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetharnessCommand(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetharnessCommand(AIndex : Integer; const AValue : String); 
 
 begin
   If (FharnessCommand=AValue) then exit;
@@ -5353,7 +5353,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetlanguageHint(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetlanguageHint(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlanguageHint=AValue) then exit;
@@ -5363,7 +5363,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetlogDir(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetlogDir(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlogDir=AValue) then exit;
@@ -5383,7 +5383,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetlogUploadLocation(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetlogUploadLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlogUploadLocation=AValue) then exit;
@@ -5413,7 +5413,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetstreamingWorkerMainClass(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetstreamingWorkerMainClass(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstreamingWorkerMainClass=AValue) then exit;
@@ -5423,7 +5423,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SettaskGroup(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SettaskGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtaskGroup=AValue) then exit;
@@ -5433,7 +5433,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SettaskUser(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SettaskUser(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtaskUser=AValue) then exit;
@@ -5443,7 +5443,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SettempStoragePrefix(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SettempStoragePrefix(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtempStoragePrefix=AValue) then exit;
@@ -5453,7 +5453,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetvmId(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetvmId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvmId=AValue) then exit;
@@ -5463,7 +5463,7 @@ end;
 
 
 
-Procedure TTaskRunnerSettings.SetworkflowFileName(AIndex : Integer; AValue : String); 
+Procedure TTaskRunnerSettings.SetworkflowFileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FworkflowFileName=AValue) then exit;
@@ -5534,7 +5534,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorkItem.Setconfiguration(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.Setconfiguration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fconfiguration=AValue) then exit;
@@ -5544,7 +5544,7 @@ end;
 
 
 
-Procedure TWorkItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5554,7 +5554,7 @@ end;
 
 
 
-Procedure TWorkItem.SetinitialReportIndex(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.SetinitialReportIndex(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinitialReportIndex=AValue) then exit;
@@ -5564,7 +5564,7 @@ end;
 
 
 
-Procedure TWorkItem.SetjobId(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.SetjobId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjobId=AValue) then exit;
@@ -5574,7 +5574,7 @@ end;
 
 
 
-Procedure TWorkItem.SetleaseExpireTime(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.SetleaseExpireTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleaseExpireTime=AValue) then exit;
@@ -5604,7 +5604,7 @@ end;
 
 
 
-Procedure TWorkItem.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5614,7 +5614,7 @@ end;
 
 
 
-Procedure TWorkItem.SetreportStatusInterval(AIndex : Integer; AValue : String); 
+Procedure TWorkItem.SetreportStatusInterval(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportStatusInterval=AValue) then exit;
@@ -5717,7 +5717,7 @@ end;
 
 
 
-Procedure TWorkItemServiceState.SetleaseExpireTime(AIndex : Integer; AValue : String); 
+Procedure TWorkItemServiceState.SetleaseExpireTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleaseExpireTime=AValue) then exit;
@@ -5727,7 +5727,7 @@ end;
 
 
 
-Procedure TWorkItemServiceState.SetnextReportIndex(AIndex : Integer; AValue : String); 
+Procedure TWorkItemServiceState.SetnextReportIndex(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextReportIndex=AValue) then exit;
@@ -5737,7 +5737,7 @@ end;
 
 
 
-Procedure TWorkItemServiceState.SetreportStatusInterval(AIndex : Integer; AValue : String); 
+Procedure TWorkItemServiceState.SetreportStatusInterval(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportStatusInterval=AValue) then exit;
@@ -5824,7 +5824,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetreportIndex(AIndex : Integer; AValue : String); 
+Procedure TWorkItemStatus.SetreportIndex(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportIndex=AValue) then exit;
@@ -5834,7 +5834,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetrequestedLeaseDuration(AIndex : Integer; AValue : String); 
+Procedure TWorkItemStatus.SetrequestedLeaseDuration(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestedLeaseDuration=AValue) then exit;
@@ -5874,7 +5874,7 @@ end;
 
 
 
-Procedure TWorkItemStatus.SetworkItemId(AIndex : Integer; AValue : String); 
+Procedure TWorkItemStatus.SetworkItemId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FworkItemId=AValue) then exit;
@@ -5951,7 +5951,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdefaultPackageSet(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.SetdefaultPackageSet(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultPackageSet=AValue) then exit;
@@ -5971,7 +5971,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdiskSourceImage(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.SetdiskSourceImage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskSourceImage=AValue) then exit;
@@ -5981,7 +5981,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetdiskType(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.SetdiskType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -5991,7 +5991,7 @@ end;
 
 
 
-Procedure TWorkerPool.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6001,7 +6001,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetmachineType(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.SetmachineType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -6031,7 +6031,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetonHostMaintenance(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.SetonHostMaintenance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FonHostMaintenance=AValue) then exit;
@@ -6071,7 +6071,7 @@ end;
 
 
 
-Procedure TWorkerPool.SetteardownPolicy(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.SetteardownPolicy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FteardownPolicy=AValue) then exit;
@@ -6081,7 +6081,7 @@ end;
 
 
 
-Procedure TWorkerPool.Setzone(AIndex : Integer; AValue : String); 
+Procedure TWorkerPool.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -6112,7 +6112,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorkerSettings.SetbaseUrl(AIndex : Integer; AValue : String); 
+Procedure TWorkerSettings.SetbaseUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbaseUrl=AValue) then exit;
@@ -6132,7 +6132,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SetservicePath(AIndex : Integer; AValue : String); 
+Procedure TWorkerSettings.SetservicePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FservicePath=AValue) then exit;
@@ -6142,7 +6142,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SetshuffleServicePath(AIndex : Integer; AValue : String); 
+Procedure TWorkerSettings.SetshuffleServicePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshuffleServicePath=AValue) then exit;
@@ -6152,7 +6152,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SettempStoragePrefix(AIndex : Integer; AValue : String); 
+Procedure TWorkerSettings.SettempStoragePrefix(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtempStoragePrefix=AValue) then exit;
@@ -6162,7 +6162,7 @@ end;
 
 
 
-Procedure TWorkerSettings.SetworkerId(AIndex : Integer; AValue : String); 
+Procedure TWorkerSettings.SetworkerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FworkerId=AValue) then exit;

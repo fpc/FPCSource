@@ -63,16 +63,16 @@ type
     Fregion : String;
   Protected
     //Property setters
-    Procedure SetaddressLine1(AIndex : Integer; AValue : String); virtual;
-    Procedure SetaddressLine2(AIndex : Integer; AValue : String); virtual;
-    Procedure SetaddressLine3(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontactName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcountryCode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocality(AIndex : Integer; AValue : String); virtual;
-    Procedure SetorganizationName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpostalCode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaddressLine1(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetaddressLine2(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetaddressLine3(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontactName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcountryCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocality(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetorganizationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpostalCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property addressLine1 : String Index 0 Read FaddressLine1 Write SetaddressLine1;
@@ -100,9 +100,9 @@ type
     Fseats : TSeats;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplanName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpurchaseOrderId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplanName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpurchaseOrderId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setseats(AIndex : Integer; AValue : TSeats); virtual;
   Public
   Published
@@ -128,13 +128,13 @@ type
     FresourceUiUrl : String;
   Protected
     //Property setters
-    Procedure SetalternateEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomerDomain(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetphoneNumber(AIndex : Integer; AValue : String); virtual;
+    Procedure SetalternateEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerDomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetphoneNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpostalAddress(AIndex : Integer; AValue : TAddress); virtual;
-    Procedure SetresourceUiUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceUiUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property alternateEmail : String Index 0 Read FalternateEmail Write SetalternateEmail;
@@ -157,8 +157,8 @@ type
     FrenewalType : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrenewalType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrenewalType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -178,7 +178,7 @@ type
     FnumberOfSeats : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlicensedNumberOfSeats(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmaximumNumberOfSeats(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberOfSeats(AIndex : Integer; AValue : integer); virtual;
@@ -201,8 +201,8 @@ type
     FstartTime : String;
   Protected
     //Property setters
-    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property endTime : String Index 0 Read FendTime Write SetendTime;
@@ -223,7 +223,7 @@ type
     //Property setters
     Procedure SetcommitmentInterval(AIndex : Integer; AValue : TSubscriptionTypeplanTypecommitmentInterval); virtual;
     Procedure SetisCommitmentPlan(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetplanName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplanName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property commitmentInterval : TSubscriptionTypeplanTypecommitmentInterval Index 0 Read FcommitmentInterval Write SetcommitmentInterval;
@@ -243,7 +243,7 @@ type
   Protected
     //Property setters
     Procedure SetminimumTransferableSeats(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettransferabilityExpirationTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SettransferabilityExpirationTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property minimumTransferableSeats : integer Index 0 Read FminimumTransferableSeats Write SetminimumTransferableSeats;
@@ -262,7 +262,7 @@ type
   Protected
     //Property setters
     Procedure SetisInTrial(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettrialEndTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrialEndTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property isInTrial : boolean Index 0 Read FisInTrial Write SetisInTrial;
@@ -292,18 +292,18 @@ type
     FtrialSettings : TSubscriptionTypetrialSettings;
   Protected
     //Property setters
-    Procedure SetbillingMethod(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbillingMethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplan(AIndex : Integer; AValue : TSubscriptionTypeplan); virtual;
-    Procedure SetpurchaseOrderId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpurchaseOrderId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrenewalSettings(AIndex : Integer; AValue : TRenewalSettings); virtual;
-    Procedure SetresourceUiUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceUiUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setseats(AIndex : Integer; AValue : TSeats); virtual;
-    Procedure SetskuId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsubscriptionId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetskuId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsubscriptionId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettransferInfo(AIndex : Integer; AValue : TSubscriptionTypetransferInfo); virtual;
     Procedure SettrialSettings(AIndex : Integer; AValue : TSubscriptionTypetrialSettings); virtual;
   Public
@@ -336,8 +336,8 @@ type
     Fsubscriptions : TSubscriptionsTypesubscriptionsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsubscriptions(AIndex : Integer; AValue : TSubscriptionsTypesubscriptionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -473,7 +473,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAddress.SetaddressLine1(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetaddressLine1(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaddressLine1=AValue) then exit;
@@ -483,7 +483,7 @@ end;
 
 
 
-Procedure TAddress.SetaddressLine2(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetaddressLine2(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaddressLine2=AValue) then exit;
@@ -493,7 +493,7 @@ end;
 
 
 
-Procedure TAddress.SetaddressLine3(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetaddressLine3(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaddressLine3=AValue) then exit;
@@ -503,7 +503,7 @@ end;
 
 
 
-Procedure TAddress.SetcontactName(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetcontactName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontactName=AValue) then exit;
@@ -513,7 +513,7 @@ end;
 
 
 
-Procedure TAddress.SetcountryCode(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetcountryCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcountryCode=AValue) then exit;
@@ -523,7 +523,7 @@ end;
 
 
 
-Procedure TAddress.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAddress.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -533,7 +533,7 @@ end;
 
 
 
-Procedure TAddress.Setlocality(AIndex : Integer; AValue : String); 
+Procedure TAddress.Setlocality(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocality=AValue) then exit;
@@ -543,7 +543,7 @@ end;
 
 
 
-Procedure TAddress.SetorganizationName(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetorganizationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (ForganizationName=AValue) then exit;
@@ -553,7 +553,7 @@ end;
 
 
 
-Procedure TAddress.SetpostalCode(AIndex : Integer; AValue : String); 
+Procedure TAddress.SetpostalCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -563,7 +563,7 @@ end;
 
 
 
-Procedure TAddress.Setregion(AIndex : Integer; AValue : String); 
+Procedure TAddress.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -580,7 +580,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChangePlanRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChangePlanRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -590,7 +590,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.SetplanName(AIndex : Integer; AValue : String); 
+Procedure TChangePlanRequest.SetplanName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplanName=AValue) then exit;
@@ -600,7 +600,7 @@ end;
 
 
 
-Procedure TChangePlanRequest.SetpurchaseOrderId(AIndex : Integer; AValue : String); 
+Procedure TChangePlanRequest.SetpurchaseOrderId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpurchaseOrderId=AValue) then exit;
@@ -627,7 +627,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomer.SetalternateEmail(AIndex : Integer; AValue : String); 
+Procedure TCustomer.SetalternateEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FalternateEmail=AValue) then exit;
@@ -637,7 +637,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerDomain(AIndex : Integer; AValue : String); 
+Procedure TCustomer.SetcustomerDomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerDomain=AValue) then exit;
@@ -647,7 +647,7 @@ end;
 
 
 
-Procedure TCustomer.SetcustomerId(AIndex : Integer; AValue : String); 
+Procedure TCustomer.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -657,7 +657,7 @@ end;
 
 
 
-Procedure TCustomer.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -667,7 +667,7 @@ end;
 
 
 
-Procedure TCustomer.SetphoneNumber(AIndex : Integer; AValue : String); 
+Procedure TCustomer.SetphoneNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FphoneNumber=AValue) then exit;
@@ -687,7 +687,7 @@ end;
 
 
 
-Procedure TCustomer.SetresourceUiUrl(AIndex : Integer; AValue : String); 
+Procedure TCustomer.SetresourceUiUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceUiUrl=AValue) then exit;
@@ -704,7 +704,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRenewalSettings.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRenewalSettings.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -714,7 +714,7 @@ end;
 
 
 
-Procedure TRenewalSettings.SetrenewalType(AIndex : Integer; AValue : String); 
+Procedure TRenewalSettings.SetrenewalType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrenewalType=AValue) then exit;
@@ -731,7 +731,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSeats.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSeats.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -778,7 +778,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionTypeplanTypecommitmentInterval.SetendTime(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionTypeplanTypecommitmentInterval.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -788,7 +788,7 @@ end;
 
 
 
-Procedure TSubscriptionTypeplanTypecommitmentInterval.SetstartTime(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionTypeplanTypecommitmentInterval.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -825,7 +825,7 @@ end;
 
 
 
-Procedure TSubscriptionTypeplan.SetplanName(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionTypeplan.SetplanName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplanName=AValue) then exit;
@@ -852,7 +852,7 @@ end;
 
 
 
-Procedure TSubscriptionTypetransferInfo.SettransferabilityExpirationTime(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionTypetransferInfo.SettransferabilityExpirationTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtransferabilityExpirationTime=AValue) then exit;
@@ -879,7 +879,7 @@ end;
 
 
 
-Procedure TSubscriptionTypetrialSettings.SettrialEndTime(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionTypetrialSettings.SettrialEndTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrialEndTime=AValue) then exit;
@@ -896,7 +896,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscription.SetbillingMethod(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetbillingMethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbillingMethod=AValue) then exit;
@@ -906,7 +906,7 @@ end;
 
 
 
-Procedure TSubscription.SetcreationTime(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetcreationTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -916,7 +916,7 @@ end;
 
 
 
-Procedure TSubscription.SetcustomerId(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -926,7 +926,7 @@ end;
 
 
 
-Procedure TSubscription.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -946,7 +946,7 @@ end;
 
 
 
-Procedure TSubscription.SetpurchaseOrderId(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetpurchaseOrderId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpurchaseOrderId=AValue) then exit;
@@ -966,7 +966,7 @@ end;
 
 
 
-Procedure TSubscription.SetresourceUiUrl(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetresourceUiUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceUiUrl=AValue) then exit;
@@ -986,7 +986,7 @@ end;
 
 
 
-Procedure TSubscription.SetskuId(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetskuId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FskuId=AValue) then exit;
@@ -996,7 +996,7 @@ end;
 
 
 
-Procedure TSubscription.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1006,7 +1006,7 @@ end;
 
 
 
-Procedure TSubscription.SetsubscriptionId(AIndex : Integer; AValue : String); 
+Procedure TSubscription.SetsubscriptionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsubscriptionId=AValue) then exit;
@@ -1043,7 +1043,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptions.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSubscriptions.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1053,7 +1053,7 @@ end;
 
 
 
-Procedure TSubscriptions.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSubscriptions.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

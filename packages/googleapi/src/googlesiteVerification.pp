@@ -48,8 +48,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setidentifier(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setidentifier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property identifier : String Index 0 Read Fidentifier Write Setidentifier;
@@ -68,7 +68,7 @@ type
   Protected
     //Property setters
     Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceGettokenRequestTypesite); virtual;
-    Procedure SetverificationMethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetverificationMethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property site : TSiteVerificationWebResourceGettokenRequestTypesite Index 0 Read Fsite Write Setsite;
@@ -86,8 +86,8 @@ type
     Ftoken : String;
   Protected
     //Property setters
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property method : String Index 0 Read Fmethod Write Setmethod;
@@ -126,8 +126,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setidentifier(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setidentifier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property identifier : String Index 0 Read Fidentifier Write Setidentifier;
@@ -146,7 +146,7 @@ type
     Fsite : TSiteVerificationWebResourceResourceTypesite;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setowners(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setsite(AIndex : Integer; AValue : TSiteVerificationWebResourceResourceTypesite); virtual;
     //2.6.4. bug workaround
@@ -232,7 +232,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceGettokenRequestTypesite.Setidentifier(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceGettokenRequestTypesite.Setidentifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fidentifier=AValue) then exit;
@@ -242,7 +242,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceGettokenRequestTypesite.Set_type(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceGettokenRequestTypesite.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -280,7 +280,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceGettokenRequest.SetverificationMethod(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceGettokenRequest.SetverificationMethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FverificationMethod=AValue) then exit;
@@ -297,7 +297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceGettokenResponse.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceGettokenResponse.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -307,7 +307,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceGettokenResponse.Settoken(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceGettokenResponse.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -354,7 +354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceResourceTypesite.Setidentifier(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceResourceTypesite.Setidentifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fidentifier=AValue) then exit;
@@ -364,7 +364,7 @@ end;
 
 
 
-Procedure TSiteVerificationWebResourceResourceTypesite.Set_type(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceResourceTypesite.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -392,7 +392,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSiteVerificationWebResourceResource.Setid(AIndex : Integer; AValue : String); 
+Procedure TSiteVerificationWebResourceResource.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;

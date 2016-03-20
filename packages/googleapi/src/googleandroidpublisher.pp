@@ -157,7 +157,7 @@ type
     Fsha1 : String;
   Protected
     //Property setters
-    Procedure Setsha1(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsha1(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property sha1 : String Index 0 Read Fsha1 Write Setsha1;
@@ -174,8 +174,8 @@ type
     FrecentChanges : String;
   Protected
     //Property setters
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrecentChanges(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrecentChanges(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property language : String Index 0 Read Flanguage Write Setlanguage;
@@ -193,7 +193,7 @@ type
     Flistings : TApkListingsListResponseTypelistingsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlistings(AIndex : Integer; AValue : TApkListingsListResponseTypelistingsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -249,7 +249,7 @@ type
   Protected
     //Property setters
     Procedure Setapks(AIndex : Integer; AValue : TApksListResponseTypeapksArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -273,10 +273,10 @@ type
     FdefaultLanguage : String;
   Protected
     //Property setters
-    Procedure SetcontactEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontactPhone(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontactWebsite(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontactEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontactPhone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontactWebsite(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property contactEmail : String Index 0 Read FcontactEmail Write SetcontactEmail;
@@ -296,8 +296,8 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure SetexpiryTimeSeconds(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexpiryTimeSeconds(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property expiryTimeSeconds : String Index 0 Read FexpiryTimeSeconds Write SetexpiryTimeSeconds;
@@ -317,10 +317,10 @@ type
     Ftoken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductType(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -366,7 +366,7 @@ type
     FreferencesVersion : integer;
   Protected
     //Property setters
-    Procedure SetfileSize(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileSize(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreferencesVersion(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -414,21 +414,21 @@ type
     FversionName : String;
   Protected
     //Property setters
-    Procedure SetapplicationLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapplicationLabel(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcertificateBase64s(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetexternallyHostedUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileSha1Base64(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileSha256Base64(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileSize(AIndex : Integer; AValue : String); virtual;
-    Procedure SeticonBase64(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexternallyHostedUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileSha1Base64(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileSha256Base64(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeticonBase64(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaximumSdk(AIndex : Integer; AValue : integer); virtual;
     Procedure SetminimumSdk(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnativeCodes(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetpackageName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetusesFeatures(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetusesPermissions(AIndex : Integer; AValue : TExternallyHostedApkTypeusesPermissionsArray); virtual;
     Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetversionName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetversionName(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -464,7 +464,7 @@ type
   Protected
     //Property setters
     Procedure SetmaxSdkVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property maxSdkVersion : integer Index 0 Read FmaxSdkVersion Write SetmaxSdkVersion;
@@ -483,9 +483,9 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsha1(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsha1(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -597,17 +597,17 @@ type
     FtrialPeriod : String;
   Protected
     //Property setters
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdefaultPrice(AIndex : Integer; AValue : TPrice); virtual;
     Procedure Setlistings(AIndex : Integer; AValue : TInAppProductTypelistings); virtual;
-    Procedure SetpackageName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprices(AIndex : Integer; AValue : TInAppProductTypeprices); virtual;
-    Procedure SetpurchaseType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpurchaseType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setseason(AIndex : Integer; AValue : TSeason); virtual;
-    Procedure Setsku(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsubscriptionPeriod(AIndex : Integer; AValue : String); virtual;
-    Procedure SettrialPeriod(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsku(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsubscriptionPeriod(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettrialPeriod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property defaultLanguage : String Index 0 Read FdefaultLanguage Write SetdefaultLanguage;
@@ -634,8 +634,8 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -678,7 +678,7 @@ type
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Setinappproductsinsertrequest(AIndex : Integer; AValue : TInappproductsInsertRequest); virtual;
     Procedure Setinappproductsupdaterequest(AIndex : Integer; AValue : TInappproductsUpdateRequest); virtual;
-    Procedure SetmethodName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmethodName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -699,7 +699,7 @@ type
   Protected
     //Property setters
     Procedure Setentrys(AIndex : Integer; AValue : TInappproductsBatchResponseTypeentrysArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -778,7 +778,7 @@ type
   Protected
     //Property setters
     Procedure Setinappproduct(AIndex : Integer; AValue : TInappproductsListResponseTypeinappproductArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
     //2.6.4. bug workaround
@@ -839,11 +839,11 @@ type
     Fvideo : String;
   Protected
     //Property setters
-    Procedure SetfullDescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetshortDescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvideo(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfullDescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetshortDescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvideo(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property fullDescription : String Index 0 Read FfullDescription Write SetfullDescription;
@@ -864,7 +864,7 @@ type
     Flistings : TListingsListResponseTypelistingsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlistings(AIndex : Integer; AValue : TListingsListResponseTypelistingsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -928,8 +928,8 @@ type
     FpriceMicros : String;
   Protected
     //Property setters
-    Procedure Setcurrency(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpriceMicros(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcurrency(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpriceMicros(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property currency : String Index 0 Read Fcurrency Write Setcurrency;
@@ -951,10 +951,10 @@ type
   Protected
     //Property setters
     Procedure SetconsumptionState(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdeveloperPayload(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeveloperPayload(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpurchaseState(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpurchaseTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpurchaseTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property consumptionState : integer Index 0 Read FconsumptionState Write SetconsumptionState;
@@ -995,8 +995,8 @@ type
     FexpectedExpiryTimeMillis : String;
   Protected
     //Property setters
-    Procedure SetdesiredExpiryTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetexpectedExpiryTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdesiredExpiryTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexpectedExpiryTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property desiredExpiryTimeMillis : String Index 0 Read FdesiredExpiryTimeMillis Write SetdesiredExpiryTimeMillis;
@@ -1017,9 +1017,9 @@ type
   Protected
     //Property setters
     Procedure SetautoRenewing(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetexpiryTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetexpiryTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoRenewing : boolean Index 0 Read FautoRenewing Write SetautoRenewing;
@@ -1054,7 +1054,7 @@ type
     FnewExpiryTimeMillis : String;
   Protected
     //Property setters
-    Procedure SetnewExpiryTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnewExpiryTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property newExpiryTimeMillis : String Index 0 Read FnewExpiryTimeMillis Write SetnewExpiryTimeMillis;
@@ -1094,8 +1094,8 @@ type
     FpreviousPageToken : String;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousPageToken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
@@ -1114,7 +1114,7 @@ type
     FversionCodes : TintegerArray;
   Protected
     //Property setters
-    Procedure Settrack(AIndex : Integer; AValue : String); virtual;
+    Procedure Settrack(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserFraction(AIndex : Integer; AValue : double); virtual;
     Procedure SetversionCodes(AIndex : Integer; AValue : TintegerArray); virtual;
     //2.6.4. bug workaround
@@ -1139,7 +1139,7 @@ type
     Ftracks : TTracksListResponseTypetracksArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Settracks(AIndex : Integer; AValue : TTracksListResponseTypetracksArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1592,7 +1592,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApkBinary.Setsha1(AIndex : Integer; AValue : String); 
+Procedure TApkBinary.Setsha1(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsha1=AValue) then exit;
@@ -1609,7 +1609,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApkListing.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TApkListing.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -1619,7 +1619,7 @@ end;
 
 
 
-Procedure TApkListing.SetrecentChanges(AIndex : Integer; AValue : String); 
+Procedure TApkListing.SetrecentChanges(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrecentChanges=AValue) then exit;
@@ -1636,7 +1636,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApkListingsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TApkListingsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1720,7 +1720,7 @@ end;
 
 
 
-Procedure TApksListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TApksListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1750,7 +1750,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAppDetails.SetcontactEmail(AIndex : Integer; AValue : String); 
+Procedure TAppDetails.SetcontactEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontactEmail=AValue) then exit;
@@ -1760,7 +1760,7 @@ end;
 
 
 
-Procedure TAppDetails.SetcontactPhone(AIndex : Integer; AValue : String); 
+Procedure TAppDetails.SetcontactPhone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontactPhone=AValue) then exit;
@@ -1770,7 +1770,7 @@ end;
 
 
 
-Procedure TAppDetails.SetcontactWebsite(AIndex : Integer; AValue : String); 
+Procedure TAppDetails.SetcontactWebsite(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontactWebsite=AValue) then exit;
@@ -1780,7 +1780,7 @@ end;
 
 
 
-Procedure TAppDetails.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TAppDetails.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -1797,7 +1797,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAppEdit.SetexpiryTimeSeconds(AIndex : Integer; AValue : String); 
+Procedure TAppEdit.SetexpiryTimeSeconds(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpiryTimeSeconds=AValue) then exit;
@@ -1807,7 +1807,7 @@ end;
 
 
 
-Procedure TAppEdit.Setid(AIndex : Integer; AValue : String); 
+Procedure TAppEdit.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1824,7 +1824,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntitlement.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1834,7 +1834,7 @@ end;
 
 
 
-Procedure TEntitlement.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1844,7 +1844,7 @@ end;
 
 
 
-Procedure TEntitlement.SetproductType(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.SetproductType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductType=AValue) then exit;
@@ -1854,7 +1854,7 @@ end;
 
 
 
-Procedure TEntitlement.Settoken(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -1921,7 +1921,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExpansionFile.SetfileSize(AIndex : Integer; AValue : String); 
+Procedure TExpansionFile.SetfileSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileSize=AValue) then exit;
@@ -1965,7 +1965,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExternallyHostedApk.SetapplicationLabel(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetapplicationLabel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationLabel=AValue) then exit;
@@ -1985,7 +1985,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetexternallyHostedUrl(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetexternallyHostedUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexternallyHostedUrl=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetfileSha1Base64(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetfileSha1Base64(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileSha1Base64=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetfileSha256Base64(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetfileSha256Base64(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileSha256Base64=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetfileSize(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetfileSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileSize=AValue) then exit;
@@ -2025,7 +2025,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SeticonBase64(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SeticonBase64(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconBase64=AValue) then exit;
@@ -2065,7 +2065,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetpackageName(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetpackageName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpackageName=AValue) then exit;
@@ -2105,7 +2105,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetversionName(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApk.SetversionName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FversionName=AValue) then exit;
@@ -2148,7 +2148,7 @@ end;
 
 
 
-Procedure TExternallyHostedApkUsesPermission.Setname(AIndex : Integer; AValue : String); 
+Procedure TExternallyHostedApkUsesPermission.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2165,7 +2165,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImage.Setid(AIndex : Integer; AValue : String); 
+Procedure TImage.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2175,7 +2175,7 @@ end;
 
 
 
-Procedure TImage.Setsha1(AIndex : Integer; AValue : String); 
+Procedure TImage.Setsha1(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsha1=AValue) then exit;
@@ -2185,7 +2185,7 @@ end;
 
 
 
-Procedure TImage.Seturl(AIndex : Integer; AValue : String); 
+Procedure TImage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2305,7 +2305,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInAppProduct.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -2335,7 +2335,7 @@ end;
 
 
 
-Procedure TInAppProduct.SetpackageName(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.SetpackageName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpackageName=AValue) then exit;
@@ -2355,7 +2355,7 @@ end;
 
 
 
-Procedure TInAppProduct.SetpurchaseType(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.SetpurchaseType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpurchaseType=AValue) then exit;
@@ -2375,7 +2375,7 @@ end;
 
 
 
-Procedure TInAppProduct.Setsku(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.Setsku(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsku=AValue) then exit;
@@ -2385,7 +2385,7 @@ end;
 
 
 
-Procedure TInAppProduct.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2395,7 +2395,7 @@ end;
 
 
 
-Procedure TInAppProduct.SetsubscriptionPeriod(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.SetsubscriptionPeriod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsubscriptionPeriod=AValue) then exit;
@@ -2405,7 +2405,7 @@ end;
 
 
 
-Procedure TInAppProduct.SettrialPeriod(AIndex : Integer; AValue : String); 
+Procedure TInAppProduct.SettrialPeriod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrialPeriod=AValue) then exit;
@@ -2422,7 +2422,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInAppProductListing.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TInAppProductListing.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2432,7 +2432,7 @@ end;
 
 
 
-Procedure TInAppProductListing.Settitle(AIndex : Integer; AValue : String); 
+Procedure TInAppProductListing.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2509,7 +2509,7 @@ end;
 
 
 
-Procedure TInappproductsBatchRequestEntry.SetmethodName(AIndex : Integer; AValue : String); 
+Procedure TInappproductsBatchRequestEntry.SetmethodName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmethodName=AValue) then exit;
@@ -2536,7 +2536,7 @@ end;
 
 
 
-Procedure TInappproductsBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInappproductsBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2647,7 +2647,7 @@ end;
 
 
 
-Procedure TInappproductsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInappproductsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2731,7 +2731,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListing.SetfullDescription(AIndex : Integer; AValue : String); 
+Procedure TListing.SetfullDescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfullDescription=AValue) then exit;
@@ -2741,7 +2741,7 @@ end;
 
 
 
-Procedure TListing.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TListing.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -2751,7 +2751,7 @@ end;
 
 
 
-Procedure TListing.SetshortDescription(AIndex : Integer; AValue : String); 
+Procedure TListing.SetshortDescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshortDescription=AValue) then exit;
@@ -2761,7 +2761,7 @@ end;
 
 
 
-Procedure TListing.Settitle(AIndex : Integer; AValue : String); 
+Procedure TListing.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2771,7 +2771,7 @@ end;
 
 
 
-Procedure TListing.Setvideo(AIndex : Integer; AValue : String); 
+Procedure TListing.Setvideo(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvideo=AValue) then exit;
@@ -2788,7 +2788,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListingsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListingsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2892,7 +2892,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPrice.Setcurrency(AIndex : Integer; AValue : String); 
+Procedure TPrice.Setcurrency(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -2902,7 +2902,7 @@ end;
 
 
 
-Procedure TPrice.SetpriceMicros(AIndex : Integer; AValue : String); 
+Procedure TPrice.SetpriceMicros(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpriceMicros=AValue) then exit;
@@ -2929,7 +2929,7 @@ end;
 
 
 
-Procedure TProductPurchase.SetdeveloperPayload(AIndex : Integer; AValue : String); 
+Procedure TProductPurchase.SetdeveloperPayload(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeveloperPayload=AValue) then exit;
@@ -2939,7 +2939,7 @@ end;
 
 
 
-Procedure TProductPurchase.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductPurchase.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2959,7 +2959,7 @@ end;
 
 
 
-Procedure TProductPurchase.SetpurchaseTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TProductPurchase.SetpurchaseTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpurchaseTimeMillis=AValue) then exit;
@@ -3014,7 +3014,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionDeferralInfo.SetdesiredExpiryTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionDeferralInfo.SetdesiredExpiryTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdesiredExpiryTimeMillis=AValue) then exit;
@@ -3024,7 +3024,7 @@ end;
 
 
 
-Procedure TSubscriptionDeferralInfo.SetexpectedExpiryTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionDeferralInfo.SetexpectedExpiryTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpectedExpiryTimeMillis=AValue) then exit;
@@ -3051,7 +3051,7 @@ end;
 
 
 
-Procedure TSubscriptionPurchase.SetexpiryTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionPurchase.SetexpiryTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpiryTimeMillis=AValue) then exit;
@@ -3061,7 +3061,7 @@ end;
 
 
 
-Procedure TSubscriptionPurchase.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionPurchase.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3071,7 +3071,7 @@ end;
 
 
 
-Procedure TSubscriptionPurchase.SetstartTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionPurchase.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTimeMillis=AValue) then exit;
@@ -3105,7 +3105,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionPurchasesDeferResponse.SetnewExpiryTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionPurchasesDeferResponse.SetnewExpiryTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnewExpiryTimeMillis=AValue) then exit;
@@ -3163,7 +3163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3173,7 +3173,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; AValue : String); 
+Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousPageToken=AValue) then exit;
@@ -3190,7 +3190,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTrack.Settrack(AIndex : Integer; AValue : String); 
+Procedure TTrack.Settrack(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftrack=AValue) then exit;
@@ -3240,7 +3240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTracksListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTracksListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

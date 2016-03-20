@@ -134,9 +134,9 @@ type
   Protected
     //Property setters
     Procedure SetexpirationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property expirationTime : TDatetime Index 0 Read FexpirationTime Write SetexpirationTime;
@@ -160,8 +160,8 @@ type
     //Property setters
     Procedure SetbinaryLogEnabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setenabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property binaryLogEnabled : boolean Index 0 Read FbinaryLogEnabled Write SetbinaryLogEnabled;
@@ -192,12 +192,12 @@ type
     Procedure SetendTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetenqueuedTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Seterror(AIndex : Integer; AValue : TOperationError); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwindowStartTime(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -226,8 +226,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBackupRunsListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -251,9 +251,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetbinLogFileName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbinLogPosition(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbinLogFileName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbinLogPosition(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property binLogFileName : String Index 0 Read FbinLogFileName Write SetbinLogFileName;
@@ -274,8 +274,8 @@ type
   Protected
     //Property setters
     Procedure SetbinLogCoordinates(AIndex : Integer; AValue : TBinLogCoordinates); virtual;
-    Procedure SetdestinationInstanceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationInstanceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property binLogCoordinates : TBinLogCoordinates Index 0 Read FbinLogCoordinates Write SetbinLogCoordinates;
@@ -300,14 +300,14 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setcharset(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcollation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcharset(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcollation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property charset : String Index 0 Read Fcharset Write Setcharset;
@@ -331,8 +331,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -368,26 +368,26 @@ type
     Fstate : String;
   Protected
     //Property setters
-    Procedure SetcurrentDiskSize(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdatabaseVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinstanceType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentDiskSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdatabaseVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetipAddresses(AIndex : Integer; AValue : TDatabaseInstanceTypeipAddressesArray); virtual;
-    Procedure Setipv6Address(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmasterInstanceName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmaxDiskSize(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setipv6Address(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmasterInstanceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaxDiskSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetonPremisesConfiguration(AIndex : Integer; AValue : TOnPremisesConfiguration); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : String); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreplicaConfiguration(AIndex : Integer; AValue : TReplicaConfiguration); virtual;
     Procedure SetreplicaNames(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetserverCaCert(AIndex : Integer; AValue : TSslCert); virtual;
-    Procedure SetserviceAccountEmailAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetserviceAccountEmailAddress(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsettings(AIndex : Integer; AValue : TSettings); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -428,7 +428,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TDatabasesListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -449,7 +449,7 @@ type
     FselectQuery : String;
   Protected
     //Property setters
-    Procedure SetselectQuery(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselectQuery(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property selectQuery : String Index 0 Read FselectQuery Write SetselectQuery;
@@ -492,10 +492,10 @@ type
     //Property setters
     Procedure SetcsvExportOptions(AIndex : Integer; AValue : TExportContextTypecsvExportOptions); virtual;
     Procedure Setdatabases(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetfileType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsqlExportOptions(AIndex : Integer; AValue : TExportContextTypesqlExportOptions); virtual;
-    Procedure Seturi(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturi(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -529,11 +529,11 @@ type
     //Property setters
     Procedure SetallowedStringValues(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetappliesTo(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmaxValue(AIndex : Integer; AValue : String); virtual;
-    Procedure SetminValue(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaxValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetminValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -561,7 +561,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TFlagsListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -584,7 +584,7 @@ type
   Protected
     //Property setters
     Procedure Setcolumns(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Settable(AIndex : Integer; AValue : String); virtual;
+    Procedure Settable(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -610,10 +610,10 @@ type
   Protected
     //Property setters
     Procedure SetcsvImportOptions(AIndex : Integer; AValue : TImportContextTypecsvImportOptions); virtual;
-    Procedure Setdatabase(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturi(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdatabase(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturi(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property csvImportOptions : TImportContextTypecsvImportOptions Index 0 Read FcsvImportOptions Write SetcsvImportOptions;
@@ -684,8 +684,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TInstancesListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -750,7 +750,7 @@ type
     FtimeToRetire : TDatetime;
   Protected
     //Property setters
-    Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeToRetire(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -770,9 +770,9 @@ type
     Fzone : String;
   Protected
     //Property setters
-    Procedure SetfollowGaeApplication(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfollowGaeApplication(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property followGaeApplication : String Index 0 Read FfollowGaeApplication Write SetfollowGaeApplication;
@@ -800,16 +800,16 @@ type
     FverifyServerCertificate : boolean;
   Protected
     //Property setters
-    Procedure SetcaCertificate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclientCertificate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclientKey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcaCertificate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclientCertificate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclientKey(AIndex : Integer; const AValue : String); virtual;
     Procedure SetconnectRetryInterval(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdumpFilePath(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmasterHeartbeatPeriod(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsslCipher(AIndex : Integer; AValue : String); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdumpFilePath(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmasterHeartbeatPeriod(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsslCipher(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
     Procedure SetverifyServerCertificate(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -837,8 +837,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SethostPort(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SethostPort(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property hostPort : String Index 0 Read FhostPort Write SethostPort;
@@ -874,16 +874,16 @@ type
     Procedure SetexportContext(AIndex : Integer; AValue : TExportContext); virtual;
     Procedure SetimportContext(AIndex : Integer; AValue : TImportContext); virtual;
     Procedure SetinsertTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetProject(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetProject(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property endTime : TDatetime Index 0 Read FendTime Write SetendTime;
@@ -915,9 +915,9 @@ type
     Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -937,7 +937,7 @@ type
   Protected
     //Property setters
     Procedure Seterrors(AIndex : Integer; AValue : TOperationErrorsTypeerrorsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -961,8 +961,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TOperationsListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -985,7 +985,7 @@ type
     FmysqlReplicaConfiguration : TMySqlReplicaConfiguration;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmysqlReplicaConfiguration(AIndex : Integer; AValue : TMySqlReplicaConfiguration); virtual;
   Public
   Published
@@ -1005,9 +1005,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetbackupRunId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinstanceId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbackupRunId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinstanceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property backupRunId : String Index 0 Read FbackupRunId Write SetbackupRunId;
@@ -1037,19 +1037,19 @@ type
     Ftier : String;
   Protected
     //Property setters
-    Procedure SetactivationPolicy(AIndex : Integer; AValue : String); virtual;
+    Procedure SetactivationPolicy(AIndex : Integer; const AValue : String); virtual;
     Procedure SetauthorizedGaeApplications(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetbackupConfiguration(AIndex : Integer; AValue : TBackupConfiguration); virtual;
     Procedure SetcrashSafeReplicationEnabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdatabaseFlags(AIndex : Integer; AValue : TSettingsTypedatabaseFlagsArray); virtual;
     Procedure SetdatabaseReplicationEnabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetipConfiguration(AIndex : Integer; AValue : TIpConfiguration); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlocationPreference(AIndex : Integer; AValue : TLocationPreference); virtual;
-    Procedure SetpricingPlan(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreplicationType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsettingsVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure Settier(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpricingPlan(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreplicationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsettingsVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settier(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1089,15 +1089,15 @@ type
     Fsha1Fingerprint : String;
   Protected
     //Property setters
-    Procedure Setcert(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcertSerialNumber(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcommonName(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcert(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcertSerialNumber(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcommonName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreateTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetexpirationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsha1Fingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsha1Fingerprint(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property cert : String Index 0 Read Fcert Write Setcert;
@@ -1123,7 +1123,7 @@ type
   Protected
     //Property setters
     Procedure SetcertInfo(AIndex : Integer; AValue : TSslCert); virtual;
-    Procedure SetcertPrivateKey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcertPrivateKey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property certInfo : TSslCert Index 0 Read FcertInfo Write SetcertInfo;
@@ -1140,7 +1140,7 @@ type
     FcommonName : String;
   Protected
     //Property setters
-    Procedure SetcommonName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcommonName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property commonName : String Index 0 Read FcommonName Write SetcommonName;
@@ -1159,7 +1159,7 @@ type
   Protected
     //Property setters
     Procedure SetclientCert(AIndex : Integer; AValue : TSslCertDetail); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetserverCaCert(AIndex : Integer; AValue : TSslCert); virtual;
   Public
   Published
@@ -1180,7 +1180,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TSslCertsListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1205,11 +1205,11 @@ type
     Ftier : String;
   Protected
     //Property setters
-    Procedure SetDiskQuota(AIndex : Integer; AValue : String); virtual;
-    Procedure SetRAM(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetDiskQuota(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetRAM(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setregion(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Settier(AIndex : Integer; AValue : String); virtual;
+    Procedure Settier(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1235,7 +1235,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTiersListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1262,13 +1262,13 @@ type
     Fproject : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Sethost(AIndex : Integer; AValue : String); virtual;
-    Procedure Setinstance(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
-    Procedure Setproject(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethost(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1293,8 +1293,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TUsersListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1566,7 +1566,7 @@ end;
 
 
 
-Procedure TAclEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAclEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1576,7 +1576,7 @@ end;
 
 
 
-Procedure TAclEntry.Setname(AIndex : Integer; AValue : String); 
+Procedure TAclEntry.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1586,7 +1586,7 @@ end;
 
 
 
-Procedure TAclEntry.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TAclEntry.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1623,7 +1623,7 @@ end;
 
 
 
-Procedure TBackupConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBackupConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1633,7 +1633,7 @@ end;
 
 
 
-Procedure TBackupConfiguration.SetstartTime(AIndex : Integer; AValue : String); 
+Procedure TBackupConfiguration.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1680,7 +1680,7 @@ end;
 
 
 
-Procedure TBackupRun.Setid(AIndex : Integer; AValue : String); 
+Procedure TBackupRun.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1690,7 +1690,7 @@ end;
 
 
 
-Procedure TBackupRun.Setinstance(AIndex : Integer; AValue : String); 
+Procedure TBackupRun.Setinstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Finstance=AValue) then exit;
@@ -1700,7 +1700,7 @@ end;
 
 
 
-Procedure TBackupRun.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBackupRun.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1710,7 +1710,7 @@ end;
 
 
 
-Procedure TBackupRun.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TBackupRun.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1730,7 +1730,7 @@ end;
 
 
 
-Procedure TBackupRun.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TBackupRun.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1767,7 +1767,7 @@ end;
 
 
 
-Procedure TBackupRunsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBackupRunsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1777,7 +1777,7 @@ end;
 
 
 
-Procedure TBackupRunsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TBackupRunsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1807,7 +1807,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBinLogCoordinates.SetbinLogFileName(AIndex : Integer; AValue : String); 
+Procedure TBinLogCoordinates.SetbinLogFileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbinLogFileName=AValue) then exit;
@@ -1817,7 +1817,7 @@ end;
 
 
 
-Procedure TBinLogCoordinates.SetbinLogPosition(AIndex : Integer; AValue : String); 
+Procedure TBinLogCoordinates.SetbinLogPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbinLogPosition=AValue) then exit;
@@ -1827,7 +1827,7 @@ end;
 
 
 
-Procedure TBinLogCoordinates.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBinLogCoordinates.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1854,7 +1854,7 @@ end;
 
 
 
-Procedure TCloneContext.SetdestinationInstanceName(AIndex : Integer; AValue : String); 
+Procedure TCloneContext.SetdestinationInstanceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationInstanceName=AValue) then exit;
@@ -1864,7 +1864,7 @@ end;
 
 
 
-Procedure TCloneContext.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCloneContext.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1881,7 +1881,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatabase.Setcharset(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setcharset(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcharset=AValue) then exit;
@@ -1891,7 +1891,7 @@ end;
 
 
 
-Procedure TDatabase.Setcollation(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setcollation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcollation=AValue) then exit;
@@ -1901,7 +1901,7 @@ end;
 
 
 
-Procedure TDatabase.Setetag(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1911,7 +1911,7 @@ end;
 
 
 
-Procedure TDatabase.Setinstance(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setinstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Finstance=AValue) then exit;
@@ -1921,7 +1921,7 @@ end;
 
 
 
-Procedure TDatabase.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1931,7 +1931,7 @@ end;
 
 
 
-Procedure TDatabase.Setname(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1941,7 +1941,7 @@ end;
 
 
 
-Procedure TDatabase.Setproject(AIndex : Integer; AValue : String); 
+Procedure TDatabase.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -1951,7 +1951,7 @@ end;
 
 
 
-Procedure TDatabase.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TDatabase.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1968,7 +1968,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatabaseFlags.Setname(AIndex : Integer; AValue : String); 
+Procedure TDatabaseFlags.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1978,7 +1978,7 @@ end;
 
 
 
-Procedure TDatabaseFlags.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TDatabaseFlags.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatabaseInstance.SetcurrentDiskSize(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetcurrentDiskSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentDiskSize=AValue) then exit;
@@ -2005,7 +2005,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetdatabaseVersion(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetdatabaseVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatabaseVersion=AValue) then exit;
@@ -2015,7 +2015,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setetag(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2025,7 +2025,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetinstanceType(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetinstanceType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinstanceType=AValue) then exit;
@@ -2045,7 +2045,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setipv6Address(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setipv6Address(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fipv6Address=AValue) then exit;
@@ -2055,7 +2055,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2065,7 +2065,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetmasterInstanceName(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetmasterInstanceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmasterInstanceName=AValue) then exit;
@@ -2075,7 +2075,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetmaxDiskSize(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetmaxDiskSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxDiskSize=AValue) then exit;
@@ -2085,7 +2085,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setname(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2105,7 +2105,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setproject(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -2115,7 +2115,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setregion(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -2145,7 +2145,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2165,7 +2165,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetserviceAccountEmailAddress(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.SetserviceAccountEmailAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FserviceAccountEmailAddress=AValue) then exit;
@@ -2185,7 +2185,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setstate(AIndex : Integer; AValue : String); 
+Procedure TDatabaseInstance.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -2226,7 +2226,7 @@ end;
 
 
 
-Procedure TDatabasesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatabasesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2256,7 +2256,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportContextTypecsvExportOptions.SetselectQuery(AIndex : Integer; AValue : String); 
+Procedure TExportContextTypecsvExportOptions.SetselectQuery(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselectQuery=AValue) then exit;
@@ -2323,7 +2323,7 @@ end;
 
 
 
-Procedure TExportContext.SetfileType(AIndex : Integer; AValue : String); 
+Procedure TExportContext.SetfileType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileType=AValue) then exit;
@@ -2333,7 +2333,7 @@ end;
 
 
 
-Procedure TExportContext.Setkind(AIndex : Integer; AValue : String); 
+Procedure TExportContext.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2353,7 +2353,7 @@ end;
 
 
 
-Procedure TExportContext.Seturi(AIndex : Integer; AValue : String); 
+Procedure TExportContext.Seturi(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furi=AValue) then exit;
@@ -2403,7 +2403,7 @@ end;
 
 
 
-Procedure TFlag.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFlag.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2413,7 +2413,7 @@ end;
 
 
 
-Procedure TFlag.SetmaxValue(AIndex : Integer; AValue : String); 
+Procedure TFlag.SetmaxValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxValue=AValue) then exit;
@@ -2423,7 +2423,7 @@ end;
 
 
 
-Procedure TFlag.SetminValue(AIndex : Integer; AValue : String); 
+Procedure TFlag.SetminValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FminValue=AValue) then exit;
@@ -2433,7 +2433,7 @@ end;
 
 
 
-Procedure TFlag.Setname(AIndex : Integer; AValue : String); 
+Procedure TFlag.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2443,7 +2443,7 @@ end;
 
 
 
-Procedure TFlag.Set_type(AIndex : Integer; AValue : String); 
+Procedure TFlag.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2495,7 +2495,7 @@ end;
 
 
 
-Procedure TFlagsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFlagsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2535,7 +2535,7 @@ end;
 
 
 
-Procedure TImportContextTypecsvImportOptions.Settable(AIndex : Integer; AValue : String); 
+Procedure TImportContextTypecsvImportOptions.Settable(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftable=AValue) then exit;
@@ -2575,7 +2575,7 @@ end;
 
 
 
-Procedure TImportContext.Setdatabase(AIndex : Integer; AValue : String); 
+Procedure TImportContext.Setdatabase(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdatabase=AValue) then exit;
@@ -2585,7 +2585,7 @@ end;
 
 
 
-Procedure TImportContext.SetfileType(AIndex : Integer; AValue : String); 
+Procedure TImportContext.SetfileType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileType=AValue) then exit;
@@ -2595,7 +2595,7 @@ end;
 
 
 
-Procedure TImportContext.Setkind(AIndex : Integer; AValue : String); 
+Procedure TImportContext.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2605,7 +2605,7 @@ end;
 
 
 
-Procedure TImportContext.Seturi(AIndex : Integer; AValue : String); 
+Procedure TImportContext.Seturi(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furi=AValue) then exit;
@@ -2683,7 +2683,7 @@ end;
 
 
 
-Procedure TInstancesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstancesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2693,7 +2693,7 @@ end;
 
 
 
-Procedure TInstancesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TInstancesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2790,7 +2790,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIpMapping.SetipAddress(AIndex : Integer; AValue : String); 
+Procedure TIpMapping.SetipAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FipAddress=AValue) then exit;
@@ -2817,7 +2817,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationPreference.SetfollowGaeApplication(AIndex : Integer; AValue : String); 
+Procedure TLocationPreference.SetfollowGaeApplication(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfollowGaeApplication=AValue) then exit;
@@ -2827,7 +2827,7 @@ end;
 
 
 
-Procedure TLocationPreference.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLocationPreference.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2837,7 +2837,7 @@ end;
 
 
 
-Procedure TLocationPreference.Setzone(AIndex : Integer; AValue : String); 
+Procedure TLocationPreference.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -2854,7 +2854,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMySqlReplicaConfiguration.SetcaCertificate(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.SetcaCertificate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcaCertificate=AValue) then exit;
@@ -2864,7 +2864,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetclientCertificate(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.SetclientCertificate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclientCertificate=AValue) then exit;
@@ -2874,7 +2874,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetclientKey(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.SetclientKey(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclientKey=AValue) then exit;
@@ -2894,7 +2894,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetdumpFilePath(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.SetdumpFilePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdumpFilePath=AValue) then exit;
@@ -2904,7 +2904,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2914,7 +2914,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetmasterHeartbeatPeriod(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.SetmasterHeartbeatPeriod(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmasterHeartbeatPeriod=AValue) then exit;
@@ -2924,7 +2924,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.Setpassword(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.Setpassword(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpassword=AValue) then exit;
@@ -2934,7 +2934,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetsslCipher(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.SetsslCipher(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsslCipher=AValue) then exit;
@@ -2944,7 +2944,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.Setusername(AIndex : Integer; AValue : String); 
+Procedure TMySqlReplicaConfiguration.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -2971,7 +2971,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOnPremisesConfiguration.SethostPort(AIndex : Integer; AValue : String); 
+Procedure TOnPremisesConfiguration.SethostPort(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhostPort=AValue) then exit;
@@ -2981,7 +2981,7 @@ end;
 
 
 
-Procedure TOnPremisesConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOnPremisesConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3048,7 +3048,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3058,7 +3058,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3068,7 +3068,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoperationType=AValue) then exit;
@@ -3078,7 +3078,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3098,7 +3098,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3108,7 +3108,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; AValue : String); 
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetId=AValue) then exit;
@@ -3118,7 +3118,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -3128,7 +3128,7 @@ end;
 
 
 
-Procedure TOperation.SettargetProject(AIndex : Integer; AValue : String); 
+Procedure TOperation.SettargetProject(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetProject=AValue) then exit;
@@ -3138,7 +3138,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -3155,7 +3155,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationError.Setcode(AIndex : Integer; AValue : String); 
+Procedure TOperationError.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -3165,7 +3165,7 @@ end;
 
 
 
-Procedure TOperationError.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOperationError.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3175,7 +3175,7 @@ end;
 
 
 
-Procedure TOperationError.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TOperationError.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -3202,7 +3202,7 @@ end;
 
 
 
-Procedure TOperationErrors.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOperationErrors.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3242,7 +3242,7 @@ end;
 
 
 
-Procedure TOperationsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOperationsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3252,7 +3252,7 @@ end;
 
 
 
-Procedure TOperationsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TOperationsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3282,7 +3282,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReplicaConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReplicaConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3309,7 +3309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRestoreBackupContext.SetbackupRunId(AIndex : Integer; AValue : String); 
+Procedure TRestoreBackupContext.SetbackupRunId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbackupRunId=AValue) then exit;
@@ -3319,7 +3319,7 @@ end;
 
 
 
-Procedure TRestoreBackupContext.SetinstanceId(AIndex : Integer; AValue : String); 
+Procedure TRestoreBackupContext.SetinstanceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinstanceId=AValue) then exit;
@@ -3329,7 +3329,7 @@ end;
 
 
 
-Procedure TRestoreBackupContext.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRestoreBackupContext.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3346,7 +3346,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSettings.SetactivationPolicy(AIndex : Integer; AValue : String); 
+Procedure TSettings.SetactivationPolicy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FactivationPolicy=AValue) then exit;
@@ -3416,7 +3416,7 @@ end;
 
 
 
-Procedure TSettings.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSettings.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3436,7 +3436,7 @@ end;
 
 
 
-Procedure TSettings.SetpricingPlan(AIndex : Integer; AValue : String); 
+Procedure TSettings.SetpricingPlan(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpricingPlan=AValue) then exit;
@@ -3446,7 +3446,7 @@ end;
 
 
 
-Procedure TSettings.SetreplicationType(AIndex : Integer; AValue : String); 
+Procedure TSettings.SetreplicationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreplicationType=AValue) then exit;
@@ -3456,7 +3456,7 @@ end;
 
 
 
-Procedure TSettings.SetsettingsVersion(AIndex : Integer; AValue : String); 
+Procedure TSettings.SetsettingsVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsettingsVersion=AValue) then exit;
@@ -3466,7 +3466,7 @@ end;
 
 
 
-Procedure TSettings.Settier(AIndex : Integer; AValue : String); 
+Procedure TSettings.Settier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftier=AValue) then exit;
@@ -3497,7 +3497,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSslCert.Setcert(AIndex : Integer; AValue : String); 
+Procedure TSslCert.Setcert(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcert=AValue) then exit;
@@ -3507,7 +3507,7 @@ end;
 
 
 
-Procedure TSslCert.SetcertSerialNumber(AIndex : Integer; AValue : String); 
+Procedure TSslCert.SetcertSerialNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcertSerialNumber=AValue) then exit;
@@ -3517,7 +3517,7 @@ end;
 
 
 
-Procedure TSslCert.SetcommonName(AIndex : Integer; AValue : String); 
+Procedure TSslCert.SetcommonName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommonName=AValue) then exit;
@@ -3547,7 +3547,7 @@ end;
 
 
 
-Procedure TSslCert.Setinstance(AIndex : Integer; AValue : String); 
+Procedure TSslCert.Setinstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Finstance=AValue) then exit;
@@ -3557,7 +3557,7 @@ end;
 
 
 
-Procedure TSslCert.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSslCert.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3567,7 +3567,7 @@ end;
 
 
 
-Procedure TSslCert.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TSslCert.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3577,7 +3577,7 @@ end;
 
 
 
-Procedure TSslCert.Setsha1Fingerprint(AIndex : Integer; AValue : String); 
+Procedure TSslCert.Setsha1Fingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsha1Fingerprint=AValue) then exit;
@@ -3604,7 +3604,7 @@ end;
 
 
 
-Procedure TSslCertDetail.SetcertPrivateKey(AIndex : Integer; AValue : String); 
+Procedure TSslCertDetail.SetcertPrivateKey(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcertPrivateKey=AValue) then exit;
@@ -3621,7 +3621,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSslCertsInsertRequest.SetcommonName(AIndex : Integer; AValue : String); 
+Procedure TSslCertsInsertRequest.SetcommonName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommonName=AValue) then exit;
@@ -3648,7 +3648,7 @@ end;
 
 
 
-Procedure TSslCertsInsertResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSslCertsInsertResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3685,7 +3685,7 @@ end;
 
 
 
-Procedure TSslCertsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSslCertsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3715,7 +3715,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTier.SetDiskQuota(AIndex : Integer; AValue : String); 
+Procedure TTier.SetDiskQuota(AIndex : Integer; const AValue : String); 
 
 begin
   If (FDiskQuota=AValue) then exit;
@@ -3725,7 +3725,7 @@ end;
 
 
 
-Procedure TTier.SetRAM(AIndex : Integer; AValue : String); 
+Procedure TTier.SetRAM(AIndex : Integer; const AValue : String); 
 
 begin
   If (FRAM=AValue) then exit;
@@ -3735,7 +3735,7 @@ end;
 
 
 
-Procedure TTier.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTier.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3755,7 +3755,7 @@ end;
 
 
 
-Procedure TTier.Settier(AIndex : Integer; AValue : String); 
+Procedure TTier.Settier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftier=AValue) then exit;
@@ -3795,7 +3795,7 @@ end;
 
 
 
-Procedure TTiersListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTiersListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3825,7 +3825,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setetag(AIndex : Integer; AValue : String); 
+Procedure TUser.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3835,7 +3835,7 @@ end;
 
 
 
-Procedure TUser.Sethost(AIndex : Integer; AValue : String); 
+Procedure TUser.Sethost(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhost=AValue) then exit;
@@ -3845,7 +3845,7 @@ end;
 
 
 
-Procedure TUser.Setinstance(AIndex : Integer; AValue : String); 
+Procedure TUser.Setinstance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Finstance=AValue) then exit;
@@ -3855,7 +3855,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3865,7 +3865,7 @@ end;
 
 
 
-Procedure TUser.Setname(AIndex : Integer; AValue : String); 
+Procedure TUser.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3875,7 +3875,7 @@ end;
 
 
 
-Procedure TUser.Setpassword(AIndex : Integer; AValue : String); 
+Procedure TUser.Setpassword(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpassword=AValue) then exit;
@@ -3885,7 +3885,7 @@ end;
 
 
 
-Procedure TUser.Setproject(AIndex : Integer; AValue : String); 
+Procedure TUser.Setproject(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fproject=AValue) then exit;
@@ -3912,7 +3912,7 @@ end;
 
 
 
-Procedure TUsersListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUsersListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3922,7 +3922,7 @@ end;
 
 
 
-Procedure TUsersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TUsersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

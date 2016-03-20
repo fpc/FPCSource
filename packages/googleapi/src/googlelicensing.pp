@@ -47,12 +47,12 @@ type
     FuserId : String;
   Protected
     //Property setters
-    Procedure Setetags(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetskuId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetags(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetskuId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property etags : String Index 0 Read Fetags Write Setetags;
@@ -73,7 +73,7 @@ type
     FuserId : String;
   Protected
     //Property setters
-    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property userId : String Index 0 Read FuserId Write SetuserId;
@@ -92,10 +92,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TLicenseAssignmentListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -192,7 +192,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignment.Setetags(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignment.Setetags(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetags=AValue) then exit;
@@ -202,7 +202,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -212,7 +212,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignment.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -222,7 +222,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignment.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -232,7 +232,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetskuId(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignment.SetskuId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FskuId=AValue) then exit;
@@ -242,7 +242,7 @@ end;
 
 
 
-Procedure TLicenseAssignment.SetuserId(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignment.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -259,7 +259,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignmentInsert.SetuserId(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignmentInsert.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -276,7 +276,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLicenseAssignmentList.Setetag(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignmentList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -296,7 +296,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignmentList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -306,7 +306,7 @@ end;
 
 
 
-Procedure TLicenseAssignmentList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLicenseAssignmentList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

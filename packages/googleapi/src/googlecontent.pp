@@ -284,13 +284,13 @@ type
     //Property setters
     Procedure SetadultContent(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetadwordsLinks(AIndex : Integer; AValue : TAccountTypeadwordsLinksArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreviewsUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsellerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreviewsUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsellerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setusers(AIndex : Integer; AValue : TAccountTypeusersArray); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -319,8 +319,8 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure SetadwordsId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadwordsId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property adwordsId : String Index 0 Read FadwordsId Write SetadwordsId;
@@ -338,8 +338,8 @@ type
     FmerchantId : String;
   Protected
     //Property setters
-    Procedure SetaggregatorId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaggregatorId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property aggregatorId : String Index 0 Read FaggregatorId Write SetaggregatorId;
@@ -361,9 +361,9 @@ type
     Fservices : TAccountShippingTypeservicesArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcarrierRates(AIndex : Integer; AValue : TAccountShippingTypecarrierRatesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlocationGroups(AIndex : Integer; AValue : TAccountShippingTypelocationGroupsArray); virtual;
     Procedure SetrateTables(AIndex : Integer; AValue : TAccountShippingTyperateTablesArray); virtual;
     Procedure Setservices(AIndex : Integer; AValue : TAccountShippingTypeservicesArray); virtual;
@@ -397,13 +397,13 @@ type
     FshippingOrigin : String;
   Protected
     //Property setters
-    Procedure Setcarrier(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcarrierService(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcarrier(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcarrierService(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmodifierFlatRate(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetmodifierPercent(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetshippingOrigin(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodifierPercent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetshippingOrigin(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property carrier : String Index 0 Read Fcarrier Write Setcarrier;
@@ -431,12 +431,12 @@ type
     FweightMax : TWeight;
   Protected
     //Property setters
-    Procedure SetdeliveryLocationGroup(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdeliveryLocationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdeliveryPostalCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeliveryLocationGroup(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdeliveryLocationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdeliveryPostalCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdeliveryPostalCodeRange(AIndex : Integer; AValue : TAccountShippingPostalCodeRange); virtual;
     Procedure SetpriceMax(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetshippingLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetshippingLabel(AIndex : Integer; const AValue : String); virtual;
     Procedure SetweightMax(AIndex : Integer; AValue : TWeight); virtual;
   Public
   Published
@@ -463,9 +463,9 @@ type
     FpostalCodes : TStringArray;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlocationIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpostalCodeRanges(AIndex : Integer; AValue : TAccountShippingLocationGroupTypepostalCodeRangesArray); virtual;
     Procedure SetpostalCodes(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
@@ -493,8 +493,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _end : String Index 0 Read F_end Write Set_end;
@@ -514,8 +514,8 @@ type
   Protected
     //Property setters
     Procedure Setcontent(AIndex : Integer; AValue : TAccountShippingRateTableTypecontentArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -563,8 +563,8 @@ type
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetcalculationMethod(AIndex : Integer; AValue : TAccountShippingShippingServiceCalculationMethod); virtual;
     Procedure SetcostRuleTree(AIndex : Integer; AValue : TAccountShippingShippingServiceCostRule); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property active : boolean Index 0 Read Factive Write Setactive;
@@ -588,11 +588,11 @@ type
     FrateTable : String;
   Protected
     //Property setters
-    Procedure SetcarrierRate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcarrierRate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setexcluded(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetflatRate(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetpercentageRate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrateTable(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpercentageRate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrateTable(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property carrierRate : String Index 0 Read FcarrierRate Write SetcarrierRate;
@@ -640,9 +640,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdataQualityIssues(AIndex : Integer; AValue : TAccountStatusTypedataQualityIssuesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -671,14 +671,14 @@ type
     FsubmittedValue : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayedValue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayedValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexampleItems(AIndex : Integer; AValue : TAccountStatusDataQualityIssueTypeexampleItemsArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastChecked(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastChecked(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumItems(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsubmittedValue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsubmittedValue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -709,11 +709,11 @@ type
     FvalueOnLandingPage : String;
   Protected
     //Property setters
-    Procedure SetitemId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsubmittedValue(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvalueOnLandingPage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetitemId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsubmittedValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalueOnLandingPage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property itemId : String Index 0 Read FitemId Write SetitemId;
@@ -735,8 +735,8 @@ type
     Frules : TAccountTaxTyperulesArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrules(AIndex : Integer; AValue : TAccountTaxTyperulesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -763,9 +763,9 @@ type
     FuseGlobalRate : boolean;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlocationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetratePercent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlocationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetratePercent(AIndex : Integer; const AValue : String); virtual;
     Procedure SetshippingTaxed(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetuseGlobalRate(AIndex : Integer; AValue : boolean); virtual;
   Public
@@ -789,7 +789,7 @@ type
   Protected
     //Property setters
     Procedure Setadmin(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
+    Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property admin : boolean Index 0 Read Fadmin Write Setadmin;
@@ -808,7 +808,7 @@ type
   Protected
     //Property setters
     Procedure SetaccountIdentifiers(AIndex : Integer; AValue : TAccountsAuthInfoResponseTypeaccountIdentifiersArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -854,10 +854,10 @@ type
   Protected
     //Property setters
     Procedure Setaccount(AIndex : Integer; AValue : TAccount); virtual;
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property account : TAccount Index 0 Read Faccount Write Setaccount;
@@ -879,7 +879,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountsCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -906,7 +906,7 @@ type
     Procedure Setaccount(AIndex : Integer; AValue : TAccount); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property account : TAccount Index 0 Read Faccount Write Setaccount;
@@ -927,8 +927,8 @@ type
     Fresources : TAccountsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccountsListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -975,11 +975,11 @@ type
     Fmethod : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetaccountShipping(AIndex : Integer; AValue : TAccountShipping); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -1001,7 +1001,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountshippingCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1028,7 +1028,7 @@ type
     Procedure SetaccountShipping(AIndex : Integer; AValue : TAccountShipping); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountShipping : TAccountShipping Index 0 Read FaccountShipping Write SetaccountShipping;
@@ -1049,8 +1049,8 @@ type
     Fresources : TAccountshippingListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccountshippingListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1096,10 +1096,10 @@ type
     Fmethod : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -1120,7 +1120,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccountstatusesCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1165,8 +1165,8 @@ type
     Fresources : TAccountstatusesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccountstatusesListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1213,11 +1213,11 @@ type
     Fmethod : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetaccountTax(AIndex : Integer; AValue : TAccountTax); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -1239,7 +1239,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TAccounttaxCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1266,7 +1266,7 @@ type
     Procedure SetaccountTax(AIndex : Integer; AValue : TAccountTax); virtual;
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountTax : TAccountTax Index 0 Read FaccountTax Write SetaccountTax;
@@ -1287,8 +1287,8 @@ type
     Fresources : TAccounttaxListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TAccounttaxListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1321,17 +1321,17 @@ type
     FtargetCountry : String;
   Protected
     //Property setters
-    Procedure SetattributeLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontentLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontentType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetattributeLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontentLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontentType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfetchSchedule(AIndex : Integer; AValue : TDatafeedFetchSchedule); virtual;
-    Procedure SetfileName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfileName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setformat(AIndex : Integer; AValue : TDatafeedFormat); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetintendedDestinations(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetCountry(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1368,12 +1368,12 @@ type
   Protected
     //Property setters
     Procedure SetdayOfMonth(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetfetchUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfetchUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Sethour(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
-    Procedure Setweekday(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setweekday(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dayOfMonth : integer Index 0 Read FdayOfMonth Write SetdayOfMonth;
@@ -1397,9 +1397,9 @@ type
     FquotingMode : String;
   Protected
     //Property setters
-    Procedure SetcolumnDelimiter(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileEncoding(AIndex : Integer; AValue : String); virtual;
-    Procedure SetquotingMode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnDelimiter(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileEncoding(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetquotingMode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property columnDelimiter : String Index 0 Read FcolumnDelimiter Write SetcolumnDelimiter;
@@ -1424,13 +1424,13 @@ type
     Fwarnings : TDatafeedStatusTypewarningsArray;
   Protected
     //Property setters
-    Procedure SetdatafeedId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatafeedId(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TDatafeedStatusTypeerrorsArray); virtual;
-    Procedure SetitemsTotal(AIndex : Integer; AValue : String); virtual;
-    Procedure SetitemsValid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastUploadDate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetitemsTotal(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetitemsValid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastUploadDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TDatafeedStatusTypewarningsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1461,10 +1461,10 @@ type
     Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
     Procedure Setexamples(AIndex : Integer; AValue : TDatafeedStatusErrorTypeexamplesArray); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1489,9 +1489,9 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure SetitemId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlineNumber(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetitemId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlineNumber(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property itemId : String Index 0 Read FitemId Write SetitemId;
@@ -1535,9 +1535,9 @@ type
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Setdatafeed(AIndex : Integer; AValue : TDatafeed); virtual;
-    Procedure SetdatafeedId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatafeedId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -1559,7 +1559,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TDatafeedsCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1604,8 +1604,8 @@ type
     Fresources : TDatafeedsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TDatafeedsListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1652,9 +1652,9 @@ type
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdatafeedId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatafeedId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -1675,7 +1675,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TDatafeedstatusesCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1720,8 +1720,8 @@ type
     Fresources : TDatafeedstatusesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TDatafeedstatusesListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1746,9 +1746,9 @@ type
     Freason : String;
   Protected
     //Property setters
-    Procedure Setdomain(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property domain : String Index 0 Read Fdomain Write Setdomain;
@@ -1770,7 +1770,7 @@ type
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrorsTypeerrorsArray); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1797,12 +1797,12 @@ type
     FsalePriceEffectiveDate : String;
   Protected
     //Property setters
-    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setavailability(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
     Procedure Setquantity(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsalePrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsalePriceEffectiveDate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property availability : String Index 0 Read Favailability Write Setavailability;
@@ -1849,9 +1849,9 @@ type
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Setinventory(AIndex : Integer; AValue : TInventory); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstoreCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstoreCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -1873,7 +1873,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TInventoryCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1898,7 +1898,7 @@ type
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -1920,11 +1920,11 @@ type
     FsalePriceEffectiveDate : String;
   Protected
     //Property setters
-    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
+    Procedure Setavailability(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
     Procedure Setquantity(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsalePrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsalePriceEffectiveDate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property availability : String Index 0 Read Favailability Write Setavailability;
@@ -1944,7 +1944,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1962,8 +1962,8 @@ type
     Fratio : double;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpointsValue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpointsValue(AIndex : Integer; const AValue : String); virtual;
     Procedure Setratio(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -1983,8 +1983,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setcurrency(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcurrency(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property currency : String Index 0 Read Fcurrency Write Setcurrency;
@@ -2071,69 +2071,69 @@ type
     //Property setters
     Procedure SetadditionalImageLinks(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setadult(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetadwordsGrouping(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadwordsGrouping(AIndex : Integer; const AValue : String); virtual;
     Procedure SetadwordsLabels(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetadwordsRedirect(AIndex : Integer; AValue : String); virtual;
-    Procedure SetageGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadwordsRedirect(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetageGroup(AIndex : Integer; const AValue : String); virtual;
     Procedure Setaspects(AIndex : Integer; AValue : TProductTypeaspectsArray); virtual;
-    Procedure Setavailability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetavailabilityDate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setbrand(AIndex : Integer; AValue : String); virtual;
-    Procedure Setchannel(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcondition(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontentLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setavailability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetavailabilityDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setbrand(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setchannel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcondition(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontentLanguage(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomAttributes(AIndex : Integer; AValue : TProductTypecustomAttributesArray); virtual;
     Procedure SetcustomGroups(AIndex : Integer; AValue : TProductTypecustomGroupsArray); virtual;
-    Procedure SetcustomLabel0(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomLabel1(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomLabel2(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomLabel3(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomLabel4(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomLabel0(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomLabel1(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomLabel2(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomLabel3(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomLabel4(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdestinations(AIndex : Integer; AValue : TProductTypedestinationsArray); virtual;
-    Procedure SetdisplayAdsId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayAdsLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayAdsId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayAdsLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisplayAdsSimilarIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetdisplayAdsTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayAdsTitle(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisplayAdsValue(AIndex : Integer; AValue : double); virtual;
-    Procedure SetenergyEfficiencyClass(AIndex : Integer; AValue : String); virtual;
-    Procedure SetexpirationDate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setgender(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgoogleProductCategory(AIndex : Integer; AValue : String); virtual;
-    Procedure Setgtin(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetenergyEfficiencyClass(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexpirationDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgender(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgoogleProductCategory(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgtin(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetidentifierExists(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetimageLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimageLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinstallment(AIndex : Integer; AValue : TProductInstallment); virtual;
     Procedure SetisBundle(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetitemGroupId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetitemGroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetloyaltyPoints(AIndex : Integer; AValue : TLoyaltyPoints); virtual;
-    Procedure Setmaterial(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmobileLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmpn(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmultipack(AIndex : Integer; AValue : String); virtual;
-    Procedure SetofferId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmaterial(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmobileLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmpn(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmultipack(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetofferId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetonlineOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setpattern(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpattern(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetproductType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsalePrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsalePriceEffectiveDate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setshipping(AIndex : Integer; AValue : TProductTypeshippingArray); virtual;
     Procedure SetshippingHeight(AIndex : Integer; AValue : TProductShippingDimension); virtual;
-    Procedure SetshippingLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetshippingLabel(AIndex : Integer; const AValue : String); virtual;
     Procedure SetshippingLength(AIndex : Integer; AValue : TProductShippingDimension); virtual;
     Procedure SetshippingWeight(AIndex : Integer; AValue : TProductShippingWeight); virtual;
     Procedure SetshippingWidth(AIndex : Integer; AValue : TProductShippingDimension); virtual;
-    Procedure SetsizeSystem(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsizeType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsizeSystem(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsizeType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsizes(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SettargetCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetCountry(AIndex : Integer; const AValue : String); virtual;
     Procedure Settaxes(AIndex : Integer; AValue : TProductTypetaxesArray); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure SetunitPricingBaseMeasure(AIndex : Integer; AValue : TProductUnitPricingBaseMeasure); virtual;
     Procedure SetunitPricingMeasure(AIndex : Integer; AValue : TProductUnitPricingMeasure); virtual;
     Procedure SetvalidatedDestinations(AIndex : Integer; AValue : TStringArray); virtual;
@@ -2227,9 +2227,9 @@ type
     Fintention : String;
   Protected
     //Property setters
-    Procedure SetaspectName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdestinationName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setintention(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaspectName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdestinationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setintention(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property aspectName : String Index 0 Read FaspectName Write SetaspectName;
@@ -2251,10 +2251,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -2275,7 +2275,7 @@ type
   Protected
     //Property setters
     Procedure Setattributes(AIndex : Integer; AValue : TProductCustomGroupTypeattributesArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2297,8 +2297,8 @@ type
     Fintention : String;
   Protected
     //Property setters
-    Procedure SetdestinationName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setintention(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdestinationName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setintention(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property destinationName : String Index 0 Read FdestinationName Write SetdestinationName;
@@ -2317,7 +2317,7 @@ type
   Protected
     //Property setters
     Procedure Setamount(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure Setmonths(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmonths(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amount : TPrice Index 0 Read Famount Write Setamount;
@@ -2340,13 +2340,13 @@ type
     Fservice : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlocationGroupName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlocationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpostalCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlocationGroupName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlocationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpostalCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setservice(AIndex : Integer; AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setservice(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property country : String Index 0 Read Fcountry Write Setcountry;
@@ -2370,7 +2370,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -2390,7 +2390,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -2416,15 +2416,15 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetcreationDate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationDate(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdataQualityIssues(AIndex : Integer; AValue : TProductStatusTypedataQualityIssuesArray); virtual;
     Procedure SetdestinationStatuses(AIndex : Integer; AValue : TProductStatusTypedestinationStatusesArray); virtual;
-    Procedure SetgoogleExpirationDate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlastUpdateDate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgoogleExpirationDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastUpdateDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2459,14 +2459,14 @@ type
     FvalueProvided : String;
   Protected
     //Property setters
-    Procedure Setdetail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfetchStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvalueOnLandingPage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvalueProvided(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdetail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfetchStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalueOnLandingPage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvalueProvided(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property detail : String Index 0 Read Fdetail Write Setdetail;
@@ -2491,9 +2491,9 @@ type
     Fintention : String;
   Protected
     //Property setters
-    Procedure SetapprovalStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
-    Procedure Setintention(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapprovalStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setintention(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property approvalStatus : String Index 0 Read FapprovalStatus Write SetapprovalStatus;
@@ -2516,11 +2516,11 @@ type
     FtaxShip : boolean;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlocationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpostalCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlocationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpostalCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrate(AIndex : Integer; AValue : double); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SettaxShip(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -2544,8 +2544,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _unit : String Index 0 Read F_unit Write Set_unit;
@@ -2564,7 +2564,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -2607,10 +2607,10 @@ type
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproduct(AIndex : Integer; AValue : TProduct); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -2632,7 +2632,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TProductsCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2658,7 +2658,7 @@ type
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setproduct(AIndex : Integer; AValue : TProduct); virtual;
   Public
   Published
@@ -2680,8 +2680,8 @@ type
     Fresources : TProductsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TProductsListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2728,9 +2728,9 @@ type
   Protected
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmerchantId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmerchantId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -2751,7 +2751,7 @@ type
   Protected
     //Property setters
     Procedure Setentries(AIndex : Integer; AValue : TProductstatusesCustomBatchResponseTypeentriesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2777,7 +2777,7 @@ type
     //Property setters
     Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TErrors); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductStatus(AIndex : Integer; AValue : TProductStatus); virtual;
   Public
   Published
@@ -2799,8 +2799,8 @@ type
     Fresources : TProductstatusesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TProductstatusesListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2825,8 +2825,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _unit : String Index 0 Read F_unit Write Set_unit;
@@ -3223,7 +3223,7 @@ end;
 
 
 
-Procedure TAccount.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3233,7 +3233,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3243,7 +3243,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3253,7 +3253,7 @@ end;
 
 
 
-Procedure TAccount.SetreviewsUrl(AIndex : Integer; AValue : String); 
+Procedure TAccount.SetreviewsUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreviewsUrl=AValue) then exit;
@@ -3263,7 +3263,7 @@ end;
 
 
 
-Procedure TAccount.SetsellerId(AIndex : Integer; AValue : String); 
+Procedure TAccount.SetsellerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsellerId=AValue) then exit;
@@ -3283,7 +3283,7 @@ end;
 
 
 
-Procedure TAccount.SetwebsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TAccount.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -3314,7 +3314,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountAdwordsLink.SetadwordsId(AIndex : Integer; AValue : String); 
+Procedure TAccountAdwordsLink.SetadwordsId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadwordsId=AValue) then exit;
@@ -3324,7 +3324,7 @@ end;
 
 
 
-Procedure TAccountAdwordsLink.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TAccountAdwordsLink.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3341,7 +3341,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountIdentifier.SetaggregatorId(AIndex : Integer; AValue : String); 
+Procedure TAccountIdentifier.SetaggregatorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaggregatorId=AValue) then exit;
@@ -3351,7 +3351,7 @@ end;
 
 
 
-Procedure TAccountIdentifier.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TAccountIdentifier.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -3368,7 +3368,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShipping.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccountShipping.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3388,7 +3388,7 @@ end;
 
 
 
-Procedure TAccountShipping.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountShipping.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3451,7 +3451,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingCarrierRate.Setcarrier(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCarrierRate.Setcarrier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -3461,7 +3461,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetcarrierService(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCarrierRate.SetcarrierService(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcarrierService=AValue) then exit;
@@ -3481,7 +3481,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetmodifierPercent(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCarrierRate.SetmodifierPercent(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodifierPercent=AValue) then exit;
@@ -3491,7 +3491,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCarrierRate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3501,7 +3501,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetsaleCountry(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCarrierRate.SetsaleCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -3511,7 +3511,7 @@ end;
 
 
 
-Procedure TAccountShippingCarrierRate.SetshippingOrigin(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCarrierRate.SetshippingOrigin(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshippingOrigin=AValue) then exit;
@@ -3528,7 +3528,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingCondition.SetdeliveryLocationGroup(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCondition.SetdeliveryLocationGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeliveryLocationGroup=AValue) then exit;
@@ -3538,7 +3538,7 @@ end;
 
 
 
-Procedure TAccountShippingCondition.SetdeliveryLocationId(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCondition.SetdeliveryLocationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeliveryLocationId=AValue) then exit;
@@ -3548,7 +3548,7 @@ end;
 
 
 
-Procedure TAccountShippingCondition.SetdeliveryPostalCode(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCondition.SetdeliveryPostalCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeliveryPostalCode=AValue) then exit;
@@ -3578,7 +3578,7 @@ end;
 
 
 
-Procedure TAccountShippingCondition.SetshippingLabel(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingCondition.SetshippingLabel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshippingLabel=AValue) then exit;
@@ -3605,7 +3605,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingLocationGroup.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingLocationGroup.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -3625,7 +3625,7 @@ end;
 
 
 
-Procedure TAccountShippingLocationGroup.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingLocationGroup.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3677,7 +3677,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingPostalCodeRange.Set_end(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingPostalCodeRange.Set_end(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_end=AValue) then exit;
@@ -3687,7 +3687,7 @@ end;
 
 
 
-Procedure TAccountShippingPostalCodeRange.Setstart(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingPostalCodeRange.Setstart(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -3725,7 +3725,7 @@ end;
 
 
 
-Procedure TAccountShippingRateTable.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingRateTable.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3735,7 +3735,7 @@ end;
 
 
 
-Procedure TAccountShippingRateTable.SetsaleCountry(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingRateTable.SetsaleCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -3822,7 +3822,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingService.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingShippingService.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3832,7 +3832,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingService.SetsaleCountry(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingShippingService.SetsaleCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -3849,7 +3849,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountShippingShippingServiceCalculationMethod.SetcarrierRate(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingShippingServiceCalculationMethod.SetcarrierRate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcarrierRate=AValue) then exit;
@@ -3879,7 +3879,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingServiceCalculationMethod.SetpercentageRate(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingShippingServiceCalculationMethod.SetpercentageRate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpercentageRate=AValue) then exit;
@@ -3889,7 +3889,7 @@ end;
 
 
 
-Procedure TAccountShippingShippingServiceCalculationMethod.SetrateTable(AIndex : Integer; AValue : String); 
+Procedure TAccountShippingShippingServiceCalculationMethod.SetrateTable(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrateTable=AValue) then exit;
@@ -3956,7 +3956,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountStatus.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccountStatus.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3976,7 +3976,7 @@ end;
 
 
 
-Procedure TAccountStatus.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountStatus.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4006,7 +4006,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountStatusDataQualityIssue.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusDataQualityIssue.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -4016,7 +4016,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetdisplayedValue(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusDataQualityIssue.SetdisplayedValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayedValue=AValue) then exit;
@@ -4036,7 +4036,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusDataQualityIssue.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4046,7 +4046,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetlastChecked(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusDataQualityIssue.SetlastChecked(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastChecked=AValue) then exit;
@@ -4066,7 +4066,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.Setseverity(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusDataQualityIssue.Setseverity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -4076,7 +4076,7 @@ end;
 
 
 
-Procedure TAccountStatusDataQualityIssue.SetsubmittedValue(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusDataQualityIssue.SetsubmittedValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsubmittedValue=AValue) then exit;
@@ -4106,7 +4106,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountStatusExampleItem.SetitemId(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusExampleItem.SetitemId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemId=AValue) then exit;
@@ -4116,7 +4116,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.Setlink(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusExampleItem.Setlink(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -4126,7 +4126,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.SetsubmittedValue(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusExampleItem.SetsubmittedValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsubmittedValue=AValue) then exit;
@@ -4136,7 +4136,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.Settitle(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusExampleItem.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4146,7 +4146,7 @@ end;
 
 
 
-Procedure TAccountStatusExampleItem.SetvalueOnLandingPage(AIndex : Integer; AValue : String); 
+Procedure TAccountStatusExampleItem.SetvalueOnLandingPage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalueOnLandingPage=AValue) then exit;
@@ -4163,7 +4163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountTax.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccountTax.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4173,7 +4173,7 @@ end;
 
 
 
-Procedure TAccountTax.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountTax.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4213,7 +4213,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountTaxTaxRule.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TAccountTaxTaxRule.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -4223,7 +4223,7 @@ end;
 
 
 
-Procedure TAccountTaxTaxRule.SetlocationId(AIndex : Integer; AValue : String); 
+Procedure TAccountTaxTaxRule.SetlocationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlocationId=AValue) then exit;
@@ -4233,7 +4233,7 @@ end;
 
 
 
-Procedure TAccountTaxTaxRule.SetratePercent(AIndex : Integer; AValue : String); 
+Procedure TAccountTaxTaxRule.SetratePercent(AIndex : Integer; const AValue : String); 
 
 begin
   If (FratePercent=AValue) then exit;
@@ -4280,7 +4280,7 @@ end;
 
 
 
-Procedure TAccountUser.SetemailAddress(AIndex : Integer; AValue : String); 
+Procedure TAccountUser.SetemailAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -4307,7 +4307,7 @@ end;
 
 
 
-Procedure TAccountsAuthInfoResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountsAuthInfoResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4377,7 +4377,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccountsCustomBatchRequestEntry.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4397,7 +4397,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TAccountsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -4407,7 +4407,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TAccountsCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -4434,7 +4434,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountsCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4494,7 +4494,7 @@ end;
 
 
 
-Procedure TAccountsCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountsCustomBatchResponseEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4511,7 +4511,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4521,7 +4521,7 @@ end;
 
 
 
-Procedure TAccountsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAccountsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4591,7 +4591,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountshippingCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingCustomBatchRequestEntry.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4621,7 +4621,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -4631,7 +4631,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -4658,7 +4658,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4718,7 +4718,7 @@ end;
 
 
 
-Procedure TAccountshippingCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingCustomBatchResponseEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4735,7 +4735,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountshippingListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4745,7 +4745,7 @@ end;
 
 
 
-Procedure TAccountshippingListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAccountshippingListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4815,7 +4815,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountstatusesCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccountstatusesCustomBatchRequestEntry.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -4835,7 +4835,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TAccountstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -4845,7 +4845,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TAccountstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -4872,7 +4872,7 @@ end;
 
 
 
-Procedure TAccountstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountstatusesCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4939,7 +4939,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountstatusesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccountstatusesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4949,7 +4949,7 @@ end;
 
 
 
-Procedure TAccountstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAccountstatusesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5019,7 +5019,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounttaxCustomBatchRequestEntry.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxCustomBatchRequestEntry.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -5049,7 +5049,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5059,7 +5059,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5086,7 +5086,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5146,7 +5146,7 @@ end;
 
 
 
-Procedure TAccounttaxCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxCustomBatchResponseEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5163,7 +5163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounttaxListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5173,7 +5173,7 @@ end;
 
 
 
-Procedure TAccounttaxListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAccounttaxListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5213,7 +5213,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeed.SetattributeLanguage(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.SetattributeLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FattributeLanguage=AValue) then exit;
@@ -5223,7 +5223,7 @@ end;
 
 
 
-Procedure TDatafeed.SetcontentLanguage(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.SetcontentLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentLanguage=AValue) then exit;
@@ -5233,7 +5233,7 @@ end;
 
 
 
-Procedure TDatafeed.SetcontentType(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.SetcontentType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentType=AValue) then exit;
@@ -5253,7 +5253,7 @@ end;
 
 
 
-Procedure TDatafeed.SetfileName(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.SetfileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileName=AValue) then exit;
@@ -5273,7 +5273,7 @@ end;
 
 
 
-Procedure TDatafeed.Setid(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5293,7 +5293,7 @@ end;
 
 
 
-Procedure TDatafeed.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5303,7 +5303,7 @@ end;
 
 
 
-Procedure TDatafeed.Setname(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5313,7 +5313,7 @@ end;
 
 
 
-Procedure TDatafeed.SettargetCountry(AIndex : Integer; AValue : String); 
+Procedure TDatafeed.SettargetCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetCountry=AValue) then exit;
@@ -5353,7 +5353,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.SetfetchUrl(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFetchSchedule.SetfetchUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfetchUrl=AValue) then exit;
@@ -5373,7 +5373,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.Setpassword(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFetchSchedule.Setpassword(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpassword=AValue) then exit;
@@ -5383,7 +5383,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.SettimeZone(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFetchSchedule.SettimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -5393,7 +5393,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.Setusername(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFetchSchedule.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -5403,7 +5403,7 @@ end;
 
 
 
-Procedure TDatafeedFetchSchedule.Setweekday(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFetchSchedule.Setweekday(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fweekday=AValue) then exit;
@@ -5420,7 +5420,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedFormat.SetcolumnDelimiter(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFormat.SetcolumnDelimiter(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnDelimiter=AValue) then exit;
@@ -5430,7 +5430,7 @@ end;
 
 
 
-Procedure TDatafeedFormat.SetfileEncoding(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFormat.SetfileEncoding(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileEncoding=AValue) then exit;
@@ -5440,7 +5440,7 @@ end;
 
 
 
-Procedure TDatafeedFormat.SetquotingMode(AIndex : Integer; AValue : String); 
+Procedure TDatafeedFormat.SetquotingMode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FquotingMode=AValue) then exit;
@@ -5457,7 +5457,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedStatus.SetdatafeedId(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatus.SetdatafeedId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatafeedId=AValue) then exit;
@@ -5477,7 +5477,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetitemsTotal(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatus.SetitemsTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemsTotal=AValue) then exit;
@@ -5487,7 +5487,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetitemsValid(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatus.SetitemsValid(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemsValid=AValue) then exit;
@@ -5497,7 +5497,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatus.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5507,7 +5507,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetlastUploadDate(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatus.SetlastUploadDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastUploadDate=AValue) then exit;
@@ -5517,7 +5517,7 @@ end;
 
 
 
-Procedure TDatafeedStatus.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatus.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -5558,7 +5558,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedStatusError.Setcode(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatusError.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -5568,7 +5568,7 @@ end;
 
 
 
-Procedure TDatafeedStatusError.Setcount(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatusError.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -5588,7 +5588,7 @@ end;
 
 
 
-Procedure TDatafeedStatusError.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatusError.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -5618,7 +5618,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedStatusExample.SetitemId(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatusExample.SetitemId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemId=AValue) then exit;
@@ -5628,7 +5628,7 @@ end;
 
 
 
-Procedure TDatafeedStatusExample.SetlineNumber(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatusExample.SetlineNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlineNumber=AValue) then exit;
@@ -5638,7 +5638,7 @@ end;
 
 
 
-Procedure TDatafeedStatusExample.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TDatafeedStatusExample.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -5705,7 +5705,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; AValue : String); 
+Procedure TDatafeedsCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatafeedId=AValue) then exit;
@@ -5715,7 +5715,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TDatafeedsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5725,7 +5725,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TDatafeedsCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5752,7 +5752,7 @@ end;
 
 
 
-Procedure TDatafeedsCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatafeedsCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5819,7 +5819,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatafeedsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5829,7 +5829,7 @@ end;
 
 
 
-Procedure TDatafeedsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TDatafeedsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5909,7 +5909,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; AValue : String); 
+Procedure TDatafeedstatusesCustomBatchRequestEntry.SetdatafeedId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatafeedId=AValue) then exit;
@@ -5919,7 +5919,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TDatafeedstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -5929,7 +5929,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TDatafeedstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -5956,7 +5956,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatafeedstatusesCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6023,7 +6023,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatafeedstatusesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDatafeedstatusesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6033,7 +6033,7 @@ end;
 
 
 
-Procedure TDatafeedstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TDatafeedstatusesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6073,7 +6073,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TError.Setdomain(AIndex : Integer; AValue : String); 
+Procedure TError.Setdomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdomain=AValue) then exit;
@@ -6083,7 +6083,7 @@ end;
 
 
 
-Procedure TError.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TError.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -6093,7 +6093,7 @@ end;
 
 
 
-Procedure TError.Setreason(AIndex : Integer; AValue : String); 
+Procedure TError.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -6130,7 +6130,7 @@ end;
 
 
 
-Procedure TErrors.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TErrors.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -6160,7 +6160,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventory.Setavailability(AIndex : Integer; AValue : String); 
+Procedure TInventory.Setavailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -6170,7 +6170,7 @@ end;
 
 
 
-Procedure TInventory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInventory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6210,7 +6210,7 @@ end;
 
 
 
-Procedure TInventory.SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); 
+Procedure TInventory.SetsalePriceEffectiveDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsalePriceEffectiveDate=AValue) then exit;
@@ -6277,7 +6277,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TInventoryCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -6287,7 +6287,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TInventoryCustomBatchRequestEntry.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -6297,7 +6297,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchRequestEntry.SetstoreCode(AIndex : Integer; AValue : String); 
+Procedure TInventoryCustomBatchRequestEntry.SetstoreCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstoreCode=AValue) then exit;
@@ -6324,7 +6324,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInventoryCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6374,7 +6374,7 @@ end;
 
 
 
-Procedure TInventoryCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInventoryCustomBatchResponseEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6391,7 +6391,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventorySetRequest.Setavailability(AIndex : Integer; AValue : String); 
+Procedure TInventorySetRequest.Setavailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -6431,7 +6431,7 @@ end;
 
 
 
-Procedure TInventorySetRequest.SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); 
+Procedure TInventorySetRequest.SetsalePriceEffectiveDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsalePriceEffectiveDate=AValue) then exit;
@@ -6448,7 +6448,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInventorySetResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInventorySetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6465,7 +6465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLoyaltyPoints.Setname(AIndex : Integer; AValue : String); 
+Procedure TLoyaltyPoints.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6475,7 +6475,7 @@ end;
 
 
 
-Procedure TLoyaltyPoints.SetpointsValue(AIndex : Integer; AValue : String); 
+Procedure TLoyaltyPoints.SetpointsValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpointsValue=AValue) then exit;
@@ -6502,7 +6502,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPrice.Setcurrency(AIndex : Integer; AValue : String); 
+Procedure TPrice.Setcurrency(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -6512,7 +6512,7 @@ end;
 
 
 
-Procedure TPrice.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TPrice.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -6549,7 +6549,7 @@ end;
 
 
 
-Procedure TProduct.SetadwordsGrouping(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetadwordsGrouping(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadwordsGrouping=AValue) then exit;
@@ -6569,7 +6569,7 @@ end;
 
 
 
-Procedure TProduct.SetadwordsRedirect(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetadwordsRedirect(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadwordsRedirect=AValue) then exit;
@@ -6579,7 +6579,7 @@ end;
 
 
 
-Procedure TProduct.SetageGroup(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetageGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FageGroup=AValue) then exit;
@@ -6599,7 +6599,7 @@ end;
 
 
 
-Procedure TProduct.Setavailability(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setavailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (Favailability=AValue) then exit;
@@ -6609,7 +6609,7 @@ end;
 
 
 
-Procedure TProduct.SetavailabilityDate(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetavailabilityDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FavailabilityDate=AValue) then exit;
@@ -6619,7 +6619,7 @@ end;
 
 
 
-Procedure TProduct.Setbrand(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setbrand(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fbrand=AValue) then exit;
@@ -6629,7 +6629,7 @@ end;
 
 
 
-Procedure TProduct.Setchannel(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setchannel(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fchannel=AValue) then exit;
@@ -6639,7 +6639,7 @@ end;
 
 
 
-Procedure TProduct.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -6649,7 +6649,7 @@ end;
 
 
 
-Procedure TProduct.Setcondition(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setcondition(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcondition=AValue) then exit;
@@ -6659,7 +6659,7 @@ end;
 
 
 
-Procedure TProduct.SetcontentLanguage(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetcontentLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentLanguage=AValue) then exit;
@@ -6689,7 +6689,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel0(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetcustomLabel0(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomLabel0=AValue) then exit;
@@ -6699,7 +6699,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel1(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetcustomLabel1(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomLabel1=AValue) then exit;
@@ -6709,7 +6709,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel2(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetcustomLabel2(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomLabel2=AValue) then exit;
@@ -6719,7 +6719,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel3(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetcustomLabel3(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomLabel3=AValue) then exit;
@@ -6729,7 +6729,7 @@ end;
 
 
 
-Procedure TProduct.SetcustomLabel4(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetcustomLabel4(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomLabel4=AValue) then exit;
@@ -6739,7 +6739,7 @@ end;
 
 
 
-Procedure TProduct.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6759,7 +6759,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsId(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetdisplayAdsId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayAdsId=AValue) then exit;
@@ -6769,7 +6769,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsLink(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetdisplayAdsLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayAdsLink=AValue) then exit;
@@ -6789,7 +6789,7 @@ end;
 
 
 
-Procedure TProduct.SetdisplayAdsTitle(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetdisplayAdsTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayAdsTitle=AValue) then exit;
@@ -6809,7 +6809,7 @@ end;
 
 
 
-Procedure TProduct.SetenergyEfficiencyClass(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetenergyEfficiencyClass(AIndex : Integer; const AValue : String); 
 
 begin
   If (FenergyEfficiencyClass=AValue) then exit;
@@ -6819,7 +6819,7 @@ end;
 
 
 
-Procedure TProduct.SetexpirationDate(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetexpirationDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpirationDate=AValue) then exit;
@@ -6829,7 +6829,7 @@ end;
 
 
 
-Procedure TProduct.Setgender(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setgender(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgender=AValue) then exit;
@@ -6839,7 +6839,7 @@ end;
 
 
 
-Procedure TProduct.SetgoogleProductCategory(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetgoogleProductCategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgoogleProductCategory=AValue) then exit;
@@ -6849,7 +6849,7 @@ end;
 
 
 
-Procedure TProduct.Setgtin(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setgtin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgtin=AValue) then exit;
@@ -6859,7 +6859,7 @@ end;
 
 
 
-Procedure TProduct.Setid(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6879,7 +6879,7 @@ end;
 
 
 
-Procedure TProduct.SetimageLink(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetimageLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageLink=AValue) then exit;
@@ -6909,7 +6909,7 @@ end;
 
 
 
-Procedure TProduct.SetitemGroupId(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetitemGroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemGroupId=AValue) then exit;
@@ -6919,7 +6919,7 @@ end;
 
 
 
-Procedure TProduct.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6929,7 +6929,7 @@ end;
 
 
 
-Procedure TProduct.Setlink(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setlink(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -6949,7 +6949,7 @@ end;
 
 
 
-Procedure TProduct.Setmaterial(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setmaterial(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmaterial=AValue) then exit;
@@ -6959,7 +6959,7 @@ end;
 
 
 
-Procedure TProduct.SetmobileLink(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetmobileLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmobileLink=AValue) then exit;
@@ -6969,7 +6969,7 @@ end;
 
 
 
-Procedure TProduct.Setmpn(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setmpn(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmpn=AValue) then exit;
@@ -6979,7 +6979,7 @@ end;
 
 
 
-Procedure TProduct.Setmultipack(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setmultipack(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmultipack=AValue) then exit;
@@ -6989,7 +6989,7 @@ end;
 
 
 
-Procedure TProduct.SetofferId(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetofferId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FofferId=AValue) then exit;
@@ -7009,7 +7009,7 @@ end;
 
 
 
-Procedure TProduct.Setpattern(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setpattern(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpattern=AValue) then exit;
@@ -7029,7 +7029,7 @@ end;
 
 
 
-Procedure TProduct.SetproductType(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetproductType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductType=AValue) then exit;
@@ -7049,7 +7049,7 @@ end;
 
 
 
-Procedure TProduct.SetsalePriceEffectiveDate(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetsalePriceEffectiveDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsalePriceEffectiveDate=AValue) then exit;
@@ -7079,7 +7079,7 @@ end;
 
 
 
-Procedure TProduct.SetshippingLabel(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetshippingLabel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshippingLabel=AValue) then exit;
@@ -7119,7 +7119,7 @@ end;
 
 
 
-Procedure TProduct.SetsizeSystem(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetsizeSystem(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsizeSystem=AValue) then exit;
@@ -7129,7 +7129,7 @@ end;
 
 
 
-Procedure TProduct.SetsizeType(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetsizeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsizeType=AValue) then exit;
@@ -7149,7 +7149,7 @@ end;
 
 
 
-Procedure TProduct.SettargetCountry(AIndex : Integer; AValue : String); 
+Procedure TProduct.SettargetCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetCountry=AValue) then exit;
@@ -7169,7 +7169,7 @@ end;
 
 
 
-Procedure TProduct.Settitle(AIndex : Integer; AValue : String); 
+Procedure TProduct.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7250,7 +7250,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductAspect.SetaspectName(AIndex : Integer; AValue : String); 
+Procedure TProductAspect.SetaspectName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaspectName=AValue) then exit;
@@ -7260,7 +7260,7 @@ end;
 
 
 
-Procedure TProductAspect.SetdestinationName(AIndex : Integer; AValue : String); 
+Procedure TProductAspect.SetdestinationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationName=AValue) then exit;
@@ -7270,7 +7270,7 @@ end;
 
 
 
-Procedure TProductAspect.Setintention(AIndex : Integer; AValue : String); 
+Procedure TProductAspect.Setintention(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fintention=AValue) then exit;
@@ -7287,7 +7287,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductCustomAttribute.Setname(AIndex : Integer; AValue : String); 
+Procedure TProductCustomAttribute.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7297,7 +7297,7 @@ end;
 
 
 
-Procedure TProductCustomAttribute.Set_type(AIndex : Integer; AValue : String); 
+Procedure TProductCustomAttribute.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7307,7 +7307,7 @@ end;
 
 
 
-Procedure TProductCustomAttribute.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TProductCustomAttribute.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -7317,7 +7317,7 @@ end;
 
 
 
-Procedure TProductCustomAttribute.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TProductCustomAttribute.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7356,7 +7356,7 @@ end;
 
 
 
-Procedure TProductCustomGroup.Setname(AIndex : Integer; AValue : String); 
+Procedure TProductCustomGroup.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -7386,7 +7386,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductDestination.SetdestinationName(AIndex : Integer; AValue : String); 
+Procedure TProductDestination.SetdestinationName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationName=AValue) then exit;
@@ -7396,7 +7396,7 @@ end;
 
 
 
-Procedure TProductDestination.Setintention(AIndex : Integer; AValue : String); 
+Procedure TProductDestination.Setintention(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fintention=AValue) then exit;
@@ -7423,7 +7423,7 @@ end;
 
 
 
-Procedure TProductInstallment.Setmonths(AIndex : Integer; AValue : String); 
+Procedure TProductInstallment.Setmonths(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmonths=AValue) then exit;
@@ -7440,7 +7440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductShipping.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TProductShipping.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -7450,7 +7450,7 @@ end;
 
 
 
-Procedure TProductShipping.SetlocationGroupName(AIndex : Integer; AValue : String); 
+Procedure TProductShipping.SetlocationGroupName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlocationGroupName=AValue) then exit;
@@ -7460,7 +7460,7 @@ end;
 
 
 
-Procedure TProductShipping.SetlocationId(AIndex : Integer; AValue : String); 
+Procedure TProductShipping.SetlocationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlocationId=AValue) then exit;
@@ -7470,7 +7470,7 @@ end;
 
 
 
-Procedure TProductShipping.SetpostalCode(AIndex : Integer; AValue : String); 
+Procedure TProductShipping.SetpostalCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -7490,7 +7490,7 @@ end;
 
 
 
-Procedure TProductShipping.Setregion(AIndex : Integer; AValue : String); 
+Procedure TProductShipping.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -7500,7 +7500,7 @@ end;
 
 
 
-Procedure TProductShipping.Setservice(AIndex : Integer; AValue : String); 
+Procedure TProductShipping.Setservice(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fservice=AValue) then exit;
@@ -7517,7 +7517,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductShippingDimension.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TProductShippingDimension.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -7555,7 +7555,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductShippingWeight.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TProductShippingWeight.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -7593,7 +7593,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductStatus.SetcreationDate(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.SetcreationDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationDate=AValue) then exit;
@@ -7623,7 +7623,7 @@ end;
 
 
 
-Procedure TProductStatus.SetgoogleExpirationDate(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.SetgoogleExpirationDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgoogleExpirationDate=AValue) then exit;
@@ -7633,7 +7633,7 @@ end;
 
 
 
-Procedure TProductStatus.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7643,7 +7643,7 @@ end;
 
 
 
-Procedure TProductStatus.SetlastUpdateDate(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.SetlastUpdateDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastUpdateDate=AValue) then exit;
@@ -7653,7 +7653,7 @@ end;
 
 
 
-Procedure TProductStatus.Setlink(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.Setlink(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -7663,7 +7663,7 @@ end;
 
 
 
-Procedure TProductStatus.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -7673,7 +7673,7 @@ end;
 
 
 
-Procedure TProductStatus.Settitle(AIndex : Integer; AValue : String); 
+Procedure TProductStatus.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7704,7 +7704,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductStatusDataQualityIssue.Setdetail(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.Setdetail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdetail=AValue) then exit;
@@ -7714,7 +7714,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.SetfetchStatus(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.SetfetchStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfetchStatus=AValue) then exit;
@@ -7724,7 +7724,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Setid(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7734,7 +7734,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -7744,7 +7744,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Setseverity(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.Setseverity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -7754,7 +7754,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.Settimestamp(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.Settimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -7764,7 +7764,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.SetvalueOnLandingPage(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.SetvalueOnLandingPage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalueOnLandingPage=AValue) then exit;
@@ -7774,7 +7774,7 @@ end;
 
 
 
-Procedure TProductStatusDataQualityIssue.SetvalueProvided(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDataQualityIssue.SetvalueProvided(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalueProvided=AValue) then exit;
@@ -7791,7 +7791,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductStatusDestinationStatus.SetapprovalStatus(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDestinationStatus.SetapprovalStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapprovalStatus=AValue) then exit;
@@ -7801,7 +7801,7 @@ end;
 
 
 
-Procedure TProductStatusDestinationStatus.Setdestination(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDestinationStatus.Setdestination(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -7811,7 +7811,7 @@ end;
 
 
 
-Procedure TProductStatusDestinationStatus.Setintention(AIndex : Integer; AValue : String); 
+Procedure TProductStatusDestinationStatus.Setintention(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fintention=AValue) then exit;
@@ -7828,7 +7828,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductTax.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TProductTax.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -7838,7 +7838,7 @@ end;
 
 
 
-Procedure TProductTax.SetlocationId(AIndex : Integer; AValue : String); 
+Procedure TProductTax.SetlocationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlocationId=AValue) then exit;
@@ -7848,7 +7848,7 @@ end;
 
 
 
-Procedure TProductTax.SetpostalCode(AIndex : Integer; AValue : String); 
+Procedure TProductTax.SetpostalCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpostalCode=AValue) then exit;
@@ -7868,7 +7868,7 @@ end;
 
 
 
-Procedure TProductTax.Setregion(AIndex : Integer; AValue : String); 
+Procedure TProductTax.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -7895,7 +7895,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductUnitPricingBaseMeasure.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TProductUnitPricingBaseMeasure.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -7905,7 +7905,7 @@ end;
 
 
 
-Procedure TProductUnitPricingBaseMeasure.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TProductUnitPricingBaseMeasure.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7933,7 +7933,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductUnitPricingMeasure.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TProductUnitPricingMeasure.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8011,7 +8011,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TProductsCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -8021,7 +8021,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TProductsCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -8041,7 +8041,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TProductsCustomBatchRequestEntry.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -8068,7 +8068,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductsCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8118,7 +8118,7 @@ end;
 
 
 
-Procedure TProductsCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductsCustomBatchResponseEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8145,7 +8145,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8155,7 +8155,7 @@ end;
 
 
 
-Procedure TProductsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TProductsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8235,7 +8235,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesCustomBatchRequestEntry.SetmerchantId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmerchantId=AValue) then exit;
@@ -8245,7 +8245,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesCustomBatchRequestEntry.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -8255,7 +8255,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchRequestEntry.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesCustomBatchRequestEntry.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -8282,7 +8282,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesCustomBatchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8332,7 +8332,7 @@ end;
 
 
 
-Procedure TProductstatusesCustomBatchResponseEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesCustomBatchResponseEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8359,7 +8359,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductstatusesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8369,7 +8369,7 @@ end;
 
 
 
-Procedure TProductstatusesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TProductstatusesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8409,7 +8409,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWeight.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TWeight.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -8419,7 +8419,7 @@ end;
 
 
 
-Procedure TWeight.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TWeight.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;

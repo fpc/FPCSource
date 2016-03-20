@@ -104,13 +104,13 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmembers(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -140,11 +140,11 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TGroupListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -211,7 +211,7 @@ type
   Protected
     //Property setters
     Procedure SetgroupViews(AIndex : Integer; AValue : TLinuxAccountViewsTypegroupViewsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserViews(AIndex : Integer; AValue : TLinuxAccountViewsTypeuserViewsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -269,7 +269,7 @@ type
   Protected
     //Property setters
     Procedure Setgid(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetgroupName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgroupName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmembers(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -297,12 +297,12 @@ type
     Fusername : String;
   Protected
     //Property setters
-    Procedure Setgecos(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgecos(AIndex : Integer; const AValue : String); virtual;
     Procedure Setgid(AIndex : Integer; AValue : integer); virtual;
-    Procedure SethomeDirectory(AIndex : Integer; AValue : String); virtual;
-    Procedure Setshell(AIndex : Integer; AValue : String); virtual;
+    Procedure SethomeDirectory(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setshell(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuid(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setusername(AIndex : Integer; AValue : String); virtual;
+    Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property gecos : String Index 0 Read Fgecos Write Setgecos;
@@ -325,9 +325,9 @@ type
     Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -366,8 +366,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property key : String Index 0 Read Fkey Write Setkey;
@@ -386,9 +386,9 @@ type
     Fmessage : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -431,28 +431,28 @@ type
     Fzone : String;
   Protected
     //Property setters
-    Procedure SetclientOperationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
-    Procedure SethttpErrorMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
     Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinsertTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetId(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -497,11 +497,11 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -529,11 +529,11 @@ type
     Fkey : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetexpirationTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetexpirationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property creationTimestamp : String Index 0 Read FcreationTimestamp Write SetcreationTimestamp;
@@ -561,15 +561,15 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setgroups(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setowner(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublicKeys(AIndex : Integer; AValue : TUserTypepublicKeysArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -601,11 +601,11 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TUserListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -829,7 +829,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroup.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+Procedure TGroup.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -839,7 +839,7 @@ end;
 
 
 
-Procedure TGroup.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -849,7 +849,7 @@ end;
 
 
 
-Procedure TGroup.Setid(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -859,7 +859,7 @@ end;
 
 
 
-Procedure TGroup.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -879,7 +879,7 @@ end;
 
 
 
-Procedure TGroup.Setname(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -889,7 +889,7 @@ end;
 
 
 
-Procedure TGroup.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TGroup.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -919,7 +919,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupList.Setid(AIndex : Integer; AValue : String); 
+Procedure TGroupList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -939,7 +939,7 @@ end;
 
 
 
-Procedure TGroupList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -949,7 +949,7 @@ end;
 
 
 
-Procedure TGroupList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TGroupList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -959,7 +959,7 @@ end;
 
 
 
-Procedure TGroupList.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TGroupList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1059,7 +1059,7 @@ end;
 
 
 
-Procedure TLinuxAccountViews.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLinuxAccountViews.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1144,7 +1144,7 @@ end;
 
 
 
-Procedure TLinuxGroupView.SetgroupName(AIndex : Integer; AValue : String); 
+Procedure TLinuxGroupView.SetgroupName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgroupName=AValue) then exit;
@@ -1184,7 +1184,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLinuxUserView.Setgecos(AIndex : Integer; AValue : String); 
+Procedure TLinuxUserView.Setgecos(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgecos=AValue) then exit;
@@ -1204,7 +1204,7 @@ end;
 
 
 
-Procedure TLinuxUserView.SethomeDirectory(AIndex : Integer; AValue : String); 
+Procedure TLinuxUserView.SethomeDirectory(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhomeDirectory=AValue) then exit;
@@ -1214,7 +1214,7 @@ end;
 
 
 
-Procedure TLinuxUserView.Setshell(AIndex : Integer; AValue : String); 
+Procedure TLinuxUserView.Setshell(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fshell=AValue) then exit;
@@ -1234,7 +1234,7 @@ end;
 
 
 
-Procedure TLinuxUserView.Setusername(AIndex : Integer; AValue : String); 
+Procedure TLinuxUserView.Setusername(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fusername=AValue) then exit;
@@ -1251,7 +1251,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1261,7 +1261,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1271,7 +1271,7 @@ end;
 
 
 
-Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TOperationTypeerrorTypeerrorsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1318,7 +1318,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1328,7 +1328,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TOperationTypewarningsItemTypedataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1345,7 +1345,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; AValue : String); 
+Procedure TOperationTypewarningsItem.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1365,7 +1365,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TOperationTypewarningsItem.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1395,7 +1395,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetclientOperationId(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetclientOperationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclientOperationId=AValue) then exit;
@@ -1405,7 +1405,7 @@ end;
 
 
 
-Procedure TOperation.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1415,7 +1415,7 @@ end;
 
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -1435,7 +1435,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorMessage(AIndex : Integer; AValue : String); 
+Procedure TOperation.SethttpErrorMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhttpErrorMessage=AValue) then exit;
@@ -1455,7 +1455,7 @@ end;
 
 
 
-Procedure TOperation.Setid(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1465,7 +1465,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -1475,7 +1475,7 @@ end;
 
 
 
-Procedure TOperation.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1485,7 +1485,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1495,7 +1495,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoperationType=AValue) then exit;
@@ -1515,7 +1515,7 @@ end;
 
 
 
-Procedure TOperation.Setregion(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1535,7 +1535,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1545,7 +1545,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1555,7 +1555,7 @@ end;
 
 
 
-Procedure TOperation.SetstatusMessage(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetstatusMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -1565,7 +1565,7 @@ end;
 
 
 
-Procedure TOperation.SettargetId(AIndex : Integer; AValue : String); 
+Procedure TOperation.SettargetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetId=AValue) then exit;
@@ -1575,7 +1575,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -1585,7 +1585,7 @@ end;
 
 
 
-Procedure TOperation.Setuser(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setuser(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1605,7 +1605,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -1635,7 +1635,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationList.Setid(AIndex : Integer; AValue : String); 
+Procedure TOperationList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1655,7 +1655,7 @@ end;
 
 
 
-Procedure TOperationList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOperationList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1665,7 +1665,7 @@ end;
 
 
 
-Procedure TOperationList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TOperationList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1675,7 +1675,7 @@ end;
 
 
 
-Procedure TOperationList.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TOperationList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1705,7 +1705,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublicKey.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+Procedure TPublicKey.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1715,7 +1715,7 @@ end;
 
 
 
-Procedure TPublicKey.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPublicKey.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1725,7 +1725,7 @@ end;
 
 
 
-Procedure TPublicKey.SetexpirationTimestamp(AIndex : Integer; AValue : String); 
+Procedure TPublicKey.SetexpirationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FexpirationTimestamp=AValue) then exit;
@@ -1735,7 +1735,7 @@ end;
 
 
 
-Procedure TPublicKey.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TPublicKey.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1745,7 +1745,7 @@ end;
 
 
 
-Procedure TPublicKey.Setkey(AIndex : Integer; AValue : String); 
+Procedure TPublicKey.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1762,7 +1762,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+Procedure TUser.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -1772,7 +1772,7 @@ end;
 
 
 
-Procedure TUser.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TUser.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1792,7 +1792,7 @@ end;
 
 
 
-Procedure TUser.Setid(AIndex : Integer; AValue : String); 
+Procedure TUser.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1802,7 +1802,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1812,7 +1812,7 @@ end;
 
 
 
-Procedure TUser.Setname(AIndex : Integer; AValue : String); 
+Procedure TUser.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1822,7 +1822,7 @@ end;
 
 
 
-Procedure TUser.Setowner(AIndex : Integer; AValue : String); 
+Procedure TUser.Setowner(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -1842,7 +1842,7 @@ end;
 
 
 
-Procedure TUser.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TUser.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1873,7 +1873,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserList.Setid(AIndex : Integer; AValue : String); 
+Procedure TUserList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1893,7 +1893,7 @@ end;
 
 
 
-Procedure TUserList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUserList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1903,7 +1903,7 @@ end;
 
 
 
-Procedure TUserList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TUserList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1913,7 +1913,7 @@ end;
 
 
 
-Procedure TUserList.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TUserList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;

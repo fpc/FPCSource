@@ -97,8 +97,8 @@ type
     Fweight : integer;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
-    Procedure Seticon(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seticon(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmax(AIndex : Integer; AValue : double); virtual;
     Procedure Setmin(AIndex : Integer; AValue : double); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
@@ -156,14 +156,14 @@ type
     //Property setters
     Procedure SetbaseColumn(AIndex : Integer; AValue : TColumnTypebaseColumn); virtual;
     Procedure SetcolumnId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetcolumnJsonSchema(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcolumnPropertiesJson(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetformatPattern(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgraphPredicate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnJsonSchema(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcolumnPropertiesJson(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetformatPattern(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgraphPredicate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvalidValues(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetvalidateData(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -200,8 +200,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TColumnListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -230,7 +230,7 @@ type
     //Property setters
     Procedure Setgeometries(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
     Procedure Setgeometry(AIndex : Integer; AValue : TJSONSchema); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -253,8 +253,8 @@ type
     FnumRowsReceived : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumRowsReceived(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumRowsReceived(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -274,7 +274,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TLineTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -299,7 +299,7 @@ type
     FstrokeWeightStyler : TStyleFunction;
   Protected
     //Property setters
-    Procedure SetstrokeColor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstrokeColor(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstrokeColorStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
     Procedure SetstrokeOpacity(AIndex : Integer; AValue : double); virtual;
     Procedure SetstrokeWeight(AIndex : Integer; AValue : integer); virtual;
@@ -326,7 +326,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TdoubleArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -348,7 +348,7 @@ type
     FiconStyler : TStyleFunction;
   Protected
     //Property setters
-    Procedure SeticonName(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticonName(AIndex : Integer; const AValue : String); virtual;
     Procedure SeticonStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
   Public
   Published
@@ -369,7 +369,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TPolygonTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -397,10 +397,10 @@ type
     FstrokeWeightStyler : TStyleFunction;
   Protected
     //Property setters
-    Procedure SetfillColor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfillColor(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfillColorStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
     Procedure SetfillOpacity(AIndex : Integer; AValue : double); virtual;
-    Procedure SetstrokeColor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstrokeColor(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstrokeColorStyler(AIndex : Integer; AValue : TStyleFunction); virtual;
     Procedure SetstrokeOpacity(AIndex : Integer; AValue : double); virtual;
     Procedure SetstrokeWeight(AIndex : Integer; AValue : integer); virtual;
@@ -430,7 +430,7 @@ type
   Protected
     //Property setters
     Procedure Setcolumns(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TSqlresponseTyperowsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -454,7 +454,7 @@ type
     Fopacity : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -502,9 +502,9 @@ type
   Protected
     //Property setters
     Procedure Setbuckets(AIndex : Integer; AValue : TStyleFunctionTypebucketsArray); virtual;
-    Procedure SetcolumnName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setgradient(AIndex : Integer; AValue : TStyleFunctionTypegradient); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -533,13 +533,13 @@ type
     FtableId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmarkerOptions(AIndex : Integer; AValue : TPointStyle); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); virtual;
     Procedure SetpolylineOptions(AIndex : Integer; AValue : TLineStyle); virtual;
     Procedure SetstyleId(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -565,8 +565,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TStyleSettingListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -602,19 +602,19 @@ type
     FtablePropertiesJsonSchema : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure SetattributionLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetattributionLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbaseTableIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetcolumnPropertiesJsonSchema(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnPropertiesJsonSchema(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcolumns(AIndex : Integer; AValue : TTableTypecolumnsArray); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisExportable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsql(AIndex : Integer; AValue : String); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
-    Procedure SettablePropertiesJson(AIndex : Integer; AValue : String); virtual;
-    Procedure SettablePropertiesJsonSchema(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsql(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettablePropertiesJson(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettablePropertiesJsonSchema(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -649,8 +649,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTableListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -677,11 +677,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstarted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettaskId(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SettaskId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -705,8 +705,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTaskListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -736,10 +736,10 @@ type
   Protected
     //Property setters
     Procedure SetautomaticColumnNames(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setbody(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SettableId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setbody(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettableId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettemplateId(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -769,8 +769,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTemplateListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1078,7 +1078,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBucket.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TBucket.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -1088,7 +1088,7 @@ end;
 
 
 
-Procedure TBucket.Seticon(AIndex : Integer; AValue : String); 
+Procedure TBucket.Seticon(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ficon=AValue) then exit;
@@ -1192,7 +1192,7 @@ end;
 
 
 
-Procedure TColumn.SetcolumnJsonSchema(AIndex : Integer; AValue : String); 
+Procedure TColumn.SetcolumnJsonSchema(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnJsonSchema=AValue) then exit;
@@ -1202,7 +1202,7 @@ end;
 
 
 
-Procedure TColumn.SetcolumnPropertiesJson(AIndex : Integer; AValue : String); 
+Procedure TColumn.SetcolumnPropertiesJson(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnPropertiesJson=AValue) then exit;
@@ -1212,7 +1212,7 @@ end;
 
 
 
-Procedure TColumn.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TColumn.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1222,7 +1222,7 @@ end;
 
 
 
-Procedure TColumn.SetformatPattern(AIndex : Integer; AValue : String); 
+Procedure TColumn.SetformatPattern(AIndex : Integer; const AValue : String); 
 
 begin
   If (FformatPattern=AValue) then exit;
@@ -1232,7 +1232,7 @@ end;
 
 
 
-Procedure TColumn.SetgraphPredicate(AIndex : Integer; AValue : String); 
+Procedure TColumn.SetgraphPredicate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgraphPredicate=AValue) then exit;
@@ -1242,7 +1242,7 @@ end;
 
 
 
-Procedure TColumn.Setkind(AIndex : Integer; AValue : String); 
+Procedure TColumn.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1252,7 +1252,7 @@ end;
 
 
 
-Procedure TColumn.Setname(AIndex : Integer; AValue : String); 
+Procedure TColumn.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1262,7 +1262,7 @@ end;
 
 
 
-Procedure TColumn.Set_type(AIndex : Integer; AValue : String); 
+Procedure TColumn.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1333,7 +1333,7 @@ end;
 
 
 
-Procedure TColumnList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TColumnList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1343,7 +1343,7 @@ end;
 
 
 
-Procedure TColumnList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TColumnList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1403,7 +1403,7 @@ end;
 
 
 
-Procedure TGeometry.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeometry.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1444,7 +1444,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TImport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1454,7 +1454,7 @@ end;
 
 
 
-Procedure TImport.SetnumRowsReceived(AIndex : Integer; AValue : String); 
+Procedure TImport.SetnumRowsReceived(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumRowsReceived=AValue) then exit;
@@ -1481,7 +1481,7 @@ end;
 
 
 
-Procedure TLine.Set_type(AIndex : Integer; AValue : String); 
+Procedure TLine.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1522,7 +1522,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLineStyle.SetstrokeColor(AIndex : Integer; AValue : String); 
+Procedure TLineStyle.SetstrokeColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstrokeColor=AValue) then exit;
@@ -1589,7 +1589,7 @@ end;
 
 
 
-Procedure TPoint.Set_type(AIndex : Integer; AValue : String); 
+Procedure TPoint.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1630,7 +1630,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPointStyle.SeticonName(AIndex : Integer; AValue : String); 
+Procedure TPointStyle.SeticonName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconName=AValue) then exit;
@@ -1667,7 +1667,7 @@ end;
 
 
 
-Procedure TPolygon.Set_type(AIndex : Integer; AValue : String); 
+Procedure TPolygon.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1708,7 +1708,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPolygonStyle.SetfillColor(AIndex : Integer; AValue : String); 
+Procedure TPolygonStyle.SetfillColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfillColor=AValue) then exit;
@@ -1738,7 +1738,7 @@ end;
 
 
 
-Procedure TPolygonStyle.SetstrokeColor(AIndex : Integer; AValue : String); 
+Procedure TPolygonStyle.SetstrokeColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstrokeColor=AValue) then exit;
@@ -1805,7 +1805,7 @@ end;
 
 
 
-Procedure TSqlresponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSqlresponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1846,7 +1846,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleFunctionTypegradientTypecolorsItem.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TStyleFunctionTypegradientTypecolorsItem.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -1933,7 +1933,7 @@ end;
 
 
 
-Procedure TStyleFunction.SetcolumnName(AIndex : Integer; AValue : String); 
+Procedure TStyleFunction.SetcolumnName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnName=AValue) then exit;
@@ -1953,7 +1953,7 @@ end;
 
 
 
-Procedure TStyleFunction.Setkind(AIndex : Integer; AValue : String); 
+Procedure TStyleFunction.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1983,7 +1983,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStyleSetting.Setkind(AIndex : Integer; AValue : String); 
+Procedure TStyleSetting.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2003,7 +2003,7 @@ end;
 
 
 
-Procedure TStyleSetting.Setname(AIndex : Integer; AValue : String); 
+Procedure TStyleSetting.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2043,7 +2043,7 @@ end;
 
 
 
-Procedure TStyleSetting.SettableId(AIndex : Integer; AValue : String); 
+Procedure TStyleSetting.SettableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -2070,7 +2070,7 @@ end;
 
 
 
-Procedure TStyleSettingList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TStyleSettingList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2080,7 +2080,7 @@ end;
 
 
 
-Procedure TStyleSettingList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TStyleSettingList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2120,7 +2120,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTable.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TTable.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -2130,7 +2130,7 @@ end;
 
 
 
-Procedure TTable.SetattributionLink(AIndex : Integer; AValue : String); 
+Procedure TTable.SetattributionLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FattributionLink=AValue) then exit;
@@ -2150,7 +2150,7 @@ end;
 
 
 
-Procedure TTable.SetcolumnPropertiesJsonSchema(AIndex : Integer; AValue : String); 
+Procedure TTable.SetcolumnPropertiesJsonSchema(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnPropertiesJsonSchema=AValue) then exit;
@@ -2170,7 +2170,7 @@ end;
 
 
 
-Procedure TTable.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TTable.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2190,7 +2190,7 @@ end;
 
 
 
-Procedure TTable.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTable.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2200,7 +2200,7 @@ end;
 
 
 
-Procedure TTable.Setname(AIndex : Integer; AValue : String); 
+Procedure TTable.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2210,7 +2210,7 @@ end;
 
 
 
-Procedure TTable.Setsql(AIndex : Integer; AValue : String); 
+Procedure TTable.Setsql(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsql=AValue) then exit;
@@ -2220,7 +2220,7 @@ end;
 
 
 
-Procedure TTable.SettableId(AIndex : Integer; AValue : String); 
+Procedure TTable.SettableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -2230,7 +2230,7 @@ end;
 
 
 
-Procedure TTable.SettablePropertiesJson(AIndex : Integer; AValue : String); 
+Procedure TTable.SettablePropertiesJson(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtablePropertiesJson=AValue) then exit;
@@ -2240,7 +2240,7 @@ end;
 
 
 
-Procedure TTable.SettablePropertiesJsonSchema(AIndex : Integer; AValue : String); 
+Procedure TTable.SettablePropertiesJsonSchema(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtablePropertiesJsonSchema=AValue) then exit;
@@ -2281,7 +2281,7 @@ end;
 
 
 
-Procedure TTableList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTableList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2291,7 +2291,7 @@ end;
 
 
 
-Procedure TTableList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTableList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2321,7 +2321,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTask.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTask.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2331,7 +2331,7 @@ end;
 
 
 
-Procedure TTask.Setprogress(AIndex : Integer; AValue : String); 
+Procedure TTask.Setprogress(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -2351,7 +2351,7 @@ end;
 
 
 
-Procedure TTask.SettaskId(AIndex : Integer; AValue : String); 
+Procedure TTask.SettaskId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtaskId=AValue) then exit;
@@ -2361,7 +2361,7 @@ end;
 
 
 
-Procedure TTask.Set_type(AIndex : Integer; AValue : String); 
+Procedure TTask.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2399,7 +2399,7 @@ end;
 
 
 
-Procedure TTaskList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTaskList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2409,7 +2409,7 @@ end;
 
 
 
-Procedure TTaskList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTaskList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2459,7 +2459,7 @@ end;
 
 
 
-Procedure TTemplate.Setbody(AIndex : Integer; AValue : String); 
+Procedure TTemplate.Setbody(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fbody=AValue) then exit;
@@ -2469,7 +2469,7 @@ end;
 
 
 
-Procedure TTemplate.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTemplate.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2479,7 +2479,7 @@ end;
 
 
 
-Procedure TTemplate.Setname(AIndex : Integer; AValue : String); 
+Procedure TTemplate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2489,7 +2489,7 @@ end;
 
 
 
-Procedure TTemplate.SettableId(AIndex : Integer; AValue : String); 
+Procedure TTemplate.SettableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtableId=AValue) then exit;
@@ -2539,7 +2539,7 @@ end;
 
 
 
-Procedure TTemplateList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTemplateList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2549,7 +2549,7 @@ end;
 
 
 
-Procedure TTemplateList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTemplateList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
