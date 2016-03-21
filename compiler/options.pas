@@ -3749,24 +3749,6 @@ begin
     end;
 
 {$ifdef arm}
-  if target_info.abi = abi_eabihf then
-    begin
-      if not(option.FPUSetExplicitly) then
-        begin
-          init_settings.fputype:=fpu_vfpv3_d16
-        end
-      else
-        begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
-            begin
-              Message(option_illegal_fpu_eabihf);
-              StopOptions(1);
-            end;
-        end;
-    end;
-{$endif arm}
-
-{$ifdef arm}
   case target_info.system of
     system_arm_darwin:
       begin
@@ -3790,25 +3772,40 @@ begin
       end;
   end;
 
-{ set default cpu type to ARMv7a for ARMHF unless specified otherwise }
-if (target_info.abi = abi_eabihf) then
-  begin
-{$ifdef CPUARMV6}
-    { if the compiler is built for armv6, then
-      inherit this setting, e.g. Raspian is armhf but
-      only armv6, this makes rebuilds of the compiler
-      easier }
-    if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv6;
-    if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv6;
-{$else CPUARMV6}
-    if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv7a;
-    if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv7a;
-{$endif CPUARMV6}
-  end;
+  { ARMHF defaults }
+  if (target_info.abi = abi_eabihf) then
+    { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
+    begin
+    {$ifdef CPUARMV6}
+      { if the compiler is built for armv6, then
+        inherit this setting, e.g. Raspian is armhf but
+        only armv6, this makes rebuilds of the compiler
+        easier }
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_armv6;
+      if not option.OptCPUSetExplicitly then
+        init_settings.optimizecputype:=cpu_armv6;
+    {$else CPUARMV6}
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_armv7a;
+      if not option.OptCPUSetExplicitly then
+        init_settings.optimizecputype:=cpu_armv7a;
+    {$endif CPUARMV6}
+
+      { Set FPU type }
+      if not(option.FPUSetExplicitly) then
+        begin
+          init_settings.fputype:=fpu_vfpv3_d16
+        end
+      else
+        begin
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
+            begin
+              Message(option_illegal_fpu_eabihf);
+              StopOptions(1);
+            end;
+        end;
+    end;
 
   if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     begin
