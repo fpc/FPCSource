@@ -409,7 +409,6 @@ end;
 
 function tentryfile.openfile:boolean;
 var
-  i      : integer;
   strm : TCStream;
 begin
   openfile:=false;

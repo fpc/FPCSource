@@ -1041,7 +1041,6 @@ unit cgx86;
     procedure tcgx86.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
         dirref,tmpref : treference;
-        hreg : tregister;
       begin
         dirref:=ref;
 
@@ -2342,7 +2341,7 @@ unit cgx86;
 
     type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
 
-    var srcref,dstref,tmpref:Treference;
+    var srcref,dstref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;

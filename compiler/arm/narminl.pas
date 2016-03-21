@@ -448,7 +448,6 @@ implementation
         i : integer;
         negop3,
         negproduct : boolean;
-        hp : tnode;
         oppostfix : TOpPostfix;
       begin
          if current_settings.fputype in [fpu_vfpv4] then
