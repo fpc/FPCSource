@@ -3748,6 +3748,22 @@ begin
 {$endif cpufpemu}
     end;
 
+{$ifdef i386}
+  case target_info.system of
+    system_i386_android:
+      begin
+        { set default cpu type to PentiumM for Android unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_PentiumM;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_PentiumM;
+        { set default fpu type to SSSE3 for Android unless specified otherwise }
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_ssse3;
+      end;
+  end;
+{$endif i386}
+
 {$ifdef arm}
   case target_info.system of
     system_arm_darwin:
