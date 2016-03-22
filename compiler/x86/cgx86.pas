@@ -2352,8 +2352,10 @@ unit cgx86;
     begin
       srcref:=source;
       dstref:=dest;
+{$ifndef i8086}
       make_simple_ref(list,srcref);
       make_simple_ref(list,dstref);
+{$endif not i8086}
       cm:=copy_move;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
