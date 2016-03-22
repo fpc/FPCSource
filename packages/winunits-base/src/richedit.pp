@@ -24,33 +24,340 @@ uses Messages, Windows;
      RICHEDIT_CLASS = 'RichEdit20A';
 {$endif}
 
+              
+
   const
+
+    WM_CONTEXTMENU     = $007B;
+    WM_UNICHAR         = $0109;
+    WM_PRINTCLIENT     = $0318;
+
+//#ifndef EM_GETLIMITTEXT
+    EM_GETLIMITTEXT    = (WM_USER + 37);
+//#endif
+
+//#ifndef EM_POSFROMCHAR
+    EM_POSFROMCHAR     = (WM_USER + 38);
+    EM_CHARFROMPOS     = (WM_USER + 39);
+//#endif
+
+//#ifndef EM_SCROLLCARET
+    EM_SCROLLCARET     = (WM_USER + 49);
+//#endif
+    EM_CANPASTE        = (WM_USER + 50);
+    EM_DISPLAYBAND     = (WM_USER + 51);
+    EM_EXGETSEL        = (WM_USER + 52);
+    EM_EXLIMITTEXT     = (WM_USER + 53);
+    EM_EXLINEFROMCHAR  = (WM_USER + 54);
+    EM_EXSETSEL        = (WM_USER + 55);
+    EM_FINDTEXT        = (WM_USER + 56);
+    EM_FORMATRANGE     = (WM_USER + 57);
+    EM_GETCHARFORMAT   = (WM_USER + 58);
+    EM_GETEVENTMASK    = (WM_USER + 59);
+    EM_GETOLEINTERFACE = (WM_USER + 60);
+    EM_GETPARAFORMAT   = (WM_USER + 61);
+    EM_GETSELTEXT      = (WM_USER + 62);
+    EM_HIDESELECTION   = (WM_USER + 63);
+    EM_PASTESPECIAL    = (WM_USER + 64);
+    EM_REQUESTRESIZE   = (WM_USER + 65);
+    EM_SELECTIONTYPE   = (WM_USER + 66);
+    EM_SETBKGNDCOLOR   = (WM_USER + 67);
+    EM_SETCHARFORMAT   = (WM_USER + 68);
+    EM_SETEVENTMASK    = (WM_USER + 69);
+    EM_SETOLECALLBACK  = (WM_USER + 70);
+    EM_SETPARAFORMAT   = (WM_USER + 71);
+    EM_SETTARGETDEVICE = (WM_USER + 72);
+    EM_STREAMIN        = (WM_USER + 73);
+    EM_STREAMOUT       = (WM_USER + 74);
+    EM_GETTEXTRANGE    = (WM_USER + 75);
+    EM_FINDWORDBREAK   = (WM_USER + 76);
+    EM_SETOPTIONS      = (WM_USER + 77);
+    EM_GETOPTIONS      = (WM_USER + 78);
+    EM_FINDTEXTEX      = (WM_USER + 79);
+//#ifdef _WIN32
+    EM_GETWORDBREAKPROCEX  = (WM_USER + 80);
+    EM_SETWORDBREAKPROCEX  = (WM_USER + 81);
+//#endif
+
+// RichEdit 2.0 messages
+    EM_SETUNDOLIMIT    = (WM_USER + 82);
+    EM_REDO            = (WM_USER + 84);
+    EM_CANREDO         = (WM_USER + 85);
+    EM_GETUNDONAME     = (WM_USER + 86);
+    EM_GETREDONAME     = (WM_USER + 87);
+    EM_STOPGROUPTYPING = (WM_USER + 88);
+
+    EM_SETTEXTMODE     = (WM_USER + 89);
+    EM_GETTEXTMODE     = (WM_USER + 90);
+
+    EM_AUTOURLDETECT   = (WM_USER + 91);
+    EM_GETAUTOURLDETECT= (WM_USER + 92);
+    EM_SETPALETTE      = (WM_USER + 93);
+    EM_GETTEXTEX       = (WM_USER + 94);
+    EM_GETTEXTLENGTHEX = (WM_USER + 95);
+    EM_SHOWSCROLLBAR   = (WM_USER + 96);
+    EM_SETTEXTEX       = (WM_USER + 97);
+
+// East Asia specific messages
+    EM_SETPUNCTUATION  = (WM_USER + 100);
+    EM_GETPUNCTUATION  = (WM_USER + 101);
+    EM_SETWORDWRAPMODE = (WM_USER + 102);
+    EM_GETWORDWRAPMODE = (WM_USER + 103);
+    EM_SETIMECOLOR     = (WM_USER + 104);
+    EM_GETIMECOLOR     = (WM_USER + 105);
+    EM_SETIMEOPTIONS   = (WM_USER + 106);
+    EM_GETIMEOPTIONS   = (WM_USER + 107);
+    EM_CONVPOSITION    = (WM_USER + 108);
+
+    EM_SETLANGOPTIONS  = (WM_USER + 120);
+    EM_GETLANGOPTIONS  = (WM_USER + 121);
+    EM_GETIMECOMPMODE  = (WM_USER + 122);
+
+    EM_FINDTEXTW       = (WM_USER + 123);
+    EM_FINDTEXTEXW     = (WM_USER + 124);
+
+// RE3.0 FE messages
+    EM_RECONVERSION    = (WM_USER + 125);
+    EM_SETIMEMODEBIAS  = (WM_USER + 126);
+    EM_GETIMEMODEBIAS  = (WM_USER + 127);
+
+// BiDi specific messages
+    EM_SETBIDIOPTIONS  = (WM_USER + 200);
+    EM_GETBIDIOPTIONS  = (WM_USER + 201);
+
+    EM_SETTYPOGRAPHYOPTIONS = (WM_USER + 202);
+    EM_GETTYPOGRAPHYOPTIONS = (WM_USER + 203);
+
+// Extended edit style specific messages
+    EM_SETEDITSTYLE    = (WM_USER + 204);
+    EM_GETEDITSTYLE    = (WM_USER + 205);
+
+// Pegasus outline mode messages (RE 3.0)
+
+// Outline mode message
+    EM_OUTLINE         = (WM_USER + 220);
+// Message for getting and restoring scroll pos
+    EM_GETSCROLLPOS    = (WM_USER + 221);
+    EM_SETSCROLLPOS    = (WM_USER + 222);
+// Change fontsize in current selection by wParam
+    EM_SETFONTSIZE     = (WM_USER + 223);
+    EM_GETZOOM         = (WM_USER + 224);
+    EM_SETZOOM         = (WM_USER + 225);
+    EM_GETVIEWKIND     = (WM_USER + 226);
+    EM_SETVIEWKIND     = (WM_USER + 227);
+
+// RichEdit 4.0 messages
+    EM_GETPAGE         = (WM_USER + 228);
+    EM_SETPAGE         = (WM_USER + 229);
+    EM_GETHYPHENATEINFO= (WM_USER + 230);
+    EM_SETHYPHENATEINFO= (WM_USER + 231);
+    EM_GETAUTOCORRECTPROC   = (WM_USER + 233);
+    EM_SETAUTOCORRECTPROC   = (WM_USER + 234);
+    EM_CALLAUTOCORRECTPROC  = (WM_USER + 255);
+
+    EM_GETPAGEROTATE   = (WM_USER + 235);
+    EM_SETPAGEROTATE   = (WM_USER + 236);
+    EM_GETCTFMODEBIAS  = (WM_USER + 237);
+    EM_SETCTFMODEBIAS  = (WM_USER + 238);
+    EM_GETCTFOPENSTATUS= (WM_USER + 240);
+    EM_SETCTFOPENSTATUS= (WM_USER + 241);
+    EM_GETIMECOMPTEXT  = (WM_USER + 242);
+    EM_ISIME           = (WM_USER + 243);
+    EM_GETIMEPROPERTY  = (WM_USER + 244);
+    EM_GETTABLEPARMS   = (WM_USER + 265);
+    // These messages control what rich edit does when it comes accross
+    // OLE objects during RTF stream in.  Normally rich edit queries the client
+    // application only after OleLoad has been called.  With these messages it is possible to
+    // set the rich edit control to a mode where it will query the client application before
+    // OleLoad is called
+    EM_GETQUERYRTFOBJ  = (WM_USER + 269);
+    EM_SETQUERYRTFOBJ  = (WM_USER + 270);
+    EM_SETEDITSTYLEEX  = (WM_USER + 275);
+    EM_GETEDITSTYLEEX  = (WM_USER + 276);
+
+    AURL_ENABLEURL          = 1;
+    AURL_ENABLEEMAILADDR    = 2;
+    AURL_ENABLETELNO        = 4;
+    AURL_ENABLEEAURLS       = 8;
+    AURL_ENABLEDRIVELETTERS = 16;
+    AURL_DISABLEMIXEDLGC    = 32; // Disable mixed Latin Greek Cyrillic IDNs
+
+// CFM_COLOR mirrors CFE_AUTOCOLOR, a little hack to easily deal with autocolor
+
+// CHARFORMAT masks
+    CFM_BOLD           = $00000001;
+    CFM_ITALIC         = $00000002;
+    CFM_UNDERLINE      = $00000004;
+    CFM_STRIKEOUT      = $00000008;
+    CFM_PROTECTED      = $00000010;
+    CFM_LINK           = $00000020;      // Exchange hyperlink extension
+    CFM_SIZE           = $80000000;
+    CFM_COLOR          = $40000000;
+    CFM_FACE           = $20000000;
+    CFM_OFFSET         = $10000000;
+    CFM_CHARSET        = $08000000;
+
+// CHARFORMAT effects
+    CFE_BOLD           = $00000001;
+    CFE_ITALIC         = $00000002;
+    CFE_UNDERLINE      = $00000004;
+    CFE_STRIKEOUT      = $00000008;
+    CFE_PROTECTED      = $00000010;
+    CFE_LINK           = $00000020;
+    CFE_AUTOCOLOR      = $40000000;           // NOTE: this corresponds to
+                                                                                      // CFM_COLOR, which controls it
+// Masks and effects defined for CHARFORMAT2 -- an (*) indicates
+// that the data is stored by RichEdit 2.0/3.0, but not displayed
+    CFM_SMALLCAPS      = $00000040;            // (*)
+    CFM_ALLCAPS        = $00000080;            // Displayed by 3.0
+    CFM_HIDDEN         = $00000100;            // Hidden by 3.0
+    CFM_OUTLINE        = $00000200;            // (*)
+    CFM_SHADOW         = $00000400;            // (*)
+    CFM_EMBOSS         = $00000800;            // (*)
+    CFM_IMPRINT        = $00001000;            // (*)
+    CFM_DISABLED       = $00002000;
+    CFM_REVISED        = $00004000;
+
+    CFM_REVAUTHOR      = $00008000;
+    CFE_SUBSCRIPT      = $00010000;            // Superscript and subscript are
+    CFE_SUPERSCRIPT    = $00020000;            //      mutually exclusive
+    CFM_ANIMATION      = $00040000;            // (*)
+    CFM_STYLE          = $00080000;            // (*)
+    CFM_KERNING        = $00100000;
+    CFM_SPACING        = $00200000;            // Displayed by 3.0
+    CFM_WEIGHT         = $00400000;
+    CFM_UNDERLINETYPE  = $00800000;            // Many displayed by 3.0
+//#if (_RICHEDIT_VER >=  = $0600)
+    CFM_COOKIE         = $01000000;            // RE 6.0
+//#endif
+    CFM_LCID           = $02000000;
+    CFM_BACKCOLOR      = $04000000;            // Higher mask bits defined above
+
+    CFM_SUBSCRIPT      = (CFE_SUBSCRIPT or CFE_SUPERSCRIPT);
+    CFM_SUPERSCRIPT    = CFM_SUBSCRIPT;
+
+
+// Extended edit style masks
+    SES_EMULATESYSEDIT  = 1;
+    SES_BEEPONMAXTEXT   = 2;
+    SES_EXTENDBACKCOLOR = 4;
+    SES_MAPCPS          = 8;               // Obsolete (never used)
+//#if (_RICHEDIT_VER >= = $0500)
+    SES_HYPERLINKTOOLTIPS = 8;
+//#endif
+    SES_EMULATE10         = 16;              // Obsolete (never used)
+//#if (_RICHEDIT_VER >= = $0700)
+    SES_DEFAULTLATINLIGA  = 16;
+//#endif
+    SES_USECRLF           = 32;              // Obsolete (never used)
+//#if (_RICHEDIT_VER >= = $0700)
+    SES_NOFOCUSLINKNOTIFY = 32;
+//#endif
+    SES_USEAIMM           = 64;
+    SES_NOIME             = 128;
+
+    SES_ALLOWBEEPS        = 256;
+    SES_UPPERCASE         = 512;
+    SES_LOWERCASE         = 1024;
+    SES_NOINPUTSEQUENCECHK= 2048;
+    SES_BIDI              = 4096;
+    SES_SCROLLONKILLFOCUS = 8192;
+    SES_XLTCRCRLFTOCR     = 16384;
+    SES_DRAFTMODE         = 32768;
+
+    SES_USECTF            = $00010000;
+    SES_HIDEGRIDLINES     = $00020000;
+    SES_USEATFONT         = $00040000;
+    SES_CUSTOMLOOK        = $00080000;
+    SES_LBSCROLLNOTIFY    = $00100000;
+    SES_CTFALLOWEMBED     = $00200000;
+    SES_CTFALLOWSMARTTAG  = $00400000;
+    SES_CTFALLOWPROOFING  = $00800000;
+//#if (_RICHEDIT_VER >= = $0500)
+    SES_LOGICALCARET      = $01000000;
+    SES_WORDDRAGDROP      = $02000000;
+    SES_SMARTDRAGDROP     = $04000000;
+    SES_MULTISELECT       = $08000000;
+    SES_CTFNOLOCK         = $10000000;
+    SES_NOEALINEHEIGHTADJUST = $20000000;
+    SES_MAX               = $20000000;
+//#endif
+
+// Options for EM_SETLANGOPTIONS and EM_GETLANGOPTIONS
+    IMF_AUTOKEYBOARD      = $0001;
+    IMF_AUTOFONT          = $0002;
+    IMF_IMECANCELCOMPLETE = $0004; // High completes comp string when aborting, low cancels
+    IMF_IMEALWAYSSENDNOTIFY= $0008;
+    IMF_AUTOFONTSIZEADJUST= $0010;
+    IMF_UIFONTS           = $0020;
+//#if (_RICHEDIT_VER >= = $0800)
+    IMF_NOIMPLICITLANG    = $0040;
+//#endif
+    IMF_DUALFONT          = $0080;
+//#if (_RICHEDIT_VER >= = $0800)
+    IMF_NOKBDLIDFIXUP     = $0200;
+//#endif
+    IMF_NORTFFONTSUBSTITUTE = $0400;
+//#if (_RICHEDIT_VER >= = $0800)
+    IMF_SPELLCHECKING     = $0800;
+    IMF_TKBPREDICTION     = $1000;
+//#endif
+//#if (_RICHEDIT_VER >= = $0810)
+    IMF_IMEUIINTEGRATION  = $2000;
+//#endif
+
+  // Values for EM_GETIMECOMPMODE
+    ICM_NOTOPEN           = $0000;
+    ICM_LEVEL3            = $0001;
+    ICM_LEVEL2            = $0002;
+    ICM_LEVEL2_5          = $0003;
+    ICM_LEVEL2_SUI        = $0004;
+    ICM_CTF               = $0005;
+
+  // Options for EM_SETTYPOGRAPHYOPTIONS
+    TO_ADVANCEDTYPOGRAPHY   = $0001;
+    TO_SIMPLELINEBREAK      = $0002;
+    TO_DISABLECUSTOMTEXTOUT = $0004;
+    TO_ADVANCEDLAYOUT       = $0008;
+
+    // EM_SETPAGEROTATE wparam values
+    EPR_0         = 0;               // Text flows left to right and top to bottom
+    EPR_270       = 1;               // Text flows top to bottom and right to left
+    EPR_180       = 2;               // Text flows right to left and bottom to top
+    EPR_90        = 3;               // Text flows bottom to top and left to right
+    //#if (_RICHEDIT_VER >= 0x0800)
+    EPR_SE        = 5;               // Text flows top to bottom and left to right (Mongolian text layout)
+    //#endif
+
+    // EM_SETCTFMODEBIAS wparam values
+     CTFMODEBIAS_DEFAULT               = $000;
+     CTFMODEBIAS_FILENAME              = $001;
+     CTFMODEBIAS_NAME                  = $002;
+     CTFMODEBIAS_READING               = $003;
+     CTFMODEBIAS_DATETIME              = $004;
+     CTFMODEBIAS_CONVERSATION          = $005;
+     CTFMODEBIAS_NUMERIC               = $006;
+     CTFMODEBIAS_HIRAGANA              = $007;
+     CTFMODEBIAS_KATAKANA              = $008;
+     CTFMODEBIAS_HANGUL                = $009;
+     CTFMODEBIAS_HALFWIDTHKATAKANA     = $00A;
+     CTFMODEBIAS_FULLWIDTHALPHANUMERIC = $00B;
+     CTFMODEBIAS_HALFWIDTHALPHANUMERIC = $00C;
+
+    // EM_SETIMEMODEBIAS lparam values
+     IMF_SMODE_PLAURALCLAUSE           = $001;
+     IMF_SMODE_NONE                    = $002;
+
+     ATP_NOCHANG           = 0;
+     ATP_CHANGE            = 1;
+     ATP_NODELIMITER       = 2;
+     ATP_REPLACEALLTEXT    = 4;
+
      RICHEDIT_CLASS10A = 'RICHEDIT';
      CF_RTF = 'Rich Text Format';
      CF_RTFNOOBJS = 'Rich Text Format Without Objects';
      CF_RETEXTOBJ = 'RichEdit Text and Objects';
-     CFM_BOLD = 1;
-     CFM_ITALIC = 2;
-     CFM_UNDERLINE = 4;
-     CFM_STRIKEOUT = 8;
-     CFM_PROTECTED = 16;
-     CFM_LINK = 32;
-     CFM_SIZE = $80000000;
-     CFM_COLOR = $40000000;
-     CFM_FACE = $20000000;
-     CFM_OFFSET = $10000000;
-     CFM_CHARSET = $08000000;
-     CFM_SUBSCRIPT = $00030000;
-     CFM_SUPERSCRIPT = $00030000;
      CFM_EFFECTS = (((((CFM_BOLD or CFM_ITALIC) or CFM_UNDERLINE) or CFM_COLOR) or CFM_STRIKEOUT) or CFE_PROTECTED) or CFM_LINK;
-     CFE_BOLD = 1;
-     CFE_ITALIC = 2;
-     CFE_UNDERLINE = 4;
-     CFE_STRIKEOUT = 8;
-     CFE_PROTECTED = 16;
-     CFE_AUTOCOLOR = $40000000;
-     CFE_SUBSCRIPT = $00010000;
-     CFE_SUPERSCRIPT = $00020000;
      IMF_FORCENONE = 1;
      IMF_FORCEENABLE = 2;
      IMF_FORCEDISABLE = 4;
@@ -142,79 +449,6 @@ uses Messages, Windows;
      ES_SELFIME = 262144;
      ES_SUNKEN = 16384;
      ES_VERTICAL = 4194304;
-     EM_CANPASTE = WM_USER+50;
-     EM_DISPLAYBAND = WM_USER+51;
-     EM_EXGETSEL = WM_USER+52;
-     EM_EXLIMITTEXT = WM_USER+53;
-     EM_EXLINEFROMCHAR = WM_USER+54;
-     EM_EXSETSEL = WM_USER+55;
-     EM_FINDTEXT = WM_USER+56;
-     EM_FORMATRANGE = WM_USER+57;
-     EM_GETCHARFORMAT = WM_USER+58;
-     EM_GETEVENTMASK = WM_USER+59;
-     EM_GETOLEINTERFACE = WM_USER+60;
-     EM_GETPARAFORMAT = WM_USER+61;
-     EM_GETSELTEXT = WM_USER+62;
-     EM_HIDESELECTION = WM_USER+63;
-     EM_PASTESPECIAL = WM_USER+64;
-     EM_REQUESTRESIZE = WM_USER+65;
-     EM_SELECTIONTYPE = WM_USER+66;
-     EM_SETBKGNDCOLOR = WM_USER+67;
-     EM_SETCHARFORMAT = WM_USER+68;
-     EM_SETEVENTMASK = WM_USER+69;
-     EM_SETOLECALLBACK = WM_USER+70;
-     EM_SETPARAFORMAT = WM_USER+71;
-     EM_SETTARGETDEVICE = WM_USER+72;
-     EM_STREAMIN = WM_USER+73;
-     EM_STREAMOUT = WM_USER+74;
-     EM_GETTEXTRANGE = WM_USER+75;
-     EM_FINDWORDBREAK = WM_USER+76;
-     EM_SETOPTIONS = WM_USER+77;
-     EM_GETOPTIONS = WM_USER+78;
-     EM_FINDTEXTEX = WM_USER+79;
-     EM_GETWORDBREAKPROCEX = WM_USER+80;
-     EM_SETWORDBREAKPROCEX = WM_USER+81;
-  { RichEdit 2.0 messages  }
-     EM_SETUNDOLIMIT = WM_USER+82;
-     EM_REDO = WM_USER+84;
-     EM_CANREDO = WM_USER+85;
-     EM_GETUNDONAME = WM_USER+86;
-     EM_GETREDONAME = WM_USER+87;
-     EM_STOPGROUPTYPING = WM_USER+88;
-     EM_SETTEXTMODE = WM_USER+89;
-     EM_GETTEXTMODE = WM_USER+90;
-     EM_AUTOURLDETECT = WM_USER+91;
-     EM_GETAUTOURLDETECT = WM_USER+92;
-     EM_SETPALETTE = WM_USER+93;
-     EM_GETTEXTEX = WM_USER+94;
-     EM_GETTEXTLENGTHEX = WM_USER+95;
-     EM_SHOWSCROLLBAR = WM_USER+96;
-     EM_SETTEXTEX = WM_USER+97;
-     EM_SETPUNCTUATION = WM_USER+100;
-     EM_GETPUNCTUATION = WM_USER+101;
-     EM_SETWORDWRAPMODE = WM_USER+102;
-     EM_GETWORDWRAPMODE = WM_USER+103;
-     EM_SETIMECOLOR = WM_USER+104;
-     EM_GETIMECOLOR = WM_USER+105;
-     EM_SETIMEOPTIONS = WM_USER+106;
-     EM_GETIMEOPTIONS = WM_USER+107;
-     EM_SETLANGOPTIONS = WM_USER+120;
-     EM_GETLANGOPTIONS = WM_USER+121;
-     EM_GETIMECOMPMODE = WM_USER+122;
-     EM_FINDTEXTW = WM_USER+123;
-     EM_FINDTEXTEXW = WM_USER+124;
-     EM_RECONVERSION = WM_USER+125;
-     EM_SETBIDIOPTIONS = WM_USER+200;
-     EM_GETBIDIOPTIONS = WM_USER+201;
-     EM_SETTYPOGRAPHYOPTIONS = WM_USER+202;
-     EM_GETTYPOGRAPHYOPTIONS = WM_USER+203;
-     EM_SETEDITSTYLE = WM_USER+204;
-     EM_GETEDITSTYLE = WM_USER+205;
-     EM_GETSCROLLPOS = WM_USER+221;
-     EM_SETSCROLLPOS = WM_USER+222;
-     EM_SETFONTSIZE = WM_USER+223;
-     EM_GETZOOM = WM_USER+224;
-     EM_SETZOOM = WM_USER+225;
      EN_CORRECTTEXT = 1797;
      EN_DROPFILES = 1795;
      EN_IMECHANGE = 1799;
@@ -586,8 +820,6 @@ uses Messages, Windows;
   { Defines for EM_SETTYPOGRAPHYOPTIONS  }
 
   const
-     TO_ADVANCEDTYPOGRAPHY = 1;
-     TO_SIMPLELINEBREAK = 2;
   { Defines for GETTEXTLENGTHEX  }
      GTL_DEFAULT = 0;
      GTL_USECRLF = 1;
