@@ -2719,7 +2719,9 @@ implementation
               IF_386:
                 if objdata.CPUType<cpu_386 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
-              IF_486,
+              IF_486:
+                if objdata.CPUType<cpu_486 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
               IF_PENT:
                 if objdata.CPUType<cpu_Pentium then
                   Message(asmw_e_instruction_not_supported_by_cpu);

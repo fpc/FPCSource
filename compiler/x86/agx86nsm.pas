@@ -92,6 +92,7 @@ interface
 {$elseif defined(i386)}
         'IA64',     // cpu_none,
         '386',      // cpu_386,
+        '486',      // cpu_486,
         'PENTIUM',  // cpu_Pentium,
         'P2',       // cpu_Pentium2,
         'P3',       // cpu_Pentium3,
@@ -106,6 +107,7 @@ interface
         '186',     // cpu_186
         '286',     // cpu_286
         '386',     // cpu_386
+        '486',     // cpu_486
         'PENTIUM', // cpu_Pentium
         'P2',      // cpu_Pentium2
         'P3',      // cpu_Pentium3
