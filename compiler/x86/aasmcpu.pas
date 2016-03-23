@@ -460,11 +460,23 @@ implementation
        IF_WILLAMETTE = $08000000; { Willamette instructions }
        IF_PRESCOTT   = $09000000; { Prescott instructions }
        IF_X86_64 = $0a000000;
-       IF_CYRIX  = $0b000000;  { Cyrix-specific instruction  }
-       IF_AMD    = $0c000000;  { AMD-specific instruction  }
        IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
        IF_SANDYBRIDGE = $0e000000; { Sandybridge-specific instruction }
        IF_NEC    = $0f000000;  { NEC V20/V30 instruction }
+
+       { the following are not strictly part of the processor level, because
+         they are never used standalone, but always in combination with a
+         separate processor level flag. Therefore, they use bits outside of
+         IF_PLEVEL, otherwise they would mess up the processor level they're
+         used in combination with.
+         The following combinations are currently used:
+         IF_AMD or IF_P6,
+         IF_CYRIX or IF_486,
+         IF_CYRIX or IF_PENT,
+         IF_CYRIX or IF_P6 }
+       IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
+       IF_AMD    = $20000000;  { AMD-specific instruction  }
+
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
