@@ -2740,8 +2740,6 @@ implementation
                 if objdata.CPUType>=cpu_386 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
               { todo: handle these properly }
-              IF_CYRIX,
-              IF_AMD,
               IF_CENTAUR,
               IF_SANDYBRIDGE:
                 ;
