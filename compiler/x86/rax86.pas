@@ -68,9 +68,9 @@ type
   end;
 
 const
-  AsmPrefixes = 6;
+  AsmPrefixes = 6{$ifdef i8086}+2{$endif i8086};
   AsmPrefix : array[0..AsmPrefixes-1] of TasmOP =(
-    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ
+    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ{$ifdef i8086},A_REPC,A_REPNC{$endif i8086}
   );
 
   AsmOverrides = 6;
