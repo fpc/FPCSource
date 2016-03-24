@@ -1092,6 +1092,10 @@ begin
     begin
       if (ops=1) and (opcode=A_INT) then
         siz:=S_B;
+{$ifdef i8086}
+      if (ops=1) and (opcode=A_BRKEM) then
+        siz:=S_B;
+{$endif i8086}
       if (ops=1) and (opcode=A_RET) or (opcode=A_RETN) or (opcode=A_RETF) then
         siz:=S_W;
       if (ops=1) and (opcode=A_PUSH) then
