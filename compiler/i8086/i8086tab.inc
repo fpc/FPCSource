@@ -12976,14 +12976,14 @@
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits8,ot_immediate,ot_none,ot_none);
     code    : #2#15#26#128#21;
-    flags   : if_nec or if_sb or if_16bitonly
+    flags   : if_nec or if_sb or if_imm3 or if_16bitonly
   ),
   (
     opcode  : A_CLR1;
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits16,ot_immediate,ot_none,ot_none);
     code    : #2#15#27#128#21;
-    flags   : if_nec or if_sw or if_16bitonly
+    flags   : if_nec or if_sw or if_imm4 or if_16bitonly
   ),
   (
     opcode  : A_CMP4S;
@@ -13039,14 +13039,14 @@
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits8,ot_immediate,ot_none,ot_none);
     code    : #2#15#30#128#21;
-    flags   : if_nec or if_sb or if_16bitonly
+    flags   : if_nec or if_sb or if_imm3 or if_16bitonly
   ),
   (
     opcode  : A_NOT1;
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits16,ot_immediate,ot_none,ot_none);
     code    : #2#15#31#128#21;
-    flags   : if_nec or if_sw or if_16bitonly
+    flags   : if_nec or if_sw or if_imm4 or if_16bitonly
   ),
   (
     opcode  : A_REPC;
@@ -13095,14 +13095,14 @@
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits8,ot_immediate,ot_none,ot_none);
     code    : #2#15#28#128#21;
-    flags   : if_nec or if_sb or if_16bitonly
+    flags   : if_nec or if_sb or if_imm3 or if_16bitonly
   ),
   (
     opcode  : A_SET1;
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits16,ot_immediate,ot_none,ot_none);
     code    : #2#15#29#128#21;
-    flags   : if_nec or if_sw or if_16bitonly
+    flags   : if_nec or if_sw or if_imm4 or if_16bitonly
   ),
   (
     opcode  : A_SUB4S;
@@ -13130,14 +13130,14 @@
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits8,ot_immediate,ot_none,ot_none);
     code    : #2#15#24#128#21;
-    flags   : if_nec or if_sb or if_16bitonly
+    flags   : if_nec or if_sb or if_imm3 or if_16bitonly
   ),
   (
     opcode  : A_TEST1;
     ops     : 2;
     optypes : (ot_rm_gpr or ot_bits16,ot_immediate,ot_none,ot_none);
     code    : #2#15#25#128#21;
-    flags   : if_nec or if_sw or if_16bitonly
+    flags   : if_nec or if_sw or if_imm4 or if_16bitonly
   ),
   (
     opcode  : A_VFMADD132PD;

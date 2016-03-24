@@ -481,6 +481,7 @@ implementation
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
        IF_IMM4   = $100000000; { immediate operand is a nibble (must be in range [0..15]) }
+       IF_IMM3   = $200000000; { immediate operand is a triad (must be in range [0..7]) }
 
      type
        TInsTabCache=array[TasmOp] of longint;
@@ -2969,7 +2970,12 @@ implementation
             &24,&25,&26,&27 :
               begin
                 getvalsym(c-&24);
-                if (insentry^.flags and IF_IMM4)<>0 then
+                if (insentry^.flags and IF_IMM3)<>0 then
+                  begin
+                    if (currval<0) or (currval>7) then
+                      Message2(asmw_e_value_exceeds_bounds,'unsigned triad',tostr(currval));
+                  end
+                else if (insentry^.flags and IF_IMM4)<>0 then
                   begin
                     if (currval<0) or (currval>15) then
                       Message2(asmw_e_value_exceeds_bounds,'unsigned nibble',tostr(currval));

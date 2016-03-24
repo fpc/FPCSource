@@ -5028,8 +5028,8 @@ imm                                   \2\x0F\xFF\24                       NEC,SB
 (Ch_Mop2, Ch_Rop1, Ch_None)
 rm8,reg_cl                            \2\x0F\x12\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x13\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x1A\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x1B\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x1A\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x1B\200\25                   NEC,SW,IMM4,16BITONLY
 
 [CMP4S]
 (Ch_All, Ch_None, Ch_None)
@@ -5051,8 +5051,8 @@ reg8,imm                              \2\x0F\x39\200\25                   NEC,SB
 (Ch_Mop2, Ch_Rop1, Ch_None)
 rm8,reg_cl                            \2\x0F\x16\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x17\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,IMM4,16BITONLY
 
 [REPC]
 (Ch_RWECX, Ch_RWFlags, Ch_None)
@@ -5074,8 +5074,8 @@ rm8                                   \2\x0F\x2A\200                      NEC,16
 (Ch_Mop2, Ch_Rop1, Ch_None)
 rm8,reg_cl                            \2\x0F\x14\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x15\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x1C\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x1D\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x1C\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x1D\200\25                   NEC,SW,IMM4,16BITONLY
 
 [SUB4S]
 (Ch_All, Ch_None, Ch_None)
@@ -5085,8 +5085,8 @@ void                                  \2\x0F\x22                          NEC,16
 (Ch_WFlags, Ch_Rop1, Ch_Rop2)
 rm8,reg_cl                            \2\x0F\x10\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x11\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x18\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x19\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x18\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x19\200\25                   NEC,SW,IMM4,16BITONLY
 
 ;*******************************************************************************
 ;********** FMA ****************************************************************
