@@ -5038,14 +5038,14 @@ void                                  \2\x0F\x26                          NEC,16
 [EXT]
 (Ch_All, Ch_None, Ch_None)
 reg8,reg8                             \2\x0F\x33\101                      NEC,16BITONLY
-reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB,16BITONLY
+reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB,IMM4,16BITONLY
 
 ;[FPO2]
 
 [INS]
 (Ch_All, Ch_None, Ch_None)
 reg8,reg8                             \2\x0F\x31\101                      NEC,16BITONLY
-reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,16BITONLY
+reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,IMM4,16BITONLY
 
 [NOT1]
 (Ch_Mop2, Ch_Rop1, Ch_None)

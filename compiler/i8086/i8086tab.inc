@@ -13004,7 +13004,7 @@
     ops     : 2;
     optypes : (ot_reg8,ot_immediate,ot_none,ot_none);
     code    : #2#15#59#128#21;
-    flags   : if_nec or if_sb or if_16bitonly
+    flags   : if_nec or if_sb or if_imm4 or if_16bitonly
   ),
   (
     opcode  : A_INS;
@@ -13018,7 +13018,7 @@
     ops     : 2;
     optypes : (ot_reg8,ot_immediate,ot_none,ot_none);
     code    : #2#15#57#128#21;
-    flags   : if_nec or if_sb or if_16bitonly
+    flags   : if_nec or if_sb or if_imm4 or if_16bitonly
   ),
   (
     opcode  : A_NOT1;

@@ -480,6 +480,7 @@ implementation
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
+       IF_IMM4   = $100000000; { immediate operand is a nibble (must be in range [0..15]) }
 
      type
        TInsTabCache=array[TasmOp] of longint;
@@ -2968,8 +2969,14 @@ implementation
             &24,&25,&26,&27 :
               begin
                 getvalsym(c-&24);
-                if (currval<0) or (currval>255) then
-                 Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
+                if (insentry^.flags and IF_IMM4)<>0 then
+                  begin
+                    if (currval<0) or (currval>15) then
+                      Message2(asmw_e_value_exceeds_bounds,'unsigned nibble',tostr(currval));
+                  end
+                else
+                  if (currval<0) or (currval>255) then
+                    Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
                 if assigned(currsym) then
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else
