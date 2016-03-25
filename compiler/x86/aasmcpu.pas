@@ -460,7 +460,6 @@ implementation
        IF_WILLAMETTE = $08000000; { Willamette instructions }
        IF_PRESCOTT   = $09000000; { Prescott instructions }
        IF_X86_64 = $0a000000;
-       IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
        IF_SANDYBRIDGE = $0e000000; { Sandybridge-specific instruction }
        IF_NEC    = $0f000000;  { NEC V20/V30 instruction }
 
@@ -474,7 +473,7 @@ implementation
          IF_CYRIX or IF_486,
          IF_CYRIX or IF_PENT,
          IF_CYRIX or IF_P6 }
-       IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
+       IF_CYRIX  = $10000000;  { Cyrix, Centaur or VIA-specific instruction }
        IF_AMD    = $20000000;  { AMD-specific instruction  }
 
        { added flags }
@@ -2742,7 +2741,6 @@ implementation
                 if objdata.CPUType>=cpu_386 then
                   Message(asmw_e_instruction_not_supported_by_cpu);
               { todo: handle these properly }
-              IF_CENTAUR,
               IF_SANDYBRIDGE:
                 ;
             end;

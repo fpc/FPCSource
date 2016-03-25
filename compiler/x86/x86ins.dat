@@ -3011,19 +3011,19 @@ void                  \3\x0F\x01\xDE                  386,SVM,PRIV,PROT
 void                  \3\x0F\x01\xDF                  386,SVM,PRIV,PROT
 
 ;
-; Centaur
+; VIA (Centaur)
 ;
 [MONTMUL]
 (Ch_All, Ch_None, Ch_None)
-void                  \333\3\x0F\xA6\xC0              CENTAUR
+void                  \333\3\x0F\xA6\xC0              P6,CYRIX
 
 [XSHA1]
 (Ch_All, Ch_None, Ch_None)
-void                  \333\3\x0F\xA6\xC8              CENTAUR
+void                  \333\3\x0F\xA6\xC8              P6,CYRIX
 
 [XSHA256]
 (Ch_All, Ch_None, Ch_None)
-void                  \333\3\x0F\xA6\xD0              CENTAUR
+void                  \333\3\x0F\xA6\xD0              P6,CYRIX
 
 ;
 ; Geode

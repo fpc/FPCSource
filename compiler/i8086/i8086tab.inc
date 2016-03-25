@@ -7705,21 +7705,21 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #219#3#15#166#192;
-    flags   : if_centaur
+    flags   : if_p6 or if_cyrix
   ),
   (
     opcode  : A_XSHA1;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #219#3#15#166#200;
-    flags   : if_centaur
+    flags   : if_p6 or if_cyrix
   ),
   (
     opcode  : A_XSHA256;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none,ot_none);
     code    : #219#3#15#166#208;
-    flags   : if_centaur
+    flags   : if_p6 or if_cyrix
   ),
   (
     opcode  : A_DMINT;
