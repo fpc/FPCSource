@@ -3,6 +3,8 @@
 program tb0617;
 
 {$mode objfpc}
+{ We don't want this warning to occur again }
+{$warn 5059 error}
 
 type
   generic TGenericStructList<T> = class
