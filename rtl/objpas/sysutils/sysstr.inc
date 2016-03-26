@@ -133,8 +133,24 @@ function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}in
     S1 > S2  > 0
     S1 = S2  = 0     }
 
-function CompareStr(const S1, S2: string): SizeInt;
-var count, count1, count2: SizeInt;
+{$IF SIZEOF(SIZEINT)>SIZEOF(INTEGER)}
+Function DoCapSizeInt(SI : SizeInt) : Integer; inline;
+
+begin
+  if (SI<0) then
+    result:=-1
+  else if (SI>0) then
+    result:=1
+  else
+    result:=0;
+end;    
+{$DEFINE CAPSIZEINT:=DoCapSizeInt}
+{$ELSE}
+{$DEFINE CAPSIZEINT:=}
+{$ENDIF}
+
+function CompareStr(const S1, S2: string): Integer;
+var res,count, count1, count2: SizeInt;
 begin
   result := 0;
   Count1 := Length(S1);
@@ -145,7 +161,8 @@ begin
     Count:=Count1;
   result := CompareMemRange(Pointer(S1),Pointer(S2), Count);
   if result=0 then
-    result:=Count1-Count2;
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(Count1-Count2);
 end;
 
 {   CompareMemRange returns the result of comparison of Length bytes at P1 and P2
@@ -173,10 +190,11 @@ end;
     S1 > S2  > 0
     S1 = S2  = 0     }
 
-function CompareText(const S1, S2: string): SizeInt;
+function CompareText(const S1, S2: string): Integer;
 
 var
-  i, count, count1, count2: integer; Chr1, Chr2: byte;
+  i, count, count1, count2: sizeint; 
+  Chr1, Chr2: byte;
   P1, P2: PChar;
 begin
   Count1 := Length(S1);
@@ -209,7 +227,8 @@ begin
   if i < Count then
     result := Chr1-Chr2
   else
-    result := count1-count2;
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(Count1-Count2);
 end;
 
 function SameText(const s1,s2:String):Boolean;
@@ -471,39 +490,45 @@ function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$
   end;
 
 
-function AnsiCompareStr(const S1, S2: string): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.CompareStrAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiCompareText(const S1, S2: string): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.CompareTextAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiStrComp(S1, S2: PChar): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrCompAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiStrIComp(S1, S2: PChar): sizeint;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrICompAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrICompAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen));
   end;
 
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUint): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUint): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen));
   end;
 
 

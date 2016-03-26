@@ -73,23 +73,23 @@ function LowerCase(const s: string): string; overload;
 { the compiler can't decide else if it should use the char or the ansistring
   version for a variant }
 function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function CompareStr(const S1, S2: string): SizeInt; overload;
+function CompareStr(const S1, S2: string): Integer; overload;
 function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function CompareText(const S1, S2: string): SizeInt;
+function CompareText(const S1, S2: string): Integer;
 function SameText(const s1,s2:String):Boolean;
 function SameStr(const s1,s2:String):Boolean;
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiCompareStr(const S1, S2: string): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiCompareText(const S1, S2: string): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareStr(const S1, S2: string): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareText(const S1, S2: string): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrComp(S1, S2: PChar): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrIComp(S1, S2: PChar): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUInt): SizeInt;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PChar): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PChar): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLastChar(const S: string): PChar;
