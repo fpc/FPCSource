@@ -726,6 +726,9 @@ type
   PStringItemList = ^TStringItemList;
   TStringItemList = array[0..MaxListSize] of TStringItem;
 
+  TStringsSortStyle = (sslNone,sslUser,sslAuto);
+  TStringsSortStyles = Set of TStringsSortStyle;
+
   TStringList = class(TStrings)
   private
     FList: PStringItemList;
@@ -735,15 +738,17 @@ type
     FOnChanging: TNotifyEvent;
     FDuplicates: TDuplicates;
     FCaseSensitive : Boolean;
-    FSorted: Boolean;
     FForceSort : Boolean;
     FOwnsObjects : Boolean;
+    FSortStyle: TStringsSortStyle;
     procedure ExchangeItemsInt(Index1, Index2: Integer); inline;
+    function GetSorted: Boolean;
     procedure Grow;
     procedure InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
+    procedure SetSortStyle(AValue: TStringsSortStyle);
   protected
     procedure ExchangeItems(Index1, Index2: Integer); virtual;
     procedure Changed; virtual;
@@ -773,11 +778,12 @@ type
     procedure Sort; virtual;
     procedure CustomSort(CompareFn: TStringListSortCompare); virtual;
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
-    property Sorted: Boolean read FSorted write SetSorted;
+    property Sorted: Boolean read GetSorted write SetSorted;
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
     property OwnsObjects : boolean read FOwnsObjects write FOwnsObjects;
+    Property SortStyle : TStringsSortStyle Read FSortStyle Write SetSortStyle;
   end;
 
 {$else}
