@@ -16,14 +16,19 @@ uses Messages, Windows;
 {$PACKRECORDS C}
 {$ENDIF}
 
+Const
+  
+  RICHEDIT_CLASSA = 'RichEdit20A';
+  RICHEDIT_CLASSW = 'RichEdit20W';
+  
 {$ifdef UNICODE }
   const
-     RICHEDIT_CLASS = 'RichEdit20W';
+     RICHEDIT_CLASS = RICHEDIT_CLASSW;
 {$else}
   const
-     RICHEDIT_CLASS = 'RichEdit20A';
+     RICHEDIT_CLASS = RICHEDIT_CLASSA;
 {$endif}
-
+  
               
 
   const
@@ -204,8 +209,9 @@ uses Messages, Windows;
     CFE_STRIKEOUT      = $00000008;
     CFE_PROTECTED      = $00000010;
     CFE_LINK           = $00000020;
-    CFE_AUTOCOLOR      = $40000000;           // NOTE: this corresponds to
-                                                                                      // CFM_COLOR, which controls it
+    CFE_AUTOCOLOR      = $40000000;           // NOTE: this corresponds to CFM_COLOR, which controls it
+    
+    
 // Masks and effects defined for CHARFORMAT2 -- an (*) indicates
 // that the data is stored by RichEdit 2.0/3.0, but not displayed
     CFM_SMALLCAPS      = $00000040;            // (*)
@@ -217,7 +223,9 @@ uses Messages, Windows;
     CFM_IMPRINT        = $00001000;            // (*)
     CFM_DISABLED       = $00002000;
     CFM_REVISED        = $00004000;
-
+    
+    
+    
     CFM_REVAUTHOR      = $00008000;
     CFE_SUBSCRIPT      = $00010000;            // Superscript and subscript are
     CFE_SUPERSCRIPT    = $00020000;            //      mutually exclusive
@@ -235,8 +243,47 @@ uses Messages, Windows;
 
     CFM_SUBSCRIPT      = (CFE_SUBSCRIPT or CFE_SUPERSCRIPT);
     CFM_SUPERSCRIPT    = CFM_SUBSCRIPT;
+    
+    
+    CFE_ALLCAPS        = CFM_ALLCAPS;
+    CFE_AUTOBACKCOLOR  = CFM_BACKCOLOR; 
+    CFE_DISABLED       = CFM_DISABLED; 
+    CFE_EMBOSS         = CFM_EMBOSS; 
+    CFE_HIDDEN         = CFM_HIDDEN; 
+    CFE_IMPRINT        = CFM_IMPRINT; 
+    CFE_OUTLINE        = CFM_OUTLINE; 
+    CFE_SHADOW         = CFM_SHADOW; 
+    CFE_SMALLCAPS      = CFM_SMALLCAPS; 
+  
+   CFM_EFFECTS = 
+     CFM_BOLD or CFM_ITALIC or CFM_UNDERLINE or CFM_COLOR or 
+     CFM_STRIKEOUT or CFE_PROTECTED or CFM_LINK; 
+     
+   CFM_ALL = 
+     CFM_EFFECTS or CFM_SIZE or CFM_FACE or CFM_OFFSET or CFM_CHARSET; 
 
-
+   CFM_EFFECTS2 = 
+     CFM_EFFECTS or CFM_DISABLED or CFM_SMALLCAPS or CFM_ALLCAPS or 
+     CFM_HIDDEN  or CFM_OUTLINE or CFM_SHADOW or CFM_EMBOSS or 
+     CFM_IMPRINT or CFM_DISABLED or CFM_REVISED or 
+     CFM_SUBSCRIPT or CFM_SUPERSCRIPT or CFM_BACKCOLOR; 
+ 
+   CFM_ALL2 = 
+     CFM_ALL or CFM_EFFECTS2 or CFM_BACKCOLOR or CFM_LCID or 
+     CFM_UNDERLINETYPE or CFM_WEIGHT or CFM_REVAUTHOR or 
+     CFM_SPACING or CFM_KERNING or CFM_STYLE or CFM_ANIMATION; 
+      
+   CFU_CF1UNDERLINE            = $000000FF; 
+   CFU_INVERT                  = $000000FE; 
+   CFU_UNDERLINEDOTTED         = $00000004; 
+   CFU_UNDERLINEDOUBLE         = $00000003; 
+   CFU_UNDERLINEWORD           = $00000002; 
+   CFU_UNDERLINE               = $00000001; 
+   CFU_UNDERLINENONE           = $00000000; 
+  
+   GCM_RIGHTMOUSEDROP      = $8000; 
+   
+   
 // Extended edit style masks
     SES_EMULATESYSEDIT  = 1;
     SES_BEEPONMAXTEXT   = 2;
@@ -255,7 +302,8 @@ uses Messages, Windows;
 //#endif
     SES_USEAIMM           = 64;
     SES_NOIME             = 128;
-
+    SES_NOXLTSYMBOLRANGE  = 32;
+  
     SES_ALLOWBEEPS        = 256;
     SES_UPPERCASE         = 512;
     SES_LOWERCASE         = 1024;
@@ -290,22 +338,15 @@ uses Messages, Windows;
     IMF_IMEALWAYSSENDNOTIFY= $0008;
     IMF_AUTOFONTSIZEADJUST= $0010;
     IMF_UIFONTS           = $0020;
-//#if (_RICHEDIT_VER >= = $0800)
     IMF_NOIMPLICITLANG    = $0040;
-//#endif
     IMF_DUALFONT          = $0080;
-//#if (_RICHEDIT_VER >= = $0800)
     IMF_NOKBDLIDFIXUP     = $0200;
-//#endif
     IMF_NORTFFONTSUBSTITUTE = $0400;
-//#if (_RICHEDIT_VER >= = $0800)
     IMF_SPELLCHECKING     = $0800;
     IMF_TKBPREDICTION     = $1000;
-//#endif
-//#if (_RICHEDIT_VER >= = $0810)
     IMF_IMEUIINTEGRATION  = $2000;
-//#endif
-
+    
+    
   // Values for EM_GETIMECOMPMODE
     ICM_NOTOPEN           = $0000;
     ICM_LEVEL3            = $0001;
@@ -352,12 +393,14 @@ uses Messages, Windows;
      ATP_CHANGE            = 1;
      ATP_NODELIMITER       = 2;
      ATP_REPLACEALLTEXT    = 4;
+     
+     OLEOP_DOVERB        = 1; 
 
      RICHEDIT_CLASS10A = 'RICHEDIT';
      CF_RTF = 'Rich Text Format';
      CF_RTFNOOBJS = 'Rich Text Format Without Objects';
      CF_RETEXTOBJ = 'RichEdit Text and Objects';
-     CFM_EFFECTS = (((((CFM_BOLD or CFM_ITALIC) or CFM_UNDERLINE) or CFM_COLOR) or CFM_STRIKEOUT) or CFE_PROTECTED) or CFM_LINK;
+
      IMF_FORCENONE = 1;
      IMF_FORCEENABLE = 2;
      IMF_FORCEDISABLE = 4;
@@ -366,6 +409,8 @@ uses Messages, Windows;
      IMF_FORCEACTIVE = 64;
      IMF_FORCEINACTIVE = 128;
      IMF_FORCEREMEMBER = 256;
+     IMF_MULTIPLEEDIT  = $0400; 
+     
      SEL_EMPTY = 0;
      SEL_TEXT = 1;
      SEL_OBJECT = 2;
@@ -397,7 +442,30 @@ uses Messages, Windows;
      PFM_RTLPARA = 65536;
      PFM_SIDEBYSIDE = 8388608;
      PFM_TABLE = 1073741824;
+     PFM_TEXTWRAPPINGBREAK = $20000000;
+     PFM_TABLEROWDELIMITER = $10000000;
+     PFM_COLLAPSED = $01000000;
+     PFM_OUTLINELEVEL = $02000000;
+     PFM_BOX = $04000000;
+  
+     PFM_ALL = 
+       PFM_STARTINDENT or PFM_RIGHTINDENT or PFM_OFFSET or PFM_ALIGNMENT 
+       or PFM_TABSTOPS or PFM_NUMBERING or PFM_OFFSETINDENT or PFM_RTLPARA;
+
+     PFM_EFFECTS = 
+       PFM_RTLPARA or PFM_KEEP or PFM_KEEPNEXT or PFM_TABLE or PFM_PAGEBREAKBEFORE 
+       or PFM_NOLINENUMBER or PFM_NOWIDOWCONTROL or PFM_DONOTHYPHEN or PFM_SIDEBYSIDE 
+       or PFM_TABLE or PFM_TABLEROWDELIMITER;
+
+     PFM_ALL2 = 
+       PFM_ALL or PFM_EFFECTS or PFM_SPACEBEFORE or PFM_SPACEAFTER or 
+       PFM_LINESPACING or PFM_STYLE or PFM_SHADING or PFM_BORDER or 
+       PFM_NUMBERINGTAB or PFM_NUMBERINGSTART or PFM_NUMBERINGSTYLE;
+
+       
+     
      PFN_BULLET = 1;
+     
      PFE_DONOTHYPHEN = 64;
      PFE_KEEP = 2;
      PFE_KEEPNEXT = 4;
@@ -455,6 +523,8 @@ uses Messages, Windows;
      EN_LINK = 1803;
      EN_MSGFILTER = 1792;
      EN_OLEOPFAILED = 1801;
+     EN_OBJECTPOSITIONS = $070a; 
+     EN_DRAGDROPDONE = $070c; 
      EN_PROTECTED = 1796;
      EN_REQUESTRESIZE = 1793;
      EN_SAVECLIPBOARD = 1800;
@@ -503,12 +573,32 @@ uses Messages, Windows;
      TM_MULTICODEPAGE = 32;
      GT_DEFAULT = 0;
      GT_USECRLF = 1;
+     GT_SELECTION = 2;
+     GT_RAWTEXT = 4;
+     GT_NOHIDDENTEXT = 8;
+     
      yHeightCharPtsMost = 1638;
      lDefaultTab = 720;
      FT_MATCHCASE = 4;
      FT_WHOLEWORD = 2;
+     PC_FOLLOWING = 1; 
+     PC_LEADING = 2; 
+     PC_OVERFLOW = 3; 
+     PC_DELIMITER = 4; 
+  
+    PFE_TABLEROW = $c000; 
+    PFE_TABLECELLEND = $8000;
+    PFE_TABLECELL = $4000;
+    WBF_CLASS  = $0F; 
+    WBF_ISWHITE = $10; 
+    WBF_BREAKLINE = $20; 
+    WBF_BREAKAFTER = $40;
 
+    WCH_EMBEDDING = $FFFC; 
+   cchTextLimitDefault = 32767; 
+  
   type
+    UNDONAMEID = (UID_UNKNOWN, UID_TYPING, UID_DELETE, UID_DRAGDROP, UID_CUT, UID_PASTE);
 
      _charformat = record
           cbSize : UINT;
@@ -829,6 +919,12 @@ uses Messages, Windows;
      GTL_NUMBYTES = 16;
 
   type
+    OBJECTPOSITIONS = record
+      nmhdr: TNMHdr;
+      cObjectCount: Longint;
+      pcpPositions: PLongint;
+    end;
+    TObjectPositions = OBJECTPOSITIONS;
 
      _gettextlengthex = record
           flags : DWORD;
@@ -863,6 +959,8 @@ uses Messages, Windows;
      TTEXTRANGE = TEXTRANGEA;
 {$endif}
 
+
 implementation
+
 
 end.
