@@ -75,66 +75,105 @@ const
 // (left in h_errno).
 
 const
-   NETDB_INTERNAL  = -(1);	{ see errno }	
-   NETDB_SUCCESS   = 0;		{ no problem  }                                       	
-   HOST_NOT_FOUND  = 1;		{ Authoritative Answer Host not found  }              	
-   TRY_AGAIN 	   = 2;		{ Non-Authoritative Host not found, or SERVERFAIL  }  	
-   NO_RECOVERY     = 3;		{ Non recoverable errors, FORMERR, REFUSED, NOTIMP  }   	
-   NO_DATA 	   = 4;		{ Valid name, no data record of requested type  }     	
-   NO_ADDRESS = NO_DATA;        { no address, look for MX record  }
-{
-  return codes from getaddrinfo()
-}
 
-   EAI_AGAIN      = 2;          { address family for hostname not supported }
-   EAI_BADFLAGS   = 3;          { invalid value for ai_flags  }
-   EAI_FAIL       = 4;		{ non-recoverable failure in name resolution  }
-   EAI_FAMILY     = 5;          { ai_family not supported  }
-   EAI_MEMORY     = 6;          { memory allocation failure  }
-   EAI_NONAME     = 8;          { hostname nor servname provided, or not known  }
-   EAI_SERVICE    = 9;          { servname not supported for ai_socktype  } 
-   EAI_SOCKTYPE   = 10;         { ai_socktype not supported  }
-   EAI_SYSTEM     = 11;         { system error returned in errno  }
-   EAI_BADHINTS   = 12;
-   EAI_PROTOCOL   = 13;
-   EAI_MAX = 14;
-{
- * Flag values for getaddrinfo()
-  }
-{ get address to use bind()  }
-   AI_PASSIVE = $00000001;
-{ fill ai_canonname  }
-   AI_CANONNAME = $00000002;
-{ prevent host name resolution  }
-   AI_NUMERICHOST = $00000004;
-{ prevent service name resolution  }
-   AI_NUMERICSERV = $00000008;
-{ IPv6 and IPv4-mapped (with AI_V4MAPPED)  }
-   AI_ALL = $00000100;
-{ accept IPv4-mapped if kernel supports  }
-   AI_V4MAPPED_CFG = $00000200;
-{ only if any address is assigned  }
-   AI_ADDRCONFIG = $00000400;
-{ accept IPv4-mapped IPv6 address  }
-   AI_V4MAPPED = $00000800;
-{ special recommended flags for getipnodebyname  }
-   AI_DEFAULT = AI_V4MAPPED_CFG or AI_ADDRCONFIG;
-{ valid flags for addrinfo (not a standard def, apps should not use it)  }
-   AI_MASK = AI_PASSIVE or AI_CANONNAME or AI_NUMERICHOST or AI_NUMERICSERV or AI_ADDRCONFIG;
+  NETDB_INTERNAL  = -(1);    { see errno }
+  NETDB_SUCCESS   = 0;       { no problem  }
+  HOST_NOT_FOUND  = 1;       { Authoritative Answer Host not found  }
+  TRY_AGAIN       = 2;       { Non-Authoritative Host not found, or SERVERFAIL  }
+  NO_RECOVERY     = 3;       { Non recoverable errors, FORMERR, REFUSED, NOTIMP  }
+  NO_DATA         = 4;       { Valid name, no data record of requested type  }
+  NO_ADDRESS      = NO_DATA; { no address, look for MX record  }
 
-{
- * Constants for getnameinfo()
-  }
-   NI_MAXHOST = 1025;
-   NI_MAXSERV = 32;
-{
- * Flag values for getnameinfo()
-  }
-   NI_NOFQDN = $00000001;
-   NI_NUMERICHOST = $00000002;
-   NI_NAMEREQD = $00000004;
-   NI_NUMERICSERV = $00000008;
-   NI_DGRAM = $00000010;
+  {$IF DEFINED(FREEBSD)}
+
+    AI_PASSIVE     = $00000001;
+    AI_CANONNAME   = $00000002;
+    AI_NUMERICHOST = $00000004;
+    AI_V4MAPPED    = $00000008;
+    AI_ALL         = $00000010;
+    AI_ADDRCONFIG  = $00000020;
+    AI_DEFAULT     = (AI_V4MAPPED OR AI_ADDRCONFIG);
+
+    EAI_ADDRFAMILY = 1; (* address family for hostname not supported *)
+    EAI_AGAIN      = 2; (* temporary failure in name resolution *)
+    EAI_BADFLAGS   = 3; (* invalid value for ai_flags *)
+    EAI_FAIL       = 4; (* non-recoverable failure in name resolution *)
+    EAI_FAMILY     = 5; (* ai_family not supported *)
+    EAI_MEMORY     = 6; (* memory allocation failure *)
+    EAI_NODATA     = 7; (* no address associated with hostname *)
+    EAI_NONAME     = 8; (* hostname nor servname provided, or not known *)
+    EAI_SERVICE    = 9; (* servname not supported for ai_socktype *)
+    EAI_SOCKTYPE   = 10; (* ai_socktype not supported *)
+    EAI_SYSTEM     = 11; (* system error returned in errno *)
+    EAI_BADHINTS   = 12;
+    EAI_PROTOCOL   = 13;
+    EAI_MAX        = 14;
+
+  {$ELSE}
+
+    (* Possible values for `ai_flags' field in `addrinfo' structure.  *)
+
+    AI_PASSIVE                  = $0001; (* Socket address is intended for `bind'.  *)
+    AI_CANONNAME                = $0002; (* Request for canonical name.  *)
+    AI_NUMERICHOST              = $0004; (* Don't use name resolution.  *)
+    AI_V4MAPPED                 = $0008; (* IPv4 mapped addresses are acceptable.  *)
+    AI_ALL                      = $0010; (* Return IPv4 mapped and IPv6 addresses.  *)
+    AI_ADDRCONFIG               = $0020; (* Use configuration of this host to choose returned address type..  *)
+    AI_IDN                      = $0040; (* IDN encode input (assuming it is encoded in the current locale's character set) before looking it up.  *)
+    AI_CANONIDN                 = $0080; (* Translate canonical name from IDN format.  *)
+    AI_IDN_ALLOW_UNASSIGNED     = $0100; (* Don't reject unassigned Unicode code points.  *)
+    AI_IDN_USE_STD3_ASCII_RULES = $0200; (* Validate strings according to STD3 rules.  *)
+    AI_NUMERICSERV              = $0400; (* Don't use name resolution.  *)
+
+    (* Error values for `getaddrinfo' function.  *)
+
+    EAI_BADFLAGS    = -1;   (* Invalid value for `ai_flags' field.  *)
+    EAI_NONAME      = -2;   (* NAME or SERVICE is unknown.  *)
+    EAI_AGAIN       = -3;   (* Temporary failure in name resolution.  *)
+    EAI_FAIL        = -4;   (* Non-recoverable failure in name res.  *)
+    EAI_NODATA      = -5;   (* No address associated with NAME.  *)
+    EAI_FAMILY      = -6;   (* `ai_family' not supported.  *)
+    EAI_SOCKTYPE    = -7;   (* `ai_socktype' not supported.  *)
+    EAI_SERVICE     = -8;   (* SERVICE not supported for `ai_socktype'.  *)
+    EAI_ADDRFAMILY  = -9;   (* Address family for NAME not supported.  *)
+    EAI_MEMORY      = -10;  (* Memory allocation failure.  *)
+    EAI_SYSTEM      = -11;  (* System error returned in `errno'.  *)
+    EAI_OVERFLOW    = -12;  (* Argument buffer overflow.  *)
+    EAI_INPROGRESS  = -100; (* Processing request in progress.  *)
+    EAI_CANCELED    = -101; (* Request canceled.  *)
+    EAI_NOTCANCELED = -102; (* Request not canceled.  *)
+    EAI_ALLDONE     = -103; (* All requests done.  *)
+    EAI_INTR        = -104; (* Interrupted by a signal.  *)
+    EAI_IDN_ENCODE  = -105; (* IDN encoding failed.  *)
+
+  {$ENDIF}
+
+  (* Constants for getnameinfo() *)
+
+  NI_MAXHOST = 1025;
+  NI_MAXSERV = 32;
+
+  (* Flag values for getnameinfo() *)
+
+  {$IF DEFINED(FREEBSD)}
+
+    NI_NOFQDN       = $00000001;
+    NI_NUMERICHOST  = $00000002;
+    NI_NAMEREQD     = $00000004;
+    NI_NUMERICSERV  = $00000008;
+    NI_DGRAM        = $00000010;
+    NI_NUMERICSCOPE = $00000020;
+
+  {$ELSE}
+
+    NI_NUMERICHOST = 1;
+    NI_NUMERICSERV = 2;
+    NI_NOFQDN      = 4;
+    NI_NAMEREQD    = 8;
+    NI_DGRAM       = 16;
+
+  {$ENDIF}
+
 {
  * Scope delimit character
   }
@@ -268,10 +307,10 @@ procedure sethostent(i: cInt); cdecl; external LIB_C name 'sethostent';
 
 procedure setnetent(stayopen: cInt); cdecl; external LIB_C name 'setnetent';
 procedure setprotoent(stayopen: cInt); cdecl; external LIB_C name 'setprotoent';
-function  getaddrinfo(hostname, servname: PChar;
-                     hints: PAddrInfo; res: PPAddrInfo): cInt; cdecl; external LIB_C name 'getaddrinfo';
+function  getaddrinfo(name, service: PChar; hints: PAddrInfo;
+                      res: PPAddrInfo): cInt; cdecl; external LIB_C name 'getaddrinfo';
 function  getnameinfo(sa: PSockAddr; salen: TSockLen; host: PChar; hostlen: TSize;
-                     serv: PChar; servlen: TSize; flags: cInt): cInt; cdecl; external LIB_C name 'getnameinfo';
+                      serv: PChar; servlen: TSize; flags: cInt): cInt; cdecl; external LIB_C name 'getnameinfo';
 procedure freeaddrinfo(ai: PAddrInfo); cdecl; external LIB_C name 'freeaddrinfo';
 function  gai_strerror(ecode: cInt): PChar; cdecl; external LIB_C name 'gai_strerror';
 procedure setnetgrent(netgroup: PChar); cdecl; external LIB_C name 'setnetgrent';
