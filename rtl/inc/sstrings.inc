@@ -1983,9 +1983,8 @@ begin
 end;
 {$else EXCLUDE_COMPLEX_PROCS}
 const
-  MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
-  Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;
-  Int64Edge2 : Int64 = $7FFFFFFFFFFFFFFF div 10;
+  MinInt64 : Int64  =-$8000000000000000;
+  MinInt64Edge : Int64 = (-$8000000000000000 + 10) div 10;
 var
   { to enable taking the address on the JVM target }
   res : array[0..0] of Int64;
@@ -1996,7 +1995,7 @@ begin
   res[0]:=0;
   len:=Length(s);
   Code:=1;
-  sign:=1;
+  sign:=-1;
   power:=0;
   while True do
     if Code > len then
@@ -2008,10 +2007,12 @@ begin
         break;
   { Read sign }
   case s[Code] of
-   '+' : Inc(Code);
+   '+' : begin
+           Inc(Code);
+         end;
    '-' : begin
-           sign:=-1;
-           inc(code);
+           sign:=+1;
+           Inc(Code);
          end;
   end;
   { Read digits }
@@ -2024,9 +2025,9 @@ begin
           begin
             j:=Ord(s[code])-Ord('0');
             { check overflow }
-            if (res[0] <= Int64Edge) or (res[0] <= (MaxInt64 - j) div 10) then
+            if (res[0] >= MinInt64Edge) or (res[0] >= (MinInt64 + j) div 10) then
               begin
-                res[0]:=res[0]*10 + j;
+                res[0]:=res[0]*10 - j;
                 Inc(i);
               end
             else
@@ -2035,9 +2036,9 @@ begin
                 exit
               else
                 begin
-                  if not FracOverflow and (j >= 5) and (res[0] < MaxInt64) then
+                  if not FracOverflow and (j >= 5) and (res[0] > MinInt64) then
                     { round if first digit of fractional part overflow }
-                    Inc(res[0]);
+                    Dec(res[0]);
                   FracOverflow:=True;
                 end;
           end;
@@ -2098,7 +2099,7 @@ begin
   if power > 0 then
     begin
       for i:=1 to power do
-        if res[0] <= Int64Edge2 then
+        if res[0] >= MinInt64 div 10 then
           res[0]:=res[0]*10
         else
           exit;
@@ -2106,11 +2107,17 @@ begin
   else
     for i:=1 to -power do
       begin
-        if res[0] <= MaxInt64 - 5 then
-          Inc(res[0], 5);
+        if res[0] >= MinInt64 + 5 then
+          Dec(res[0], 5);
         res[0]:=res[0] div 10;
       end;
-  res[0]:=res[0]*sign;
+
+  if sign <> 1 then
+    if res[0] > MinInt64 then
+      res[0]:=res[0]*sign
+    else
+      exit;
+
   fpc_Val_Currency_ShortStr:=PCurrency(@res[0])^;
   Code:=0;
 end;
