@@ -1483,7 +1483,7 @@ Begin
         if Negative then
           System.Delete(Result, 1, 1);
         P := Pos('.', Result);
-        If P <> 0 Then Result[P] := DS;
+        If P <> 0 Then Result[P] := DS else P := Length(Result)+1;
         Dec(P, 3);
         While (P > 1) Do
         Begin
