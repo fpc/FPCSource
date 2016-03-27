@@ -156,6 +156,28 @@ type
      function ReadLine: string; override; overload;
    end;
 
+  { allows you to represent just a small window of a bigger stream as a substream. 
+    also makes sure one is actually at the correct position before clobbering stuff. }
+
+  TWindowedStream = class(TOwnerStream)
+  private
+    fStart : Int64; // in the source.
+    fFrontier : Int64; // in the source.
+    fStartingPositionHere : Int64; // position in this Stream corresponding to Position = fStart in the source.
+    fPositionHere : Int64; // position in this Stream.
+  protected
+     //function  GetPosition() : Int64; override; = Seek(0, soCurrent) already.
+     function  GetSize() : Int64; override;
+     procedure SetSize(const NewSize: Int64); override; overload;
+  public
+    constructor Create(aStream : TStream; const aSize : Int64; const aPositionHere : Int64 = 0);
+    destructor Destroy(); override;
+    function Read(var aBuffer; aCount : longint) : longint; override;
+    function Write(const aBuffer; aCount : Longint): Longint; override;
+    function Seek(const aOffset: Int64; aOrigin: TSeekorigin): Int64; override;
+  end;
+
+
   TStreamHelper = class helper for TStream
                      function  ReadWordLE :word;
                      function  ReadDWordLE:dword;
@@ -182,6 +204,13 @@ type
                      end;
 
 Implementation
+
+ResourceString
+  SErrCannotWriteOutsideWindow = 'Cannot write outside allocated window.';
+  SErrInvalidSeekWindow = 'Cannot seek outside allocated window.';
+  SErrInvalidSeekOrigin = 'Invalid seek origin.';
+  SErrCannotChangeWindowSize  = 'Cannot change the size of a windowed stream';
+
 
 { TBidirBinaryObjectReader }
 
@@ -606,5 +635,104 @@ begin
  self.Write(b,sizeof(b));
 end;
 {$endif}
+
+{ TWindowedStream }
+
+constructor TWindowedStream.Create(aStream : TStream; const aSize : Int64; const aPositionHere : Int64 = 0);
+begin
+  inherited Create(aStream);
+  fStart := aStream.Position;
+  fFrontier := fStart + aSize;
+  fStartingPositionHere := aPositionHere;
+  fPositionHere := aPositionHere;
+end;
+
+destructor TWindowedStream.Destroy();
+begin
+  inherited Destroy();
+end;
+
+function TWindowedStream.Read(var aBuffer; aCount : longint) : longint;
+var
+  vSourcePosition : Int64;
+  vNewSourcePosition : Int64;
+begin
+  vSourcePosition := Source.Position;
+  vNewSourcePosition := fStart + fPositionHere - fStartingPositionHere;
+  if vNewSourcePosition <> vSourcePosition then // someone modified the file position. Bad bad.
+    Source.Seek(vNewSourcePosition, 0);
+
+  if vNewSourcePosition + aCount > fFrontier then // trying to access outside.
+    aCount := fFrontier - vNewSourcePosition;
+    
+  Result := Source.Read(aBuffer, aCount);
+  Inc(fPositionHere, Result);
+end;
+
+
+function TWindowedStream.Write(const aBuffer; aCount : Longint): Longint;
+var
+  vSourcePosition : Int64;
+  vNewSourcePosition : Int64;
+begin
+  vSourcePosition := Source.Position;
+  vNewSourcePosition := fStart + fPositionHere - fStartingPositionHere;
+  if vNewSourcePosition <> vSourcePosition then // someone modified the file position. Bad bad.
+    Source.Seek(vNewSourcePosition, 0);
+
+  if vNewSourcePosition + aCount > fFrontier then // trying to access outside.
+    Raise EWriteError.Create(SErrCannotWriteOutsideWindow);
+    //aCount := fFrontier - vNewSourcePosition;
+    
+  Result := Source.Write(aBuffer, aCount);
+  Inc(fPositionHere, Result);
+end;
+
+function TWindowedStream.Seek(const aOffset: Int64; aOrigin: TSeekOrigin): Int64;
+var
+  vNewPositionHere : Int64;
+  vSourcePosition : Int64;
+begin
+  {
+  here                       there
+  fStartingPositionHere .... fStart
+  fPositionHere............. x
+  }
+  
+  if (aOrigin = soCurrent) and (aOffset = 0) then begin // get position.
+    Result := fPositionHere;
+    Exit;
+  end;
+  
+  if aOrigin = soBeginning then
+    vNewPositionHere := aOffset
+  else if aOrigin = soCurrent then
+    vNewPositionHere := fPositionHere + aOffset
+  else if aOrigin = soEnd then
+    vNewPositionHere := fStartingPositionHere + fFrontier - fStart + aOffset
+  else
+    raise EReadError.Create(SErrInvalidSeekOrigin);
+
+  vSourcePosition := fStart + vNewPositionHere - fStartingPositionHere;
+  if (vSourcePosition < 0) or (vSourcePosition >= fFrontier) then
+    raise EReadError.Create(SErrInvalidSeekWindow);
+    
+  Result := Source.Seek(vSourcePosition, 0);
+  //if Result = -1 ??? can that happen?
+  Result := vNewPositionHere;
+end;
+
+function TWindowedStream.GetSize() : Int64;
+begin
+  Result := fFrontier - fStart;
+end;
+
+procedure TWindowedStream.SetSize(const NewSize: Int64); overload;
+begin
+  if NewSize = Self.GetSize() then
+    Exit;
+  raise EWriteError.Create(SErrCannotChangeWindowSize);
+end;
+
 
 end.
