@@ -2197,6 +2197,17 @@ Var
         End;
       If (J<>0) then
         Digits[1]:='-';
+      If (Digits[1]='-') then
+        Begin
+        I:=1;
+        While (I<=length(Digits)) And (Not (Digits[I] in ['1'..'9'])) Do
+          Inc(I);
+        If (I>length(Digits)) then
+          Begin
+          Digits:=Copy(Digits, 2, Length(Digits));
+          Dec(DecimalPoint);
+          End;
+        End;  
       Exp := 0;
       End
     Else
