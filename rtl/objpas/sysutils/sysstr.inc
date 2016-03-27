@@ -2837,7 +2837,7 @@ begin
           Inc(P,Blen)
         else
           begin
-          If (P>MaxCol) then
+          If (P>=MaxCol) then
             IBC:=C in BreakChars;
           Inc(P);
           end;
@@ -2845,10 +2845,10 @@ begin
 //      Writeln('"',C,'" : IBC : ',IBC,' HB  : ',HB,' LQ  : ',LQ,' P>MaxCol : ',P>MaxCol);
       end;
     Result:=Result+Copy(L,1,P-1);
-    If Not HB then
-      Result:=Result+BreakStr;
     Delete(L,1,P-1);
     Len:=Length(L);
+    If (Len>0) and Not HB then
+      Result:=Result+BreakStr;
     end;
 end;
 
