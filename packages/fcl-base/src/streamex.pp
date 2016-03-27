@@ -179,6 +179,7 @@ type
 
 
   TStreamHelper = class helper for TStream
+
                      function  ReadWordLE :word;
                      function  ReadDWordLE:dword;
                      function  ReadQWordLE:qword;
@@ -191,6 +192,11 @@ type
                      procedure WriteWordBE (w:word);
   		     procedure WriteDWordBE(dw:dword);
 	             procedure WriteQWordBE(dq:qword);
+                     function  ReadSingle:Single;
+                     function  ReadDouble:Double;
+                     procedure WriteSingle(s:Single);
+                     procedure WriteDouble(d:double);
+
                      {$ifndef FPC}
                       function ReadByte  : Byte;
                       function ReadWord  : Word;
@@ -602,6 +608,24 @@ procedure TStreamHelper.WriteQWordLE(dq:qword);
 begin
   WriteQWord(NtoLE(dq));
 end;
+
+function  TStreamHelper.ReadSingle:Single;
+begin
+  self.Read(result,sizeof(result));
+end;
+function  TStreamHelper.ReadDouble:Double;
+begin
+  self.Read(result,sizeof(result));
+end;
+procedure TStreamHelper.WriteSingle(s:Single);
+begin
+  self.Write(s,sizeof(s));
+end;
+procedure TStreamHelper.WriteDouble(d:double);
+begin
+  self.Write(d,sizeof(d));
+end;
+
 
 {$ifndef FPC}
 // there can only be one helper per class, and I use these in Delphi for FPC compatibility.
