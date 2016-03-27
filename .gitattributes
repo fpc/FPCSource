@@ -1907,6 +1907,7 @@ packages/fcl-base/examples/fpdoc.dtd -text
 packages/fcl-base/examples/fpexprpars.txt svneol=native#text/plain
 packages/fcl-base/examples/fstream.pp svneol=native#text/plain
 packages/fcl-base/examples/htdump.pp svneol=native#text/plain
+packages/fcl-base/examples/inifmt.pp svneol=native#text/plain
 packages/fcl-base/examples/intl/Makefile svneol=native#text/plain
 packages/fcl-base/examples/intl/README.txt svneol=native#text/plain
 packages/fcl-base/examples/intl/restest.cs.mo -text
@@ -1954,6 +1955,7 @@ packages/fcl-base/examples/testcont.pp svneol=native#text/plain
 packages/fcl-base/examples/testexprpars.pp svneol=native#text/plain
 packages/fcl-base/examples/testez.pp svneol=native#text/plain
 packages/fcl-base/examples/testhres.pp svneol=native#text/plain
+packages/fcl-base/examples/testini.pp svneol=native#text/plain
 packages/fcl-base/examples/testmime.pp svneol=native#text/plain
 packages/fcl-base/examples/testnres.pp svneol=native#text/plain
 packages/fcl-base/examples/testol.pp svneol=native#text/plain
