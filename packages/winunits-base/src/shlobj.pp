@@ -2546,7 +2546,10 @@ type
 function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';
 function SHGetDesktopFolder(out ppshf:IShellFolder):HResult;StdCall; external 'shell32' name 'SHGetDesktopFolder';
 
+type LPPCITEMIDLIST = ^LPCITEMIDLIST;
+
 function  SHOpenFolderAndSelectItems(pidlFolder:LPCITEMIDLIST;cidl:UINT;var  apidl: LPCITEMIDLIST; dwflags: DWORD):HResult;StdCall; external 'shell32' name 'SHOpenFolderAndSelectItems';
+function  SHOpenFolderAndSelectItems(pidlFolder:LPCITEMIDLIST;cidl:UINT; apidl: LPPCITEMIDLIST; dwflags: DWORD):HResult;StdCall; external 'shell32' name 'SHOpenFolderAndSelectItems';
 //function  SHCreateShellItem( pidlParent:LPCITEMIDLIST; psfparent:IShellFolder; pidl: LPCITEMIDLIST pidl; out ppsi: IShellItem):HResult;StdCall; external 'shell32' name 'SHCreateShellItem';
 function  SHGetSpecialFolderLocation( hwnd:HWND; csidl:longint;out ppidl: LPITEMIDLIST):HResult;StdCall; external 'shell32' name 'SHGetSpecialFolderLocation';
 procedure SHFlushSFCache;StdCall; external 'shell32' name 'SHFlushSFCache';
