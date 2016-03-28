@@ -106,7 +106,7 @@ Type
 
   TConnectionName = class (TSQLConnection)
   private
-    FSkipLibrarVersionCheck : Boolean;
+    FSkipLibraryVersionCheck : Boolean;
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
@@ -165,7 +165,7 @@ Type
     property ClientInfo: string read GetClientInfo;
     property ServerStatus : String read GetServerStatus;
   published
-    Property SkipLibrarVersionCheck : Boolean Read FSkipLibrarVersionCheck Write FSkipLibrarVersionCheck;
+    Property SkipLibraryVersionCheck : Boolean Read FSkipLibraryVersionCheck Write FSkipLibraryVersionCheck;
     property DatabaseName;
     property HostName;
     property KeepConnection;
@@ -497,7 +497,7 @@ var
   FullVersion: string;
 begin
   InitialiseMysql;
-  if not SkipLibrarVersionCheck then
+  if not SkipLibraryVersionCheck then
     begin
     FullVersion:=strpas(mysql_get_client_info());
     // Version string should start with version number:

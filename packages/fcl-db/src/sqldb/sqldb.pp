@@ -819,31 +819,6 @@ begin
 end;
 
 
-{ TSqlObjectIdentifierList }
-
-function TSqlObjectIdentifierList.GetIdentifier(Index: integer): TSqlObjectIdenfier;
-begin
-  Result := Items[Index] as TSqlObjectIdenfier;
-end;
-
-procedure TSqlObjectIdentifierList.SetIdentifier(Index: integer; AValue: TSqlObjectIdenfier);
-begin
-  Items[Index] := AValue;
-end;
-
-function TSqlObjectIdentifierList.AddIdentifier: TSqlObjectIdenfier;
-begin
-  Result:=Add as TSqlObjectIdenfier;
-end;
-
-function TSqlObjectIdentifierList.AddIdentifier(Const AObjectName: String;
-  Const ASchemaName: String = ''): TSqlObjectIdenfier;
-begin
-  Result:=AddIdentifier();
-  Result.SchemaName:=ASchemaName;
-  Result.ObjectName:=AObjectName;
-end;
-
 { TSQLDBFieldDefs }
 
 class function TSQLDBFieldDefs.FieldDefClass: TFieldDefClass;
@@ -1298,10 +1273,13 @@ begin
     If LogEvent(detPrepare) then
       Log(detPrepare,SQL);
     PrepareStatement(Cursor,ATransaction,SQL,Nil);
-    If LogEvent(detExecute) then
-      Log(detExecute,SQL);
-    Execute(Cursor,ATransaction, Nil);
-    UnPrepareStatement(Cursor);
+    try
+      If LogEvent(detExecute) then
+        Log(detExecute,SQL);
+      Execute(Cursor,ATransaction, Nil);
+    finally
+      UnPrepareStatement(Cursor);
+    end;
   finally;
     DeAllocateCursorHandle(Cursor);
   end;
@@ -3647,6 +3625,7 @@ begin
     end;
 end;
 
+
 { TSqlObjectIdenfier }
 
 constructor TSqlObjectIdenfier.Create(ACollection: TSqlObjectIdentifierList;
@@ -3656,6 +3635,32 @@ begin
   FSchemaName:=ASchemaName;
   FObjectName:=AObjectName;
 end;
+
+{ TSqlObjectIdentifierList }
+
+function TSqlObjectIdentifierList.GetIdentifier(Index: integer): TSqlObjectIdenfier;
+begin
+  Result := Items[Index] as TSqlObjectIdenfier;
+end;
+
+procedure TSqlObjectIdentifierList.SetIdentifier(Index: integer; AValue: TSqlObjectIdenfier);
+begin
+  Items[Index] := AValue;
+end;
+
+function TSqlObjectIdentifierList.AddIdentifier: TSqlObjectIdenfier;
+begin
+  Result:=Add as TSqlObjectIdenfier;
+end;
+
+function TSqlObjectIdentifierList.AddIdentifier(Const AObjectName: String;
+  Const ASchemaName: String = ''): TSqlObjectIdenfier;
+begin
+  Result:=AddIdentifier();
+  Result.SchemaName:=ASchemaName;
+  Result.ObjectName:=AObjectName;
+end;
+
 
 Initialization
 

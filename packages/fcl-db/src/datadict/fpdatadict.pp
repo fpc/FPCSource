@@ -2844,7 +2844,7 @@ begin
     WriteString(ASection,KeyCaseInsFields,CaseInsFields);
     WriteString(ASection,KeyDescFields,DescFields);
     WriteString(ASection,KeySource,Source);
-    O:=Integer(Options);
+    O:=Integer(self.Options);
     T:=TypeInfo(TIndexOptions);
     WriteString(ASection,KeyOptions,SetToString(T,O,False));
     end;
