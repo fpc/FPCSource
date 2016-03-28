@@ -5667,6 +5667,7 @@ packages/mysql/examples/mysqls.c svneol=native#text/plain
 packages/mysql/examples/mysqls.pp svneol=native#text/plain
 packages/mysql/examples/testdb3.pp svneol=native#text/plain
 packages/mysql/examples/testdb4.pp svneol=native#text/plain
+packages/mysql/examples/testdb5.pp svneol=native#text/plain
 packages/mysql/fpmake.pp svneol=native#text/plain
 packages/mysql/scripts/mkdb svneol=native#text/plain
 packages/mysql/scripts/rmdb svneol=native#text/plain
