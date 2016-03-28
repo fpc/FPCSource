@@ -1,4 +1,4 @@
-         {
+{
 
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Florian Klaempfl
@@ -990,7 +990,7 @@ begin
                  MaxMsgSize,
                  nil);
   SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize);
+  FreeMem(MsgBuffer, MaxMsgSize*2);
 end;
 
 {****************************************************************************
