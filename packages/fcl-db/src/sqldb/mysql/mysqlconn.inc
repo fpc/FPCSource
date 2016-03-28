@@ -106,6 +106,7 @@ Type
 
   TConnectionName = class (TSQLConnection)
   private
+    FSkipLibrarVersionCheck : Boolean;
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
@@ -164,6 +165,7 @@ Type
     property ClientInfo: string read GetClientInfo;
     property ServerStatus : String read GetServerStatus;
   published
+    Property SkipLibrarVersionCheck : Boolean Read FSkipLibrarVersionCheck Write FSkipLibrarVersionCheck;
     property DatabaseName;
     property HostName;
     property KeepConnection;
@@ -495,13 +497,16 @@ var
   FullVersion: string;
 begin
   InitialiseMysql;
-  FullVersion:=strpas(mysql_get_client_info());
-  // Version string should start with version number:
-  // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
-  // version only.
-  if (pos(MySQLVersion, FullVersion) <> 1) and
-     (pos(MariaDBVersion, FullVersion) <> 1) then
-    Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
+  if not SkipLibrarVersionCheck then
+    begin
+    FullVersion:=strpas(mysql_get_client_info());
+    // Version string should start with version number:
+    // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
+    // version only.
+    if (pos(MySQLVersion, FullVersion) <> 1) and
+       (pos(MariaDBVersion, FullVersion) <> 1) then
+      Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
+    end;  
   inherited DoInternalConnect;
   ConnectToServer;
   SelectDatabase;

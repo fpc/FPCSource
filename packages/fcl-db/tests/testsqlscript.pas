@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit testcsqlscript;
+unit testsqlscript;
 
 {$mode objfpc}{$H+}
 
@@ -34,7 +34,7 @@ type
   protected
     procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
-    procedure ExecuteCommit; override;
+    procedure ExecuteCommit(CommitRetaining: boolean=true); override;
     procedure DefaultDirectives; override;
   public
     constructor create (AnOwner: TComponent); override;
@@ -98,6 +98,7 @@ type
     procedure TestCommentInComment;
     procedure TestCommentInQuotes1;
     procedure TestCommentInQuotes2;
+    Procedure TestDashDashComment;
     procedure TestQuote1InComment;
     procedure TestQuote2InComment;
     procedure TestQuoteInQuotes1;
@@ -174,7 +175,7 @@ begin
     raise exception.create(DoException);
 end;
 
-procedure TMyScript.ExecuteCommit;
+procedure TMyScript.ExecuteCommit(CommitRetaining: boolean=true);
 begin
   inc (FCommits);
   if DoException <> '' then
@@ -270,7 +271,20 @@ begin
     AssertFalse ('Aborted', Aborted);
     AssertEquals ('Line', 0, Line);
     AssertEquals ('Defines', 0, Defines.count);
-    AssertEquals ('Directives', 10, Directives.count);
+    AssertEquals ('Directives', 12, Directives.count);
+    AssertTrue('Have SET TERM',Directives.IndexOf('SET TERM')<>-1);
+    AssertTrue('Have COMMIT WORK',Directives.IndexOf('COMMIT WORK')<>-1);
+    AssertTrue('Have COMMIT RETAIN',Directives.IndexOf('COMMIT RETAIN')<>-1);
+    AssertTrue('Have COMMIT',Directives.IndexOf('COMMIT')<>-1);
+    AssertTrue('Have #IFDEF',Directives.IndexOf('#IFDEF')<>-1);
+    AssertTrue('Have #IFNDEF',Directives.IndexOf('#IFNDEF')<>-1);
+    AssertTrue('Have #ELSE',Directives.IndexOf('#ELSE')<>-1);
+    AssertTrue('Have #ENDIF',Directives.IndexOf('#ENDIF')<>-1);
+    AssertTrue('Have #DEFINE',Directives.IndexOf('#DEFINE')<>-1);
+    AssertTrue('Have #UNDEF',Directives.IndexOf('#UNDEF')<>-1);
+    AssertTrue('Have #UNDEFINE',Directives.IndexOf('#UNDEFINE')<>-1);
+    // This is defined in our test class.
+    AssertTrue('Have STOP',Directives.IndexOf('STOP')<>-1);
     end;
 end;
 
@@ -511,6 +525,18 @@ begin
   Add('iets "/* meer */";');
   script.execute;
   AssertStatDir('"iets ""/* meer */"""', '');
+end;
+
+procedure TTestSQLScript.TestDashDashComment;
+begin
+  script.CommentsInSQL := false;
+  Add('-- my comment');
+  Add('CREATE TABLE "tPatients" (');
+  Add('  "BloodGroup" character(2),');
+  Add('  CONSTRAINT "ck_tPatients_BloodGroup" CHECK (("BloodGroup" = ANY (ARRAY[''A''::bpchar, ''B''::bpchar, ''AB''::bpchar, ''0''::bpchar]))),');
+  Add(');');
+  script.execute;
+  AssertStatDir('"CREATE TABLE ""tPatients"" (   ""BloodGroup"" character(2),   CONSTRAINT ""ck_tPatients_BloodGroup"" CHECK ((""BloodGroup"" = ANY (ARRAY[''A''::bpchar, ''B''::bpchar, ''AB''::bpchar, ''0''::bpchar]))), )"', '');
 end;
 
 procedure TTestSQLScript.TestQuote1InComment;
