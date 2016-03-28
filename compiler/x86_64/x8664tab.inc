@@ -13747,5 +13747,61 @@
     optypes : (ot_xmmreg,ot_xmmreg,ot_xmmrm,ot_none);
     code    : #241#242#249#1#191#61#80;
     flags   : if_fma
+  ),
+  (
+    opcode  : A_XACQUIRE;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #1#242;
+    flags   : if_tsx
+  ),
+  (
+    opcode  : A_XRELEASE;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #1#243;
+    flags   : if_tsx
+  ),
+  (
+    opcode  : A_XBEGIN;
+    ops     : 1;
+    optypes : (ot_memory,ot_none,ot_none,ot_none);
+    code    : #208#2#199#248#52;
+    flags   : if_tsx
+  ),
+  (
+    opcode  : A_XABORT;
+    ops     : 1;
+    optypes : (ot_immediate,ot_none,ot_none,ot_none);
+    code    : #2#198#248#20;
+    flags   : if_tsx or if_sb
+  ),
+  (
+    opcode  : A_XEND;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #3#15#1#213;
+    flags   : if_tsx
+  ),
+  (
+    opcode  : A_XTEST;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #3#15#1#214;
+    flags   : if_tsx
+  ),
+  (
+    opcode  : A_RDRAND;
+    ops     : 1;
+    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none,ot_none);
+    code    : #208#2#15#199#134;
+    flags   : if_rand
+  ),
+  (
+    opcode  : A_RDSEED;
+    ops     : 1;
+    optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none,ot_none);
+    code    : #208#2#15#199#135;
+    flags   : if_rand
   )
 );

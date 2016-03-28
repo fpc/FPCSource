@@ -68,9 +68,9 @@ type
   end;
 
 const
-  AsmPrefixes = 6{$ifdef i8086}+2{$endif i8086};
+  AsmPrefixes = 8{$ifdef i8086}+2{$endif i8086};
   AsmPrefix : array[0..AsmPrefixes-1] of TasmOP =(
-    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ{$ifdef i8086},A_REPC,A_REPNC{$endif i8086}
+    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ,A_XACQUIRE,A_XRELEASE{$ifdef i8086},A_REPC,A_REPNC{$endif i8086}
   );
 
   AsmOverrides = 6;
@@ -1091,6 +1091,8 @@ begin
   if siz=S_NO then
     begin
       if (ops=1) and (opcode=A_INT) then
+        siz:=S_B;
+      if (ops=1) and (opcode=A_XABORT) then
         siz:=S_B;
 {$ifdef i8086}
       if (ops=1) and (opcode=A_BRKEM) then

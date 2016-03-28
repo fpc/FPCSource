@@ -5372,3 +5372,41 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAF\75\120            FMA
 (Ch_Mop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBF\75\120            FMA
 
+;*******************************************************************************
+;********** TSX ****************************************************************
+;*******************************************************************************
+[XACQUIRE]
+(Ch_None, Ch_None, Ch_None)
+void                                 \1\xF2                               TSX
+
+[XRELEASE]
+(Ch_None, Ch_None, Ch_None)
+void                                 \1\xF3                               TSX
+
+[XBEGIN,xbeginX]
+(Ch_None, Ch_None, Ch_None)
+mem                                  \320\2\xC7\xF8\64                    TSX
+; mem|short                           \324\2\xC7\xF8\64                     TSX - Make correct xbeginW opcode and offset, but offset is 4 bytes long (need 2 bytes)
+
+[XABORT]
+(Ch_All, Ch_None, Ch_None)
+imm                                  \2\xC6\xF8\24                        TSX,SB
+
+[XEND]
+(Ch_None, Ch_None, Ch_None)
+void                                 \3\x0F\x01\xD5                       TSX
+
+[XTEST]
+(Ch_WFlags, Ch_None, Ch_None)
+void                                 \3\x0F\x01\xD6                       TSX
+
+;*******************************************************************************
+;********** RAND ***************************************************************
+;*******************************************************************************
+[RDRAND]
+(Ch_Wop1, Ch_WFlags, CH_None)
+reg16|32|64                          \320\2\x0F\xC7\206                   RAND
+
+[RDSEED]
+(Ch_Wop1, Ch_WFlags, CH_None)
+reg16|32|64                          \320\2\x0F\xC7\207                   RAND

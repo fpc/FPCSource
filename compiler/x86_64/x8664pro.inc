@@ -1019,5 +1019,13 @@
 (Ch: (Ch_Mop3, Ch_Rop2, Ch_Rop1)),
 (Ch: (Ch_Mop3, Ch_Rop2, Ch_Rop1)),
 (Ch: (Ch_Mop3, Ch_Rop2, Ch_Rop1)),
-(Ch: (Ch_Mop3, Ch_Rop2, Ch_Rop1))
+(Ch: (Ch_Mop3, Ch_Rop2, Ch_Rop1)),
+(Ch: (Ch_None, Ch_None, Ch_None)),
+(Ch: (Ch_None, Ch_None, Ch_None)),
+(Ch: (Ch_None, Ch_None, Ch_None)),
+(Ch: (Ch_All, Ch_None, Ch_None)),
+(Ch: (Ch_None, Ch_None, Ch_None)),
+(Ch: (Ch_WFlags, Ch_None, Ch_None)),
+(Ch: (Ch_Wop1, Ch_WFlags, CH_None)),
+(Ch: (Ch_Wop1, Ch_WFlags, CH_None))
 );

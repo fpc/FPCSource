@@ -1019,5 +1019,13 @@
 'vfnmsub231sd',
 'vfnmsub132ss',
 'vfnmsub213ss',
-'vfnmsub231ss'
+'vfnmsub231ss',
+'xacquire',
+'xrelease',
+'xbegin',
+'xabort',
+'xend',
+'xtest',
+'rdrand',
+'rdseed'
 );

@@ -447,6 +447,8 @@ implementation
        IF_16BITONLY = $00200000;
        IF_FMA    = $00200000;
        IF_FMA4   = $00200000;
+       IF_TSX    = $00200000;
+       IF_RAND   = $00200000;
 
        IF_PLEVEL = $0F000000;  { mask for processor level }
        IF_8086   = $00000000;  { 8086 instruction  }
