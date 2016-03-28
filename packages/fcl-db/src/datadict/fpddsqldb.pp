@@ -20,7 +20,7 @@ unit fpddsqldb;
 interface
 
 uses
-  Classes, SysUtils, DB, sqldb, fpdatadict;
+  Classes, SysUtils, DB, sqltypes, sqldb, fpdatadict;
 
 Type
 
@@ -39,6 +39,7 @@ Type
     Function HostSupported: Boolean; virtual;
     Function Connect(const AConnectString : String) : Boolean; override;
     Function GetTableList(List : TStrings) : Integer; override;
+    Function GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; override;
     Function ImportFields(Table : TDDTableDef) : Integer; override;
     Function ImportIndexes(Table : TDDTableDef) : Integer; override;
     Function ViewTable(Const TableName: String; DatasetOwner : TComponent) : TDataset; override;
@@ -140,6 +141,12 @@ begin
   FConn.GetTableNames(List,False);
   result := list.count;
 end;
+
+Function TSQLDBDDEngine.GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer;
+begin
+  Result := FConn.GetObjectNames(ASchemaType, AList); 
+end;
+
 
 function TSQLDBDDEngine.ImportFields(Table: TDDTableDef): Integer;
 

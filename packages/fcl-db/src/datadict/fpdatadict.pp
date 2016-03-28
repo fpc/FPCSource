@@ -20,7 +20,7 @@ unit fpdatadict;
 interface
 
 uses
-  Classes, SysUtils,inicol, inifiles, contnrs, db;
+  Classes, SysUtils,inicol, inifiles, contnrs, db, sqltypes;
 
 Type
   // Supported objects in this data dictionary
@@ -577,6 +577,7 @@ Type
     Procedure Disconnect ; virtual; abstract;
     procedure ImportDatadict (Adatadict: TFPDataDictionary; UpdateExisting : Boolean);
     Function GetTableList(List : TStrings) : Integer; virtual; abstract;
+    Function GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual; abstract;
     Function ImportTables(Tables : TDDTableDefs; List : TStrings; UpdateExisting : Boolean) : Integer;
     Function ImportFields(Table : TDDTableDef) : Integer; virtual; abstract;
     Function ImportIndexes(Table : TDDTableDef) : Integer; virtual; abstract;
