@@ -420,7 +420,7 @@ begin
     Exit;
     end;
   N:=Copy(V,1,P-1);
-  Delete(V,1,P+1);
+  Delete(V,1,P);
   V:=Trim(V);
   ARequest.SetFieldByName(N,V);
 end;
