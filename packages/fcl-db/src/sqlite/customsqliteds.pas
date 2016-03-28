@@ -117,7 +117,6 @@ type
     FOptions: TSqliteOptions;
     FSQLList: TStrings;
     FStoreDefs: Boolean;
-    procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
     function GetSQLList: TStrings;
     procedure SetMasterIndexValue;
@@ -147,7 +146,7 @@ type
     FRecordCount: Integer;
     FBeginItem: PDataRecord;
     FEndItem: PDataRecord;
-    FCacheItem: PDataRecord;
+    FSavedEditItem: PDataRecord;
     FGetSqlStr: array of TGetSqlStrFunction;
     FSaveOnClose: Boolean;
     FSaveOnRefetch: Boolean;
@@ -298,7 +297,9 @@ type
   
   function Num2SQLStr(APChar: PAnsiChar): String;
   function Char2SQLStr(APChar: PAnsiChar): String;
-
+  function Memo2SQLStr(APChar: PAnsiChar): String;
+  function StrBufNew(p : PAnsiChar): PAnsiChar;
+  function StrBufNew(p : PAnsiChar; BufLen: Cardinal): PAnsiChar;
 
 implementation
 
@@ -312,6 +313,29 @@ const
   SQLITE_DONE = 101;
   
   NullString = 'NULL';
+
+function StrBufNew(p : PAnsiChar): PAnsiChar;
+var
+  BufLen : Cardinal;
+begin
+  Result := nil;
+  if (p = nil) or (p^ = #0) then
+    Exit;
+  BufLen := StrBufSize(p);
+  Result := StrAlloc(BufLen);
+  if Result <> nil then
+    Move(p^, Result^, BufLen);
+end;
+
+function StrBufNew(p: PChar; BufLen: Cardinal): PChar;
+begin
+  Result := nil;
+  if (p = nil) or (p^ = #0) then
+    Exit;
+  Result := StrAlloc(BufLen);
+  if Result <> nil then
+    Move(p^, Result^, BufLen);
+end;
   
 
 function CallbackDispatcher(UserData: Pointer; Count: LongInt; Values: PPAnsiChar; Names: PPAnsiChar): LongInt; cdecl;
@@ -344,6 +368,26 @@ begin
   Result := '''' + Result + '''';
 end;
 
+function Memo2SQLStr(APChar: PAnsiChar): String;
+var
+  Len: Cardinal;
+begin
+  if APChar = nil then
+  begin
+    Result := NullString;
+    Exit;
+  end;
+  //todo: create custom routine to directly transform PAnsiChar -> SQL str
+  Len := StrBufSize(APChar) - 1;
+  SetLength(Result, Len);
+  Move(APChar^, Result[1], Len);
+  if Pos('''', Result) > 0 then
+    Result := AnsiReplaceStr(Result, '''', '''''');
+  Result := '''' + Result + '''';
+  if Pos(#0, Result) > 0 then
+    Result := AnsiReplaceStr(Result, #0, '''||x''00''||''');
+end;
+
 // TDSStream
 
 function TDSStream.GetPosition: Int64;
@@ -368,7 +412,7 @@ begin
   FEditItem := EditItem;
   FFieldRow := FEditItem^.Row[FFieldOffset];
   if FFieldRow <> nil then
-    FRowSize := StrLen(FFieldRow);
+    FRowSize := StrBufSize(FFieldRow) - 1;
   //else
   //  FRowSize := 0;  
 end;
@@ -411,11 +455,11 @@ begin
     WriteLn('  FPosition(Before): ', FPosition);
     WriteLn('  FRowSize(Before): ', FRowSize);
     WriteLn('  FPosition(After): ', FPosition+Count);
-    WriteLn('  FRowSize(After): ', StrLen(NewRow));
+    WriteLn('  FRowSize(After): ', StrBufSize(NewRow) -1);
     //WriteLn('  Stream Value: ',NewRow);
     {$endif}
     FFieldRow := NewRow;
-    FRowSize := StrLen(NewRow);
+    FRowSize := StrBufSize(NewRow) - 1;
     Inc(FPosition, Count);
   end;
 end; 
@@ -467,7 +511,7 @@ constructor TCustomSqliteDataset.Create(AOwner: TComponent);
 begin
   // setup special items
   New(FBeginItem);
-  New(FCacheItem);
+  New(FSavedEditItem);
   New(FEndItem);
   
   FBeginItem^.Previous := nil;
@@ -493,10 +537,7 @@ var
 begin
   if Field.FieldNo >= 0 then
   begin
-    if Mode = bmWrite then
-      EditItem := FCacheItem
-    else
-      EditItem := PPDataRecord(ActiveBuffer)^;
+    EditItem := PPDataRecord(ActiveBuffer)^;
     FieldOffset := Field.FieldNo - 1;
   end
   else
@@ -552,7 +593,7 @@ begin
   FCalcFieldList.Free;
   // dispose special items
   Dispose(FBeginItem);
-  Dispose(FCacheItem);
+  Dispose(FSavedEditItem);
   Dispose(FEndItem);
 end;
 
@@ -575,16 +616,21 @@ begin
   end;
 end;
 
-function TCustomSqliteDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
-  ): LongInt;
+function TCustomSqliteDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
 var
   TempItem: PDataRecord;
 begin
-  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^ then
+  Result := 0;
+  if (Bookmark1 = nil) or (Bookmark2 = nil) then
   begin
-    Result := 0;
+    if Bookmark1 <> nil then
+      Result := -1
+    else if Bookmark2 <> nil then
+      Result := 1;
     Exit;
   end;
+  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^ then
+    Exit;
   //assume Bookmark1 < Bookmark2
   Result := -1;
   TempItem := PPDataRecord(Bookmark1)^^.Previous;
@@ -598,19 +644,6 @@ begin
     end;
     TempItem := TempItem^.Previous;
   end;
-end;
-
-procedure TCustomSqliteDataset.CopyCacheToItem(AItem: PDataRecord);
-var
-  i: Integer;
-begin
-  for i := 0 to FRowCount - 1 do
-  begin
-    StrDispose(AItem^.Row[i]);
-    AItem^.Row[i] := FCacheItem^.Row[i];
-    FCacheItem^.Row[i] := nil;
-  end;
-  AItem^.BookmarkFlag := FCacheItem^.BookmarkFlag;
 end;
 
 function TCustomSqliteDataset.GetIndexFields(Value: Integer): TField;
@@ -676,12 +709,14 @@ begin
     FreeItem(PDataRecord(FDeletedItems.List^[i]));
 
   //Dispose FBeginItem.Row
+  for i := 0 to FRowCount - 1 do
+    StrDispose(FBeginItem^.Row[i]);
   FreeMem(FBeginItem^.Row, FRowBufferSize);
     
-  //Dispose cache item row
-  for i:= 0 to FRowCount - 1 do
-    StrDispose(FCacheItem^.Row[i]);
-  FreeMem(FCacheItem^.Row, FRowBufferSize);
+  //Dispose edit item row
+  for i := 0 to FRowCount - 1 do
+    StrDispose(FSavedEditItem^.Row[i]);
+  FreeMem(FSavedEditItem^.Row, FRowBufferSize);
 end;
 
 procedure TCustomSqliteDataset.FreeRecordBuffer(var Buffer: TRecordBuffer);
@@ -722,7 +757,7 @@ begin
     case Field.Datatype of
     ftString:
       begin
-        Move(FieldRow^, PAnsiChar(Buffer)^, StrLen(FieldRow) + 1);
+        Move(FieldRow^, PAnsiChar(Buffer)^, StrBufSize(FieldRow));
       end;
     ftInteger, ftAutoInc:
       begin
@@ -788,21 +823,19 @@ end;
 
 function TCustomSqliteDataset.GetRecNo: Integer;
 var
-  TempItem, TempActive: PDataRecord;
+  RunItem, ActiveItem: PDataRecord;
 begin
   Result := 0;
   if (FRecordCount = 0) or (State = dsInsert) then
     Exit;  
-  TempItem := FBeginItem;
-  TempActive := PPDataRecord(ActiveBuffer)^;
-  if TempActive = FCacheItem then // Record is being edited
-    TempActive := FInternalActiveBuffer;
-  while TempActive <> TempItem do
+  RunItem := FBeginItem;
+  ActiveItem := PPDataRecord(ActiveBuffer)^;
+  while ActiveItem <> RunItem do
   begin
-    if TempItem^.Next <> nil then
+    if RunItem^.Next <> nil then
     begin
       Inc(Result);
-      TempItem := TempItem^.Next;
+      RunItem := RunItem^.Next;
     end  
     else
     begin
@@ -819,20 +852,23 @@ end;
 
 procedure TCustomSqliteDataset.InternalAddRecord(Buffer: Pointer; DoAppend: Boolean);
 var
-  NewItem: PDataRecord;
+  NewItem, ActiveItem: PDataRecord;
+  i: Integer;
 begin
   {$ifdef DEBUG_SQLITEDS}
   if PPDataRecord(ActiveBuffer)^ <> FCacheItem then
     DatabaseError('PPDataRecord(ActiveBuffer) <> FCacheItem - Problem', Self);
   {$endif}
+  ActiveItem := PPDataRecord(Buffer)^; 
   New(NewItem);
   GetMem(NewItem^.Row, FRowBufferSize);
   //if is a detail dataset then set the index value
   if FMasterLink.Active then
     SetMasterIndexValue;
   //necessary to nullify the Row before copy the cache
-  FillChar(NewItem^.Row^, FRowBufferSize, #0);
-  CopyCacheToItem(NewItem);
+  for i := 0 to FRowCount - 1 do
+    NewItem^.Row[i] := StrBufNew(ActiveItem^.Row[i]);
+  NewItem^.BookmarkFlag := bfCurrent;
 
   //insert in the linked list
   FInsertBookmark^.Previous^.Next := NewItem;
@@ -865,13 +901,15 @@ end;
 procedure TCustomSqliteDataset.InternalCancel;
 var
   i: Integer;
+  ActiveItem: PDataRecord;
 begin
-  PPDataRecord(ActiveBuffer)^ := FInternalActiveBuffer;
-  //free the cache
+  ActiveItem := PPDataRecord(ActiveBuffer)^;
+  //copy pristine data to active record
   for i:= 0 to FRowCount - 1 do
   begin
-    StrDispose(FCacheItem^.Row[i]);
-    FCacheItem^.Row[i] := nil;
+    StrDispose(ActiveItem^.Row[i]);
+    ActiveItem^.Row[i] := FSavedEditItem^.Row[i];
+    FSavedEditItem^.Row[i] := nil;
   end;
 end;
 
@@ -882,8 +920,6 @@ var
 begin
   Dec(FRecordCount);
   TempItem := PPDataRecord(ActiveBuffer)^;
-  if TempItem = FCacheItem then // Record is being edited
-    TempItem := FInternalActiveBuffer;
   TempItem^.Next^.Previous := TempItem^.Previous;
   TempItem^.Previous^.Next := TempItem^.Next;
   if FCurrentItem = TempItem then
@@ -911,14 +947,15 @@ end;
 procedure TCustomSqliteDataset.InternalEdit;
 var
   i: Integer;
+  ActiveItem: PDataRecord;
 begin
-  FInternalActiveBuffer := PPDataRecord(ActiveBuffer)^;
-  //copy active item to cache
+  ActiveItem := PPDataRecord(ActiveBuffer)^;
+  //copy active item to pristine
   for i:= 0 to FRowCount - 1 do
-    FCacheItem^.Row[i] := StrNew(FInternalActiveBuffer^.Row[i]);
-  FCacheItem^.BookmarkFlag := FInternalActiveBuffer^.BookmarkFlag;
-  //now active buffer is the cache item
-  PPDataRecord(ActiveBuffer)^ := FCacheItem;
+  begin
+    StrDispose(FSavedEditItem^.Row[i]);
+    FSavedEditItem^.Row[i] := StrBufNew(ActiveItem^.Row[i]);
+  end;
 end;
 
 procedure TCustomSqliteDataset.InternalFirst;
@@ -955,11 +992,13 @@ begin
   if FAutoIncFieldNo <> - 1 then
   begin
     Str(FNextAutoInc, TempStr);
-    FCacheItem^.Row[FAutoIncFieldNo] := StrAlloc(Length(TempStr) + 1);
-    StrPCopy(FCacheItem^.Row[FAutoIncFieldNo], TempStr);
+    StrDispose(FBeginItem^.Row[FAutoIncFieldNo]);
+    FBeginItem^.Row[FAutoIncFieldNo] := StrAlloc(Length(TempStr) + 1);
+    StrPCopy(FBeginItem^.Row[FAutoIncFieldNo], TempStr);
   end;  
-  PPDataRecord(Buffer)^ := FCacheItem;
-  FCacheItem^.BookmarkFlag := bfInserted;
+  //todo: see if use bfInserted or bfCurrent
+  PPDataRecord(Buffer)^ := FBeginItem;
+  FBeginItem^.BookmarkFlag := bfInserted;
 end;
 
 procedure TCustomSqliteDataset.InternalLast;
@@ -995,16 +1034,19 @@ begin
 end;
 
 procedure TCustomSqliteDataset.InternalPost;
+var
+  ActiveItem: PDataRecord;
 begin
+  inherited InternalPost;
+
   if State <> dsEdit then
-    InternalAddRecord(nil, True)
+    InternalAddRecord(ActiveBuffer, True)
   else
   begin
-    CopyCacheToItem(FInternalActiveBuffer);
-    PPDataRecord(ActiveBuffer)^ := FInternalActiveBuffer;
-    if (FUpdatedItems.IndexOf(FInternalActiveBuffer) = -1) and
-      (FAddedItems.IndexOf(FInternalActiveBuffer) = -1) then
-      FUpdatedItems.Add(FInternalActiveBuffer);
+    ActiveItem := PPDataRecord(ActiveBuffer)^;
+    if (FUpdatedItems.IndexOf(ActiveItem) = -1) and
+      (FAddedItems.IndexOf(ActiveItem) = -1) then
+      FUpdatedItems.Add(ActiveItem);
   end;
 end;
 
@@ -1296,7 +1338,7 @@ begin
     SaveState := SetTempState(dsInternalCalc);
     try
       CalculateFields(TRecordBuffer(@TempItem));
-      Result := FieldByName(ResultFields).Value;
+      Result := FieldValues[ResultFields];
     finally
       RestoreState(SaveState);
     end;
@@ -1345,7 +1387,7 @@ begin
     if State in [dsEdit, dsInsert] then
       Field.Validate(Buffer);
     FieldOffset := Field.FieldNo - 1;
-    EditItem := FCacheItem;
+    EditItem := PPDataRecord(ActiveBuffer)^;
   end
   else
   begin
