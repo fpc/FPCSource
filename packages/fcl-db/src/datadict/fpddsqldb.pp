@@ -30,6 +30,7 @@ Type
   Private
     FConn: TSQLConnection;
   Protected
+    Function SQLDataTypeToFieldType(const SQLDataType: string) : TFieldType; virtual;
     Function CreateConnection(AConnectString  : String) : TSQLConnection; virtual; abstract;
     Function CreateSQLQuery(ADatasetOwner: TComponent) : TSQLQuery;
     Property Connection : TSQLConnection Read FConn;
@@ -72,6 +73,25 @@ Resourcestring
 function TSQLDBDDEngine.HostSupported: Boolean;
 begin
   Result:=True;
+end;
+
+function TSQLDBDDEngine.SQLDataTypeToFieldType(const SQLDataType: string
+  ): TFieldType;
+begin
+  // ANSI standard types
+  case SQLDataType of
+    'char'    : Result := ftFixedChar;
+    'varchar' : Result := ftString;
+    'smallint': Result := ftSmallint;
+    'int',
+    'integer' : Result := ftInteger;
+    'bigint'  : Result := ftLargeInt;
+    'float'   : Result := ftFloat;
+    'date'    : Result := ftDate;
+    'time'    : Result := ftTime;
+    'datetime': Result := ftDateTime;
+    else        Result := ftUnknown;
+  end;
 end;
 
 function TSQLDBDDEngine.CreateSQLQuery(ADatasetOwner: TComponent): TSQLQuery;
@@ -124,7 +144,7 @@ end;
 function TSQLDBDDEngine.ImportFields(Table: TDDTableDef): Integer;
 
 Const
-  SQL = 'SELECT * from %s where (1=0)';
+  SQL = 'SELECT * FROM %s WHERE (1=0)';
 
 Var
   Q : TSQLQuery;
@@ -145,7 +165,7 @@ begin
 end;
 
 
-Function TSQLDBDDEngine.ImportIndexes(Table : TDDTableDef) : Integer;
+function TSQLDBDDEngine.ImportIndexes(Table: TDDTableDef): Integer;
 begin
 end;
 
@@ -209,7 +229,7 @@ begin
   Try
     Q.Database:=FConn;
     Q.Transaction:=FConn.Transaction;
-    Q.SQL.text:=Format('SELECT * FROM %s WHERE (1=2)',[ATAbleName]);
+    Q.SQL.text:=Format('SELECT * FROM %s WHERE (1=2)',[ATableName]);
     Q.ReadOnly:=False;
     Q.Prepare;
     Q.IndexDefs.Update;
@@ -222,7 +242,7 @@ end;
 
 class function TSQLDBDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
 begin
-  Result:=[ecimport,ecViewTable, ecRunQuery, ecTableIndexes];
+  Result:=[ecImport, ecViewTable, ecRunQuery, ecTableIndexes];
 end;
 
 end.

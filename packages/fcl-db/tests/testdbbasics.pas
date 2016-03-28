@@ -58,7 +58,6 @@ type
     procedure TestAssignFieldftFixedChar;
     procedure TestSelectQueryBasics;
     procedure TestPostOnlyInEditState;
-    procedure TestCancel;
     procedure TestMove;                    // bug 5048
     procedure TestActiveBufferWhenClosed;
     procedure TestEOFBOFClosedDataset;
@@ -118,7 +117,6 @@ type
     procedure TestIndexEditRecord;
     procedure TestIndexAppendRecord;
   end;
-
 {$endif fpc}
 
   TTestUniDirectionalDBBasics = class(TTestDBBasics)
@@ -132,6 +130,7 @@ type
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
   published
+    procedure TestCancel;
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
 
@@ -274,18 +273,6 @@ begin
     open;
     CheckException(Post,EDatabaseError,'Post was called in a non-edit state');
     end;
-end;
-
-procedure TTestDBBasics.TestCancel;
-begin
-  with DBConnector.GetNDataset(1) do
-  begin
-    Open;
-    Edit;
-    FieldByName('name').AsString := 'EditName1';
-    Cancel;
-    CheckEquals('TestName1', FieldByName('name').AsString, 'Cancel did not restored previous value');
-  end;
 end;
 
 procedure TTestDBBasics.TestMove;
@@ -1303,6 +1290,18 @@ begin
       end;
     end;
 {$endif fpc}
+end;
+
+procedure TTestCursorDBBasics.TestCancel;
+begin
+  with DBConnector.GetNDataset(1) do
+  begin
+    Open;
+    Edit;
+    FieldByName('name').AsString := 'EditName1';
+    Cancel;
+    CheckEquals('TestName1', FieldByName('name').AsString, 'Cancel did not restored previous value');
+  end;
 end;
 
 procedure TTestCursorDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);

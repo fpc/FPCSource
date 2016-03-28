@@ -1249,17 +1249,15 @@ begin
   if Fields.Count = 0 then
     DatabaseError(SErrNoDataset);
 
-  // search for autoinc field
+  // If there is a field with FieldNo=0 then the fields are not found to the
+  // FieldDefs which is a sign that there is no dataset created. (Calculated and
+  // lookup fields have FieldNo=-1)
   FAutoIncField:=nil;
-  if FAutoIncValue>-1 then
-  begin
-    for i := 0 to Fields.Count-1 do
-      if Fields[i] is TAutoIncField then
-      begin
-        FAutoIncField := TAutoIncField(Fields[i]);
-        Break;
-      end;
-  end;
+  for i := 0 to Fields.Count-1 do
+    if Fields[i].FieldNo=0 then
+      DatabaseError(SErrNoDataset)
+    else if (FAutoIncValue>-1) and (Fields[i] is TAutoIncField) and not assigned(FAutoIncField) then
+      FAutoIncField := TAutoIncField(Fields[i]);
 
   InitDefaultIndexes;
   CalcRecordSize;
