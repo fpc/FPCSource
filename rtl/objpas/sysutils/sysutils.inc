@@ -162,7 +162,16 @@ end;
         temp.free;
       end;
 
-
+    procedure DisposeAndNil(var p);
+    
+    var
+      temp:Pointer;
+    begin
+      temp := Pointer(p);
+      Pointer(P):=nil;
+      FreeMem(temp);
+    end;
+    
   { Interfaces support }
   {$i sysuintf.inc}
 

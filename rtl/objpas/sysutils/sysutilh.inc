@@ -321,6 +321,7 @@ Type
   {$ENDIF}
   
   procedure FreeAndNil(var obj);
+  procedure DisposeAndNil(var p);
 
   { interface handling }
   {$i intfh.inc}
