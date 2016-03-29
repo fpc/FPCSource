@@ -153,6 +153,11 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
             exit;
           getmem(newp,size);
           fillchar(newp^,size,0);
+{$if FPC_FULLVERSION>30100}
+          { call int_InitializeArray for management operators }
+          if PByte(eletype)^ in [tkRecord, tkObject] then
+            int_InitializeArray(pointer(newp)+sizeof(tdynarray), eletype, dims[0]);
+{$endif FPC_FULLVERSION>30100}
           updatep := true;
        end
      else
@@ -223,6 +228,12 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                          reallocmem(realp,size);
                          fillchar((pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1))^,
                            (dims[0]-realp^.high-1)*elesize,0);
+{$if FPC_FULLVERSION>30100}
+                         { call int_InitializeArray for management operators }
+                         if PByte(eletype)^ in [tkRecord, tkObject] then
+                           int_InitializeArray(pointer(realp)+sizeof(tdynarray)+elesize*(realp^.high+1),
+                             eletype, dims[0]-realp^.high-1);
+{$endif FPC_FULLVERSION>30100}
                       end;
                     newp := realp;
                     updatep := true;

@@ -12636,6 +12636,7 @@ tests/test/toperator91.pp svneol=native#text/pascal
 tests/test/toperator92.pp svneol=native#text/pascal
 tests/test/toperator93.pp svneol=native#text/pascal
 tests/test/toperator94.pp svneol=native#text/pascal
+tests/test/toperator95.pp svneol=native#text/pascal
 tests/test/toperatorerror.pp svneol=native#text/plain
 tests/test/tover1.pp svneol=native#text/plain
 tests/test/tover2.pp svneol=native#text/plain
