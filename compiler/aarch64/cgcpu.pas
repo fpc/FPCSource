@@ -1360,9 +1360,7 @@ implementation
                       ovloc.resflags:=F_CC
                   else
                     ovloc.resflags:=F_VS;
-                  { finished; since we won't call through to a_op_reg_reg_reg,
-                    adjust the result here if necessary }
-                  maybeadjustresult(list,op,size,dst);
+                  { finished }
                   exit;
                 end;
               OP_MUL:
