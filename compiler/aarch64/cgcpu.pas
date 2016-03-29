@@ -1340,7 +1340,7 @@ implementation
 
     procedure tcgaarch64.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister; setflags : boolean; var ovloc : tlocation);
       var
-        tmpreg1: tregister;
+        tmpreg1, tmpreg2: tregister;
       begin
         ovloc.loc:=LOC_VOID;
         { overflow can only occur with 64 bit calculations on 64 bit cpus }
@@ -1375,17 +1375,22 @@ implementation
                 end;
               OP_IMUL:
                 begin
-                  { check whether the sign bit of the (128 bit) result is the
-                    same as "sign bit of src1" xor "signbit of src2" (if so, no
-                    overflow and the xor-product of all sign bits is 0) }
+                  { check whether the upper 64 bits of the 128 bit multiplication
+                    result have the same value as the replicated sign bit of the
+                    lower 64 bits }
                   tmpreg1:=getintregister(list,OS_64);
                   list.concat(taicpu.op_reg_reg_reg(A_SMULH,tmpreg1,src2,src1));
-                  list.concat(taicpu.op_reg_reg_reg(A_EOR,tmpreg1,tmpreg1,src1));
-                  list.concat(taicpu.op_reg_reg_reg(A_EOR,tmpreg1,tmpreg1,src2));
-                  list.concat(taicpu.op_reg_const(A_TST,tmpreg1,$80000000));
+                  { calculate lower 64 bits (afterwards, because dst may be
+                    equal to src1 or src2) }
+                  a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+                  { replicate sign bit }
+                  tmpreg2:=getintregister(list,OS_64);
+                  a_op_const_reg_reg(list,OP_SAR,OS_S64,63,dst,tmpreg2);
+                  list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
                   ovloc.loc:=LOC_FLAGS;
                   ovloc.resflags:=F_NE;
-                  { still have to perform the actual multiplication }
+                  { finished }
+                  exit;
                 end;
               OP_IDIV,
               OP_DIV:
