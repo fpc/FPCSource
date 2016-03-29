@@ -162,7 +162,7 @@ end;
         temp.free;
       end;
 
-    procedure DisposeAndNil(var p);
+    procedure FreeMemAndNil(var p);
     
     var
       temp:Pointer;
