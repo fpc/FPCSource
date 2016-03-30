@@ -6,7 +6,9 @@ uses
 const
   use_temp_dir : boolean = true;
   hide_execution : boolean = true;
-  do_exit : boolean =true;
+  do_exit : boolean = true;
+  verbose : boolean = false;
+
   dosbox_timeout : integer = 100;  { default timeout in seconds }
 var
   OutputFileName : String;
@@ -21,6 +23,8 @@ begin
   repeat
     try
       FileName := TempDir + 'dosboxwrappertmp_' + IntToStr(Random(100000));
+      if verbose then
+        writeln('Trying to create directory ',Filename);
       MkDir(FileName);
       Done := True;
     except
@@ -28,7 +32,10 @@ begin
       begin
         { 5 = Access Denied, returned when a file is duplicated }
         if E.ErrorCode <> 5 then
-          raise;
+          begin
+            Writeln('Directory creation failed');
+            raise;
+          end;
       end;
     end;
   until Done;
@@ -44,7 +51,8 @@ begin
   SourceConfFileName := ExtractFilePath(ParamStr(0)) + 'dosbox.conf';
   TargetConfFileName := ADosBoxDir + 'dosbox.conf';
   OutputFileName := ADosBoxDir + 'dosbox.out';
-  Writeln('Using target dosbox.conf ',TargetConfFileName);
+  if verbose then
+    Writeln('Using target dosbox.conf ',TargetConfFileName);
   AssignFile(SourceFile, SourceConfFileName);
   AssignFile(TargetFile, TargetConfFileName);
   Reset(SourceFile);
@@ -77,7 +85,8 @@ var
   Buf: array [0..4095] of Byte;
   BytesRead: Integer;
 begin
-  Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
+  if verbose then
+    Writeln('CopyFile ', ASrcFileName, '->', ADestFileName);
   if not AnsiEndsText('.exe', ASrcFileName) then
     ASrcFileName := ASrcFileName + '.exe';
   OldFileMode := FileMode;
@@ -107,29 +116,42 @@ end;
 
 { On modified dosbox executable it is possible to get
   a copy of all output to CON into a file, simply write it
-  back to output, so it ends up into testname.elg file }
+  back to output, so it ends up into testname.elg file.
+  Skip all until line beginning with 'Drive C is mounted as' }
 procedure EchoOutput;
+const
+  SkipUntilText = 'Drive C is mounted as ';
 var
   StdText : TextFile;
   st : string;
   line : longint;
+  SkipUntilSeen : boolean;
 begin
   if FileExists(OutputFileName) then
     begin
-      Writeln('Trying to open ',OutputFileName);
+      if verbose then
+        Writeln('Trying to open ',OutputFileName);
       try
         AssignFile(StdText, OutputFileName);
         Reset(StdText);
-        Writeln('Successfully opened ',OutputFileName,', copying content to output');
+        if verbose then
+          Writeln('Successfully opened ',OutputFileName,', copying content to output');
         try
           line:=0;
+          SkipUntilSeen:=false;
           while not eof(StdText) do
             begin
               Readln(StdText,st);
               inc(line);
-              Writeln(line,': ',st);
+	      if not SkipUntilSeen then
+                SkipUntilSeen:=pos(SkipUntilText,st)>0;
+              if SkipUntilSeen then
+                Writeln(line,': ',st);
             end;
         finally
+	  if not SkipUntilSeen then
+            Writeln('Could not find "',SkipUntilText,'" in file ',OutputFilename);
+          Flush(output);
           CloseFile(StdText);
         end;
       finally
@@ -149,11 +171,11 @@ begin
     Readln(F, Result);
     if Result <> 0 then
       Writeln('ExitCode=',Result);
+    CloseFile(F);
   except
     Writeln('Unable to read exitcode value');
     ReadExitCode:=127*256;
   end;
-  CloseFile(F);
 end;
 
 procedure ExecuteDosBox(const ADosBoxBinaryPath, ADosBoxDir: string);
@@ -223,6 +245,11 @@ begin
     begin
       do_exit:=false;
       Writeln('do_exit set to false');
+    end;
+  if GetEnvironmentVariable('DOSBOX_VERBOSE')<>'' then
+    begin
+      verbose:=true;
+      Writeln('verbose set to true');
     end;
   if GetEnvironmentVariable('DOSBOX_TIMEOUT')<>'' then
     begin
