@@ -812,7 +812,7 @@ implementation
         if fromsize in [OS_64,OS_S64] then
           begin
             { split into two 32 bit loads }
-            hreg1:=makeregsize(register,OS_32);
+            hreg1:=getintregister(list,OS_32);
             hreg2:=getintregister(list,OS_32);
             if target_info.endian=endian_big then
               begin
@@ -831,6 +831,7 @@ implementation
                 inc(href.offset,4);
                 a_load_ref_reg(list,OS_32,OS_32,href,hreg2);
               end;
+            a_load_reg_reg(list,OS_32,OS_64,hreg1,register);
             list.concat(taicpu.op_reg_reg_const_const(A_BFI,register,makeregsize(hreg2,OS_64),32,32));
           end
        else
