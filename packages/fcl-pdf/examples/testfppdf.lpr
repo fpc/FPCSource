@@ -1,40 +1,87 @@
-{ This program generatesa multi-page PDF document and tests various
-  functionality on each of the 5 pages. }
-{$mode objfpc}
-{$H+}
+{ This program generates a multi-page PDF document and tests various
+  functionality on each of the 5 pages.
+
+  You can also specify to generate single pages by using the -p <n>
+  command line parameter.
+     eg:   testfppdf -p 1
+           testfppdf -p 2
+
+  Use -h to see more command line parameter options.
+}
 program testfppdf;
 
-uses
-  classes, sysutils, fpimage, fpreadjpeg, freetype, fppdf;
+{$mode objfpc}{$H+}
+{$codepage utf8}
 
-Function SetUpDocument : TPDFDocument;
-Var
-  P : TPDFPage;
-  S : TPDFSection;
+uses
+  {$ifdef unix}cwstring,{$endif}
+  classes, sysutils, custapp, fpimage, fpreadjpeg, fppdf, fpparsettf;
+
+type
+
+  TPDFTestApp = class(TCustomApplication)
+  private
+    Fpg: integer;
+    FFontCompression: boolean;
+    FDoc: TPDFDocument;
+    function    SetUpDocument: TPDFDocument;
+    procedure   SaveDocument(D: TPDFDocument);
+    procedure   EmptyPage;
+    procedure   SimpleText(D: TPDFDocument; APage: integer);
+    procedure   SimpleLinesRaw(D: TPDFDocument; APage: integer);
+    procedure   SimpleLines(D: TPDFDocument; APage: integer);
+    procedure   SimpleImage(D: TPDFDocument; APage: integer);
+    procedure   SimpleShapes(D: TPDFDocument; APage: integer);
+  protected
+    procedure   DoRun; override;
+  public
+    procedure   WriteHelp;
+  end;
+
+
+var
+  Application: TPDFTestApp;
+
+
+function TPDFTestApp.SetUpDocument: TPDFDocument;
+var
+  P: TPDFPage;
+  S: TPDFSection;
   i: integer;
+  lPageCount: integer;
+  lOpts: TPDFOptions;
 begin
-  Result:=TPDFDocument.Create(Nil);
-  Result.Infos.Title := 'Test Document';
-  Result.Infos.Author := ApplicationName;
-  Result.Infos.Producer:='fpGUI Toolkit 0.8';
-  Result.Infos.ApplicationName:='pdf_demo';
-  Result.Infos.CreationDate:=Now;
+  Result := TPDFDocument.Create(Nil);
+  Result.Infos.Title := Application.Title;
+  Result.Infos.Author := 'Graeme Geldenhuys';
+  Result.Infos.Producer := 'fpGUI Toolkit 0.8';
+  Result.Infos.ApplicationName := ApplicationName;
+  Result.Infos.CreationDate := Now;
+
+  lOpts := [];
+  if FFontCompression then
+    Include(lOpts, poCompressFonts);
+  Result.Options := lOpts;
+
   Result.StartDocument;
-  S:=Result.Sections.AddSection; // we always need at least one section
-  for i := 1 to 5 do
+  S := Result.Sections.AddSection; // we always need at least one section
+  lPageCount := 5;
+  if Fpg <> -1 then
+    lPageCount := 1;
+  for i := 1 to lPageCount do
   begin
-    P:=Result.Pages.AddPage;
+    P := Result.Pages.AddPage;
     P.PaperType := ptA4;
     P.UnitOfMeasure := uomMillimeters;
     S.AddPage(P);
   end;
 end;
 
-Procedure SaveDocument(D : TPDFDocument);
-Var
-  F : TFileStream;
+procedure TPDFTestApp.SaveDocument(D : TPDFDocument);
+var
+  F: TFileStream;
 begin
-  F:=TFileStream.Create('test.pdf',fmCreate);
+  F := TFileStream.Create('test.pdf',fmCreate);
   try
     D.SaveToStream(F);
     Writeln('Document used ',D.ObjectCount,' PDF objects/commands');
@@ -43,48 +90,95 @@ begin
   end;
 end;
 
+procedure TPDFTestApp.EmptyPage;
+var
+  D: TPDFDocument;
+begin
+  D := SetupDocument;
+  try
+    SaveDocument(D);
+  finally
+    D.Free;
+  end;
+end;
+
 { all units of measure are in millimeters }
-Procedure SimpleText(D: TPDFDocument; APage: integer);
-Var
+procedure TPDFTestApp.SimpleText(D: TPDFDocument; APage: integer);
+var
   P : TPDFPage;
-  FtTitle, FtText1, FtText2: integer;
+  FtTitle, FtText1, FtText2, FtText3: integer;
   lPt1: TPDFCoord;
 begin
-  P:=D.Pages[APage];
+  P := D.Pages[APage];
+
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clRed);
-  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans-12', clGreen); // TODO: this color value means nothing - not used at all
-  FtText2 := D.AddFont('times-8', clGreen);
+  FtTitle := D.AddFont('Helvetica', clRed);
+  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans', clGreen); // TODO: this color value means nothing - not used at all
+  FtText2 := D.AddFont('Times-BoldItalic', clBlack);
+  // FtText3 := D.AddFont('arial.ttf', 'Arial', clBlack);
+  FtText3 := FtText1; // to reduce font dependecies, but above works too if you have arial.ttf available
 
   { Page title }
-  P.SetFont(FtTitle,23);
+  P.SetFont(FtTitle, 23);
   P.SetColor(clBlack, false);
   lPt1 := P.Matrix.Transform(25, 20);
   P.WriteText(lPt1.X, lPt1.Y, 'Sample Text');
 
-  // Write text using FreeSans font
-  P.SetFont(ftText1,12);
-  P.SetColor(clBlack, false);
-  P.WriteText(25, P.GetPaperHeight-70, '(25mm,70mm) FreeSans: 0oO 1lL - wêreld çèûÎÐð£¢ß');
-  lPt1 := P.Matrix.Transform(25, 76);
-  P.WriteText(lPt1.X, lPt1.Y, '(25mm,76mm) - FreeSans font');
+  // Write text using PDF standard fonts
 
-  P.WriteUTF8Text(25, P.GetPaperHeight-200, 'Hello Graeme *'#$E2#$95#$AC'*'#$C3#$A4); // 0xE2 0x95 0xAC is UTF-8 for ╬   and   0xC3 0xA4 is UTF-8 for ä
-  lPt1 := P.Matrix.Transform(25, 210);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'В субботу двадцать третьего мая приезжает твоя любимая теща.');
-
-  // Write text using Helvetica font
-  P.SetFont(ftText2,12);
+  P.SetFont(FtTitle, 12);
   P.SetColor(clBlue, false);
   lPt1 := P.Matrix.Transform(25, 50);
-  P.WriteText(lPt1.X, lPt1.Y, '(25mm,50mm) - Times: 0oO 1lL - wêreld çèûÎÐð£¢ß');
+  P.WriteText(lPt1.X, lPt1.Y, '(25mm,50mm) Helvetica: The quick brown fox jumps over the lazy dog.');
+
   P.SetFont(ftText2,16);
   P.SetColor($c00000, false);
-  lPt1 := P.Matrix.Transform(75, 100);
-  P.WriteText(lPt1.X, lPt1.Y, '(75mm,100mm) - Big text at absolute position');
+  lPt1 := P.Matrix.Transform(60, 100);
+  P.WriteText(lPt1.X, lPt1.Y, '(60mm,100mm) Times-BoldItalic: Big text at absolute position');
+
+  // TrueType testing purposes
+
+  P.SetFont(ftText3, 13);
+  P.SetColor(clBlack, false);
+
+  lPt1 := P.Matrix.Transform(15, 120);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Languages: English: Hello, World!');
+
+  lPt1 := P.Matrix.Transform(40, 130);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Greek: Γειά σου κόσμος');
+
+  lPt1 := P.Matrix.Transform(40, 140);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Polish: Witaj świecie');
+
+  lPt1 := P.Matrix.Transform(40, 150);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Portuguese: Olá mundo');
+
+  lPt1 := P.Matrix.Transform(40, 160);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Russian: Здравствулте мир');
+
+  lPt1 := P.Matrix.Transform(40, 170);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Vietnamese: Xin chào thế giới');
+
+
+  P.SetFont(ftText1, 13);
+  lPt1 := P.Matrix.Transform(15, 185);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
+
+  lPt1 := P.Matrix.Transform(15, 200);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Typography: “What’s wrong?”');
+  lPt1 := P.Matrix.Transform(40, 210);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, '£17.99 vs £17·99');
+  lPt1 := P.Matrix.Transform(40, 220);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, '€17.99 vs €17·99');
+  lPt1 := P.Matrix.Transform(40, 230);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'OK then…    êçèûÎÐð£¢ß');
+
+  lPt1 := P.Matrix.Transform(25, 280);
+  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
+
 end;
 
-Procedure SimpleLinesRaw(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleLinesRaw(D: TPDFDocument; APage: integer);
 var
   P: TPDFPage;
   FtTitle: integer;
@@ -92,42 +186,46 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clBlack);
+  FtTitle := D.AddFont('Helvetica', clBlack);
 
   { Page title }
   P.SetFont(FtTitle,23);
-  P.SetColor(clBlack, false);
+  P.SetColor(clBlack, False);
   lPt1 := P.Matrix.Transform(25, 20);
   P.WriteText(lPt1.X, lPt1.Y, 'Sample Line Drawing (DrawLine)');
 
-  P.SetColor(clBlack,False); // clblue
+  P.SetColor(clBlack, True);
   P.SetPenStyle(ppsSolid);
   lPt1 := P.Matrix.Transform(30, 100);
   lPt2 := P.Matrix.Transform(150, 150);
   P.DrawLine(lPt1, lPt2, 0.2);
-  P.SetColor($0000FF,False); // clblue
+
+  P.SetColor(clBlue, True);
   P.SetPenStyle(ppsDash);
   lPt1 := P.Matrix.Transform(50, 70);
   lPt2 := P.Matrix.Transform(180, 100);
   P.DrawLine(lPt1, lPt2, 0.1);
-  P.SetColor($FF0000,False); // clRed
+
+  P.SetColor(clRed, True);
   P.SetPenStyle(ppsDashDot);
   lPt1 := P.Matrix.Transform(40, 140);
   lPt2 := P.Matrix.Transform(160, 80);
   P.DrawLine(lPt1, lPt2, 1);
-  P.SetColor(clBlack,False); // clBlack
+
+  P.SetColor(clBlack, True);
   P.SetPenStyle(ppsDashDotDot);
   lPt1 := P.Matrix.Transform(60, 50);
   lPt2 := P.Matrix.Transform(60, 120);
   P.DrawLine(lPt1, lPt2, 1.5);
-  P.SetColor(clBlack,False); // clBlack
+
+  P.SetColor(clBlack, True);
   P.SetPenStyle(ppsDot);
   lPt1 := P.Matrix.Transform(10, 80);
   lPt2 := P.Matrix.Transform(130, 130);
   P.DrawLine(lPt1, lPt2, 0.5);
 end;
 
-Procedure SimpleLines(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleLines(D: TPDFDocument; APage: integer);
 var
   P: TPDFPage;
   FtTitle: integer;
@@ -136,7 +234,7 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clRed);
+  FtTitle := D.AddFont('Helvetica', clRed);
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -172,7 +270,7 @@ begin
   P.DrawLineStyle(lPt1.X, lPt1.Y, lPt2.X, lPt2.Y, tsThinBlackDot);  { just to test the other overloaded version too. }
 end;
 
-Procedure SimpleImage(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleImage(D: TPDFDocument; APage: integer);
 Var
   P: TPDFPage;
   FtTitle: integer;
@@ -182,7 +280,7 @@ Var
 begin
   P := D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clBlack);
+  FtTitle := D.AddFont('Helvetica', clBlack);
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -210,7 +308,7 @@ begin
   P.WriteText(lPt1.X, lPt1.Y, '[Default size]');
 end;
 
-Procedure SimpleShapes(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleShapes(D: TPDFDocument; APage: integer);
 Var
   P : TPDFPage;
   FtTitle: integer;
@@ -219,7 +317,7 @@ Var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clBlack);
+  FtTitle := D.AddFont('Helvetica', clBlack);
 
   { Page title }
   P.SetFont(FtTitle,23);
@@ -421,22 +519,110 @@ begin
   P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 5);
 end;
 
-Var
-  D: TPDFDocument;
+
+{ TPDFTestApp }
+
+procedure TPDFTestApp.DoRun;
+var
+  ErrorMsg: String;
+  v: integer;
 begin
-  D := SetupDocument;
-  try
-    D.FontDirectory := ExtractFIlePath(Paramstr(0))+'fonts'+PathDelim;
-
-    SimpleText(D, 0);
-    SimpleShapes(D, 1);
-    SimpleLines(D, 2);
-    SimpleLinesRaw(D, 3);
-    SimpleImage(D, 4);
-
-    SaveDocument(D);
-  finally
-    D.Free;
+  inherited DoRun;
+  // quick check parameters
+  ErrorMsg := CheckOptions('hp:f:', '');
+  if ErrorMsg <> '' then
+  begin
+    WriteLn('ERROR:  ' + ErrorMsg);
+    Writeln('');
+    Terminate;
+    Exit;
   end;
+
+  // parse parameters
+  if HasOption('h', '') then
+  begin
+    WriteHelp;
+    Terminate;
+    Exit;
+  end;
+
+  Fpg := -1;
+  if HasOption('p', '') then
+  begin
+    Fpg := StrToInt(GetOptionValue('p', ''));
+    if (Fpg < 1) or (Fpg > 5) then
+    begin
+      Writeln('Error in -p parameter. Valid range is 1-5.');
+      Writeln('');
+      Terminate;
+      Exit;
+    end;
+  end;
+
+  FFontCompression := True;
+  if HasOption('f', '') then
+  begin
+    v := StrToInt(GetOptionValue('f', ''));
+    if (v <> 0) and (v <> 1) then
+    begin
+      Writeln('Error in -f parameter. Valid range is 0-1.');
+      Writeln('');
+      Terminate;
+      Exit;
+    end;
+    FFontCompression := (v = 1);
+  end;
+
+  FDoc := SetupDocument;
+  try
+    FDoc.FontDirectory := 'fonts';
+
+    if Fpg = -1 then
+    begin
+      SimpleText(FDoc, 0);
+      SimpleShapes(FDoc, 1);
+      SimpleLines(FDoc, 2);
+      SimpleLinesRaw(FDoc, 3);
+      SimpleImage(FDoc, 4);
+    end
+    else
+    begin
+      case Fpg of
+        1:  SimpleText(FDoc, 0);
+        2:  SimpleShapes(FDoc, 0);
+        3:  SimpleLines(FDoc, 0);
+        4:  SimpleLinesRaw(FDoc, 0);
+        5:  SimpleImage(FDoc, 0);
+      end;
+    end;
+
+    SaveDocument(FDoc);
+  finally
+    FDoc.Free;
+  end;
+
+  // stop program loop
+  Terminate;
+end;
+
+procedure TPDFTestApp.WriteHelp;
+begin
+  writeln('Usage:');
+  writeln('    -h          Show this help.');
+  writeln('    -p <n>      Generate only one page. Valid range is 1-5.' + LineEnding +
+          '                If this option is not specified, then all 5 pages are' + LineEnding +
+          '                generated.');
+  writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
+          '                disables compression. A value of 1 enables compression.');
+  writeln('');
+end;
+
+
+
+begin
+  Application := TPDFTestApp.Create(nil);
+  Application.Title := 'fpPDF Test Application';
+  Application.Run;
+  Application.Free;
 end.
 

@@ -2052,9 +2052,9 @@ end;
 
 
 initialization
-  RegisterTest(TTestEmptyParseTTF{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestLiberationFont{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestFreeSansFont{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestEmptyParseTTF{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestLiberationFont{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpParseTTF',{$endif}TTestFreeSansFont{$ifdef fptest}.Suite{$endif});
 
 end.
 

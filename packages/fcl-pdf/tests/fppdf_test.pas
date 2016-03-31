@@ -76,6 +76,11 @@ type
   end;
 
 
+  TTestPDFAbstractString = class(TBasePDFTest)
+  published
+    procedure   TestInsertEscape;
+  end;
+
   TTestPDFString = class(TBasePDFTest)
   published
     procedure   TestWrite;
@@ -284,11 +289,35 @@ end;
 { TTestPDFObject }
 
 procedure TTestPDFObject.TestFloatStr;
+
+Var
+  C : Char;
+  
 begin
   AssertEquals('Failed on 1', '0.12', TMockPDFObject.FloatStr(TPDFFLoat(0.12)));
-  AssertEquals('Failed on 2', '12', TMockPDFObject.FloatStr(TPDFFLoat(12.00)));
-  AssertEquals('Failed on 3', '12.3', TMockPDFObject.FloatStr(TPDFFLoat(12.30)));
+  AssertEquals('Failed on 2', '  12', TMockPDFObject.FloatStr(TPDFFLoat(12.00)));
+  AssertEquals('Failed on 3', '12.30', TMockPDFObject.FloatStr(TPDFFLoat(12.30)));
   AssertEquals('Failed on 4', '12.34', TMockPDFObject.FloatStr(TPDFFLoat(12.34)));
+  AssertEquals('Failed on 5', '123.45', TMockPDFObject.FloatStr(TPDFFLoat(123.45)));
+  AssertEquals('Failed on 6', '123.46', TMockPDFObject.FloatStr(TPDFFLoat(123.455)));
+  AssertEquals('Failed on 7', '123.46', TMockPDFObject.FloatStr(TPDFFLoat(123.456)));
+  AssertEquals('Failed on 8', '1234567.00', TMockPDFObject.FloatStr(TPDFFLoat(1234567)));
+  // Set DecimalSeparator
+  C:=FormatSettings.DecimalSeparator;
+  FormatSettings.DecimalSeparator:=',';
+  try
+    AssertEquals('Failed on 9', '12.34', TMockPDFObject.FloatStr(TPDFFLoat(12.34)));
+  finally
+    FormatSettings.DecimalSeparator:=C;
+  end;  
+  // Set ThousandSeparator
+  C:=FormatSettings.ThousandSeparator;
+  FormatSettings.ThousandSeparator:=' ';
+  try
+    AssertEquals('Failed on 10', '1234567.00', TMockPDFObject.FloatStr(TPDFFLoat(1234567)));
+  finally
+    FormatSettings.ThousandSeparator:=C;
+  end;
 end;
 
 procedure TTestPDFObject.TestWriteString;
@@ -315,23 +344,23 @@ begin
     o.SetWidth(TPDFFloat(300.5), S);
     AssertEquals('Failed on 1',
       '1 J'+CRLF+
-      '300.5 w'+CRLF,             // line width
+      '300.50 w'+CRLF,             // line width
       s.DataString);
 
     // this shouldn't cause any change
     o.SetWidth(TPDFFloat(300.5), S);
-    AssertEquals('Failed on 1',
+    AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '300.5 w'+CRLF,             // line width
+      '300.50 w'+CRLF,             // line width
       s.DataString);
 
     // but this will
     o.SetWidth(TPDFFloat(123), S);
-    AssertEquals('Failed on 1',
+    AssertEquals('Failed on 3',
       '1 J'+CRLF+
-      '300.5 w'+CRLF+           // line width 300.5
+      '300.50 w'+CRLF+           // line width 300.5
       '1 J'+CRLF+
-      '123 w'+CRLF,             // line width 123
+      ' 123 w'+CRLF,             // line width 123
       s.DataString);
   finally
     o.Free;
@@ -378,7 +407,7 @@ begin
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFMoveTo(o).Write(S);
-    AssertEquals('Failed on 2', '10 20 m'+CRLF, S.DataString);
+    AssertEquals('Failed on 2', '  10   20 m'+CRLF, S.DataString);
   finally
     o.Free;
   end;
@@ -395,7 +424,7 @@ begin
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFMoveTo(o).Write(S);
-    AssertEquals('Failed on 2', '10 20 m'+CRLF, S.DataString);
+    AssertEquals('Failed on 2', '  10   20 m'+CRLF, S.DataString);
   finally
     o.Free;
   end;
@@ -489,6 +518,23 @@ begin
   end;
 end;
 
+
+{ TTestPDFAbstractString }
+
+procedure TTestPDFAbstractString.TestInsertEscape;
+var
+  o: TPDFAbstractString;
+begin
+  o := TPDFAbstractString.Create(PDF);
+  try
+    AssertEquals('Failed on 1', 'abcdefg', TMockPDFString(o).InsertEscape('abcdefg'));
+    AssertEquals('Failed on 2', 'a\\b/cdefg', TMockPDFString(o).InsertEscape('a\b/cdefg'));
+    AssertEquals('Failed on 3', 'a\(b\)cdefg', TMockPDFString(o).InsertEscape('a(b)cdefg'));
+    AssertEquals('Failed on 4', 'a\(b\)c\\def/g', TMockPDFString(o).InsertEscape('a(b)c\def/g'));
+  finally
+    o.Free;
+  end;
+end;
 
 { TTestPDFString }
 
@@ -639,7 +685,7 @@ begin
     TMockPDFText(o).Write(S);
     AssertEquals('Failed on 2',
       'BT'+CRLF+
-      '10.5 20 TD'+CRLF+
+      '10.50   20 TD'+CRLF+
       '(Hello World!) Tj'+CRLF+
       'ET'+CRLF,
       S.DataString);
@@ -656,7 +702,7 @@ var
 begin
   pos.X := 10.0;
   pos.Y := 55.5;
-  AssertEquals('Failed on 1', '10 55.5 l'+CRLF, TPDFLineSegment.Command(pos));
+  AssertEquals('Failed on 1', '  10 55.50 l'+CRLF, TPDFLineSegment.Command(pos));
 end;
 
 procedure TTestPDFLineSegment.TestWrite;
@@ -675,9 +721,9 @@ begin
     TMockPDFLineSegment(o).Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+             // line width
-      '10 15.5 m'+CRLF+       // moveto command
-      '50 55.5 l'+CRLF+       // line segment
+      '   2 w'+CRLF+             // line width
+      '  10 15.50 m'+CRLF+       // moveto command
+      '  50 55.50 l'+CRLF+       // line segment
       'S'+CRLF,               // end line segment
       S.DataString);
   finally
@@ -702,7 +748,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '10 11 100 200 re'+CRLF,
+      '  10   11  100  200 re'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -725,8 +771,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '10 11 100 200 re'+CRLF+
+      '   2 w'+CRLF+
+      '  10   11  100  200 re'+CRLF+
       'b'+CRLF,
       S.DataString);
   finally
@@ -750,8 +796,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '10 11 100 200 re'+CRLF+
+      '   2 w'+CRLF+
+      '  10   11  100  200 re'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -774,7 +820,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '10 11 100 200 re'+CRLF+
+      '  10   11  100  200 re'+CRLF+
       'f'+CRLF,
       S.DataString);
   finally
@@ -798,7 +844,7 @@ begin
   X3 := 200;
   Y3 := 250;
   s1 := TMockPDFCurveC.Command(x1, y1, x2, y2, x3, y3);
-  AssertEquals('Failed on 1', '10 11 100 9 200 250 c'+CRLF, s1);
+  AssertEquals('Failed on 1', '  10   11  100    9  200  250 c'+CRLF, s1);
 end;
 
 procedure TTestPDFCurveC.TestWrite_Stroke;
@@ -822,8 +868,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '10 11 100 9 200 250 c'+CRLF+
+      '   2 w'+CRLF+
+      '  10   11  100    9  200  250 c'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -851,7 +897,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '10 11 100 9 200 250 c'+CRLF,
+      '  10   11  100    9  200  250 c'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -878,8 +924,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '100 9 200 250 v'+CRLF+
+      '   2 w'+CRLF+
+      ' 100    9  200  250 v'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -904,7 +950,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '100 9 200 250 v'+CRLF,
+      ' 100    9  200  250 v'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -931,8 +977,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '100 9 200 250 y'+CRLF+
+      '   2 w'+CRLF+
+      ' 100    9  200  250 y'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -957,7 +1003,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '100 9 200 250 y'+CRLF,
+      ' 100    9  200  250 y'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -982,15 +1028,15 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF,
+      '  55  270   10 213.75   10  145 c'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -1013,15 +1059,15 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF+
+      '  55  270   10 213.75   10  145 c'+CRLF+
       'f'+CRLF,
       S.DataString);
   finally
@@ -1045,17 +1091,17 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
+      '   2 w'+CRLF+
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF+
+      '  55  270   10 213.75   10  145 c'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -1079,17 +1125,17 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
+      '   2 w'+CRLF+
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF+
+      '  55  270   10 213.75   10  145 c'+CRLF+
       'b'+CRLF,
       S.DataString);
   finally
@@ -1118,11 +1164,11 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to - p0
-      '10 20 m'+CRLF+
+      '  10   20 m'+CRLF+
       // line segment - p1
-      '30 40 l'+CRLF+
+      '  30   40 l'+CRLF+
       // line segment - p2
-      '50 60 l'+CRLF+
+      '  50   60 l'+CRLF+
       'h'+CRLF+   // close
       'f'+CRLF,   // fill
       S.DataString);
@@ -1151,11 +1197,11 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to - p0
-      '10 20 m'+CRLF+
+      '  10   20 m'+CRLF+
       // line segment - p1
-      '30 40 l'+CRLF+
+      '  30   40 l'+CRLF+
       // line segment - p2
-      '50 60 l'+CRLF+
+      '  50   60 l'+CRLF+
       'h'+CRLF,   // close
       S.DataString);
   finally
@@ -1183,11 +1229,11 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to - p0
-      '10 20 m'+CRLF+
+      '  10   20 m'+CRLF+
       // line segment - p1
-      '30 40 l'+CRLF+
+      '  30   40 l'+CRLF+
       // line segment - p2
-      '50 60 l'+CRLF+
+      '  50   60 l'+CRLF+
       'f'+CRLF,   // fill
       S.DataString);
   finally
@@ -1213,7 +1259,7 @@ begin
     AssertEquals('Failed on 2',
       // save graphics state
       'q'+CRLF+
-      '150 0 0 75 100 200 cm'+CRLF+
+      '150 0 0 75  100  200 cm'+CRLF+
       '/I1 Do'+CRLF+
       // restore graphics state
       'Q'+CRLF,
@@ -1317,7 +1363,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '0.66 0.73 0.8 RG'+CRLF,
+      '0.66 0.73 0.80 RG'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -1333,7 +1379,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '0.66 0.73 0.8 rg'+CRLF,
+      '0.66 0.73 0.80 rg'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -1622,34 +1668,35 @@ end;
 
 
 initialization
-  RegisterTest(TTestPDFObject{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestTPDFDocumentObject{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFBoolean{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFMoveTo{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFInteger{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFReference{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFName{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFString{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFArray{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFStream{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFEmbeddedFont{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFText{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFLineSegment{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestTPDFRectangle{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFCurveC{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFCurveV{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFCurveY{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFEllipse{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFSurface{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFImage{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFLineStyle{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFColor{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFDictionaryItem{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFDictionary{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFXRef{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFPage{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestCompressionDecompression{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestTPDFImageItem{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFObject{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFDocumentObject{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFBoolean{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFMoveTo{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFInteger{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFReference{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFName{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFAbstractString{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFString{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFArray{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFStream{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFEmbeddedFont{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFText{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFLineSegment{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFRectangle{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFCurveC{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFCurveV{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFCurveY{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFEllipse{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFSurface{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFImage{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFLineStyle{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFColor{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFDictionaryItem{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFDictionary{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFXRef{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFPage{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestCompressionDecompression{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFImageItem{$ifdef fptest}.Suite{$endif});
 
 end.
 

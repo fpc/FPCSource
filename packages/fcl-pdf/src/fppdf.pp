@@ -3,9 +3,9 @@
     Copyright (c) 2014 by Michael Van Canneyt
 
     This unit generates PDF files, without dependencies on GUI libraries.
-    (Based on original ideas from the fpGUI pdf generator by Jean-Marc Levecque 
+    (Based on original ideas from the fpGUI pdf generator by Jean-Marc Levecque
      <jmarc.levecque@jmlesite.web4me.fr>)
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -26,7 +26,8 @@ uses
   StrUtils,
   contnrs,
   fpImage,
-  zstream;
+  zstream,
+  fpparsettf;
 
 Const
   clBlack = $000000;
@@ -165,7 +166,14 @@ type
   end;
 
 
-  TPDFString = class(TPDFDocumentObject)
+  TPDFAbstractString = class(TPDFDocumentObject)
+  protected
+    // These symbols must be preceded by a backslash:  "(", ")", "\"
+    function InsertEscape(const AValue: string): string;
+  end;
+
+
+  TPDFString = class(TPDFAbstractString)
   private
     FValue: string;
   protected
@@ -175,12 +183,12 @@ type
   end;
 
 
-  TPDFUTF8String = class(TPDFDocumentObject)
+  TPDFUTF8String = class(TPDFAbstractString)
   private
     FValue: UTF8String;
     FFontIndex: integer;
     { Remap each character to the equivalant dictionary character code }
-    function RemapedText: String;
+    function RemapedText: AnsiString;
   protected
     procedure Write(const AStream: TStream); override;
   public
@@ -558,6 +566,37 @@ type
   end;
 
 
+  // forward declarations
+  TTextMapping = class;
+
+
+  TTextMappingList = class(TObject)
+  private
+    FList: TFPObjectList;
+    function    GetCount: Integer;
+  protected
+    function    GetItem(AIndex: Integer): TTextMapping; reintroduce;
+    procedure   SetItem(AIndex: Integer; AValue: TTextMapping); reintroduce;
+  public
+    constructor Create;
+    destructor  Destroy; override;
+    function    Add(AObject: TTextMapping): Integer; overload;
+    function    Add(const ACharID, AGlyphID: uint16): Integer; overload;
+    property    Count: Integer read GetCount;
+    property    Items[Index: Integer]: TTextMapping read GetItem write SetItem; default;
+  end;
+
+
+  TTextMapping = class(TObject)
+  private
+    FCharID: uint16;
+    FGlyphID: uint16;
+  public
+    class function NewTextMap(const ACharID, AGlyphID: uint16): TTextMapping;
+    property    CharID: uint16 read FCharID write FCharID;
+    property    GlyphID: uint16 read FGlyphID write FGlyphID;
+  end;
+
   TTextDictionary = class(TObject)
   private
     FChar: UnicodeChar;
@@ -571,17 +610,34 @@ type
   private
     FColor: TARGBColor;
     FName: String;
-    FFontFile: string;
-    { stores lookup code for each letter of text used and associated 2-byte Unicode code point }
-    FDictionary: TObjectList;
+    FFontFilename: String;
+    FTrueTypeFile: TTFFileInfo;
+    { stores mapping of Char IDs to font Glyph IDs }
+    FTextMappingList: TTextMappingList;
+    procedure   PrepareTextMapping;
+    procedure   SetFontFilename(AValue: string);
   public
-    constructor Create(ACollection: TCollection); override;
     destructor  Destroy; override;
-    function FindIndexOf(const AValue: UnicodeChar): integer;
-    Property FontFile: string read FFontFile write FFontFile;
-    Property Name : String Read FName Write FName;
-    Property Color : TARGBColor Read FColor Write FColor;
-    property Dictionary: TObjectList read FDictionary;
+    { Returns a string where each character is replaced with a glyph index value instead. }
+    function    GetGlyphIndices(const AText: UnicodeString): AnsiString;
+    procedure   AddTextToMappingList(const AText: UnicodeString);
+    Property    FontFile: string read FFontFilename write SetFontFilename;
+    Property    Name: String Read FName Write FName;
+    Property    Color: TARGBColor Read FColor Write FColor;
+    property    TextMapping: TTextMappingList read FTextMappingList;
+  end;
+
+
+  TPDFTrueTypeCharWidths = class(TPDFDocumentObject)
+  private
+    FEmbeddedFontNum: integer;
+    FFontIndex: integer;
+  protected
+    procedure Write(const AStream: TStream);override;
+  public
+    constructor Create(const ADocument: TPDFDocument; const AEmbeddedFontNum: integer); overload;
+    property EmbeddedFontNum: integer read FEmbeddedFontNum;
+    property FontIndex: integer read FFontIndex write FFontIndex;
   end;
 
 
@@ -671,7 +727,6 @@ type
   end;
 
 
-
   TPDFLineStyleDef = Class(TCollectionItem)
   private
     FColor: TARGBColor;
@@ -744,11 +799,13 @@ type
     function LoadFont(AFont: TPDFFont; Out FontDef : TFontDef): string;
     procedure CreateStdFont(EmbeddedFontName: string; EmbeddedFontNum: integer);virtual;
     procedure CreateTTFFont(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
+    procedure CreateTTFDescendantFont(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
+    procedure CreateTTFCIDSystemInfo(const EmbeddedFontNum: integer; FontDef: TFontDef);virtual;
     procedure CreateTp1Font(const EmbeddedFontNum: integer);virtual;
     procedure CreateFontDescriptor(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
     procedure CreateToUnicode(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
     procedure CreateFontWidth(FontDef : TFontDef);virtual;
-    procedure CreateFontFileEntry(const EmbeddedFontNum: integer;FontDef : TFontDef);virtual;
+    procedure CreateFontFileEntry(const EmbeddedFontNum: integer; FontDef: TFontDef);virtual;
     procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
     Function CreateGlobalXRef: TPDFXRef;
@@ -805,8 +862,9 @@ type
 
 
 const
-  CRLF        =#13#10;
-  PDF_VERSION ='%PDF-1.3';
+  CRLF = #13#10;
+  PDF_VERSION = '%PDF-1.3';
+  PDF_BINARY_BLOB = '%'#$C3#$A4#$C3#$BC#$C3#$B6#$C3#$9F;
   PDF_FILE_END = '%%EOF';
   PDF_MAX_GEN_NUM = 65535;
   PDF_UNICODE_HEADER = 'FEFF001B%s001B';
@@ -858,8 +916,6 @@ function InchesToPDF(Inches: single): TPDFFloat;
 
 implementation
 
-uses
-  fpparsettf;
 
 Resourcestring
   rsErrReportFontFileMissing = 'Font File "%s" does not exist.';
@@ -867,6 +923,12 @@ Resourcestring
   SerrInvalidSectionPage = 'Error: Invalid section page index.';
   SErrNoGlobalDict = 'Error: no global XRef named "%s".';
   SErrInvalidPageIndex = 'Invalid page index: %d';
+  SErrNoFontIndex = 'No FontIndex was set - please use SetFont() first.';
+
+type
+  // to get access to protected methods
+  TTTFFriendClass = class(TTFFileInfo)
+  end;
 
 Const
   // TODO: we should improve this to take into account the line width
@@ -888,22 +950,6 @@ const
   // cm = ((pixels * 25.4) / dpi) / 10
 
 
-// These symbols must be preceded by a slash:  %, (, ), <, >, [, ], {, }, / and #
-function InsertEscape(const AValue: string): string;
-var
-  S: string;
-begin
-  Result:='';
-  S:=AValue;
-  if Pos('\', S) > 0 then
-    S:=AnsiReplaceStr(S, '\', '\\');
-  if Pos('(', S) > 0 then
-    S:=AnsiReplaceStr(S, '(', '\(');
-  if Pos(')', S) > 0 then
-    S:=AnsiReplaceStr(S, ')', '\)');
-  Result:=S;
-end;
-
 function DateToPdfDate(const ADate: TDateTime): string;
 begin
   Result:=FormatDateTime('"D:"yyyymmddhhnnss', ADate);
@@ -915,11 +961,6 @@ begin
   Dec(PadLen,Length(Result));
   if PadLen>0 then
     Result:=StringOfChar('0',Padlen)+Result;
-end;
-
-function IntToStrZeros(const AValue, ADigits: integer): string;
-begin
-   result := SysUtils.Format('%.*d', [ADigits, AValue]) ;
 end;
 
 procedure CompressStream(AFrom: TStream; ATo: TStream; ACompressLevel: TCompressionLevel = clDefault; ASkipHeader: boolean = False);
@@ -1066,33 +1107,144 @@ begin
   Result.y := (APoint.y - _21) / _11;
 end;
 
+{ TTextMappingList }
+
+function TTextMappingList.GetCount: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TTextMappingList.GetItem(AIndex: Integer): TTextMapping;
+begin
+  Result := TTextMapping(FList.Items[AIndex]);
+end;
+
+procedure TTextMappingList.SetItem(AIndex: Integer; AValue: TTextMapping);
+begin
+  FList.Items[AIndex] := AValue;
+end;
+
+constructor TTextMappingList.Create;
+begin
+  FList := TFPObjectList.Create;
+end;
+
+destructor TTextMappingList.Destroy;
+begin
+  FList.Free;
+  inherited Destroy;
+end;
+
+function TTextMappingList.Add(AObject: TTextMapping): Integer;
+var
+  i: integer;
+begin
+  Result := -1;
+  for i := 0 to FList.Count-1 do
+  begin
+    if TTextMapping(FList.Items[i]).CharID = AObject.CharID then
+      Exit; // mapping already exists
+  end;
+  Result := FList.Add(AObject);
+end;
+
+function TTextMappingList.Add(const ACharID, AGlyphID: uint16): Integer;
+var
+  o: TTextMapping;
+begin
+  o := TTextMapping.Create;
+  o.CharID := ACharID;
+  o.GlyphID := AGlyphID;
+  Result := Add(o);
+  if Result = -1 then
+    o.Free;
+end;
+
+{ TTextMapping }
+
+class function TTextMapping.NewTextMap(const ACharID, AGlyphID: uint16): TTextMapping;
+begin
+  Result := TTextMapping.Create;
+  Result.CharID := ACharID;
+  Result.GlyphID := AGlyphID;
+end;
+
 { TPDFFont }
 
-constructor TPDFFont.Create(ACollection: TCollection);
+procedure TPDFFont.PrepareTextMapping;
 begin
-  inherited Create(ACollection);
-  FDictionary := TObjectList.create;
+  if FFontFilename <> '' then
+  begin
+    // only create objects when needed
+    FTextMappingList := TTextMappingList.Create;
+    FTrueTypeFile := TTFFileInfo.Create;
+    FTrueTypeFile.LoadFromFile(FFontFilename);
+  end;
+end;
+
+procedure TPDFFont.SetFontFilename(AValue: string);
+begin
+  if FFontFilename = AValue then
+    Exit;
+  FFontFilename := AValue;
+  PrepareTextMapping;
 end;
 
 destructor TPDFFont.Destroy;
 begin
-  FDictionary.Free;
+  FTextMappingList.Free;
+  FTrueTypeFile.Free;
   inherited Destroy;
 end;
 
-function TPDFFont.FindIndexOf(const AValue: UnicodeChar): integer;
+function TPDFFont.GetGlyphIndices(const AText: UnicodeString): AnsiString;
 var
   i: integer;
+  c: word;
 begin
-  result := -1; // default to not found
-  for i := 0 to FDictionary.Count-1 do
+  Result := '';
+  for i := 1 to Length(AText) do
   begin
-    if TTextDictionary(FDictionary[i]).Char = AValue then
-    begin
-      result := i;
-      exit;
-    end;
+    c := Word(AText[i]);
+    Result := Result + IntToHex(FTrueTypeFile.GetGlyphIndex(c), 4);
   end;
+end;
+
+procedure TPDFFont.AddTextToMappingList(const AText: UnicodeString);
+var
+  i: integer;
+  c: uint16; // Unicode codepoint
+begin
+  if AText = '' then
+    Exit;
+  for i := 1 to Length(AText) do
+  begin
+    c := uint16(AText[i]);
+    FTextMappingList.Add(c, FTrueTypeFile.GetGlyphIndex(c));
+  end;
+end;
+
+{ TPDFTrueTypeCharWidths }
+
+procedure TPDFTrueTypeCharWidths.Write(const AStream: TStream);
+var
+  i: integer;
+  s: string;
+  lst: TTextMappingList;
+  lFont: TTFFileInfo;
+begin
+  s := '';
+  lst := Document.Fonts[EmbeddedFontNum].TextMapping;
+  lFont := Document.Fonts[EmbeddedFontNum].FTrueTypeFile;
+  for i := 0 to lst.Count-1 do
+    s :=  s + Format(' %d [%d]', [ lst[i].GlyphID, TTTFFriendClass(lFont).ToNatural(lFont.Widths[lst[i].GlyphID].AdvanceWidth)]);
+  WriteString(s, AStream);
+end;
+
+constructor TPDFTrueTypeCharWidths.Create(const ADocument: TPDFDocument; const AEmbeddedFontNum: integer);
+begin
+  inherited Create(ADocument);
+  FEmbeddedFontNum := AEmbeddedFontNum;
 end;
 
 { TPDFMoveTo }
@@ -1384,27 +1536,12 @@ end;
 
 procedure TPDFPage.AddTextToLookupLists(AText: UTF8String);
 var
-  i: integer;
-  c: UnicodeChar;
   str: UnicodeString;
-  idx: integer;
-  dict: TTextDictionary;
 begin
   if AText = '' then
     Exit;
   str := UTF8ToUTF16(AText);
-  for i := 1 to Length(str) do
-  begin
-    c := str[i];
-    idx := Document.Fonts[FFontIndex].FindIndexOf(c);
-    if idx = -1 then
-    begin
-      dict := TTextDictionary.Create;
-      dict.Char := c;
-      dict.CodePoint := AnsiString(IntToHex(Word(c), 4));;
-      Document.Fonts[FFontIndex].Dictionary.Add(dict);
-    end;
-  end;
+  Document.Fonts[FFontIndex].AddTextToMappingList(str);
 end;
 
 procedure TPDFPage.DoUnitConversion(var APoint: TPDFCoord);
@@ -1456,8 +1593,8 @@ begin
 
   FMatrix._00 := 1;
   FMatrix._20 := 0;
-  FMatrix._11 := -1; // flip coordinates
-  FMatrix._21 := GetPaperHeight;
+  FMatrix._11 := -1;  // flip coordinates
+  AdjustMatrix;       // sets FMatrix._21 value
 end;
 
 destructor TPDFPage.Destroy;
@@ -1522,14 +1659,18 @@ begin
 end;
 
 procedure TPDFPage.WriteUTF8Text(X, Y: TPDFFloat; AText: UTF8String);
-Var
-  T : TPDFUTF8Text;
+var
+  T: TPDFUTF8Text;
+  p: TPDFCoord;
 begin
   if FFontIndex = -1 then
-    raise EPDF.Create('No FontIndex was set - please use SetFont() first.');
-  T := Document.CreateUTF8Text(X,Y,AText,FFontIndex);
-  AddObject(T);
+    raise EPDF.Create(SErrNoFontIndex);
+  p.X := X;
+  p.Y := Y;
+  DoUnitConversion(p);
   AddTextToLookupLists(AText);
+  T := Document.CreateUTF8Text(p.X, p.Y, AText, FFontIndex);
+  AddObject(T);
 end;
 
 procedure TPDFPage.DrawLine(X1, Y1, X2, Y2, ALineWidth: TPDFFloat);
@@ -1557,7 +1698,7 @@ var
   S: TPDFLineStyleDef;
 begin
   S := Document.LineStyles[AStyle];
-  SetColor(S.Color, False);
+  SetColor(S.Color, True);
   SetPenStyle(S.PenStyle);
   DrawLine(X1, Y1, X2, Y2, S.LineWidth);
 end;
@@ -1754,7 +1895,7 @@ var
   P : Integer;
 
 begin
-  P:=Pos('-', AValue);
+  P:=RPos('-', AValue);
   if (P>0) then
     FontName:=Copy(AValue,1,P-1)
   else
@@ -1917,9 +2058,15 @@ begin
     Inc(ADocument.FObjectCount);
 end;
 
+{ We opted to use the Str() function instead of FormatFloat(), because it is
+  considerably faster. This also works around the problem of locale specific
+  DecimalSeparator causing float formatting problems in the generated PDF. }
 class function TPDFObject.FloatStr(F: TPDFFloat): String;
 begin
-  Str(F:5:2,Result);
+  if ((Round(F*100) mod 100)=0) then
+    Str(F:4:0,Result)
+  else
+    Str(F:4:2,Result);
 end;
 
 procedure TPDFObject.Write(const AStream: TStream);
@@ -2002,10 +2149,29 @@ begin
   Result := s;
 end;
 
+{ TPDFAbstractString }
+
+function TPDFAbstractString.InsertEscape(const AValue: string): string;
+var
+  S: string;
+begin
+  Result:='';
+  S:=AValue;
+  if Pos('\', S) > 0 then
+    S:=AnsiReplaceStr(S, '\', '\\');
+  if Pos('(', S) > 0 then
+    S:=AnsiReplaceStr(S, '(', '\(');
+  if Pos(')', S) > 0 then
+    S:=AnsiReplaceStr(S, ')', '\)');
+  Result:=S;
+end;
+
+{ TPDFString }
+
 procedure TPDFString.Write(const AStream: TStream);
 var
   s: AnsiString;
-  cs: AnsiString;
+//  cs: AnsiString;
 begin
   s := Utf8ToAnsi(FValue);
   if poCompressText in Document.Options then
@@ -2021,29 +2187,19 @@ end;
 constructor TPDFString.Create(Const ADocument : TPDFDocument; const AValue: string);
 begin
   inherited Create(ADocument);
-  FValue:=AValue;
+  FValue := AValue;
   if (Pos('(', FValue) > 0) or (Pos(')', FValue) > 0) or (Pos('\', FValue) > 0) then
-    FValue:=InsertEscape(FValue);
+    FValue := InsertEscape(FValue);
 end;
 
 { TPDFUTF8String }
 
-function TPDFUTF8String.RemapedText: String;
+function TPDFUTF8String.RemapedText: AnsiString;
 var
   s: UnicodeString;
-  i: integer;
-  idx: integer;  // character code
-  c: UnicodeChar;
 begin
-  Result := '';
   s := UTF8ToUTF16(FValue);
-  // lookup the alphabet code for each character
-  for i := 1 to Length(s) do
-  begin
-    c := s[i];
-    idx := Document.Fonts[FontIndex].FindIndexOf(c);
-    Result := Result + IntToStrZeros(idx+1,2);   // PDF expects 1-based numbering
-  end;
+  Result := Document.Fonts[FontIndex].GetGlyphIndices(s);
 end;
 
 procedure TPDFUTF8String.Write(const AStream: TStream);
@@ -2051,7 +2207,7 @@ begin
   if poCompressText in Document.Options then
   begin
     // do nothing yet
-    WriteString('('+UTF8ToUTF16(FValue)+')', AStream);
+    WriteString('<'+RemapedText+'>', AStream)
   end
   else
     WriteString('<'+RemapedText+'>', AStream);
@@ -2063,7 +2219,7 @@ begin
   FValue := AValue;
   FFontIndex := AFontIndex;
   if (Pos('(', FValue) > 0) or (Pos(')', FValue) > 0) or (Pos('\', FValue) > 0) then
-    FValue:=InsertEscape(FValue);
+    FValue := InsertEscape(FValue);
 end;
 
 { TPDFArray }
@@ -2482,9 +2638,9 @@ end;
 
 procedure TPDFDictionary.WriteDictionary(const AObject: integer; const AStream: TStream);
 var
-  ISize,i, NumImg, NumFnt: integer;
+  ISize,i, NumImg, NumFnt, BufSize: integer;
   Value: string;
-  M : TMemoryStream;
+  M, Buf : TMemoryStream;
   E : TPDFDictionaryItem;
   D : TPDFDictionary;
 begin
@@ -2524,13 +2680,21 @@ begin
               Value:=E.FKey.Name;
               NumFnt:=StrToInt(Copy(Value, Succ(Pos(' ', Value)), Length(Value) - Pos(' ', Value)));
               m.LoadFromFile(Document.FontFiles[NumFnt]);
-              // write fontfile stream length in xobject dictionary
-              D:=Document.GlobalXRefs[AObject].Dict;
-              D.AddInteger('Length',M.Size);
-              LastElement.Write(AStream);
-              WriteString('>>', AStream);
-              // write fontfile stream in xobject dictionary
-              TPDFEmbeddedFont.WriteEmbeddedFont(Document, M, AStream);
+              Buf := TMemoryStream.Create;
+              try
+                // write fontfile stream (could be compressed or not) to a temporary buffer so we can get the size
+                BufSize := TPDFEmbeddedFont.WriteEmbeddedFont(Document, M, Buf);
+                Buf.Position := 0;
+                // write fontfile stream length in xobject dictionary
+                D := Document.GlobalXRefs[AObject].Dict;
+                D.AddInteger('Length', BufSize);
+                LastElement.Write(AStream);
+                WriteString('>>', AStream);
+                // write fontfile buffer stream in xobject dictionary
+                Buf.SaveToStream(AStream);
+              finally
+                Buf.Free;
+              end;
             finally
               M.Free;
             end;
@@ -2637,31 +2801,28 @@ end;
 
 procedure TPDFToUnicode.Write(const AStream: TStream);
 var
+  lst: TTextMappingList;
   i: integer;
-  lFontIndex: integer;
-  lFont: TPDFFont;
 begin
-  WriteString('/CIDInit/ProcSet findresource begin'+CRLF, AStream);
+  lst := Document.Fonts[EmbeddedFontNum].TextMapping;
+
+  WriteString('/CIDInit /ProcSet findresource begin'+CRLF, AStream);
   WriteString('12 dict begin'+CRLF, AStream);
   WriteString('begincmap'+CRLF, AStream);
-  WriteString('/CIDSystemInfo <<'+CRLF, AStream);
-  WriteString('/Registry (Adobe)'+CRLF, AStream);
-  WriteString('/Ordering (UCS)'+CRLF, AStream);
+  WriteString('/CIDSystemInfo'+CRLF, AStream);
+  WriteString('<</Registry (Adobe)'+CRLF, AStream);
+  WriteString('/Ordering (Identity)'+CRLF, AStream);
   WriteString('/Supplement 0'+CRLF, AStream);
   WriteString('>> def'+CRLF, AStream);
-  WriteString('/CMapName/Adobe-Identity-UCS def'+CRLF, AStream);
+  WriteString(Format('/CMapName /%s def', [Document.Fonts[EmbeddedFontNum].FTrueTypeFile.PostScriptName])+CRLF, AStream);
   WriteString('/CMapType 2 def'+CRLF, AStream);
   WriteString('1 begincodespacerange'+CRLF, AStream);
-  WriteString('<00> <FF>'+CRLF, AStream);
+  WriteString('<0000> <FFFF>'+CRLF, AStream);
   WriteString('endcodespacerange'+CRLF, AStream);
-
-  lFont := Document.Fonts[EmbeddedFontNum];
-  WriteString(Format('%d beginbfchar'+CRLF, [lFont.Dictionary.Count]), AStream);
-  // write mapping for each character in dictionary
-  for i := 0 to lFont.Dictionary.Count-1 do
-    WriteString(Format('<%s> <%s>'+CRLF, [IntToStrZeros(i+1, 2), TTextDictionary(lFont.Dictionary[i]).CodePoint]), AStream);  // PDF expects 1-based numbering
+  WriteString(Format('%d beginbfchar', [lst.Count])+CRLF, AStream);
+  for i := 0 to lst.Count-1 do
+    WriteString(Format('<%s> <%s>', [IntToHex(lst[i].GlyphID, 4), IntToHex(lst[i].CharID, 4)])+CRLF, AStream);
   WriteString('endbfchar'+CRLF, AStream);
-
   WriteString('endcmap'+CRLF, AStream);
   WriteString('CMapName currentdict /CMap defineresource pop'+CRLF, AStream);
   WriteString('end'+CRLF, AStream);
@@ -2675,6 +2836,7 @@ begin
   FFontDef := AFontDef;
 end;
 
+{ TPDFDocument }
 
 procedure TPDFDocument.SetInfos(AValue: TPDFInfos);
 begin
@@ -2722,7 +2884,7 @@ begin
     p:=GetX(i).Dict.Elements[0].Value;
     if (p is TPDFName) and (TPDFName(p).Name=AValue) then
       Result:=i;
-    Inc(I);    
+    Inc(I);
     end;
 end;
 
@@ -2944,24 +3106,19 @@ begin
 end;
 
 procedure TPDFDocument.CreateStdFont(EmbeddedFontName: string; EmbeddedFontNum: integer);
-
 var
   FDict: TPDFDictionary;
   N: TPDFName;
-
 begin
-  if Pos('Italic', EmbeddedFontName) > 0 then
-    EmbeddedFontName:=Copy(EmbeddedFontName, 1, Pred(Pos('Italic', EmbeddedFontName)))+'Oblique';
-  //  AnsiReplaceText(EmbeddedFontName,'Italic','Oblique');
   // add xref entry
-  FDict:=CreateGlobalXRef.Dict;
+  FDict := CreateGlobalXRef.Dict;
   FDict.AddName('Type', 'Font');
   FDict.AddName('Subtype', 'Type1');
   FDict.AddName('Encoding', 'WinAnsiEncoding');
   FDict.AddInteger('FirstChar', 32);
   FDict.AddInteger('LastChar', 255);
   FDict.AddName('BaseFont', EmbeddedFontName);
-  N:=CreateName('F'+IntToStr(EmbeddedFontNum));
+  N := CreateName('F'+IntToStr(EmbeddedFontNum));
   FDict.AddElement('Name',N);
   AddFontNameToPages(N.Name,GLobalXRefCount-1);
   // add font reference to all page dictionary
@@ -3005,8 +3162,10 @@ begin
     FontDef.FFontBBox := s;
     FontDef.FItalicAngle := IntToStr(lFontDef.ItalicAngle);
     FontDef.FStemV := IntToStr(lFontDef.StemV);
-   {$NOTE The 1000 value is a work-around until I can figure out the character spacing problem. }
-    FontDef.FMissingWidth := '1000'; //IntToStr(lFontDef.MissingWidth);
+
+    {$NOTE The 700 value is a work-around until I can figure out the character spacing problem. }
+    FontDef.FMissingWidth := '700'; //IntToStr(lFontDef.MissingWidth);
+
     FontDef.FEncoding := lFontDef.Encoding;
     FontDef.FFile := lFName;
     FontDef.FOriginalSize := IntToStr(lFontDef.OriginalSize);
@@ -3023,29 +3182,59 @@ procedure TPDFDocument.CreateTTFFont(const EmbeddedFontNum: integer; FontDef : T
 var
   FDict: TPDFDictionary;
   N: TPDFName;
-
+  Arr: TPDFArray;
 begin
   // add xref entry
-  FDict:=CreateGlobalXRef.Dict;
+  FDict := CreateGlobalXRef.Dict;
   FDict.AddName('Type', 'Font');
-  FDict.AddName('Subtype', FontDef.FType);
-  FDict.AddName('Encoding', 'WinAnsiEncoding');
-  FDict.AddInteger('FirstChar', 32);
-  FDict.AddInteger('LastChar', 255);
+  FDict.AddName('Subtype', 'Type0');
   FDict.AddName('BaseFont', FontDef.FName);
+  FDict.AddName('Encoding', 'Identity-H');
   // add name element to font dictionary
   N:=CreateName('F'+IntToStr(EmbeddedFontNum));
   FDict.AddElement('Name',N);
   Self.AddFontNameToPages(N.Name,GlobalXRefCount-1);
-  CreateFontDescriptor(EmbeddedFontNum,FontDef);
-  // add fontdescriptor reference to font dictionary
-  FDict.AddReference('FontDescriptor',GlobalXRefCount-2);
-  CreateFontWidth(FontDef);
-  // add fontwidth reference to font dictionary
-  FDict.AddReference('Widths',GlobalXRefCount-1);
+  CreateTTFDescendantFont(EmbeddedFontNum, FontDef);
+  Arr := CreateArray;
+  FDict.AddElement('DescendantFonts', Arr);
+  Arr.AddItem(TPDFReference.Create(self, GlobalXRefCount-4));
   CreateToUnicode(EmbeddedFontNum, FontDef);
   FDict.AddReference('ToUnicode', GlobalXRefCount-1);
   FontFiles.Add(FontDef.FFile);
+end;
+
+procedure TPDFDocument.CreateTTFDescendantFont(const EmbeddedFontNum: integer; FontDef: TFontDef);
+var
+  FDict: TPDFDictionary;
+  N: TPDFName;
+  Arr: TPDFArray;
+begin
+  // add xref entry
+  FDict := CreateGlobalXRef.Dict;
+  FDict.AddName('Type', 'Font');
+  FDict.AddName('Subtype', 'CIDFontType2');
+  FDict.AddName('BaseFont', FontDef.FName);
+
+  CreateTTFCIDSystemInfo(EmbeddedFontNum, FontDef);
+  FDict.AddReference('CIDSystemInfo', GlobalXRefCount-1);
+
+  // add fontdescriptor reference to font dictionary
+  CreateFontDescriptor(EmbeddedFontNum,FontDef);
+  FDict.AddReference('FontDescriptor',GlobalXRefCount-2);
+
+  Arr := CreateArray;
+  FDict.AddElement('W',Arr);
+  Arr.AddItem(TPDFTrueTypeCharWidths.Create(self, EmbeddedFontNum));
+end;
+
+procedure TPDFDocument.CreateTTFCIDSystemInfo(const EmbeddedFontNum: integer; FontDef: TFontDef);
+var
+  FDict: TPDFDictionary;
+begin
+  FDict := CreateGlobalXRef.Dict;
+  FDict.AddString('Registry', 'Adobe');
+  FDict.AddString('Ordering', 'Identity');
+  FDict.AddInteger('Supplement', 0);
 end;
 
 procedure TPDFDocument.CreateTp1Font(const EmbeddedFontNum: integer);
@@ -3054,19 +3243,18 @@ begin
 end;
 
 procedure TPDFDocument.CreateFontDescriptor(const EmbeddedFontNum: integer; FontDef : TFontDef);
-
 var
   Arr: TPDFArray;
   FDict: TPDFDictionary;
-
 begin
   FDict:=CreateGlobalXRef.Dict;
   FDict.AddName('Type', 'FontDescriptor');
   FDict.AddName('FontName', FontDef.FName);
+  FDict.AddName('FontFamily', Fonts[EmbeddedFontNum].FTrueTypeFile.FamilyName);
   FDict.AddInteger('Ascent', StrToInt(FontDef.FAscent));
   FDict.AddInteger('Descent', StrToInt(FontDef.FDescent));
   FDict.AddInteger('CapHeight', StrToInt(FontDef.FCapHeight));
-  FDict.AddInteger('Flags', StrToInt(FontDef.FFlags));
+  FDict.AddInteger('Flags', 32);
   Arr:=CreateArray;
   FDict.AddElement('FontBBox',Arr);
   Arr.AddIntArray(FontDef.FFontBBox);
@@ -3099,14 +3287,13 @@ begin
   Arr.AddIntArray(FontDef.FCharWidth);
 end;
 
-procedure TPDFDocument.CreateFontFileEntry(const EmbeddedFontNum: integer;FontDef : TFontDef);
-
+procedure TPDFDocument.CreateFontFileEntry(const EmbeddedFontNum: integer; FontDef: TFontDef);
 var
   FDict: TPDFDictionary;
-
 begin
   FDict:=CreateGlobalXRef.Dict;
-  FDict.AddName('Filter','FlateDecode');
+  if poCompressFonts in Options then
+    FDict.AddName('Filter','FlateDecode');
   FDict.AddInteger('Length1 '+IntToStr(EmbeddedFontNum),StrToInt(FontDef.FOriginalSize));
 end;
 
@@ -3152,8 +3339,8 @@ var
 begin
   Contents:=CreateGlobalXRef;
   Contents.FStream:=CreateStream(False);
-  Result:=GLobalXRefCount-1;
-  GLobalXrefs[GLobalXRefCount-2].Dict.AddReference('Contents',Result);
+  Result:=GlobalXRefCount-1;
+  GlobalXrefs[GlobalXRefCount-2].Dict.AddReference('Contents',Result);
 end;
 
 procedure TPDFDocument.CreatePageStream(APage : TPDFPage; PageNum: integer);
@@ -3387,17 +3574,16 @@ begin
   NumFont:=0;
   for i:=0 to Fonts.Count-1 do
     begin
-    FontName:=ExtractBaseFontName(Fonts[i].Name);
-    P:=Pos('-', FontName);
-    if P>0 then
-      FtName:=LowerCase(Copy(FontName,1,P-1))
-    else
-      FtName:=LowerCase(FontName);
-    if (FtName='courier') or (FtName='helvetica') or (FtName='times') then
-      begin
-      FontName[1]:=UpCase(FontName[1]);
-      CreateStdFont(FontName,NumFont);
-      end
+    FontName := Fonts[i].Name;
+    { Acrobat Reader expects us to be case sensitive. Other PDF viewers are case-insensitive. }
+    if (FontName='Courier') or (FontName='Courier-Bold') or (FontName='Courier-Oblique') or (FontName='Courier-BoldOblique')
+        or (FontName='Helvetica') or (FontName='Helvetica-Bold') or (FontName='Helvetica-Oblique') or (FontName='Helvetica-BoldOblique')
+        or (FontName='Times-Roman') or (FontName='Times-Bold') or (FontName='Times-Italic') or (FontName='Times-BoldItalic')
+        or (FontName='Symbol')
+        or (FontName='Zapf Dingbats') then
+    begin
+      CreateStdFont(FontName, NumFont);
+    end
     else if (LoadFont(Fonts[i], FontDef)='TrueType') then
       CreateTtfFont(NumFont,FontDef)
     else
@@ -3428,6 +3614,7 @@ begin
   (Trailer.ValueByName('Size') as TPDFInteger).Value:=GlobalXRefCount;
   AStream.Position:=0;
   TPDFObject.WriteString(PDF_VERSION+CRLF, AStream);
+  TPDFObject.WriteString(PDF_BINARY_BLOB+CRLF, AStream); // write some binary data as recommended in PDF Spec section 3.4.1 (File Header)
   // write numbered indirect objects
   for i:=1 to GlobalXRefCount-1 do
     begin
@@ -3537,22 +3724,48 @@ begin
 end;
 
 function TPDFDocument.AddFont(AName: String; AColor : TARGBColor = clBlack): Integer;
-Var
-  F : TPDFFont;
-
+var
+  F: TPDFFont;
+  i: integer;
 begin
-  F:=Fonts.AddFontDef;
-  F.Name:=AName;
-  F.Color:=AColor;
-  Result:=Fonts.Count-1;
+  { reuse existing font definition if it exists }
+  for i := 0 to Fonts.Count-1 do
+  begin
+    if Fonts[i].Name = AName then
+    begin
+      Result := i;
+      Exit;
+    end;
+  end;
+  F := Fonts.AddFontDef;
+  F.Name := AName;
+  F.Color := AColor;
+  Result := Fonts.Count-1;
 end;
 
 function TPDFDocument.AddFont(AFontFile: String; AName: String; AColor: TARGBColor): Integer;
-Var
-  F : TPDFFont;
+var
+  F: TPDFFont;
+  i: integer;
+  lFName: string;
 begin
-  F:=Fonts.AddFontDef;
-  F.FontFile := AFontFile;
+  { reuse existing font definition if it exists }
+  for i := 0 to Fonts.Count-1 do
+  begin
+    if Fonts[i].Name = AName then
+    begin
+      Result := i;
+      Exit;
+    end;
+  end;
+  F := Fonts.AddFontDef;
+  if ExtractFilePath(AFontFile) <> '' then
+    // assume AFontFile is the full path to the TTF file
+    lFName := AFontFile
+  else
+    // assume it's just the TTF filename
+    lFName := IncludeTrailingPathDelimiter(FontDirectory)+AFontFile;
+  F.FontFile := lFName;
   F.Name := AName;
   F.Color := AColor;
   Result := Fonts.Count-1;
@@ -3571,6 +3784,7 @@ begin
   F.PenStyle:=APenStyle;
   Result:=FLineStyleDefs.Count-1;
 end;
+
 
 end.
 

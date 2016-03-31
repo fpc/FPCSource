@@ -51,8 +51,8 @@ type
     OriginalSize : integer;
   end;
 
-  TSmallintArray = Packed Array of Smallint;
-  TWordArray = Packed Array of Smallint;
+  TSmallintArray = Packed Array of Int16;
+  TWordArray = Packed Array of UInt16;
 
   TFixedVersionRec = packed record
     case Integer of
@@ -288,8 +288,6 @@ Type
     { Also know as the linegap. "Leading" is the gap between two lines. }
     Function Leading: SmallInt;
     Function CapHeight: SmallInt;
-    { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
-    function GetGlyphIndex(AValue: word): word;
     { Returns the glyph advance width, based on the AIndex (glyph index) value. The result is in font units. }
     function GetAdvanceWidth(AIndex: word): word;
   public
@@ -301,6 +299,8 @@ Type
     PostScriptName: string;
     FamilyName: string;
     destructor Destroy; override;
+    { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
+    function  GetGlyphIndex(AValue: word): word;
     // Load a TTF file from file or stream.
     Procedure LoadFromFile(const AFileName : String);
     Procedure LoadFromStream(AStream: TStream); virtual;
@@ -653,16 +653,16 @@ begin
   FHead.Created := BEtoN(FHead.Created);
   FHead.Modified := BEtoN(FHead.Modified);
   For i:=0 to 3 do
-    FHead.BBox[i]:=betOn(FHead.BBox[i]);
-  FHead.CheckSumAdjustment:=beton(FHead.CheckSumAdjustment);
-  FHead.MagicNumber:=beton(FHead.MagicNumber);
-  FHead.Flags:=Beton(FHead.Flags);
-  FHead.UnitsPerEm:=beton(FHead.UnitsPerEm);
-  FHead.MacStyle:=Beton(FHead.MacStyle);
-  FHead.LowestRecPPEM:=Beton(FHead.LowestRecPPEM);
-  FHead.FontDirectionHint:=Beton(FHead.FontDirectionHint);
-  FHead.IndexToLocFormat:=Beton(FHead.IndexToLocFormat);
-  FHead.glyphDataFormat:=Beton(FHead.glyphDataFormat);
+    FHead.BBox[i]:=BEtoN(FHead.BBox[i]);
+  FHead.CheckSumAdjustment:=BEtoN(FHead.CheckSumAdjustment);
+  FHead.MagicNumber:=BEtoN(FHead.MagicNumber);
+  FHead.Flags:=BEtoN(FHead.Flags);
+  FHead.UnitsPerEm:=BEtoN(FHead.UnitsPerEm);
+  FHead.MacStyle:=BEtoN(FHead.MacStyle);
+  FHead.LowestRecPPEM:=BEtoN(FHead.LowestRecPPEM);
+  FHead.FontDirectionHint:=BEtoN(FHead.FontDirectionHint);
+  FHead.IndexToLocFormat:=BEtoN(FHead.IndexToLocFormat);
+  FHead.glyphDataFormat:=BEtoN(FHead.glyphDataFormat);
 end;
 
 procedure TTFFileInfo.ParseHhea(AStream : TStream);
@@ -671,19 +671,19 @@ begin
   AStream.ReadBuffer(FHHEad,SizeOf(FHHEad));
   if IsNativeData then
     exit;
-  FHHEad.TableVersion.Version := BeToN(FHHEad.TableVersion.Version);
+  FHHEad.TableVersion.Version := BEToN(FHHEad.TableVersion.Version);
   FHHEad.TableVersion.Minor := FixMinorVersion(FHHEad.TableVersion.Minor);
-  FHHEad.Ascender:=BeToN(FHHEad.Ascender);
-  FHHEad.Descender:=BeToN(FHHEad.Descender);
-  FHHEad.LineGap:=BeToN(FHHEad.LineGap);
-  FHHEad.MinLeftSideBearing:=BeToN(FHHEad.MinLeftSideBearing);
-  FHHEad.MinRightSideBearing:=BeToN(FHHEad.MinRightSideBearing);
-  FHHEad.XMaxExtent:=BeToN(FHHEad.XMaxExtent);
-  FHHEad.CaretSlopeRise:=BeToN(FHHEad.CaretSlopeRise);
-  FHHEad.CaretSlopeRun:=BeToN(FHHEad.CaretSlopeRun);
-  FHHEad.metricDataFormat:=BeToN(FHHEad.metricDataFormat);
-  FHHEad.numberOfHMetrics:=BeToN(FHHEad.numberOfHMetrics);
-  FHHead.AdvanceWidthMax := BeToN(FHHead.AdvanceWidthMax);
+  FHHEad.Ascender:=BEToN(FHHEad.Ascender);
+  FHHEad.Descender:=BEToN(FHHEad.Descender);
+  FHHEad.LineGap:=BEToN(FHHEad.LineGap);
+  FHHEad.MinLeftSideBearing:=BEToN(FHHEad.MinLeftSideBearing);
+  FHHEad.MinRightSideBearing:=BEToN(FHHEad.MinRightSideBearing);
+  FHHEad.XMaxExtent:=BEToN(FHHEad.XMaxExtent);
+  FHHEad.CaretSlopeRise:=BEToN(FHHEad.CaretSlopeRise);
+  FHHEad.CaretSlopeRun:=BEToN(FHHEad.CaretSlopeRun);
+  FHHEad.metricDataFormat:=BEToN(FHHEad.metricDataFormat);
+  FHHEad.numberOfHMetrics:=BEToN(FHHEad.numberOfHMetrics);
+  FHHead.AdvanceWidthMax := BEToN(FHHead.AdvanceWidthMax);
 end;
 
 procedure TTFFileInfo.ParseMaxp(AStream : TStream);
@@ -696,20 +696,20 @@ begin
     begin
     VersionNumber.Version := BEtoN(VersionNumber.Version);
     VersionNumber.Minor := FixMinorVersion(VersionNumber.Minor);
-    numGlyphs:=Beton(numGlyphs);
-    maxPoints:=Beton(maxPoints);
-    maxContours:=Beton(maxContours);
-    maxCompositePoints :=BeToN(maxCompositePoints);
-    maxCompositeContours :=BeToN(maxCompositeContours);
-    maxZones :=BeToN(maxZones);
-    maxTwilightPoints :=BeToN(maxTwilightPoints);
-    maxStorage :=BeToN(maxStorage);
-    maxFunctionDefs :=BeToN(maxFunctionDefs);
-    maxInstructionDefs :=BeToN(maxInstructionDefs);
-    maxStackElements :=BeToN(maxStackElements);
-    maxSizeOfInstructions :=BeToN(maxSizeOfInstructions);
-    maxComponentElements :=BeToN(maxComponentElements);
-    maxComponentDepth :=BeToN(maxComponentDepth);
+    numGlyphs:=BEtoN(numGlyphs);
+    maxPoints:=BEtoN(maxPoints);
+    maxContours:=BEtoN(maxContours);
+    maxCompositePoints :=BEtoN(maxCompositePoints);
+    maxCompositeContours :=BEtoN(maxCompositeContours);
+    maxZones :=BEtoN(maxZones);
+    maxTwilightPoints :=BEtoN(maxTwilightPoints);
+    maxStorage :=BEtoN(maxStorage);
+    maxFunctionDefs :=BEtoN(maxFunctionDefs);
+    maxInstructionDefs :=BEtoN(maxInstructionDefs);
+    maxStackElements :=BEtoN(maxStackElements);
+    maxSizeOfInstructions :=BEtoN(maxSizeOfInstructions);
+    maxComponentElements :=BEtoN(maxComponentElements);
+    maxComponentDepth :=BEtoN(maxComponentDepth);
     end;
 end;
 
@@ -725,8 +725,8 @@ begin
     exit;
   for I:=0 to FHHead.NumberOfHMetrics-1 do
     begin
-    FWidths[I].AdvanceWidth:=beton(FWidths[I].AdvanceWidth);
-    FWidths[I].LSB:=beton(FWidths[I].LSB);
+    FWidths[I].AdvanceWidth:=BEtoN(FWidths[I].AdvanceWidth);
+    FWidths[I].LSB:=BEtoN(FWidths[I].LSB);
     end;
 end;
 
@@ -1094,7 +1094,7 @@ begin
   TE:=GetEncoding(AEncoding);
   if (TE<>teUnknown) then
     GetEncodingTables(Te,CharNames,CharCodes);
-  // Needed to mak difference
+  // Needed to make difference
   GetEncodingTables(Te,CharBase,V);
 end;
 
@@ -1243,11 +1243,11 @@ end;
 
 function TTFFileInfo.Flags: Integer;
 begin
-  Result:=32;
+  Result := 32;
   if FPostScript.IsFixedPitch<>0 then
-    Result:=Result+1;
+    Result := Result+1;
   if FPostScript.ItalicAngle<>0 then
-    Flags:= Flags+64;
+    Result := Result+64;
 end;
 
 procedure TTFFileInfo.MakePDFFontDef(const FontFile: string; const Encoding:string; Embed: Boolean);

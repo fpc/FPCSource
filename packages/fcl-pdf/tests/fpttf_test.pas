@@ -301,8 +301,8 @@ end;
 
 
 initialization
-  RegisterTest(TFPFontCacheItemTest{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TFPFontCacheListTest{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpTTF', {$endif}TFPFontCacheItemTest{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpTTF', {$endif}TFPFontCacheListTest{$ifdef fptest}.Suite{$endif});
 
 end.
 
