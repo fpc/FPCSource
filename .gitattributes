@@ -1940,6 +1940,7 @@ packages/fcl-base/examples/showver.pp svneol=native#text/plain
 packages/fcl-base/examples/showver.rc -text
 packages/fcl-base/examples/showver.res -text
 packages/fcl-base/examples/simple.xml -text
+packages/fcl-base/examples/sitest.pp svneol=native#text/plain
 packages/fcl-base/examples/sockcli.pp svneol=native#text/plain
 packages/fcl-base/examples/socksvr.pp svneol=native#text/plain
 packages/fcl-base/examples/sstream.pp svneol=native#text/plain
@@ -1956,6 +1957,8 @@ packages/fcl-base/examples/testexprpars.pp svneol=native#text/plain
 packages/fcl-base/examples/testez.pp svneol=native#text/plain
 packages/fcl-base/examples/testhres.pp svneol=native#text/plain
 packages/fcl-base/examples/testini.pp svneol=native#text/plain
+packages/fcl-base/examples/testipc_client.pp svneol=native#text/plain
+packages/fcl-base/examples/testipc_server.pp svneol=native#text/plain
 packages/fcl-base/examples/testmime.pp svneol=native#text/plain
 packages/fcl-base/examples/testnres.pp svneol=native#text/plain
 packages/fcl-base/examples/testol.pp svneol=native#text/plain
@@ -1983,6 +1986,7 @@ packages/fcl-base/examples/tstelgtk.pp svneol=native#text/plain
 packages/fcl-base/examples/txmlreg.pp svneol=native#text/plain
 packages/fcl-base/examples/xmldump.pp svneol=native#text/plain
 packages/fcl-base/fpmake.pp svneol=native#text/plain
+packages/fcl-base/src/advancedipc.pp svneol=native#text/plain
 packages/fcl-base/src/ascii85.pp svneol=native#text/plain
 packages/fcl-base/src/avl_tree.pp svneol=native#text/plain
 packages/fcl-base/src/base64.pp svneol=native#text/plain
@@ -2017,6 +2021,7 @@ packages/fcl-base/src/pooledmm.pp svneol=native#text/plain
 packages/fcl-base/src/rtfdata.inc svneol=native#text/plain
 packages/fcl-base/src/rtfpars.pp svneol=native#text/plain
 packages/fcl-base/src/rttiutils.pp svneol=native#text/plain
+packages/fcl-base/src/singleinstance.pp svneol=native#text/plain
 packages/fcl-base/src/streamcoll.pp svneol=native#text/plain
 packages/fcl-base/src/streamex.pp svneol=native#text/plain
 packages/fcl-base/src/streamio.pp svneol=native#text/plain
