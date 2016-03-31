@@ -28,12 +28,11 @@ Type
   TJSONParser = Class(TObject)
   Private
     FScanner : TJSONScanner;
-    FuseUTF8,
-    FStrict: Boolean;
+    function GetO(AIndex: TJSONOption): Boolean;
+    function GetOptions: TJSONOptions;
     function ParseNumber: TJSONNumber;
-    procedure SetStrict(const AValue: Boolean);
-    function GetUTF8 : Boolean;
-    procedure SetUTF8(const AValue: Boolean);
+    procedure SetO(AIndex: TJSONOption; AValue: Boolean);
+    procedure SetOptions(AValue: TJSONOptions);
   Protected
     procedure DoError(const Msg: String);
     function DoParse(AtCurrent,AllowEOF: Boolean): TJSONData;
@@ -45,13 +44,17 @@ Type
     Property Scanner : TJSONScanner read FScanner;
   Public
     function Parse: TJSONData;
-    Constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;
-    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = True); overload;
+    Constructor Create(Source : TStream; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
+    Constructor Create(Source : TJSONStringType; AUseUTF8 : Boolean = True); overload;deprecated 'use options form instead';
+    constructor Create(Source: TStream; AOptions: TJSONOptions); overload;
+    constructor Create(const Source: String; AOptions: TJSONOptions); overload;
     destructor Destroy();override;
     // Use strict JSON: " for strings, object members are strings, not identifiers
-    Property Strict : Boolean Read FStrict Write SetStrict;
+    Property Strict : Boolean Index joStrict Read GetO Write SetO ; deprecated 'use options instead';
     // if set to TRUE, then strings will be converted to UTF8 ansistrings, not system codepage ansistrings.
-    Property UseUTF8 : Boolean Read GetUTF8 Write SetUTF8;
+    Property UseUTF8 : Boolean index joUTF8 Read GetO Write SetO; deprecated 'Use options instead';
+    // Parsing options
+    Property Options : TJSONOptions Read GetOptions Write SetOptions;
   end;
   
   EJSONParser = Class(EParserError);
@@ -79,7 +82,7 @@ Var
 
 begin
   Data:=Nil;
-  P:=TJSONParser.Create(AStream,AUseUTF8);
+  P:=TJSONParser.Create(AStream,[joUTF8]);
   try
     Data:=P.Parse;
   finally
@@ -87,7 +90,7 @@ begin
   end;
 end;
 
-Function TJSONParser.Parse : TJSONData;
+function TJSONParser.Parse: TJSONData;
 
 begin
   if (FScanner=Nil) then
@@ -102,22 +105,22 @@ end;
   If AllowEOF is false, encountering a tkEOF will result in an exception.
 }
 
-Function TJSONParser.CurrentToken : TJSONToken;
+function TJSONParser.CurrentToken: TJSONToken;
 
 begin
   Result:=FScanner.CurToken;
 end;
 
-Function TJSONParser.CurrentTokenString : String;
+function TJSONParser.CurrentTokenString: String;
 
 begin
-  If CurrentToken in [tkString,tkIdentifier,tkNumber] then
+  If CurrentToken in [tkString,tkIdentifier,tkNumber,tkComment] then
     Result:=FScanner.CurTokenString
   else
     Result:=TokenInfos[CurrentToken];
 end;
 
-Function TJSONParser.DoParse(AtCurrent,AllowEOF : Boolean) : TJSONData;
+function TJSONParser.DoParse(AtCurrent, AllowEOF: Boolean): TJSONData;
 
 var
   T : TJSONToken;
@@ -135,7 +138,10 @@ begin
       tkNull  : Result:=CreateJSON;
       tkTrue,
       tkFalse : Result:=CreateJSON(t=tkTrue);
-      tkString : Result:=CreateJSON(CurrentTokenString);
+      tkString : if joUTF8 in Options then
+                   Result:=CreateJSON(UTF8Decode(CurrentTokenString))
+                     else
+                       Result:=CreateJSON(CurrentTokenString);
       tkCurlyBraceOpen : Result:=ParseObject;
       tkCurlyBraceClose : DoError(SErrUnexpectedToken);
       tkSQuaredBraceOpen : Result:=ParseArray;
@@ -151,7 +157,7 @@ end;
 
 
 // Creates the correct JSON number type, based on the current token.
-Function TJSONParser.ParseNumber : TJSONNumber;
+function TJSONParser.ParseNumber: TJSONNumber;
 
 Var
   I : Integer;
@@ -201,41 +207,41 @@ begin
 
 end;
 
-function TJSONParser.GetUTF8 : Boolean;
-
+function TJSONParser.GetO(AIndex: TJSONOption): Boolean;
 begin
-  if Assigned(FScanner) then
-    Result:=FScanner.UseUTF8
+  Result:=AIndex in Options;
+end;
+
+function TJSONParser.GetOptions: TJSONOptions;
+begin
+  Result:=FScanner.Options
+end;
+
+procedure TJSONParser.SetO(AIndex: TJSONOption; AValue: Boolean);
+begin
+  if aValue then
+    FScanner.Options:=FScanner.Options+[AINdex]
   else
-    Result:=FUseUTF8;  
+    FScanner.Options:=FScanner.Options-[AINdex]
 end;
 
-procedure TJSONParser.SetUTF8(const AValue: Boolean);
-
+procedure TJSONParser.SetOptions(AValue: TJSONOptions);
 begin
-  FUseUTF8:=AValue;
-  if Assigned(FScanner) then
-    FScanner.UseUTF8:=FUseUTF8;
+  FScanner.Options:=AValue;
 end;
 
-procedure TJSONParser.SetStrict(const AValue: Boolean);
-begin
-  if (FStrict=AValue) then
-     exit;
-  FStrict:=AValue;
-  If Assigned(FScanner) then
-    FScanner.Strict:=Fstrict;
-end;
 
 // Current token is {, on exit current token is }
-Function TJSONParser.ParseObject : TJSONObject;
+function TJSONParser.ParseObject: TJSONObject;
 
 Var
   T : TJSONtoken;
   E : TJSONData;
   N : String;
-  
+  LastComma : Boolean;
+
 begin
+  LastComma:=False;
   Result:=CreateJSONObject([]);
   Try
     T:=GetNextToken;
@@ -253,8 +259,13 @@ begin
       If Not (T in [tkComma,tkCurlyBraceClose]) then
         DoError(SExpectedCommaorBraceClose);
       If T=tkComma then
+        begin
         T:=GetNextToken;
+        LastComma:=(t=tkCurlyBraceClose);
+        end;
       end;
+    If LastComma and ((joStrict in Options) or not (joIgnoreTrailingComma in Options))  then // Test for ,} case
+      DoError(SErrUnExpectedToken);
   Except
     FreeAndNil(Result);
     Raise;
@@ -262,13 +273,13 @@ begin
 end;
 
 // Current token is [, on exit current token is ]
-Function TJSONParser.ParseArray : TJSONArray;
+function TJSONParser.ParseArray: TJSONArray;
 
 Var
   T : TJSONtoken;
   E : TJSONData;
   LastComma : Boolean;
-  
+  S : TJSONOPTions;
 begin
   Result:=CreateJSONArray([]);
   LastComma:=False;
@@ -288,7 +299,8 @@ begin
         LastComma:=(t=TkComma);
         end;
     Until (T=tkSquaredBraceClose);
-    If LastComma then // Test for ,] case
+    S:=Options;
+    If LastComma and ((joStrict in S) or not (joIgnoreTrailingComma in S))  then // Test for ,] case
       DoError(SErrUnExpectedToken);
   Except
     FreeAndNil(Result);
@@ -297,15 +309,15 @@ begin
 end;
 
 // Get next token, discarding whitespace
-Function TJSONParser.GetNextToken : TJSONToken ;
+function TJSONParser.GetNextToken: TJSONToken;
 
 begin
   Repeat
     Result:=FScanner.FetchToken;
-  Until (Result<>tkWhiteSpace);
+  Until (Not (Result in [tkComment,tkWhiteSpace]));
 end;
 
-Procedure TJSONParser.DoError(const Msg : String);
+procedure TJSONParser.DoError(const Msg: String);
 
 Var
   S : String;
@@ -319,15 +331,27 @@ end;
 constructor TJSONParser.Create(Source: TStream; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
-  FScanner:=TJSONScanner.Create(Source);
-  UseUTF8:=AUseUTF8;
+  FScanner:=TJSONScanner.Create(Source,[joUTF8]);
+  if AUseUTF8 then
+   Options:=Options + [joUTF8];
 end;
 
 constructor TJSONParser.Create(Source: TJSONStringType; AUseUTF8 : Boolean = True);
 begin
   Inherited Create;
-  FScanner:=TJSONScanner.Create(Source);
-  UseUTF8:=AUseUTF8;
+  FScanner:=TJSONScanner.Create(Source,[joUTF8]);
+  if AUseUTF8 then
+   Options:=Options + [joUTF8];
+end;
+
+constructor TJSONParser.Create(Source: TStream; AOptions: TJSONOptions);
+begin
+  FScanner:=TJSONScanner.Create(Source,AOptions);
+end;
+
+constructor TJSONParser.Create(const Source: String; AOptions: TJSONOptions);
+begin
+  FScanner:=TJSONScanner.Create(Source,AOptions);
 end;
 
 destructor TJSONParser.Destroy();
