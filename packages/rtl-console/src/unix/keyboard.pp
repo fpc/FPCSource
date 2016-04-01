@@ -572,6 +572,123 @@ const
      LastMouseEvent:=MouseEvent;
   end;
 
+
+  { The Extended/SGR 1006 mouse protocol, supported by xterm 277 and newer.
+    Message format: Esc [<0;123;456M  - mouse button press
+                or: Esc [<0;123;456m  - mouse button release
+    Advantages:
+      - can report X and Y coordinates larger than 223
+      - mouse release event informs us of *which* mouse button was released, so
+        we can track buttons more accurately
+      - messages use a different prefix (Esc [< instead of Esc [M) than the
+        regular mouse event messages, so there's no need to detect if the
+        terminal supports it - we can always try to enable it and then be
+        prepared to handle both types of messages }
+  procedure GenMouseEvent_ExtendedSGR1006;
+  var MouseEvent: TMouseEvent;
+      ch : char;
+      fdsin : tfdSet;
+      buttonval: LongInt;
+      tempstr: string;
+      code: LongInt;
+      X, Y: LongInt;
+      ButtonMask: Word;
+  begin
+    fpFD_ZERO(fdsin);
+    fpFD_SET(StdInputHandle,fdsin);
+
+    { read buttonval }
+    tempstr:='';
+    repeat
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      if (ch>='0') and (ch<='9') then
+        tempstr:=tempstr+ch
+      else if ch<>';' then
+        exit;
+    until ch=';';
+    Val(tempstr,buttonval,code);
+
+    { read X }
+    tempstr:='';
+    repeat
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      if (ch>='0') and (ch<='9') then
+        tempstr:=tempstr+ch
+      else if ch<>';' then
+        exit;
+    until ch=';';
+    Val(tempstr,X,code);
+
+    { read Y }
+    tempstr:='';
+    repeat
+      if inhead=intail then
+        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
+      ch:=ttyRecvChar;
+      if (ch>='0') and (ch<='9') then
+        tempstr:=tempstr+ch
+      else if (ch<>'M') and (ch<>'m') then
+        exit;
+    until (ch='M') or (ch='m');
+    Val(tempstr,Y,code);
+
+{$ifdef DebugMouse}
+    Writeln(System.StdErr, 'SGR1006:', buttonval:3, X:5, Y:5, ' ', ch);
+{$endif DebugMouse}
+
+    { let's range check X and Y just in case }
+    if (X<(Low(MouseEvent.X)+1)) or (X>(High(MouseEvent.X)+1)) then
+      exit;
+    if (Y<(Low(MouseEvent.Y)+1)) or (Y>(High(MouseEvent.Y)+1)) then
+      exit;
+    MouseEvent.X:=X-1;
+    MouseEvent.Y:=Y-1;
+    if (buttonval and 32)<>0 then
+    begin
+      MouseEvent.Action:=MouseActionMove;
+      MouseEvent.Buttons:=LastMouseEvent.Buttons;
+    end
+    else
+    begin
+      case buttonval and 67 of
+        0 : {left button press}
+          ButtonMask:=1;
+        1 : {middle button pressed }
+          ButtonMask:=2;
+        2 : { right button pressed }
+          ButtonMask:=4;
+        3 : { no button pressed }
+          ButtonMask:=0;
+        64: { button 4 pressed }
+          ButtonMask:=8;
+        65: { button 5 pressed }
+          ButtonMask:=16;
+      end;
+      if ch='M' then
+      begin
+        MouseEvent.Action:=MouseActionDown;
+        MouseEvent.Buttons:=LastMouseEvent.Buttons or ButtonMask;
+      end
+      else
+      begin
+        MouseEvent.Action:=MouseActionUp;
+        MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
+      end;
+    end;
+    PutMouseEvent(MouseEvent);
+    if (ButtonMask and (8+16)) <> 0 then // 'M' escape sequence cannot map button 4&5 release, so fake one.
+    begin
+      MouseEvent.Action:=MouseActionUp;
+      MouseEvent.Buttons:=LastMouseEvent.Buttons and not ButtonMask;
+      PutMouseEvent(MouseEvent);
+    end;
+    LastMouseEvent:=MouseEvent;
+  end;
+
 var roottree:array[char] of PTreeElement;
 
 procedure FreeElement (PT:PTreeElement);
@@ -752,7 +869,7 @@ type  key_sequence=packed record
         st:string[7];
       end;
 
-const key_sequences:array[0..277] of key_sequence=(
+const key_sequences:array[0..289] of key_sequence=(
        (char:0;scan:kbAltA;st:#27'A'),
        (char:0;scan:kbAltA;st:#27'a'),
        (char:0;scan:kbAltB;st:#27'B'),
@@ -909,14 +1026,22 @@ const key_sequences:array[0..277] of key_sequence=(
        (char:0;scan:kbShiftF10;st:#27'[21;2~'),  {xterm}
        (char:0;scan:kbShiftF11;st:#27'[23;2~'),  {xterm}
        (char:0;scan:kbShiftF12;st:#27'[24;2~'),  {xterm}
-       (char:0;scan:kbShiftF1;st:#27'O5P'),      {xterm}
-       (char:0;scan:kbShiftF2;st:#27'O5Q'),      {xterm}
-       (char:0;scan:kbShiftF3;st:#27'O5R'),      {xterm}
-       (char:0;scan:kbShiftF4;st:#27'O5S'),      {xterm}
        (char:0;scan:kbShiftF1;st:#27'O2P'),      {konsole,xterm}
        (char:0;scan:kbShiftF2;st:#27'O2Q'),      {konsole,xterm}
        (char:0;scan:kbShiftF3;st:#27'O2R'),      {konsole,xterm}
        (char:0;scan:kbShiftF4;st:#27'O2S'),      {konsole,xterm}
+       (char:0;scan:kbShiftF1;st:#27'[1;2P'),    {xterm,gnome3}
+       (char:0;scan:kbShiftF2;st:#27'[1;2Q'),    {xterm,gnome3}
+       (char:0;scan:kbShiftF3;st:#27'[1;2R'),    {xterm,gnome3}
+       (char:0;scan:kbShiftF4;st:#27'[1;2S'),    {xterm,gnome3}
+       (char:0;scan:kbCtrlF1;st:#27'O5P'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF2;st:#27'O5Q'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF3;st:#27'O5R'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF4;st:#27'O5S'),       {konsole,xterm}
+       (char:0;scan:kbCtrlF1;st:#27'[1;5P'),     {xterm,gnome3}
+       (char:0;scan:kbCtrlF2;st:#27'[1;5Q'),     {xterm,gnome3}
+       (char:0;scan:kbCtrlF3;st:#27'[1;5R'),     {xterm,gnome3}
+       (char:0;scan:kbCtrlF4;st:#27'[1;5S'),     {xterm,gnome3}
        (char:0;scan:kbCtrlF1;st:#27'[11;5~'),    {none, but expected}
        (char:0;scan:kbCtrlF2;st:#27'[12;5~'),    {none, but expected}
        (char:0;scan:kbCtrlF3;st:#27'[13;5~'),    {none, but expected}
@@ -979,6 +1104,10 @@ const key_sequences:array[0..277] of key_sequence=(
        (char:0;scan:kbAltF10;st:#27#27'Ox'),     {xterm}
        (char:0;scan:kbAltF11;st:#27#27'Oy'),     {xterm}
        (char:0;scan:kbAltF12;st:#27#27'Oz'),     {xterm}
+       (char:0;scan:kbAltF1;st:#27'[1;3P'),      {xterm,gnome3}
+       (char:0;scan:kbAltF2;st:#27'[1;3Q'),      {xterm,gnome3}
+       (char:0;scan:kbAltF3;st:#27'[1;3R'),      {xterm,gnome3}
+       (char:0;scan:kbAltF4;st:#27'[1;3S'),      {xterm,gnome3}
        (char:0;scan:kbAltF1;st:#27'O3P'),        {xterm on FreeBSD}
        (char:0;scan:kbAltF2;st:#27'O3Q'),        {xterm on FreeBSD}
        (char:0;scan:kbAltF3;st:#27'O3R'),        {xterm on FreeBSD}
@@ -1060,6 +1189,7 @@ var i:cardinal;
 
 begin
   AddSpecialSequence(#27'[M',@GenMouseEvent);
+  AddSpecialSequence(#27'[<',@GenMouseEvent_ExtendedSGR1006);
   {Unix backspace/delete hell... Is #127 a backspace or delete?}
   if copy(fpgetenv('TERM'),1,4)='cons' then
     begin
