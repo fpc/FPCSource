@@ -334,23 +334,14 @@ end;
 
 
 procedure dump_already_free(p : pheap_mem_info;var ptext : text);
-var
-  bp : pointer;
-  pcaddr : codepointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' released');
   call_free_stack(p,ptext);
   Writeln(ptext,'freed again at');
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  get_caller_stackinfo(bp,pcaddr);
-  dump_stack(ptext,bp,pcaddr);
+  dump_stack(ptext,1);
 end;
 
 procedure dump_error(p : pheap_mem_info;var ptext : text);
-var
-  bp : pointer;
-  pcaddr : codepointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8),' instead of ',hexstr(calculate_sig(p),8));
@@ -359,10 +350,7 @@ begin
       write(ptext, 'Block content: ');
       printhex(pointer(p) + sizeof(theap_mem_info), p^.size, ptext);
     end;
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  get_caller_stackinfo(bp,pcaddr);
-  dump_stack(ptext,bp,pcaddr);
+  dump_stack(ptext,1);
 end;
 
 {$ifdef EXTRA}
@@ -382,16 +370,10 @@ end;
 {$endif EXTRA}
 
 procedure dump_wrong_size(p : pheap_mem_info;size : ptruint;var ptext : text);
-var
-  bp : pointer;
-  pcaddr : codepointer;
 begin
   Writeln(ptext,'Marked memory at $',HexStr(pointer(p)+sizeof(theap_mem_info)),' invalid');
   Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  get_caller_stackinfo(bp,pcaddr);
-  dump_stack(ptext,bp,pcaddr);
+  dump_stack(ptext,1);
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(p^.extra_info) and
      (p^.extra_info^.check=$12345678) and
@@ -961,8 +943,6 @@ var
 {$ifdef windows}
   datap : pointer;
 {$endif windows}
-  bp : pointer;
-  pcaddr : codepointer;
   ptext : ^text;
 begin
   if p=nil then
@@ -1117,10 +1097,7 @@ begin
       end;
    end;
   writeln(ptext^,'pointer $',hexstr(p),' does not point to valid memory block');
-  bp:=get_frame;
-  pcaddr:=get_pc_addr;
-  get_caller_stackinfo(bp,pcaddr);
-  dump_stack(ptext^,bp,pcaddr);
+  dump_stack(ptext^,1);
   runerror(204);
 end;
 
