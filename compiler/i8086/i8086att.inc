@@ -1047,5 +1047,6 @@
 'xend',
 'xtest',
 'rdrand',
-'rdseed'
+'rdseed',
+'xgetbv'
 );

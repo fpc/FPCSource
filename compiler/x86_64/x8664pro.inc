@@ -1027,5 +1027,6 @@
 (Ch: (Ch_None, Ch_None, Ch_None)),
 (Ch: (Ch_WFlags, Ch_None, Ch_None)),
 (Ch: (Ch_Wop1, Ch_WFlags, CH_None)),
-(Ch: (Ch_Wop1, Ch_WFlags, CH_None))
+(Ch: (Ch_Wop1, Ch_WFlags, CH_None)),
+(Ch: (Ch_WEAX, Ch_WEDX, Ch_RECX))
 );

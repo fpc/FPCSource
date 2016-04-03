@@ -13656,5 +13656,12 @@
     optypes : (ot_reg16 or ot_bits32 or ot_bits64,ot_none,ot_none,ot_none);
     code    : #208#2#15#199#135;
     flags   : if_rand
+  ),
+  (
+    opcode  : A_XGETBV;
+    ops     : 0;
+    optypes : (ot_none,ot_none,ot_none,ot_none);
+    code    : #3#15#1#208;
+    flags   : if_xsave
   )
 );
