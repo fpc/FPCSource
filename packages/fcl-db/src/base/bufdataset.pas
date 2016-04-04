@@ -160,7 +160,7 @@ type
     procedure GotoBookmark(const ABookmark : PBufBookmark); virtual; abstract;
     function BookmarkValid(const ABookmark: PBufBookmark): boolean; virtual;
     function CompareBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : integer; virtual;
-    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; inline;
+    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; virtual;
 
     procedure InitialiseIndex; virtual; abstract;
 
@@ -229,6 +229,7 @@ type
     procedure StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark); override;
     procedure GotoBookmark(const ABookmark : PBufBookmark); override;
     function CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): integer; override;
+    function SameBookmarks(const ABookmark1, ABookmark2 : PBufBookmark) : boolean; override;
     procedure InitialiseIndex; override;
 
     procedure InitialiseSpareRecord(const ASpareRecord : TRecordBuffer); override;
@@ -1678,6 +1679,11 @@ begin
   // if we found lower bookmark as first, then estimated position is correct
   if ARecord1 <> ARecord2 then
     Result := -Result;
+end;
+
+function TDoubleLinkedBufIndex.SameBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
+begin
+  Result := Assigned(ABookmark1) and Assigned(ABookmark2) and (ABookmark1^.BookmarkData = ABookmark2^.BookmarkData);
 end;
 
 procedure TDoubleLinkedBufIndex.InitialiseIndex;
