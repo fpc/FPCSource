@@ -2413,6 +2413,7 @@ end;
 procedure TCustomBufDataset.CancelRecordUpdateBuffer(AUpdateBufferIndex: integer; var ABookmark: TBufBookmark);
 var
   ARecordBuffer: TRecordBuffer;
+  NBookmark    : TBufBookmark;
   i            : integer;
 begin
   with FUpdateBuffer[AUpdateBufferIndex] do
@@ -2440,31 +2441,19 @@ begin
           FCurrentIndex.GotoBookmark(@BookmarkData);
           ARecordBuffer := FCurrentIndex.CurrentRecord;
 
-          // Process all update buffers linked to this record before this record is removed
+          // Find next record's bookmark
+          FCurrentIndex.DoScrollForward;
+          FCurrentIndex.StoreCurrentRecIntoBookmark(@NBookmark);
+          // Process (re-link) all update buffers linked to this record before this record is removed
           //  Deleted records (modified+deleted) can be before this record (inserted are after this record).
           //  modified record #1, which is later deleted can be linked to another inserted record #2. In this case deleted record #1 precedes inserted #2 in update buffer.
           //  if we need revert inserted record which is linked from another inserted or deleted record, then we must re-link these records
           for i:=0 to high(FUpdateBuffer) do
-            if (FUpdateBuffer[i].UpdateKind in [ukInsert, ukDelete]) and
+            if (FUpdateBuffer[i].UpdateKind = ukDelete) and
                (FUpdateBuffer[i].NextBookmarkData.BookmarkData = BookmarkData.BookmarkData) then
-              FUpdateBuffer[i].NextBookmarkData := NextBookmarkData;
-{
-          TmpBookmark := BookmarkData;
-          BookmarkData.BookmarkData := nil; // Avoid infinite recursion...
-          if GetRecordUpdateBuffer(TmpBookmark,True,False) then
-            repeat
-              if (FCurrentUpdateBuffer<>AUpdateBufferIndex) then
-            if IncludePrior then
-              CancelRecordUpdateBuffer(FCurrentUpdateBuffer, ABookmark, IncludePrior)
-            else
-              // re-link update buffers linked to this record to next record, because this record will be removed from update buffers
-              FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData := FUpdateBuffer[AUpdateBufferIndex].NextBookmarkData;
-            until not GetRecordUpdateBuffer(TmpBookmark,True,True);
+              FUpdateBuffer[i].NextBookmarkData := NBookmark;
 
-          FCurrentUpdateBuffer := AUpdateBufferIndex;
-          FCurrentIndex.GotoBookmark(@TmpBookmark);
-}
-          // ReSync won't work if the CurrentBuffer is freed ...
+          // ReSync won't work if the CurrentBuffer is freed ... so in this case move to next/prior record
           if FCurrentIndex.SameBookmarks(@BookmarkData,@ABookmark) then with FCurrentIndex do
             begin
             GotoBookmark(@ABookmark);
@@ -2726,10 +2715,6 @@ begin
       begin
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind := ukInsert;
       FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer := nil;
-      // store a bookmark of next record into updatebuffer's nextbookmark
-      FCurrentIndex.DoScrollForward;
-      FCurrentIndex.StoreCurrentRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
-      FCurrentIndex.ScrollBackward;
       end;
     end;
 
