@@ -42,13 +42,13 @@ end;
 
 { //!! is used to mark unsupported things. }
 
-Function QuoteString (Const S : String; Quote : String) : String;
+Function QuoteString (Const S : String; Const Quote : String) : String;
 Var
   I,J : Integer;
 begin
   J:=0;
   Result:=S;
-  for i:=1to length(s) do
+  for i:=1 to length(s) do
    begin
      inc(j);
      if S[i]=Quote then
