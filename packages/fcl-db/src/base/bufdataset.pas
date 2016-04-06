@@ -89,7 +89,6 @@ type
 }
     BookmarkData       : TBufBookmark;
 {  NextBookMarkData:
-     - If UpdateKind is ukInsert, it contains a bookmark to the record just after the newly crealed record
      - If UpdateKind is ukDelete, it contains a bookmark to the record just after the deleted record
 }
     NextBookmarkData   : TBufBookmark;
@@ -2445,9 +2444,9 @@ begin
           FCurrentIndex.DoScrollForward;
           FCurrentIndex.StoreCurrentRecIntoBookmark(@NBookmark);
           // Process (re-link) all update buffers linked to this record before this record is removed
-          //  Deleted records (modified+deleted) can be before this record (inserted are after this record).
-          //  modified record #1, which is later deleted can be linked to another inserted record #2. In this case deleted record #1 precedes inserted #2 in update buffer.
-          //  if we need revert inserted record which is linked from another inserted or deleted record, then we must re-link these records
+          //  Modified record #1, which is later deleted can be linked to another inserted record #2. In this case deleted record #1 precedes inserted #2 in update buffer.
+          //  Deleted records, which are deleted after this record is inserted are in update buffer after this record.
+          //  if we need revert inserted record which is linked from another deleted records, then we must re-link these records
           for i:=0 to high(FUpdateBuffer) do
             if (FUpdateBuffer[i].UpdateKind = ukDelete) and
                (FUpdateBuffer[i].NextBookmarkData.BookmarkData = BookmarkData.BookmarkData) then
@@ -3258,7 +3257,6 @@ end;
 procedure TCustomBufDataset.IntLoadRecordsFromFile;
 
 var SavedState      : TDataSetState;
-    AddRecordBuffer : boolean;
     ARowState       : TRowState;
     AUpdOrder       : integer;
     i               : integer;
@@ -3299,8 +3297,6 @@ begin
       FDatasetReader.RestoreRecord;
       FIndexes[0].AddRecord;
       inc(FBRecordCount);
-
-      AddRecordBuffer:=False;
       end
     else if rsvDeleted in ARowState then
       begin
@@ -3324,13 +3320,8 @@ begin
       for i := FCurrentUpdateBuffer+1 to high(FUpdateBuffer) do
         if FIndexes[0].SameBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData, @FUpdateBuffer[i].NextBookmarkData) then
           FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[i].NextBookmarkData);
-
-      AddRecordBuffer:=False;
       end
     else
-      AddRecordBuffer:=True;
-
-    if AddRecordBuffer then
       begin
       FFilterBuffer:=FIndexes[0].SpareBuffer;
       fillchar(FFilterBuffer^,FNullmaskSize,0);
@@ -3344,7 +3335,6 @@ begin
         FCurrentUpdateBuffer:=AUpdOrder;
         FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukInsert;
         FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
-        FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData.BookmarkData:=nil;
         end;
 
       FIndexes[0].AddRecord;
