@@ -1023,17 +1023,25 @@ procedure DecompressStream(AFrom: TStream; ATo: TStream);
 Const
   BufSize = 1024; // 1K
 
+Type
+  TBuffer = Array[0..BufSize-1] of byte;
+
 var
   d: TDecompressionStream;
-  I,count : Integer;
-  Buffer : Array[0..BufSize-1] of byte;
-
+  Count : Integer;
+  Buffer : TBuffer;
+  
 begin
   if AFrom.Size = 0 then
   begin
     ATo.Size := 0;
     Exit; //==>
   end;
+{$IFDEF VER3}
+  Buffer := Default(TBuffer);
+{$ELSE}
+  FillChar(Buffer,SizeOf(TBuffer),0);
+{$ENDIF};
 
   AFrom.Position := 0;
   AFrom.Seek(0,soFromEnd);
