@@ -14,8 +14,14 @@ program testfppdf;
 {$codepage utf8}
 
 uses
-  {$ifdef unix}cwstring,{$endif}
-  classes, sysutils, custapp, fpimage, fpreadjpeg, fppdf, fpparsettf;
+  {$ifdef unix}cwstring,{$endif}  // required for UnicodeString handling.
+  classes,
+  sysutils,
+  custapp,
+  fpimage,
+  fpreadjpeg,
+  fppdf,
+  fpparsettf;
 
 type
 
@@ -32,6 +38,7 @@ type
     procedure   SimpleLines(D: TPDFDocument; APage: integer);
     procedure   SimpleImage(D: TPDFDocument; APage: integer);
     procedure   SimpleShapes(D: TPDFDocument; APage: integer);
+    procedure   SampleMatrixTransform(D: TPDFDocument; APage: integer);
   protected
     procedure   DoRun; override;
   public
@@ -65,7 +72,7 @@ begin
 
   Result.StartDocument;
   S := Result.Sections.AddSection; // we always need at least one section
-  lPageCount := 5;
+  lPageCount := 6;
   if Fpg <> -1 then
     lPageCount := 1;
   for i := 1 to lPageCount do
@@ -73,7 +80,7 @@ begin
     P := Result.Pages.AddPage;
     P.PaperType := ptA4;
     P.UnitOfMeasure := uomMillimeters;
-    S.AddPage(P);
+    S.AddPage(P); // Add the Page to the Section
   end;
 end;
 
@@ -107,7 +114,6 @@ procedure TPDFTestApp.SimpleText(D: TPDFDocument; APage: integer);
 var
   P : TPDFPage;
   FtTitle, FtText1, FtText2, FtText3: integer;
-  lPt1: TPDFCoord;
 begin
   P := D.Pages[APage];
 
@@ -121,61 +127,39 @@ begin
   { Page title }
   P.SetFont(FtTitle, 23);
   P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Text');
+  P.WriteText(25, 20, 'Sample Text');
 
+  // -----------------------------------
   // Write text using PDF standard fonts
-
   P.SetFont(FtTitle, 12);
   P.SetColor(clBlue, false);
-  lPt1 := P.Matrix.Transform(25, 50);
-  P.WriteText(lPt1.X, lPt1.Y, '(25mm,50mm) Helvetica: The quick brown fox jumps over the lazy dog.');
+  P.WriteText(25, 50, '(25mm,50mm) Helvetica: The quick brown fox jumps over the lazy dog.');
 
   P.SetFont(ftText2,16);
   P.SetColor($c00000, false);
-  lPt1 := P.Matrix.Transform(60, 100);
-  P.WriteText(lPt1.X, lPt1.Y, '(60mm,100mm) Times-BoldItalic: Big text at absolute position');
+  P.WriteText(60, 100, '(60mm,100mm) Times-BoldItalic: Big text at absolute position');
 
+  // -----------------------------------
   // TrueType testing purposes
-
   P.SetFont(ftText3, 13);
   P.SetColor(clBlack, false);
 
-  lPt1 := P.Matrix.Transform(15, 120);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Languages: English: Hello, World!');
-
-  lPt1 := P.Matrix.Transform(40, 130);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Greek: Γειά σου κόσμος');
-
-  lPt1 := P.Matrix.Transform(40, 140);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Polish: Witaj świecie');
-
-  lPt1 := P.Matrix.Transform(40, 150);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Portuguese: Olá mundo');
-
-  lPt1 := P.Matrix.Transform(40, 160);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Russian: Здравствулте мир');
-
-  lPt1 := P.Matrix.Transform(40, 170);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Vietnamese: Xin chào thế giới');
-
+  P.WriteUTF8Text(15, 120, 'Languages: English: Hello, World!');
+  P.WriteUTF8Text(40, 130, 'Greek: Γειά σου κόσμος');
+  P.WriteUTF8Text(40, 140, 'Polish: Witaj świecie');
+  P.WriteUTF8Text(40, 150, 'Portuguese: Olá mundo');
+  P.WriteUTF8Text(40, 160, 'Russian: Здравствулте мир');
+  P.WriteUTF8Text(40, 170, 'Vietnamese: Xin chào thế giới');
 
   P.SetFont(ftText1, 13);
-  lPt1 := P.Matrix.Transform(15, 185);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
+  P.WriteUTF8Text(15, 185, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
 
-  lPt1 := P.Matrix.Transform(15, 200);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'Typography: “What’s wrong?”');
-  lPt1 := P.Matrix.Transform(40, 210);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, '£17.99 vs £17·99');
-  lPt1 := P.Matrix.Transform(40, 220);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, '€17.99 vs €17·99');
-  lPt1 := P.Matrix.Transform(40, 230);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'OK then…    êçèûÎÐð£¢ß');
+  P.WriteUTF8Text(15, 200, 'Typography: “What’s wrong?”');
+  P.WriteUTF8Text(40, 210, '£17.99 vs £17·99');
+  P.WriteUTF8Text(40, 220, '€17.99 vs €17·99');
+  P.WriteUTF8Text(40, 230, 'OK then…    êçèûÎÐð£¢ß');
 
-  lPt1 := P.Matrix.Transform(25, 280);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
-
+  P.WriteUTF8Text(25, 280, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
 end;
 
 procedure TPDFTestApp.SimpleLinesRaw(D: TPDFDocument; APage: integer);
@@ -191,38 +175,33 @@ begin
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack, False);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Line Drawing (DrawLine)');
+  P.WriteText(25, 20, 'Sample Line Drawing (DrawLine)');
 
   P.SetColor(clBlack, True);
   P.SetPenStyle(ppsSolid);
-  lPt1 := P.Matrix.Transform(30, 100);
-  lPt2 := P.Matrix.Transform(150, 150);
+  lPt1.X := 30;   lPt1.Y := 100;
+  lPt2.X := 150;  lPt2.Y := 150;
   P.DrawLine(lPt1, lPt2, 0.2);
 
   P.SetColor(clBlue, True);
   P.SetPenStyle(ppsDash);
-  lPt1 := P.Matrix.Transform(50, 70);
-  lPt2 := P.Matrix.Transform(180, 100);
+  lPt1.X := 50;   lPt1.Y := 70;
+  lPt2.X := 180;  lPt2.Y := 100;
   P.DrawLine(lPt1, lPt2, 0.1);
+
+  { we can also use coordinates directly, without TPDFCoord variables }
 
   P.SetColor(clRed, True);
   P.SetPenStyle(ppsDashDot);
-  lPt1 := P.Matrix.Transform(40, 140);
-  lPt2 := P.Matrix.Transform(160, 80);
-  P.DrawLine(lPt1, lPt2, 1);
+  P.DrawLine(40, 140, 160, 80, 1);
 
   P.SetColor(clBlack, True);
   P.SetPenStyle(ppsDashDotDot);
-  lPt1 := P.Matrix.Transform(60, 50);
-  lPt2 := P.Matrix.Transform(60, 120);
-  P.DrawLine(lPt1, lPt2, 1.5);
+  P.DrawLine(60, 50, 60, 120, 1.5);
 
   P.SetColor(clBlack, True);
   P.SetPenStyle(ppsDot);
-  lPt1 := P.Matrix.Transform(10, 80);
-  lPt2 := P.Matrix.Transform(130, 130);
-  P.DrawLine(lPt1, lPt2, 0.5);
+  P.DrawLine(10, 80, 130, 130, 0.5);
 end;
 
 procedure TPDFTestApp.SimpleLines(D: TPDFDocument; APage: integer);
@@ -239,8 +218,7 @@ begin
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Line Drawing (DrawLineStyle)');
+  P.WriteText(25, 20, 'Sample Line Drawing (DrawLineStyle)');
 
   // write the text at position 100 mm from left and 120 mm from top
   TsThinBlack := D.AddLineStyleDef(0.2, clBlack, ppsSolid);
@@ -249,25 +227,19 @@ begin
   TsThick := D.AddLineStyleDef(1.5, clBlack, ppsDashDotDot);
   TsThinBlackDot := D.AddLineStyleDef(0.5, clBlack, ppsDot);
 
-  lPt1 := P.Matrix.Transform(30, 100);
-  lPt2 := P.Matrix.Transform(150, 150);
+  lPt1.X := 30;   lPt1.Y := 100;
+  lPt2.X := 150;  lPt2.Y := 150;
   P.DrawLineStyle(lPt1, lPt2, tsThinBlack);
 
-  lPt1 := P.Matrix.Transform(50, 70);
-  lPt2 := P.Matrix.Transform(180, 100);
+  lPt1.X := 50;   lPt1.Y := 70;
+  lPt2.X := 180;  lPt2.Y := 100;
   P.DrawLineStyle(lPt1, lPt2, tsThinBlue);
 
-  lPt1 := P.Matrix.Transform(40, 140);
-  lPt2 := P.Matrix.Transform(160, 80);
-  P.DrawLineStyle(lPt1, lPt2, tsThinRed);
+  { we can also use coordinates directly, without TPDFCoord variables }
 
-  lPt1 := P.Matrix.Transform(60, 50);
-  lPt2 := P.Matrix.Transform(60, 120);
-  P.DrawLineStyle(lPt1, lPt2, tsThick);
-
-  lPt1 := P.Matrix.Transform(10, 80);
-  lPt2 := P.Matrix.Transform(130, 130);
-  P.DrawLineStyle(lPt1.X, lPt1.Y, lPt2.X, lPt2.Y, tsThinBlackDot);  { just to test the other overloaded version too. }
+  P.DrawLineStyle(40, 140, 160, 80, tsThinRed);
+  P.DrawLineStyle(60, 50, 60, 120, tsThick);
+  P.DrawLineStyle(10, 80, 130, 130, tsThinBlackDot);
 end;
 
 procedure TPDFTestApp.SimpleImage(D: TPDFDocument; APage: integer);
@@ -276,7 +248,6 @@ Var
   FtTitle: integer;
   IDX: Integer;
   W, H: Integer;
-  lPt1: TPDFCoord;
 begin
   P := D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
@@ -285,8 +256,7 @@ begin
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Image Support');
+  P.WriteText(25, 20, 'Sample Image Support');
 
   P.SetFont(FtTitle,10);
   P.SetColor(clBlack, false);
@@ -295,25 +265,19 @@ begin
   W := D.Images[IDX].Width;
   H := D.Images[IDX].Height;
   { scalled down image (small) }
-  lPt1 := P.Matrix.Transform(25, 100); // left-bottom coordinate of image
-  P.DrawImage(lPt1.X, lPt1.Y, W div 2, H div 2, IDX);
-  lPt1 := P.Matrix.Transform(90, 75);
-  P.WriteText(lPt1.X, lPt1.Y, '[Scaled image]');
-
+  P.DrawImage(25, 100, W div 2, H div 2, IDX); // left-bottom coordinate of image
+  P.WriteText(90, 75, '[Scaled image]');
 
   { large image }
-  lPt1 := P.Matrix.Transform(35, 190);  // left-bottom coordinate of image
-  P.DrawImage(lPt1.X, lPt1.Y, W, H, IDX);
-  lPt1 := P.Matrix.Transform(160, 150);
-  P.WriteText(lPt1.X, lPt1.Y, '[Default size]');
+  P.DrawImage(35, 190, W, H, IDX);  // left-bottom coordinate of image
+  P.WriteText(160, 150, '[Default size]');
 end;
 
 procedure TPDFTestApp.SimpleShapes(D: TPDFDocument; APage: integer);
-Var
-  P : TPDFPage;
+var
+  P: TPDFPage;
   FtTitle: integer;
-//  FtText: integer;
-  lPt1, lPt2, lPt3: TPDFCoord;
+  lPt1: TPDFCoord;
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
@@ -322,203 +286,132 @@ begin
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Basic Shapes');
+  P.WriteText(25, 20, 'Basic Shapes');
 
   // ========== Rectangles ============
 
-  { Transform the origin point to the Cartesian coordinate system. }
+  { PDF origin coordinate is Bottom-Left, and we want to use Image Coordinate of Top-Left }
   lPt1.X := 30;
-  { PDF origin coordinate is Bottom-Left, and we want to use Image coordinate of Top-Left }
   lPt1.Y := 60+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetColor(clRed, true);
   P.SetColor($37b344, false); // some green color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 3, true, true);
+  P.DrawRect(lPt1.X, lPt1.Y, 40, 20, 3, true, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
   lPt1.X := 20;
-  { we need the Top-Left coordinate }
   lPt1.Y := 50+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetColor(clBlue, true);
   P.SetColor($b737b3, false); // some purple color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 1, true, true);
+  P.DrawRect(lPt1.X, lPt1.Y, 40, 20, 1, true, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 110;
-  { PDF origin coordinate is Bottom-Left, and we want to use Image cooridanet of Top-Left }
-  lPt1.Y := 70+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDashDot);
   P.SetColor(clBlue, true);
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 1, false, true);
+  P.DrawRect(110, 70+20 {origin+height}, 40, 20, 1, false, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  { PDF origin coordinate is Bottom-Left, and we want to use Image cooridanet of Top-Left }
-  lPt1.Y := 60+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDash);
   P.SetColor($37b344, true);  // some green color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 2, false, true);
+  P.DrawRect(100, 60+20 {origin+height}, 40, 20, 2, false, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 90;
-  { we need the Top-Left coordinate }
-  lPt1.Y := 50+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsSolid);
   P.SetColor($b737b3, true);  // some purple color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 4, false, true);
+  P.DrawRect(90, 50+20 {origin+height}, 40, 20, 4, false, true);
 
 
   // ========== Ellipses ============
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt2 := P.Matrix.Transform(60, 150);
   P.SetPenStyle(ppsSolid);
   P.SetColor($c00000, True);
-  P.DrawEllipse(lPt2.X, lPt2.Y, -40, 20, 3, False, True);
+  P.DrawEllipse(60, 150, -40, 20, 3, False, True);
 
+  lPt1.X := 60;
+  lPt1.Y := 150;
   P.SetColor(clBlue, true);
   P.SetColor($b737b3, false); // some purple color
-  P.DrawEllipse(lPt2, 10, 10, 1, True, True);
-(*
-  P.DrawRect(mmToPDF(lPt2.X), mmToPDF(lPt2.Y), 2, 2, 1, False, True);
-  FtText := D.AddFont('helvetica-8', clBlack);
-  P.SetFont(ftText,8);
-  P.SetColor(clblack);
-  P.WriteText(mmtoPDF(100), GetPaperHeight-mmToPDF(105),'^---(origin point)');
-*)
+  P.DrawEllipse(lPt1, 10, 10, 1, True, True);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt2 := P.Matrix.Transform(140, 150);
   P.SetPenStyle(ppsDashDot);
   P.SetColor($b737b3, True);
-  P.DrawEllipse(lPt2, 35, 20, 1, False, True);
+  P.DrawEllipse(140, 150, 35, 20, 1, False, True);
 
 
   // ========== Lines Pen Styles ============
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 30;
-  lPt1.Y := 200;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt1.Y := 200;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsSolid);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 200, 70, 200, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 210;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDash);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 210, 70, 210, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 220;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDot);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 220, 70, 220, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 230;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDashDot);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 230, 70, 230, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 240;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDashDotDot);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 240, 70, 240, 1);
 
 
   // ========== Line Attribute ============
 
-
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 170;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsSolid);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 0.2);
+  P.DrawLine(100, 170, 140, 170, 0.2);
+  P.DrawLine(100, 180, 140, 180, 0.3);
+  P.DrawLine(100, 190, 140, 190, 0.5);
+  P.DrawLine(100, 200, 140, 200, 1);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 180;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 0.3);
-
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 190;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 0.5);
-
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 200;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
-
-  lPt1.X := 100;
-  lPt1.Y := 210;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor(clRed, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 2);
+  P.DrawLine(100, 210, 140, 210, 2);
 
-  lPt1.X := 100;
-  lPt1.Y := 220;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor($37b344, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 3);
+  P.DrawLine(100, 220, 140, 220, 3);
 
-  lPt1.X := 100;
-  lPt1.Y := 230;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor(clBlue, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 4);
+  P.DrawLine(100, 230, 140, 230, 4);
 
-  lPt1.X := 100;
-  lPt1.Y := 240;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor($b737b3, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 5);
+  P.DrawLine(100, 240, 140, 240, 5);
 end;
 
+procedure TPDFTestApp.SampleMatrixTransform(D: TPDFDocument; APage: integer);
+var
+  P: TPDFPage;
+  FtTitle: integer;
+
+  procedure OutputSample;
+  var
+    b: boolean;
+  begin
+    b := P.Matrix._11 = -1;
+    P.SetFont(FtTitle, 10);
+    P.WriteText(10, 10, 'Matrix transform: ' + BoolToStr(b, True));
+    P.DrawLine(0, 0, 100, 100, 1);
+    P.WriteText(100, 100, '(line end point)');
+  end;
+
+begin
+  P:=D.Pages[APage];
+  // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
+  FtTitle := D.AddFont('Helvetica', clBlack);
+
+  { Page title }
+  P.SetFont(FtTitle,23);
+  P.SetColor(clBlack);
+  P.WriteText(75, 20, 'Matrix Transform');
+
+  OutputSample;
+
+  // enables Cartesian coordinate system for the page
+  P.Matrix.SetYScalation(1);
+  P.Matrix.SetYTranslation(0);
+
+  OutputSample;
+end;
 
 { TPDFTestApp }
 
@@ -584,6 +477,7 @@ begin
       SimpleLines(FDoc, 2);
       SimpleLinesRaw(FDoc, 3);
       SimpleImage(FDoc, 4);
+      SampleMatrixTransform(FDoc, 5);
     end
     else
     begin
@@ -593,6 +487,7 @@ begin
         3:  SimpleLines(FDoc, 0);
         4:  SimpleLinesRaw(FDoc, 0);
         5:  SimpleImage(FDoc, 0);
+        6:  SampleMatrixTransform(FDoc, 0);
       end;
     end;
 
@@ -625,4 +520,3 @@ begin
   Application.Run;
   Application.Free;
 end.
-

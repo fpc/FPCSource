@@ -85,6 +85,10 @@ type
     function Transform(APoint: TPDFCoord): TPDFCoord; overload;
     function Transform(X, Y: TPDFFloat): TPDFCoord; overload;
     function ReverseTransform(APoint: TPDFCoord): TPDFCoord;
+    procedure SetXScalation(const AValue: TPDFFloat);
+    procedure SetYScalation(const AValue: TPDFFloat);
+    procedure SetXTranslation(const AValue: TPDFFloat);
+    procedure SetYTranslation(const AValue: TPDFFloat);
   end;
 
 
@@ -547,13 +551,13 @@ type
     FTitle: String;
     FPages : TFPList; // not owned
     function GetP(AIndex : Integer): TPDFPage;
-    function GetP: INteger;
+    function GetP: Integer;
   Public
     Destructor Destroy; override;
     Procedure AddPage(APage : TPDFPage);
     Property Title : String Read FTitle Write FTitle;
     Property Pages[AIndex : Integer] : TPDFPage Read GetP;
-    Property PageCount : INteger Read GetP;
+    Property PageCount : Integer Read GetP;
   end;
 
 
@@ -657,6 +661,7 @@ type
   public
     Destructor Destroy; override;
     Function AddPage : TPDFPage;
+    procedure Add(APage: TPDFPage);
     Property Pages[AIndex : Integer] : TPDFPage Read GetP; Default;
   end;
 
@@ -1107,6 +1112,26 @@ begin
   Result.y := (APoint.y - _21) / _11;
 end;
 
+procedure TPDFMatrix.SetXScalation(const AValue: TPDFFloat);
+begin
+  _00 := AValue;
+end;
+
+procedure TPDFMatrix.SetYScalation(const AValue: TPDFFloat);
+begin
+  _11 := AValue;
+end;
+
+procedure TPDFMatrix.SetXTranslation(const AValue: TPDFFloat);
+begin
+  _20 := AValue;
+end;
+
+procedure TPDFMatrix.SetYTranslation(const AValue: TPDFFloat);
+begin
+  _21 := AValue;
+end;
+
 { TTextMappingList }
 
 function TTextMappingList.GetCount: Integer;
@@ -1476,10 +1501,17 @@ end;
 
 function TPDFPages.AddPage: TPDFPage;
 begin
-  if (Flist=Nil) then
+  if (FList=Nil) then
     FList:=TFPObjectList.Create;
   Result:=TPDFPage.Create(Document);
-  Flist.Add(Result);
+  FList.Add(Result);
+end;
+
+procedure TPDFPages.Add(APage: TPDFPage);
+begin
+  if (FList = nil) then
+    FList := TFPObjectList.Create;
+  FList.Add(APage);
 end;
 
 { TPDFPage }
@@ -1646,8 +1678,7 @@ var
   T: TPDFText;
   p: TPDFCoord;
 begin
-  p.X := X;
-  p.Y := Y;
+  p := Matrix.Transform(X, Y);
   DoUnitConversion(p);
   T := Document.CreateText(p.X, p.Y, AText);
   AddObject(T);
@@ -1665,8 +1696,7 @@ var
 begin
   if FFontIndex = -1 then
     raise EPDF.Create(SErrNoFontIndex);
-  p.X := X;
-  p.Y := Y;
+  p := Matrix.Transform(X, Y);
   DoUnitConversion(p);
   AddTextToLookupLists(AText);
   T := Document.CreateUTF8Text(p.X, p.Y, AText, FFontIndex);
@@ -1678,10 +1708,8 @@ var
   L : TPDFLineSegment;
   p1, p2: TPDFCoord;
 begin
-  p1.X := X1;
-  p1.Y := Y1;
-  p2.X := X2;
-  p2.Y := Y2;
+  p1 := Matrix.Transform(X1, Y1);
+  p2 := Matrix.Transform(X2, Y2);
   DoUnitConversion(p1);
   DoUnitConversion(p2);
   L := TPDFLineSegment.Create(Document, ALineWidth, p1.X, p1.Y, p2.X, p2.Y);
@@ -1713,8 +1741,7 @@ var
   R: TPDFRectangle;
   p1, p2: TPDFCoord;
 begin
-  p1.X := X;
-  p1.Y := Y;
+  p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
   p2.X := W;
   p2.Y := H;
@@ -1732,8 +1759,7 @@ procedure TPDFPage.DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight, ANumb
 var
   p1: TPDFCoord;
 begin
-  p1.X := X;
-  p1.Y := Y;
+  p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
   AddObject(Document.CreateImage(p1.X, p1.Y, AWidth, AHeight, ANumber));
 end;
@@ -1748,8 +1774,7 @@ procedure TPDFPage.DrawEllipse(const APosX, APosY, AWidth, AHeight,
 var
   p1, p2: TPDFCoord;
 begin
-  p1.X := APosX;
-  p1.Y := APosY;
+  p1 := Matrix.Transform(APosX, APosY);
   DoUnitConversion(p1);
   p2.X := AWidth;
   p2.Y := AHeight;
@@ -3162,10 +3187,7 @@ begin
     FontDef.FFontBBox := s;
     FontDef.FItalicAngle := IntToStr(lFontDef.ItalicAngle);
     FontDef.FStemV := IntToStr(lFontDef.StemV);
-
-    {$NOTE The 700 value is a work-around until I can figure out the character spacing problem. }
-    FontDef.FMissingWidth := '700'; //IntToStr(lFontDef.MissingWidth);
-
+    FontDef.FMissingWidth := IntToStr(lFontDef.MissingWidth);
     FontDef.FEncoding := lFontDef.Encoding;
     FontDef.FFile := lFName;
     FontDef.FOriginalSize := IntToStr(lFontDef.OriginalSize);
@@ -3206,7 +3228,6 @@ end;
 procedure TPDFDocument.CreateTTFDescendantFont(const EmbeddedFontNum: integer; FontDef: TFontDef);
 var
   FDict: TPDFDictionary;
-  N: TPDFName;
   Arr: TPDFArray;
 begin
   // add xref entry
@@ -3562,13 +3583,11 @@ begin
 end;
 
 procedure TPDFDocument.CreateFontEntries;
-
 var
-  i,p: integer;
+  i: integer;
   NumFont: integer;
-  FontName, FtName: string;
-  FontDef : TFontDef;
-
+  FontName: string;
+  FontDef: TFontDef;
 begin
   // select the font type
   NumFont:=0;
