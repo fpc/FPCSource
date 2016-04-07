@@ -737,7 +737,7 @@ var
   i, j: integer;
 begin
   try
-    fpc:=ExtractFilePath(ppudumpprog) + 'fpc' + ExtractFileExt(ppudumpprog);
+    fpc:=ExtractFilePath(ppudumpprog) + 'fpc' + ExtractFileExt(ParamStr(0));
     if not FileExists(fpc) then
       exit;
     // Find the compiler binary

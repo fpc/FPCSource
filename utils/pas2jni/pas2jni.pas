@@ -76,7 +76,7 @@ begin
   Result:=False;
   if ParamCount = 0 then begin
     ShowUsage;
-    ErrorCode:=1;
+    ExitCode:=1;
     exit;
   end;
   for i:=1 to Paramcount do begin
@@ -158,7 +158,7 @@ begin
         else
           begin
             writeln('Illegal parameter: -', s);
-            ErrorCode:=1;
+            ExitCode:=1;
             exit;
           end;
       end;
@@ -187,7 +187,7 @@ begin
     end;
   except
     writeln(Exception(ExceptObject).Message);
-    ErrorCode:=2;
+    ExitCode:=2;
   end;
 end.
 
