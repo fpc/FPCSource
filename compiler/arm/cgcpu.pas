@@ -653,7 +653,6 @@ unit cgcpu;
         if (tf_pic_uses_got in target_info.flags) and
            (cs_create_pic in current_settings.moduleswitches) then
           begin
-            include(current_procinfo.flags,pi_needs_got);
             r.refaddr:=addr_pic
           end
         else
@@ -2263,22 +2262,43 @@ unit cgcpu;
       var
         ref : treference;
         l : TAsmLabel;
+        regs : tcpuregisterset;
+        r: byte;
       begin
         if (cs_create_pic in current_settings.moduleswitches) and
            (pi_needs_got in current_procinfo.flags) and
            (tf_pic_uses_got in target_info.flags) then
           begin
+            { Procedure parametrs are not initialized at this stage.
+              Before GOT initialization code, allocate registers used for procedure parameters
+              to prevent usage of these registers for temp operations in later stages of code
+              generation. }
+            regs:=rg[R_INTREGISTER].used_in_proc;
+            for r:=RS_R0 to RS_R3 do
+              if r in regs then
+                a_reg_alloc(list, newreg(R_INTREGISTER,r,R_SUBWHOLE));
+            { Allocate scratch register R12 and use it for GOT calculations directly.
+              Otherwise the init code can be distorted in later stages of code generation. }
+            a_reg_alloc(list,NR_R12);
+
             reference_reset(ref,4);
             current_asmdata.getdatalabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
             ref.symbol:=l;
             ref.base:=NR_PC;
             ref.symboldata:=current_procinfo.aktlocaldata.last;
-            list.concat(Taicpu.op_reg_ref(A_LDR,current_procinfo.got,ref));
+            list.concat(Taicpu.op_reg_ref(A_LDR,NR_R12,ref));
             current_asmdata.getaddrlabel(l);
             current_procinfo.aktlocaldata.concat(tai_const.Create_rel_sym_offset(aitconst_32bit,l,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),-8));
             cg.a_label(list,l);
-            list.concat(Taicpu.op_reg_reg_reg(A_ADD,current_procinfo.got,NR_PC,current_procinfo.got));
+            list.concat(Taicpu.op_reg_reg_reg(A_ADD,NR_R12,NR_PC,NR_R12));
+            list.concat(Taicpu.op_reg_reg(A_MOV,current_procinfo.got,NR_R12));
+
+            { Deallocate registers }
+            a_reg_dealloc(list,NR_R12);
+            for r:=RS_R3 downto RS_R0 do
+              if r in regs then
+                a_reg_dealloc(list, newreg(R_INTREGISTER,r,R_SUBWHOLE));
           end;
       end;
 
@@ -2374,12 +2394,12 @@ unit cgcpu;
               begin
                 tmpreg:=g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol));
                 if ref.offset<>0 then
-                  a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
+                    a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
                 indirection_done:=true;
               end
             else if (cs_create_pic in current_settings.moduleswitches) then
               if (tf_pic_uses_got in target_info.flags) then
-                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym_offset(aitconst_got,ref.symbol,ref.offset))
+                current_procinfo.aktlocaldata.concat(tai_const.Create_type_sym(aitconst_got,ref.symbol))
               else
                 begin
                   { ideally, we would want to generate
@@ -2403,7 +2423,7 @@ unit cgcpu;
               current_procinfo.aktlocaldata.concat(tai_const.create_sym_offset(ref.symbol,ref.offset))
           end
         else
-          current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
+            current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
         { load consts entry }
         if not indirection_done then
@@ -2421,6 +2441,8 @@ unit cgcpu;
                 tmpref.base:=current_procinfo.got;
                 tmpref.index:=tmpreg;
                 list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
+                if ref.offset<>0 then
+                  a_op_const_reg(list,OP_ADD,OS_ADDR,ref.offset,tmpreg);
               end;
           end;
 
