@@ -29,6 +29,7 @@ unit hlcgcpu;
 interface
 
   uses
+    globtype,
     aasmdata,
     symtype,symdef,parabase,
     cgbase,cgutils,
@@ -40,7 +41,7 @@ interface
      protected
       procedure gen_loadfpu_loc_cgpara(list: TAsmList; size: tdef; const l: tlocation; const cgpara: tcgpara; locintsize: longint); override;
      public
-      function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara; override;
+      function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara; override;
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
     end;
@@ -50,10 +51,10 @@ interface
 implementation
 
   uses
-    globals, procinfo,
-    globtype,verbose,
+    globals, procinfo, symconst,
+    verbose,
     fmodule,systems,
-    aasmbase,aasmtai,
+    aasmbase,aasmtai,aasmcpu,
     paramgr,
     cpubase,tgobj,cgobj,cgcpu;
 
@@ -174,7 +175,7 @@ implementation
     end;
 
 
-  function thlcgcpu.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
+  function thlcgcpu.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
   var
     need_got_load: boolean;
   begin
@@ -191,7 +192,7 @@ implementation
         getcpuregister(list, NR_PIC_OFFSET_REG);
         list.concat(taicpu.op_reg_reg(A_MOV,S_L,current_procinfo.got,NR_PIC_OFFSET_REG));
       end;
-    Result:=inherited a_call_name(list, pd, s, paras, forceresdef, weak);
+    Result:=inherited a_call_name(list, pd, s, forceresdef, weak);
     { Free EBX }
     if need_got_load then
       ungetcpuregister(list, NR_PIC_OFFSET_REG);
