@@ -97,8 +97,7 @@ unit cpupi;
 
     procedure ti386procinfo.allocate_got_register(list: tasmlist);
       begin
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
+        if (cs_create_pic in current_settings.moduleswitches) then
           begin
             got := cg.getaddressregister(list);
           end;

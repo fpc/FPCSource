@@ -974,7 +974,7 @@ implementation
                        cpu_i386:
                          begin
                            AsmWrite(ait_const2str[aitconst_32bit]);
-                           AsmWrite(tai_const(hp).sym.name);
+                           AsmWrite(tai_const(hp).sym.name+'-_GLOBAL_OFFSET_TABLE_');
                          end;
                      else
                        InternalError(2014022602);
