@@ -25,26 +25,36 @@ FPC_SHARED_LIB_START:
         /* Align the stack to a 16 byte boundary */
         andl $~15, %esp
 
+        /* Save ebx */
+        pushl   %ebx
+
+        /* GOT init */
+        call    fpc_geteipasebx
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+
         /* Save initial stackpointer */
-        movl    %esp,__stkptr
+        movl    __stkptr@GOT(%ebx),%eax
+        movl    %esp,(%eax)
 
         /* Get environment info from libc */
-        movl    environ,%eax
+        movl    environ@GOT(%ebx),%eax
+        movl    (%eax),%eax
         /* Check if environment is NULL */
         test    %eax,%eax
         jne     env_ok
-        leal    EmptyEnv,%eax
+        movl    EmptyEnv@GOT(%ebx),%eax
 env_ok:
-        movl    %eax,operatingsystem_parameter_envp
+        movl    operatingsystem_parameter_envp@GOT(%ebx),%edx
+        movl    %eax,(%edx)
 
-        /* Register exit handler. It is called only when the main process terminates */
-        leal    FPC_LIB_EXIT,%eax
-        pushl   %eax
-        call    atexit
-        addl    $4,%esp
+        /* Restore ebx */
+        popl    %ebx
 
-        /* call main and exit normally */
-        call    PASCALMAIN
+        /* Call main */
+        call    PASCALMAIN@PLT
+        /* Call library init */
+        call    FPC_LIB_INIT_ANDROID@PLT
+
         leave
         ret
 
@@ -52,10 +62,11 @@ env_ok:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-        movzwl  operatingsystem_result,%ebx
-        pushl   %ebx
-        /* Call libc exit() */
-        call    exit
+        /* GOT init */
+        call    fpc_geteipasebx
+        addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+        /* Jump to libc exit(). _haltproc has the same declaration as exit. */
+        jmp     exit@PLT
 
 /* --------------------------------------------------------- */
 .data

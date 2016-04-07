@@ -37,28 +37,51 @@
         .globl _fpc_start
         .type _fpc_start,#function
 _fpc_start:
+        /* Get GOT */
+        ldr r3,.L_GOT1
+.LPIC1:
+        add r3,pc,r3
+
         /* Clear the frame pointer since this is the outermost frame.  */
         mov fp, #0
         /* Save initial stackpointer */
-        ldr ip,=__stkptr
+        ldr ip,.L__stkptr
+        ldr ip,[r3, ip]
         str sp,[ip]
-        mov r4,sp
+        mov r0,sp
         /* Pop argc off the stack and save a pointer to argv */
-        ldmia r4!, {r5}
-        ldr ip,=operatingsystem_parameter_argc
-        str r5,[ip]
-        ldr ip,=operatingsystem_parameter_argv
-        str r4,[ip]
+        ldmia r0!, {r1}
+        ldr ip,.Loperatingsystem_parameter_argc
+        ldr ip,[r3, ip]
+        str r1,[ip]
+        ldr ip,.Loperatingsystem_parameter_argv
+        ldr ip,[r3, ip]
+        str r0,[ip]
 
         /* calc envp */
-        add r5,r5,#1
-        add r5,r4,r5,LSL #2
-        ldr ip,=operatingsystem_parameter_envp
-        str r5,[ip]
+        add r1,r1,#1
+        add r1,r0,r1,LSL #2
+        ldr ip,.Loperatingsystem_parameter_envp
+        ldr ip,[r3, ip]
+        str r1,[ip]
         
         /* Finally go to libc startup code. It will call "PASCALMAIN" via alias "main" */
-        ldr ip,=_start
+        ldr ip,.L_start
+        ldr ip,[r3, ip]
         bx ip
+
+.L_GOT1:
+        .long _GLOBAL_OFFSET_TABLE_-.LPIC1-8
+.L__stkptr:
+        .word __stkptr(GOT)
+.L_start:
+        .word _start(GOT)
+.Loperatingsystem_parameter_argc:
+        .word operatingsystem_parameter_argc(GOT)
+.Loperatingsystem_parameter_argv:
+        .word operatingsystem_parameter_argv(GOT)
+.Loperatingsystem_parameter_envp:
+        .word operatingsystem_parameter_envp(GOT)
 
 /* --------------------------------------------------------- */
         .globl  _haltproc
@@ -67,11 +90,8 @@ _haltproc:
         .globl  _haltproc_eabi
         .type   _haltproc_eabi,#function
 _haltproc_eabi:
-        ldr r0,=operatingsystem_result
-        ldr r0,[r0]
-        /* Go to libc exit() */
-        ldr ip,=exit
-        bx ip
+        /* Simply call libc exit(). _haltproc has the same declaration as exit. */
+        blx exit
 
 /* --------------------------------------------------------- */
 .data
