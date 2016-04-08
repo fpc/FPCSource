@@ -79,6 +79,7 @@ interface
           function  openppu(ppufiletime:longint):boolean;
           function  search_unit_files(onlysource:boolean):boolean;
           function  search_unit(onlysource,shortname:boolean):boolean;
+          function  loadfrompackage:boolean;
           procedure load_interface;
           procedure load_implementation;
           procedure load_usedunits;
@@ -121,7 +122,7 @@ uses
   aasmbase,ogbase,
   parser,
   comphook,
-  entfile;
+  entfile,fpkg;
 
 
 var
@@ -505,6 +506,86 @@ var
          if not fnd then
            fnd:=SearchPathList(UnitSearchPath);
          search_unit:=fnd;
+      end;
+
+    function tppumodule.loadfrompackage: boolean;
+      var
+        singlepathstring,
+        filename : TCmdStr;
+
+        Function UnitExists(const ext:string;var foundfile:TCmdStr):boolean;
+          begin
+            if CheckVerbosity(V_Tried) then
+              Message1(unit_t_unitsearch,Singlepathstring+filename);
+            UnitExists:=FindFile(FileName,Singlepathstring,true,foundfile);
+          end;
+
+        Function PPUSearchPath(const s:TCmdStr):boolean;
+          var
+            found : boolean;
+            hs    : TCmdStr;
+          begin
+            Found:=false;
+            singlepathstring:=FixPath(s,false);
+          { Check for PPU file }
+            Found:=UnitExists(target_info.unitext,hs);
+            if Found then
+             Begin
+               SetFileName(hs,false);
+               Found:=openppufile;
+             End;
+            PPUSearchPath:=Found;
+          end;
+
+        Function SearchPathList(list:TSearchPathList):boolean;
+          var
+            hp : TCmdStrListItem;
+            found : boolean;
+          begin
+            found:=false;
+            hp:=TCmdStrListItem(list.First);
+            while assigned(hp) do
+             begin
+               found:=PPUSearchPath(hp.Str);
+               if found then
+                break;
+               hp:=TCmdStrListItem(hp.next);
+             end;
+            SearchPathList:=found;
+          end;
+
+      var
+        pkg : ppackageentry;
+        pkgunit : pcontainedunit;
+        i,idx : longint;
+      begin
+        result:=false;
+        for i:=0 to packagelist.count-1 do
+          begin
+            pkg:=ppackageentry(packagelist[i]);
+            if not assigned(pkg^.package) then
+              internalerror(2013053103);
+            idx:=pkg^.package.containedmodules.FindIndexOf(modulename^);
+            if idx>=0 then
+              begin
+                { the unit is part of this package }
+                pkgunit:=pcontainedunit(pkg^.package.containedmodules[idx]);
+                if not assigned(pkgunit^.module) then
+                  pkgunit^.module:=self;
+                filename:=pkgunit^.ppufile;
+                if not SearchPathList(unitsearchpath) then
+                  exit;
+
+                { now load the unit and all used units }
+                load_interface;
+                setdefgeneration;
+                load_usedunits;
+                Message1(unit_u_finished_loading_unit,modulename^);
+
+                result:=true;
+                break;
+              end;
+          end;
       end;
 
 
@@ -1622,6 +1703,16 @@ var
         do_load:=true;
         second_time:=false;
         set_current_module(self);
+
+        { try to load it as a package unit first }
+        if (packagelist.count>0) and loadfrompackage then
+          begin
+            do_load:=false;
+            do_reload:=false;
+            state:=ms_load;
+            { add the unit to the used units list of the program }
+            usedunits.concat(tused_unit.create(self,true,false,nil));
+          end;
 
         { A force reload }
         if do_reload then

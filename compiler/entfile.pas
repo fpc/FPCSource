@@ -38,6 +38,10 @@ const
   subentryid          = 2;
   {special}
   iberror             = 0;
+  ibstartrequireds    = 244;
+  ibendrequireds      = 245;
+  ibstartcontained    = 246;
+  ibendcontained      = 247;
   ibstartdefs         = 248;
   ibenddefs           = 249;
   ibstartsyms         = 250;
@@ -117,6 +121,8 @@ const
   ibmainname       = 90;
   ibsymtableoptions = 91;
   ibrecsymtableoptions = 91;
+  ibpackagefiles   = 92;
+  ibpackagename    = 93;
   { target-specific things }
   iblinkotherframeworks = 100;
   ibjvmnamespace = 101;
