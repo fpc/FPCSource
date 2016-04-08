@@ -86,7 +86,7 @@ implementation
 
     uses
       systems,
-      cutils,cclasses,verbose,globals,constexp,
+      cutils,cclasses,verbose,globals,constexp,fmodule,
       symconst,symbase,symdef,symsym,symcpu,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
@@ -106,7 +106,7 @@ implementation
         href    : treference;
         pool    : THashSet;
         entry   : PHashSetItem;
-
+        indirect : boolean;
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(voidpointertype));
          if (left.nodetype=typen) then
@@ -114,8 +114,19 @@ implementation
              location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
              if not is_objcclass(left.resultdef) then
                begin
+                 { we are using a direct reference if any of the following is true:
+                   - the target does not support packages
+                   - the target does not use indirect references
+                   - the class is located inside the same unit }
+                 indirect:=(tf_supports_packages in target_info.flags) and
+                           (target_info.system in systems_indirect_var_imports) and
+                           not sym_is_owned_by(left.resultdef.typesym,current_module.globalsymtable) and
+                           (
+                             (current_module.globalsymtable=current_module.localsymtable) or
+                             not sym_is_owned_by(left.resultdef.typesym,current_module.localsymtable)
+                           );
                  reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
+                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA,indirect),0,
                    voidpointertype.size);
                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,href,location.register);
                end
