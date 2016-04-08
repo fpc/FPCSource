@@ -180,8 +180,8 @@ uses
 
   function TmachoObjData.sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string;
     const
-      DwarfSect : array [sec_debug_frame..sec_debug_abbrev] of string
-        = ('sec_debug_frame','__debug_info','__debug_line','__debug_abbrev');
+      DwarfSect : array [sec_debug_frame..sec_debug_ranges] of string
+        = ('sec_debug_frame','__debug_info','__debug_line','__debug_abbrev','__debug_aranges','__debug_ranges');
     begin
       case atype of
         sec_user: Result:=aname;
@@ -243,7 +243,9 @@ uses
         sec_debug_frame,
         sec_debug_info,
         sec_debug_line,
-        sec_debug_abbrev:
+        sec_debug_abbrev,
+        sec_debug_aranges,
+        sec_debug_ranges:
           Result:=MakeSectionName(seg_DWARF, DwarfSect[atype])
 
       else

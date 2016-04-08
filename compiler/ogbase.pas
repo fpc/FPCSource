@@ -1169,6 +1169,8 @@ implementation
           {debug_info} [oso_Data,oso_debug],
           {debug_line} [oso_Data,oso_debug],
           {debug_abbrev} [oso_Data,oso_debug],
+          {debug_aranges} [oso_Data,oso_debug],
+          {debug_ranges} [oso_Data,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write],
           {toc} [oso_Data,oso_load],
           {init} [oso_Data,oso_load,oso_executable],
@@ -1218,7 +1220,7 @@ implementation
     function TObjData.sectiontype2align(atype:TAsmSectiontype):shortint;
       begin
         case atype of
-          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
             result:=1;
           sec_code,
           sec_bss,

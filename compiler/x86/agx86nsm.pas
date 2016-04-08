@@ -523,7 +523,7 @@ interface
           '.stabstr',
           '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
           '.fpc',
           '',
           '.init',
@@ -596,7 +596,7 @@ interface
                 { yes -> write the section attributes as well }
                 if atype=sec_stack then
                   writer.AsmWrite(' stack');
-                if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+                if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges] then
                   writer.AsmWrite(' use32')
                 else
                   writer.AsmWrite(' use16');
