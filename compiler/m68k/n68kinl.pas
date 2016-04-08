@@ -216,7 +216,7 @@ implementation
                   begin
                     location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                     href:=left.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
                   end;
                 else

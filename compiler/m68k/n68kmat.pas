@@ -89,7 +89,7 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE:
                 begin
-                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,left.location.reference);
+                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,left.location.reference,false);
                   if is_64bit(resultdef) then
                    begin
                      hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
@@ -194,7 +194,7 @@ implementation
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
             end;
           LOC_FPUREGISTER:
