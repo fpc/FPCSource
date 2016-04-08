@@ -26,6 +26,7 @@
 #   general_  general info
 #   exec_     calls to assembler, external linker, binder
 #   link_     internal linker
+#   package_  package handling
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -3004,7 +3005,7 @@ link_e_com_program_uses_segment_relocations=09207_E_Cannot create a .COM file, b
 #
 # Unit loading
 #
-# 10062 is the last used one
+# 10064 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -3209,6 +3210,8 @@ unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC cha
 unit_u_ppu_invalid_memory_model=10063_U_PPU is compiled for another i8086 memory model
 % This unit file was compiled for a different i8086 memory model and
 % cannot be read.
+unit_u_loading_from_package=10064_U_Loading unit $1 from package $2
+% The unit is loaded from a package.
 % \end{description}
 # EndOfTeX
 
@@ -3440,6 +3443,96 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness i
 wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
 %\end{description}
+# EndOfTeX
+
+
+#
+# Package loading and handling
+#
+# 13028 is the last used one
+#
+# BeginOfTeX
+% \section{Package loading messages.}
+% This section lists all messages that can occur when the compiler is
+% loading a package from disk into memory, saving a package from memory
+% to disk or when parsing packages in general. Many of these messages are
+% informational messages.
+% \begin{description}
+package_f_cant_find_pcp=13001_F_Can't find package $1
+% You tried to use a package of which the PCP file isn't found by the
+% compiler. Check your configuration file for the package paths.
+package_u_pcp_found=13002_U_PCP file for package $1 found
+% The PCP file for the specified package was found.
+package_e_duplicate_package=13003_E_Duplicate package $1
+% The package was already specified as required package and may not be specified
+% a second time.
+package_e_unit_deny_package=13004_E_Unit $1 can not be part of a package
+% The unit can not be part of a package because the DenyPackageUnit directive is enabled for the unit.
+package_n_implicit_unit_import=13005_N_Unit $1 is implicitely imported into package $2
+% The unit was not specified as part of the \var{contains} section and is also not included in one of the
+% required packages. Add the unit to the \var{contains} section to increase compatibility with other packages.
+package_f_cant_create_pcp=13006_F_Failed to create PCP file $2 for package $1
+% The PCP file for the package could not be created.
+package_f_cant_read_pcp=13007_F_Failed to read PCP file for package $1
+% The PCP file for the package could not be read.
+package_t_pcp_loading=13008_T_PCP loading $1
+% When the \var{-vt} switch is used, the compiler tells you
+% what packages it loads.
+package_u_pcp_name=13009_U_PCP Name: $1
+% When you use the \var{-vu} flag, the package name is shown.
+package_u_pcp_flags=13010_U_PCP Flags: $1
+% When you use the \var{-vu} flag, the package flags are shown.
+package_u_pcp_crc=13011_U_PCP Crc: $1
+% When you use the \var{-vu} flag, the package CRC check is shown.
+package_u_pcp_time=13012_U_PCP Time: $1
+% When you use the \var{-vu} flag, the time the package was compiled is shown.
+package_u_pcp_file_too_short=13013_U_PCP File too short
+% The PCP file is too short, not all declarations are present.
+package_u_pcp_invalid_header=13014_U_PCP Invalid Header (no PCP at the begin)
+% A package file contains as the first three bytes the ASCII codes of the characters \var{PCP}.
+package_u_pcp_invalid_version=13015_U_PCP Invalid Version $1
+% This package file was compiled with a different version of the compiler, and
+% cannot be read.
+package_u_pcp_invalid_processor=13016_U_PCP is compiled for another processor
+% This package file was compiled for a different processor type, and
+% cannot be read.
+package_u_pcp_invalid_target=13017_U_PCP is compiled for another target
+% This package file was compiled for a different target, and
+% cannot be read.
+package_u_pcp_write=13018_U_Writing $1
+% When you specify the \var{-vu} switch, the compiler will tell you where it
+% writes the package file.
+package_f_pcp_cannot_write=13019_F_Can't Write PCP-File
+% An error occurred when writing the package file.
+package_f_pcp_read_error=13020_F_Error reading PCP-File
+% This means that the package file was corrupted, and contains invalid
+% information. Recompilation will be necessary.
+package_f_pcp_read_unexpected_end=13021_F_unexpected end of PCP-File
+% Unexpected end of file. This may mean that the PCP file is
+% corrupted.
+package_f_pcp_invalid_entry=13022_F_Invalid PCP-File entry: $1
+% The unit the compiler is trying to read is corrupted, or generated with a
+% newer version of the compiler.
+package_u_pcp_invalid_fpumode=13023_U_Trying to use a unit which was compiled with a different FPU mode
+% Trying to compile code while using units which were not compiled with
+% the same floating point format mode. Either all code should be compiled
+% with FPU emulation on, or with FPU emulation off.
+package_t_packagesearch=13024_T_Packagesearch: $1
+% When you use the \var{-vt} option, the compiler tells you where it tries to find
+% package files.
+package_u_required_package=13025_U_Required package $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% packages a package requires.
+package_u_contained_unit=13026_U_Contained unit $1
+% When you specify the \var{-vu} switch, the compiler will tell you which
+% units a package contains.
+package_e_unit_already_contained_in_package=13027_E_Unit $1 is already contained in package $2
+% A unit specified in a contains sections must not be part of a required package. Note that
+% a unit might have become part of another package by indirectly including it.
+package_w_unit_from_indirect_package=13028_W_Unit $1 is imported from indirectly required package $2
+% If a unit from a package that is not part of the \var{requires} section is used then the package
+% should require this unit directly to avoid confusion.
+% \end{description}
 # EndOfTeX
 
 
