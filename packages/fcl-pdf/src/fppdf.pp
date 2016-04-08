@@ -613,6 +613,7 @@ type
   TPDFFont = CLass(TCollectionItem)
   private
     FColor: TARGBColor;
+    FIsStdFont: boolean;
     FName: String;
     FFontFilename: String;
     FTrueTypeFile: TTFFileInfo;
@@ -629,6 +630,7 @@ type
     Property    Name: String Read FName Write FName;
     Property    Color: TARGBColor Read FColor Write FColor;
     property    TextMapping: TTextMappingList read FTextMappingList;
+    property    IsStdFont: boolean read FIsStdFont write FIsStdFont;
   end;
 
 
@@ -721,13 +723,11 @@ type
 
   TPDFToUnicode = class(TPDFDocumentObject)
   private
-    FFontDef: TFontDef;
     FEmbeddedFontNum: integer;
   protected
     procedure Write(const AStream: TStream);override;
   public
-    constructor Create(const ADocument: TPDFDocument; const AEmbeddedFontNum: integer; AFontDef : TFontDef); overload;
-    property FontDef: TFontDef read FFontDef;
+    constructor Create(const ADocument: TPDFDocument; const AEmbeddedFontNum: integer); overload;
     property EmbeddedFontNum: integer read FEmbeddedFontNum;
   end;
 
@@ -801,16 +801,15 @@ type
     function CreatePageEntry(Parent, PageNum: integer): integer;virtual;
     function CreateOutlines: integer;virtual;
     function CreateOutlineEntry(Parent, SectNo, PageNo: integer; ATitle: string): integer;virtual;
-    function LoadFont(AFont: TPDFFont; Out FontDef : TFontDef): string;
+    function LoadFont(AFont: TPDFFont): boolean;
     procedure CreateStdFont(EmbeddedFontName: string; EmbeddedFontNum: integer);virtual;
-    procedure CreateTTFFont(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
-    procedure CreateTTFDescendantFont(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
-    procedure CreateTTFCIDSystemInfo(const EmbeddedFontNum: integer; FontDef: TFontDef);virtual;
+    procedure CreateTTFFont(const EmbeddedFontNum: integer);virtual;
+    procedure CreateTTFDescendantFont(const EmbeddedFontNum: integer);virtual;
+    procedure CreateTTFCIDSystemInfo;virtual;
     procedure CreateTp1Font(const EmbeddedFontNum: integer);virtual;
-    procedure CreateFontDescriptor(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
-    procedure CreateToUnicode(const EmbeddedFontNum: integer; FontDef : TFontDef);virtual;
-    procedure CreateFontWidth(FontDef : TFontDef);virtual;
-    procedure CreateFontFileEntry(const EmbeddedFontNum: integer; FontDef: TFontDef);virtual;
+    procedure CreateFontDescriptor(const EmbeddedFontNum: integer);virtual;
+    procedure CreateToUnicode(const EmbeddedFontNum: integer);virtual;
+    procedure CreateFontFileEntry(const EmbeddedFontNum: integer);virtual;
     procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
     Function CreateGlobalXRef: TPDFXRef;
@@ -1028,20 +1027,19 @@ Type
 
 var
   d: TDecompressionStream;
+  {$IFDEF NOHEADERWORKADOUND}
+  I: integer;
+  {$ENDIF}
   Count : Integer;
   Buffer : TBuffer;
-  
+
 begin
   if AFrom.Size = 0 then
   begin
     ATo.Size := 0;
     Exit; //==>
   end;
-{$IFDEF VER3}
-  Buffer := Default(TBuffer);
-{$ELSE}
-  FillChar(Buffer,SizeOf(TBuffer),0);
-{$ENDIF};
+  FillMem(@Buffer, SizeOf(TBuffer), 0);
 
   AFrom.Position := 0;
   AFrom.Seek(0,soFromEnd);
@@ -1212,6 +1210,7 @@ begin
     FTextMappingList := TTextMappingList.Create;
     FTrueTypeFile := TTFFileInfo.Create;
     FTrueTypeFile.LoadFromFile(FFontFilename);
+    FTrueTypeFile.PrepareFontDefinition('cp1252', True);
   end;
 end;
 
@@ -1236,6 +1235,8 @@ var
   c: word;
 begin
   Result := '';
+  if Length(AText) = 0 then
+    Exit;
   for i := 1 to Length(AText) do
   begin
     c := Word(AText[i]);
@@ -1580,7 +1581,7 @@ var
 begin
   if AText = '' then
     Exit;
-  str := UTF8ToUTF16(AText);
+  str := UTF8Decode(AText);
   Document.Fonts[FFontIndex].AddTextToMappingList(str);
 end;
 
@@ -2231,7 +2232,7 @@ function TPDFUTF8String.RemapedText: AnsiString;
 var
   s: UnicodeString;
 begin
-  s := UTF8ToUTF16(FValue);
+  s := UTF8Decode(FValue);
   Result := Document.Fonts[FontIndex].GetGlyphIndices(s);
 end;
 
@@ -2862,11 +2863,10 @@ begin
   WriteString('end'+CRLF, AStream);
 end;
 
-constructor TPDFToUnicode.Create(const ADocument: TPDFDocument; const AEmbeddedFontNum: integer; AFontDef: TFontDef);
+constructor TPDFToUnicode.Create(const ADocument: TPDFDocument; const AEmbeddedFontNum: integer);
 begin
   inherited Create(ADocument);
   FEmbeddedFontNum := AEmbeddedFontNum;
-  FFontDef := AFontDef;
 end;
 
 { TPDFDocument }
@@ -3154,18 +3154,16 @@ begin
   N := CreateName('F'+IntToStr(EmbeddedFontNum));
   FDict.AddElement('Name',N);
   AddFontNameToPages(N.Name,GLobalXRefCount-1);
-  // add font reference to all page dictionary
+  // add font reference to global page dictionary
   FontFiles.Add('');
 end;
 
-function TPDFDocument.LoadFont(AFont: TPDFFont; out FontDef: TFontDef): string;
+function TPDFDocument.LoadFont(AFont: TPDFFont): boolean;
 var
-  lFontFile: TTFFileInfo;
-  lFontDef: TPDFFontDefinition;
   lFName: string;
-  i: integer;
   s: string;
 begin
+  Result := False;
   if ExtractFilePath(AFont.FontFile) <> '' then
     // assume AFont.FontFile is the full path to the TTF file
     lFName := AFont.FontFile
@@ -3175,40 +3173,14 @@ begin
 
   if FileExists(lFName) then
   begin
-    lFontFile := TTFFileInfo.Create;
-    lFontFile.LoadFromFile(lFName);
-    lFontFile.PrepareFontDefinition('cp1252', True);
-    lFontFile.FillPDFFontDefinition(lFontDef, ExtractBaseFontName(AFont.Name), 'cp1252');
-    FontDef.FType := lFontDef.FontType;
-    FontDef.FName := lFontDef.FontName;
-    FontDef.FAscent := IntToStr(lFontDef.Ascender);
-    FontDef.FDescent := IntToStr(lFontDef.Descender);
-    FontDef.FCapHeight := IntToStr(lFontDef.CapHeight);
-    FontDef.FFlags := IntToStr(lFontDef.Flags);
-    s := '';
-    for i := 0 to 3 do
-    begin
-      if i > 0 then
-        s := s+' ';
-      s := s + IntToStr(lFontDef.BBox[i]);
-    end;
-    FontDef.FFontBBox := s;
-    FontDef.FItalicAngle := IntToStr(lFontDef.ItalicAngle);
-    FontDef.FStemV := IntToStr(lFontDef.StemV);
-    FontDef.FMissingWidth := IntToStr(lFontDef.MissingWidth);
-    FontDef.FEncoding := lFontDef.Encoding;
-    FontDef.FFile := lFName;
-    FontDef.FOriginalSize := IntToStr(lFontDef.OriginalSize);
-    FontDef.FDiffs := lFontDef.Diffs;
-    FontDef.FCharWidth := lFontDef.CharWidths;
-    Result := lFontDef.FontType;
-    lFontFile.Free;
+    s := LowerCase(ExtractFileExt(lFName));
+    Result := (s = '.ttf') or (s = '.otf');
   end
   else
     Raise EPDF.CreateFmt(rsErrReportFontFileMissing, [lFName]);
 end;
 
-procedure TPDFDocument.CreateTTFFont(const EmbeddedFontNum: integer; FontDef : TFontDef);
+procedure TPDFDocument.CreateTTFFont(const EmbeddedFontNum: integer);
 var
   FDict: TPDFDictionary;
   N: TPDFName;
@@ -3218,22 +3190,22 @@ begin
   FDict := CreateGlobalXRef.Dict;
   FDict.AddName('Type', 'Font');
   FDict.AddName('Subtype', 'Type0');
-  FDict.AddName('BaseFont', FontDef.FName);
+  FDict.AddName('BaseFont', Fonts[EmbeddedFontNum].Name);
   FDict.AddName('Encoding', 'Identity-H');
   // add name element to font dictionary
   N:=CreateName('F'+IntToStr(EmbeddedFontNum));
   FDict.AddElement('Name',N);
-  Self.AddFontNameToPages(N.Name,GlobalXRefCount-1);
-  CreateTTFDescendantFont(EmbeddedFontNum, FontDef);
+  AddFontNameToPages(N.Name,GlobalXRefCount-1);
+  CreateTTFDescendantFont(EmbeddedFontNum);
   Arr := CreateArray;
   FDict.AddElement('DescendantFonts', Arr);
   Arr.AddItem(TPDFReference.Create(self, GlobalXRefCount-4));
-  CreateToUnicode(EmbeddedFontNum, FontDef);
+  CreateToUnicode(EmbeddedFontNum);
   FDict.AddReference('ToUnicode', GlobalXRefCount-1);
-  FontFiles.Add(FontDef.FFile);
+  FontFiles.Add(Fonts[EmbeddedFontNum].FTrueTypeFile.Filename);
 end;
 
-procedure TPDFDocument.CreateTTFDescendantFont(const EmbeddedFontNum: integer; FontDef: TFontDef);
+procedure TPDFDocument.CreateTTFDescendantFont(const EmbeddedFontNum: integer);
 var
   FDict: TPDFDictionary;
   Arr: TPDFArray;
@@ -3242,13 +3214,13 @@ begin
   FDict := CreateGlobalXRef.Dict;
   FDict.AddName('Type', 'Font');
   FDict.AddName('Subtype', 'CIDFontType2');
-  FDict.AddName('BaseFont', FontDef.FName);
+  FDict.AddName('BaseFont', Fonts[EmbeddedFontNum].Name);
 
-  CreateTTFCIDSystemInfo(EmbeddedFontNum, FontDef);
+  CreateTTFCIDSystemInfo;
   FDict.AddReference('CIDSystemInfo', GlobalXRefCount-1);
 
   // add fontdescriptor reference to font dictionary
-  CreateFontDescriptor(EmbeddedFontNum,FontDef);
+  CreateFontDescriptor(EmbeddedFontNum);
   FDict.AddReference('FontDescriptor',GlobalXRefCount-2);
 
   Arr := CreateArray;
@@ -3256,7 +3228,7 @@ begin
   Arr.AddItem(TPDFTrueTypeCharWidths.Create(self, EmbeddedFontNum));
 end;
 
-procedure TPDFDocument.CreateTTFCIDSystemInfo(const EmbeddedFontNum: integer; FontDef: TFontDef);
+procedure TPDFDocument.CreateTTFCIDSystemInfo;
 var
   FDict: TPDFDictionary;
 begin
@@ -3271,59 +3243,46 @@ begin
   Assert(EmbeddedFontNum<>-1);
 end;
 
-procedure TPDFDocument.CreateFontDescriptor(const EmbeddedFontNum: integer; FontDef : TFontDef);
+procedure TPDFDocument.CreateFontDescriptor(const EmbeddedFontNum: integer);
 var
   Arr: TPDFArray;
   FDict: TPDFDictionary;
 begin
   FDict:=CreateGlobalXRef.Dict;
   FDict.AddName('Type', 'FontDescriptor');
-  FDict.AddName('FontName', FontDef.FName);
+  FDict.AddName('FontName', Fonts[EmbeddedFontNum].Name);
   FDict.AddName('FontFamily', Fonts[EmbeddedFontNum].FTrueTypeFile.FamilyName);
-  FDict.AddInteger('Ascent', StrToInt(FontDef.FAscent));
-  FDict.AddInteger('Descent', StrToInt(FontDef.FDescent));
-  FDict.AddInteger('CapHeight', StrToInt(FontDef.FCapHeight));
+  FDict.AddInteger('Ascent', Fonts[EmbeddedFontNum].FTrueTypeFile.Ascender);
+  FDict.AddInteger('Descent', Fonts[EmbeddedFontNum].FTrueTypeFile.Descender);
+  FDict.AddInteger('CapHeight', Fonts[EmbeddedFontNum].FTrueTypeFile.CapHeight);
   FDict.AddInteger('Flags', 32);
   Arr:=CreateArray;
   FDict.AddElement('FontBBox',Arr);
-  Arr.AddIntArray(FontDef.FFontBBox);
-  FDict.AddInteger('ItalicAngle',StrToInt(FontDef.FItalicAngle));
-  FDict.AddInteger('StemV',StrToInt(FontDef.FStemV));
-  FDict.AddInteger('MissingWidth', StrToInt(FontDef.FMissingWidth));
-  CreateFontFileEntry(EmbeddedFontNum,FontDef);
+  Arr.AddIntArray(Fonts[EmbeddedFontNum].FTrueTypeFile.BBox);
+  FDict.AddInteger('ItalicAngle',Fonts[EmbeddedFontNum].FTrueTypeFile.ItalicAngle);
+  FDict.AddInteger('StemV', Fonts[EmbeddedFontNum].FTrueTypeFile.StemV);
+  FDict.AddInteger('MissingWidth', Fonts[EmbeddedFontNum].FTrueTypeFile.MissingWidth);
+  CreateFontFileEntry(EmbeddedFontNum);
   FDict.AddReference('FontFile2',GlobalXRefCount-1);
 end;
 
-procedure TPDFDocument.CreateToUnicode(const EmbeddedFontNum: integer; FontDef: TFontDef);
+procedure TPDFDocument.CreateToUnicode(const EmbeddedFontNum: integer);
 var
   lXRef: TPDFXRef;
 begin
   lXRef := CreateGlobalXRef;
   lXRef.FStream := CreateStream(True);
-  lXRef.FStream.AddItem(TPDFToUnicode.Create(self, EmbeddedFontNum, FontDef));
+  lXRef.FStream.AddItem(TPDFToUnicode.Create(self, EmbeddedFontNum));
 end;
 
-
-procedure TPDFDocument.CreateFontWidth(FontDef : TFontDef);
-var
-  Arr: TPDFArray;
-  FDict: TPDFDictionary;
-
-begin
-  FDict:=CreateGlobalXRef.Dict;
-  Arr:=CreateArray;
-  FDict.AddElement('',Arr);
-  Arr.AddIntArray(FontDef.FCharWidth);
-end;
-
-procedure TPDFDocument.CreateFontFileEntry(const EmbeddedFontNum: integer; FontDef: TFontDef);
+procedure TPDFDocument.CreateFontFileEntry(const EmbeddedFontNum: integer);
 var
   FDict: TPDFDictionary;
 begin
   FDict:=CreateGlobalXRef.Dict;
   if poCompressFonts in Options then
     FDict.AddName('Filter','FlateDecode');
-  FDict.AddInteger('Length1 '+IntToStr(EmbeddedFontNum),StrToInt(FontDef.FOriginalSize));
+  FDict.AddInteger('Length1 '+IntToStr(EmbeddedFontNum), Fonts[EmbeddedFontNum].FTrueTypeFile.OriginalSize);
 end;
 
 procedure TPDFDocument.CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);
@@ -3595,7 +3554,6 @@ var
   i: integer;
   NumFont: integer;
   FontName: string;
-  FontDef: TFontDef;
 begin
   // select the font type
   NumFont:=0;
@@ -3611,8 +3569,8 @@ begin
     begin
       CreateStdFont(FontName, NumFont);
     end
-    else if (LoadFont(Fonts[i], FontDef)='TrueType') then
-      CreateTtfFont(NumFont,FontDef)
+    else if LoadFont(Fonts[i]) then
+      CreateTtfFont(NumFont)
     else
       CreateTp1Font(NumFont);  // not implemented yet
     Inc(NumFont);
@@ -3767,6 +3725,7 @@ begin
   F := Fonts.AddFontDef;
   F.Name := AName;
   F.Color := AColor;
+  F.IsStdFont := True;
   Result := Fonts.Count-1;
 end;
 
@@ -3795,6 +3754,7 @@ begin
   F.FontFile := lFName;
   F.Name := AName;
   F.Color := AColor;
+  F.IsStdFont := False;
   Result := Fonts.Count-1;
 end;
 

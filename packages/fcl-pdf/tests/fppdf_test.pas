@@ -292,7 +292,7 @@ procedure TTestPDFObject.TestFloatStr;
 
 Var
   C : Char;
-  
+
 begin
   AssertEquals('Failed on 1', '0.12', TMockPDFObject.FloatStr(TPDFFLoat(0.12)));
   AssertEquals('Failed on 2', '  12', TMockPDFObject.FloatStr(TPDFFLoat(12.00)));
@@ -309,7 +309,7 @@ begin
     AssertEquals('Failed on 9', '12.34', TMockPDFObject.FloatStr(TPDFFLoat(12.34)));
   finally
     FormatSettings.DecimalSeparator:=C;
-  end;  
+  end;
   // Set ThousandSeparator
   C:=FormatSettings.ThousandSeparator;
   FormatSettings.ThousandSeparator:=' ';
@@ -1247,7 +1247,6 @@ end;
 procedure TTestPDFImage.TestWrite;
 var
   o: TMockPDFImage;
-  ar: TPDFCoordArray;
   x, y: TPDFFLoat;
 begin
   x := 100;
@@ -1265,7 +1264,6 @@ begin
       'Q'+CRLF,
       S.DataString);
   finally
-    SetLength(ar, 0);
     o.Free;
   end;
 end;

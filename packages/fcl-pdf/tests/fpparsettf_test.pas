@@ -190,10 +190,6 @@ type
     procedure TestPostScript_minMemType1;
     procedure TestPostScript_maxMemType1;
 
-    { PDF Font Definition }
-    procedure TestPDFFontDefinition;
-    procedure TestMakePDFFontDefinition;
-
     { Utility functions }
     procedure TestGetGlyphIndex;
     procedure TestGetAdvanceWidth;
@@ -353,10 +349,6 @@ type
     procedure TestPostScript_maxMemType42;
     procedure TestPostScript_minMemType1;
     procedure TestPostScript_maxMemType1;
-
-    { PDF Font Definition }
-    procedure TestPDFFontDefinition;
-    procedure TestMakePDFFontDefinition;
   end;
 
 implementation
@@ -1122,78 +1114,6 @@ end;
 procedure TTestLiberationFont.TestPostScript_maxMemType1;
 begin
   AssertEquals('Failed on 1', 0, FI.PostScript.maxMemType1);
-end;
-
-procedure TTestLiberationFont.TestPDFFontDefinition;
-var
-  Def: TPDFFontDefinition;
-  s: string;
-begin
-  FI.FillPDFFontDefinition(Def, cFont1, 'cp1252');
-  AssertEquals('Failed on 1', 'TrueType', Def.FontType);
-  AssertEquals('Failed on 2', 'LiberationSans', Def.FontName);
-  AssertEquals('Failed on 3', 728, Def.Ascender);
-  AssertEquals('Failed on 4', -210, Def.Descender);
-  AssertEquals('Failed on 5', 688, Def.CapHeight);
-  AssertEquals('Failed on 6', 32, Def.Flags);
-
-  s := IntToStr(Def.BBox[0]) + ' ' + IntToStr(Def.BBox[1]) + ' ' +
-        IntToStr(Def.BBox[2]) + ' ' + IntToStr(Def.BBox[3]);
-  AssertEquals('Failed on 7', '-544 -303 1302 980', s);
-
-  AssertEquals('Failed on 8', 0, Def.ItalicAngle);
-  AssertEquals('Failed on 9', 70, Def.StemV);
-  AssertEquals('Failed on 10', 0, Def.MissingWidth);
-  AssertEquals('Failed on 11', -106, Def.FontUp);
-  AssertEquals('Failed on 12', 73, Def.FontUt);
-  AssertEquals('Failed on 13', 'cp1252', Def.Encoding);
-  AssertEquals('Failed on 14', ReplaceStr(cFont1, '.ttf', '.z'), Def.FontFile); // 'fonts/LiberationSans-Regular.z'
-  AssertEquals('Failed on 15', '', Def.Diffs);
-
-  { CharWidths is only valid if we called MakePDFFontDef }
-//  AssertEquals('Failed on 16', '', Def.CharWidths);
-
-  AssertEquals('Failed on 17', 350200, Def.OriginalSize);
-end;
-
-procedure TTestLiberationFont.TestMakePDFFontDefinition;
-const
-  cSection = 'LiberationSans';
-var
-  lFile: string;
-  ini: TINIFile;
-begin
-  lFile := ChangeFileExt(GetTempFileName, '.ini');
-//  writeln( lFile);
-  AssertTrue('Failed on 1', FileExists(lFile) = False);
-  try
-    FI.MakePDFFontDef(lFile, 'cp1252', True);
-    AssertTrue('Failed on 2', FileExists(lFile) = True);
-    ini := TINIFile.Create(lFile);
-    try
-      AssertEquals('Failed on 3', 'TrueType', ini.ReadString(cSection, 'FontType', ''));
-      AssertEquals('Failed on 4', 'LiberationSans', ini.ReadString(cSection, 'FontName', ''));
-      AssertEquals('Failed on 5', 728, ini.ReadInteger(cSection, 'Ascent', 0));
-      AssertEquals('Failed on 6', -210, ini.ReadInteger(cSection, 'Descent', 0));
-      AssertEquals('Failed on 7', 688, ini.ReadInteger(cSection, 'CapHeight', 0));
-      AssertEquals('Failed on 8', 32, ini.ReadInteger(cSection, 'Flags', 0));
-      AssertEquals('Failed on 9', '-544 -303 1302 980', ini.ReadString(cSection, 'FontBBox', ''));
-      AssertEquals('Failed on 10', 0, ini.ReadInteger(cSection, 'ItalicAngle', 0));
-      AssertEquals('Failed on 11', 70, ini.ReadInteger(cSection, 'StemV', 0));
-      AssertEquals('Failed on 12', 569, ini.ReadInteger(cSection, 'MissingWidth', 0));
-      AssertEquals('Failed on 13', -106, ini.ReadInteger(cSection, 'FontUp', 0));
-      AssertEquals('Failed on 14', 73, ini.ReadInteger(cSection, 'FontUt', 0));
-      AssertEquals('Failed on 15', 'cp1252', ini.ReadString(cSection, 'Encoding', ''));
-      AssertEquals('Failed on 16', ReplaceStr(lFile, '.ini', '.z'), ini.ReadString(cSection, 'FontFile', ''));
-      AssertEquals('Failed on 17', '', ini.ReadString(cSection, 'Diffs', ''));
-      AssertTrue('Failed on 18', ini.ReadString(cSection, 'CharWidth', '') <> '');
-      AssertEquals('Failed on 19', 350200, ini.ReadInteger(cSection, 'OriginalSize', 0));
-    finally
-      ini.Free;
-    end;
-  finally
-    DeleteFile(lFile);
-  end
 end;
 
 procedure TTestLiberationFont.TestGetGlyphIndex;
@@ -1975,80 +1895,6 @@ procedure TTestFreeSansFont.TestPostScript_maxMemType1;
 begin
   AssertEquals('Failed on 1', 0, FI.PostScript.maxMemType1);
 end;
-
-procedure TTestFreeSansFont.TestPDFFontDefinition;
-var
-  Def: TPDFFontDefinition;
-  s: string;
-begin
-  FI.FillPDFFontDefinition(Def, cFont1, 'cp1252');
-  AssertEquals('Failed on 1', 'TrueType', Def.FontType);
-  AssertEquals('Failed on 2', 'FreeSans', Def.FontName);
-  AssertEquals('Failed on 3', 800, Def.Ascender);
-  AssertEquals('Failed on 4', -200, Def.Descender);
-  AssertEquals('Failed on 5', 729, Def.CapHeight);
-  AssertEquals('Failed on 6', 32, Def.Flags);
-
-  s := IntToStr(Def.BBox[0]) + ' ' + IntToStr(Def.BBox[1]) + ' ' +
-        IntToStr(Def.BBox[2]) + ' ' + IntToStr(Def.BBox[3]);
-  AssertEquals('Failed on 7', '-1166 -638 2260 1050', s);
-
-  AssertEquals('Failed on 8', 0, Def.ItalicAngle);
-  AssertEquals('Failed on 9', 70, Def.StemV);
-  AssertEquals('Failed on 10', 0, Def.MissingWidth);
-  AssertEquals('Failed on 11', -176, Def.FontUp);
-  AssertEquals('Failed on 12', 50, Def.FontUt);
-  AssertEquals('Failed on 13', 'cp1252', Def.Encoding);
-  AssertEquals('Failed on 14', ReplaceStr(cFont1, '.ttf', '.z'), Def.FontFile); // 'fonts/LiberationSans-Regular.z'
-  AssertEquals('Failed on 15', '', Def.Diffs);
-
-  { CharWidths is only valid if we called MakePDFFontDef }
-//  AssertEquals('Failed on 16', '', Def.CharWidths);
-
-  AssertEquals('Failed on 17', 1563256, Def.OriginalSize);
-end;
-
-procedure TTestFreeSansFont.TestMakePDFFontDefinition;
-const
-  cSection = 'FreeSans';
-var
-  lFile: string;
-  ini: TINIFile;
-begin
-  lFile := ChangeFileExt(GetTempFileName, '.ini');
-//  writeln( lFile);
-  AssertTrue('Failed on 1', FileExists(lFile) = False);
-  try
-    FI.MakePDFFontDef(lFile, 'cp1252', True);
-    AssertTrue('Failed on 2', FileExists(lFile) = True);
-    ini := TINIFile.Create(lFile);
-    try
-      AssertEquals('Failed on 3', 'TrueType', ini.ReadString(cSection, 'FontType', ''));
-      AssertEquals('Failed on 4', 'FreeSans', ini.ReadString(cSection, 'FontName', ''));
-      AssertEquals('Failed on 5', 800, ini.ReadInteger(cSection, 'Ascent', 0));
-      AssertEquals('Failed on 6', -200, ini.ReadInteger(cSection, 'Descent', 0));
-      AssertEquals('Failed on 7', 729, ini.ReadInteger(cSection, 'CapHeight', 0));
-      AssertEquals('Failed on 8', 32, ini.ReadInteger(cSection, 'Flags', 0));
-      AssertEquals('Failed on 9', '-1166 -638 2260 1050', ini.ReadString(cSection, 'FontBBox', ''));
-      AssertEquals('Failed on 10', 0, ini.ReadInteger(cSection, 'ItalicAngle', 0));
-      AssertEquals('Failed on 11', 70, ini.ReadInteger(cSection, 'StemV', 0));
-      AssertEquals('Failed on 12', 250, ini.ReadInteger(cSection, 'MissingWidth', 0));
-      AssertEquals('Failed on 13', -176, ini.ReadInteger(cSection, 'FontUp', 0));
-      AssertEquals('Failed on 14', 50, ini.ReadInteger(cSection, 'FontUt', 0));
-      AssertEquals('Failed on 15', 'cp1252', ini.ReadString(cSection, 'Encoding', ''));
-      AssertEquals('Failed on 16', ReplaceStr(lFile, '.ini', '.z'), ini.ReadString(cSection, 'FontFile', ''));
-      AssertEquals('Failed on 17', '', ini.ReadString(cSection, 'Diffs', ''));
-      AssertTrue('Failed on 18', ini.ReadString(cSection, 'CharWidth', '') <> '');
-      AssertEquals('Failed on 19', 1563256, ini.ReadInteger(cSection, 'OriginalSize', 0));
-    finally
-      ini.Free;
-    end;
-  finally
-    DeleteFile(lFile);
-  end
-end;
-
-
 
 
 initialization
