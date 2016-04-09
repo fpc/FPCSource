@@ -148,7 +148,7 @@ begin
   P.WriteUTF8Text(40, 130, 'Greek: Γειά σου κόσμος');
   P.WriteUTF8Text(40, 140, 'Polish: Witaj świecie');
   P.WriteUTF8Text(40, 150, 'Portuguese: Olá mundo');
-  P.WriteUTF8Text(40, 160, 'Russian: Здравствулте мир');
+  P.WriteUTF8Text(40, 160, 'Russian: Здравствуйте мир');
   P.WriteUTF8Text(40, 170, 'Vietnamese: Xin chào thế giới');
 
   P.SetFont(ftText1, 13);
