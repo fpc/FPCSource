@@ -29,7 +29,8 @@ type
     seListenFailed,
     seConnectFailed,
     seAcceptFailed,
-    seAcceptWouldBlock);
+    seAcceptWouldBlock,
+    seIOTimeOut);
 
   TSocketOption = (soDebug,soReuseAddr,soKeepAlive,soDontRoute,soBroadcast,
                    soOOBinline);
@@ -79,11 +80,13 @@ type
     FSocketOptions : TSocketOptions;
     FWriteFlags: Integer;
     FHandler : TSocketHandler;
+    FIOTimeout : Integer;
     function GetLastError: Integer;
     Procedure GetSockOptions;
     Procedure SetSocketOptions(Value : TSocketOptions);
     function GetLocalAddress: TSockAddr;
     function GetRemoteAddress: TSockAddr;
+    procedure SetIOTimeout(AValue: Integer);
   Public
     Constructor Create (AHandle : Longint; AHandler : TSocketHandler = Nil);virtual;
     destructor Destroy; override;
@@ -97,6 +100,7 @@ type
     Property LastError : Integer Read GetLastError;
     Property ReadFlags : Integer Read FReadFlags Write FReadFlags;
     Property WriteFlags : Integer Read FWriteFlags Write FWriteFlags;
+    Property IOTimeout : Integer read FIOTimeout Write SetIOTimeout;
   end;
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
@@ -254,7 +258,9 @@ resourcestring
   strSocketConnectFailed = 'Connect to %s failed.';
   strSocketAcceptFailed = 'Could not accept a client connection on socket: %d, error %d';
   strSocketAcceptWouldBlock = 'Accept would block on socket: %d';
+  strSocketIOTimeOut = 'Failed to set IO Timeout to %d';
   strErrNoStream = 'Socket stream not assigned';
+  
 { TSocketHandler }
 
 Procedure TSocketHandler.SetSocket(const AStream: TSocketStream);
@@ -350,13 +356,14 @@ var
 begin
   Code := ACode;
   case ACode of
-    seHostNotFound  : s := strHostNotFound;
-    seCreationFailed: s := strSocketCreationFailed;
-    seBindFailed    : s := strSocketBindFailed;
-    seListenFailed  : s := strSocketListenFailed;
-    seConnectFailed : s := strSocketConnectFailed;
-    seAcceptFailed  : s := strSocketAcceptFailed;
-    seAcceptWouldBLock : S:= strSocketAcceptWouldBlock;
+    seHostNotFound     : s := strHostNotFound;
+    seCreationFailed   : s := strSocketCreationFailed;
+    seBindFailed       : s := strSocketBindFailed;
+    seListenFailed     : s := strSocketListenFailed;
+    seConnectFailed    : s := strSocketConnectFailed;
+    seAcceptFailed     : s := strSocketAcceptFailed;
+    seAcceptWouldBLock : S := strSocketAcceptWouldBlock;
+    seIOTimeout        : S := strSocketIOTimeOut;
   end;
   s := Format(s, MsgArgs);
   inherited Create(s);
@@ -386,9 +393,28 @@ begin
   inherited Destroy;
 end;
 
-Procedure TSocketStream.GetSockOptions;
-
+procedure TSocketStream.GetSockOptions;
+{$ifdef windows}
+var
+  opt: DWord;
+  olen: tsocklen;
+{$endif windows}
+{$ifdef unix}
+var
+  time: ttimeval;
+  olen: tsocklen;
+{$endif unix}
 begin
+  {$ifdef windows}
+  olen:=4;
+  if fpgetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @opt, @olen) = 0 then
+    FIOTimeout:=opt;
+  {$endif windows}
+  {$ifdef unix}
+  olen:=sizeof(time);
+  if fpgetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @time, @olen) = 0 then
+    FIOTimeout:=(time.tv_sec*1000)+(time.tv_usec div 1000);
+  {$endif}
 end;
 
 function TSocketStream.GetLastError: Integer;
@@ -437,6 +463,37 @@ begin
     FillChar(Result, SizeOf(Result), 0);
 end;
 
+procedure TSocketStream.SetIOTimeout(AValue: Integer);
+
+Var
+  E : Boolean;
+{$ifdef windows}
+  opt: DWord;
+{$endif windows}
+{$ifdef unix}
+  time: ttimeval;
+{$endif unix}
+
+begin
+  if FIOTimeout=AValue then Exit;
+  FIOTimeout:=AValue;
+
+  {$ifdef windows}
+  opt := AValue;
+  E:=fpsetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @opt, 4)<>0;
+  if not E then
+    E:=fpsetsockopt(Handle, SOL_SOCKET, SO_SNDTIMEO, @opt, 4)<>0;
+  {$endif windows}
+  {$ifdef unix}
+  time.tv_sec:=avalue div 1000;
+  time.tv_usec:=(avalue mod 1000) * 1000;
+  E:=fpsetsockopt(Handle, SOL_SOCKET, SO_RCVTIMEO, @time, sizeof(time))<>0;
+  if not E then
+    E:=fpsetsockopt(Handle, SOL_SOCKET, SO_SNDTIMEO, @time, sizeof(time))<>0;
+  {$endif}
+  if E then
+    Raise ESocketError.Create(seIOTimeout,[AValue]);
+end;
 
 { ---------------------------------------------------------------------
     TSocketServer

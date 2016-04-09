@@ -502,6 +502,10 @@ implementation
 
              ait_directive :
                begin
+                 { the CPU directive is probably not supported by the JVM assembler,
+                   so it's commented out }
+                 if tai_directive(hp).directive=asd_cpu then
+                   writer.AsmWrite(asminfo^.comment);
                  writer.AsmWrite('.'+directivestr[tai_directive(hp).directive]+' ');
                  if tai_directive(hp).name<>'' then
                    writer.AsmWrite(tai_directive(hp).name);

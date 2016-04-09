@@ -96,11 +96,11 @@ type
   Protected
     //Property setters
     Procedure SetadditionalEventTypes(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SeteventTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventTimeMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfromUserDeletion(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setmove(AIndex : Integer; AValue : TMove); virtual;
     Procedure SetpermissionChanges(AIndex : Integer; AValue : TEventTypepermissionChangesArray); virtual;
-    Procedure SetprimaryEventType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprimaryEventType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrename(AIndex : Integer; AValue : TRename); virtual;
     Procedure Settarget(AIndex : Integer; AValue : TTarget); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
@@ -133,7 +133,7 @@ type
   Protected
     //Property setters
     Procedure Setactivities(AIndex : Integer; AValue : TListActivitiesResponseTypeactivitiesArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -179,9 +179,9 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisRoot(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -205,10 +205,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
     Procedure SetwithLink(AIndex : Integer; AValue : boolean); virtual;
   Public
@@ -254,7 +254,7 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property url : String Index 0 Read Furl Write Seturl;
@@ -271,8 +271,8 @@ type
     FoldTitle : String;
   Protected
     //Property setters
-    Procedure SetnewTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoldTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnewTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoldTitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property newTitle : String Index 0 Read FnewTitle Write SetnewTitle;
@@ -291,9 +291,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmimeType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmimeType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -312,7 +312,7 @@ type
     Fphoto : TPhoto;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setphoto(AIndex : Integer; AValue : TPhoto); virtual;
   Public
   Published
@@ -442,7 +442,7 @@ end;
 
 
 
-Procedure TEvent.SeteventTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TEvent.SeteventTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventTimeMillis=AValue) then exit;
@@ -482,7 +482,7 @@ end;
 
 
 
-Procedure TEvent.SetprimaryEventType(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetprimaryEventType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryEventType=AValue) then exit;
@@ -553,7 +553,7 @@ end;
 
 
 
-Procedure TListActivitiesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListActivitiesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -624,7 +624,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParent.Setid(AIndex : Integer; AValue : String); 
+Procedure TParent.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -644,7 +644,7 @@ end;
 
 
 
-Procedure TParent.Settitle(AIndex : Integer; AValue : String); 
+Procedure TParent.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -661,7 +661,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermission.Setname(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -671,7 +671,7 @@ end;
 
 
 
-Procedure TPermission.SetpermissionId(AIndex : Integer; AValue : String); 
+Procedure TPermission.SetpermissionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -681,7 +681,7 @@ end;
 
 
 
-Procedure TPermission.Setrole(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setrole(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -691,7 +691,7 @@ end;
 
 
 
-Procedure TPermission.Set_type(AIndex : Integer; AValue : String); 
+Procedure TPermission.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -780,7 +780,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPhoto.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPhoto.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -797,7 +797,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRename.SetnewTitle(AIndex : Integer; AValue : String); 
+Procedure TRename.SetnewTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnewTitle=AValue) then exit;
@@ -807,7 +807,7 @@ end;
 
 
 
-Procedure TRename.SetoldTitle(AIndex : Integer; AValue : String); 
+Procedure TRename.SetoldTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoldTitle=AValue) then exit;
@@ -824,7 +824,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTarget.Setid(AIndex : Integer; AValue : String); 
+Procedure TTarget.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -834,7 +834,7 @@ end;
 
 
 
-Procedure TTarget.SetmimeType(AIndex : Integer; AValue : String); 
+Procedure TTarget.SetmimeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmimeType=AValue) then exit;
@@ -844,7 +844,7 @@ end;
 
 
 
-Procedure TTarget.Setname(AIndex : Integer; AValue : String); 
+Procedure TTarget.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -861,7 +861,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setname(AIndex : Integer; AValue : String); 
+Procedure TUser.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;

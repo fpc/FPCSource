@@ -34,16 +34,20 @@ Var
   F : TFileStream;
 
 begin
-  If ParamCount<=1 then
+  If ParamCount<1 then
     begin
-    Writeln('Usage ',ParamStr(0),' zipfile file1 [file2 [...]]');
+    Writeln('Usage ',ParamStr(0),' zipfile [file1 [file2 [...]]]');
     Terminate;
     exit;
     end;
   FUnZipper.FileName:=ParamStr(1);
+  FUnZipper.UseUTF8:=True;
   FUnZipper.Examine;
-  For I:=2 to ParamCount do
-    FFiles.Add(ParamStr(I));
+  if ParamCount=1 then
+    FUnZipper.UnZipAllFiles
+  else
+    For I:=2 to ParamCount do
+      FFiles.Add(ParamStr(I));
   FUnZipper.UnZipFiles(FFiles);
   Terminate;
 end;

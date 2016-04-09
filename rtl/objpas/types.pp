@@ -69,6 +69,7 @@ type
 {$endif}
 
 {$ifdef Windows}
+  TArray4IntegerType = Windows.TArray4IntegerType;
   TSmallPoint = Windows.TSmallPoint;
   PSmallPoint = Windows.PSmallPoint;
 
@@ -82,6 +83,13 @@ type
 
   TRect  = Windows.TRect;
   PRect  = Windows.PRect;
+  TSplitRectType = Windows.TSplitRectType;
+const
+  srLeft = TSplitRectType.srLeft;
+  srRight = TSplitRectType.srRight;
+  srTop = TSplitRectType.srTop;
+  srBottom = TSplitRectType.srBottom;
+type
 {$else}
   {$i typshrdh.inc}
    TagSize = tSize deprecated;

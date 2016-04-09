@@ -54,14 +54,14 @@ type
     Ftag : String;
   Protected
     //Property setters
-    Procedure SetenqueueTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetleaseTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpayloadBase64(AIndex : Integer; AValue : String); virtual;
-    Procedure SetqueueName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetenqueueTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetleaseTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpayloadBase64(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetqueueName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setretry_count(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property enqueueTimestamp : String Index 0 Read FenqueueTimestamp Write SetenqueueTimestamp;
@@ -113,9 +113,9 @@ type
     FtotalTasks : integer;
   Protected
     //Property setters
-    Procedure SetleasedLastHour(AIndex : Integer; AValue : String); virtual;
-    Procedure SetleasedLastMinute(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoldestTask(AIndex : Integer; AValue : String); virtual;
+    Procedure SetleasedLastHour(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetleasedLastMinute(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoldestTask(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalTasks(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -140,8 +140,8 @@ type
   Protected
     //Property setters
     Procedure Setacl(AIndex : Integer; AValue : TTaskQueueTypeacl); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxLeases(AIndex : Integer; AValue : integer); virtual;
     Procedure Setstats(AIndex : Integer; AValue : TTaskQueueTypestats); virtual;
   Public
@@ -165,7 +165,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -188,7 +188,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTasks2TypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -315,7 +315,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TTask.SetenqueueTimestamp(AIndex : Integer; AValue : String); 
+Procedure TTask.SetenqueueTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FenqueueTimestamp=AValue) then exit;
@@ -325,7 +325,7 @@ end;
 
 
 
-Procedure TTask.Setid(AIndex : Integer; AValue : String); 
+Procedure TTask.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -335,7 +335,7 @@ end;
 
 
 
-Procedure TTask.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTask.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -345,7 +345,7 @@ end;
 
 
 
-Procedure TTask.SetleaseTimestamp(AIndex : Integer; AValue : String); 
+Procedure TTask.SetleaseTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleaseTimestamp=AValue) then exit;
@@ -355,7 +355,7 @@ end;
 
 
 
-Procedure TTask.SetpayloadBase64(AIndex : Integer; AValue : String); 
+Procedure TTask.SetpayloadBase64(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpayloadBase64=AValue) then exit;
@@ -365,7 +365,7 @@ end;
 
 
 
-Procedure TTask.SetqueueName(AIndex : Integer; AValue : String); 
+Procedure TTask.SetqueueName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FqueueName=AValue) then exit;
@@ -385,7 +385,7 @@ end;
 
 
 
-Procedure TTask.Settag(AIndex : Integer; AValue : String); 
+Procedure TTask.Settag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -454,7 +454,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueueTypestats.SetleasedLastHour(AIndex : Integer; AValue : String); 
+Procedure TTaskQueueTypestats.SetleasedLastHour(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleasedLastHour=AValue) then exit;
@@ -464,7 +464,7 @@ end;
 
 
 
-Procedure TTaskQueueTypestats.SetleasedLastMinute(AIndex : Integer; AValue : String); 
+Procedure TTaskQueueTypestats.SetleasedLastMinute(AIndex : Integer; const AValue : String); 
 
 begin
   If (FleasedLastMinute=AValue) then exit;
@@ -474,7 +474,7 @@ end;
 
 
 
-Procedure TTaskQueueTypestats.SetoldestTask(AIndex : Integer; AValue : String); 
+Procedure TTaskQueueTypestats.SetoldestTask(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoldestTask=AValue) then exit;
@@ -511,7 +511,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setid(AIndex : Integer; AValue : String); 
+Procedure TTaskQueue.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -521,7 +521,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTaskQueue.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -568,7 +568,7 @@ end;
 
 
 
-Procedure TTasks.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTasks.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -608,7 +608,7 @@ end;
 
 
 
-Procedure TTasks2.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTasks2.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

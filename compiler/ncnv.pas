@@ -2563,8 +2563,11 @@ implementation
                 result:=
                   (docheckremoveinttypeconvs(tbinarynode(n).left) and
                    docheckremoveinttypeconvs(tbinarynode(n).right)) or
-                  ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
-                  ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right));
+                  { in case of div/mod, the result of that division/modulo can
+                    usually be different in 32 and 64 bit }
+                  (not gotdivmod and
+                   (((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
+                    ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
               end;
           end;
         end;

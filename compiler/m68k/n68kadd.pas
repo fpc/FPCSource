@@ -157,7 +157,7 @@ implementation
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
                     end
                 else
@@ -194,7 +194,7 @@ implementation
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
                     end
                 else
@@ -307,7 +307,7 @@ implementation
              LOC_CREFERENCE:
                begin
                  href:=left.location.reference;
-                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
                end;
@@ -350,7 +350,7 @@ implementation
          LOC_CREFERENCE:
            begin
              href:=right.location.reference;
-             tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+             tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,href,
                left.location.register));
            end;
@@ -475,7 +475,7 @@ implementation
               LOC_CREFERENCE:
                 begin
                   href:=left.location.reference;
-                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
                   firstjmp64bitcmp;
                   inc(href.offset,4);
@@ -518,7 +518,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               href:=right.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,S_L,href,left.location.register64.reghi));
               firstjmp64bitcmp;
               inc(href.offset,4);

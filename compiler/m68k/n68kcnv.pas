@@ -148,7 +148,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               ref:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,ref);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,ref,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],ref,location.register));
             end
           else

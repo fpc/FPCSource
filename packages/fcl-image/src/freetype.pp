@@ -579,6 +579,8 @@ var g : PMgrGlyph;
     buf : PByteArray;
     reverse : boolean;
     trans : FT_Matrix;
+    FBM : PFontBitmap;
+
 begin
   CurFont := GetFont(FontID);
   if  (Angle = 0) or   // no angle asked, or can't work with angles (not scalable)
@@ -623,7 +625,8 @@ begin
       FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, nil, true),sErrMakingString4);
       // Copy what is needed to record
       bm := PFT_BitmapGlyph(gl);
-      with result.Bitmaps[r]^ do
+      FBM:=result.Bitmaps[r];
+      with FBM^ do
         begin
         with gl^.advance do
           begin
@@ -649,8 +652,13 @@ begin
             begin
             pitch := bitmap.pitch;
             rx := pitch*height;
-            getmem (data, rx);
-            move (buf^[0], data^[0], rx);
+            if RX=0 then
+              Data:=Nil
+            else
+              begin
+              getmem (data, rx);
+              move (buf^[0], data^[0], rx);
+              end;
             end;
           end;
         end;
@@ -833,6 +841,7 @@ begin
   for r := 0 to ACount-1 do
     begin
     new (bm);
+    FillChar(BM^,SizeOf(TFontBitmap),#0);
     FList.Add (bm);
     end;
 end;
@@ -851,34 +860,43 @@ begin
   inherited;
 end;
 
+(*
+Procedure DumpBitmap(BM : PFontBitmap);
+
+begin
+  Writeln('Bitmap h: ',BM^.height,', w: ',BM^.width,', x:',BM^.x,', y: ',bm^.y);
+end;
+*)
+
 procedure TStringBitmaps.CalculateGlobals;
-var r : integer;
+var
+  l,r : integer;
+
 begin
   if count = 0 then
     Exit;
-  // check first 2 bitmaps for left side
-  // check last 2 bitmaps for right side
-  with BitMaps[0]^ do
-    begin
-    FBounds.left := x;
-    FBounds.top := y + height;
-    FBounds.bottom := y;
-    end;
-  with Bitmaps[count-1]^ do
-    FBounds.right := x + width;
-  if count > 1 then
-    begin
-    with Bitmaps[1]^ do
-      r := x;
-    if r < FBounds.left then
-      FBounds.left := r;
-    with Bitmaps[count-2]^ do
-      r := x + width;
-    if r > FBounds.right then
-      FBounds.right := r;
-    end;
+  l:=0;
+  // Find first non-empty bitmap. Bitmaps can be empty for spaces.
+  While (l<Count) and (BitMaps[l]^.Width=0) and (BitMaps[l]^.Height=0) do
+    Inc(l);
+  if L<Count then
+    with BitMaps[0]^ do
+      begin
+      FBounds.left := x;
+      FBounds.top := y + height;
+      FBounds.bottom := y;
+      FBounds.right := x + width;
+      end;
+  // Find last non-empty bitmap
+  r:=Count-1;
+  While (R>l) and (BitMaps[r]^.Width=0) and (BitMaps[r]^.Height=0) do
+    Dec(r);
+  if R>L then
+    With Bitmaps[R]^ do
+      FBounds.right := x + width;
   // check top/bottom of other bitmaps
   for r := 1 to count-1 do
+    begin
     with Bitmaps[r]^ do
       begin
       if FBounds.top < y + height then
@@ -886,6 +904,7 @@ begin
       if FBounds.bottom > y then
         FBounds.bottom := y;
       end;
+    end;
 end;
 
 procedure TStringBitmaps.GetBoundRect (out aRect : TRect);

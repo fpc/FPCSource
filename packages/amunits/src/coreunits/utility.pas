@@ -286,13 +286,13 @@ const
  * In practice, an array (or chain of arrays) of TagItems is used.
  }
 Type
-    Tag = LongInt;
+    Tag = LongWord;
     pTag = ^Tag;
 
     pTagItem = ^tTagItem;
     tTagItem = record
      ti_Tag  : Tag;
-     ti_Data : LongInt;
+     ti_Data : LongWord;
     END;
 
     ppTagItem = ^pTagItem;
@@ -336,6 +336,9 @@ Type
     ub_Reserved  : Byte;
  END;
 
+var
+  UtilityBase: pUtilityBase;
+
 function AddNamedObject(nameSpace : pNamedObject location 'a0';obj : pNamedObject location 'a1') : LongBool; syscall _UtilityBase 222;
 function AllocateTagItems(num : ULONG location 'd0') : pTagItem; syscall _UtilityBase 066;
 function AllocNamedObjectA(const name : STRPTR location 'a0';const TagList : pTagItem location 'a1') : pNamedObject; syscall _UtilityBase 228;
@@ -376,6 +379,8 @@ function UMult32(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG;
 function UMult64(Arg1: ULONG location 'd0'; Arg2 : ULONG location 'd1') : ULONG; syscall _UtilityBase 204;
 function UnpackStructureTags(const pac: APTR location 'a0';const packTable: pULONG location 'a1';TagList : pTagItem location 'a2') : ULONG; syscall _UtilityBase 216;
 
+function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
+
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
 FUNCTION FindNamedObject(nameSpace : pNamedObject; CONST name : string; lastObject : pNamedObject) : pNamedObject;
 FUNCTION Stricmp(CONST string1 : string; CONST string2 : pCHAR) : LONGINT;
@@ -386,7 +391,22 @@ FUNCTION Strnicmp(CONST string1 : pCHAR; CONST string2 : string; length : LONGIN
 FUNCTION Strnicmp(CONST string1 : string; CONST string2 : string; length : LONGINT) : LONGINT;
 
 
+function TAG_(value: pointer): PtrUInt; overload; inline;
+function TAG_(value: pchar): PtrUInt; overload; inline;
+function TAG_(value: boolean): PtrUInt; overload; inline;
+function TAG_(value: integer): PtrUInt; overload; inline;
+
+function AsTag(value: pointer): PtrUInt; overload; inline;
+function AsTag(value: pchar): PtrUInt; overload; inline;
+function AsTag(value: boolean): PtrUInt; overload; inline;
+function AsTag(value: integer): PtrUInt; overload; inline;
+
 IMPLEMENTATION
+
+function AllocNamedObject(name : STRPTR; Const argv : array of PtrUInt) : pNamedObject;
+begin
+    AllocNamedObject := AllocNamedObjectA(name,@argv);
+end;
 
 
 function AllocNamedObjectA(const name : string;const TagList : pTagItem) : pNamedObject;
@@ -429,5 +449,52 @@ begin
        Strnicmp := Strnicmp(PChar(RawbyteString(string1)),PChar(RawbyteString(string2)),length);
 end;
 
+function TAG_(value: pointer): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
 
+function TAG_(value: pchar): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
+
+function TAG_(value: boolean): PtrUInt; inline;
+begin
+  if value then
+    TAG_ := LTrue
+  else
+    TAG_ := LFalse;
+end;
+
+function TAG_(value: integer): PtrUInt; inline;
+begin
+  TAG_:=PtrUInt(value);
+end;
+
+function AsTag(value: pointer): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(value: pchar): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+function AsTag(value: boolean): PtrUInt; inline;
+begin
+  if value then
+    AsTag := LTrue
+  else
+    AsTag := LFalse;
+end;
+
+function AsTag(value: integer): PtrUInt; inline;
+begin
+  AsTag:=PtrUInt(value);
+end;
+
+initialization
+  UtilityBase := _UtilityBase;
 end.

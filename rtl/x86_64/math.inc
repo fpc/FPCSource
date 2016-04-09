@@ -240,22 +240,17 @@ const
             fld         %st
             fabs
             fld1
-            fcompp
-            fstsw       %ax
-            sahf
+            fcomip
+            fstp        %st
             jp          .L3               { NaN }
             jae         .L1               { |frac(z)| <= 1, good }
 
             fld         %st(1)
             fabs
-            fcomps      large(%rip)
-            fstsw       %ax
-            sahf
-            jb          .L0               { int(z) < 24576 }
-   .L3:
-            fstp        %st               { pop frac(z) and load 0 }
-            fldz
-            jmp         .L1
+            flds        large(%rip)
+            fcomip
+            fstp        %st
+            jb          .L3               { int(z) >= 24576 }
    .L0:
             { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
             fmuls       half(%rip)
@@ -264,6 +259,9 @@ const
             fadds       two(%rip)
             fmulp       %st,%st(1)
             jmp         .L2
+   .L3:
+            fstp        %st               { pop frac(z) and load 0 }
+            fldz
    .L1:
             f2xm1
    .L2:

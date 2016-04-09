@@ -468,14 +468,14 @@ function strnew(p : pwidechar) : pwidechar; overload;
 function WideStrAlloc(Size: cardinal): PWideChar;
   begin
     getmem(result,size*2+sizeof(cardinal));
-    cardinal(pointer(result)^):=size*2+sizeof(cardinal);
-    inc(result,sizeof(cardinal));
+    PCardinal(result)^:=size*2+sizeof(cardinal);
+    result:=PWideChar(PByte(result)+sizeof(cardinal));
   end;
 
 function StrBufSize(str: pwidechar): cardinal;
   begin
     if assigned(str) then
-      result:=cardinal(pointer(str-sizeof(cardinal))^)-sizeof(cardinal)
+      result:=(PCardinal(PByte(str)-sizeof(cardinal))^)-sizeof(cardinal)
     else
       result := 0;
   end;
@@ -484,8 +484,8 @@ procedure StrDispose(str: pwidechar);
 begin
   if assigned(str) then
    begin
-     dec(str,sizeof(cardinal));
-     freemem(str,cardinal(pointer(str)^));
+     str:=PWideChar(PByte(str)-sizeof(cardinal));
+     freemem(str,PCardinal(str)^);
    end;
 end;
 

@@ -101,9 +101,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -124,10 +124,10 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setcity(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcity(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property city : String Index 0 Read Fcity Write Setcity;
@@ -150,11 +150,11 @@ type
     Fsubcode : String;
   Protected
     //Property setters
-    Procedure SetcommercialName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcommercialName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setdescription(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsubcode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsubcode(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -180,9 +180,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -203,10 +203,10 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property code : String Index 0 Read Fcode Write Setcode;
@@ -234,7 +234,7 @@ type
     Procedure Setairport(AIndex : Integer; AValue : TDataTypeairportArray); virtual;
     Procedure Setcarrier(AIndex : Integer; AValue : TDataTypecarrierArray); virtual;
     Procedure Setcity(AIndex : Integer; AValue : TDataTypecityArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Settax(AIndex : Integer; AValue : TDataTypetaxArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -267,12 +267,12 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetbasisCode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcarrier(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbasisCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcarrier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_private(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -296,8 +296,8 @@ type
     Fnumber : String;
   Protected
     //Property setters
-    Procedure Setcarrier(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcarrier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnumber(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property carrier : String Index 0 Read Fcarrier Write Setcarrier;
@@ -322,7 +322,7 @@ type
     Procedure SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowanceTypebagDescriptorArray); virtual;
     Procedure Setkilos(AIndex : Integer; AValue : integer); virtual;
     Procedure SetkilosPerPiece(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpieces(AIndex : Integer; AValue : integer); virtual;
     Procedure Setpounds(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
@@ -365,22 +365,22 @@ type
     Fsecure : boolean;
   Protected
     //Property setters
-    Procedure Setaircraft(AIndex : Integer; AValue : String); virtual;
-    Procedure SetarrivalTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setaircraft(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetarrivalTime(AIndex : Integer; const AValue : String); virtual;
     Procedure SetchangePlane(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetconnectionDuration(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetdepartureTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdestinationTerminal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdepartureTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdestinationTerminal(AIndex : Integer; const AValue : String); virtual;
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmeal(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmeal(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmileage(AIndex : Integer; AValue : integer); virtual;
     Procedure SetonTimePerformance(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetoperatingDisclosure(AIndex : Integer; AValue : String); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoriginTerminal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoperatingDisclosure(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoriginTerminal(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsecure(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -422,7 +422,7 @@ type
     Procedure SetchildCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetinfantInLapCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetinfantInSeatCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetseniorCount(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -456,17 +456,17 @@ type
     Ftax : TPricingInfoTypetaxArray;
   Protected
     //Property setters
-    Procedure SetbaseFareTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbaseFareTotal(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfare(AIndex : Integer; AValue : TPricingInfoTypefareArray); virtual;
-    Procedure SetfareCalculation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlatestTicketingTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfareCalculation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlatestTicketingTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpassengers(AIndex : Integer; AValue : TPassengerCounts); virtual;
-    Procedure Setptc(AIndex : Integer; AValue : String); virtual;
+    Procedure Setptc(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrefundable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsaleFareTotal(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsaleTaxTotal(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsaleTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleFareTotal(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsaleTaxTotal(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsaleTotal(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsegmentPricing(AIndex : Integer; AValue : TPricingInfoTypesegmentPricingArray); virtual;
     Procedure Settax(AIndex : Integer; AValue : TPricingInfoTypetaxArray); virtual;
     //2.6.4. bug workaround
@@ -510,16 +510,16 @@ type
     FsubjectToGovernmentApproval : boolean;
   Protected
     //Property setters
-    Procedure SetbookingCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbookingCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbookingCodeCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setcabin(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcabin(AIndex : Integer; const AValue : String); virtual;
     Procedure SetconnectionDuration(AIndex : Integer; AValue : integer); virtual;
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
     Procedure Setflight(AIndex : Integer; AValue : TFlightInfo); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setleg(AIndex : Integer; AValue : TSegmentInfoTypelegArray); virtual;
-    Procedure SetmarriedSegmentGroup(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmarriedSegmentGroup(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsubjectToGovernmentApproval(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -553,10 +553,10 @@ type
     FsegmentId : String;
   Protected
     //Property setters
-    Procedure SetfareId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfareId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingTypefreeBaggageOptionArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsegmentId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsegmentId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -582,7 +582,7 @@ type
   Protected
     //Property setters
     Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsegment(AIndex : Integer; AValue : TSliceInfoTypesegmentArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -615,16 +615,16 @@ type
     FprohibitedCarrier : TStringArray;
   Protected
     //Property setters
-    Procedure Setalliance(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setalliance(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxConnectionDuration(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmaxStops(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setorigin(AIndex : Integer; AValue : String); virtual;
+    Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpermittedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetpermittedDepartureTime(AIndex : Integer; AValue : TTimeOfDayRange); virtual;
-    Procedure SetpreferredCabin(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpreferredCabin(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprohibitedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -657,9 +657,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -682,12 +682,12 @@ type
     FsalePrice : String;
   Protected
     //Property setters
-    Procedure SetchargeType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsalePrice(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchargeType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsalePrice(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property chargeType : String Index 0 Read FchargeType Write SetchargeType;
@@ -710,9 +710,9 @@ type
     FlatestTime : String;
   Protected
     //Property setters
-    Procedure SetearliestTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlatestTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetearliestTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlatestTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property earliestTime : String Index 0 Read FearliestTime Write SetearliestTime;
@@ -734,10 +734,10 @@ type
     Fslice : TTripOptionTypesliceArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpricing(AIndex : Integer; AValue : TTripOptionTypepricingArray); virtual;
-    Procedure SetsaleTotal(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleTotal(AIndex : Integer; const AValue : String); virtual;
     Procedure Setslice(AIndex : Integer; AValue : TTripOptionTypesliceArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -767,10 +767,10 @@ type
     Fsolutions : integer;
   Protected
     //Property setters
-    Procedure SetmaxPrice(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmaxPrice(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpassengers(AIndex : Integer; AValue : TPassengerCounts); virtual;
     Procedure Setrefundable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsaleCountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsaleCountry(AIndex : Integer; const AValue : String); virtual;
     Procedure Setslice(AIndex : Integer; AValue : TTripOptionsRequestTypesliceArray); virtual;
     Procedure Setsolutions(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
@@ -801,8 +801,8 @@ type
   Protected
     //Property setters
     Procedure Setdata(AIndex : Integer; AValue : TData); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrequestId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettripOption(AIndex : Integer; AValue : TTripOptionsResponseTypetripOptionArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -843,7 +843,7 @@ type
     Ftrips : TTripOptionsResponse;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Settrips(AIndex : Integer; AValue : TTripOptionsResponse); virtual;
   Public
   Published
@@ -909,7 +909,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAircraftData.Setcode(AIndex : Integer; AValue : String); 
+Procedure TAircraftData.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -919,7 +919,7 @@ end;
 
 
 
-Procedure TAircraftData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAircraftData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -929,7 +929,7 @@ end;
 
 
 
-Procedure TAircraftData.Setname(AIndex : Integer; AValue : String); 
+Procedure TAircraftData.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -946,7 +946,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAirportData.Setcity(AIndex : Integer; AValue : String); 
+Procedure TAirportData.Setcity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcity=AValue) then exit;
@@ -956,7 +956,7 @@ end;
 
 
 
-Procedure TAirportData.Setcode(AIndex : Integer; AValue : String); 
+Procedure TAirportData.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -966,7 +966,7 @@ end;
 
 
 
-Procedure TAirportData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAirportData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -976,7 +976,7 @@ end;
 
 
 
-Procedure TAirportData.Setname(AIndex : Integer; AValue : String); 
+Procedure TAirportData.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -993,7 +993,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBagDescriptor.SetcommercialName(AIndex : Integer; AValue : String); 
+Procedure TBagDescriptor.SetcommercialName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommercialName=AValue) then exit;
@@ -1023,7 +1023,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBagDescriptor.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1033,7 +1033,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setsubcode(AIndex : Integer; AValue : String); 
+Procedure TBagDescriptor.Setsubcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsubcode=AValue) then exit;
@@ -1063,7 +1063,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCarrierData.Setcode(AIndex : Integer; AValue : String); 
+Procedure TCarrierData.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1073,7 +1073,7 @@ end;
 
 
 
-Procedure TCarrierData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCarrierData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1083,7 +1083,7 @@ end;
 
 
 
-Procedure TCarrierData.Setname(AIndex : Integer; AValue : String); 
+Procedure TCarrierData.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1100,7 +1100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCityData.Setcode(AIndex : Integer; AValue : String); 
+Procedure TCityData.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1110,7 +1110,7 @@ end;
 
 
 
-Procedure TCityData.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TCityData.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -1120,7 +1120,7 @@ end;
 
 
 
-Procedure TCityData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCityData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1130,7 +1130,7 @@ end;
 
 
 
-Procedure TCityData.Setname(AIndex : Integer; AValue : String); 
+Procedure TCityData.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1187,7 +1187,7 @@ end;
 
 
 
-Procedure TData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFareInfo.SetbasisCode(AIndex : Integer; AValue : String); 
+Procedure TFareInfo.SetbasisCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbasisCode=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TFareInfo.Setcarrier(AIndex : Integer; AValue : String); 
+Procedure TFareInfo.Setcarrier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -1251,7 +1251,7 @@ end;
 
 
 
-Procedure TFareInfo.Setdestination(AIndex : Integer; AValue : String); 
+Procedure TFareInfo.Setdestination(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1261,7 +1261,7 @@ end;
 
 
 
-Procedure TFareInfo.Setid(AIndex : Integer; AValue : String); 
+Procedure TFareInfo.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1271,7 +1271,7 @@ end;
 
 
 
-Procedure TFareInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFareInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1281,7 +1281,7 @@ end;
 
 
 
-Procedure TFareInfo.Setorigin(AIndex : Integer; AValue : String); 
+Procedure TFareInfo.Setorigin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -1319,7 +1319,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFlightInfo.Setcarrier(AIndex : Integer; AValue : String); 
+Procedure TFlightInfo.Setcarrier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -1329,7 +1329,7 @@ end;
 
 
 
-Procedure TFlightInfo.Setnumber(AIndex : Integer; AValue : String); 
+Procedure TFlightInfo.Setnumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnumber=AValue) then exit;
@@ -1376,7 +1376,7 @@ end;
 
 
 
-Procedure TFreeBaggageAllowance.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFreeBaggageAllowance.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1426,7 +1426,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLegInfo.Setaircraft(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.Setaircraft(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faircraft=AValue) then exit;
@@ -1436,7 +1436,7 @@ end;
 
 
 
-Procedure TLegInfo.SetarrivalTime(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.SetarrivalTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FarrivalTime=AValue) then exit;
@@ -1466,7 +1466,7 @@ end;
 
 
 
-Procedure TLegInfo.SetdepartureTime(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.SetdepartureTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdepartureTime=AValue) then exit;
@@ -1476,7 +1476,7 @@ end;
 
 
 
-Procedure TLegInfo.Setdestination(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.Setdestination(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1486,7 +1486,7 @@ end;
 
 
 
-Procedure TLegInfo.SetdestinationTerminal(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.SetdestinationTerminal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationTerminal=AValue) then exit;
@@ -1506,7 +1506,7 @@ end;
 
 
 
-Procedure TLegInfo.Setid(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1516,7 +1516,7 @@ end;
 
 
 
-Procedure TLegInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1526,7 +1526,7 @@ end;
 
 
 
-Procedure TLegInfo.Setmeal(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.Setmeal(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmeal=AValue) then exit;
@@ -1556,7 +1556,7 @@ end;
 
 
 
-Procedure TLegInfo.SetoperatingDisclosure(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.SetoperatingDisclosure(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoperatingDisclosure=AValue) then exit;
@@ -1566,7 +1566,7 @@ end;
 
 
 
-Procedure TLegInfo.Setorigin(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.Setorigin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -1576,7 +1576,7 @@ end;
 
 
 
-Procedure TLegInfo.SetoriginTerminal(AIndex : Integer; AValue : String); 
+Procedure TLegInfo.SetoriginTerminal(AIndex : Integer; const AValue : String); 
 
 begin
   If (ForiginTerminal=AValue) then exit;
@@ -1643,7 +1643,7 @@ end;
 
 
 
-Procedure TPassengerCounts.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPassengerCounts.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1670,7 +1670,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPricingInfo.SetbaseFareTotal(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.SetbaseFareTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbaseFareTotal=AValue) then exit;
@@ -1690,7 +1690,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetfareCalculation(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.SetfareCalculation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfareCalculation=AValue) then exit;
@@ -1700,7 +1700,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1710,7 +1710,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetlatestTicketingTime(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.SetlatestTicketingTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlatestTicketingTime=AValue) then exit;
@@ -1730,7 +1730,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setptc(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.Setptc(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fptc=AValue) then exit;
@@ -1750,7 +1750,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsaleFareTotal(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.SetsaleFareTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleFareTotal=AValue) then exit;
@@ -1760,7 +1760,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsaleTaxTotal(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.SetsaleTaxTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleTaxTotal=AValue) then exit;
@@ -1770,7 +1770,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsaleTotal(AIndex : Integer; AValue : String); 
+Procedure TPricingInfo.SetsaleTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleTotal=AValue) then exit;
@@ -1822,7 +1822,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSegmentInfo.SetbookingCode(AIndex : Integer; AValue : String); 
+Procedure TSegmentInfo.SetbookingCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbookingCode=AValue) then exit;
@@ -1842,7 +1842,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setcabin(AIndex : Integer; AValue : String); 
+Procedure TSegmentInfo.Setcabin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcabin=AValue) then exit;
@@ -1882,7 +1882,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setid(AIndex : Integer; AValue : String); 
+Procedure TSegmentInfo.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1892,7 +1892,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSegmentInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1912,7 +1912,7 @@ end;
 
 
 
-Procedure TSegmentInfo.SetmarriedSegmentGroup(AIndex : Integer; AValue : String); 
+Procedure TSegmentInfo.SetmarriedSegmentGroup(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmarriedSegmentGroup=AValue) then exit;
@@ -1952,7 +1952,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSegmentPricing.SetfareId(AIndex : Integer; AValue : String); 
+Procedure TSegmentPricing.SetfareId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfareId=AValue) then exit;
@@ -1972,7 +1972,7 @@ end;
 
 
 
-Procedure TSegmentPricing.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSegmentPricing.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1982,7 +1982,7 @@ end;
 
 
 
-Procedure TSegmentPricing.SetsegmentId(AIndex : Integer; AValue : String); 
+Procedure TSegmentPricing.SetsegmentId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsegmentId=AValue) then exit;
@@ -2022,7 +2022,7 @@ end;
 
 
 
-Procedure TSliceInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSliceInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2062,7 +2062,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSliceInput.Setalliance(AIndex : Integer; AValue : String); 
+Procedure TSliceInput.Setalliance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Falliance=AValue) then exit;
@@ -2072,7 +2072,7 @@ end;
 
 
 
-Procedure TSliceInput.Setdate(AIndex : Integer; AValue : String); 
+Procedure TSliceInput.Setdate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdate=AValue) then exit;
@@ -2082,7 +2082,7 @@ end;
 
 
 
-Procedure TSliceInput.Setdestination(AIndex : Integer; AValue : String); 
+Procedure TSliceInput.Setdestination(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -2092,7 +2092,7 @@ end;
 
 
 
-Procedure TSliceInput.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSliceInput.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2122,7 +2122,7 @@ end;
 
 
 
-Procedure TSliceInput.Setorigin(AIndex : Integer; AValue : String); 
+Procedure TSliceInput.Setorigin(AIndex : Integer; const AValue : String); 
 
 begin
   If (Forigin=AValue) then exit;
@@ -2152,7 +2152,7 @@ end;
 
 
 
-Procedure TSliceInput.SetpreferredCabin(AIndex : Integer; AValue : String); 
+Procedure TSliceInput.SetpreferredCabin(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreferredCabin=AValue) then exit;
@@ -2193,7 +2193,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaxData.Setid(AIndex : Integer; AValue : String); 
+Procedure TTaxData.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2203,7 +2203,7 @@ end;
 
 
 
-Procedure TTaxData.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTaxData.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2213,7 +2213,7 @@ end;
 
 
 
-Procedure TTaxData.Setname(AIndex : Integer; AValue : String); 
+Procedure TTaxData.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2230,7 +2230,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaxInfo.SetchargeType(AIndex : Integer; AValue : String); 
+Procedure TTaxInfo.SetchargeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchargeType=AValue) then exit;
@@ -2240,7 +2240,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setcode(AIndex : Integer; AValue : String); 
+Procedure TTaxInfo.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -2250,7 +2250,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TTaxInfo.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -2260,7 +2260,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setid(AIndex : Integer; AValue : String); 
+Procedure TTaxInfo.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2270,7 +2270,7 @@ end;
 
 
 
-Procedure TTaxInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTaxInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2280,7 +2280,7 @@ end;
 
 
 
-Procedure TTaxInfo.SetsalePrice(AIndex : Integer; AValue : String); 
+Procedure TTaxInfo.SetsalePrice(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsalePrice=AValue) then exit;
@@ -2297,7 +2297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTimeOfDayRange.SetearliestTime(AIndex : Integer; AValue : String); 
+Procedure TTimeOfDayRange.SetearliestTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FearliestTime=AValue) then exit;
@@ -2307,7 +2307,7 @@ end;
 
 
 
-Procedure TTimeOfDayRange.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTimeOfDayRange.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2317,7 +2317,7 @@ end;
 
 
 
-Procedure TTimeOfDayRange.SetlatestTime(AIndex : Integer; AValue : String); 
+Procedure TTimeOfDayRange.SetlatestTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlatestTime=AValue) then exit;
@@ -2334,7 +2334,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripOption.Setid(AIndex : Integer; AValue : String); 
+Procedure TTripOption.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2344,7 +2344,7 @@ end;
 
 
 
-Procedure TTripOption.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTripOption.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2364,7 +2364,7 @@ end;
 
 
 
-Procedure TTripOption.SetsaleTotal(AIndex : Integer; AValue : String); 
+Procedure TTripOption.SetsaleTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleTotal=AValue) then exit;
@@ -2405,7 +2405,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripOptionsRequest.SetmaxPrice(AIndex : Integer; AValue : String); 
+Procedure TTripOptionsRequest.SetmaxPrice(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxPrice=AValue) then exit;
@@ -2435,7 +2435,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.SetsaleCountry(AIndex : Integer; AValue : String); 
+Procedure TTripOptionsRequest.SetsaleCountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsaleCountry=AValue) then exit;
@@ -2495,7 +2495,7 @@ end;
 
 
 
-Procedure TTripOptionsResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTripOptionsResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2505,7 +2505,7 @@ end;
 
 
 
-Procedure TTripOptionsResponse.SetrequestId(AIndex : Integer; AValue : String); 
+Procedure TTripOptionsResponse.SetrequestId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrequestId=AValue) then exit;
@@ -2562,7 +2562,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripsSearchResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTripsSearchResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

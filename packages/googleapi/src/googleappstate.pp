@@ -47,9 +47,9 @@ type
     FstateKey : integer;
   Protected
     //Property setters
-    Procedure SetcurrentStateVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentStateVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstateKey(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -72,7 +72,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaximumKeyCount(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -96,8 +96,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property data : String Index 0 Read Fdata Write Setdata;
@@ -116,8 +116,8 @@ type
     FstateKey : integer;
   Protected
     //Property setters
-    Procedure SetcurrentStateVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentStateVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstateKey(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -212,7 +212,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGetResponse.SetcurrentStateVersion(AIndex : Integer; AValue : String); 
+Procedure TGetResponse.SetcurrentStateVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentStateVersion=AValue) then exit;
@@ -222,7 +222,7 @@ end;
 
 
 
-Procedure TGetResponse.Setdata(AIndex : Integer; AValue : String); 
+Procedure TGetResponse.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -232,7 +232,7 @@ end;
 
 
 
-Procedure TGetResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -269,7 +269,7 @@ end;
 
 
 
-Procedure TListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -309,7 +309,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUpdateRequest.Setdata(AIndex : Integer; AValue : String); 
+Procedure TUpdateRequest.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -319,7 +319,7 @@ end;
 
 
 
-Procedure TUpdateRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUpdateRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -336,7 +336,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWriteResult.SetcurrentStateVersion(AIndex : Integer; AValue : String); 
+Procedure TWriteResult.SetcurrentStateVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentStateVersion=AValue) then exit;
@@ -346,7 +346,7 @@ end;
 
 
 
-Procedure TWriteResult.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWriteResult.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

@@ -93,7 +93,7 @@ unit cgcpu;
         procedure sign_extend(list: TAsmList;_oldsize : tcgsize; _newsize : tcgsize; reg: tregister);
 
         procedure g_stackpointer_alloc(list : TAsmList;localsize : longint);override;
-        function fixref(list: TAsmList; var ref: treference): boolean;
+        function fixref(list: TAsmList; var ref: treference; fullyresolve: boolean): boolean;
         function force_to_dataregister(list: TAsmList; size: TCGSize; reg: TRegister): TRegister;
         procedure move_if_needed(list: TAsmList; size: TCGSize; src: TRegister; dest: TRegister);
      protected
@@ -350,7 +350,7 @@ unit cgcpu;
           { Push the data starting at ofs }
           href:=r;
           inc(href.offset,ofs);
-          fixref(list,href);
+          fixref(list,href,false);
           if tcgsize2size[paraloc^.size]>cgpara.alignment then
             pushsize:=paraloc^.size
           else
@@ -410,219 +410,134 @@ unit cgcpu;
             //list.concat(tai_comment.create(strpnew('a_loadaddr_ref_cgpara: PEA')));
             cgpara.check_simple_location;
             tmpref:=r;
-            fixref(list,tmpref);
+            fixref(list,tmpref,false);
             list.concat(taicpu.op_ref(A_PEA,S_NO,tmpref));
           end
         else
           inherited a_loadaddr_ref_cgpara(list,r,cgpara);
       end;
 
-    function tcg68k.fixref(list: TAsmList; var ref: treference): boolean;
+
+    function tcg68k.fixref(list: TAsmList; var ref: treference; fullyresolve: boolean): boolean;
        var
-         hreg,idxreg : tregister;
+         hreg : tregister;
          href : treference;
          instr : taicpu;
-         scale : aint;
        begin
          result:=false;
-         { The MC68020+ has extended
-           addressing capabilities with a 32-bit
-           displacement.
-         }
-         { first ensure that base is an address register }
-         if ((ref.base<>NR_NO) and (ref.index<>NR_NO)) and
-            (not isaddressregister(ref.base) and isaddressregister(ref.index)) and
-            (ref.scalefactor < 2) then
-           begin
-             { if we have both base and index registers, but base is data and index
-               is address, we can just swap them, as FPC always uses long index.
-               but we can only do this, if the index has no scalefactor }
-             hreg:=ref.base;
-             ref.base:=ref.index;
-             ref.index:=hreg;
-             //list.concat(tai_comment.create(strpnew('fixref: base and index swapped')));
-           end;
+         hreg:=NR_NO;
 
-         if (not assigned (ref.symbol) and (current_settings.cputype<>cpu_MC68000)) and
-            (ref.base<>NR_NO) and not isaddressregister(ref.base) then
+         { NOTE: we don't have to fixup scaling in this function, because the memnode
+           won't generate scaling on CPUs which don't support it }
+
+         { first, deal with the symbol, if we have an index or base register.
+           in theory, the '020+ could deal with these, but it's better to avoid
+           long displacements on most members of the 68k family anyway }
+         if assigned(ref.symbol) and ((ref.base<>NR_NO) or (ref.index<>NR_NO)) then
            begin
+             //list.concat(tai_comment.create(strpnew('fixref: symbol with base or index')));
+
              hreg:=getaddressregister(list);
-             instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-             add_move_instruction(instr);
-             list.concat(instr);
-             fixref:=true;
-             ref.base:=hreg;
-           end;
-         if (current_settings.cputype=cpu_MC68020) then
-           exit;
-         { ToDo: check which constraints of Coldfire also apply to MC68000 }
-         case current_settings.cputype of
-           cpu_MC68000:
-             begin
-               if (ref.base<>NR_NO) then
-                 begin
-                   if (ref.index<>NR_NO) and assigned(ref.symbol) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                       list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.index,hreg));
-                       ref.index:=NR_NO;
-                       ref.base:=hreg;
-                     end;
-                   { base + reg }
-                   if ref.index <> NR_NO then
-                      begin
-                         { base + reg + offset }
-                         if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
-                           begin
-                             hreg:=getaddressregister(list);
-                             list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                             list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
-                             fixref:=true;
-                             ref.offset:=0;
-                             ref.base:=hreg;
-                             exit;
-                           end;
-                      end
-                   else
-                   { base + offset }
-                   if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg));
-                       list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
-                       fixref:=true;
-                       ref.offset:=0;
-                       ref.base:=hreg;
-                       exit;
-                     end;
-                   if assigned(ref.symbol) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       idxreg:=ref.base;
-                       ref.base:=NR_NO;
-                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
-                       reference_reset_base(ref,hreg,0,ref.alignment);
-                       fixref:=true;
-                       ref.index:=idxreg;
-                     end
-                   else if not isaddressregister(ref.base) then
-                     begin
-                       hreg:=getaddressregister(list);
-                       instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                       //add_move_instruction(instr);
-                       list.concat(instr);
-                       fixref:=true;
-                       ref.base:=hreg;
-                     end;
-                 end
-               else
-                 { Note: symbol -> ref would be supported as long as ref does not
-                         contain a offset or index... (maybe something for the
-                         optimizer) }
-                 if Assigned(ref.symbol) and (ref.index<>NR_NO) then
-                   begin
-                     hreg:=cg.getaddressregister(list);
-                     idxreg:=ref.index;
-                     ref.index:=NR_NO;
-                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
-                     reference_reset_base(ref,hreg,0,ref.alignment);
-                     ref.index:=idxreg;
-                     fixref:=true;
-                   end;
-             end;
-           cpu_isa_a,
-           cpu_isa_a_p,
-           cpu_isa_b,
-           cpu_isa_c:
-             begin
-               if (ref.base<>NR_NO) then
-                 begin
-                   if assigned(ref.symbol) then
-                     begin
-                       //list.concat(tai_comment.create(strpnew('fixref: symbol')));
-                       hreg:=cg.getaddressregister(list);
-                       reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
-                       list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
-                       if ref.index<>NR_NO then
-                         begin
-                           { fold the symbol + offset into the base, not the base into the index,
-                             because that might screw up the scalefactor of the reference }
-                           //list.concat(tai_comment.create(strpnew('fixref: symbol + offset (index + base)')));
-                           idxreg:=getaddressregister(list);
-                           reference_reset_base(href,ref.base,0,ref.alignment);
-                           href.index:=hreg;
-                           hreg:=getaddressregister(list);
-                           list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
-                           ref.base:=hreg;
-                         end
-                       else
-                         ref.index:=hreg;
+             reference_reset_symbol(href,ref.symbol,ref.offset,ref.alignment);
+             list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+             ref.offset:=0;
+             ref.symbol:=nil;
 
-                       ref.offset:=0;
-                       ref.symbol:=nil;
-                       fixref:=true;
-                     end
-                   else
-                     { base + reg }
-                     if ref.index <> NR_NO then
-                       begin
-                         { base + reg + offset }
-                         if (ref.offset < low(shortint)) or (ref.offset > high(shortint)) then
-                           begin
-                             hreg:=getaddressregister(list);
-                             if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
-                               begin
-                                 instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                                 //add_move_instruction(instr);
-                                 list.concat(instr);
-                                 list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
-                               end
-                             else
-                               begin
-                                 //list.concat(tai_comment.create(strpnew('fixref: base + reg + offset lea')));
-                                 reference_reset_base(href,ref.base,ref.offset,ref.alignment);
-                                 list.concat(taicpu.op_ref_reg(A_LEA,S_NO,href,hreg));
-                               end;
-                             fixref:=true;
-                             ref.base:=hreg;
-                             ref.offset:=0;
-                             exit;
-                           end;
-                       end
-                     else
-                       { base + offset }
-                       if (ref.offset < low(smallint)) or (ref.offset > high(smallint)) then
-                         begin
-                           hreg:=getaddressregister(list);
-                           instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
-                           //add_move_instruction(instr);
-                           list.concat(instr);
-                           list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
-                           fixref:=true;
-                           ref.offset:=0;
-                           ref.base:=hreg;
-                           exit;
-                         end;
-                 end
+             { if we have unused base or index, try to use it, otherwise fold the existing base,
+               also handle the case where the base might be a data register. }
+             if ref.base=NR_NO then
+               ref.base:=hreg
+             else
+               if (ref.index=NR_NO) and not isintregister(ref.base) then
+                 ref.index:=hreg
                else
-                 { Note: symbol -> ref would be supported as long as ref does not
-                         contain a offset or index... (maybe something for the
-                         optimizer) }
-                 if Assigned(ref.symbol) {and (ref.index<>NR_NO)} then
+                 begin
+                   list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,hreg));
+                   ref.base:=hreg;
+                 end;
+
+             { at this point we have base + (optional) index * scale }
+           end;
+
+         { deal with the case if our base is a dataregister }
+         if (ref.base<>NR_NO) and not isaddressregister(ref.base) then
+           begin
+
+             hreg:=getaddressregister(list);
+             if isaddressregister(ref.index) and (ref.scalefactor < 2) then
+               begin
+                 //list.concat(tai_comment.create(strpnew('fixref: base is dX, resolving with reverse regs')));
+
+                 reference_reset_base(href,ref.index,0,ref.alignment);
+                 href.index:=ref.base;
+                 { we can fold in an 8 bit offset "for free" }
+                 if isvalue8bit(ref.offset) then
                    begin
-                     hreg:=cg.getaddressregister(list);
-                     idxreg:=ref.index;
-                     scale:=ref.scalefactor;
-                     ref.index:=NR_NO;
-                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
-                     reference_reset_base(ref,hreg,0,ref.alignment);
-                     ref.index:=idxreg;
-                     ref.scalefactor:=scale;
-                     fixref:=true;
+                     href.offset:=ref.offset;
+                     ref.offset:=0;
                    end;
-             end;
-         end;
+                 list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                 ref.base:=hreg;
+                 ref.index:=NR_NO;
+                 result:=true;
+               end
+             else
+               begin
+                 //list.concat(tai_comment.create(strpnew('fixref: base is dX, can''t resolve with reverse regs')));
+
+                 instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
+                 add_move_instruction(instr);
+                 list.concat(instr);
+                 ref.base:=hreg;
+                 result:=true;
+               end;
+           end;
+
+         { deal with large offsets on non-020+ }
+         if current_settings.cputype<>cpu_MC68020 then
+           begin
+             if ((ref.index<>NR_NO) and not isvalue8bit(ref.offset)) or
+                ((ref.base<>NR_NO) and not isvalue16bit(ref.offset)) then
+               begin
+                 //list.concat(tai_comment.create(strpnew('fixref: handling large offsets')));
+                 { if we have a temp register from above, we can just add to it }
+                 if hreg=NR_NO then
+                   hreg:=getaddressregister(list);
+
+                 if isvalue16bit(ref.offset) then
+                   begin
+                     reference_reset_base(href,ref.base,ref.offset,ref.alignment);
+                     list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
+                   end
+                 else
+                   begin
+                     instr:=taicpu.op_reg_reg(A_MOVE,S_L,ref.base,hreg);
+                     add_move_instruction(instr);
+                     list.concat(instr);
+                     list.concat(taicpu.op_const_reg(A_ADD,S_L,ref.offset,hreg));
+                   end;
+                 ref.offset:=0;
+                 ref.base:=hreg;
+                 result:=true;
+               end;
+           end;
+
+         { fully resolve the reference to an address register, if we're told to do so
+           and there's a reason to do so }
+         if fullyresolve and
+            ((ref.index<>NR_NO) or assigned(ref.symbol) or (ref.offset<>0)) then
+           begin
+             //list.concat(tai_comment.create(strpnew('fixref: fully resolve to register')));
+             if hreg=NR_NO then
+               hreg:=getaddressregister(list);
+             list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,hreg));
+             ref.base:=hreg;
+             ref.index:=NR_NO;
+             ref.scalefactor:=1;
+             ref.symbol:=nil;
+             ref.offset:=0;
+             result:=true;
+           end;
        end;
 
 
@@ -805,7 +720,7 @@ unit cgcpu;
       begin
         a:=longint(a);
         href:=ref;
-        fixref(list,href);
+        fixref(list,href,false);
         if (a=0) and not (current_settings.cputype = cpu_mc68000) then
           list.concat(taicpu.op_ref(A_CLR,tcgsize2opsize[tosize],href))
         else if (tcgsize2opsize[tosize]=S_L) and
@@ -845,13 +760,18 @@ unit cgcpu;
     procedure tcg68k.a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
         href : treference;
+        hreg : tregister;
       begin
         href := ref;
-        fixref(list,href);
+        hreg := register;
+        fixref(list,href,false);
         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
-          a_load_reg_reg(list,fromsize,tosize,register,register);
+          begin
+            hreg:=getintregister(list,tosize);
+            a_load_reg_reg(list,fromsize,tosize,register,hreg);
+          end;
         { move to destination reference }
-        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],register,href));
+        list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,href));
       end;
 
 
@@ -859,77 +779,31 @@ unit cgcpu;
       var
         aref: treference;
         bref: treference;
-        tmpref : treference;
-        dofix : boolean;
+        usetemp: boolean;
         hreg: TRegister;
       begin
+        usetemp:=TCGSize2OpSize[fromsize]<>TCGSize2OpSize[tosize];
+
         aref := sref;
         bref := dref;
-        fixref(list,aref);
-        fixref(list,bref);
-        if TCGSize2OpSize[fromsize]<>TCGSize2OpSize[tosize] then
+        fixref(list,aref,false);
+
+        if usetemp then
           begin
-            { if we need to change the size then always use a temporary
-              register }
+            { if we will use a temp register, we don't need to fully resolve 
+              the dest ref, not even on coldfire }
+            fixref(list,bref,false); 
+            { if we need to change the size then always use a temporary register }
             hreg:=getintregister(list,fromsize);
             list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
             sign_extend(list,fromsize,tosize,hreg);
             list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,bref));
-            exit;
-          end;
-        { Coldfire dislikes certain move combinations }
-        if current_settings.cputype in cpu_coldfire then
+          end
+        else
           begin
-            { TODO : move.b/w only allowed in newer coldfires... (ISA_B+) }
-
-            dofix:=false;
-            if { (d16,Ax) and (d8,Ax,Xi) }
-                (
-                  (aref.base<>NR_NO) and
-                  (
-                    (aref.index<>NR_NO) or
-                    (aref.offset<>0)
-                  )
-                ) or
-                { (xxx) }
-                assigned(aref.symbol) then
-              begin
-                if aref.index<>NR_NO then
-                  begin
-                    dofix:={ (d16,Ax) and (d8,Ax,Xi) }
-                           (
-                             (bref.base<>NR_NO) and
-                             (
-                               (bref.index<>NR_NO) or
-                               (bref.offset<>0)
-                             )
-                           ) or
-                           { (xxx) }
-                           assigned(bref.symbol);
-                  end
-                else
-                  { offset <> 0, but no index }
-                  begin
-                    dofix:={ (d8,Ax,Xi) }
-                           (
-                             (bref.base<>NR_NO) and
-                             (bref.index<>NR_NO)
-                           ) or
-                           { (xxx) }
-                           assigned(bref.symbol);
-                  end;
-              end;
-
-            if dofix then
-              begin
-                hreg:=getaddressregister(list);
-                reference_reset_base(tmpref,hreg,0,0);
-                list.concat(taicpu.op_ref_reg(A_LEA,S_L,aref,hreg));
-                list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],tmpref,bref));
-                exit;
-              end;
+            fixref(list,bref,current_settings.cputype in cpu_coldfire);
+            list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
           end;
-        list.concat(taicpu.op_ref_ref(A_MOVE,TCGSize2OpSize[fromsize],aref,bref));
       end;
 
 
@@ -971,7 +845,7 @@ unit cgcpu;
        opsize: topsize;
       begin
          href:=ref;
-         fixref(list,href);
+         fixref(list,href,false);
          if tcgsize2size[fromsize]<tcgsize2size[tosize] then
            size:=fromsize
          else
@@ -999,7 +873,7 @@ unit cgcpu;
         hreg : tregister;
       begin
         href:=ref;
-        fixref(list, href);
+        fixref(list, href, false);
         if not isaddressregister(r) then
           begin
             hreg:=getaddressregister(list);
@@ -1031,7 +905,7 @@ unit cgcpu;
         if opsize = S_FX then
           internalerror(20020729);
         href := ref;
-        fixref(list,href);
+        fixref(list,href,false);
         list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
       end;
 
@@ -1045,7 +919,7 @@ unit cgcpu;
         if opsize = S_FX then
           internalerror(20020729);
         href := ref;
-        fixref(list,href);
+        fixref(list,href,false);
         list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
       end;
 
@@ -1092,7 +966,7 @@ unit cgcpu;
           if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
             begin
               fref:=ref;
-              fixref(list,fref);
+              fixref(list,fref,false);
               { fmove can't do <ea> -> <ea>, so move it to an fpreg first }
               freg:=getfpuregister(list,size);
               a_loadfpu_ref_reg(list,size,size,fref,freg);
@@ -1284,10 +1158,10 @@ unit cgcpu;
           OP_SUB :
             begin
               href:=ref;
-              fixref(list,href);
               { add/sub works the same way, so have it unified here }
               if (a >= 1) and (a <= 8) then
                 begin
+                  fixref(list,href,false);
                   if (op = OP_ADD) then
                     opcode:=A_ADDQ
                   else
@@ -1296,7 +1170,10 @@ unit cgcpu;
                 end
               else
                 if not(current_settings.cputype in cpu_coldfire) then
-                  list.concat(taicpu.op_const_ref(opcode, opsize, a, href))
+                  begin
+                    fixref(list,href,false);
+                    list.concat(taicpu.op_const_ref(opcode, opsize, a, href));
+                  end
                 else
                   { on ColdFire, ADDI/SUBI cannot act on memory
                     so we can only go through a register }
@@ -1437,7 +1314,7 @@ unit cgcpu;
           OP_SUB :
             begin
               href:=ref;
-              fixref(list,href);
+              fixref(list,href,false);
               { areg -> ref arithmetic operations are impossible on 68k }
               hreg:=force_to_dataregister(list,size,reg);
               { add/sub works the same way, so have it unified here }
@@ -1518,7 +1395,7 @@ unit cgcpu;
           begin
             //list.concat(tai_comment.create(strpnew('a_cmp_const_ref_label with TST')));
             tmpref:=ref;
-            fixref(list,tmpref);
+            fixref(list,tmpref,false);
             list.concat(taicpu.op_ref(A_TST,tcgsize2opsize[size],tmpref));
             a_jmp_cond(list,cmp_op,l);
           end
@@ -1738,6 +1615,7 @@ unit cgcpu;
         if not nostackframe then
           begin
             { size can't be negative }
+            localsize:=align(localsize,4);
             if (localsize < 0) then
               internalerror(2006122601);
 
@@ -2273,7 +2151,7 @@ unit cgcpu;
           OP_AND,OP_OR:
             begin
               tempref:=ref;
-              tcg68k(cg).fixref(list,tempref);
+              tcg68k(cg).fixref(list,tempref,false);
               inc(tempref.offset,4);
               list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reglo));
               dec(tempref.offset,4);

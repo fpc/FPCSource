@@ -1797,7 +1797,14 @@ implementation
 
          current_procinfo:=self;
          current_structdef:=procdef.struct;
-         if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+         { if the procdef is truly a generic (thus takes parameters itself) then
+           /that/ is our genericdef, not the - potentially - generic struct }
+         if procdef.is_generic then
+           begin
+             current_genericdef:=procdef;
+             parse_generic:=true;
+           end
+         else if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
            begin
              current_genericdef:=current_structdef;
              parse_generic:=true;
@@ -1862,9 +1869,7 @@ implementation
              entrypos:=code.fileinfo;
 
              { Finish type checking pass }
-             { type checking makes no sense in a generic definition }
-             if not(df_generic in current_procinfo.procdef.defoptions) then
-               do_typecheckpass(code);
+             do_typecheckpass(code);
 
              if assigned(procdef.parentfpinitblock) then
                begin

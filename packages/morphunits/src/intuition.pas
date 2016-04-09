@@ -4042,7 +4042,7 @@ const
   INTUITIONNAME : PChar = 'intuition.library';
 
 var
-  intuitionbase : PIntuitionBase;
+  intuitionbase : PIntuitionBase = nil;
 
 
 procedure OpenIntuition;
@@ -4165,7 +4165,7 @@ SysCall IntuitionBase 258;
 function SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool;
 SysCall IntuitionBase 264;
 
-procedure SetPointer(window : pWindow location 'a0'; VAR pointer : Word location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
+procedure SetPointer(window : pWindow location 'a0'; pointer : PWord location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
 SysCall IntuitionBase 270;
 
 procedure SetWindowTitles(window : pWindow location 'a0'; windowTitle : PChar location 'a1'; screenTitle : PChar location 'a2');
@@ -4693,31 +4693,15 @@ const
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-var
-  intuition_exit : Pointer;
-
-procedure CloseIntuitionLibrary;
-begin
-  ExitProc := intuition_exit;
-  if IntuitionBase <> nil then begin
-    CloseLibrary(PLibrary(IntuitionBase));
-    IntuitionBase := nil;
-  end;
-end;
-
 function InitIntuitionLibrary : boolean;
 begin
-  IntuitionBase := nil;
-  IntuitionBase := OpenLibrary(INTUITIONNAME,LIBVERSION);
-  if IntuitionBase <> nil then begin
-    intuition_exit := ExitProc;
-    ExitProc := @CloseIntuitionLibrary;
-    InitIntuitionLibrary:=True;
-  end else begin
-    InitIntuitionLibrary:=False;
-  end;
+  InitIntuitionLibrary := Assigned(IntuitionBase);
 end;
 
-
+initialization
+  IntuitionBase := OpenLibrary(INTUITIONNAME,LIBVERSION);
+finalization
+  if Assigned(IntuitionBase) then
+    CloseLibrary(PLibrary(IntuitionBase));
 end. (* UNIT INTUITION *)
 

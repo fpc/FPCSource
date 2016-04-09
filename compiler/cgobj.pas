@@ -1323,7 +1323,7 @@ implementation
                     tmpreg2:=makeregsize(list,register,OS_16);
                     a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg2);
                     a_op_reg_reg(list,OP_OR,OS_16,tmpreg,tmpreg2);
-                    a_load_reg_reg(list,OS_16,tosize,tmpreg2,register);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg2,register);
                   end;
               OS_32,OS_S32:
                 if ref.alignment=2 then
@@ -1340,7 +1340,7 @@ implementation
                     tmpreg2:=makeregsize(list,register,OS_32);
                     a_load_ref_reg(list,OS_16,OS_32,tmpref,tmpreg2);
                     a_op_reg_reg(list,OP_OR,OS_32,tmpreg,tmpreg2);
-                    a_load_reg_reg(list,OS_32,tosize,tmpreg2,register);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg2,register);
                   end
                 else
                   begin
@@ -1359,7 +1359,7 @@ implementation
                         a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg2);
                         a_op_reg_reg(list,OP_OR,OS_32,tmpreg2,tmpreg);
                       end;
-                    a_load_reg_reg(list,OS_32,tosize,tmpreg,register);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
                   end
               else
                 a_load_ref_reg(list,fromsize,tosize,tmpref,register);

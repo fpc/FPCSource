@@ -347,9 +347,15 @@ function GetUniqueID: Cardinal;
 SysCall MOS_UtilityBase 270;
 
 
-function TAG_(value: pointer): longword; inline;
-function TAG_(value: pchar): longword; inline;
+function TAG_(value: pointer): longword; overload; inline;
+function TAG_(value: pchar): longword; overload; inline;
+function TAG_(value: boolean): longword; overload; inline;
+function TAG_(value: integer): longword; overload; inline;
 
+function AsTag(value: pointer): longword; overload; inline;
+function AsTag(value: pchar): longword; overload; inline;
+function AsTag(value: boolean): longword; overload; inline;
+function AsTag(value: integer): longword; overload; inline;
 
 implementation
 
@@ -363,6 +369,41 @@ begin
   TAG_:=longword(value);
 end;
 
+function TAG_(value: boolean): longword; inline;
+begin
+  if value then
+    TAG_ := LTrue
+  else
+    TAG_ := LFalse;
+end;
+
+function TAG_(value: integer): longword; inline;
+begin
+  TAG_:=longword(value);
+end;
+
+function AsTag(value: pointer): longword; inline;
+begin
+  AsTag:=longword(value);
+end;
+
+function AsTag(value: pchar): longword; inline;
+begin
+  AsTag:=longword(value);
+end;
+
+function AsTag(value: boolean): longword; inline;
+begin
+  if value then
+    AsTag := LTrue
+  else
+    AsTag := LFalse;
+end;
+
+function AsTag(value: integer): longword; inline;
+begin
+  AsTag:=longword(value);
+end;
 
 begin
   UtilityBase:=MOS_UtilityBase;

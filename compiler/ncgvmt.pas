@@ -1032,9 +1032,7 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
-{$ifdef vtentry}
          hs: string;
-{$endif vtentry}
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
@@ -1228,6 +1226,16 @@ implementation
          current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
 {$endif vtentry}
         symtablestack.pop(current_module.localsymtable);
+
+        { write indirect symbol }
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+        hs:=_class.vmt_mangledname;
+        tcb.emit_tai(Tai_const.Createname(hs,AT_DATA,0),voidpointertype);
+        current_asmdata.AsmLists[al_globals].concatList(
+          tcb.get_final_asmlist(
+            current_asmdata.DefineAsmSymbol(hs,AB_INDIRECT,AT_DATA),
+            voidpointertype,sec_rodata,hs,const_align(sizeof(pint))));
+        tcb.free;
       end;
 
 

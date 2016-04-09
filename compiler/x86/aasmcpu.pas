@@ -447,6 +447,9 @@ implementation
        IF_16BITONLY = $00200000;
        IF_FMA    = $00200000;
        IF_FMA4   = $00200000;
+       IF_TSX    = $00200000;
+       IF_RAND   = $00200000;
+       IF_XSAVE  = $00200000;
 
        IF_PLEVEL = $0F000000;  { mask for processor level }
        IF_8086   = $00000000;  { 8086 instruction  }
@@ -460,14 +463,27 @@ implementation
        IF_WILLAMETTE = $08000000; { Willamette instructions }
        IF_PRESCOTT   = $09000000; { Prescott instructions }
        IF_X86_64 = $0a000000;
-       IF_CYRIX  = $0b000000;  { Cyrix-specific instruction  }
-       IF_AMD    = $0c000000;  { AMD-specific instruction  }
-       IF_CENTAUR = $0d000000;  { centaur-specific instruction  }
        IF_SANDYBRIDGE = $0e000000; { Sandybridge-specific instruction }
        IF_NEC    = $0f000000;  { NEC V20/V30 instruction }
+
+       { the following are not strictly part of the processor level, because
+         they are never used standalone, but always in combination with a
+         separate processor level flag. Therefore, they use bits outside of
+         IF_PLEVEL, otherwise they would mess up the processor level they're
+         used in combination with.
+         The following combinations are currently used:
+         IF_AMD or IF_P6,
+         IF_CYRIX or IF_486,
+         IF_CYRIX or IF_PENT,
+         IF_CYRIX or IF_P6 }
+       IF_CYRIX  = $10000000;  { Cyrix, Centaur or VIA-specific instruction }
+       IF_AMD    = $20000000;  { AMD-specific instruction  }
+
        { added flags }
        IF_PRE    = $40000000;  { it's a prefix instruction }
        IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
+       IF_IMM4   = $100000000; { immediate operand is a nibble (must be in range [0..15]) }
+       IF_IMM3   = $200000000; { immediate operand is a triad (must be in range [0..7]) }
 
      type
        TInsTabCache=array[TasmOp] of longint;
@@ -654,6 +670,15 @@ implementation
           #$0F#$1F#$00,
           #$66#$90,
           #$90);
+{$ifdef i8086}
+        alignarray:array[0..5] of string[8]=(
+          #$90#$90#$90#$90#$90#$90#$90,
+          #$90#$90#$90#$90#$90#$90,
+          #$90#$90#$90#$90,
+          #$90#$90#$90,
+          #$90#$90,
+          #$90);
+{$else i8086}
         alignarray:array[0..5] of string[8]=(
           #$8D#$B4#$26#$00#$00#$00#$00,
           #$8D#$B6#$00#$00#$00#$00,
@@ -661,6 +686,7 @@ implementation
           #$8D#$76#$00,
           #$89#$F6,
           #$90);
+{$endif i8086}
       var
         bufptr : pchar;
         j : longint;
@@ -1612,7 +1638,7 @@ implementation
         if (segprefix>=NR_ES) and (segprefix<=NR_GS) then
          begin
 {$ifdef i8086}
-           if (current_settings.cputype<cpu_386) and
+           if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) and
               ((segprefix=NR_FS) or (segprefix=NR_GS)) then
              Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
@@ -2618,7 +2644,7 @@ implementation
            b66: Byte=$66;
          begin
 {$ifdef i8086}
-           if current_settings.cputype<cpu_386 then
+           if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
              Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
            objdata.writebytes(b66,1);
@@ -2629,7 +2655,7 @@ implementation
            b67: Byte=$67;
          begin
 {$ifdef i8086}
-           if current_settings.cputype<cpu_386 then
+           if (objdata.CPUType<>cpu_none) and (objdata.CPUType<cpu_386) then
              Message(asmw_e_instruction_not_supported_by_cpu);
 {$endif i8086}
            objdata.writebytes(b67,1);
@@ -2693,43 +2719,45 @@ implementation
         { check instruction's processor level }
         { todo: maybe adapt and enable this code for i386 and x86_64 as well }
 {$ifdef i8086}
-        case insentry^.flags and IF_PLEVEL of
-          IF_8086:
-            ;
-          IF_186:
-            if current_settings.cputype<cpu_186 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          IF_286:
-            if current_settings.cputype<cpu_286 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          IF_386:
-            if current_settings.cputype<cpu_386 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          IF_486,
-          IF_PENT:
-            if current_settings.cputype<cpu_Pentium then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          IF_P6:
-            if current_settings.cputype<cpu_Pentium2 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          IF_KATMAI:
-            if current_settings.cputype<cpu_Pentium3 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          IF_WILLAMETTE,
-          IF_PRESCOTT:
-            if current_settings.cputype<cpu_Pentium4 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
-          IF_NEC:
-            if current_settings.cputype>=cpu_386 then
-              Message(asmw_e_instruction_not_supported_by_cpu);
-          { todo: handle these properly }
-          IF_CYRIX,
-          IF_AMD,
-          IF_CENTAUR,
-          IF_SANDYBRIDGE:
-            ;
-        end;
+        if objdata.CPUType<>cpu_none then
+          begin
+            case insentry^.flags and IF_PLEVEL of
+              IF_8086:
+                ;
+              IF_186:
+                if objdata.CPUType<cpu_186 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_286:
+                if objdata.CPUType<cpu_286 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_386:
+                if objdata.CPUType<cpu_386 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_486:
+                if objdata.CPUType<cpu_486 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_PENT:
+                if objdata.CPUType<cpu_Pentium then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_P6:
+                if objdata.CPUType<cpu_Pentium2 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_KATMAI:
+                if objdata.CPUType<cpu_Pentium3 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              IF_WILLAMETTE,
+              IF_PRESCOTT:
+                if objdata.CPUType<cpu_Pentium4 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              { the NEC V20/V30 extensions are incompatible with 386+, due to overlapping opcodes }
+              IF_NEC:
+                if objdata.CPUType>=cpu_386 then
+                  Message(asmw_e_instruction_not_supported_by_cpu);
+              { todo: handle these properly }
+              IF_SANDYBRIDGE:
+                ;
+            end;
+          end;
 {$endif i8086}
 
         { load data to write }
@@ -2953,8 +2981,19 @@ implementation
             &24,&25,&26,&27 :
               begin
                 getvalsym(c-&24);
-                if (currval<0) or (currval>255) then
-                 Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
+                if (insentry^.flags and IF_IMM3)<>0 then
+                  begin
+                    if (currval<0) or (currval>7) then
+                      Message2(asmw_e_value_exceeds_bounds,'unsigned triad',tostr(currval));
+                  end
+                else if (insentry^.flags and IF_IMM4)<>0 then
+                  begin
+                    if (currval<0) or (currval>15) then
+                      Message2(asmw_e_value_exceeds_bounds,'unsigned nibble',tostr(currval));
+                  end
+                else
+                  if (currval<0) or (currval>255) then
+                    Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
                 if assigned(currsym) then
                  objdata_writereloc(currval,1,currsym,currabsreloc)
                 else

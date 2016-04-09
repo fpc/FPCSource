@@ -195,6 +195,35 @@ unit scandir;
         current_settings.packrecords:=8;
       end;
 
+    procedure dir_asmcpu;
+      var
+        s : string;
+        cpu: tcputype;
+        found: Boolean;
+      begin
+        current_scanner.skipspace;
+        s:=current_scanner.readid;
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
+        if s='ANY' then
+          current_settings.asmcputype:=cpu_none
+        else if s='CURRENT' then
+          current_settings.asmcputype:=current_settings.cputype
+        else
+          begin
+            found:=false;
+            for cpu:=succ(low(tcputype)) to high(tcputype) do
+              if s=cputypestr[cpu] then
+                begin
+                  found:=true;
+                  current_settings.asmcputype:=cpu;
+                  break;
+                end;
+            if not found then
+              Message1(scan_e_illegal_asmcpu_specifier,s);
+          end;
+      end;
+
     procedure dir_asmmode;
       var
         s : string;
@@ -459,6 +488,11 @@ unit scandir;
     procedure dir_implicitexceptions;
       begin
         do_moduleswitch(cs_implicit_exceptions);
+      end;
+
+    procedure dir_importeddata;
+      begin
+        do_delphiswitch('G');
       end;
 
     procedure dir_includepath;
@@ -1707,6 +1741,7 @@ unit scandir;
         AddDirective('APPNAME',directive_all, @dir_appname);
 {$endif m68k}
         AddDirective('APPTYPE',directive_all, @dir_apptype);
+        AddDirective('ASMCPU',directive_all, @dir_asmcpu);
         AddDirective('ASMMODE',directive_all, @dir_asmmode);
         AddDirective('ASSERTIONS',directive_all, @dir_assertions);
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
@@ -1742,6 +1777,7 @@ unit scandir;
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
+        AddDirective('IMPORTEDDATA',directive_all, @dir_importeddata);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
         AddDirective('INFO',directive_all, @dir_info);
         AddDirective('INLINE',directive_all, @dir_inline);

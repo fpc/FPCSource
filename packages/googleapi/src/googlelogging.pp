@@ -79,7 +79,7 @@ type
   Protected
     //Property setters
     Procedure Setlogs(AIndex : Integer; AValue : TListLogsResponseTypelogsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -102,9 +102,9 @@ type
     FpayloadType : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpayloadType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpayloadType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -207,10 +207,10 @@ type
     //Property setters
     Procedure Setmetadata(AIndex : Integer; AValue : TLogEntryMetadata); virtual;
     Procedure SetprotoPayload(AIndex : Integer; AValue : TLogEntryTypeprotoPayload); virtual;
-    Procedure SettextPayload(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextPayload(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstructPayload(AIndex : Integer; AValue : TLogEntryTypestructPayload); virtual;
-    Procedure SetinsertId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlog(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinsertId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlog(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property metadata : TLogEntryMetadata Index 0 Read Fmetadata Write Setmetadata;
@@ -252,13 +252,13 @@ type
     Flabels : TLogEntryMetadataTypelabels;
   Protected
     //Property setters
-    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetserviceName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetserviceName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlabels(AIndex : Integer; AValue : TLogEntryMetadataTypelabels); virtual;
   Public
   Published
@@ -297,7 +297,7 @@ type
   Protected
     //Property setters
     Procedure SetlogServices(AIndex : Integer; AValue : TListLogServicesResponseTypelogServicesArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -319,7 +319,7 @@ type
     FindexKeys : TStringArray;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetindexKeys(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -343,7 +343,7 @@ type
   Protected
     //Property setters
     Procedure SetserviceIndexPrefixes(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -386,8 +386,8 @@ type
     Ferrors : TLogSinkTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdestination(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TLogSinkTypeerrorsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -412,9 +412,9 @@ type
     FtimeNanos : String;
   Protected
     //Property setters
-    Procedure Setresource(AIndex : Integer; AValue : String); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TStatus); virtual;
-    Procedure SettimeNanos(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeNanos(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property resource : String Index 0 Read Fresource Write Setresource;
@@ -449,7 +449,7 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdetails(AIndex : Integer; AValue : TStatusTypedetailsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -746,7 +746,7 @@ end;
 
 
 
-Procedure TListLogsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListLogsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -776,7 +776,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLog.Setname(AIndex : Integer; AValue : String); 
+Procedure TLog.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -786,7 +786,7 @@ end;
 
 
 
-Procedure TLog.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TLog.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -796,7 +796,7 @@ end;
 
 
 
-Procedure TLog.SetpayloadType(AIndex : Integer; AValue : String); 
+Procedure TLog.SetpayloadType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpayloadType=AValue) then exit;
@@ -919,7 +919,7 @@ end;
 
 
 
-Procedure TLogEntry.SettextPayload(AIndex : Integer; AValue : String); 
+Procedure TLogEntry.SettextPayload(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextPayload=AValue) then exit;
@@ -939,7 +939,7 @@ end;
 
 
 
-Procedure TLogEntry.SetinsertId(AIndex : Integer; AValue : String); 
+Procedure TLogEntry.SetinsertId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinsertId=AValue) then exit;
@@ -949,7 +949,7 @@ end;
 
 
 
-Procedure TLogEntry.Setlog(AIndex : Integer; AValue : String); 
+Procedure TLogEntry.Setlog(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flog=AValue) then exit;
@@ -979,7 +979,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogEntryMetadata.Settimestamp(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.Settimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -989,7 +989,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setseverity(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.Setseverity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -999,7 +999,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -1009,7 +1009,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.SetserviceName(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.SetserviceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FserviceName=AValue) then exit;
@@ -1019,7 +1019,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setregion(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.Setregion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -1029,7 +1029,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.Setzone(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -1039,7 +1039,7 @@ end;
 
 
 
-Procedure TLogEntryMetadata.SetuserId(AIndex : Integer; AValue : String); 
+Procedure TLogEntryMetadata.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -1083,7 +1083,7 @@ end;
 
 
 
-Procedure TListLogServicesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListLogServicesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1113,7 +1113,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogService.Setname(AIndex : Integer; AValue : String); 
+Procedure TLogService.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1163,7 +1163,7 @@ end;
 
 
 
-Procedure TListLogServiceIndexesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListLogServiceIndexesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1223,7 +1223,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogSink.Setname(AIndex : Integer; AValue : String); 
+Procedure TLogSink.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1233,7 +1233,7 @@ end;
 
 
 
-Procedure TLogSink.Setdestination(AIndex : Integer; AValue : String); 
+Procedure TLogSink.Setdestination(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdestination=AValue) then exit;
@@ -1273,7 +1273,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLogError.Setresource(AIndex : Integer; AValue : String); 
+Procedure TLogError.Setresource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -1293,7 +1293,7 @@ end;
 
 
 
-Procedure TLogError.SettimeNanos(AIndex : Integer; AValue : String); 
+Procedure TLogError.SettimeNanos(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeNanos=AValue) then exit;
@@ -1333,7 +1333,7 @@ end;
 
 
 
-Procedure TStatus.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TStatus.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;

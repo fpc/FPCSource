@@ -1093,7 +1093,7 @@ begin
     P.InheritHandles:=(execinheritshandles in flags);
 
     P.Execute;
-{$ifdef VER3_0}
+{$if FPC_FULLVERSION < 30100}
 {$ifdef Windows}
     WaitForSingleObject(P.ProcessHandle,max_count);
     counter:=max_count;

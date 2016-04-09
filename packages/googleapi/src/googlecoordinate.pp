@@ -81,9 +81,9 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure SetcustomFieldId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomFieldId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property customFieldId : String Index 0 Read FcustomFieldId Write SetcustomFieldId;
@@ -110,11 +110,11 @@ type
     //Property setters
     Procedure Setenabled(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setenumitems(AIndex : Integer; AValue : TCustomFieldDefTypeenumitemsArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequiredForCheckout(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -142,7 +142,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -165,7 +165,7 @@ type
   Protected
     //Property setters
     Procedure SetcustomField(AIndex : Integer; AValue : TCustomFieldsTypecustomFieldArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -189,8 +189,8 @@ type
   Protected
     //Property setters
     Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property active : boolean Index 0 Read Factive Write Setactive;
@@ -211,9 +211,9 @@ type
     Fstate : TJobState;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetjobChange(AIndex : Integer; AValue : TJobTypejobChangeArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -239,9 +239,9 @@ type
     Ftimestamp : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : String); virtual;
+    Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -262,8 +262,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TJobListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -293,15 +293,15 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setassignee(AIndex : Integer; AValue : String); virtual;
+    Procedure Setassignee(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomFields(AIndex : Integer; AValue : TCustomFields); virtual;
-    Procedure SetcustomerName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomerPhoneNumber(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomerName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerPhoneNumber(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocation(AIndex : Integer; AValue : TLocation); virtual;
     Procedure Setnote(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -333,7 +333,7 @@ type
   Protected
     //Property setters
     Procedure SetaddressLine(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlat(AIndex : Integer; AValue : double); virtual;
     Procedure Setlng(AIndex : Integer; AValue : double); virtual;
     //2.6.4. bug workaround
@@ -362,8 +362,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLocationListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -391,9 +391,9 @@ type
     Flongitude : double;
   Protected
     //Property setters
-    Procedure SetcollectionTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcollectionTime(AIndex : Integer; const AValue : String); virtual;
     Procedure SetconfidenceRadius(AIndex : Integer; AValue : double); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
     Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
   Public
@@ -420,10 +420,10 @@ type
   Protected
     //Property setters
     Procedure SetallDay(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure Setduration(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property allDay : boolean Index 0 Read FallDay Write SetallDay;
@@ -445,9 +445,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -467,7 +467,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TTeamListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -490,9 +490,9 @@ type
     FpreviousPageToken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviousPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousPageToken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -511,8 +511,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -531,7 +531,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TWorkerListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -793,7 +793,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCustomField.SetcustomFieldId(AIndex : Integer; AValue : String); 
+Procedure TCustomField.SetcustomFieldId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomFieldId=AValue) then exit;
@@ -803,7 +803,7 @@ end;
 
 
 
-Procedure TCustomField.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomField.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -813,7 +813,7 @@ end;
 
 
 
-Procedure TCustomField.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TCustomField.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -850,7 +850,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setid(AIndex : Integer; AValue : String); 
+Procedure TCustomFieldDef.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -860,7 +860,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomFieldDef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -870,7 +870,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomFieldDef.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -890,7 +890,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCustomFieldDef.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -941,7 +941,7 @@ end;
 
 
 
-Procedure TCustomFieldDefListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomFieldDefListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -981,7 +981,7 @@ end;
 
 
 
-Procedure TCustomFields.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomFields.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1021,7 +1021,7 @@ end;
 
 
 
-Procedure TEnumItemDef.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEnumItemDef.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1031,7 +1031,7 @@ end;
 
 
 
-Procedure TEnumItemDef.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TEnumItemDef.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1048,7 +1048,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJob.Setid(AIndex : Integer; AValue : String); 
+Procedure TJob.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1068,7 +1068,7 @@ end;
 
 
 
-Procedure TJob.Setkind(AIndex : Integer; AValue : String); 
+Procedure TJob.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1108,7 +1108,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobChange.Setkind(AIndex : Integer; AValue : String); 
+Procedure TJobChange.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1128,7 +1128,7 @@ end;
 
 
 
-Procedure TJobChange.Settimestamp(AIndex : Integer; AValue : String); 
+Procedure TJobChange.Settimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -1155,7 +1155,7 @@ end;
 
 
 
-Procedure TJobListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TJobListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1165,7 +1165,7 @@ end;
 
 
 
-Procedure TJobListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TJobListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1195,7 +1195,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobState.Setassignee(AIndex : Integer; AValue : String); 
+Procedure TJobState.Setassignee(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fassignee=AValue) then exit;
@@ -1215,7 +1215,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomerName(AIndex : Integer; AValue : String); 
+Procedure TJobState.SetcustomerName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerName=AValue) then exit;
@@ -1225,7 +1225,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomerPhoneNumber(AIndex : Integer; AValue : String); 
+Procedure TJobState.SetcustomerPhoneNumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerPhoneNumber=AValue) then exit;
@@ -1235,7 +1235,7 @@ end;
 
 
 
-Procedure TJobState.Setkind(AIndex : Integer; AValue : String); 
+Procedure TJobState.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1265,7 +1265,7 @@ end;
 
 
 
-Procedure TJobState.Setprogress(AIndex : Integer; AValue : String); 
+Procedure TJobState.Setprogress(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1275,7 +1275,7 @@ end;
 
 
 
-Procedure TJobState.Settitle(AIndex : Integer; AValue : String); 
+Procedure TJobState.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1315,7 +1315,7 @@ end;
 
 
 
-Procedure TLocation.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLocation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1375,7 +1375,7 @@ end;
 
 
 
-Procedure TLocationListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLocationListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1385,7 +1385,7 @@ end;
 
 
 
-Procedure TLocationListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLocationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1425,7 +1425,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationRecord.SetcollectionTime(AIndex : Integer; AValue : String); 
+Procedure TLocationRecord.SetcollectionTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcollectionTime=AValue) then exit;
@@ -1445,7 +1445,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLocationRecord.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1492,7 +1492,7 @@ end;
 
 
 
-Procedure TSchedule.Setduration(AIndex : Integer; AValue : String); 
+Procedure TSchedule.Setduration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -1502,7 +1502,7 @@ end;
 
 
 
-Procedure TSchedule.SetendTime(AIndex : Integer; AValue : String); 
+Procedure TSchedule.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -1512,7 +1512,7 @@ end;
 
 
 
-Procedure TSchedule.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSchedule.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1522,7 +1522,7 @@ end;
 
 
 
-Procedure TSchedule.SetstartTime(AIndex : Integer; AValue : String); 
+Procedure TSchedule.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1539,7 +1539,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeam.Setid(AIndex : Integer; AValue : String); 
+Procedure TTeam.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1549,7 +1549,7 @@ end;
 
 
 
-Procedure TTeam.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTeam.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1559,7 +1559,7 @@ end;
 
 
 
-Procedure TTeam.Setname(AIndex : Integer; AValue : String); 
+Procedure TTeam.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1586,7 +1586,7 @@ end;
 
 
 
-Procedure TTeamListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTeamListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1616,7 +1616,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokenPagination.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTokenPagination.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1626,7 +1626,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1636,7 +1636,7 @@ end;
 
 
 
-Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; AValue : String); 
+Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviousPageToken=AValue) then exit;
@@ -1653,7 +1653,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorker.Setid(AIndex : Integer; AValue : String); 
+Procedure TWorker.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1663,7 +1663,7 @@ end;
 
 
 
-Procedure TWorker.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWorker.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1690,7 +1690,7 @@ end;
 
 
 
-Procedure TWorkerListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWorkerListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

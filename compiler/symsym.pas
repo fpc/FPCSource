@@ -191,9 +191,11 @@ interface
           _vardef     : tdef;
           vardefderef : tderef;
 
-          procedure setvardef(def:tdef);
+          procedure setregable;
+          procedure setvardef(const def: tdef);
+          procedure setvardef_and_regable(def:tdef);
         public
-          property vardef: tdef read _vardef write setvardef;
+          property vardef: tdef read _vardef write setvardef_and_regable;
       end;
 
       tfieldvarsym = class(tabstractvarsym)
@@ -1615,16 +1617,12 @@ implementation
 
 
     procedure tabstractvarsym.deref;
-      var
-        oldvarregable: tvarregable;
       begin
-        { setting the vardef also updates varregable. We just loaded this }
+        { assigning vardef also updates varregable. We just loaded this   }
         { value from a ppu, so it must not be changed (e.g. tw7817a.pp/   }
         { tw7817b.pp: the address is taken of a local variable in an      }
         { inlined procedure -> must remain non-regable when inlining)     }
-        oldvarregable:=varregable;
-        vardef:=tdef(vardefderef.resolve);
-        varregable:=oldvarregable;
+        setvardef(tdef(vardefderef.resolve));
       end;
 
 
@@ -1690,12 +1688,18 @@ implementation
       end;
 
 
-    procedure tabstractvarsym.setvardef(def:tdef);
+    procedure tabstractvarsym.setvardef_and_regable(def:tdef);
       begin
-        _vardef := def;
+        setvardef(def);
+         setregable;
+      end;
+
+
+    procedure tabstractvarsym.setregable;
+      begin
          { can we load the value into a register ? }
         if not assigned(owner) or
-           (owner.symtabletype in [localsymtable,parasymtable]) or
+           (owner.symtabletype in [localsymtable, parasymtable]) or
            (
             (owner.symtabletype=staticsymtable) and
             not(cs_create_pic in current_settings.moduleswitches)
@@ -1718,20 +1722,20 @@ implementation
                 (typ=paravarsym) and
                 (varspez=vs_const)) then
               varregable:=vr_intreg
-            else
-{ $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }
-              if {(
-                  not assigned(owner) or
-                  (owner.symtabletype<>staticsymtable)
-                 ) and }
-                 tstoreddef(vardef).is_fpuregable then
-                 begin
-                   if use_vectorfpu(vardef) then
-                     varregable:=vr_mmreg
-                   else
-                     varregable:=vr_fpureg;
-                 end;
+            else if tstoreddef(vardef).is_fpuregable then
+              begin
+                if use_vectorfpu(vardef) then
+                  varregable:=vr_mmreg
+                else
+                  varregable:=vr_fpureg;
+              end;
           end;
+      end;
+
+
+    procedure tabstractvarsym.setvardef(const def: tdef);
+      begin
+        _vardef := def;
       end;
 
 

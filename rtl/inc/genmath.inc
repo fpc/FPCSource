@@ -369,25 +369,25 @@ type
 
 
 {$ifndef SYSTEM_HAS_FREXP}
-    function frexp(x:Real; out e:Integer ):Real;
+    procedure frexp(X: Real; out Mantissa: Real; out Exponent: longint);
     {*  frexp() extracts the exponent from x.  It returns an integer     *}
     {*  power of two to expnt and the significand between 0.5 and 1      *}
     {*  to y.  Thus  x = y * 2**expn.                                    *}
     begin
-      e :=0;
+      exponent:=0;
       if (abs(x)<0.5) then
        While (abs(x)<0.5) do
        begin
          x := x*2;
-         Dec(e);
+         Dec(exponent);
        end
       else
        While (abs(x)>1) do
        begin
          x := x/2;
-         Inc(e);
+         Inc(exponent);
        end;
-      frexp := x;
+      Mantissa := x;
     end;
 {$endif not SYSTEM_HAS_FREXP}
 
@@ -1004,7 +1004,7 @@ type
     { a rough value for the square root.  Then Heron's iteration      }
     { is used three times to converge to an accurate value.           }
     {*****************************************************************}
-    var e   : Integer;
+    var e   : Longint;
         w,z : Real;
     begin
        if( d <= 0.0 ) then
@@ -1018,7 +1018,7 @@ type
        begin
           w := d;
           { separate exponent and significand }
-           z := frexp( d, e );
+          frexp( d, z, e );
 
           {  approximate square root of number between 0.5 and 1  }
           {  relative error of approximation = 7.47e-3            }

@@ -249,6 +249,7 @@ type
     _ASSEMBLER,
     _BITPACKED,
     _BITWISEOR,
+    _HARDFLOAT,
     _INHERITED,
     _INTDIVIDE,
     _INTERFACE,
@@ -575,6 +576,7 @@ const
       (str:'ASSEMBLER'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'BITPACKED'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'BITWISEOR'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
+      (str:'HARDFLOAT'     ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'INHERITED'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),
       (str:'INTDIVIDE'     ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'INTERFACE'     ;special:false;keyword:alllanguagemodes-[m_iso,m_extpas];op:NOTOKEN),

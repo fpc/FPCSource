@@ -300,6 +300,8 @@ interface
           function jvm_full_typename(with_package_name: boolean): string;
           { check if the symtable contains a float field }
           function contains_float_field : boolean;
+          { check if the symtable contains a field that spans an aword boundary }
+          function contains_cross_aword_field: boolean;
        end;
 
        pvariantrecdesc = ^tvariantrecdesc;
@@ -1213,6 +1215,7 @@ implementation
     function getansistringdef:tstringdef;
       var
         symtable:tsymtable;
+        oldstack : tsymtablestack;
       begin
         { if a codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
@@ -1229,9 +1232,16 @@ implementation
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
+                { create a temporary stack as it's not good (TM) to mess around
+                  with the order if the unit contains generics or helpers; don't
+                  use a def aware symtablestack though }
+                oldstack:=symtablestack;
+                symtablestack:=tsymtablestack.create;
                 symtablestack.push(symtable);
                 current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
                 symtablestack.pop(symtable);
+                symtablestack.free;
+                symtablestack:=oldstack;
               end;
             result:=tstringdef(current_module.ansistrdef);
           end
@@ -2114,12 +2124,14 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                (((recsize <= sizeof(aint)*2) and
+                ((recsize<=sizeof(aint)*2) and
+                 not trecorddef(self).contains_cross_aword_field and
                  { records cannot go into registers on 16 bit targets for now }
-                  (sizeof(aint)>2) and
-                  not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(aint))) and
-                not needs_inittable;
+                 (sizeof(aint)>2) and
+                 (not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(aint))
+                 ) and
+                 not needs_inittable;
 {$endif llvm}
             end;
         end;
@@ -4246,6 +4258,41 @@ implementation
                 { search recursively }
                 if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
                   (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_float_field) then
+                  exit;
+              end;
+          end;
+        result:=false;
+      end;
+
+
+    function tabstractrecorddef.contains_cross_aword_field: boolean;
+      var
+        i : longint;
+        foffset, fsize: aword;
+      begin
+        result:=true;
+        for i:=0 to symtable.symlist.count-1 do
+          begin
+            if (tsym(symtable.symlist[i]).typ<>fieldvarsym) or
+               (sp_static in tsym(symtable.symlist[i]).symoptions) then
+              continue;
+            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
+              begin
+                if is_packed then
+                  begin
+                    foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset;
+                    fsize:=tfieldvarsym(symtable.symlist[i]).vardef.packedbitsize;
+                  end
+                else
+                  begin
+                    foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset*8;
+                    fsize:=tfieldvarsym(symtable.symlist[i]).vardef.size*8;
+                  end;
+                if (foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8)) then
+                  exit;
+                { search recursively }
+                if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
+                  (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_cross_aword_field) then
                   exit;
               end;
           end;

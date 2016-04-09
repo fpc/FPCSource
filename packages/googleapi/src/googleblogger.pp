@@ -97,9 +97,9 @@ type
     Fvariant : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvariant(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property country : String Index 0 Read Fcountry Write Setcountry;
@@ -118,7 +118,7 @@ type
     FtotalItems : integer;
   Protected
     //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -139,7 +139,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBlogTypepostsTypeitemsArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -175,19 +175,19 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcustomMetaData(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomMetaData(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocale(AIndex : Integer; AValue : TBlogTypelocale); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpages(AIndex : Integer; AValue : TBlogTypepages); virtual;
     Procedure Setposts(AIndex : Integer; AValue : TBlogTypeposts); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property customMetaData : String Index 0 Read FcustomMetaData Write SetcustomMetaData;
@@ -219,7 +219,7 @@ type
     //Property setters
     Procedure SetblogUserInfos(AIndex : Integer; AValue : TBlogListTypeblogUserInfosArray); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TBlogListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -246,12 +246,12 @@ type
     FuserId : String;
   Protected
     //Property setters
-    Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblogId(AIndex : Integer; const AValue : String); virtual;
     Procedure SethasAdminAccess(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetphotosAlbumKey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetphotosAlbumKey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property blogId : String Index 0 Read FblogId Write SetblogId;
@@ -276,7 +276,7 @@ type
     //Property setters
     Procedure Setblog(AIndex : Integer; AValue : TBlog); virtual;
     Procedure Setblog_user_info(AIndex : Integer; AValue : TBlogPerUserInfo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property blog : TBlog Index 0 Read Fblog Write Setblog;
@@ -294,7 +294,7 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property url : String Index 0 Read Furl Write Seturl;
@@ -313,10 +313,10 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setimage(AIndex : Integer; AValue : TCommentTypeauthorTypeimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
@@ -335,7 +335,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -351,7 +351,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -367,7 +367,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -396,14 +396,14 @@ type
     //Property setters
     Procedure Setauthor(AIndex : Integer; AValue : TCommentTypeauthor); virtual;
     Procedure Setblog(AIndex : Integer; AValue : TCommentTypeblog); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinReplyTo(AIndex : Integer; AValue : TCommentTypeinReplyTo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpost(AIndex : Integer; AValue : TCommentTypepost); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -434,11 +434,11 @@ type
     FprevPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TCommentListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -462,7 +462,7 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property url : String Index 0 Read Furl Write Seturl;
@@ -481,10 +481,10 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setimage(AIndex : Integer; AValue : TPageTypeauthorTypeimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
@@ -503,7 +503,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -533,16 +533,16 @@ type
     //Property setters
     Procedure Setauthor(AIndex : Integer; AValue : TPageTypeauthor); virtual;
     Procedure Setblog(AIndex : Integer; AValue : TPageTypeblog); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property author : TPageTypeauthor Index 0 Read Fauthor Write Setauthor;
@@ -572,10 +572,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TPageListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -599,8 +599,8 @@ type
     FtimeRange : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeRange(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeRange(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -619,9 +619,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblogId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcounts(AIndex : Integer; AValue : TPageviewsTypecountsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -643,7 +643,7 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property url : String Index 0 Read Furl Write Seturl;
@@ -662,10 +662,10 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setimage(AIndex : Integer; AValue : TPostTypeauthorTypeimage); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
@@ -684,7 +684,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -700,7 +700,7 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property url : String Index 0 Read Furl Write Seturl;
@@ -721,8 +721,8 @@ type
     //Property setters
     Procedure Setlat(AIndex : Integer; AValue : double); virtual;
     Procedure Setlng(AIndex : Integer; AValue : double); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setspan(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setspan(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property lat : double Index 0 Read Flat Write Setlat;
@@ -744,8 +744,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPostTyperepliesTypeitemsArray); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SettotalItems(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettotalItems(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -788,23 +788,23 @@ type
     //Property setters
     Procedure Setauthor(AIndex : Integer; AValue : TPostTypeauthor); virtual;
     Procedure Setblog(AIndex : Integer; AValue : TPostTypeblog); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomMetaData(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomMetaData(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setimages(AIndex : Integer; AValue : TPostTypeimagesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlabels(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setlocation(AIndex : Integer; AValue : TPostTypelocation); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetreaderComments(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreaderComments(AIndex : Integer; const AValue : String); virtual;
     Procedure Setreplies(AIndex : Integer; AValue : TPostTypereplies); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SettitleLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettitleLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -845,10 +845,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TPostListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -875,11 +875,11 @@ type
     FuserId : String;
   Protected
     //Property setters
-    Procedure SetblogId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblogId(AIndex : Integer; const AValue : String); virtual;
     Procedure SethasEditAccess(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpostId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpostId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property blogId : String Index 0 Read FblogId Write SetblogId;
@@ -901,7 +901,7 @@ type
     Fpost_user_info : TPostPerUserInfo;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpost(AIndex : Integer; AValue : TPost); virtual;
     Procedure Setpost_user_info(AIndex : Integer; AValue : TPostPerUserInfo); virtual;
   Public
@@ -924,8 +924,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPostUserInfosListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -947,7 +947,7 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property selfLink : String Index 0 Read FselfLink Write SetselfLink;
@@ -965,9 +965,9 @@ type
     Fvariant : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvariant(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property country : String Index 0 Read Fcountry Write Setcountry;
@@ -993,15 +993,15 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setabout(AIndex : Integer; AValue : String); virtual;
+    Procedure Setabout(AIndex : Integer; const AValue : String); virtual;
     Procedure Setblogs(AIndex : Integer; AValue : TUserTypeblogs); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocale(AIndex : Integer; AValue : TUserTypelocale); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property about : String Index 0 Read Fabout Write Setabout;
@@ -1457,7 +1457,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBlogTypelocale.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TBlogTypelocale.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -1467,7 +1467,7 @@ end;
 
 
 
-Procedure TBlogTypelocale.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TBlogTypelocale.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -1477,7 +1477,7 @@ end;
 
 
 
-Procedure TBlogTypelocale.Setvariant(AIndex : Integer; AValue : String); 
+Procedure TBlogTypelocale.Setvariant(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvariant=AValue) then exit;
@@ -1494,7 +1494,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogTypepages.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TBlogTypepages.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1531,7 +1531,7 @@ end;
 
 
 
-Procedure TBlogTypeposts.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TBlogTypeposts.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1571,7 +1571,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlog.SetcustomMetaData(AIndex : Integer; AValue : String); 
+Procedure TBlog.SetcustomMetaData(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomMetaData=AValue) then exit;
@@ -1581,7 +1581,7 @@ end;
 
 
 
-Procedure TBlog.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TBlog.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1591,7 +1591,7 @@ end;
 
 
 
-Procedure TBlog.Setid(AIndex : Integer; AValue : String); 
+Procedure TBlog.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1601,7 +1601,7 @@ end;
 
 
 
-Procedure TBlog.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBlog.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1621,7 +1621,7 @@ end;
 
 
 
-Procedure TBlog.Setname(AIndex : Integer; AValue : String); 
+Procedure TBlog.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1661,7 +1661,7 @@ end;
 
 
 
-Procedure TBlog.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TBlog.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1671,7 +1671,7 @@ end;
 
 
 
-Procedure TBlog.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TBlog.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1691,7 +1691,7 @@ end;
 
 
 
-Procedure TBlog.Seturl(AIndex : Integer; AValue : String); 
+Procedure TBlog.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1739,7 +1739,7 @@ end;
 
 
 
-Procedure TBlogList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBlogList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1770,7 +1770,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBlogPerUserInfo.SetblogId(AIndex : Integer; AValue : String); 
+Procedure TBlogPerUserInfo.SetblogId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblogId=AValue) then exit;
@@ -1790,7 +1790,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBlogPerUserInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1800,7 +1800,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SetphotosAlbumKey(AIndex : Integer; AValue : String); 
+Procedure TBlogPerUserInfo.SetphotosAlbumKey(AIndex : Integer; const AValue : String); 
 
 begin
   If (FphotosAlbumKey=AValue) then exit;
@@ -1810,7 +1810,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.Setrole(AIndex : Integer; AValue : String); 
+Procedure TBlogPerUserInfo.Setrole(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -1820,7 +1820,7 @@ end;
 
 
 
-Procedure TBlogPerUserInfo.SetuserId(AIndex : Integer; AValue : String); 
+Procedure TBlogPerUserInfo.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -1857,7 +1857,7 @@ end;
 
 
 
-Procedure TBlogUserInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBlogUserInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1874,7 +1874,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeauthorTypeimage.Seturl(AIndex : Integer; AValue : String); 
+Procedure TCommentTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1891,7 +1891,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TCommentTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1901,7 +1901,7 @@ end;
 
 
 
-Procedure TCommentTypeauthor.Setid(AIndex : Integer; AValue : String); 
+Procedure TCommentTypeauthor.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1921,7 +1921,7 @@ end;
 
 
 
-Procedure TCommentTypeauthor.Seturl(AIndex : Integer; AValue : String); 
+Procedure TCommentTypeauthor.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -1938,7 +1938,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeblog.Setid(AIndex : Integer; AValue : String); 
+Procedure TCommentTypeblog.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1955,7 +1955,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypeinReplyTo.Setid(AIndex : Integer; AValue : String); 
+Procedure TCommentTypeinReplyTo.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1972,7 +1972,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentTypepost.Setid(AIndex : Integer; AValue : String); 
+Procedure TCommentTypepost.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2009,7 +2009,7 @@ end;
 
 
 
-Procedure TComment.Setcontent(AIndex : Integer; AValue : String); 
+Procedure TComment.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -2019,7 +2019,7 @@ end;
 
 
 
-Procedure TComment.Setid(AIndex : Integer; AValue : String); 
+Procedure TComment.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2039,7 +2039,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; AValue : String); 
+Procedure TComment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2069,7 +2069,7 @@ end;
 
 
 
-Procedure TComment.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TComment.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2079,7 +2079,7 @@ end;
 
 
 
-Procedure TComment.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TComment.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2117,7 +2117,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentList.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCommentList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2137,7 +2137,7 @@ end;
 
 
 
-Procedure TCommentList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCommentList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2147,7 +2147,7 @@ end;
 
 
 
-Procedure TCommentList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TCommentList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2157,7 +2157,7 @@ end;
 
 
 
-Procedure TCommentList.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TCommentList.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -2187,7 +2187,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageTypeauthorTypeimage.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPageTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2204,7 +2204,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TPageTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2214,7 +2214,7 @@ end;
 
 
 
-Procedure TPageTypeauthor.Setid(AIndex : Integer; AValue : String); 
+Procedure TPageTypeauthor.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2234,7 +2234,7 @@ end;
 
 
 
-Procedure TPageTypeauthor.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPageTypeauthor.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2251,7 +2251,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageTypeblog.Setid(AIndex : Integer; AValue : String); 
+Procedure TPageTypeblog.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2288,7 +2288,7 @@ end;
 
 
 
-Procedure TPage.Setcontent(AIndex : Integer; AValue : String); 
+Procedure TPage.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -2298,7 +2298,7 @@ end;
 
 
 
-Procedure TPage.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPage.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2308,7 +2308,7 @@ end;
 
 
 
-Procedure TPage.Setid(AIndex : Integer; AValue : String); 
+Procedure TPage.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2318,7 +2318,7 @@ end;
 
 
 
-Procedure TPage.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPage.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2338,7 +2338,7 @@ end;
 
 
 
-Procedure TPage.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TPage.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2348,7 +2348,7 @@ end;
 
 
 
-Procedure TPage.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TPage.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2358,7 +2358,7 @@ end;
 
 
 
-Procedure TPage.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPage.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2378,7 +2378,7 @@ end;
 
 
 
-Procedure TPage.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2406,7 +2406,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageList.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPageList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2426,7 +2426,7 @@ end;
 
 
 
-Procedure TPageList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPageList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2436,7 +2436,7 @@ end;
 
 
 
-Procedure TPageList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPageList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -2466,7 +2466,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageviewsTypecountsItem.Setcount(AIndex : Integer; AValue : String); 
+Procedure TPageviewsTypecountsItem.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -2476,7 +2476,7 @@ end;
 
 
 
-Procedure TPageviewsTypecountsItem.SettimeRange(AIndex : Integer; AValue : String); 
+Procedure TPageviewsTypecountsItem.SettimeRange(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeRange=AValue) then exit;
@@ -2493,7 +2493,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageviews.SetblogId(AIndex : Integer; AValue : String); 
+Procedure TPageviews.SetblogId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblogId=AValue) then exit;
@@ -2513,7 +2513,7 @@ end;
 
 
 
-Procedure TPageviews.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPageviews.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2543,7 +2543,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeauthorTypeimage.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPostTypeauthorTypeimage.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2560,7 +2560,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TPostTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2570,7 +2570,7 @@ end;
 
 
 
-Procedure TPostTypeauthor.Setid(AIndex : Integer; AValue : String); 
+Procedure TPostTypeauthor.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2590,7 +2590,7 @@ end;
 
 
 
-Procedure TPostTypeauthor.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPostTypeauthor.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2607,7 +2607,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeblog.Setid(AIndex : Integer; AValue : String); 
+Procedure TPostTypeblog.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2624,7 +2624,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostTypeimagesItem.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPostTypeimagesItem.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2661,7 +2661,7 @@ end;
 
 
 
-Procedure TPostTypelocation.Setname(AIndex : Integer; AValue : String); 
+Procedure TPostTypelocation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2671,7 +2671,7 @@ end;
 
 
 
-Procedure TPostTypelocation.Setspan(AIndex : Integer; AValue : String); 
+Procedure TPostTypelocation.Setspan(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fspan=AValue) then exit;
@@ -2698,7 +2698,7 @@ end;
 
 
 
-Procedure TPostTypereplies.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TPostTypereplies.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2708,7 +2708,7 @@ end;
 
 
 
-Procedure TPostTypereplies.SettotalItems(AIndex : Integer; AValue : String); 
+Procedure TPostTypereplies.SettotalItems(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtotalItems=AValue) then exit;
@@ -2758,7 +2758,7 @@ end;
 
 
 
-Procedure TPost.Setcontent(AIndex : Integer; AValue : String); 
+Procedure TPost.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -2768,7 +2768,7 @@ end;
 
 
 
-Procedure TPost.SetcustomMetaData(AIndex : Integer; AValue : String); 
+Procedure TPost.SetcustomMetaData(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomMetaData=AValue) then exit;
@@ -2778,7 +2778,7 @@ end;
 
 
 
-Procedure TPost.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPost.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2788,7 +2788,7 @@ end;
 
 
 
-Procedure TPost.Setid(AIndex : Integer; AValue : String); 
+Procedure TPost.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2808,7 +2808,7 @@ end;
 
 
 
-Procedure TPost.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPost.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2848,7 +2848,7 @@ end;
 
 
 
-Procedure TPost.SetreaderComments(AIndex : Integer; AValue : String); 
+Procedure TPost.SetreaderComments(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreaderComments=AValue) then exit;
@@ -2868,7 +2868,7 @@ end;
 
 
 
-Procedure TPost.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TPost.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -2878,7 +2878,7 @@ end;
 
 
 
-Procedure TPost.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TPost.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -2888,7 +2888,7 @@ end;
 
 
 
-Procedure TPost.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPost.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2898,7 +2898,7 @@ end;
 
 
 
-Procedure TPost.SettitleLink(AIndex : Integer; AValue : String); 
+Procedure TPost.SettitleLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtitleLink=AValue) then exit;
@@ -2918,7 +2918,7 @@ end;
 
 
 
-Procedure TPost.Seturl(AIndex : Integer; AValue : String); 
+Procedure TPost.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2960,7 +2960,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostList.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPostList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2980,7 +2980,7 @@ end;
 
 
 
-Procedure TPostList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPostList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2990,7 +2990,7 @@ end;
 
 
 
-Procedure TPostList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPostList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3020,7 +3020,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostPerUserInfo.SetblogId(AIndex : Integer; AValue : String); 
+Procedure TPostPerUserInfo.SetblogId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblogId=AValue) then exit;
@@ -3040,7 +3040,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPostPerUserInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3050,7 +3050,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SetpostId(AIndex : Integer; AValue : String); 
+Procedure TPostPerUserInfo.SetpostId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpostId=AValue) then exit;
@@ -3060,7 +3060,7 @@ end;
 
 
 
-Procedure TPostPerUserInfo.SetuserId(AIndex : Integer; AValue : String); 
+Procedure TPostPerUserInfo.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -3077,7 +3077,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPostUserInfo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPostUserInfo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3124,7 +3124,7 @@ end;
 
 
 
-Procedure TPostUserInfosList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPostUserInfosList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3134,7 +3134,7 @@ end;
 
 
 
-Procedure TPostUserInfosList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPostUserInfosList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3164,7 +3164,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserTypeblogs.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TUserTypeblogs.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3181,7 +3181,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserTypelocale.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TUserTypelocale.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -3191,7 +3191,7 @@ end;
 
 
 
-Procedure TUserTypelocale.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TUserTypelocale.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -3201,7 +3201,7 @@ end;
 
 
 
-Procedure TUserTypelocale.Setvariant(AIndex : Integer; AValue : String); 
+Procedure TUserTypelocale.Setvariant(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvariant=AValue) then exit;
@@ -3218,7 +3218,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setabout(AIndex : Integer; AValue : String); 
+Procedure TUser.Setabout(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fabout=AValue) then exit;
@@ -3248,7 +3248,7 @@ end;
 
 
 
-Procedure TUser.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TUser.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3258,7 +3258,7 @@ end;
 
 
 
-Procedure TUser.Setid(AIndex : Integer; AValue : String); 
+Procedure TUser.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3268,7 +3268,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3288,7 +3288,7 @@ end;
 
 
 
-Procedure TUser.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TUser.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3298,7 +3298,7 @@ end;
 
 
 
-Procedure TUser.Seturl(AIndex : Integer; AValue : String); 
+Procedure TUser.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;

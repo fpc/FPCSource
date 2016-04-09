@@ -170,7 +170,7 @@ type
     FisolationLevel : String;
   Protected
     //Property setters
-    Procedure SetisolationLevel(AIndex : Integer; AValue : String); virtual;
+    Procedure SetisolationLevel(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property isolationLevel : String Index 0 Read FisolationLevel Write SetisolationLevel;
@@ -188,7 +188,7 @@ type
   Protected
     //Property setters
     Procedure Setheader(AIndex : Integer; AValue : TResponseHeader); virtual;
-    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
+    Procedure Settransaction(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property header : TResponseHeader Index 0 Read Fheader Write Setheader;
@@ -209,9 +209,9 @@ type
   Protected
     //Property setters
     Procedure SetignoreReadOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setmode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmutation(AIndex : Integer; AValue : TMutation); virtual;
-    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
+    Procedure Settransaction(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ignoreReadOnly : boolean Index 0 Read FignoreReadOnly Write SetignoreReadOnly;
@@ -252,7 +252,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setfilters(AIndex : Integer; AValue : TCompositeFilterTypefiltersArray); virtual;
-    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_operator(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -347,7 +347,7 @@ type
     Procedure SetallowLiteral(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetnameArgs(AIndex : Integer; AValue : TGqlQueryTypenameArgsArray); virtual;
     Procedure SetnumberArgs(AIndex : Integer; AValue : TGqlQueryTypenumberArgsArray); virtual;
-    Procedure SetqueryString(AIndex : Integer; AValue : String); virtual;
+    Procedure SetqueryString(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -372,8 +372,8 @@ type
     Fvalue : TValue;
   Protected
     //Property setters
-    Procedure Setcursor(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcursor(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TValue); virtual;
   Public
   Published
@@ -417,9 +417,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -437,7 +437,7 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -564,8 +564,8 @@ type
     Fnamespace : String;
   Protected
     //Property setters
-    Procedure SetdatasetId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnamespace(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdatasetId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnamespace(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property datasetId : String Index 0 Read FdatasetId Write SetdatasetId;
@@ -593,18 +593,18 @@ type
     FstringValue : String;
   Protected
     //Property setters
-    Procedure SetblobKeyValue(AIndex : Integer; AValue : String); virtual;
-    Procedure SetblobValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblobKeyValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetblobValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbooleanValue(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdateTimeValue(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
     Procedure SetentityValue(AIndex : Integer; AValue : TEntity); virtual;
     Procedure Setindexed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetintegerValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetintegerValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetkeyValue(AIndex : Integer; AValue : TKey); virtual;
     Procedure SetlistValue(AIndex : Integer; AValue : TPropertyTypelistValueArray); virtual;
     Procedure Setmeaning(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstringValue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -637,7 +637,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaggregationFunction(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaggregationFunction(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_property(AIndex : Integer; AValue : TPropertyReference); virtual;
   Public
   Published
@@ -658,7 +658,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_operator(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_property(AIndex : Integer; AValue : TPropertyReference); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TValue); virtual;
   Public
@@ -680,7 +680,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdirection(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdirection(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_property(AIndex : Integer; AValue : TPropertyReference); virtual;
   Public
   Published
@@ -698,7 +698,7 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -722,7 +722,7 @@ type
     FstartCursor : String;
   Protected
     //Property setters
-    Procedure SetendCursor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendCursor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfilter(AIndex : Integer; AValue : TFilter); virtual;
     Procedure SetgroupBy(AIndex : Integer; AValue : TQueryTypegroupByArray); virtual;
     Procedure Setkinds(AIndex : Integer; AValue : TQueryTypekindsArray); virtual;
@@ -730,7 +730,7 @@ type
     Procedure Setoffset(AIndex : Integer; AValue : integer); virtual;
     Procedure Setorder(AIndex : Integer; AValue : TQueryTypeorderArray); virtual;
     Procedure Setprojection(AIndex : Integer; AValue : TQueryTypeprojectionArray); virtual;
-    Procedure SetstartCursor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstartCursor(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -762,10 +762,10 @@ type
     FskippedResults : integer;
   Protected
     //Property setters
-    Procedure SetendCursor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetentityResultType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendCursor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetentityResultType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetentityResults(AIndex : Integer; AValue : TQueryResultBatchTypeentityResultsArray); virtual;
-    Procedure SetmoreResults(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmoreResults(AIndex : Integer; const AValue : String); virtual;
     Procedure SetskippedResults(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -791,8 +791,8 @@ type
     Ftransaction : String;
   Protected
     //Property setters
-    Procedure SetreadConsistency(AIndex : Integer; AValue : String); virtual;
-    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreadConsistency(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settransaction(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property readConsistency : String Index 0 Read FreadConsistency Write SetreadConsistency;
@@ -809,7 +809,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -825,7 +825,7 @@ type
     Ftransaction : String;
   Protected
     //Property setters
-    Procedure Settransaction(AIndex : Integer; AValue : String); virtual;
+    Procedure Settransaction(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property transaction : String Index 0 Read Ftransaction Write Settransaction;
@@ -912,18 +912,18 @@ type
     FstringValue : String;
   Protected
     //Property setters
-    Procedure SetblobKeyValue(AIndex : Integer; AValue : String); virtual;
-    Procedure SetblobValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetblobKeyValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetblobValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetbooleanValue(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdateTimeValue(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetdoubleValue(AIndex : Integer; AValue : double); virtual;
     Procedure SetentityValue(AIndex : Integer; AValue : TEntity); virtual;
     Procedure Setindexed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetintegerValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetintegerValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetkeyValue(AIndex : Integer; AValue : TKey); virtual;
     Procedure SetlistValue(AIndex : Integer; AValue : TValueTypelistValueArray); virtual;
     Procedure Setmeaning(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstringValue(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstringValue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1077,7 +1077,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBeginTransactionRequest.SetisolationLevel(AIndex : Integer; AValue : String); 
+Procedure TBeginTransactionRequest.SetisolationLevel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FisolationLevel=AValue) then exit;
@@ -1104,7 +1104,7 @@ end;
 
 
 
-Procedure TBeginTransactionResponse.Settransaction(AIndex : Integer; AValue : String); 
+Procedure TBeginTransactionResponse.Settransaction(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1131,7 +1131,7 @@ end;
 
 
 
-Procedure TCommitRequest.Setmode(AIndex : Integer; AValue : String); 
+Procedure TCommitRequest.Setmode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmode=AValue) then exit;
@@ -1151,7 +1151,7 @@ end;
 
 
 
-Procedure TCommitRequest.Settransaction(AIndex : Integer; AValue : String); 
+Procedure TCommitRequest.Settransaction(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -1205,7 +1205,7 @@ end;
 
 
 
-Procedure TCompositeFilter.Set_operator(AIndex : Integer; AValue : String); 
+Procedure TCompositeFilter.Set_operator(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -1360,7 +1360,7 @@ end;
 
 
 
-Procedure TGqlQuery.SetqueryString(AIndex : Integer; AValue : String); 
+Procedure TGqlQuery.SetqueryString(AIndex : Integer; const AValue : String); 
 
 begin
   If (FqueryString=AValue) then exit;
@@ -1391,7 +1391,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGqlQueryArg.Setcursor(AIndex : Integer; AValue : String); 
+Procedure TGqlQueryArg.Setcursor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcursor=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
 
 
 
-Procedure TGqlQueryArg.Setname(AIndex : Integer; AValue : String); 
+Procedure TGqlQueryArg.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1468,7 +1468,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKeyPathElement.Setid(AIndex : Integer; AValue : String); 
+Procedure TKeyPathElement.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1478,7 +1478,7 @@ end;
 
 
 
-Procedure TKeyPathElement.Setkind(AIndex : Integer; AValue : String); 
+Procedure TKeyPathElement.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1488,7 +1488,7 @@ end;
 
 
 
-Procedure TKeyPathElement.Setname(AIndex : Integer; AValue : String); 
+Procedure TKeyPathElement.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1505,7 +1505,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TKindExpression.Setname(AIndex : Integer; AValue : String); 
+Procedure TKindExpression.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1748,7 +1748,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPartitionId.SetdatasetId(AIndex : Integer; AValue : String); 
+Procedure TPartitionId.SetdatasetId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasetId=AValue) then exit;
@@ -1758,7 +1758,7 @@ end;
 
 
 
-Procedure TPartitionId.Setnamespace(AIndex : Integer; AValue : String); 
+Procedure TPartitionId.Setnamespace(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnamespace=AValue) then exit;
@@ -1775,7 +1775,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProperty.SetblobKeyValue(AIndex : Integer; AValue : String); 
+Procedure TProperty.SetblobKeyValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblobKeyValue=AValue) then exit;
@@ -1785,7 +1785,7 @@ end;
 
 
 
-Procedure TProperty.SetblobValue(AIndex : Integer; AValue : String); 
+Procedure TProperty.SetblobValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblobValue=AValue) then exit;
@@ -1845,7 +1845,7 @@ end;
 
 
 
-Procedure TProperty.SetintegerValue(AIndex : Integer; AValue : String); 
+Procedure TProperty.SetintegerValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintegerValue=AValue) then exit;
@@ -1885,7 +1885,7 @@ end;
 
 
 
-Procedure TProperty.SetstringValue(AIndex : Integer; AValue : String); 
+Procedure TProperty.SetstringValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;
@@ -1915,7 +1915,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyExpression.SetaggregationFunction(AIndex : Integer; AValue : String); 
+Procedure TPropertyExpression.SetaggregationFunction(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaggregationFunction=AValue) then exit;
@@ -1953,7 +1953,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyFilter.Set_operator(AIndex : Integer; AValue : String); 
+Procedure TPropertyFilter.Set_operator(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -2002,7 +2002,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyOrder.Setdirection(AIndex : Integer; AValue : String); 
+Procedure TPropertyOrder.Setdirection(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdirection=AValue) then exit;
@@ -2040,7 +2040,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyReference.Setname(AIndex : Integer; AValue : String); 
+Procedure TPropertyReference.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2057,7 +2057,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuery.SetendCursor(AIndex : Integer; AValue : String); 
+Procedure TQuery.SetendCursor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendCursor=AValue) then exit;
@@ -2137,7 +2137,7 @@ end;
 
 
 
-Procedure TQuery.SetstartCursor(AIndex : Integer; AValue : String); 
+Procedure TQuery.SetstartCursor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartCursor=AValue) then exit;
@@ -2170,7 +2170,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryResultBatch.SetendCursor(AIndex : Integer; AValue : String); 
+Procedure TQueryResultBatch.SetendCursor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendCursor=AValue) then exit;
@@ -2180,7 +2180,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetentityResultType(AIndex : Integer; AValue : String); 
+Procedure TQueryResultBatch.SetentityResultType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FentityResultType=AValue) then exit;
@@ -2200,7 +2200,7 @@ end;
 
 
 
-Procedure TQueryResultBatch.SetmoreResults(AIndex : Integer; AValue : String); 
+Procedure TQueryResultBatch.SetmoreResults(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmoreResults=AValue) then exit;
@@ -2240,7 +2240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadOptions.SetreadConsistency(AIndex : Integer; AValue : String); 
+Procedure TReadOptions.SetreadConsistency(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreadConsistency=AValue) then exit;
@@ -2250,7 +2250,7 @@ end;
 
 
 
-Procedure TReadOptions.Settransaction(AIndex : Integer; AValue : String); 
+Procedure TReadOptions.Settransaction(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -2267,7 +2267,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResponseHeader.Setkind(AIndex : Integer; AValue : String); 
+Procedure TResponseHeader.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2284,7 +2284,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRollbackRequest.Settransaction(AIndex : Integer; AValue : String); 
+Procedure TRollbackRequest.Settransaction(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftransaction=AValue) then exit;
@@ -2392,7 +2392,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TValue.SetblobKeyValue(AIndex : Integer; AValue : String); 
+Procedure TValue.SetblobKeyValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblobKeyValue=AValue) then exit;
@@ -2402,7 +2402,7 @@ end;
 
 
 
-Procedure TValue.SetblobValue(AIndex : Integer; AValue : String); 
+Procedure TValue.SetblobValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FblobValue=AValue) then exit;
@@ -2462,7 +2462,7 @@ end;
 
 
 
-Procedure TValue.SetintegerValue(AIndex : Integer; AValue : String); 
+Procedure TValue.SetintegerValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FintegerValue=AValue) then exit;
@@ -2502,7 +2502,7 @@ end;
 
 
 
-Procedure TValue.SetstringValue(AIndex : Integer; AValue : String); 
+Procedure TValue.SetstringValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstringValue=AValue) then exit;

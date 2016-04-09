@@ -508,6 +508,8 @@ type
 {$elseif defined(Linux)}
   PMSQid_ds = ^TMSQid_ds;
   TMSQid_ds = record
+{ 32 bit }
+{$IFNDEF CPU64}
     msg_perm   : TIPC_perm;
     msg_first  : PMsg;
     msg_last   : PMsg;
@@ -519,6 +521,20 @@ type
     msg_qbytes : word;
     msg_lspid  : ipc_pid_t;
     msg_lrpid  : ipc_pid_t;
+{$ELSE cpu64}
+{ 64 bit }
+    msg_perm   : TIPC_perm;
+    msg_stime  : time_t;
+    msg_rtime  : time_t;
+    msg_ctime  : time_t;
+    msg_cbytes : qword;
+    msg_qnum   : qword;
+    msg_qbytes : qword;
+    msg_lspid  : ipc_pid_t;
+    msg_lrpid  : ipc_pid_t;
+    pad1 : qword;
+    pad2 : qword;
+{$ENDIF}    
   end;
 {$else}
   {$if defined(Darwin)}

@@ -1109,6 +1109,9 @@ implementation
     procedure Tvecnode.mark_write;
       begin
         include(flags,nf_write);
+        { see comment in tsubscriptnode.mark_write }
+        if not(is_implicit_pointer_object_type(left.resultdef)) then
+          left.mark_write;
       end;
 
 

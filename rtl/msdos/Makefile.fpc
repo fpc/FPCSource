@@ -9,7 +9,8 @@ units=system uuchar objpas strings dos heaptrc lineinfo sysconst sysutils \
       math macpas iso7185 extpas rtlconst typinfo types \
       getopts fgl classes \
       msmouse ports  \
-      charset cpall ctypes lnfodwrf
+      charset cpall ctypes
+#      lnfodwrf
 #      cmem
 #      initc profile dxetype dxeload emu387 \
 #      cpu mmx \

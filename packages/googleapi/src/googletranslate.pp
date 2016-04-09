@@ -75,7 +75,7 @@ type
     //Property setters
     Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
     Procedure SetisReliable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property confidence : integer Index 0 Read Fconfidence Write Setconfidence;
@@ -114,8 +114,8 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property language : String Index 0 Read Flanguage Write Setlanguage;
@@ -153,8 +153,8 @@ type
     FtranslatedText : String;
   Protected
     //Property setters
-    Procedure SetdetectedSourceLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SettranslatedText(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdetectedSourceLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettranslatedText(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property detectedSourceLanguage : String Index 0 Read FdetectedSourceLanguage Write SetdetectedSourceLanguage;
@@ -331,7 +331,7 @@ end;
 
 
 
-Procedure TDetectionsResourceItem.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TDetectionsResourceItem.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -378,7 +378,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLanguagesResource.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TLanguagesResource.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -388,7 +388,7 @@ end;
 
 
 
-Procedure TLanguagesResource.Setname(AIndex : Integer; AValue : String); 
+Procedure TLanguagesResource.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -435,7 +435,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTranslationsResource.SetdetectedSourceLanguage(AIndex : Integer; AValue : String); 
+Procedure TTranslationsResource.SetdetectedSourceLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdetectedSourceLanguage=AValue) then exit;
@@ -445,7 +445,7 @@ end;
 
 
 
-Procedure TTranslationsResource.SettranslatedText(AIndex : Integer; AValue : String); 
+Procedure TTranslationsResource.SettranslatedText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtranslatedText=AValue) then exit;

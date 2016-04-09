@@ -26,15 +26,16 @@ Unit racpugas;
 Interface
 
   uses
+    cgbase,
     rautils,
     raatt;
 
   type
     tMipsReader = class(tattreader)
+      actrel: trefaddr;
       function is_asmopcode(const s: string):boolean;override;
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
-      procedure ConvertCalljmp(instr : TInstruction);
       procedure handlepercent;override;
       procedure handledollar;override;
       procedure handleopcode;override;
@@ -59,7 +60,7 @@ Interface
       rabase,
       rgbase,
       itcpugas,
-      cgbase,cgobj
+      cgobj
       ;
 
 
@@ -92,7 +93,6 @@ Interface
         len:=1;
         actasmpattern[len]:='%';
         c:=current_scanner.asmgetchar;
-        { to be a register there must be a letter and not a number }
         while c in ['a'..'z','A'..'Z','0'..'9'] do
           Begin
             inc(len);
@@ -101,12 +101,15 @@ Interface
           end;
          actasmpattern[0]:=chr(len);
          uppervar(actasmpattern);
+         actrel:=addr_no;
          if (actasmpattern='%HI') then
-           actasmtoken:=AS_HI
+           actrel:=addr_high
          else if (actasmpattern='%LO')then
-           actasmtoken:=AS_LO
+           actrel:=addr_low
          else
            Message(asmr_e_invalid_reference_syntax);
+         if actrel<>addr_no then
+           actasmtoken:=AS_RELTYPE;
       end;
 
 
@@ -215,18 +218,28 @@ Interface
                 gotplus:=true;
               end;
 
-            AS_INTNUM,
-            AS_MOD:
+            AS_INTNUM:
               Begin
                 if not gotplus then
                   Message(asmr_e_invalid_reference_syntax);
                 l:=BuildConstExpression(True,False);
                 if negative then
                   l:=-l;
-                { Constant memory offset }
-                oper.InitRef;
-                oper.opr.ref.refaddr:=addr_full;
-                oper.opr.ref.offset:=l;
+                case oper.opr.typ of
+                  OPR_NONE:
+                    begin
+                      oper.opr.typ:=OPR_CONSTANT;
+                      oper.opr.val:=l;
+                    end;
+                  OPR_CONSTANT :
+                    inc(oper.opr.val,l);
+                  OPR_REFERENCE:
+                    inc(oper.opr.ref.offset,l);
+                  OPR_LOCAL:
+                    inc(oper.opr.localsymofs,l);
+                else
+                  InternalError(12345);
+                end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
                          (prevasmtoken=AS_MINUS);
                 if GotPlus then
@@ -244,16 +257,12 @@ Interface
                 gotplus:=false;
               end;
 
-            AS_HI,
-            AS_LO:
+            AS_RELTYPE:
               begin
                 { Low or High part of a constant (or constant
                   memory location) }
                 oper.InitRef;
-                if actasmtoken=AS_LO then
-                  oper.opr.ref.refaddr:=addr_low
-                else
-                  oper.opr.ref.refaddr:=addr_high;
+                oper.opr.ref.refaddr:=actrel;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
@@ -496,25 +505,6 @@ Interface
       end;
 
 
-    procedure TMipsReader.ConvertCalljmp(instr : TInstruction);
-      var
-        newopr : toprrec;
-      begin
-        if instr.Operands[1].opr.typ=OPR_REFERENCE then
-          with newopr do
-            begin
-              typ:=OPR_SYMBOL;
-              symbol:=instr.Operands[1].opr.ref.symbol;
-              symofs:=instr.Operands[1].opr.ref.offset;
-              if (instr.Operands[1].opr.ref.base<>NR_NO) or
-                (instr.Operands[1].opr.ref.index<>NR_NO) or
-                (instr.Operands[1].opr.ref.refaddr<>addr_full) then
-                Message(asmr_e_syn_operand);
-              instr.Operands[1].opr:=newopr;
-            end;
-      end;
-
-
     procedure TMipsReader.handleopcode;
       var
         instr : TInstruction;
@@ -524,8 +514,6 @@ Interface
         with instr do
           begin
             condition := actcondition;
-            if is_calljmp(opcode) then
-              ConvertCalljmp(instr);
             { Coprocessor-related instructions have operands referring to both coprocessor registers
               and general-purpose ones. The input representation "$<number>" is the same for both,
               but symbolic names must not be used for non-GPRs on output. }

@@ -21,12 +21,12 @@
   This file contains the implementation of the UnicodeString type,
   and all things that are needed for it.
   UnicodeString is defined as a 'silent' punicodechar :
-  a punicodechar that points to :
+  a punicodechar that points to (S = SizeOf(SizeInt)) :
 
-  @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size; size=number of chars. Multiply with
-         sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
-  @    : String + Terminating #0;
+  @-2*S : SizeInt for reference count;
+  @-S   : SizeInt for size; size=number of chars. Multiply with
+          sizeof(UnicodeChar) to get the number of bytes. This is compatible with Delphi.
+  @      : String + Terminating #0;
   Punicodechar(Unicodestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
 
@@ -1166,7 +1166,7 @@ var
   pc : punicodechar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr)-(OffSet-1);
      i:=0;
@@ -1177,7 +1177,7 @@ begin
         if (SubStr[1]=pc^) and
            (CompareWord(Substr[1],pc^,Length(SubStr))=0) then
          begin
-           Pos:=i;
+           Pos:=Offset+i-1;
            exit;
          end;
         inc(pc);
@@ -1195,15 +1195,18 @@ var
   i: SizeInt;
   pc : punicodechar;
 begin
-  pc:=@s[OffSet];
-  for i:=OffSet to length(s) do
+  if (Offset>0) and (Offset<=length(s)) then
    begin
-     if pc^=c then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
+     pc:=@s[OffSet];
+     for i:=OffSet to length(s) do
+       begin
+         if pc^=c then
+           begin
+             pos:=i;
+             exit;
+           end;
+         inc(pc);
+       end;
    end;
   pos:=0;
 end;
@@ -1241,17 +1244,20 @@ var
   wc : unicodechar;
   pc : punicodechar;
 begin
-  wc:=c;
-  pc:=@s[OffSet];
-  for i:=OffSet to length(s) do
-   begin
-     if pc^=wc then
-      begin
-        pos:=i;
-        exit;
-      end;
-     inc(pc);
-   end;
+  if (Offset>0) and (Offset<=Length(S)) then
+    begin
+      wc:=c;
+      pc:=@s[OffSet];
+      for i:=OffSet to length(s) do
+       begin
+         if pc^=wc then
+          begin
+            pos:=i;
+            exit;
+          end;
+         inc(pc);
+       end;
+    end;
   pos:=0;
 end;
 {$endif FPC_HAS_POS_CHAR_UNICODESTR}
@@ -2356,63 +2362,57 @@ Begin
   SetCodePage(Result,DefaultFileSystemCodePage,True);
 End;
 
-function UTF8ToString(const S: UTF8String): UnicodeString; inline;
+{ Delphi compatibility: always interpret the data in the string as UTF-8,
+  ignore any codepage }
+function UTF8ToString(const S: RawByteString): UnicodeString; inline;
 begin
   Result := UTF8Decode(S);
 end;
 
-function UTF8ToString(const S: RawByteString): UnicodeString; inline;
-
-Var
-  UTF8 : UTF8String;
-
-begin
-  UTF8:=S;
-  Result := UTF8Decode(UTF8);
-end;
-
 function UTF8ToString(const S: ShortString): UnicodeString; 
-
 Var
-  UTF8 : UTF8String;
-
+  rs: RawByteString;
 begin
-  UTF8:=S;
-  Result := UTF8Decode(UTF8);
+  rs:=S;
+  Result := UTF8Decode(rs);
 end;
 
 function UTF8ToString(const S: PAnsiChar): UnicodeString;
 var
-  UTF: UTF8String;
+  rs: RawByteString;
   Count: Integer;
 begin
-  Count := StrLen(S);
-  SetLength(UTF, Count);
+  Count := length(S);
+  SetLength(rs, Count);
   if Count > 0 then
-    Move(S^, UTF[1], Count);
-  Result := UTF8ToString(UTF);
+    fpc_pchar_ansistr_intern_charmove(S,0,rs,0,Count);
+  Result := UTF8ToString(rs);
 end;
 
+{ byte and ansichar are the same on the JVM, and "array of" and "pointer to"
+  are as well }
+{$ifndef CPUJVM}
 function UTF8ToString(const S: array of AnsiChar): UnicodeString;
 var
-  UTF: UTF8String;
+  rs: RawByteString;
   Count: Integer;
 begin
   Count := Length(S);
-  SetLength(UTF, Count);
+  SetLength(rs, Count);
   if Count > 0 then
-    Move(S[Low(S)], UTF[1], Count);
-  Result := UTF8ToString(UTF);
+    fpc_pchar_ansistr_intern_charmove(@S,Low(S),rs,0,Count);
+  Result := UTF8ToString(rs);
 end;
 
 function UTF8ToString(const S: array of Byte): UnicodeString;
 var
-  UTF: UTF8String;
+  rs: RawByteString;
   Count: Integer;
 begin
   Count := Length(S);
-  SetLength(UTF, Count);
+  SetLength(rs, Count);
   if Count > 0 then
-    Move(S[Low(S)], UTF[1], Count);
-  Result := UTF8ToString(UTF);
+    fpc_pchar_ansistr_intern_charmove(pchar(@S),Low(S),rs,0,Count);
+  Result := UTF8ToString(rs);
 end;
+{$endif not CPUJVM}

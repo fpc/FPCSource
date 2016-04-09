@@ -1089,7 +1089,7 @@ function ldexp(x : float;const p : Integer) : float;
   begin
      ldexp:=x*intpower(2.0,p);
   end;
-
+  
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function mean(const data : array of Single) : float;
 

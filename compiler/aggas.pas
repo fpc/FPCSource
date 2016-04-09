@@ -232,7 +232,7 @@ implementation
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
           '.fpc',
           '.toc',
           '.init',
@@ -291,7 +291,7 @@ implementation
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
           '.fpc',
           '.toc',
           '.init',
@@ -416,7 +416,7 @@ implementation
             result:='r';
 
           sec_stab,sec_stabstr,
-          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
             result:='n';
         else
           result:='';  { defaults to data+load }
@@ -1522,7 +1522,12 @@ implementation
 
     procedure TGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
     begin
-      writer.AsmWrite('.'+directivestr[dir]+' ');
+      { TODO: implement asd_cpu for GAS => usually .arch or .cpu, but the CPU
+        name has to be translated as well }
+      if dir=asd_cpu then
+        writer.AsmWrite(asminfo^.comment+' CPU ')
+      else
+        writer.AsmWrite('.'+directivestr[dir]+' ');
     end;
 
 
@@ -1624,6 +1629,16 @@ implementation
             sec_debug_abbrev:
                begin
                  result := '.section __DWARF,__debug_abbrev,regular,debug';
+                 exit;
+               end;
+            sec_debug_aranges:
+               begin
+                 result := '.section __DWARF,__debug_aranges,regular,debug';
+                 exit;
+               end;
+            sec_debug_ranges:
+               begin
+                 result := '.section __DWARF,__debug_ranges,regular,debug';
                  exit;
                end;
             sec_rodata:
@@ -1739,6 +1754,8 @@ implementation
          sec_debug_info,
          sec_debug_line,
          sec_debug_abbrev,
+         sec_debug_aranges,
+         sec_debug_ranges,
          { ELF resources (+ references to stabs debug information sections) }
          sec_code (* sec_fpc *),
          { Table of contents section }

@@ -443,7 +443,11 @@ implementation
           ((vo_is_funcret in tabstractnormalvarsym(p).varoptions) or
            (tabstractnormalvarsym(p).varspez=vs_out)))) and
          not (vo_is_default_var in tabstractnormalvarsym(p).varoptions) and
-         not is_managed_type(tabstractnormalvarsym(p).vardef) and
+         (not is_managed_type(tabstractnormalvarsym(p).vardef) or
+          (is_string(tabstractnormalvarsym(p).vardef) and
+           (vo_is_funcret in tabstractnormalvarsym(p).varoptions)
+          )
+         ) and
          not assigned(tabstractnormalvarsym(p).defaultconstsym);
     end;
 
@@ -468,7 +472,19 @@ implementation
                   the procedure address -> cast to tmethod instead }
                 trashn:=ctypeconvnode.create_explicit(trashn,methodpointertype);
             end;
-          if ((p.typ=localvarsym) and
+          if is_managed_type(p.vardef) then
+            begin
+              if is_string(p.vardef) then
+                trash_small(stat,trashn,
+                  cstringconstnode.createstr(
+                    'uninitialized function result in '+
+                    tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
+                  )
+                )
+              else
+                internalerror(2016030601);
+            end
+          else if ((p.typ=localvarsym) and
               (not(vo_is_funcret in p.varoptions) or
                not is_shortstring(p.vardef))) or
              ((p.typ=paravarsym) and
@@ -546,6 +562,8 @@ implementation
 
 
   class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+    var
+      symind : tasmsymbol;
     begin
       if sym.globalasmsym then
         begin
@@ -565,6 +583,13 @@ implementation
         end
       else
         list.concat(Tai_datablock.create(sym.mangledname,size));
+
+      { add the indirect symbol if needed }
+      new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
+      symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA);
+      list.concat(Tai_symbol.Create_Global(symind,0));
+      list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
+      list.concat(tai_symbol_end.Create(symind));
     end;
 
 

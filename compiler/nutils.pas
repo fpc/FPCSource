@@ -742,7 +742,8 @@ implementation
               callparan:
                 begin
                   { call to decr? }
-                  if is_managed_type(tunarynode(p).left.resultdef) and (tcallparanode(p).parasym.varspez=vs_out) then
+                  if is_managed_type(tunarynode(p).left.resultdef) and
+                     assigned(tcallparanode(p).parasym) and (tcallparanode(p).parasym.varspez=vs_out) then
                     begin
                       result:=NODE_COMPLEXITY_INF;
                       exit;
@@ -813,7 +814,7 @@ implementation
               ordconstn:
                 begin
 {$ifdef ARM}
-                  if not(is_shifter_const(tordconstnode(p).value.svalue,dummy)) then
+                  if not(is_shifter_const(aint(tordconstnode(p).value.svalue),dummy)) then
                     result:=2;
 {$endif ARM}
                   exit;

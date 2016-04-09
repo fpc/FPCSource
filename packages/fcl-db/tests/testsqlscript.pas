@@ -44,6 +44,8 @@ type
     property DoException : string read FExcept write FExcept;
     property Aborted;
     property Line;
+    property UseDollarString;
+    property dollarstrings;
     property Directives;
     property Defines;
     property Script;
@@ -114,6 +116,9 @@ type
     procedure TestDirectiveOnException2;
     procedure TestCommitOnException1;
     procedure TestCommitOnException2;
+    procedure TestUseDollarSign;
+    procedure TestUseDollarSign2;
+    procedure TestUseDollarSign3;
   end;
 
   { TTestEventSQLScript }
@@ -691,6 +696,77 @@ begin
   AssertEquals ('exception message', 'Fout', exceptionmessage);
   AssertEquals ('exception statement', 'COMMIT', exceptionstatement);
   AssertEquals ('commit count', 1, Script.FCommits);
+end;
+
+
+Const
+  PLSQL1 = 'CREATE or replace FUNCTION test_double_bad_sum ( value1 int, value2 int ) '+
+    'RETURNS int AS $$  '+
+    'DECLARE  '+
+    '  TheDoubleSum int;  '+
+    'BEGIN  '+
+    '  -- Start  '+
+    '  TheDoubleSum := value1; '+
+    '  /* sum  '+
+    '       number  '+
+    '       1 */  '+
+    '  TheDoubleSum := TheDoubleSum + value2; '+
+    '  TheDoubleSum := TheDoubleSum + value2; -- Sum number 2  '+
+    '  return TheDoubleSum; '+
+    'END;  '+
+    '$$ '+
+    'LANGUAGE plpgsql';
+  PLSQL2 = 'COMMENT ON FUNCTION test_double_bad_sum(IN integer, IN integer) '+
+    '  IS ''Just a  '+
+    '  test function '+
+    '  !!!''';
+  PLSQL3 = 'CREATE or replace FUNCTION test_double_bad_sum ( value1 int, value2 int ) '+
+    'RETURNS int AS $BOB$  '+
+    'DECLARE  '+
+    '  TheDoubleSum int;  '+
+    'BEGIN  '+
+    '  -- Start  '+
+    '  TheDoubleSum := value1; '+
+    '  /* sum  '+
+    '       number  '+
+    '       1 */  '+
+    '  TheDoubleSum := TheDoubleSum + value2; '+
+    '  TheDoubleSum := TheDoubleSum + value2; -- Sum number 2  '+
+    '  return TheDoubleSum; '+
+    'END;  '+
+    '$BOB$ '+
+    'LANGUAGE plpgsql';
+
+procedure TTestSQLScript.TestUseDollarSign;
+
+begin
+  script.UseDollarString:=True;
+  Add(PLSQL1+';');
+  script.execute;
+  // Double quotes because there are spaces.
+  AssertStatDir('"'+plsql1+'"', '');
+end;
+
+procedure TTestSQLScript.TestUseDollarSign2;
+begin
+  script.UseDollarString:=True;
+  Add(PLSQL1+';');
+  Add(PLSQL2+';');
+  script.execute;
+  // Double quotes because there are spaces.
+  AssertStatDir('"'+plsql1+'","'+PLSQL2+'"', '');
+
+end;
+
+procedure TTestSQLScript.TestUseDollarSign3;
+begin
+  script.UseDollarString:=True;
+  script.DollarStrings.Add('BOB');
+  Add(PLSQL3+';');
+  script.execute;
+  // Double quotes because there are spaces.
+  AssertStatDir('"'+plsql3+'"', '');
+
 end;
 
 { TTestEventSQLScript }

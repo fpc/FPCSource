@@ -152,12 +152,12 @@ unit rgcpu;
                 end
               else if (instr.oper[1]^.typ=top_reg) and (getregtype(instr.oper[1]^.reg)=regtype) and
                 (get_alias(getsupreg(instr.oper[1]^.reg))=orgreg) and
-                (
+                ((
                   (instr.opcode in [A_MOVE,A_ADD,A_SUB,A_AND,A_OR]) and
                   (instr.oper[0]^.typ=top_reg) and not
-                  (isaddressregister(instr.oper[0]^.reg) and (instr.opcode in [A_ADD,A_SUB,A_AND,A_OR]))
+                  (isaddressregister(instr.oper[0]^.reg))
                 ) or
-                (instr.opcode in [A_ADDQ,A_SUBQ,A_MOV3Q]) then
+                (instr.opcode in [A_ADDQ,A_SUBQ,A_MOV3Q])) then
                 opidx:=1;
             end;
         end;

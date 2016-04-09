@@ -872,6 +872,7 @@ implementation
                 result:=operand_write
               else
                 result:=operand_read;
+            A_VFMA,A_VFMS,A_VFNMA,A_VFNMS,
             A_BFC:
               if opnr in [0] then
                 result:=operand_readwrite
@@ -2778,15 +2779,15 @@ implementation
 
       function MakeRegList(reglist: tcpuregisterset): word;
         var
-          i, w: word;
+          i, w: integer;
         begin
           result:=0;
-          w:=1;
+          w:=0;
           for i:=RS_R0 to RS_R15 do
             begin
               if i in reglist then
-                result:=result or w;
-              w:=w shl 1
+                result:=result or (1 shl w);
+              inc(w);
             end;
         end;
 
@@ -2979,9 +2980,9 @@ implementation
                   bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
 
                   if (opcode<>A_BL) or (condition<>C_None) then
-                    objdata.writereloc(bytes,4,currsym,RELOC_RELATIVE_24)
+                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_24)
                   else
-                    objdata.writereloc(bytes,4,currsym,RELOC_RELATIVE_CALL);
+                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
 
                   exit;
                 end;

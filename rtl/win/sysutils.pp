@@ -78,6 +78,7 @@ function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
 function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: UnicodeString): Cardinal;
 
 procedure GetFormatSettings;
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); platform;
@@ -155,6 +156,39 @@ function GetFileVersion(const AFileName:string):Cardinal;
       end;
   end;
 
+function GetFileVersion(const AFileName:UnicodeString):Cardinal;
+  var
+    { useful only as long as we don't need to touch different stack pages }
+    buf : array[0..3071] of byte;
+    bufp : pointer;
+    fn : unicodestring;
+    valsize,
+    size : DWORD;
+    h : DWORD;
+    valrec : PVSFixedFileInfo;
+  begin
+    result:=$fffffff;
+    fn:=AFileName;
+    UniqueString(fn);
+    size:=GetFileVersionInfoSizeW(pwidechar(fn),@h);
+    if size>sizeof(buf) then
+      begin
+        getmem(bufp,size);
+        try
+          if GetFileVersionInfoW(pwidechar(fn),h,size,bufp) then
+            if VerQueryValue(bufp,'\',valrec,valsize) then
+              result:=valrec^.dwFileVersionMS;
+        finally
+          freemem(bufp);
+        end;
+      end
+    else
+      begin
+        if GetFileVersionInfoW(pwidechar(fn),h,size,@buf) then
+          if VerQueryValueW(@buf,'\',valrec,valsize) then
+            result:=valrec^.dwFileVersionMS;
+      end;
+  end;
 
 {$define HASCREATEGUID}
 {$define HASEXPANDUNCFILENAME}
@@ -956,7 +990,7 @@ begin
                  MaxMsgSize,
                  nil);
   SysErrorMessage := MsgBuffer;
-  FreeMem(MsgBuffer, MaxMsgSize);
+  FreeMem(MsgBuffer, MaxMsgSize*2);
 end;
 
 {****************************************************************************
@@ -1076,14 +1110,20 @@ end;
 
 {$pop}
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
+begin
+  result:=ExecuteProcess(Unicodestring(Path),UnicodeString(ComLine),Flags);
+end;
+
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
 // win specific  function
 var
-  SI: TStartupInfo;
+  SI: TStartupInfoW;
   PI: TProcessInformation;
   Proc : THandle;
   l    : DWord;
-  CommandLine : ansistring;
+  CommandLine : unicodestring;
   e : EOSError;
   ExecInherits : longbool;
 begin
@@ -1106,7 +1146,7 @@ begin
 
   ExecInherits:=ExecInheritsHandles in Flags;
 
-  if not CreateProcessA(nil, pchar(CommandLine),
+  if not CreateProcessW(nil, pwidechar(CommandLine),
     Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
@@ -1131,10 +1171,11 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
+
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: Array of RawByteString;Flags:TExecuteFlags=[]):integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: UnicodeString;
   I: integer;
 
 begin
@@ -1144,7 +1185,23 @@ begin
     CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
     CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
+  ExecuteProcess := ExecuteProcess (UnicodeString(Path), CommandLine,Flags);
+end;
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
+
+var
+  CommandLine: UnicodeString;
+  I: integer;
+
+begin
+  Commandline := '';
+  for I := 0 to High (ComLine) do
+   if Pos (' ', ComLine [I]) <> 0 then
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
+   else
+    CommandLine := CommandLine + ' ' + Comline [I];
+  ExecuteProcess := ExecuteProcess (Path,CommandLine,Flags);
 end;
 
 Procedure Sleep(Milliseconds : Cardinal);

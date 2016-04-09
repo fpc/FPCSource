@@ -248,9 +248,7 @@ Implementation
       cclasses,
 {$endif memdebug}
       script,fmodule,verbose,
-{$if defined(m68k) or defined(arm)}
       cpuinfo,
-{$endif m68k or arm}
       aasmcpu,
       owar,owomflib
       ;
@@ -1482,6 +1480,7 @@ Implementation
       var
         objsym,
         objsymend : TObjSymbol;
+        cpu: tcputype;
       begin
         while assigned(hp) do
          begin
@@ -1562,6 +1561,16 @@ Implementation
                    asd_reference:
                      { ignore for now, but should be added}
                      ;
+                   asd_cpu:
+                     begin
+                       ObjData.CPUType:=cpu_none;
+                       for cpu:=low(tcputype) to high(tcputype) do
+                         if cputypestr[cpu]=tai_directive(hp).name then
+                           begin
+                             ObjData.CPUType:=cpu;
+                             break;
+                           end;
+                     end;
 {$ifdef ARM}
                    asd_thumb_func:
                      ObjData.ThumbFunc:=true;
@@ -1610,6 +1619,7 @@ Implementation
       var
         objsym,
         objsymend : TObjSymbol;
+        cpu: tcputype;
       begin
         while assigned(hp) do
          begin
@@ -1714,6 +1724,16 @@ Implementation
                    asd_code:
                      { ignore for now, but should be added}
                      ;
+                   asd_cpu:
+                     begin
+                       ObjData.CPUType:=cpu_none;
+                       for cpu:=low(tcputype) to high(tcputype) do
+                         if cputypestr[cpu]=tai_directive(hp).name then
+                           begin
+                             ObjData.CPUType:=cpu;
+                             break;
+                           end;
+                     end;
                    else
                      internalerror(2010011102);
                  end;
@@ -1743,6 +1763,7 @@ Implementation
         {$endif}
         ccomp : comp;
         tmp    : word;
+        cpu: tcputype;
       begin
         fillchar(zerobuf,sizeof(zerobuf),0);
         fillchar(objsym,sizeof(objsym),0);
@@ -1943,7 +1964,17 @@ Implementation
                          { TODO: should become a weak definition; for now, do
                              the same as what was done for ait_weak }
                          objsym.bind:=AB_WEAK_EXTERNAL;
-                     end
+                     end;
+                   asd_cpu:
+                     begin
+                       ObjData.CPUType:=cpu_none;
+                       for cpu:=low(tcputype) to high(tcputype) do
+                         if cputypestr[cpu]=tai_directive(hp).name then
+                           begin
+                             ObjData.CPUType:=cpu;
+                             break;
+                           end;
+                     end;
                  end
                end;
              ait_symbolpair:

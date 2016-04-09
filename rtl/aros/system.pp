@@ -71,6 +71,8 @@ var
   AOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   AOS_ConHandle: THandle;
 
+  SysDebugBase: Pointer = nil;
+
   argc: LongInt;
   argv: PPChar;
   envp: PPChar;
@@ -79,6 +81,7 @@ var
 function GetLibAdress(Base: Pointer; Offset: LongInt): Pointer;
 procedure Debug(s: string);
 procedure Debugln(s: string);
+procedure EnableBackTraceStr;
 
 implementation
 
@@ -132,13 +135,19 @@ begin
     if (oldDirLock<>0) and (oldDirLock<>ASYS_origDir) then
       Unlock(oldDirLock);
   end;
+  // debug lib
+  if SysDebugBase <> nil then
+    CloseLibrary(SysDebugBase);
+  SysDebugBase := nil;
+  // utility
   if AOS_UtilityBase <> nil then
     CloseLibrary(AOS_UtilityBase);
+  // Heap
   if ASYS_heapPool <> nil then
     DeletePool(ASYS_heapPool);
   AOS_UtilityBase := nil;
   ASYS_HeapPool := nil;
-  //
+  // dos
   if AOS_DOSBase<>nil then
     CloseLibrary(AOS_DOSBase);
   AOS_DOSBase := nil;
@@ -428,7 +437,11 @@ begin
   if AOS_wbMsg = nil then begin
     StdInputHandle := THandle(dosInput);
     StdOutputHandle := THandle(dosOutput);
+    {$ifdef CPU64}
+    StdErrorHandle := THandle(DosOutput);
+    {$else}
     StdErrorHandle := THandle(DosError1);
+    {$endif}
   end else begin
     AOS_ConHandle := Open(AOS_ConName, MODE_OLDFILE);
     if AOS_ConHandle <> 0 then begin
@@ -437,6 +450,52 @@ begin
       StdErrorHandle := AOS_ConHandle;
     end else
       Halt(1);
+  end;
+end;
+
+function AROSBackTraceStr(Addr: CodePointer): ShortString;
+const
+  DL_Dummy = TAG_USER + $03e00000;
+  DL_ModuleName = DL_Dummy + 1;
+  DL_SymbolName = DL_Dummy + 7;
+var
+  SymName, ModName: PChar;
+  Tags: array[0..5] of PtrUInt;
+  s: AnsiString;
+  Res: AnsiString;
+begin
+  if Assigned(SysDebugBase) then
+  begin
+    ModName := nil;
+    SymName := nil;
+    Tags[0] := DL_Modulename;
+    Tags[1] := PtrUInt(@ModName);
+    Tags[2] := DL_SymbolName;
+    Tags[3] := PtrUInt(@SymName);
+    Tags[4] := 0;
+    Tags[5] := 0;
+    DecodeLocation(Addr, @Tags[0]);
+    s := '-';
+    if not Assigned(ModName) then
+      ModName := @S[1];
+    if not Assigned(SymName) then
+      SymName := @S[1];
+    Res := '  $' + HexStr(Addr) + ' ' + ModName  + ' ' + SymName;
+    AROSBackTraceStr := Copy(Res, 1, 254);
+  end
+  else
+  begin
+    AROSBackTraceStr := '  $' + HexStr(Addr) + ' - ';
+  end;
+end;
+
+procedure EnableBackTraceStr;
+begin
+  if not Assigned(SysDebugBase) then
+  begin
+    SysDebugBase := OpenLibrary('debug.library', 0);
+    if Assigned(SysDebugBase) then
+      BackTraceStrFunc := @AROSBackTraceStr;
   end;
 end;
 

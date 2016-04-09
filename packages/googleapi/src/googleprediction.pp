@@ -76,8 +76,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -95,7 +95,7 @@ type
     Fvalues : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalues(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -119,9 +119,9 @@ type
     Fvariance : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmean(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvariance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmean(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvariance(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -139,7 +139,7 @@ type
     Fcount : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -159,7 +159,7 @@ type
   Protected
     //Property setters
     Procedure Setcategorical(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical); virtual;
-    Procedure Setindex(AIndex : Integer; AValue : String); virtual;
+    Procedure Setindex(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnumeric(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric); virtual;
     Procedure Settext(AIndex : Integer; AValue : TAnalyzeTypedataDescriptionTypefeaturesItemTypetext); virtual;
   Public
@@ -182,9 +182,9 @@ type
     Fvariance : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmean(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvariance(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmean(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvariance(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -203,8 +203,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -338,10 +338,10 @@ type
     //Property setters
     Procedure SetdataDescription(AIndex : Integer; AValue : TAnalyzeTypedataDescription); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TAnalyzeTypeerrorsArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmodelDescription(AIndex : Integer; AValue : TAnalyzeTypemodelDescription); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -404,7 +404,7 @@ type
   Protected
     //Property setters
     Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
-    Procedure Setoutput(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoutput(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -446,12 +446,12 @@ type
     Futility : TInsertTypeutilityArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmodelType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsourceModel(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstorageDataLocation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstoragePMMLLocation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodelType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceModel(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstorageDataLocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstoragePMMLLocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstoragePMMLModelLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SettrainingInstances(AIndex : Integer; AValue : TInsertTypetrainingInstancesArray); virtual;
     Procedure Setutility(AIndex : Integer; AValue : TInsertTypeutilityArray); virtual;
     //2.6.4. bug workaround
@@ -485,12 +485,12 @@ type
     FnumberLabels : String;
   Protected
     //Property setters
-    Procedure SetclassWeightedAccuracy(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclassificationAccuracy(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmeanSquaredError(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmodelType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumberInstances(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumberLabels(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclassWeightedAccuracy(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclassificationAccuracy(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmeanSquaredError(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodelType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumberInstances(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumberLabels(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property classWeightedAccuracy : String Index 0 Read FclassWeightedAccuracy Write SetclassWeightedAccuracy;
@@ -522,16 +522,16 @@ type
   Protected
     //Property setters
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmodelInfo(AIndex : Integer; AValue : TInsert2TypemodelInfo); virtual;
-    Procedure SetmodelType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstorageDataLocation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstoragePMMLLocation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmodelType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstorageDataLocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstoragePMMLLocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstoragePMMLModelLocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SettrainingComplete(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SettrainingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrainingStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property created : TDatetime Index 0 Read Fcreated Write Setcreated;
@@ -561,9 +561,9 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -588,8 +588,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
-    Procedure Setscore(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setscore(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _label : String Index 0 Read F_label Write Set_label;
@@ -611,12 +611,12 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoutputLabel(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoutputLabel(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoutputMulti(AIndex : Integer; AValue : TOutputTypeoutputMultiArray); virtual;
-    Procedure SetoutputValue(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetoutputValue(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -643,7 +643,7 @@ type
   Protected
     //Property setters
     Procedure SetcsvInstance(AIndex : Integer; AValue : TTJSONSchemaArray); virtual;
-    Procedure Setoutput(AIndex : Integer; AValue : String); virtual;
+    Procedure Setoutput(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -744,7 +744,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -754,7 +754,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategoricalTypevaluesItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -771,7 +771,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypecategorical.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -811,7 +811,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -821,7 +821,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setmean(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setmean(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmean=AValue) then exit;
@@ -831,7 +831,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setvariance(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypenumeric.Setvariance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvariance=AValue) then exit;
@@ -848,7 +848,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypetext.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItemTypetext.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -875,7 +875,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setindex(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypefeaturesItem.Setindex(AIndex : Integer; const AValue : String); 
 
 begin
   If (Findex=AValue) then exit;
@@ -912,7 +912,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -922,7 +922,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setmean(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setmean(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmean=AValue) then exit;
@@ -932,7 +932,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setvariance(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypenumeric.Setvariance(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvariance=AValue) then exit;
@@ -949,7 +949,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.Setcount(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -959,7 +959,7 @@ end;
 
 
 
-Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TAnalyzeTypedataDescriptionTypeoutputFeatureTypetextItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1152,7 +1152,7 @@ end;
 
 
 
-Procedure TAnalyze.Setid(AIndex : Integer; AValue : String); 
+Procedure TAnalyze.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1162,7 +1162,7 @@ end;
 
 
 
-Procedure TAnalyze.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnalyze.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1182,7 +1182,7 @@ end;
 
 
 
-Procedure TAnalyze.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TAnalyze.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1269,7 +1269,7 @@ end;
 
 
 
-Procedure TInsertTypetrainingInstancesItem.Setoutput(AIndex : Integer; AValue : String); 
+Procedure TInsertTypetrainingInstancesItem.Setoutput(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foutput=AValue) then exit;
@@ -1312,7 +1312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInsert.Setid(AIndex : Integer; AValue : String); 
+Procedure TInsert.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1322,7 +1322,7 @@ end;
 
 
 
-Procedure TInsert.SetmodelType(AIndex : Integer; AValue : String); 
+Procedure TInsert.SetmodelType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodelType=AValue) then exit;
@@ -1332,7 +1332,7 @@ end;
 
 
 
-Procedure TInsert.SetsourceModel(AIndex : Integer; AValue : String); 
+Procedure TInsert.SetsourceModel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceModel=AValue) then exit;
@@ -1342,7 +1342,7 @@ end;
 
 
 
-Procedure TInsert.SetstorageDataLocation(AIndex : Integer; AValue : String); 
+Procedure TInsert.SetstorageDataLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstorageDataLocation=AValue) then exit;
@@ -1352,7 +1352,7 @@ end;
 
 
 
-Procedure TInsert.SetstoragePMMLLocation(AIndex : Integer; AValue : String); 
+Procedure TInsert.SetstoragePMMLLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstoragePMMLLocation=AValue) then exit;
@@ -1362,7 +1362,7 @@ end;
 
 
 
-Procedure TInsert.SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); 
+Procedure TInsert.SetstoragePMMLModelLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstoragePMMLModelLocation=AValue) then exit;
@@ -1413,7 +1413,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInsert2TypemodelInfo.SetclassWeightedAccuracy(AIndex : Integer; AValue : String); 
+Procedure TInsert2TypemodelInfo.SetclassWeightedAccuracy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclassWeightedAccuracy=AValue) then exit;
@@ -1423,7 +1423,7 @@ end;
 
 
 
-Procedure TInsert2TypemodelInfo.SetclassificationAccuracy(AIndex : Integer; AValue : String); 
+Procedure TInsert2TypemodelInfo.SetclassificationAccuracy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclassificationAccuracy=AValue) then exit;
@@ -1433,7 +1433,7 @@ end;
 
 
 
-Procedure TInsert2TypemodelInfo.SetmeanSquaredError(AIndex : Integer; AValue : String); 
+Procedure TInsert2TypemodelInfo.SetmeanSquaredError(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmeanSquaredError=AValue) then exit;
@@ -1443,7 +1443,7 @@ end;
 
 
 
-Procedure TInsert2TypemodelInfo.SetmodelType(AIndex : Integer; AValue : String); 
+Procedure TInsert2TypemodelInfo.SetmodelType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodelType=AValue) then exit;
@@ -1453,7 +1453,7 @@ end;
 
 
 
-Procedure TInsert2TypemodelInfo.SetnumberInstances(AIndex : Integer; AValue : String); 
+Procedure TInsert2TypemodelInfo.SetnumberInstances(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumberInstances=AValue) then exit;
@@ -1463,7 +1463,7 @@ end;
 
 
 
-Procedure TInsert2TypemodelInfo.SetnumberLabels(AIndex : Integer; AValue : String); 
+Procedure TInsert2TypemodelInfo.SetnumberLabels(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumberLabels=AValue) then exit;
@@ -1490,7 +1490,7 @@ end;
 
 
 
-Procedure TInsert2.Setid(AIndex : Integer; AValue : String); 
+Procedure TInsert2.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1500,7 +1500,7 @@ end;
 
 
 
-Procedure TInsert2.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInsert2.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1520,7 +1520,7 @@ end;
 
 
 
-Procedure TInsert2.SetmodelType(AIndex : Integer; AValue : String); 
+Procedure TInsert2.SetmodelType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodelType=AValue) then exit;
@@ -1530,7 +1530,7 @@ end;
 
 
 
-Procedure TInsert2.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TInsert2.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1540,7 +1540,7 @@ end;
 
 
 
-Procedure TInsert2.SetstorageDataLocation(AIndex : Integer; AValue : String); 
+Procedure TInsert2.SetstorageDataLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstorageDataLocation=AValue) then exit;
@@ -1550,7 +1550,7 @@ end;
 
 
 
-Procedure TInsert2.SetstoragePMMLLocation(AIndex : Integer; AValue : String); 
+Procedure TInsert2.SetstoragePMMLLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstoragePMMLLocation=AValue) then exit;
@@ -1560,7 +1560,7 @@ end;
 
 
 
-Procedure TInsert2.SetstoragePMMLModelLocation(AIndex : Integer; AValue : String); 
+Procedure TInsert2.SetstoragePMMLModelLocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstoragePMMLModelLocation=AValue) then exit;
@@ -1580,7 +1580,7 @@ end;
 
 
 
-Procedure TInsert2.SettrainingStatus(AIndex : Integer; AValue : String); 
+Procedure TInsert2.SettrainingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrainingStatus=AValue) then exit;
@@ -1607,7 +1607,7 @@ end;
 
 
 
-Procedure TList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1617,7 +1617,7 @@ end;
 
 
 
-Procedure TList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1627,7 +1627,7 @@ end;
 
 
 
-Procedure TList.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1657,7 +1657,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOutputTypeoutputMultiItem.Set_label(AIndex : Integer; AValue : String); 
+Procedure TOutputTypeoutputMultiItem.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -1667,7 +1667,7 @@ end;
 
 
 
-Procedure TOutputTypeoutputMultiItem.Setscore(AIndex : Integer; AValue : String); 
+Procedure TOutputTypeoutputMultiItem.Setscore(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscore=AValue) then exit;
@@ -1695,7 +1695,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOutput.Setid(AIndex : Integer; AValue : String); 
+Procedure TOutput.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1705,7 +1705,7 @@ end;
 
 
 
-Procedure TOutput.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOutput.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1715,7 +1715,7 @@ end;
 
 
 
-Procedure TOutput.SetoutputLabel(AIndex : Integer; AValue : String); 
+Procedure TOutput.SetoutputLabel(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoutputLabel=AValue) then exit;
@@ -1735,7 +1735,7 @@ end;
 
 
 
-Procedure TOutput.SetoutputValue(AIndex : Integer; AValue : String); 
+Procedure TOutput.SetoutputValue(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoutputValue=AValue) then exit;
@@ -1745,7 +1745,7 @@ end;
 
 
 
-Procedure TOutput.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TOutput.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -1785,7 +1785,7 @@ end;
 
 
 
-Procedure TUpdate.Setoutput(AIndex : Integer; AValue : String); 
+Procedure TUpdate.Setoutput(AIndex : Integer; const AValue : String); 
 
 begin
   If (Foutput=AValue) then exit;

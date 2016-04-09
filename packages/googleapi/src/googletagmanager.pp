@@ -116,9 +116,9 @@ type
     FshareData : boolean;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetshareData(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -161,7 +161,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setparameter(AIndex : Integer; AValue : TConditionTypeparameterArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -192,16 +192,16 @@ type
     FusageContext : TStringArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdomainName(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetenabledBuiltInVariable(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublicId(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeZoneCountryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeZoneId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublicId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeZoneCountryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeZoneId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetusageContext(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -233,7 +233,7 @@ type
     Fpermission : TStringArray;
   Protected
     //Property setters
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -267,15 +267,15 @@ type
     Fvariable : TContainerVersionTypevariableArray;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcontainer(AIndex : Integer; AValue : TContainer); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerVersionId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerVersionId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmacro(AIndex : Integer; AValue : TContainerVersionTypemacroArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrule(AIndex : Integer; AValue : TContainerVersionTyperuleArray); virtual;
     Procedure Settag(AIndex : Integer; AValue : TContainerVersionTypetagArray); virtual;
     Procedure Settrigger(AIndex : Integer; AValue : TContainerVersionTypetriggerArray); virtual;
@@ -320,16 +320,16 @@ type
     FnumVariables : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerVersionId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerVersionId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumMacros(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumRules(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumTags(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumTriggers(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnumVariables(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumMacros(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumRules(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumTags(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumTriggers(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnumVariables(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -356,8 +356,8 @@ type
     FquickPreview : boolean;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure SetquickPreview(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -590,18 +590,18 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisablingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetenablingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmacroId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmacroId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameter(AIndex : Integer; AValue : TMacroTypeparameterArray); virtual;
-    Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscheduleEndMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscheduleStartMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -637,11 +637,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlist(AIndex : Integer; AValue : TParameterTypelistArray); virtual;
     Procedure Setmap(AIndex : Integer; AValue : TParameterTypemapArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -690,13 +690,13 @@ type
     FruleId : String;
   Protected
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcondition(AIndex : Integer; AValue : TRuleTypeconditionArray); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetruleId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetruleId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -738,22 +738,22 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetblockingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetblockingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfiringRuleId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetfiringTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetliveOnly(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameter(AIndex : Integer; AValue : TTagTypeparameterArray); virtual;
     Procedure Setpriority(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SettagId(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscheduleEndMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscheduleStartMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettagId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -806,20 +806,20 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetautoEventFilter(AIndex : Integer; AValue : TTriggerTypeautoEventFilterArray); virtual;
     Procedure SetcheckValidation(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomEventFilter(AIndex : Integer; AValue : TTriggerTypecustomEventFilterArray); virtual;
     Procedure SetenableAllVideos(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SeteventName(AIndex : Integer; AValue : TParameter); virtual;
     Procedure Setfilter(AIndex : Integer; AValue : TTriggerTypefilterArray); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinterval(AIndex : Integer; AValue : TParameter); virtual;
     Procedure Setlimit(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SettriggerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettriggerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuniqueTriggerId(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetvideoPercentageList(AIndex : Integer; AValue : TParameter); virtual;
     Procedure SetwaitForTags(AIndex : Integer; AValue : TParameter); virtual;
@@ -865,10 +865,10 @@ type
   Protected
     //Property setters
     Procedure SetaccountAccess(AIndex : Integer; AValue : TAccountAccess); virtual;
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerAccess(AIndex : Integer; AValue : TUserAccessTypecontainerAccessArray); virtual;
-    Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -904,18 +904,18 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetaccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisablingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetenablingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setfingerprint(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameter(AIndex : Integer; AValue : TVariableTypeparameterArray); virtual;
-    Procedure SetscheduleEndMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscheduleStartMs(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvariableId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscheduleEndMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscheduleStartMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvariableId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1319,7 +1319,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TAccount.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1329,7 +1329,7 @@ end;
 
 
 
-Procedure TAccount.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1339,7 +1339,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1406,7 +1406,7 @@ end;
 
 
 
-Procedure TCondition.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCondition.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1447,7 +1447,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainer.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TContainer.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1457,7 +1457,7 @@ end;
 
 
 
-Procedure TContainer.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TContainer.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1487,7 +1487,7 @@ end;
 
 
 
-Procedure TContainer.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TContainer.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1497,7 +1497,7 @@ end;
 
 
 
-Procedure TContainer.Setname(AIndex : Integer; AValue : String); 
+Procedure TContainer.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1507,7 +1507,7 @@ end;
 
 
 
-Procedure TContainer.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TContainer.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -1517,7 +1517,7 @@ end;
 
 
 
-Procedure TContainer.SetpublicId(AIndex : Integer; AValue : String); 
+Procedure TContainer.SetpublicId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublicId=AValue) then exit;
@@ -1527,7 +1527,7 @@ end;
 
 
 
-Procedure TContainer.SettimeZoneCountryId(AIndex : Integer; AValue : String); 
+Procedure TContainer.SettimeZoneCountryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZoneCountryId=AValue) then exit;
@@ -1537,7 +1537,7 @@ end;
 
 
 
-Procedure TContainer.SettimeZoneId(AIndex : Integer; AValue : String); 
+Procedure TContainer.SettimeZoneId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZoneId=AValue) then exit;
@@ -1579,7 +1579,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerAccess.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TContainerAccess.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1619,7 +1619,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerVersion.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TContainerVersion.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1639,7 +1639,7 @@ end;
 
 
 
-Procedure TContainerVersion.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TContainerVersion.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1649,7 +1649,7 @@ end;
 
 
 
-Procedure TContainerVersion.SetcontainerVersionId(AIndex : Integer; AValue : String); 
+Procedure TContainerVersion.SetcontainerVersionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -1669,7 +1669,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TContainerVersion.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -1689,7 +1689,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setname(AIndex : Integer; AValue : String); 
+Procedure TContainerVersion.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1699,7 +1699,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TContainerVersion.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -1773,7 +1773,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContainerVersionHeader.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -1783,7 +1783,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -1793,7 +1793,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetcontainerVersionId(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetcontainerVersionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerVersionId=AValue) then exit;
@@ -1813,7 +1813,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.Setname(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1823,7 +1823,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumMacros(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetnumMacros(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumMacros=AValue) then exit;
@@ -1833,7 +1833,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumRules(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetnumRules(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumRules=AValue) then exit;
@@ -1843,7 +1843,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumTags(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetnumTags(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumTags=AValue) then exit;
@@ -1853,7 +1853,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumTriggers(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetnumTriggers(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumTriggers=AValue) then exit;
@@ -1863,7 +1863,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.SetnumVariables(AIndex : Integer; AValue : String); 
+Procedure TContainerVersionHeader.SetnumVariables(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumVariables=AValue) then exit;
@@ -1880,7 +1880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.Setname(AIndex : Integer; AValue : String); 
+Procedure TCreateContainerVersionRequestVersionOptions.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1890,7 +1890,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TCreateContainerVersionRequestVersionOptions.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2225,7 +2225,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMacro.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TMacro.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2235,7 +2235,7 @@ end;
 
 
 
-Procedure TMacro.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TMacro.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2265,7 +2265,7 @@ end;
 
 
 
-Procedure TMacro.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TMacro.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2275,7 +2275,7 @@ end;
 
 
 
-Procedure TMacro.SetmacroId(AIndex : Integer; AValue : String); 
+Procedure TMacro.SetmacroId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmacroId=AValue) then exit;
@@ -2285,7 +2285,7 @@ end;
 
 
 
-Procedure TMacro.Setname(AIndex : Integer; AValue : String); 
+Procedure TMacro.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2295,7 +2295,7 @@ end;
 
 
 
-Procedure TMacro.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TMacro.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2315,7 +2315,7 @@ end;
 
 
 
-Procedure TMacro.SetscheduleEndMs(AIndex : Integer; AValue : String); 
+Procedure TMacro.SetscheduleEndMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -2325,7 +2325,7 @@ end;
 
 
 
-Procedure TMacro.SetscheduleStartMs(AIndex : Integer; AValue : String); 
+Procedure TMacro.SetscheduleStartMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -2335,7 +2335,7 @@ end;
 
 
 
-Procedure TMacro.Set_type(AIndex : Integer; AValue : String); 
+Procedure TMacro.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2378,7 +2378,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParameter.Setkey(AIndex : Integer; AValue : String); 
+Procedure TParameter.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -2408,7 +2408,7 @@ end;
 
 
 
-Procedure TParameter.Set_type(AIndex : Integer; AValue : String); 
+Procedure TParameter.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2418,7 +2418,7 @@ end;
 
 
 
-Procedure TParameter.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TParameter.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2487,7 +2487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRule.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TRule.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2507,7 +2507,7 @@ end;
 
 
 
-Procedure TRule.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TRule.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2517,7 +2517,7 @@ end;
 
 
 
-Procedure TRule.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TRule.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2527,7 +2527,7 @@ end;
 
 
 
-Procedure TRule.Setname(AIndex : Integer; AValue : String); 
+Procedure TRule.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2537,7 +2537,7 @@ end;
 
 
 
-Procedure TRule.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TRule.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2547,7 +2547,7 @@ end;
 
 
 
-Procedure TRule.SetruleId(AIndex : Integer; AValue : String); 
+Procedure TRule.SetruleId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FruleId=AValue) then exit;
@@ -2577,7 +2577,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTag.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TTag.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2607,7 +2607,7 @@ end;
 
 
 
-Procedure TTag.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TTag.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2617,7 +2617,7 @@ end;
 
 
 
-Procedure TTag.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TTag.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2657,7 +2657,7 @@ end;
 
 
 
-Procedure TTag.Setname(AIndex : Integer; AValue : String); 
+Procedure TTag.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2667,7 +2667,7 @@ end;
 
 
 
-Procedure TTag.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TTag.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -2697,7 +2697,7 @@ end;
 
 
 
-Procedure TTag.SetscheduleEndMs(AIndex : Integer; AValue : String); 
+Procedure TTag.SetscheduleEndMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -2707,7 +2707,7 @@ end;
 
 
 
-Procedure TTag.SetscheduleStartMs(AIndex : Integer; AValue : String); 
+Procedure TTag.SetscheduleStartMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -2717,7 +2717,7 @@ end;
 
 
 
-Procedure TTag.SettagId(AIndex : Integer; AValue : String); 
+Procedure TTag.SettagId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtagId=AValue) then exit;
@@ -2727,7 +2727,7 @@ end;
 
 
 
-Procedure TTag.Set_type(AIndex : Integer; AValue : String); 
+Procedure TTag.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2772,7 +2772,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTrigger.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TTrigger.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -2802,7 +2802,7 @@ end;
 
 
 
-Procedure TTrigger.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TTrigger.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -2852,7 +2852,7 @@ end;
 
 
 
-Procedure TTrigger.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TTrigger.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -2882,7 +2882,7 @@ end;
 
 
 
-Procedure TTrigger.Setname(AIndex : Integer; AValue : String); 
+Procedure TTrigger.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2892,7 +2892,7 @@ end;
 
 
 
-Procedure TTrigger.SettriggerId(AIndex : Integer; AValue : String); 
+Procedure TTrigger.SettriggerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtriggerId=AValue) then exit;
@@ -2902,7 +2902,7 @@ end;
 
 
 
-Procedure TTrigger.Set_type(AIndex : Integer; AValue : String); 
+Procedure TTrigger.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2995,7 +2995,7 @@ end;
 
 
 
-Procedure TUserAccess.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TUserAccess.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3015,7 +3015,7 @@ end;
 
 
 
-Procedure TUserAccess.SetemailAddress(AIndex : Integer; AValue : String); 
+Procedure TUserAccess.SetemailAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -3025,7 +3025,7 @@ end;
 
 
 
-Procedure TUserAccess.SetpermissionId(AIndex : Integer; AValue : String); 
+Procedure TUserAccess.SetpermissionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -3055,7 +3055,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVariable.SetaccountId(AIndex : Integer; AValue : String); 
+Procedure TVariable.SetaccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountId=AValue) then exit;
@@ -3065,7 +3065,7 @@ end;
 
 
 
-Procedure TVariable.SetcontainerId(AIndex : Integer; AValue : String); 
+Procedure TVariable.SetcontainerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerId=AValue) then exit;
@@ -3095,7 +3095,7 @@ end;
 
 
 
-Procedure TVariable.Setfingerprint(AIndex : Integer; AValue : String); 
+Procedure TVariable.Setfingerprint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffingerprint=AValue) then exit;
@@ -3105,7 +3105,7 @@ end;
 
 
 
-Procedure TVariable.Setname(AIndex : Integer; AValue : String); 
+Procedure TVariable.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3115,7 +3115,7 @@ end;
 
 
 
-Procedure TVariable.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TVariable.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -3135,7 +3135,7 @@ end;
 
 
 
-Procedure TVariable.SetscheduleEndMs(AIndex : Integer; AValue : String); 
+Procedure TVariable.SetscheduleEndMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscheduleEndMs=AValue) then exit;
@@ -3145,7 +3145,7 @@ end;
 
 
 
-Procedure TVariable.SetscheduleStartMs(AIndex : Integer; AValue : String); 
+Procedure TVariable.SetscheduleStartMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscheduleStartMs=AValue) then exit;
@@ -3155,7 +3155,7 @@ end;
 
 
 
-Procedure TVariable.Set_type(AIndex : Integer; AValue : String); 
+Procedure TVariable.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3165,7 +3165,7 @@ end;
 
 
 
-Procedure TVariable.SetvariableId(AIndex : Integer; AValue : String); 
+Procedure TVariable.SetvariableId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvariableId=AValue) then exit;

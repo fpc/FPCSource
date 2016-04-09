@@ -122,9 +122,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnatIp(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnatIp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -166,7 +166,7 @@ type
     Fports : TStringArray;
   Protected
     //Property setters
-    Procedure SetIPProtocol(AIndex : Integer; AValue : String); virtual;
+    Procedure SetIPProtocol(AIndex : Integer; const AValue : String); virtual;
     Procedure Setports(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -195,11 +195,11 @@ type
   Protected
     //Property setters
     Procedure SetcoolDownPeriodSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxNumReplicas(AIndex : Integer; AValue : integer); virtual;
     Procedure SetminNumReplicas(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsignalType(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetModule(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsignalType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetModule(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetUtilization(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -222,7 +222,7 @@ type
     FautoscalingConfigUrl : String;
   Protected
     //Property setters
-    Procedure SetautoscalingConfigUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetautoscalingConfigUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoscalingConfigUrl : String Index 0 Read FautoscalingConfigUrl Write SetautoscalingConfigUrl;
@@ -239,8 +239,8 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure Setdetails(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdetails(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property details : String Index 0 Read Fdetails Write Setdetails;
@@ -277,13 +277,13 @@ type
     FtemplateName : String;
   Protected
     //Property setters
-    Procedure SetcreationDate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmodules(AIndex : Integer; AValue : TDeploymentTypemodules); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoverrides(AIndex : Integer; AValue : TDeploymentTypeoverridesArray); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TDeployState); virtual;
-    Procedure SettemplateName(AIndex : Integer; AValue : String); virtual;
+    Procedure SettemplateName(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -310,7 +310,7 @@ type
     Fresources : TDeploymentsListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TDeploymentsListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -333,7 +333,7 @@ type
     Findex : integer;
   Protected
     //Property setters
-    Procedure SetdeviceName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdeviceName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setindex(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -353,7 +353,7 @@ type
   Protected
     //Property setters
     Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property hidden : boolean Index 0 Read Fhidden Write Sethidden;
@@ -372,7 +372,7 @@ type
   Protected
     //Property setters
     Procedure Setattachment(AIndex : Integer; AValue : TDiskAttachment); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attachment : TDiskAttachment Index 0 Read Fattachment Write Setattachment;
@@ -395,8 +395,8 @@ type
   Protected
     //Property setters
     Procedure Setallowed(AIndex : Integer; AValue : TFirewallModuleTypeallowedArray); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsourceRanges(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsourceTags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SettargetTags(AIndex : Integer; AValue : TStringArray); virtual;
@@ -424,7 +424,7 @@ type
     FfirewallUrl : String;
   Protected
     //Property setters
-    Procedure SetfirewallUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfirewallUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property firewallUrl : String Index 0 Read FfirewallUrl Write SetfirewallUrl;
@@ -448,10 +448,10 @@ type
   Protected
     //Property setters
     Procedure SetcheckIntervalSec(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SethealthyThreshold(AIndex : Integer; AValue : integer); virtual;
-    Procedure Sethost(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethost(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
     Procedure Setport(AIndex : Integer; AValue : integer); virtual;
     Procedure SettimeoutSec(AIndex : Integer; AValue : integer); virtual;
     Procedure SetunhealthyThreshold(AIndex : Integer; AValue : integer); virtual;
@@ -477,7 +477,7 @@ type
     FhealthCheckUrl : String;
   Protected
     //Property setters
-    Procedure SethealthCheckUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SethealthCheckUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property healthCheckUrl : String Index 0 Read FhealthCheckUrl Write SethealthCheckUrl;
@@ -499,12 +499,12 @@ type
     FtargetModules : TStringArray;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SethealthChecks(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure SetipProtocol(AIndex : Integer; AValue : String); virtual;
-    Procedure SetportRange(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsessionAffinity(AIndex : Integer; AValue : String); virtual;
+    Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetipProtocol(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetportRange(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsessionAffinity(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetModules(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -532,8 +532,8 @@ type
     FtargetPoolUrl : String;
   Protected
     //Property setters
-    Procedure SetforwardingRuleUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetPoolUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetforwardingRuleUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetPoolUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property forwardingRuleUrl : String Index 0 Read FforwardingRuleUrl Write SetforwardingRuleUrl;
@@ -551,7 +551,7 @@ type
     Fitems : TMetadataTypeitemsArray;
   Protected
     //Property setters
-    Procedure SetfingerPrint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfingerPrint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -574,8 +574,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property key : String Index 0 Read Fkey Write Setkey;
@@ -605,7 +605,7 @@ type
     Procedure SetlbModule(AIndex : Integer; AValue : TLbModule); virtual;
     Procedure SetnetworkModule(AIndex : Integer; AValue : TNetworkModule); virtual;
     Procedure SetreplicaPoolModule(AIndex : Integer; AValue : TReplicaPoolModule); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoscalingModule : TAutoscalingModule Index 0 Read FautoscalingModule Write SetautoscalingModule;
@@ -642,7 +642,7 @@ type
     Procedure SetnetworkModuleStatus(AIndex : Integer; AValue : TNetworkModuleStatus); virtual;
     Procedure SetreplicaPoolModuleStatus(AIndex : Integer; AValue : TReplicaPoolModuleStatus); virtual;
     Procedure Setstate(AIndex : Integer; AValue : TDeployState); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoscalingModuleStatus : TAutoscalingModuleStatus Index 0 Read FautoscalingModuleStatus Write SetautoscalingModuleStatus;
@@ -669,9 +669,9 @@ type
   Protected
     //Property setters
     Procedure SetaccessConfigs(AIndex : Integer; AValue : TNetworkInterfaceTypeaccessConfigsArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnetworkIp(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnetworkIp(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -696,9 +696,9 @@ type
     FgatewayIPv4 : String;
   Protected
     //Property setters
-    Procedure SetIPv4Range(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgatewayIPv4(AIndex : Integer; AValue : String); virtual;
+    Procedure SetIPv4Range(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgatewayIPv4(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property IPv4Range : String Index 0 Read FIPv4Range Write SetIPv4Range;
@@ -716,7 +716,7 @@ type
     FnetworkUrl : String;
   Protected
     //Property setters
-    Procedure SetnetworkUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnetworkUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property networkUrl : String Index 0 Read FnetworkUrl Write SetnetworkUrl;
@@ -759,9 +759,9 @@ type
     FsourceImage : String;
   Protected
     //Property setters
-    Procedure SetdiskSizeGb(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdiskType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsourceImage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdiskSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdiskType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsourceImage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property diskSizeGb : String Index 0 Read FdiskSizeGb Write SetdiskSizeGb;
@@ -780,8 +780,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setpath(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property path : String Index 0 Read Fpath Write Setpath;
@@ -820,7 +820,7 @@ type
     Procedure SethealthChecks(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetnumReplicas(AIndex : Integer; AValue : integer); virtual;
     Procedure SetreplicaPoolParams(AIndex : Integer; AValue : TReplicaPoolParams); virtual;
-    Procedure SetresourceView(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceView(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -845,8 +845,8 @@ type
     FresourceViewUrl : String;
   Protected
     //Property setters
-    Procedure SetreplicaPoolUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetresourceViewUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreplicaPoolUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresourceViewUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property replicaPoolUrl : String Index 0 Read FreplicaPoolUrl Write SetreplicaPoolUrl;
@@ -893,19 +893,19 @@ type
   Protected
     //Property setters
     Procedure SetautoRestart(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetbaseInstanceName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbaseInstanceName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcanIpForward(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisksToAttach(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypedisksToAttachArray); virtual;
     Procedure SetdisksToCreate(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypedisksToCreateArray); virtual;
-    Procedure SetinitAction(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinitAction(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TMetadata); virtual;
     Procedure SetnetworkInterfaces(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypenetworkInterfacesArray); virtual;
-    Procedure SetonHostMaintenance(AIndex : Integer; AValue : String); virtual;
+    Procedure SetonHostMaintenance(AIndex : Integer; const AValue : String); virtual;
     Procedure SetserviceAccounts(AIndex : Integer; AValue : TReplicaPoolParamsV1Beta1TypeserviceAccountsArray); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTag); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -939,7 +939,7 @@ type
     Fscopes : TStringArray;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
     Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -962,7 +962,7 @@ type
     Fitems : TStringArray;
   Protected
     //Property setters
-    Procedure SetfingerPrint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfingerPrint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1016,9 +1016,9 @@ type
   Protected
     //Property setters
     Procedure Setactions(AIndex : Integer; AValue : TTemplateTypeactions); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmodules(AIndex : Integer; AValue : TTemplateTypemodules); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property actions : TTemplateTypeactions Index 0 Read Factions Write Setactions;
@@ -1038,7 +1038,7 @@ type
     Fresources : TTemplatesListResponseTyperesourcesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresources(AIndex : Integer; AValue : TTemplatesListResponseTyperesourcesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1149,7 +1149,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccessConfig.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccessConfig.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1159,7 +1159,7 @@ end;
 
 
 
-Procedure TAccessConfig.SetnatIp(AIndex : Integer; AValue : String); 
+Procedure TAccessConfig.SetnatIp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnatIp=AValue) then exit;
@@ -1169,7 +1169,7 @@ end;
 
 
 
-Procedure TAccessConfig.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAccessConfig.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1237,7 +1237,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAllowedRule.SetIPProtocol(AIndex : Integer; AValue : String); 
+Procedure TAllowedRule.SetIPProtocol(AIndex : Integer; const AValue : String); 
 
 begin
   If (FIPProtocol=AValue) then exit;
@@ -1287,7 +1287,7 @@ end;
 
 
 
-Procedure TAutoscalingModule.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TAutoscalingModule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1317,7 +1317,7 @@ end;
 
 
 
-Procedure TAutoscalingModule.SetsignalType(AIndex : Integer; AValue : String); 
+Procedure TAutoscalingModule.SetsignalType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsignalType=AValue) then exit;
@@ -1327,7 +1327,7 @@ end;
 
 
 
-Procedure TAutoscalingModule.SettargetModule(AIndex : Integer; AValue : String); 
+Procedure TAutoscalingModule.SettargetModule(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetModule=AValue) then exit;
@@ -1354,7 +1354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAutoscalingModuleStatus.SetautoscalingConfigUrl(AIndex : Integer; AValue : String); 
+Procedure TAutoscalingModuleStatus.SetautoscalingConfigUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FautoscalingConfigUrl=AValue) then exit;
@@ -1371,7 +1371,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeployState.Setdetails(AIndex : Integer; AValue : String); 
+Procedure TDeployState.Setdetails(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdetails=AValue) then exit;
@@ -1381,7 +1381,7 @@ end;
 
 
 
-Procedure TDeployState.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TDeployState.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -1411,7 +1411,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeployment.SetcreationDate(AIndex : Integer; AValue : String); 
+Procedure TDeployment.SetcreationDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationDate=AValue) then exit;
@@ -1421,7 +1421,7 @@ end;
 
 
 
-Procedure TDeployment.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TDeployment.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1441,7 +1441,7 @@ end;
 
 
 
-Procedure TDeployment.Setname(AIndex : Integer; AValue : String); 
+Procedure TDeployment.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 
 
-Procedure TDeployment.SettemplateName(AIndex : Integer; AValue : String); 
+Procedure TDeployment.SettemplateName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtemplateName=AValue) then exit;
@@ -1501,7 +1501,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TDeploymentsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1541,7 +1541,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDiskAttachment.SetdeviceName(AIndex : Integer; AValue : String); 
+Procedure TDiskAttachment.SetdeviceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdeviceName=AValue) then exit;
@@ -1578,7 +1578,7 @@ end;
 
 
 
-Procedure TEnvVariable.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TEnvVariable.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1605,7 +1605,7 @@ end;
 
 
 
-Procedure TExistingDisk.Setsource(AIndex : Integer; AValue : String); 
+Procedure TExistingDisk.Setsource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -1632,7 +1632,7 @@ end;
 
 
 
-Procedure TFirewallModule.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TFirewallModule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1642,7 +1642,7 @@ end;
 
 
 
-Procedure TFirewallModule.Setnetwork(AIndex : Integer; AValue : String); 
+Procedure TFirewallModule.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -1705,7 +1705,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFirewallModuleStatus.SetfirewallUrl(AIndex : Integer; AValue : String); 
+Procedure TFirewallModuleStatus.SetfirewallUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfirewallUrl=AValue) then exit;
@@ -1732,7 +1732,7 @@ end;
 
 
 
-Procedure THealthCheckModule.Setdescription(AIndex : Integer; AValue : String); 
+Procedure THealthCheckModule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1752,7 +1752,7 @@ end;
 
 
 
-Procedure THealthCheckModule.Sethost(AIndex : Integer; AValue : String); 
+Procedure THealthCheckModule.Sethost(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhost=AValue) then exit;
@@ -1762,7 +1762,7 @@ end;
 
 
 
-Procedure THealthCheckModule.Setpath(AIndex : Integer; AValue : String); 
+Procedure THealthCheckModule.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -1809,7 +1809,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THealthCheckModuleStatus.SethealthCheckUrl(AIndex : Integer; AValue : String); 
+Procedure THealthCheckModuleStatus.SethealthCheckUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhealthCheckUrl=AValue) then exit;
@@ -1826,7 +1826,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLbModule.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TLbModule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1846,7 +1846,7 @@ end;
 
 
 
-Procedure TLbModule.SetipAddress(AIndex : Integer; AValue : String); 
+Procedure TLbModule.SetipAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FipAddress=AValue) then exit;
@@ -1856,7 +1856,7 @@ end;
 
 
 
-Procedure TLbModule.SetipProtocol(AIndex : Integer; AValue : String); 
+Procedure TLbModule.SetipProtocol(AIndex : Integer; const AValue : String); 
 
 begin
   If (FipProtocol=AValue) then exit;
@@ -1866,7 +1866,7 @@ end;
 
 
 
-Procedure TLbModule.SetportRange(AIndex : Integer; AValue : String); 
+Procedure TLbModule.SetportRange(AIndex : Integer; const AValue : String); 
 
 begin
   If (FportRange=AValue) then exit;
@@ -1876,7 +1876,7 @@ end;
 
 
 
-Procedure TLbModule.SetsessionAffinity(AIndex : Integer; AValue : String); 
+Procedure TLbModule.SetsessionAffinity(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsessionAffinity=AValue) then exit;
@@ -1917,7 +1917,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLbModuleStatus.SetforwardingRuleUrl(AIndex : Integer; AValue : String); 
+Procedure TLbModuleStatus.SetforwardingRuleUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FforwardingRuleUrl=AValue) then exit;
@@ -1927,7 +1927,7 @@ end;
 
 
 
-Procedure TLbModuleStatus.SettargetPoolUrl(AIndex : Integer; AValue : String); 
+Procedure TLbModuleStatus.SettargetPoolUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetPoolUrl=AValue) then exit;
@@ -1944,7 +1944,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadata.SetfingerPrint(AIndex : Integer; AValue : String); 
+Procedure TMetadata.SetfingerPrint(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfingerPrint=AValue) then exit;
@@ -1984,7 +1984,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadataItem.Setkey(AIndex : Integer; AValue : String); 
+Procedure TMetadataItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1994,7 +1994,7 @@ end;
 
 
 
-Procedure TMetadataItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TMetadataItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2071,7 +2071,7 @@ end;
 
 
 
-Procedure TModule.Set_type(AIndex : Integer; AValue : String); 
+Procedure TModule.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2169,7 +2169,7 @@ end;
 
 
 
-Procedure TModuleStatus.Set_type(AIndex : Integer; AValue : String); 
+Procedure TModuleStatus.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2207,7 +2207,7 @@ end;
 
 
 
-Procedure TNetworkInterface.Setname(AIndex : Integer; AValue : String); 
+Procedure TNetworkInterface.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2217,7 +2217,7 @@ end;
 
 
 
-Procedure TNetworkInterface.Setnetwork(AIndex : Integer; AValue : String); 
+Procedure TNetworkInterface.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -2227,7 +2227,7 @@ end;
 
 
 
-Procedure TNetworkInterface.SetnetworkIp(AIndex : Integer; AValue : String); 
+Procedure TNetworkInterface.SetnetworkIp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkIp=AValue) then exit;
@@ -2257,7 +2257,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkModule.SetIPv4Range(AIndex : Integer; AValue : String); 
+Procedure TNetworkModule.SetIPv4Range(AIndex : Integer; const AValue : String); 
 
 begin
   If (FIPv4Range=AValue) then exit;
@@ -2267,7 +2267,7 @@ end;
 
 
 
-Procedure TNetworkModule.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TNetworkModule.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2277,7 +2277,7 @@ end;
 
 
 
-Procedure TNetworkModule.SetgatewayIPv4(AIndex : Integer; AValue : String); 
+Procedure TNetworkModule.SetgatewayIPv4(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgatewayIPv4=AValue) then exit;
@@ -2294,7 +2294,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkModuleStatus.SetnetworkUrl(AIndex : Integer; AValue : String); 
+Procedure TNetworkModuleStatus.SetnetworkUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnetworkUrl=AValue) then exit;
@@ -2358,7 +2358,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNewDiskInitializeParams.SetdiskSizeGb(AIndex : Integer; AValue : String); 
+Procedure TNewDiskInitializeParams.SetdiskSizeGb(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskSizeGb=AValue) then exit;
@@ -2368,7 +2368,7 @@ end;
 
 
 
-Procedure TNewDiskInitializeParams.SetdiskType(AIndex : Integer; AValue : String); 
+Procedure TNewDiskInitializeParams.SetdiskType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdiskType=AValue) then exit;
@@ -2378,7 +2378,7 @@ end;
 
 
 
-Procedure TNewDiskInitializeParams.SetsourceImage(AIndex : Integer; AValue : String); 
+Procedure TNewDiskInitializeParams.SetsourceImage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -2395,7 +2395,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParamOverride.Setpath(AIndex : Integer; AValue : String); 
+Procedure TParamOverride.Setpath(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpath=AValue) then exit;
@@ -2405,7 +2405,7 @@ end;
 
 
 
-Procedure TParamOverride.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TParamOverride.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -2475,7 +2475,7 @@ end;
 
 
 
-Procedure TReplicaPoolModule.SetresourceView(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolModule.SetresourceView(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceView=AValue) then exit;
@@ -2505,7 +2505,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReplicaPoolModuleStatus.SetreplicaPoolUrl(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolModuleStatus.SetreplicaPoolUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreplicaPoolUrl=AValue) then exit;
@@ -2515,7 +2515,7 @@ end;
 
 
 
-Procedure TReplicaPoolModuleStatus.SetresourceViewUrl(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolModuleStatus.SetresourceViewUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceViewUrl=AValue) then exit;
@@ -2559,7 +2559,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetbaseInstanceName(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolParamsV1Beta1.SetbaseInstanceName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbaseInstanceName=AValue) then exit;
@@ -2579,7 +2579,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolParamsV1Beta1.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2609,7 +2609,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetinitAction(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolParamsV1Beta1.SetinitAction(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinitAction=AValue) then exit;
@@ -2619,7 +2619,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetmachineType(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolParamsV1Beta1.SetmachineType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -2649,7 +2649,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.SetonHostMaintenance(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolParamsV1Beta1.SetonHostMaintenance(AIndex : Integer; const AValue : String); 
 
 begin
   If (FonHostMaintenance=AValue) then exit;
@@ -2679,7 +2679,7 @@ end;
 
 
 
-Procedure TReplicaPoolParamsV1Beta1.Setzone(AIndex : Integer; AValue : String); 
+Procedure TReplicaPoolParamsV1Beta1.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -2712,7 +2712,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : String); 
+Procedure TServiceAccount.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -2752,7 +2752,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTag.SetfingerPrint(AIndex : Integer; AValue : String); 
+Procedure TTag.SetfingerPrint(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfingerPrint=AValue) then exit;
@@ -2828,7 +2828,7 @@ end;
 
 
 
-Procedure TTemplate.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TTemplate.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2848,7 +2848,7 @@ end;
 
 
 
-Procedure TTemplate.Setname(AIndex : Integer; AValue : String); 
+Procedure TTemplate.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -2865,7 +2865,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTemplatesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTemplatesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

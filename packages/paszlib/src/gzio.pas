@@ -24,7 +24,7 @@ uses
   zbase, crc, zdeflate, zinflate;
 
 type gzFile = pointer;
-type z_off_t = longint;
+type z_off_t = int64;
 
 function gzopen  (path:string; mode:string) : gzFile;
 function gzread  (f:gzFile; buf:pointer; len:cardinal) : integer;
@@ -555,8 +555,8 @@ var
   filecrc   : cardinal; { CRC32 stored in GZIP'ed file }
   filelen   : cardinal; { Total lenght of uncompressed file }
   bytes     : integer;  { bytes actually read in I/O blockread }
-  total_in  : cardinal;
-  total_out : cardinal;
+  total_in  : Qword;
+  total_out : Qword;
 {$ifndef pointer_arith}
   next_out  : Pbyte;
 {$endif}
@@ -1061,9 +1061,9 @@ begin
       exit;
     end;
 
-    s^.stream.total_in := cardinal(offset);
-    s^.stream.total_out := cardinal(offset);
-    gzseek := z_off_t(offset);
+    s^.stream.total_in := offset;
+    s^.stream.total_out := offset;
+    gzseek := offset;
     exit;
   end;
 
@@ -1173,14 +1173,14 @@ begin
     gzclose := Z_STREAM_ERROR;
     exit;
 {$ELSE}
-    err := do_flush (f, Z_FINISH);
+  err := do_flush (f, Z_FINISH);
     if (err <> Z_OK) then begin
       gzclose := destroy (gz_streamp(f));
       exit;
     end;
 
     putLong (s^.gzfile, s^.crc);
-    putLong (s^.gzfile, s^.stream.total_in);
+    putLong (s^.gzfile, s^.stream.total_in and $FFFFFFFF);
 {$ENDIF}
   end;
 

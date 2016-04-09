@@ -44,7 +44,7 @@ Const
 
     ADNF_STARTPROC      = 1;
 
-VAR ExpansionBase : pLibrary;
+VAR ExpansionBase : pLibrary = nil;
 
 
 FUNCTION AddBootNode(bootPri : LONGINT location 'd0'; flags : ULONG location 'd1'; deviceNode : pDeviceNode location 'a0'; configDev : pConfigDev location 'a1') : wordbool; syscall ExpansionBase 036;
@@ -69,106 +69,18 @@ PROCEDURE RemConfigDev(configDev : pConfigDev location 'a0'); syscall ExpansionB
 PROCEDURE SetCurrentBinding(currentBinding : pCurrentBinding location 'a0'; bindingSize : ULONG location 'd0'); syscall ExpansionBase 132;
 PROCEDURE WriteExpansionByte(board : POINTER location 'a0'; offset : ULONG location 'd0'; byte : ULONG location 'd1'); syscall ExpansionBase 114;
 
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitEXPANSIONLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    EXPANSIONIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox;
-{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of expansion.library}
-  {$Info don't forget to use InitEXPANSIONLibrary in the beginning of your program}
-
-var
-    expansion_exit : Pointer;
-
-procedure CloseexpansionLibrary;
-begin
-    ExitProc := expansion_exit;
-    if ExpansionBase <> nil then begin
-        CloseLibrary(ExpansionBase);
-        ExpansionBase := nil;
-    end;
-end;
-
-procedure InitEXPANSIONLibrary;
-begin
-    ExpansionBase := nil;
-    ExpansionBase := OpenLibrary(EXPANSIONNAME,LIBVERSION);
-    if ExpansionBase <> nil then begin
-        expansion_exit := ExitProc;
-        ExitProc := @CloseexpansionLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open expansion.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    EXPANSIONIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of expansion.library}
-
-var
-    expansion_exit : Pointer;
-
-procedure CloseexpansionLibrary;
-begin
-    ExitProc := expansion_exit;
-    if ExpansionBase <> nil then begin
-        CloseLibrary(ExpansionBase);
-        ExpansionBase := nil;
-    end;
-end;
-
-begin
-    ExpansionBase := nil;
-    ExpansionBase := OpenLibrary(EXPANSIONNAME,LIBVERSION);
-    if ExpansionBase <> nil then begin
-        expansion_exit := ExitProc;
-        ExitProc := @CloseexpansionLibrary;
-        EXPANSIONIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open expansion.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    EXPANSIONIsCompiledHow := 3;
-   {$Warning No autoopening of expansion.library compiled}
-   {$Warning Make sure you open expansion.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  ExpansionBase := OpenLibrary(EXPANSIONNAME,LIBVERSION);
+finalization
+  if Assigned(ExpansionBase) then
+    CloseLibrary(ExpansionBase);
 END. (* UNIT EXPANSION *)
 
 

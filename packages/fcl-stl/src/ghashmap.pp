@@ -12,15 +12,26 @@
   **********************************************************************}
   {$mode objfpc}
 
+  { $define STL_INTERFACE_EXT}
+
   unit ghashmap;
 
   interface
   uses gvector, gutil, garrayutils;
 
-  const baseFDataSize = 8;
+  const
+    baseFDataSize = 8;             // must be > 0
+    maxLoadingFactor = 1.0;
 
-  {Thash should have one class function hash(a:TKey, n:longint):longint which return uniformly distributed
-  value in range <0,n-1> base only on arguments, n will be always power of 2}
+  {
+    THash should have the class functions
+      hash(a: TKey, n: SizeUInt): SizeUInt;
+      	      return uniformly distributed i value in range <0,n-1> base only on arguments,
+	      n will be always power of 2
+      equal(const AKey1, AKey2: TKey): Boolean;            [when STL_INTERFACE_EXT is defined]
+              return the boolean test for equality of the two keys.  Typically this is operator=,
+              but it doesn't have to be (e.g. case-insensitive string comparison)
+  }
 
   type
     generic THashmapIterator<TKey, TValue, T, TTable>=class
@@ -30,6 +41,7 @@
         Fh,Fp:SizeUInt;
         FData:TTable;
         function Next:boolean;inline;
+        function Prev:boolean;inline;
         function GetData:T;inline;
         function GetKey:TKey;inline;
         function GetValue:TValue;inline;
@@ -66,17 +78,19 @@
         function contains(key:TKey):boolean;inline;
         function size:SizeUInt;inline;
         procedure delete(key:TKey);inline;
+        procedure erase(iter:TIterator);inline;
         function IsEmpty:boolean;inline;
         function GetData(key:TKey):TValue;inline;
+        function GetValue(key:TKey;out value:TValue):boolean;inline;
 
         property Items[i : TKey]: TValue read GetData write Insert; default;
 
-      function Iterator:TIterator;
+        function Iterator:TIterator;
   end;
 
 implementation
 
-function THashmap.Size:SizeUInt;inline;
+function THashmap.Size: SizeUInt;
 begin
   Size:=FDataSize;
 end;
@@ -84,36 +98,43 @@ end;
 destructor THashmap.Destroy;
 var i:SizeUInt;
 begin
-  for i:=0 to FData.size-1 do
+  i:=0;
+  while i < FData.size do
+  begin
     (FData[i]).Destroy;
+    inc(i);
+  end;
   FData.Destroy;
 end;
 
-function THashmap.IsEmpty():boolean;inline;
+function THashmap.IsEmpty(): boolean;
 begin
-  if Size()=0 then 
-    IsEmpty:=true
-  else 
-    IsEmpty:=false;
+  IsEmpty := Size()=0;
 end;
 
 procedure THashmap.EnlargeTable;
 var i,j,h,oldDataSize:SizeUInt; 
+    curbucket:TContainer;
     value:TPair;
 begin
+  //Assert(oldDataSize>0);
   oldDataSize:=FData.size;
   FData.resize(FData.size*2);
   for i:=oldDataSize to FData.size-1 do
     FData[i] := TContainer.create;
   for i:=oldDataSize-1 downto 0 do begin
+    curbucket:=FData[i];
     j := 0;
-    while j < (FData[i]).size do begin
-      value := (FData[i])[j];
-      h:=Thash.hash(value.key,FData.size);
+    while j < curbucket.size do begin
+      h:=THash.hash(curbucket[j].key,FData.size);
       if (h <> i) then begin
-        (FData[i])[j] := (FData[i]).back;
-        (FData[i]).popback;
-        (FData[h]).pushback(value);
+        if (j+1) < curbucket.size then begin
+          value:=curbucket[j];
+          curbucket[j]:= curbucket.back;
+          (FData[h]).pushback(value);
+        end else
+          (FData[h]).pushback(curbucket[j]);
+        curbucket.popback;
       end else
         inc(j);
     end;
@@ -121,7 +142,7 @@ begin
 end;
 
 constructor THashmap.create;
-var i:longint;
+var i: SizeUInt;
 begin
   FDataSize:=0;
   FData:=TTable.create;
@@ -130,56 +151,107 @@ begin
     FData[i]:=TContainer.create;
 end;
 
-function THashmap.contains(key:TKey):boolean;inline;
-var i,h,bs:longint;
+function THashmap.contains(key: TKey): boolean;
+var i,bs:SizeUInt;
+    curbucket:TContainer;
 begin
-  h:=Thash.hash(key,FData.size);
-  bs:=(FData[h]).size;
-  for i:=0 to bs-1 do begin
-    if (((FData[h])[i]).Key=key) then exit(true);
+  curbucket:=FData[THash.hash(key,FData.size)];
+  bs:=curbucket.size;
+  i:=0;
+  while i < bs do begin
+{$ifdef STL_INTERFACE_EXT}
+    if THash.equal(curbucket[i].Key, key) then exit(true);
+{$else}
+    if (curbucket[i].Key = key) then exit(true);
+{$endif}
+    inc(i);
   end;
   exit(false);
 end;
 
-function THashmap.GetData(key:TKey):TValue;inline;
-var i,h,bs:longint;
+function THashmap.GetData(key: TKey): TValue;
+var i,bs:SizeUInt;
+    curbucket:TContainer;
 begin
-  h:=Thash.hash(key,FData.size);
-  bs:=(FData[h]).size;
-  for i:=0 to bs-1 do begin
-    if (((FData[h])[i]).Key=key) then exit(((FData[h])[i]).Value);
+  curbucket:=FData[THash.hash(key,FData.size)];
+  bs:=curbucket.size;
+  i:=0;
+  while i < bs do begin
+{$ifdef STL_INTERFACE_EXT}
+    if THash.equal(curbucket[i].Key, key) then exit(curbucket[i].Value);
+{$else}
+    if (curbucket[i].Key = key) then exit(curbucket[i].Value);
+{$endif}
+    inc(i);
   end;
+  // exception?
 end;
 
-procedure THashmap.insert(key:TKey;value:TValue);inline;
-var pair:TPair; i,h,bs:longint;
+function THashmap.GetValue(key: TKey; out value: TValue): boolean;
+var i,bs:SizeUInt;
+    curbucket:TContainer;
 begin
-  h:=Thash.hash(key,FData.size);
-  bs:=(FData[h]).size;
-  for i:=0 to bs-1 do begin
-    if (((FData[h])[i]).Key=key) then begin
-      ((FData[h]).mutable[i])^.value := value;
+  curbucket:=FData[THash.hash(key,FData.size)];
+  bs:=curbucket.size;
+  i:=0;
+  while i < bs do begin
+{$ifdef STL_INTERFACE_EXT}
+    if THash.equal(curbucket[i].Key, key) then begin
+{$else}
+    if (curbucket[i].Key = key) then begin
+{$endif}
+      value:=curbucket[i].Value;
+      exit(true);
+    end;
+    inc(i);
+  end;
+  exit(false);
+end;
+
+procedure THashmap.insert(key: TKey; value: TValue);
+var pair:TPair;
+    i,bs:SizeUInt;
+    curbucket:TContainer;
+begin
+  curbucket:=FData[THash.hash(key,FData.size)];
+  bs:=curbucket.size;
+  i:=0;
+  while i < bs do begin
+{$ifdef STL_INTERFACE_EXT}
+    if THash.equal(curbucket[i].Key, key) then begin
+{$else}
+    if (curbucket[i].Key = key) then begin
+{$endif}
+      (curbucket.mutable[i])^.value := value;
       exit;
     end;
+    inc(i);
   end;
   pair.Key := key;
   pair.Value := value;
   inc(FDataSize);
-  (FData[h]).pushback(pair);
+  curbucket.pushback(pair);
 
-  if (FDataSize > 5*FData.size) then
+  if (FDataSize > maxLoadingFactor*FData.size) then
     EnlargeTable;
 end;
 
-procedure THashmap.delete(key:TKey);inline;
-var h,i:SizeUInt;
+procedure THashmap.delete(key: TKey);
+var i,bs:SizeUInt;
+    curbucket:TContainer;
 begin
-  h:=Thash.hash(key,FData.size);
+  curbucket:=FData[THash.hash(key,FData.size)];
+  bs:=curbucket.size;
   i:=0;
-  while i < (FData[h]).size do begin
-    if (((FData[h])[i]).key=key) then begin
-      (FData[h])[i] := (FData[h]).back;
-      (FData[h]).popback;
+  while i < bs do begin
+{$ifdef STL_INTERFACE_EXT}
+    if THash.equal(curbucket[i].Key, key) then begin
+{$else}
+    if (curbucket[i].Key = key) then begin
+{$endif}
+      //if (i+1) < bs then
+        curbucket[i] := curbucket.back;
+      curbucket.popback;
       dec(FDataSize);
       exit;
     end;
@@ -187,26 +259,58 @@ begin
   end;
 end;
 
-function THashmapIterator.Next:boolean;
+procedure THashmap.erase(iter: TIterator);
+var curbucket:TContainer;
 begin
-  inc(Fp);
-  if (Fp = (FData[Fh]).size) then begin
-    Fp:=0; inc(Fh);
-    while Fh < FData.size do begin
-      if ((FData[Fh]).size > 0) then break;
-      inc(Fh);
-    end;
-    if (Fh = FData.size) then exit(false);
-  end;
-  Next := true;
+  curbucket:=FData[iter.Fh];
+  //if (iter.Fp+1) < curbucket.size then
+    curbucket[iter.Fp] := curbucket.back;
+  curbucket.popback;
+  dec(FDataSize);
+  iter.Prev;
 end;
 
-function THashmapIterator.GetData:T;
+function THashmapIterator.Next: boolean;
+begin
+  Assert(Fh < FData.size);      // assumes FData.size>0 (i.e. buckets don't shrink) and cannot call Next again after reaching end
+  inc(Fp);
+  if (Fp < (FData[Fh]).size) then
+    exit(true);
+  Fp:=0; Inc(Fh);
+  while Fh < FData.size do begin
+    if ((FData[Fh]).size > 0) then
+      exit(true);
+    Inc(Fh);
+  end;
+  //Assert((Fp = 0) and (Fh = FData.size));
+  exit(false);
+end;
+
+function THashmapIterator.Prev: boolean;
+var bs:SizeUInt;
+begin
+  if (Fp > 0) then begin
+    dec(Fp);
+    exit(true);
+  end;
+  while Fh > 0 do begin
+    Dec(Fh);
+    bs:=(FData[Fh]).size;
+    if (bs > 0) then begin
+      Fp:=bs-1;
+      exit(true);
+    end;
+  end;
+  //Assert((Fp = 0) and (Fh = 0));
+  exit(false);
+end;
+
+function THashmapIterator.GetData: T;
 begin
   GetData:=(FData[Fh])[Fp];
 end;
 
-function THashmap.Iterator:TIterator;
+function THashmap.Iterator: TIterator;
 var h,p:SizeUInt;
 begin
   h:=0;
@@ -222,22 +326,22 @@ begin
   Iterator.FData := FData;
 end;
 
-function THashmapIterator.GetKey:TKey;inline;
+function THashmapIterator.GetKey: TKey;
 begin
   GetKey:=((FData[Fh])[Fp]).Key;
 end;
 
-function THashmapIterator.GetValue:TValue;inline;
+function THashmapIterator.GetValue: TValue;
 begin
   GetValue:=((FData[Fh])[Fp]).Value;
 end;
 
-function THashmapIterator.GetMutable:PValue;inline;
+function THashmapIterator.GetMutable: PValue;
 begin
   GetMutable:=@((FData[Fh]).Mutable[Fp]^.Value);
 end;
 
-procedure THashmapIterator.SetValue(value:TValue);inline;
+procedure THashmapIterator.SetValue(value:TValue);
 begin
   ((FData[Fh]).mutable[Fp])^.Value := value;
 end;

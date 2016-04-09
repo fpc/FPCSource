@@ -26,7 +26,7 @@ unit options;
 interface
 
 uses
-  cfileutl,
+  cfileutl,cclasses,
   globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
@@ -48,8 +48,10 @@ Type
     ParaUnitPath,
     ParaObjectPath,
     ParaLibraryPath,
-    ParaFrameworkPath : TSearchPathList;
+    ParaFrameworkPath,
+    parapackagepath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
+    parapackages : tfphashobjectlist;
     paratarget        : tsystem;
     paratargetasm     : tasm;
     paratargetdbg     : tdbg;
@@ -101,6 +103,7 @@ uses
   llvminfo,
 {$endif llvm}
   dirparse,
+  fpkg,
   i_bsd;
 
 const
@@ -1546,6 +1549,20 @@ begin
                        ParaObjectPath.AddPath(More,false)
                      else
                        ObjectSearchPath.AddPath(More,true);
+                   end;
+                 'P' :
+                   begin
+                     if ispara then
+                       parapackages.add(more,nil)
+                     else
+                       addpackage(packagelist,more);
+                   end;
+                 'p' :
+                   begin
+                     if ispara then
+                       parapackagepath.AddPath(More,false)
+                     else
+                       packagesearchpath.AddPath(More,true);
                    end;
                  'r' :
                    Msgfilename:=More;
@@ -3123,6 +3140,8 @@ begin
   ParaUnitPath:=TSearchPathList.Create;
   ParaLibraryPath:=TSearchPathList.Create;
   ParaFrameworkPath:=TSearchPathList.Create;
+  parapackagepath:=TSearchPathList.Create;
+  parapackages:=TFPHashObjectList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
   paratarget:=system_none;
@@ -3140,6 +3159,8 @@ begin
   ParaUnitPath.Free;
   ParaLibraryPath.Free;
   ParaFrameworkPath.Free;
+  parapackagepath.Free;
+  ParaPackages.Free;
 end;
 
 
@@ -3147,7 +3168,7 @@ end;
                               Callable Routines
 ****************************************************************************}
 
-function check_configfile(const fn:string;var foundfn:string):boolean;
+function check_configfile(fn:string; var foundfn:string):boolean;
 
   function CfgFileExists(const fn:string):boolean;
   begin
@@ -3213,6 +3234,7 @@ procedure read_arguments(cmd:TCmdStr);
 var
   env: ansistring;
   i : tfeature;
+  j : longint;
   abi : tabi;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
@@ -3607,6 +3629,9 @@ begin
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
+  packagesearchpath.addlist(option.parapackagepath,true);
+  for j:=0 to option.parapackages.count-1 do
+    addpackage(packagelist,option.parapackages.NameOfIndex(j));
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then
@@ -3748,23 +3773,21 @@ begin
 {$endif cpufpemu}
     end;
 
-{$ifdef arm}
-  if target_info.abi = abi_eabihf then
-    begin
-      if not(option.FPUSetExplicitly) then
-        begin
-          init_settings.fputype:=fpu_vfpv3_d16
-        end
-      else
-        begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
-            begin
-              Message(option_illegal_fpu_eabihf);
-              StopOptions(1);
-            end;
-        end;
-    end;
-{$endif arm}
+{$ifdef i386}
+  case target_info.system of
+    system_i386_android:
+      begin
+        { set default cpu type to PentiumM for Android unless specified otherwise }
+        if not option.CPUSetExplicitly then
+          init_settings.cputype:=cpu_PentiumM;
+        if not option.OptCPUSetExplicitly then
+          init_settings.optimizecputype:=cpu_PentiumM;
+        { set default fpu type to SSSE3 for Android unless specified otherwise }
+        if not option.FPUSetExplicitly then
+          init_settings.fputype:=fpu_ssse3;
+      end;
+  end;
+{$endif i386}
 
 {$ifdef arm}
   case target_info.system of
@@ -3790,25 +3813,40 @@ begin
       end;
   end;
 
-{ set default cpu type to ARMv7a for ARMHF unless specified otherwise }
-if (target_info.abi = abi_eabihf) then
-  begin
-{$ifdef CPUARMV6}
-    { if the compiler is built for armv6, then
-      inherit this setting, e.g. Raspian is armhf but
-      only armv6, this makes rebuilds of the compiler
-      easier }
-    if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv6;
-    if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv6;
-{$else CPUARMV6}
-    if not option.CPUSetExplicitly then
-      init_settings.cputype:=cpu_armv7a;
-    if not option.OptCPUSetExplicitly then
-      init_settings.optimizecputype:=cpu_armv7a;
-{$endif CPUARMV6}
-  end;
+  { ARMHF defaults }
+  if (target_info.abi = abi_eabihf) then
+    { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
+    begin
+    {$ifdef CPUARMV6}
+      { if the compiler is built for armv6, then
+        inherit this setting, e.g. Raspian is armhf but
+        only armv6, this makes rebuilds of the compiler
+        easier }
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_armv6;
+      if not option.OptCPUSetExplicitly then
+        init_settings.optimizecputype:=cpu_armv6;
+    {$else CPUARMV6}
+      if not option.CPUSetExplicitly then
+        init_settings.cputype:=cpu_armv7a;
+      if not option.OptCPUSetExplicitly then
+        init_settings.optimizecputype:=cpu_armv7a;
+    {$endif CPUARMV6}
+
+      { Set FPU type }
+      if not(option.FPUSetExplicitly) then
+        begin
+          init_settings.fputype:=fpu_vfpv3_d16
+        end
+      else
+        begin
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
+            begin
+              Message(option_illegal_fpu_eabihf);
+              StopOptions(1);
+            end;
+        end;
+    end;
 
   if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     begin
@@ -4027,6 +4065,23 @@ if (target_info.abi = abi_eabihf) then
   for i:=low(tfeature) to high(tfeature) do
     if i in features then
       def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
+
+   if ControllerSupport and (target_info.system in systems_embedded) and
+     (init_settings.controllertype<>ct_none) then
+     begin
+       with embedded_controllers[init_settings.controllertype] do
+         begin
+           set_system_macro('FPC_FLASHBASE',tostr(flashbase));
+           set_system_macro('FPC_FLASHSIZE',tostr(flashsize));
+           set_system_macro('FPC_SRAMBASE',tostr(srambase));
+           set_system_macro('FPC_SRAMSIZE',tostr(sramsize));
+           set_system_macro('FPC_EEPROMBASE',tostr(eeprombase));
+           set_system_macro('FPC_EEPROMSIZE',tostr(eepromsize));
+           set_system_macro('FPC_BOOTBASE',tostr(bootbase));
+           set_system_macro('FPC_BOOTSIZE',tostr(bootsize));
+         end;
+     end;
+
   option.free;
   Option:=nil;
 

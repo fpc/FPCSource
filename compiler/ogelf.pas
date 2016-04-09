@@ -759,7 +759,7 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
           '.fpc',
           '.toc',
           '.init',
@@ -864,7 +864,7 @@ implementation
                if (reltype in [RELOC_RELATIVE_24,RELOC_RELATIVE_CALL]) and
                   (p.objsection=CurrObjSec) then
                  begin
-                   data:=(data and $ff000000) or (((((data and $ffffff) shl 2)+(symaddr-CurrObjSec.Size)) shr 2) and $FFFFFF); // TODO: Check overflow
+                   data:=aint((data and $ff000000) or (((((data and $ffffff) shl 2)+(symaddr-CurrObjSec.Size)) shr 2) and $FFFFFF)); // TODO: Check overflow
                  end
                else
 {$endif ARM}
