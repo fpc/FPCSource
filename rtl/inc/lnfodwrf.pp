@@ -1024,7 +1024,19 @@ procedure SkipAttr(form : QWord);
         ReadNext(dummy,1);
       DW_FORM_sdata:
         ReadLEB128;
-      DW_FORM_ref_addr,
+      DW_FORM_ref_addr:
+        { the size of DW_FORM_ref_addr changed between DWAWRF2 and later versions:
+          in DWARF2 it depends on the architecture address size, in later versions on the DWARF type (32 bit/64 bit)
+        }
+        if header64.version>2 then
+          begin
+            if isdwarf64 then
+              ReadNext(dummy,8)
+            else
+              ReadNext(dummy,4);
+          end
+        else
+          ReadNext(dummy,header64.address_size);
       DW_FORM_strp:
         if isdwarf64 then
           ReadNext(dummy,8)
