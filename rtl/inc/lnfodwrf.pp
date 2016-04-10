@@ -83,7 +83,10 @@ var
   { the offset and size of the DWARF debug_info section in the file }
   Dwarf_Debug_Info_Section_Offset,
   Dwarf_Debug_Info_Section_Size,
-{ the offset and size of the DWARF debug_abbrev section in the file }
+  { the offset and size of the DWARF debug_aranges section in the file }
+  Dwarf_Debug_Aranges_Section_Offset,
+  Dwarf_Debug_Aranges_Section_Size,
+  { the offset and size of the DWARF debug_abbrev section in the file }
   Dwarf_Debug_Abbrev_Section_Offset,
   Dwarf_Debug_Abbrev_Section_Size : longint;
 
@@ -185,6 +188,25 @@ type
     address_size : Byte;
   end;
 
+  TDebugArangesHeader64 = packed record
+    magic : DWord;
+    unit_length : QWord;
+    version : Word;
+    debug_info_offset : QWord;
+    address_size : Byte;
+    segment_size : Byte;
+    padding : DWord;
+  end;
+
+  TDebugArangesHeader32= packed record
+    unit_length : DWord;
+    version : Word;
+    debug_info_offset : DWord;
+    address_size : Byte;
+    segment_size : Byte;
+    padding : DWord;
+  end;
+
 {---------------------------------------------------------------------------
  I/O utility functions
 ---------------------------------------------------------------------------}
@@ -249,13 +271,15 @@ begin
   e.processaddress:=ptruint(baseaddr)-e.processaddress;
   if FindExeSection(e,'.debug_line',Dwarf_Debug_Line_Section_offset,dwarf_Debug_Line_Section_size) and
     FindExeSection(e,'.debug_info',Dwarf_Debug_Info_Section_offset,dwarf_Debug_Info_Section_size) and
-    FindExeSection(e,'.debug_abbrev',Dwarf_Debug_Abbrev_Section_offset,dwarf_Debug_Abbrev_Section_size) then
+    FindExeSection(e,'.debug_abbrev',Dwarf_Debug_Abbrev_Section_offset,dwarf_Debug_Abbrev_Section_size) and
+    FindExeSection(e,'.debug_aranges',Dwarf_Debug_Aranges_Section_offset,dwarf_Debug_Aranges_Section_size) then
   begin
     lastopendwarf:=true;
     OpenDwarf:=true;
     DEBUG_WRITELN('.debug_line starts at offset $',hexstr(Dwarf_Debug_Line_Section_offset,8),' with a size of ',Dwarf_Debug_Line_Section_Size,' Bytes');
     DEBUG_WRITELN('.debug_info starts at offset $',hexstr(Dwarf_Debug_Info_Section_offset,8),' with a size of ',Dwarf_Debug_Info_Section_Size,' Bytes');
     DEBUG_WRITELN('.debug_abbrev starts at offset $',hexstr(Dwarf_Debug_Abbrev_Section_offset,8),' with a size of ',Dwarf_Debug_Abbrev_Section_Size,' Bytes');
+    DEBUG_WRITELN('.debug_aranges starts at offset $',hexstr(Dwarf_Debug_Aranges_Section_offset,8),' with a size of ',Dwarf_Debug_Aranges_Section_Size,' Bytes');
   end
   else
     CloseExeFile(e);
@@ -873,11 +897,72 @@ procedure ReadAbbrevTable;
   end;
 
 
+function ParseCompilationUnitForDebugInfoOffset(const addr : PtrUInt; const file_offset : QWord;
+  var debug_info_offset : QWord; var found : Boolean) : QWord;
+var
+  { we need both headers on the stack, although we only use the 64 bit one internally }
+  header64 : TDebugArangesHeader64;
+  header32 : TDebugArangesHeader32;
+  isdwarf64 : boolean;
+  temp_length : DWord;
+  unit_length : QWord;
+  arange_start, arange_size: PtrUInt;
+begin
+  found := false;
+
+  ReadNext(temp_length, sizeof(temp_length));
+  if (temp_length <> $ffffffff) then begin
+    unit_length := temp_length + sizeof(temp_length)
+  end else begin
+    ReadNext(unit_length, sizeof(unit_length));
+    inc(unit_length, 12);
+  end;
+
+  ParseCompilationUnitForDebugInfoOffset := file_offset + unit_length;
+
+  Init(file_offset, unit_length);
+
+  DEBUG_WRITELN('Unit length: ', unit_length);
+  if (temp_length <> $ffffffff) then
+    begin
+      DEBUG_WRITELN('32 bit DWARF detected');
+      ReadNext(header32, sizeof(header32));
+      header64.magic := $ffffffff;
+      header64.unit_length := header32.unit_length;
+      header64.version := header32.version;
+      header64.debug_info_offset := header32.debug_info_offset;
+      header64.address_size := header32.address_size;
+      header64.segment_size := header32.segment_size;
+      isdwarf64:=false;
+    end
+  else
+    begin
+      DEBUG_WRITELN('64 bit DWARF detected');
+      ReadNext(header64, sizeof(header64));
+      isdwarf64:=true;
+    end;
+
+  DEBUG_WRITELN('debug_info_offset: ',header64.debug_info_offset);
+  arange_start:=ReadAddress;
+  arange_size:=ReadAddress;
+
+  while not((arange_start=0) and (arange_size=0)) and (not found) do
+    begin
+      if (addr>=arange_start) and (addr<=arange_start+arange_size) then
+        begin
+          found:=true;
+          debug_info_offset:=header64.debug_info_offset;
+          DEBUG_WRITELN('Matching aranges entry $',hexStr(arange_start,header64.address_size*2),', $',hexStr(arange_size,header64.address_size*2));
+        end;
+
+      arange_start:=ReadAddress;
+      arange_size:=ReadAddress;
+    end;
+end;
 
 function ParseCompilationUnitForFunctionName(const addr : PtrUInt; const file_offset : QWord;
   var func : String; var found : Boolean) : QWord;
 var
-  state : TMachineState;
   { we need both headers on the stack, although we only use the 64 bit one internally }
   header64 : TDebugInfoProgramHeader64;
   header32 : TDebugInfoProgramHeader32;
@@ -1081,10 +1166,10 @@ end;
 
 function GetLineInfo(addr : ptruint; var func, source : string; var line : longint) : boolean;
 var
-  current_offset : QWord;
-  end_offset : QWord;
+  current_offset,
+  end_offset, debug_info_offset_from_aranges : QWord;
 
-  found : Boolean;
+  found, found_aranges : Boolean;
 
 begin
   func := '';
@@ -1106,11 +1191,40 @@ begin
       source, line, found);
   end;
 
+  current_offset := Dwarf_Debug_Aranges_Section_Offset;
+  end_offset := Dwarf_Debug_Aranges_Section_Offset + Dwarf_Debug_Aranges_Section_Size;
+
+  found_aranges := false;
+  while (current_offset < end_offset) and (not found_aranges) do begin
+    Init(current_offset, end_offset - current_offset);
+    current_offset := ParseCompilationUnitForDebugInfoOffset(addr, current_offset, debug_info_offset_from_aranges, found_aranges);
+  end;
+
+  { no function name found yet }
+  found := false;
+
+  if found_aranges then
+    begin
+      DEBUG_WRITELN('Found .debug_info offset $',hexstr(debug_info_offset_from_aranges,8),' from .debug_aranges');
+      current_offset := Dwarf_Debug_Info_Section_Offset + debug_info_offset_from_aranges;
+      end_offset := Dwarf_Debug_Info_Section_Offset + debug_info_offset_from_aranges + Dwarf_Debug_Info_Section_Size;
+
+      DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
+
+      Init(current_offset, end_offset - current_offset);
+      current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
+      if found then
+        DEBUG_WRITELN('Found .debug_info entry by using .debug_aranges information');
+    end
+  else
+    DEBUG_WRITELN('No .debug_info offset found from .debug_aranges');
+
   current_offset := Dwarf_Debug_Info_Section_Offset;
   end_offset := Dwarf_Debug_Info_Section_Offset + Dwarf_Debug_Info_Section_Size;
 
-  found := false;
   while (current_offset < end_offset) and (not found) do begin
+    DEBUG_WRITELN('Reading .debug_info at section offset $',hexStr(current_offset-Dwarf_Debug_Info_Section_Offset,16));
+
     Init(current_offset, end_offset - current_offset);
     current_offset := ParseCompilationUnitForFunctionName(addr, current_offset, func, found);
   end;
