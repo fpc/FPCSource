@@ -19,6 +19,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
+    if Defaults.CPU=powerpc then
+      P.OSes:=P.OSes-[amiga];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');

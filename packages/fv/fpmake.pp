@@ -21,6 +21,8 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,os2,emx,netware,netwlibc,go32v2,aix,dragonfly]+AllAmigaLikeOSes;
+    if Defaults.CPU = powerpc then
+      P.OSes := P.OSes - [amiga];
     P.Email := '';
     P.Description := 'Free Vision, a portable Turbo Vision clone.';
     P.NeedLibC:= false;

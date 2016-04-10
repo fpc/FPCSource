@@ -26,6 +26,8 @@ begin
     P.Options.Add('-S2h');
     P.NeedLibC:= false;
     P.OSes:=AllOSes-[embedded,msdos,win16];
+    if Defaults.CPU=powerpc then
+      P.OSes:=P.OSes-[amiga];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

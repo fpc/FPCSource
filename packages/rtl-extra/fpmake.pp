@@ -106,6 +106,8 @@ begin
 
     T:=P.Targets.AddUnit('serial.pp',SerialOSes);
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
+    if Defaults.CPU=powerpc then
+      T.OSes:=T.OSes-[amiga];
     with T.Dependencies do
      begin
        addinclude('osdefs.inc',AllUnixOSes);

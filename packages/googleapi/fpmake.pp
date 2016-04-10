@@ -31,6 +31,8 @@ begin
     P.Description := 'Google API client libraries.';
     P.NeedLibC:= false;
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
+    if Defaults.CPU = powerpc then
+      P.OSes := P.OSes - [amiga];
     P.Directory:=ADirectory;
     P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');

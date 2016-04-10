@@ -41,6 +41,8 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=Rtl_ConsoleOSes;
+    if Defaults.CPU=powerpc then
+      P.OSes:=P.OSes-[amiga];
     P.Email := '';
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;
