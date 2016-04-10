@@ -57,7 +57,9 @@ type
     _OP_EXPLICIT,
     _OP_ENUMERATOR,
     _OP_INITIALIZE,
-    _OP_FINALIZE,    
+    _OP_FINALIZE,
+    _OP_ADDREF,
+    _OP_COPY,
     _OP_INC,
     _OP_DEC,
     { special chars }
@@ -131,6 +133,7 @@ type
     _VAR,
     _XOR,
     _CASE,
+    _COPY,
     _CVAR,
     _ELSE,
     _EXIT,
@@ -166,6 +169,7 @@ type
     _UNTIL,
     _WHILE,
     _WRITE,
+    _ADDREF,
     _DISPID,
     _DIVIDE,
     _DOWNTO,
@@ -323,7 +327,7 @@ const
   last_overloaded  = _OP_DEC;
   last_operator = _GENERICSPECIALTOKEN;
   first_managment_operator = _OP_INITIALIZE;
-  last_managment_operator = _OP_FINALIZE;
+  last_managment_operator = _OP_COPY;
 
   highest_precedence = oppower;
 
@@ -385,6 +389,8 @@ const
       (str:'enumerator'    ;special:true ;keyword:[m_none];op:NOTOKEN),
       (str:'initialize'    ;special:true ;keyword:[m_none];op:NOTOKEN),
       (str:'finalize'      ;special:true ;keyword:[m_none];op:NOTOKEN),
+      (str:'addref'        ;special:true ;keyword:[m_none];op:NOTOKEN),
+      (str:'copy'          ;special:true ;keyword:[m_none];op:NOTOKEN),
       (str:'inc'           ;special:true ;keyword:[m_none];op:NOTOKEN),
       (str:'dec'           ;special:true ;keyword:[m_none];op:NOTOKEN),
     { Special chars }
@@ -458,6 +464,7 @@ const
       (str:'VAR'           ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'XOR'           ;special:false;keyword:alllanguagemodes;op:_OP_XOR),
       (str:'CASE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
+      (str:'COPY'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'CVAR'          ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'ELSE'          ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'EXIT'          ;special:false;keyword:[m_none];op:NOTOKEN),
@@ -493,6 +500,7 @@ const
       (str:'UNTIL'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'WHILE'         ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
       (str:'WRITE'         ;special:false;keyword:[m_none];op:NOTOKEN),
+      (str:'ADDREF'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DISPID'        ;special:false;keyword:[m_none];op:NOTOKEN),
       (str:'DIVIDE'        ;special:false;keyword:[m_none];op:NOTOKEN), { delphi operator name }
       (str:'DOWNTO'        ;special:false;keyword:alllanguagemodes;op:NOTOKEN),
