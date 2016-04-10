@@ -123,7 +123,9 @@ var r : integer;
     reader : TFPCustomImageReader;
     msg : string;
     d : TIHData;
+    startPos: Int64;
 begin
+  startPos := str.Position;
   with ImageHandlers do
     try
       r := count-1;
@@ -139,6 +141,7 @@ begin
             try
               if CheckContents (str) then
                 try
+                  str.Position := startPos;
                   FStream := str;
                   FImage := self;
                   InternalRead (str, self);
@@ -149,6 +152,7 @@ begin
                 end;
             finally
               Free;
+              str.Position := startPos;
             end;
           end;
         dec (r);

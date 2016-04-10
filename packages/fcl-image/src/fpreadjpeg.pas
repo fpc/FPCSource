@@ -453,9 +453,12 @@ end;
 function TFPReaderJPEG.InternalCheck(Str: TStream): boolean;
 var
   Buf: array[0..1] of Byte = (0, 0);
+  p: Int64;
 begin
   if Str=nil then exit(false);
+  p:=Str.Position;
   Result := (Str.Read(Buf, 2)=2) and (Buf[0]=$FF) and (Buf[1]=$D8); // byte sequence FFD8 = start of image
+  Str.Position:=p;
 end;
 
 constructor TFPReaderJPEG.Create;
