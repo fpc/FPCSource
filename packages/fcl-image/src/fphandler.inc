@@ -252,6 +252,7 @@ begin
   end;
 end;
 
+
 { TFPCustomImageWriter }
 
 procedure TFPCustomImageWriter.ImageWrite (Str:TStream; Img:TFPCustomImage);

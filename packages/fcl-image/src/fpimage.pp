@@ -22,7 +22,10 @@ uses sysutils, classes;
 type
 
   TFPCustomImageReader = class;
+  TFPCustomImageReaderClass = class of TFPCustomImageReader;
   TFPCustomImageWriter = class;
+  TFPCustomImageWriterClass = class of TFPCustomImageWriter;
+  TIHData = class;
   TFPCustomImage = class;
 
   FPImageException = class (exception);
@@ -125,14 +128,20 @@ type
       constructor create (AWidth,AHeight:integer); virtual;
       destructor destroy; override;
       procedure Assign(Source: TPersistent); override;
+      // Image handlers
+      class function FindHandlerFromExtension(extension:String): TIHData;
+      class function FindReaderFromFileName(const filename:String): TFPCustomImageReaderClass;
+      class function FindReaderFromExtension(const extension:String): TFPCustomImageReaderClass;
+      class function FindWriterFromFileName(const filename:String): TFPCustomImageWriterClass;
+      class function FindWriterFromExtension(const extension:String): TFPCustomImageWriterClass;
       // Saving and loading
       procedure LoadFromStream (Str:TStream; Handler:TFPCustomImageReader);
       procedure LoadFromStream (Str:TStream);
       procedure LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
-      procedure LoadFromFile (const filename:String);
+      function LoadFromFile (const filename:String): Boolean;
       procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
       procedure SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
-      procedure SaveToFile (const filename:String);
+      function SaveToFile (const filename:String): Boolean;
       // Size and data
       procedure SetSize (AWidth, AHeight : integer); virtual;
       property  Height : integer read FHeight write SetHeight;
@@ -164,7 +173,7 @@ type
   PFPIntegerArray = ^TFPIntegerArray;
 
   TFPMemoryImage = class (TFPCustomImage)
-    private
+    protected
       function GetInternalColor(x,y:integer):TFPColor;override;
       procedure SetInternalColor (x,y:integer; const Value:TFPColor);override;
       procedure SetUsePalette (Value:boolean);override;
@@ -204,11 +213,10 @@ type
       function ImageRead (Str:TStream; Img:TFPCustomImage) : TFPCustomImage;
       // reads image
       function CheckContents (Str:TStream) : boolean;
-      // Gives True if contents is readable
+      // returns the size of image in stream without loading it completely
       property DefaultImageClass : TFPCustomImageClass read FDefImageClass write FDefImageClass;
       // Image Class to create when no img is given for reading
   end;
-  TFPCustomImageReaderClass = class of TFPCustomImageReader;
 
   TFPCustomImageWriter = class (TFPCustomImageHandler)
     protected
@@ -217,7 +225,6 @@ type
       procedure ImageWrite (Str:TStream; Img:TFPCustomImage);
       // writes given image to stream
   end;
-  TFPCustomImageWriterClass = class of TFPCustomImageWriter;
 
   TIHData = class
     private
