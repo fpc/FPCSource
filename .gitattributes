@@ -15004,6 +15004,7 @@ tests/webtbs/tw29930.pp svneol=native#text/plain
 tests/webtbs/tw29958.pp svneol=native#text/pascal
 tests/webtbs/tw2998.pp svneol=native#text/plain
 tests/webtbs/tw2999.pp svneol=native#text/plain
+tests/webtbs/tw29992.pp svneol=native#text/plain
 tests/webtbs/tw3004.pp svneol=native#text/plain
 tests/webtbs/tw3005.pp svneol=native#text/plain
 tests/webtbs/tw3010.pp svneol=native#text/plain
