@@ -239,13 +239,16 @@ end;
 
 function TFPCustomImageReader.CheckContents (Str:TStream) : boolean;
 var InRead : boolean;
+    P : Int64;
 begin
   InRead := assigned(FStream);
   if not assigned(Str) then
     raise FPImageException.Create(ErrorText[StrNoStream]);
   try
     FSTream := Str;
+    P:=Str.Position;
     result := InternalCheck (Str);
+    Str.Position:=P;
   finally
     if not InRead then
       FStream := nil;
