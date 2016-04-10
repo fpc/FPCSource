@@ -252,6 +252,31 @@ begin
   end;
 end;
 
+function TFPCustomImageReader.InternalSize(Str: TStream): TPoint;
+
+begin
+  Result.X:=-1;
+  Result.Y:=-1;
+end;
+
+function TFPCustomImageReader.ImageSize(Str: TStream): TPoint;
+var InRead : boolean;
+    P : Int64;
+begin
+  InRead := assigned(FStream);
+  if not assigned(Str) then
+    raise FPImageException.Create(ErrorText[StrNoStream]);
+  try
+    FStream := Str;
+    P:=Str.Position;
+    result := InternalSize (Str);
+    Str.Position:=P;
+  finally
+    if not InRead then
+      FStream := nil;
+  end;
+end;
+
 
 { TFPCustomImageWriter }
 

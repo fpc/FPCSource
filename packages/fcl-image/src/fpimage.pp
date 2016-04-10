@@ -208,12 +208,15 @@ type
     protected
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); virtual; abstract;
       function  InternalCheck (Str:TStream) : boolean; virtual; abstract;
+      function  InternalSize  (Str:TStream): TPoint; virtual; 
     public
       constructor Create; override;
       function ImageRead (Str:TStream; Img:TFPCustomImage) : TFPCustomImage;
       // reads image
       function CheckContents (Str:TStream) : boolean;
-      // returns the size of image in stream without loading it completely
+      // Returns true if the content is readable
+      function ImageSize(Str:TStream): TPoint;
+      // returns the size of image in stream without loading it completely. -1,-1 means this is not implemented.
       property DefaultImageClass : TFPCustomImageClass read FDefImageClass write FDefImageClass;
       // Image Class to create when no img is given for reading
   end;

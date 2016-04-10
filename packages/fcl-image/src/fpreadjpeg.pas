@@ -64,6 +64,7 @@ type
   protected
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
     function  InternalCheck(Str: TStream): boolean; override;
+    function  InternalSize(Str:TStream): TPoint; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -447,6 +448,38 @@ begin
   finally
     if (MemStream<>nil) and (MemStream<>Str) then
       MemStream.Free;
+  end;
+end;
+
+function TFPReaderJPEG.InternalSize(Str: TStream): TPoint;
+var
+  JInfo: jpeg_decompress_struct;
+  JError: jpeg_error_mgr;
+
+  procedure SetSource;
+  begin
+    jpeg_stdio_src(@JInfo, @Str);
+  end;
+
+  procedure ReadHeader;
+  begin
+    jpeg_read_header(@JInfo, TRUE);
+    Result.X := JInfo.image_width;
+    Result.Y := JInfo.image_height;
+  end;
+
+begin
+  FillChar(JInfo,SizeOf(JInfo),0);
+  if Str.Position < Str.Size then begin
+    JError:=jpeg_std_error;
+    JInfo.err := @JError;
+    jpeg_CreateDecompress(@JInfo, JPEG_LIB_VERSION, SizeOf(JInfo));
+    try
+      SetSource;
+      ReadHeader;
+    finally
+      jpeg_Destroy_Decompress(@JInfo);
+    end;
   end;
 end;
 
