@@ -43,22 +43,25 @@ type
     FFamilyName: String;
     FFileName: String;
     FStyleFlags: LongWord;
+    FFileInfo: TTFFileInfo;
     FOwner: TFPFontCacheList; // reference to FontCacheList that owns this instance
     function    GetIsBold: boolean;
     function    GetIsFixedWidth: boolean;
     function    GetIsItalic: boolean;
     function    GetIsRegular: boolean;
+    procedure   SetFileName(const AFileName: String);
     procedure   SetIsBold(AValue: boolean);
     procedure   SetIsFixedWidth(AValue: boolean);
     procedure   SetIsItalic(AValue: boolean);
     procedure   SetIsRegular(AValue: boolean);
   public
     constructor Create(const AFilename: String);
-    { Returns the actual TTF font file information. Caller needs to free the returned instance. }
+    destructor  Destroy; override;
+    { Returns the actual TTF font file information. }
     function    GetFontData: TTFFileInfo;
     { Result is in pixels }
-    function    TextWidth(AStr: string; APointSize: single): single;
-    property    FileName: String read FFileName write FFileName;
+    function    TextWidth(AStr: utf8string; APointSize: single): single;
+    property    FileName: String read FFileName write SetFileName;
     property    FamilyName: String read FFamilyName write FFamilyName;
     { A bitmasked value describing the full font style }
     property    StyleFlags: LongWord read FStyleFlags write FStyleFlags;
@@ -108,6 +111,7 @@ implementation
 resourcestring
   rsNoSearchPathDefined = 'No search path was defined';
   rsNoFontFileName = 'The FileName property is empty, so we can''t load font data.';
+  rsCharAboveWord = 'TextWidth doesn''t support characters higher then High(Word) - %d.';
 
 type
   { so we can get access to protected methods }
@@ -145,6 +149,14 @@ end;
 function TFPFontCacheItem.GetIsRegular: boolean;
 begin
   Result := (FStyleFlags and FP_FONT_STYLE_REGULAR) <> 0;
+end;
+
+procedure TFPFontCacheItem.SetFileName(const AFileName: String);
+begin
+  if FFileName = AFileName then Exit;
+  FFileName := AFileName;
+  if FFileInfo<>nil then
+    FreeAndNil(FFileInfo);
 end;
 
 procedure TFPFontCacheItem.SetIsBold(AValue: boolean);
@@ -192,14 +204,25 @@ begin
   FStyleFlags := FP_FONT_STYLE_REGULAR;
 end;
 
+destructor TFPFontCacheItem.Destroy;
+begin
+  FFileInfo.Free;
+
+  inherited Destroy;
+end;
+
 function TFPFontCacheItem.GetFontData: TTFFileInfo;
 begin
+  if FFileInfo <> nil then
+    Exit(FFileInfo);
+
   if FileName = '' then
     raise ETTF.Create(rsNoFontFileName);
   if FileExists(FileName) then
   begin
-    Result := TTFFileInfo.Create;
-    Result.LoadFromFile(FileName);
+    FFileInfo := TTFFileInfo.Create;
+    FFileInfo.LoadFromFile(FileName);
+    Result := FFileInfo;
   end
   else
     Result := nil;
@@ -208,7 +231,7 @@ end;
 { TextWidth returns with width of the text. If APointSize = 0.0, then it returns
   the text width in Font Units. If APointSize > 0 then it returns the text width
   in Pixels. }
-function TFPFontCacheItem.TextWidth(AStr: string; APointSize: single): single;
+function TFPFontCacheItem.TextWidth(AStr: utf8string; APointSize: single): single;
 {
     From Microsoft's Typography website:
     Converting FUnits (font units) to pixels
@@ -233,7 +256,7 @@ var
   i: integer;
   lWidth: integer;
   lGIndex: integer;
-  c: Char;
+  us: UnicodeString;
   {$IFDEF ttfdebug}
   sl: TStringList;
   s: string;
@@ -262,25 +285,20 @@ begin
     sl.Free;
   {$ENDIF}
 
-  try
-    lWidth := 0;
-    for i := 1 to Length(AStr) do
-    begin
-      c := AStr[i];
-      lGIndex := lFntInfo.GetGlyphIndex(Ord(c));
-      lWidth := lWidth + lFntInfo.GetAdvanceWidth(lGIndex);
-    end;
-
-    if APointSize = 0.0 then
-      Result := lWidth
-    else
-    begin
-      { Converting Font Units to Pixels. The formula is:
-        pixels = glyph_units * pointSize * resolution / ( 72 points per inch * THead.UnitsPerEm )  }
-      Result := lWidth * APointSize * FOwner.DPI / (72 * lFntInfo.Head.UnitsPerEm);
-    end;
-  finally
-    lFntInfo.Free;
+  lWidth := 0;
+  us := UTF8Decode(AStr);
+  for i := 1 to Length(us) do
+  begin
+    lGIndex := lFntInfo.GetGlyphIndex(Word(us[i]));
+    lWidth := lWidth + lFntInfo.GetAdvanceWidth(lGIndex);
+  end;
+  if APointSize = 0.0 then
+    Result := lWidth
+  else
+  begin
+    { Converting Font Units to Pixels. The formula is:
+      pixels = glyph_units * pointSize * resolution / ( 72 points per inch * THead.UnitsPerEm )  }
+    Result := lWidth * APointSize * FOwner.DPI / (72 * lFntInfo.Head.UnitsPerEm);
   end;
 end;
 

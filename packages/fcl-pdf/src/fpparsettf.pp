@@ -807,7 +807,8 @@ begin
   FMissingWidth := Widths[Chars[CharCodes^[32]]].AdvanceWidth;  // Char(32) - Space character
   for I:=0 to 255 do
     begin
-    if (Widths[Chars[CharCodes^[i]]].AdvanceWidth> 0) and (CharNames^[i]<> '.notdef') then
+    if (CharCodes^[i]>=0) and (CharCodes^[i]<=High(Chars))
+    and (Widths[Chars[CharCodes^[i]]].AdvanceWidth> 0) and (CharNames^[i]<> '.notdef') then
       CharWidth[I]:= ToNatural(Widths[Chars[CharCodes^[I]]].AdvanceWidth)
     else
       CharWidth[I]:= FMissingWidth;
