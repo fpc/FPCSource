@@ -451,11 +451,11 @@ begin
 end;
 
 function TFPReaderJPEG.InternalCheck(Str: TStream): boolean;
+var
+  Buf: array[0..1] of Byte = (0, 0);
 begin
-  // ToDo: read header and check
-  Result:=false;
-  if Str=nil then exit;
-  Result:=true;
+  if Str=nil then exit(false);
+  Result := (Str.Read(Buf, 2)=2) and (Buf[0]=$FF) and (Buf[1]=$D8); // byte sequence FFD8 = start of image
 end;
 
 constructor TFPReaderJPEG.Create;
