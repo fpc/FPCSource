@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Video unit for Win32
+    Video unit for Win32/Win64
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,6 +19,9 @@ interface
 {$i videoh.inc}
 const
   useunicodefunctions : boolean = false;
+
+
+procedure VideoSetConsoleOutHandle (NewHandle: THandle);
 
 implementation
 
@@ -303,6 +306,7 @@ const
     LastCursorType: word = crUnderline;
     OrigScreen: PVideoBuf = nil;
     OrigScreenSize: cardinal = 0;
+    ConsoleOutDeviceName: string [8] = 'CONOUT$'#0;
 
 var ConsoleInfo : TConsoleScreenBufferInfo;
     ConsoleCursorInfo : TConsoleCursorInfo;
@@ -311,11 +315,10 @@ var ConsoleInfo : TConsoleScreenBufferInfo;
     OrigConsoleCursorInfo : TConsoleCursorInfo;
     OrigConsoleInfo : TConsoleScreenBufferInfo;
     NoConsoleOnStart: boolean;
+    NewConsoleHandleAllocated:  boolean;
     ConsoleOutHandle: THandle;
 
 procedure SysInitVideo;
-const
-  ConsoleOutDeviceName: string [8] = 'CONOUT$'#0;
 var
   SecAttr: TSecurityAttributes;
 begin
@@ -335,12 +338,14 @@ begin
       SecAttr.bInheritHandle := true;
       SecAttr.lpSecurityDescriptor := nil;
      end;
-    ConsoleOutHandle := CreateFile (@ConsoleOutDeviceName [1], Generic_Write, File_Share_Write, @SecAttr, Open_Existing, File_Attribute_Normal, 0);
+    ConsoleOutHandle := CreateFile (@ConsoleOutDeviceName [1], Generic_Read or Generic_Write, File_Share_Write, @SecAttr, Open_Existing, File_Attribute_Normal, 0);
     if ConsoleOutHandle = Invalid_Handle_Value then
      begin
       WriteLn ('Error: Console output not possible!');
       RunError (103);
-     end;
+     end
+    else
+     NewConsoleHandleAllocated := true;
     GetConsoleScreenBufferInfo (ConsoleOutHandle, ConsoleInfo);
     GetConsoleCursorInfo (ConsoleOutHandle, ConsoleCursorInfo);
    end
@@ -380,11 +385,29 @@ begin
 end;
 
 
+
+procedure VideoSetConsoleOutHandle (NewHandle: THandle);
+begin
+  if NewHandle <> ConsoleOutHandle then
+   begin
+    if NewConsoleHandleAllocated then
+     begin
+      CloseHandle (ConsoleOutHandle);
+      NewConsoleHandleAllocated := false;
+     end;
+    ConsoleOutHandle := NewHandle;
+   end;
+end;
+
+
+
 procedure SysDoneVideo;
 begin
   if NoConsoleOnStart then
    begin
     CloseHandle (ConsoleOutHandle);
+    NewConsoleHandleAllocated := false;
+    ConsoleOutHandle := Invalid_Handle_Value;
     FreeConsole;
    end
   else
@@ -749,7 +772,9 @@ var
   C: Coord;
   SR: Small_Rect;
   VioMode: TConsoleScreenBufferInfo;
+  SecAttr: TSecurityAttributes;
 begin
+  NewConsoleHandleAllocated := false;
   FillChar (VioMode, 0, SizeOf (VioMode));
   ConsoleOutHandle := GetStdHandle (Std_Output_Handle);
 {MSDN: If an application does not have associated standard handles, such as a service running on an
@@ -757,7 +782,28 @@ begin
   if (ConsoleOutHandle = 0) or (ConsoleOutHandle = Invalid_Handle_Value) then
    NoConsoleOnStart := true
   else
-   NoConsoleOnStart := not (GetConsoleScreenBufferInfo (ConsoleOutHandle, VioMode));
+   if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, VioMode)) then
+    begin
+{ StdOut may be redirected, let's try to access the console using a new handle }
+     with SecAttr do
+      begin 
+       nLength := SizeOf (TSecurityAttributes);
+       SecAttr.bInheritHandle := true;
+       SecAttr.lpSecurityDescriptor := nil;
+      end;
+     ConsoleOutHandle := CreateFile (@ConsoleOutDeviceName [1], Generic_Read or Generic_Write, File_Share_Write, @SecAttr, Open_Existing, File_Attribute_Normal, 0);
+     if ConsoleOutHandle = Invalid_Handle_Value then
+      NoConsoleOnStart := true
+     else
+      NewConsoleHandleAllocated := true;
+     if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, VioMode)) then
+      begin
+       NoConsoleOnStart := true;
+       CloseHandle (ConsoleOutHandle);
+       ConsoleOutHandle := Invalid_Handle_Value;
+       NewConsoleHandleAllocated := false;
+      end;
+    end;
   if not (NoConsoleOnStart) then
    begin
     with VioMode do
@@ -808,4 +854,6 @@ finalization
       OrigScreen := nil;
       OrigScreenSize := 0;
     end;
+  if NewConsoleHandleAllocated then
+   CloseHandle (ConsoleOutHandle);
 end.
