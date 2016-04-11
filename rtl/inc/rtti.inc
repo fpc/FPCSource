@@ -395,31 +395,34 @@ begin
       begin
         Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
 {$if FPC_FULLVERSION>30100}
-        Result:=Size;
-        Inc(PRecordInfoInit(Temp));
-{$else FPC_FULLVERSION>30100}
-        Result:=PRecordInfoFull(Temp)^.Size;
-        Count:=PRecordInfoFull(Temp)^.Count;
-        Inc(PRecordInfoFull(Temp));
-{$endif FPC_FULLVERSION>30100}
-        expectedoffset:=0;
-        { Process elements with rtti }
-        for i:=1 to Count Do
-          begin
-            Info:=PRecordElement(Temp)^.TypeInfo;
-            Offset:=PRecordElement(Temp)^.Offset;
-            Inc(PRecordElement(Temp));
-            if Offset>expectedoffset then
-              move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
-            copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
-            expectedoffset:=Offset+copiedsize;
-          end;
-        { elements remaining? }
-        if result>expectedoffset then
-          move((Src+expectedoffset)^,(Dest+expectedoffset)^,Result-expectedoffset);
-{$if FPC_FULLVERSION>30100}
         if Assigned(recordop) and Assigned(recordop^.Copy) then
-          recordop^.Copy(Src,Dest);
+          recordop^.Copy(Src,Dest)
+        else
+          begin
+            Result:=Size;
+            Inc(PRecordInfoInit(Temp));
+{$else FPC_FULLVERSION>30100}
+            Result:=PRecordInfoFull(Temp)^.Size;
+            Count:=PRecordInfoFull(Temp)^.Count;
+            Inc(PRecordInfoFull(Temp));
+{$endif FPC_FULLVERSION>30100}
+            expectedoffset:=0;
+            { Process elements with rtti }
+            for i:=1 to Count Do
+              begin
+                Info:=PRecordElement(Temp)^.TypeInfo;
+                Offset:=PRecordElement(Temp)^.Offset;
+                Inc(PRecordElement(Temp));
+                if Offset>expectedoffset then
+                  move((Src+expectedoffset)^,(Dest+expectedoffset)^,Offset-expectedoffset);
+                copiedsize:=fpc_Copy_internal(Src+Offset,Dest+Offset,Info);
+                expectedoffset:=Offset+copiedsize;
+              end;
+            { elements remaining? }
+            if result>expectedoffset then
+              move((Src+expectedoffset)^,(Dest+expectedoffset)^,Result-expectedoffset);
+{$if FPC_FULLVERSION>30100}
+          end;
 {$endif FPC_FULLVERSION>30100}
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}

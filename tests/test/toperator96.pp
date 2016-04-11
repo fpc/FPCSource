@@ -27,12 +27,12 @@ begin
   WriteLn('    AValue.Test = ', AValue.Test);
   if AValue.Test <> ATest then
     Halt(2);
-  WriteLn('    AValue.CopyState = ', Ord(AValue.CopyState));
-  if AValue.CopyState <> ACopyState then
-    Halt(3);
   WriteLn('    AValue.Ref = ', AValue.Ref);
   if AValue.Ref <> ARef then
     Halt(4);
+  WriteLn('    AValue.CopyState = ', Ord(AValue.CopyState));
+  if AValue.CopyState <> ACopyState then
+    Halt(3);
 end;
 
 class operator TFoo.Initialize(var aFoo: TFoo);
@@ -69,6 +69,7 @@ begin
   LSrc.CopyState := csSource;
   aDst.CopyState := csDest;
   aDst.Test := aSrc.Test + 1;
+  aDst.F := aSrc.F;
 end;
 
 procedure TestValue(Value: TFoo);
