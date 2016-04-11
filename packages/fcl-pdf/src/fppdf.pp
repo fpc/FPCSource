@@ -28,7 +28,7 @@ uses
   SysUtils,
   StrUtils,
   contnrs,
-  fpImage,
+  fpImage, FPReadJPEG,
   zstream,
   fpparsettf;
 
@@ -45,7 +45,7 @@ type
   TPDFPageLayout = (lSingle, lTwo, lContinuous);
   TPDFUnitOfMeasure = (uomInches, uomMillimeters, uomCentimeters, uomPixels);
 
-  TPDFOption = (poOutLine, poCompressText, poCompressFonts);
+  TPDFOption = (poOutLine, poCompressText, poCompressFonts, poCompressImages, poUseRawJPEG);
   TPDFOptions = set of TPDFOption;
 
   EPDF = Class(Exception);
@@ -667,12 +667,14 @@ type
     Property Pages[AIndex : Integer] : TPDFPage Read GetP; Default;
   end;
 
+  TPDFImageCompression = (icNone, icDeflate, icJPEG);
 
   TPDFImageItem = Class(TCollectionItem)
   private
     FImage: TFPCustomImage;
     FOwnsImage: Boolean;
     FStreamed: TBytes;
+    FCompression: TPDFImageCompression;
     FWidth,FHeight : Integer;
     function GetHeight: Integer;
     function GetStreamed: TBytes;
@@ -681,7 +683,7 @@ type
     procedure SetStreamed(AValue: TBytes);
   Public
     Destructor Destroy; override;
-    Procedure CreateStreamedData;
+    Procedure CreateStreamedData(AUseCompression: Boolean);
     Function WriteImageStream(AStream: TStream): int64; virtual;
     function Equals(AImage: TFPCustomImage): boolean; reintroduce;
     Property Image : TFPCustomImage Read FImage Write SetImage;
@@ -692,13 +694,23 @@ type
   end;
 
 
-  TPDFImages = CLass(TCollection)
-  private
+  { TPDFImages }
+
+  TPDFImages = Class(TCollection)
+  Private
+    FOwner: TPDFDocument;
     function GetI(AIndex : Integer): TPDFImageItem;
+  Protected
+    function GetOwner: TPersistent; override;
   Public
+    Constructor Create(AOwner: TPDFDocument; AItemClass : TCollectionItemClass);
     Function AddImageItem : TPDFImageItem;
+    Function AddJPEGStream(Const AStream : TStream; Width,Height : Integer): Integer;
+    Function AddFromStream(Const AStream : TStream; Handler : TFPCustomImageReaderClass;
+      KeepImage : Boolean = False): Integer;
     Function AddFromFile(Const AFileName : String; KeepImage : Boolean = False): Integer;
     Property Images[AIndex : Integer] : TPDFImageItem Read GetI; default;
+    Property Owner: TPDFDocument read FOwner;
   end;
 
 
@@ -734,6 +746,8 @@ type
   end;
 
 
+  { TPDFDocument }
+
   TPDFDocument = class(TComponent)
   private
     FCatalogue: integer;
@@ -763,6 +777,13 @@ type
     procedure SetInfos(AValue: TPDFInfos);
     procedure SetLineStyles(AValue: TPDFLineStyleDefs);
   protected
+    // Create all kinds of things, virtual so they can be overridden to create descendents instead
+    function CreatePDFPages: TPDFPages; virtual;
+    function CreateLineStyles: TPDFLineStyleDefs; virtual;
+    function CreateFontDefs: TPDFFontDefs; virtual;
+    function CreatePDFImages: TPDFImages; virtual;
+    function CreatePDFInfos: TPDFInfos; virtual;
+    function CreateSectionList: TPDFSectionList; virtual;
     // Returns next prevoutline
     function CreateSectionOutLine(Const SectionIndex,OutLineRoot,ParentOutLine,NextSect,PrevSect : Integer): Integer; virtual;
     Function CreateSectionsOutLine : Integer; virtual;
@@ -1954,7 +1975,12 @@ end;
 function TPDFImageItem.GetStreamed: TBytes;
 begin
   if Length(FStreamed)=0 then
-    CreateStreamedData;
+  begin
+    if Collection.Owner is TPDFDocument then
+      CreateStreamedData(poCompressImages in TPDFDocument(Collection.Owner).Options)
+    else
+      CreateStreamedData(True);
+  end;
   Result:=FStreamed;
 end;
 
@@ -1988,25 +2014,53 @@ begin
   inherited Destroy;
 end;
 
-procedure TPDFImageItem.CreateStreamedData;
+procedure TPDFImageItem.CreateStreamedData(AUseCompression: Boolean);
 
 Var
-  I,X,Y : Integer;
+  X,Y : Integer;
   C : TFPColor;
+  MS : TMemoryStream;
+  Str : TStream;
+  CWhite : TFPColor; // white color
 begin
+  FillChar(CWhite, SizeOf(CWhite), $FF);
   FWidth:=Image.Width;
   FHeight:=Image.Height;
-  SetLength(FStreamed,FWidth*FHeight*3);
-  I:=0;
-  for Y:=0 to FHeight-1 do
-    for X:=0 to FWidth-1 do
+  Str := nil;
+  MS := TMemoryStream.Create;
+  try
+    if AUseCompression then
       begin
-      C:=Image.Colors[x,y];
-      FStreamed[I]:=C.Red shr 8;
-      FStreamed[I+1]:=C.Green shr 8;
-      FStreamed[I+2]:=C.blue shr 8;
-      Inc(I,3);
+      FCompression := icDeflate;
+      Str := Tcompressionstream.create(cldefault, MS)
+      end
+    else
+      begin
+      FCompression := icNone;
+      Str := MS;
       end;
+    for Y:=0 to FHeight-1 do
+      for X:=0 to FWidth-1 do
+        begin
+        C:=Image.Colors[x,y];
+        if C.alpha < $FFFF then // remove alpha channel - assume white background
+          C := AlphaBlend(CWhite, C);
+
+        Str.WriteByte(C.Red shr 8);
+        Str.WriteByte(C.Green shr 8);
+        Str.WriteByte(C.blue shr 8);
+        end;
+    if Str<>MS then
+      Str.Free;
+    Str := nil;
+    SetLength(FStreamed, MS.Size);
+    MS.Position := 0;
+    if MS.Size>0 then
+      MS.ReadBuffer(FStreamed[0], MS.Size);
+  finally
+    Str.Free;
+    MS.Free;
+  end;
 end;
 
 function TPDFImageItem.WriteImageStream(AStream: TStream): int64;
@@ -2046,28 +2100,138 @@ begin
   Result:=Items[AIndex] as TPDFImageItem;
 end;
 
+function TPDFImages.GetOwner: TPersistent;
+begin
+  Result := FOwner;
+end;
+
 function TPDFImages.AddImageItem: TPDFImageItem;
 begin
   Result:=Add as TPDFImageItem;
 end;
 
+function TPDFImages.AddJPEGStream(const AStream: TStream; Width, Height: Integer
+  ): Integer;
+Var
+  IP : TPDFImageItem;
+
+begin
+  IP:=AddImageItem;
+  IP.FWidth := Width;
+  IP.FHeight := Height;
+  IP.FCompression := icJPEG;
+  SetLength(IP.FStreamed, AStream.Size-AStream.Position);
+  if Length(IP.FStreamed)>0 then
+    AStream.ReadBuffer(IP.FStreamed[0], Length(IP.FStreamed));
+  Result:=Count-1;
+end;
+
+constructor TPDFImages.Create(AOwner: TPDFDocument;
+  AItemClass: TCollectionItemClass);
+begin
+  inherited Create(AItemClass);
+  FOwner := AOwner;
+end;
+
 function TPDFImages.AddFromFile(const AFileName: String; KeepImage: Boolean): Integer;
+
+  {$IF NOT (FPC_FULLVERSION >= 30101)}
+  function FindReaderFromExtension(extension: String): TFPCustomImageReaderClass;
+  var s : string;
+      r : integer;
+  begin
+    extension := lowercase (extension);
+    if (extension <> '') and (extension[1] = '.') then
+      system.delete (extension,1,1);
+    with ImageHandlers do
+      begin
+        r := count-1;
+        s := extension + ';';
+        while (r >= 0) do
+          begin
+          Result := ImageReader[TypeNames[r]];
+          if (pos(s,Extensions[TypeNames[r]]+';') <> 0) then
+            Exit;
+          dec (r);
+          end;
+      end;
+    Result := nil;
+  end;
+  function FindReaderFromFileName(const filename: String
+    ): TFPCustomImageReaderClass;
+  begin
+    Result := FindReaderFromExtension(ExtractFileExt(filename));
+  end;
+  {$ENDIF}
+
+var
+  FS: TFileStream;
+
+begin
+  FS := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
+  try
+    Result := AddFromStream(FS,
+      {$IF (FPC_FULLVERSION >= 30101)}TFPCustomImage.{$ENDIF}FindReaderFromFileName(AFileName), KeepImage);
+  finally
+    FS.Free;
+  end;
+end;
+
+function TPDFImages.AddFromStream(const AStream: TStream;
+  Handler: TFPCustomImageReaderClass; KeepImage: Boolean): Integer;
 
 Var
   I : TFPMemoryImage;
   IP : TPDFImageItem;
+  JPEG : TFPReaderJPEG;
+  Reader: TFPCustomImageReader;
+  {$IF (FPC_FULLVERSION >= 30101)}
+  Size : TPoint;
+  {$ELSE}
+  startPos: Int64;
+  {$ENDIF}
 
 begin
-  I:=TFPMemoryImage.Create(0,0);
-  I.LoadFromFile(AFileName);
-  IP:=AddImageItem;
-  IP.Image:=I;
-  if Not KeepImage then
-    begin
-    IP.CreateStreamedData;
-    IP.FImage:=Nil; // not through property, that would clear the image
-    i.Free;
+  if (poUseRawJPEG in Owner.Options) and Handler.InheritsFrom(TFPReaderJPEG) then
+  begin
+    JPEG := TFPReaderJPEG.Create;
+    try
+      {$IF (FPC_FULLVERSION >= 30101)}
+      Size := JPEG.ImageSize(AStream);
+      Result := AddJPEGStream(AStream, Size.X, Size.Y);
+      {$ELSE}
+      I:=TFPMemoryImage.Create(0,0);
+      try
+        startPos := AStream.Position;
+        I.LoadFromStream(AStream, JPEG);
+        AStream.Position := startPos;
+        Result := AddJPEGStream(AStream, I.Width, I.Height);
+      finally
+        I.Free;
+      end;
+      {$ENDIF}
+    finally
+      JPEG.Free;
     end;
+  end else
+  begin
+    IP:=AddImageItem;
+    I:=TFPMemoryImage.Create(0,0);
+    Reader := Handler.Create;
+    try
+      I.LoadFromStream(AStream, Reader);
+    finally
+      Reader.Free;
+    end;
+    IP.Image:=I;
+    if Not KeepImage then
+      begin
+      Writeln('Compressing : ',poCompressImages in Owner.Options);
+      IP.CreateStreamedData(poCompressImages in Owner.Options);
+      IP.FImage:=Nil; // not through property, that would clear the image
+      i.Free;
+      end;
+  end;
   Result:=Count-1;
 end;
 
@@ -2689,6 +2853,10 @@ begin
               D:=Document.GlobalXRefs[AObject].Dict;
               D.AddInteger('Length',ISize);
               LastElement.Write(AStream);
+              case Document.Images[NumImg].FCompression of
+                icJPEG: WriteString('/Filter /DCTDecode'+CRLF, AStream);
+                icDeflate: WriteString('/Filter /FlateDecode'+CRLF, AStream);
+              end;
               WriteString('>>', AStream);
               // write image stream in xobject dictionary
               Document.Images[NumImg].WriteImageStream(AStream);
@@ -3351,22 +3519,58 @@ begin
     Raise EPDF.CreateFmt(SErrNoGlobalDict,[AName]);
 end;
 
+Function TPDFDocument.CreateLineStyles : TPDFLineStyleDefs;
+
+begin
+  Result:=TPDFLineStyleDefs.Create(TPDFLineStyleDef);
+end;
+
+Function TPDFDocument.CreateSectionList : TPDFSectionList;
+
+begin
+  Result:=TPDFSectionList.Create(TPDFSection)
+end;
+
+Function TPDFDocument.CreateFontDefs : TPDFFontDefs;
+
+begin
+  TPDFFontDefs.Create(TPDFFont);
+end;
+
+Function TPDFDocument.CreatePDFInfos : TPDFInfos;
+
+begin
+  Result:=TPDFInfos.Create;
+end;
+
+Function TPDFDocument.CreatePDFImages : TPDFImages;
+
+begin
+Result:=TPDFImages.Create(Self,TPDFImageItem);
+end;
+
+Function TPDFDocument.CreatePDFPages : TPDFPages;
+
+begin
+  Result:=TPDFPages.Create(Self);
+end;
+
 constructor TPDFDocument.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-  FLineStyleDefs:=TPDFLineStyleDefs.Create(TPDFLineStyleDef);
-  FSections:=TPDFSectionList.Create(TPDFSection);
   FFontFiles:=TStringList.Create;
-  FFonts:=TPDFFontDefs.Create(TPDFFont);
-  FInfos:=TPDFInfos.Create;
-  FImages:=TPDFImages.Create(TPDFImageItem);
-  FPages:=TPDFPages.Create(Self);
+  FLineStyleDefs:=CreateLineStyles;
+  FSections:=CreateSectionList;
+  FFonts:=CreateFontDefs;
+  FInfos:=CreatePDFInfos;
+  FImages:=CreatePDFImages;
+  FPages:=CreatePDFPages;
   FPreferences:=True;
   FPageLayout:=lSingle;
   FDefaultPaperType:=ptA4;
   FDefaultOrientation:=ppoPortrait;
   FZoomValue:='100';
-  FOptions := [poCompressFonts];
+  FOptions := [poCompressFonts, poCompressImages];
 end;
 
 procedure TPDFDocument.StartDocument;
