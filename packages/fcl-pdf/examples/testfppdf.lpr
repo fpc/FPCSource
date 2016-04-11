@@ -28,6 +28,9 @@ type
   TPDFTestApp = class(TCustomApplication)
   private
     Fpg: integer;
+    FRawJPEG,
+    FImageCompression,
+    FTextCompression,
     FFontCompression: boolean;
     FDoc: TPDFDocument;
     function    SetUpDocument: TPDFDocument;
@@ -68,6 +71,12 @@ begin
   lOpts := [];
   if FFontCompression then
     Include(lOpts, poCompressFonts);
+  if FTextCompression then
+    Include(lOpts,poCompressText);
+  if FImageCompression then
+    Include(lOpts,poCompressImages);
+  if FRawJPEG then
+    Include(lOpts,poUseRawJPEG);
   Result.Options := lOpts;
 
   Result.StartDocument;
@@ -416,13 +425,32 @@ end;
 { TPDFTestApp }
 
 procedure TPDFTestApp.DoRun;
+
+  Function BoolFlag(C : Char;ADefault : Boolean) : Boolean;
+
+  Var
+    V : Integer;
+
+  begin
+    Result:=ADefault;
+    if HasOption(C, '') then
+      begin
+      v := StrToIntDef(GetOptionValue(C,''),-1);
+      if Not (V in [0,1]) then
+        Raise Exception.Create('Error in -'+C+' parameter. Valid range is 0-1.');
+      Result:=(v=1);
+      end
+  end;
+
 var
   ErrorMsg: String;
   v: integer;
+
 begin
+  StopOnException:=True;
   inherited DoRun;
   // quick check parameters
-  ErrorMsg := CheckOptions('hp:f:', '');
+  ErrorMsg := CheckOptions('hp:f:t:i:j:', '');
   if ErrorMsg <> '' then
   begin
     WriteLn('ERROR:  ' + ErrorMsg);
@@ -452,19 +480,10 @@ begin
     end;
   end;
 
-  FFontCompression := True;
-  if HasOption('f', '') then
-  begin
-    v := StrToInt(GetOptionValue('f', ''));
-    if (v <> 0) and (v <> 1) then
-    begin
-      Writeln('Error in -f parameter. Valid range is 0-1.');
-      Writeln('');
-      Terminate;
-      Exit;
-    end;
-    FFontCompression := (v = 1);
-  end;
+  FFontCompression := BoolFlag('f',true);
+  FTextCompression := BoolFlag('t',False);
+  FImageCompression := BoolFlag('i',False);
+  FRawJPEG:=BoolFlag('j',False);
 
   FDoc := SetupDocument;
   try
@@ -509,6 +528,12 @@ begin
           '                generated.');
   writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
           '                disables compression. A value of 1 enables compression.');
+  writeln('    -t <0|1>    Toggle text compression. A value of 0' + LineEnding +
+          '                disables compression. A value of 1 enables compression.');
+  writeln('    -i <0|1>    Toggle image compression. A value of 0' + LineEnding +
+          '                disables compression. A value of 1 enables compression.');
+  writeln('    -j <0|1>    Toggle use of JPEG. A value of 0' + LineEnding +
+          '                disables use of JPEG images. A value of 1 writes jpeg file as-is');
   writeln('');
 end;
 
