@@ -144,22 +144,22 @@ begin
   P.SetFont(ftText3, 13);
   P.SetColor(clBlack, false);
 
-  P.WriteUTF8Text(15, 120, 'Languages: English: Hello, World!');
-  P.WriteUTF8Text(40, 130, 'Greek: Γειά σου κόσμος');
-  P.WriteUTF8Text(40, 140, 'Polish: Witaj świecie');
-  P.WriteUTF8Text(40, 150, 'Portuguese: Olá mundo');
-  P.WriteUTF8Text(40, 160, 'Russian: Здравствуйте мир');
-  P.WriteUTF8Text(40, 170, 'Vietnamese: Xin chào thế giới');
+  P.WriteText(15, 120, 'Languages: English: Hello, World!');
+  P.WriteText(40, 130, 'Greek: Γειά σου κόσμος');
+  P.WriteText(40, 140, 'Polish: Witaj świecie');
+  P.WriteText(40, 150, 'Portuguese: Olá mundo');
+  P.WriteText(40, 160, 'Russian: Здравствуйте мир');
+  P.WriteText(40, 170, 'Vietnamese: Xin chào thế giới');
 
   P.SetFont(ftText1, 13);
-  P.WriteUTF8Text(15, 185, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
+  P.WriteText(15, 185, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
 
-  P.WriteUTF8Text(15, 200, 'Typography: “What’s wrong?”');
-  P.WriteUTF8Text(40, 210, '£17.99 vs £17·99');
-  P.WriteUTF8Text(40, 220, '€17.99 vs €17·99');
-  P.WriteUTF8Text(40, 230, 'OK then…    êçèûÎÐð£¢ß');
+  P.WriteText(15, 200, 'Typography: “What’s wrong?”');
+  P.WriteText(40, 210, '£17.99 vs £17·99');
+  P.WriteText(40, 220, '€17.99 vs €17·99');
+  P.WriteText(40, 230, 'OK then…    êçèûÎÐð£¢ß');
 
-  P.WriteUTF8Text(25, 280, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
+  P.WriteText(25, 280, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
 end;
 
 procedure TPDFTestApp.SimpleLinesRaw(D: TPDFDocument; APage: integer);

@@ -18,6 +18,9 @@ unit fppdf;
 
 {$mode objfpc}{$H+}
 
+{ enable compiler define for extra console debug output }
+{.$define gdebug}
+
 interface
 
 uses
@@ -172,8 +175,11 @@ type
 
   TPDFAbstractString = class(TPDFDocumentObject)
   protected
+    FFontIndex: integer;
     // These symbols must be preceded by a backslash:  "(", ")", "\"
     function InsertEscape(const AValue: string): string;
+  public
+    property FontIndex: integer read FFontIndex;
   end;
 
 
@@ -190,14 +196,12 @@ type
   TPDFUTF8String = class(TPDFAbstractString)
   private
     FValue: UTF8String;
-    FFontIndex: integer;
     { Remap each character to the equivalant dictionary character code }
     function RemapedText: AnsiString;
   protected
     procedure Write(const AStream: TStream); override;
   public
     constructor Create(Const ADocument : TPDFDocument; const AValue: UTF8String; const AFontIndex: integer); overload;
-    property FontIndex: integer read FFontIndex;
   end;
 
 
@@ -244,14 +248,16 @@ type
     FX: TPDFFloat;
     FY: TPDFFloat;
     FString: TPDFString;
+    FFontIndex: integer;
   protected
     procedure Write(const AStream: TStream); override;
   public
-    constructor Create(Const ADocument : TPDFDocument; const AX, AY: TPDFFloat; const AText: string); overload;
+    constructor Create(Const ADocument : TPDFDocument; const AX, AY: TPDFFloat; const AText: AnsiString; const AFontIndex: integer); overload;
     destructor Destroy; override;
     Property X : TPDFFloat Read FX Write FX;
     Property Y : TPDFFloat Read FY Write FY;
     Property Text : TPDFString Read FString;
+    property FontIndex: integer read FFontIndex;
   end;
 
 
@@ -500,6 +506,8 @@ type
     procedure AdjustMatrix;
   protected
     procedure DoUnitConversion(var APoint: TPDFCoord); virtual;
+    procedure CreateStdFontText(X, Y: TPDFFloat; AText: AnsiString; AFontIndex: integer); virtual;
+    procedure CreateTTFFontText(X, Y: TPDFFloat; AText: UTF8String; AFontIndex: integer); virtual;
   Public
     Constructor Create(Const ADocument : TPDFDocument); override;
     Destructor Destroy; override;
@@ -509,9 +517,9 @@ type
     // used for stroking and nonstroking colors - purpose determined by the AStroke parameter
     Procedure SetColor(AColor : TARGBColor; AStroke : Boolean = True);
     Procedure SetPenStyle(AStyle : TPDFPenStyle);
-    Procedure WriteText(X, Y: TPDFFloat; AText : String); overload;
-    Procedure WriteText(APos: TPDFCoord; AText : String); overload;
-    Procedure WriteUTF8Text(X, Y: TPDFFloat; AText : UTF8String);
+    { output coordinate is the font baseline. }
+    Procedure WriteText(X, Y: TPDFFloat; AText : UTF8String); overload;
+    Procedure WriteText(APos: TPDFCoord; AText : UTF8String); overload;
     procedure DrawLine(X1, Y1, X2, Y2, ALineWidth : TPDFFloat); overload;
     procedure DrawLine(APos1: TPDFCoord; APos2: TPDFCoord; ALineWidth: TPDFFloat); overload;
     Procedure DrawLineStyle(X1, Y1, X2, Y2: TPDFFloat; AStyle: Integer); overload;
@@ -601,14 +609,6 @@ type
     property    GlyphID: uint16 read FGlyphID write FGlyphID;
   end;
 
-  TTextDictionary = class(TObject)
-  private
-    FChar: UnicodeChar;
-    FCodePoint: AnsiString;
-  public
-    property Char: UnicodeChar read FChar write FChar;
-    property CodePoint: AnsiString read FCodePoint write FCodePoint;
-  end;
 
   TPDFFont = CLass(TCollectionItem)
   private
@@ -699,25 +699,6 @@ type
     Function AddImageItem : TPDFImageItem;
     Function AddFromFile(Const AFileName : String; KeepImage : Boolean = False): Integer;
     Property Images[AIndex : Integer] : TPDFImageItem Read GetI; default;
-  end;
-
-
-  TFontDef = record
-    FType: string;
-    FName: string;
-    FAscent: string;
-    FDescent: string;
-    FCapHeight: string;
-    FFlags: string;
-    FFontBBox: string;
-    FItalicAngle: string;
-    FStemV: string;
-    FMissingWidth: string;
-    FEncoding: string;
-    FFile: string;
-    FOriginalSize: string;
-    FDiffs: WideString;
-    FCharWidth: WideString;
   end;
 
 
@@ -812,6 +793,8 @@ type
     procedure CreateFontFileEntry(const EmbeddedFontNum: integer);virtual;
     procedure CreateImageEntry(ImgWidth, ImgHeight, NumImg: integer);virtual;
     procedure CreatePageStream(APage : TPDFPage; PageNum: integer);
+    Function CreateString(Const AValue : String) : TPDFString;
+    Function CreateUTF8String(Const AValue : UTF8String; const AFontIndex: integer) : TPDFUTF8String;
     Function CreateGlobalXRef: TPDFXRef;
     Function AddGlobalXRef(AXRef : TPDFXRef) : Integer;
     function IndexOfGlobalXRef(const AValue: string): integer;
@@ -828,15 +811,13 @@ type
     procedure SaveToStream(const AStream: TStream);
     // Create objects, owned by this document.
     Function CreateEmbeddedFont(AFontIndex, AFontSize : Integer) : TPDFEmbeddedFont;
-    Function CreateText(X,Y : TPDFFloat; AText : String) : TPDFText;
-    Function CreateUTF8Text(X,Y : TPDFFloat; AText : UTF8String; const AFontIndex: integer) : TPDFUTF8Text;
+    Function CreateText(X,Y : TPDFFloat; AText : AnsiString; const AFontIndex: integer) : TPDFText; overload;
+    Function CreateText(X,Y : TPDFFloat; AText : UTF8String; const AFontIndex: integer) : TPDFUTF8Text; overload;
     Function CreateRectangle(const X,Y,W,H, ALineWidth: TPDFFloat; const AFill, AStroke: Boolean) : TPDFRectangle;
     Function CreateColor(AColor : TARGBColor; AStroke : Boolean) : TPDFColor;
     Function CreateBoolean(AValue : Boolean) : TPDFBoolean;
     Function CreateInteger(AValue : Integer) : TPDFInteger;
     Function CreateReference(AValue : Integer) : TPDFReference;
-    Function CreateString(Const AValue : String) : TPDFString;
-    Function CreateUTF8String(Const AValue : UTF8String; const AFontIndex: integer) : TPDFUTF8String;
     Function CreateLineStyle(APenStyle: TPDFPenStyle) : TPDFLineStyle;
     Function CreateName(AValue : String) : TPDFName;
     Function CreateStream(OwnsObjects : Boolean = True) : TPDFStream;
@@ -1606,6 +1587,23 @@ begin
   end;
 end;
 
+procedure TPDFPage.CreateStdFontText(X: TPDFFloat; Y: TPDFFloat; AText: AnsiString; AFontIndex: integer);
+var
+  T: TPDFText;
+begin
+  T := Document.CreateText(X, Y, AText, AFontIndex);
+  AddObject(T);
+end;
+
+procedure TPDFPage.CreateTTFFontText(X: TPDFFloat; Y: TPDFFloat; AText: UTF8String; AFontIndex: integer);
+var
+  T: TPDFUTF8Text;
+begin
+  AddTextToLookupLists(AText);
+  T := Document.CreateText(X, Y, AText, FFontIndex);
+  AddObject(T);
+end;
+
 procedure TPDFPage.SetUnitOfMeasure(AValue: TPDFUnitOfMeasure);
 begin
   if FUnitOfMeasure = AValue then
@@ -1682,34 +1680,23 @@ begin
   AddObject(L);
 end;
 
-procedure TPDFPage.WriteText(X, Y: TPDFFloat; AText: String);
+procedure TPDFPage.WriteText(X, Y: TPDFFloat; AText: UTF8String);
 var
-  T: TPDFText;
-  p: TPDFCoord;
-begin
-  p := Matrix.Transform(X, Y);
-  DoUnitConversion(p);
-  T := Document.CreateText(p.X, p.Y, AText);
-  AddObject(T);
-end;
-
-procedure TPDFPage.WriteText(APos: TPDFCoord; AText: String);
-begin
-  WriteText(APos.X, APos.Y, AText);
-end;
-
-procedure TPDFPage.WriteUTF8Text(X, Y: TPDFFloat; AText: UTF8String);
-var
-  T: TPDFUTF8Text;
   p: TPDFCoord;
 begin
   if FFontIndex = -1 then
     raise EPDF.Create(SErrNoFontIndex);
   p := Matrix.Transform(X, Y);
   DoUnitConversion(p);
-  AddTextToLookupLists(AText);
-  T := Document.CreateUTF8Text(p.X, p.Y, AText, FFontIndex);
-  AddObject(T);
+  if Document.Fonts[FFontIndex].IsStdFont then
+    CreateStdFontText(p.X, p.Y, AText, FFontIndex)
+  else
+    CreateTTFFontText(p.X, p.Y, AText, FFontIndex);
+end;
+
+procedure TPDFPage.WriteText(APos: TPDFCoord; AText: UTF8String);
+begin
+  WriteText(APos.X, APos.Y, AText);
 end;
 
 procedure TPDFPage.DrawLine(X1, Y1, X2, Y2, ALineWidth: TPDFFloat);
@@ -2205,13 +2192,11 @@ end;
 procedure TPDFString.Write(const AStream: TStream);
 var
   s: AnsiString;
-//  cs: AnsiString;
 begin
   s := Utf8ToAnsi(FValue);
   if poCompressText in Document.Options then
   begin
-    // do nothing yet
-//    CompressString(s, cs);
+    // TODO: Implement text compression
     WriteString('('+s+')', AStream);
   end
   else
@@ -2240,7 +2225,7 @@ procedure TPDFUTF8String.Write(const AStream: TStream);
 begin
   if poCompressText in Document.Options then
   begin
-    // do nothing yet
+    // TODO: Implement text compression
     WriteString('<'+RemapedText+'>', AStream)
   end
   else
@@ -2380,11 +2365,13 @@ begin
   WriteString('ET'+CRLF, AStream);
 end;
 
-constructor TPDFText.Create(Const ADocument : TPDFDocument; const AX, AY: TPDFFloat; const AText: string);
+constructor TPDFText.Create(Const ADocument : TPDFDocument; const AX, AY: TPDFFloat; const AText: AnsiString;
+    const AFontIndex: integer);
 begin
   inherited Create(ADocument);
   FX:=AX;
   FY:=AY;
+  FFontIndex := AFontIndex;
   FString:=ADocument.CreateString(AText);
 end;
 
@@ -2406,7 +2393,7 @@ begin
 end;
 
 constructor TPDFUTF8Text.Create(const ADocument: TPDFDocument; const AX, AY: TPDFFloat; const AText: UTF8String;
-  const AFontIndex: integer);
+    const AFontIndex: integer);
 begin
   inherited Create(ADocument);
   FX := AX;
@@ -3626,13 +3613,19 @@ begin
   Result:=TPDFEmbeddedFont.Create(Self,AFontIndex,IntToStr(AFontSize))
 end;
 
-function TPDFDocument.CreateText(X, Y: TPDFFloat; AText: String): TPDFText;
+function TPDFDocument.CreateText(X, Y: TPDFFloat; AText: AnsiString; const AFontIndex: integer): TPDFText;
 begin
-  Result:=TPDFText.Create(Self,X,Y,AText);
+  {$ifdef gdebug}
+  writeln('TPDFDocument.CreateText( AnsiString ) ', AFontIndex);
+  {$endif}
+  Result:=TPDFText.Create(Self,X,Y,AText,AFontIndex);
 end;
 
-function TPDFDocument.CreateUTF8Text(X, Y: TPDFFloat; AText: UTF8String; const AFontIndex: integer): TPDFUTF8Text;
+function TPDFDocument.CreateText(X, Y: TPDFFloat; AText: UTF8String; const AFontIndex: integer): TPDFUTF8Text;
 begin
+  {$ifdef gdebug}
+  writeln('TPDFDocument.CreateText( UTF8String ) ', AFontIndex);
+  {$endif}
   Result := TPDFUTF8Text.Create(Self,X,Y,AText,AFontIndex);
 end;
 
@@ -3641,8 +3634,7 @@ begin
   Result:=TPDFRectangle.Create(Self,X,Y,W,H,ALineWidth,AFill, AStroke);
 end;
 
-function TPDFDocument.CreateColor(AColor: TARGBColor; AStroke: Boolean
-  ): TPDFColor;
+function TPDFDocument.CreateColor(AColor: TARGBColor; AStroke: Boolean): TPDFColor;
 begin
   Result:=TPDFColor.Create(Self,AStroke,AColor);
 end;

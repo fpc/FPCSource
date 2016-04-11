@@ -679,7 +679,7 @@ var
 begin
   x := 10.5;
   y := 20.0;
-  o := TPDFText.Create(PDF, x, y, 'Hello World!');
+  o := TPDFText.Create(PDF, x, y, 'Hello World!', 0);
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFText(o).Write(S);

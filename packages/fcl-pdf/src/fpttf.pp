@@ -96,7 +96,7 @@ type
     function    IndexOf(const AObject: TFPFontCacheItem): integer;
     function    Find(const AFontCacheItem: TFPFontCacheItem): integer;
     function    Find(const AFamilyName: string; ABold: boolean = False; AItalic: boolean = False): TFPFontCacheItem;
-    { not used: utility function doing a conversion for use. }
+    { not used: utility function doing a conversion for us. }
     function    PointSizeInPixels(const APointSize: single): single;
     property    Items[AIndex: Integer]: TFPFontCacheItem read GetItem write SetItem; default;
     property    SearchPath: TStringList read FSearchPath;
