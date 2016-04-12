@@ -1272,13 +1272,11 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
-var i : sizeint;
 begin
-  i:=0;
   if assigned(p) then
-    while p[i]<>#0 do
-      inc(i);
-  exit(i);
+    Result:=IndexByte(p^,high(Result),0)
+  else
+    Result:=0;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
