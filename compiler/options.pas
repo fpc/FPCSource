@@ -2511,7 +2511,7 @@ begin
                       end;
                     'V' :
                       begin
-                        If UnsetBool(More, j, opt, false) then
+                        if UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_vlink)
                         else
                           begin
@@ -3066,6 +3066,12 @@ begin
     features:=features-target_unsup_features
   else
     features:=features+target_unsup_features;
+
+{$ifdef hasamiga}
+   { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
+   if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
+     include(init_settings.globalswitches,cs_link_vlink);
+{$endif}
 end;
 
 procedure TOption.checkoptionscompatibility;
@@ -3733,11 +3739,6 @@ begin
       (cs_link_nolink in init_settings.globalswitches)) then
     begin
       include(init_settings.globalswitches,cs_link_extern);
-{$ifdef hasamiga}
-      { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
-      if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
-        include(init_settings.globalswitches,cs_link_vlink);
-{$endif}
     end;
 
   { turn off stripping if compiling with debuginfo or profile }
