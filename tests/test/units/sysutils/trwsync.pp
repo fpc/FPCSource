@@ -110,7 +110,7 @@ begin
   { problems for heaptrc as it goes over the memory map in its exit code }
   waiting:=true;
   { avoid deadlocks/bugs from causing this test to never quit }
-  sleep(1000*30);
+  sleep(1000*60);
   writeln('error 4');
   halt(4);
 end;
