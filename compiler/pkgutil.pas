@@ -27,9 +27,9 @@ unit pkgutil;
 interface
 
   uses
-    fmodule;
+    fmodule,fpkg;
 
-  procedure createimportlibfromexports;
+  procedure createimportlibfromexternals(pkg:tpackage);
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
@@ -42,7 +42,7 @@ implementation
     cutils,cclasses,
     globals,verbose,
     symtype,symconst,symsym,symdef,symbase,symtable,
-    ppu,entfile,fpcp,fpkg,
+    ppu,entfile,fpcp,
     export;
 
   procedure procexport(const s : string);
@@ -406,17 +406,121 @@ implementation
     end;
 
 
-  procedure createimportlibfromexports;
+  procedure createimportlibfromexternals(pkg:tpackage);
     var
-      hp : texported_item;
+      alreadyloaded : tfpobjectlist;
+
+
+    procedure import_proc_symbol(pd:tprocdef;pkg:tpackage);
+      var
+        item : TCmdStrListItem;
+      begin
+        item := TCmdStrListItem(pd.aliasnames.first);
+        while assigned(item) do
+          begin
+            current_module.addexternalimport(pkg.pplfilename,item.str,item.str,0,false,false);
+            item := TCmdStrListItem(item.next);
+          end;
+       end;
+
+
+    procedure processimportedsyms(syms:tfpobjectlist);
+      var
+        i,j,k,l : longint;
+        pkgentry : ppackageentry;
+        sym : TSymEntry;
+        srsymtable : tsymtable;
+        module : tmodule;
+        unitentry : pcontainedunit;
+        name : tsymstr;
+        pd : tprocdef;
+      begin
+        for i:=0 to syms.count-1 do
+          begin
+            sym:=tsymentry(syms[i]);
+            if not (sym.typ in [staticvarsym,procsym]) then
+              continue;
+            if alreadyloaded.indexof(sym)>=0 then
+              continue;
+            { determine the unit of the symbol }
+            srsymtable:=sym.owner;
+            while not (srsymtable.symtabletype in [staticsymtable,globalsymtable]) do
+              srsymtable:=srsymtable.defowner.owner;
+            module:=tmodule(loaded_units.first);
+            while assigned(module) do
+              begin
+                if (module.globalsymtable=srsymtable) or (module.localsymtable=srsymtable) then
+                  break;
+                module:=tmodule(module.next);
+              end;
+            if not assigned(module) then
+              internalerror(2014101001);
+            if (uf_in_library and module.flags)=0 then
+              { unit is not part of a package, so no need to handle it }
+              continue;
+            { loaded by a package? }
+            for j:=0 to packagelist.count-1 do
+              begin
+                pkgentry:=ppackageentry(packagelist[j]);
+                for k:=0 to pkgentry^.package.containedmodules.count-1 do
+                  begin
+                    unitentry:=pcontainedunit(pkgentry^.package.containedmodules[k]);
+                    if unitentry^.module=module then
+                      begin
+                        case sym.typ of
+                          staticvarsym:
+                            begin
+                              name:=tstaticvarsym(sym).mangledname;
+                              current_module.addexternalimport(pkgentry^.package.pplfilename,name,name+suffix_indirect,0,true,false);
+                            end;
+                          procsym:
+                            begin
+                              for l:=0 to tprocsym(sym).procdeflist.count-1 do
+                                begin
+                                  pd:=tprocdef(tprocsym(sym).procdeflist[l]);
+                                  import_proc_symbol(pd,pkgentry^.package);
+                                end;
+                            end;
+                          else
+                            internalerror(2014101001);
+                        end;
+                        alreadyloaded.add(sym);
+                      end;
+                  end;
+              end;
+          end;
+      end;
+
+
+    var
+      unitentry : pcontainedunit;
+      module : tmodule;
     begin
-      hp:=texported_item(current_module._exports.first);
-      while assigned(hp) do
+      { check each external asm symbol of each unit of the package whether it is
+        contained in the unit of a loaded package (and thus an import entry
+        is needed) }
+      if assigned(pkg) then
         begin
-          current_module.AddExternalImport(current_module.realmodulename^,hp.name^,hp.name^,hp.index,hp.is_var,false);
-          hp:=texported_item(hp.next);
+          { ToDo }
+        end
+      else
+        begin
+          alreadyloaded:=tfpobjectlist.create(false);
+          { we were called from a program/library }
+
+          module:=tmodule(loaded_units.first);
+          while assigned(module) do
+            begin
+              //if not assigned(module.package) then
+              if (uf_in_library and module.flags)=0 then
+                processimportedsyms(module.unitimportsyms);
+              module:=tmodule(module.next);
+            end;
+
+          alreadyloaded.free;
         end;
     end;
+
 
 end.
 
