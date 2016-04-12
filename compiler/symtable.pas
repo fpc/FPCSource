@@ -2737,7 +2737,6 @@ implementation
        begin
          { symbol uses count }
          sym.IncRefCount;
-         { unit uses count }
          owner:=sym.owner;
          while owner.symtabletype in [objectsymtable,recordsymtable,enumsymtable] do
            owner:=tdef(owner.defowner).owner;
@@ -2746,7 +2745,11 @@ implementation
              begin
                if tglobalsymtable(owner).moduleid>=current_module.unitmapsize then
                  internalerror(200501152);
+               { unit uses count }
                inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
+               { symbol is imported from another unit }
+               if current_module.globalsymtable<>owner then
+                 current_module.addimportedsym(sym);
              end;
        end;
 
