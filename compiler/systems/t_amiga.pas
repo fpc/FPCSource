@@ -88,8 +88,16 @@ end;
 
 procedure TLinkerAmiga.SetAmigaPPCInfo;
 begin
-  with Info do begin
-    ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
+  with Info do 
+   begin
+    if not UseVLink then
+     begin
+      ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -n -o $EXE $RES';
+     end
+    else
+     begin
+      ExeCmd[1]:='vlink -b elf32amigaos $OPT $STRIP -o $EXE -T $RES';
+     end;
   end;
 end;
 
