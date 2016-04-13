@@ -238,7 +238,7 @@ type
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
+    function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
 
@@ -512,7 +512,7 @@ type
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function LoadField(FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
     procedure SetPacketRecords(aValue : integer); override;
@@ -733,7 +733,7 @@ type
     function Fetch(cursor : TSQLCursor) : boolean; override;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
 
@@ -2704,9 +2704,11 @@ begin
   Result:=FStatement.RowsAffected;
 end;
 
-function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
+function TCustomSQLQuery.LoadField(FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 begin
-  result := SQLConnection.LoadField(Cursor,FieldDef,buffer, Createblob)
+  Result := SQLConnection.LoadField(Cursor, FieldDef, buffer, CreateBlob);
+  if Result and (FieldDef.DataType in ftBlobTypes) and (sqoAutoCommit in Options) then
+    CreateBlob:=True
 end;
 
 procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
@@ -3500,7 +3502,7 @@ begin
   FProxy.FreeFldBuffers(cursor);
 end;
 
-function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TfieldDef;
+function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
   buffer: pointer; out CreateBlob: boolean): boolean;
 begin
   CheckProxy;
