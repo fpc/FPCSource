@@ -164,12 +164,14 @@ type
   TPDFName = class(TPDFObject)
   private
     FName : string;
+    FMustEscape: boolean;
     function  ConvertCharsToHex: string;
   protected
     procedure Write(const AStream: TStream); override;
   public
-    constructor Create(Const ADocument : TPDFDocument; const AValue: string); overload;
+    constructor Create(Const ADocument : TPDFDocument; const AValue: string; const AMustEscape: boolean = True); overload;
     property Name : String read FName;
+    property MustScape: boolean read FMustEscape;
   end;
 
 
@@ -431,7 +433,7 @@ type
     function GetV(AIndex : Integer): TPDFObject;
   protected
     procedure AddElement(const AKey: string; const AValue: TPDFObject);
-    procedure AddName(const AKey,AName : String);
+    procedure AddName(const AKey,AName : String; const AMustEscape: boolean = True);
     procedure AddInteger(const AKey : String; AInteger : Integer);
     procedure AddReference(const AKey : String; AReference : Integer);
     procedure AddString(const AKey, AString : String);
@@ -840,7 +842,7 @@ type
     Function CreateInteger(AValue : Integer) : TPDFInteger;
     Function CreateReference(AValue : Integer) : TPDFReference;
     Function CreateLineStyle(APenStyle: TPDFPenStyle) : TPDFLineStyle;
-    Function CreateName(AValue : String) : TPDFName;
+    Function CreateName(AValue : String; const AMustEscape: boolean = True) : TPDFName;
     Function CreateStream(OwnsObjects : Boolean = True) : TPDFStream;
     Function CreateDictionary : TPDFDictionary;
     Function CreateXRef : TPDFXRef;
@@ -2150,7 +2152,7 @@ function TPDFImages.AddFromFile(const AFileName: String; KeepImage: Boolean): In
         while (r >= 0) do
           begin
           Result := ImageReader[TypeNames[r]];
-          if (pos(s,Extensions[TypeNames[r]]+';') <> 0) then
+          if (pos(s,{$if (FPC_FULLVERSION = 20604)}Extentions{$else}Extensions{$endif}[TypeNames[r]]+';') <> 0) then
             Exit;
           dec (r);
           end;
@@ -2307,13 +2309,19 @@ begin
     if Pos('Length1', FName) > 0 then
       WriteString('/Length1', AStream)
     else
-      WriteString('/'+FName {ConvertCharsToHex}, AStream);
+    begin
+      if FMustEscape then
+        WriteString('/'+ConvertCharsToHex, AStream)
+      else
+        WriteString('/'+FName, AStream);
+    end;
 end;
 
-constructor TPDFName.Create(const ADocument: TPDFDocument; const AValue: string);
+constructor TPDFName.Create(const ADocument: TPDFDocument; const AValue: string; const AMustEscape: boolean = True);
 begin
   inherited Create(ADocument);
   FName:=AValue;
+  FMustEscape := AMustEscape;
 end;
 
 function TPDFName.ConvertCharsToHex: string;
@@ -2782,9 +2790,9 @@ begin
   FElements.Add(DicElement);
 end;
 
-procedure TPDFDictionary.AddName(const AKey, AName: String);
+procedure TPDFDictionary.AddName(const AKey, AName: String; const AMustEscape: boolean = True);
 begin
-  AddElement(AKey,Document.CreateName(AName));
+  AddElement(AKey,Document.CreateName(AName, AMustEscape));
 end;
 
 procedure TPDFDictionary.AddInteger(const AKey: String; AInteger: Integer);
@@ -3720,7 +3728,7 @@ begin
         ADict:=GlobalXRefByName('Catalog').Dict;
         Arr:=ADict.ValueByName('OpenAction') as TPDFArray;
         Arr.AddItem(CreateReference(GLobalXRefCount-1));
-        Arr.AddItem(CreateName('XYZ null null '+TPDFObject.FloatStr(StrToInt(FZoomValue) / 100)));
+        Arr.AddItem(CreateName('XYZ null null '+TPDFObject.FloatStr(StrToInt(FZoomValue) / 100), False));
         end;
       PageNum:=CreateContentsEntry; // pagenum = object number in the pdf file
       CreatePageStream(S.Pages[k],PageNum);
@@ -3873,9 +3881,9 @@ begin
   Result:=TPDFLineStyle.Create(Self,APenStyle,0)
 end;
 
-function TPDFDocument.CreateName(AValue: String): TPDFName;
+function TPDFDocument.CreateName(AValue: String; const AMustEscape: boolean = True): TPDFName;
 begin
-  Result:=TPDFName.Create(Self,AValue);
+  Result:=TPDFName.Create(Self,AValue,AMustEscape);
 end;
 
 function TPDFDocument.CreateStream(OwnsObjects : Boolean = True): TPDFStream;

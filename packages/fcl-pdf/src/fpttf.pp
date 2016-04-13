@@ -113,10 +113,6 @@ resourcestring
   rsNoFontFileName = 'The FileName property is empty, so we can''t load font data.';
   rsCharAboveWord = 'TextWidth doesn''t support characters higher then High(Word) - %d.';
 
-type
-  { so we can get access to protected methods }
-  TFriendTTFFileInfo = class(TTFFileInfo);
-
 var
   uFontCacheList: TFPFontCacheList;
 
@@ -252,7 +248,7 @@ function TFPFontCacheItem.TextWidth(AStr: utf8string; APointSize: single): singl
     550 * 18 * 72 / ( 72 * 2048 ) = 4.83
 }
 var
-  lFntInfo: TFriendTTFFileInfo;
+  lFntInfo: TTFFileInfo;
   i: integer;
   lWidth: integer;
   lGIndex: integer;
@@ -266,7 +262,7 @@ begin
   if Length(AStr) = 0 then
     Exit;
 
-  lFntInfo := TFriendTTFFileInfo(GetFontData);
+  lFntInfo := GetFontData;
   if not Assigned(lFntInfo) then
     Exit;
 
