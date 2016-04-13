@@ -2228,7 +2228,6 @@ begin
     IP.Image:=I;
     if Not KeepImage then
       begin
-      Writeln('Compressing : ',poCompressImages in Owner.Options);
       IP.CreateStreamedData(poCompressImages in Owner.Options);
       IP.FImage:=Nil; // not through property, that would clear the image
       i.Free;
