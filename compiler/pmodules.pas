@@ -605,6 +605,8 @@ implementation
          internalerror(200304275);
         {Generate a procsym for main}
         ps:=cprocsym.create('$'+name);
+        { always register the symbol }
+        ps.register_sym;
         { main are allways used }
         inc(ps.refs);
         st.insert(ps);

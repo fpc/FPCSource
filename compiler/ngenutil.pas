@@ -653,6 +653,8 @@ implementation
         pd:=cprocdef.create(main_program_level,true)
       else
         pd:=cprocdef.create(normal_function_level,true);
+      { always register the def }
+      pd.register_def;
       pd.procsym:=ps;
       ps.ProcdefList.Add(pd);
       include(pd.procoptions,po_global);
