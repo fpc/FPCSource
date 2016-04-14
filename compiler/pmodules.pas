@@ -35,13 +35,13 @@ implementation
        SysUtils,
        globtype,version,systems,tokens,
        cutils,cfileutl,cclasses,comphook,
-       globals,verbose,fmodule,finput,fppu,globstat,
+       globals,verbose,fmodule,finput,fppu,globstat,fpcp,fpkg,
        symconst,symbase,symtype,symdef,symsym,symtable,symcreat,
        wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,ngenutil,
        nbas,nutils,ncgutil,
-       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,fpcp,
+       link,assemble,import,export,gendef,entfile,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
        objcgutl,
@@ -1437,6 +1437,7 @@ type
          current_module.setmodulename(module_name);
          current_module.ispackage:=true;
          exportlib.preparelib(module_name);
+         pkg:=tpcppackage.create(module_name);
 
          if tf_library_needs_pic in target_info.flags then
            include(current_settings.moduleswitches,cs_create_pic);
@@ -1459,10 +1460,41 @@ type
          { of the program                                             }
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
-         {Load the units used by the program we compile.}
-         if token=_REQUIRES then
+         { ensure that no packages are picked up from the options }
+         packagelist.clear;
+
+         {Read the packages used by the package we compile.}
+         if (token=_ID) and (idtoken=_REQUIRES) then
            begin
+             { consume _REQUIRES word }
+             consume(_ID);
+             while true do
+               begin
+                 if token=_ID then
+                   begin
+                     module_name:=orgpattern;
+                     consume(_ID);
+                     while token=_POINT do
+                       begin
+                         consume(_POINT);
+                         module_name:=module_name+'.'+orgpattern;
+                         consume(_ID);
+                       end;
+                     add_package(module_name,false);
+                   end
+                 else
+                   consume(_ID);
+                 if token=_COMMA then
+                   consume(_COMMA)
+                 else
+                   break;
+               end;
+             consume(_SEMICOLON);
            end;
+
+         { now load all packages, so that we can determine whether a unit is
+           already provided by one of the loaded packages }
+         load_packages;
 
          {Load the units used by the program we compile.}
          if (token=_ID) and (idtoken=_CONTAINS) then
@@ -1481,7 +1513,12 @@ type
                          module_name:=module_name+'.'+orgpattern;
                          consume(_ID);
                        end;
-                     AddUnit(module_name);
+                     hp:=AddUnit(module_name);
+                     if (hp.modulename^='SYSTEM') and not assigned(systemunit) then
+                       begin
+                         systemunit:=tglobalsymtable(hp.globalsymtable);
+                         load_intern_types;
+                       end;
                    end
                  else
                    consume(_ID);
@@ -1552,6 +1589,7 @@ type
            begin
              Message1(unit_f_errors_in_unit,tostr(Errorcount));
              status.skip_error:=true;
+             pkg.free;
              exit;
            end;
 
@@ -1573,7 +1611,13 @@ type
          uu:=tused_unit(usedunits.first);
          while assigned(uu) do
            begin
-             export_unit(uu.u);
+             if not assigned(systemunit) and (uu.u.modulename^='SYSTEM') then
+               begin
+                 systemunit:=tglobalsymtable(uu.u.globalsymtable);
+                 load_intern_types;
+               end;
+             if not assigned(uu.u.package) then
+               export_unit(uu.u);
 
              uu:=tused_unit(uu.next);
            end;
@@ -1592,6 +1636,10 @@ type
          exportlib.generatelib;
 
          exportlib.ignoreduplicates:=false;
+
+         { create import libraries for all packages }
+         if packagelist.count>0 then
+           createimportlibfromexternals;
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
@@ -1620,6 +1668,7 @@ type
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
+            pkg.free;
             exit;
           end;
 
@@ -1627,11 +1676,11 @@ type
            begin
              { add all contained units to the package }
              { TODO : handle implicitly imported units }
-             pkg:=tpcppackage.create(module_name);
              uu:=tused_unit(current_module.used_units.first);
              while assigned(uu) do
                begin
-                 pkg.addunit(uu.u);
+                 if not assigned(uu.u.package) then
+                   pkg.addunit(uu.u);
                  uu:=tused_unit(uu.next);
                end;
 
@@ -1641,7 +1690,8 @@ type
              uu:=tused_unit(usedunits.first);
              while assigned(uu) do
                begin
-                 RewritePPU(uu.u.ppufilename,uu.u.ppufilename);
+                 if not assigned(uu.u.package) then
+                   RewritePPU(uu.u.ppufilename,uu.u.ppufilename);
                  uu:=tused_unit(uu.next);
                end;
 
@@ -1663,8 +1713,10 @@ type
                  hp:=tmodule(loaded_units.first);
                  while assigned(hp) do
                   begin
-                    { the package itself contains no code so far }
-                    linker.AddModuleFiles(hp);
+                    { only link in those units which should become part of this
+                      package }
+                    if not assigned(hp.package) then
+                      linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
@@ -2124,7 +2176,7 @@ type
 
          { create import library for all packages }
          if packagelist.count>0 then
-           createimportlibfromexternals(nil);
+           createimportlibfromexternals;
 
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then

@@ -583,6 +583,7 @@ var
                 filename:=pkgunit^.ppufile;
                 if not SearchPathList(unitsearchpath) then
                   exit;
+                package:=pkg^.package;
 
                 { now load the unit and all used units }
                 load_interface;
@@ -1775,7 +1776,14 @@ var
           begin
             do_load:=false;
             do_reload:=false;
-            state:=ms_load;
+            state:=ms_compiled;
+            { PPU is not needed anymore }
+            if assigned(ppufile) then
+             begin
+                ppufile.closefile;
+                ppufile.free;
+                ppufile:=nil;
+             end;
             { add the unit to the used units list of the program }
             usedunits.concat(tused_unit.create(self,true,false,nil));
           end;

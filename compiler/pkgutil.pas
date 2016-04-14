@@ -29,10 +29,11 @@ interface
   uses
     fmodule,fpkg;
 
-  procedure createimportlibfromexternals(pkg:tpackage);
+  procedure createimportlibfromexternals;
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
+  procedure add_package(const name:string;ignoreduplicates:boolean);
 
 implementation
 
@@ -98,6 +99,9 @@ implementation
               recorddef:
                 begin
                   def:=tabstractrecorddef(ttypesym(sym).typedef);
+                  { don't export generics or their nested types }
+                  if df_generic in def.defoptions then
+                    exit;
                   def.symtable.symlist.foreachcall(@exportabstractrecordsymproc,def.symtable);
                 end;
             end;
@@ -406,7 +410,28 @@ implementation
     end;
 
 
-  procedure createimportlibfromexternals(pkg:tpackage);
+  procedure add_package(const name:string;ignoreduplicates:boolean);
+    var
+      entry : ppackageentry;
+      i : longint;
+    begin
+      for i:=0 to packagelist.count-1 do
+        begin
+          if packagelist.nameofindex(i)=name then
+            begin
+              if not ignoreduplicates then
+                Message1(package_e_duplicate_package,name);
+              exit;
+            end;
+        end;
+      new(entry);
+      entry^.package:=nil;
+      entry^.realpkgname:=name;
+      packagelist.add(name,entry);
+    end;
+
+
+  procedure createimportlibfromexternals;
     var
       alreadyloaded : tfpobjectlist;
 
@@ -499,26 +524,19 @@ implementation
       { check each external asm symbol of each unit of the package whether it is
         contained in the unit of a loaded package (and thus an import entry
         is needed) }
-      if assigned(pkg) then
-        begin
-          { ToDo }
-        end
-      else
-        begin
-          alreadyloaded:=tfpobjectlist.create(false);
-          { we were called from a program/library }
+      alreadyloaded:=tfpobjectlist.create(false);
 
-          module:=tmodule(loaded_units.first);
-          while assigned(module) do
-            begin
-              //if not assigned(module.package) then
-              if (uf_in_library and module.flags)=0 then
-                processimportedsyms(module.unitimportsyms);
-              module:=tmodule(module.next);
-            end;
-
-          alreadyloaded.free;
+      { first pass to find all symbols that were not loaded by asm name }
+      module:=tmodule(loaded_units.first);
+      while assigned(module) do
+        begin
+          //if not assigned(module.package) then
+          if (uf_in_library and module.flags)=0 then
+            processimportedsyms(module.unitimportsyms);
+          module:=tmodule(module.next);
         end;
+
+      alreadyloaded.free;
     end;
 
 

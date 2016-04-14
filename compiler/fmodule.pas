@@ -43,7 +43,7 @@ interface
 
     uses
        cutils,cclasses,cfileutl,
-       globtype,finput,ogbase,
+       globtype,finput,ogbase,fpkg,
        symbase,symconst,symsym,
        wpobase,
        aasmbase,aasmtai,aasmdata;
@@ -172,6 +172,7 @@ interface
         linkotherstaticlibs,
         linkotherframeworks  : tlinkcontainer;
         mainname      : pshortstring; { alternate name for "main" procedure }
+        package       : tpackage;
 
         used_units           : tlinkedlist;
         dependent_units      : tlinkedlist;

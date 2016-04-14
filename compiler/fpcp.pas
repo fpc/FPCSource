@@ -42,8 +42,10 @@ interface
       procedure setfilename(const fn:string;allowoutput:boolean);
       procedure writecontainernames;
       procedure writecontainedunits;
+      procedure writerequiredpackages;
       procedure readcontainernames;
       procedure readcontainedunits;
+      procedure readrequiredpackages;
     public
       constructor create(const pn:string);
       destructor destroy; override;
@@ -250,6 +252,19 @@ implementation
       pcpfile.writeentry(ibendcontained);
     end;
 
+  procedure tpcppackage.writerequiredpackages;
+    var
+      i : longint;
+    begin
+      pcpfile.putlongint(requiredpackages.count);
+      pcpfile.writeentry(ibstartrequireds);
+      for i:=0 to requiredpackages.count-1 do
+        begin
+          pcpfile.putstring(requiredpackages.NameOfIndex(i));
+        end;
+      pcpfile.writeentry(ibendrequireds);
+    end;
+
   procedure tpcppackage.readcontainernames;
     begin
       if pcpfile.readentry<>ibpackagefiles then
@@ -291,6 +306,30 @@ implementation
         end;
     end;
 
+  procedure tpcppackage.readrequiredpackages;
+    var
+      cnt,i : longint;
+      name : string;
+    begin
+      if pcpfile.readentry<>ibstartrequireds then
+        begin
+          Writeln('Error reading pcp file');
+          internalerror(2014110901);
+        end;
+      cnt:=pcpfile.getlongint;
+      if pcpfile.readentry<>ibendrequireds then
+        begin
+          Writeln('Error reading pcp file');
+          internalerror(2014110902);
+        end;
+      for i:=0 to cnt-1 do
+        begin
+          name:=pcpfile.getstring;
+          requiredpackages.add(name,nil);
+          Writeln('Found required package ',name);
+        end;
+    end;
+
     constructor tpcppackage.create(const pn: string);
     begin
       inherited create(pn);
@@ -329,7 +368,7 @@ implementation
 
       readcontainernames;
 
-      //readrequiredpackages
+      readrequiredpackages;
 
       readcontainedunits;
     end;
@@ -346,7 +385,7 @@ implementation
 
       writecontainernames;
 
-      //writerequiredpackages;
+      writerequiredpackages;
 
       writecontainedunits;
 
