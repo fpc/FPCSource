@@ -92,7 +92,7 @@ begin
    begin
     if not UseVLink then
      begin
-      ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -N -o $STRIP $EXE $RES';
+      ExeCmd[1]:='ld $DYNLINK $OPT -defsym=__amigaos4__=1 -d -q -N -o $EXE $RES';
      end
     else
      begin
