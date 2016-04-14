@@ -87,6 +87,9 @@ implementation
     end;
 
 
+  procedure exportabstractrecorddef(def:tabstractrecorddef); forward;
+
+
   procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
     var
       def : tabstractrecorddef;
@@ -97,13 +100,7 @@ implementation
             case ttypesym(sym).typedef.typ of
               objectdef,
               recorddef:
-                begin
-                  def:=tabstractrecorddef(ttypesym(sym).typedef);
-                  { don't export generics or their nested types }
-                  if df_generic in def.defoptions then
-                    exit;
-                  def.symtable.symlist.foreachcall(@exportabstractrecordsymproc,def.symtable);
-                end;
+                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef));
             end;
           end;
         procsym:
@@ -121,12 +118,28 @@ implementation
     end;
 
 
+  procedure exportabstractrecorddef(def:tabstractrecorddef);
+    var
+      hp : texported_item;
+    begin
+      def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
+      { don't export generics or their nested types }
+      if df_generic in def.defoptions then
+        exit;
+      if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
+        begin
+          hp:=texported_item.create;
+          hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
+          hp.options:=hp.options+[eo_name];
+          exportlib.exportvar(hp);
+        end;
+    end;
+
+
   procedure insert_export(sym : TObject;arg:pointer);
     var
       i : longint;
       item : TCmdStrListItem;
-      def : tabstractrecorddef;
-      hp : texported_item;
       publiconly : boolean;
     begin
       publiconly:=tsymtable(arg).symtabletype=staticsymtable;
@@ -144,17 +157,7 @@ implementation
             case ttypesym(sym).typedef.typ of
               recorddef,
               objectdef:
-                begin
-                  def:=tabstractrecorddef(ttypesym(sym).typedef);
-                  def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
-                  if (def.typ=objectdef) and (oo_has_vmt in tobjectdef(def).objectoptions) then
-                    begin
-                      hp:=texported_item.create;
-                      hp.name:=stringdup(tobjectdef(def).vmt_mangledname);
-                      hp.options:=hp.options+[eo_name];
-                      exportlib.exportvar(hp);
-                    end;
-                end;
+                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef));
             end;
           end;
         procsym:
