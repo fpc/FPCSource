@@ -768,8 +768,8 @@ implementation
               if foundinit and foundfini then
                 break;
             end;
-          if not foundinit or not foundfini then
-            internalerror(20160414);
+          {if not foundinit or not foundfini then
+            internalerror(2016041401);}
         end;
 
     begin
