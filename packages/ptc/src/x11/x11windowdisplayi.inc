@@ -520,9 +520,9 @@ var
     else
       PTCMouseButtonState := [PTCMouseButton1];
     if (state and Button2Mask) <> 0 then
-      PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton2];
-    if (state and Button3Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton3];
+    if (state and Button3Mask) <> 0 then
+      PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton2];
     if (state and Button4Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton4];
     if (state and Button5Mask) <> 0 then

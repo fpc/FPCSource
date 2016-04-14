@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2007, 2009-2012  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2007, 2009-2012, 2015  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -37,6 +37,15 @@
 {$H+}
 
 {$IFDEF UNIX}
+  {$IF defined(DARWIN)}
+    {$DEFINE COCOA}
+    {$MODESWITCH objectivec1}
+  {$ELSE}
+    {$DEFINE X11}
+  {$ENDIF}
+{$ENDIF UNIX}
+
+{$IFDEF X11}
 
   { X11 extensions we want to enable at compile time }
   {$INCLUDE x11/x11extensions.inc}
@@ -48,7 +57,7 @@
     {$DEFINE ENABLE_X11_EXTENSION_XF86DGA}
   {$ENDIF ENABLE_X11_EXTENSION_XF86DGA2}
 
-{$ENDIF UNIX}
+{$ENDIF X11}
 
 unit ptc;
 
@@ -60,7 +69,7 @@ uses
 {$ENDIF FPDOC}
 
 const
-  PTCPAS_VERSION = 'PTCPas 0.99.14';
+  PTCPAS_VERSION = 'PTCPas 0.99.14.1';
 
 type
   PUint8  = ^Uint8;
@@ -123,22 +132,28 @@ uses
 
 {$IFDEF UNIX}
 uses
-  BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym, xkblib
-  {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
-  , xrandr
-  {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
-  {$IFDEF ENABLE_X11_EXTENSION_XF86VIDMODE}
-  , xf86vmode
-  {$ENDIF ENABLE_X11_EXTENSION_XF86VIDMODE}
-  {$IFDEF ENABLE_X11_EXTENSION_XF86DGA}
-  , xf86dga
-  {$ENDIF ENABLE_X11_EXTENSION_XF86DGA}
-  {$IFDEF ENABLE_X11_EXTENSION_XSHM}
-  , xshm, ipc
-  {$ENDIF ENABLE_X11_EXTENSION_XSHM}
-  {$IFDEF ENABLE_X11_EXTENSION_GLX}
-  , glx
-  {$ENDIF ENABLE_X11_EXTENSION_GLX}
+  BaseUnix, Unix
+  {$IFDEF X11}
+    , ctypes, x, xlib, xutil, xatom, keysym, xkblib
+    {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
+    , xrandr
+    {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
+    {$IFDEF ENABLE_X11_EXTENSION_XF86VIDMODE}
+    , xf86vmode
+    {$ENDIF ENABLE_X11_EXTENSION_XF86VIDMODE}
+    {$IFDEF ENABLE_X11_EXTENSION_XF86DGA}
+    , xf86dga
+    {$ENDIF ENABLE_X11_EXTENSION_XF86DGA}
+    {$IFDEF ENABLE_X11_EXTENSION_XSHM}
+    , xshm, ipc
+    {$ENDIF ENABLE_X11_EXTENSION_XSHM}
+    {$IFDEF ENABLE_X11_EXTENSION_GLX}
+    , glx
+    {$ENDIF ENABLE_X11_EXTENSION_GLX}
+  {$ENDIF X11}
+  {$IFDEF COCOA}
+    , CocoaAll
+  {$ENDIF COCOA}
   ;
 {$ENDIF UNIX}
 
@@ -233,9 +248,14 @@ end;
 {$INCLUDE wince/includes.inc}
 {$ENDIF WinCE}
 
-{$IFDEF UNIX}
+{$IFDEF X11}
 {$INCLUDE x11/x11includes.inc}
-{$ENDIF UNIX}
+{$ENDIF X11}
+
+{$IFDEF COCOA}
+{$INCLUDE cocoa/cocoaconsoled.inc}
+{$INCLUDE cocoa/cocoaconsolei.inc}
+{$ENDIF COCOA}
 
 {$INCLUDE core/consolei.inc}
 
