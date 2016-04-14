@@ -103,7 +103,7 @@ uses
   llvminfo,
 {$endif llvm}
   dirparse,
-  fpkg,
+  pkgutil,
   i_bsd;
 
 const
@@ -1555,7 +1555,7 @@ begin
                      if ispara then
                        parapackages.add(more,nil)
                      else
-                       addpackage(packagelist,more);
+                       add_package(more,true);
                    end;
                  'p' :
                    begin
@@ -3637,7 +3637,7 @@ begin
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
   packagesearchpath.addlist(option.parapackagepath,true);
   for j:=0 to option.parapackages.count-1 do
-    addpackage(packagelist,option.parapackages.NameOfIndex(j));
+    add_package(option.parapackages.NameOfIndex(j),true);
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then

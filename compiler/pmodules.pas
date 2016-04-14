@@ -1577,14 +1577,17 @@ type
              current_module.allunitsused;
            end;
 
-         new_section(current_asmdata.asmlists[al_globals],sec_data,'_FPCDummy',4);
-         current_asmdata.asmlists[al_globals].concat(tai_symbol.createname_global('_FPCDummy',AT_DATA,0));
-         current_asmdata.asmlists[al_globals].concat(tai_const.create_32bit(0));
+         if target_info.system in systems_windows then
+           begin
+             new_section(current_asmdata.asmlists[al_globals],sec_data,'_FPCDummy',4);
+             current_asmdata.asmlists[al_globals].concat(tai_symbol.createname_global('_FPCDummy',AT_DATA,0));
+             current_asmdata.asmlists[al_globals].concat(tai_const.create_32bit(0));
 
-         new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-         current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
-         gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
-         current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
+             new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
+             current_asmdata.asmlists[al_procedures].concat(tai_symbol.createname_global('_DLLMainCRTStartup',AT_FUNCTION,0));
+             gen_fpc_dummy(current_asmdata.asmlists[al_procedures]);
+             current_asmdata.asmlists[al_procedures].concat(tai_const.createname('_FPCDummy',0));
+           end;
 
          { leave when we got an error }
          if (Errorcount>0) and not status.skip_error then
@@ -1602,6 +1605,8 @@ type
           begin
             hp2:=hp;
             hp:=tmodule(hp.next);
+            if assigned(hp2.package) then
+              add_package_unit_ref(hp2.package);
             if hp2.is_unit and
                not assigned(hp2.globalsymtable) then
               loaded_units.remove(hp2);
@@ -1728,6 +1733,9 @@ type
                       end;
                     hp:=hp2;
                   end;
+                 { add the library of directly used packages }
+                 add_package_libs(linker);
+                 { and now link the package library }
                  linker.MakeSharedLibrary
                end;
 
@@ -2232,6 +2240,8 @@ type
                     if (hp<>sysinitmod) and (hp.flags and uf_in_library=0) then
                       linker.AddModuleFiles(hp);
                     hp2:=tmodule(hp.next);
+                    if assigned(hp.package) then
+                      add_package_unit_ref(hp.package);
                     if (hp<>current_module) and
                        (not needsymbolinfo) then
                       begin
@@ -2243,6 +2253,8 @@ type
                  { free also unneeded units we didn't free before }
                  if not needsymbolinfo then
                    unloaded_units.Clear;
+                 { add all directly used packages as libraries }
+                 add_package_libs(linker);
                  { finally we can create a executable }
                  if current_module.islibrary then
                    linker.MakeSharedLibrary

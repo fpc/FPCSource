@@ -27,13 +27,15 @@ unit pkgutil;
 interface
 
   uses
-    fmodule,fpkg;
+    fmodule,fpkg,link;
 
   procedure createimportlibfromexternals;
   Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
   procedure add_package(const name:string;ignoreduplicates:boolean);
+  procedure add_package_unit_ref(package:tpackage);
+  procedure add_package_libs(l:tlinker);
 
 implementation
 
@@ -430,7 +432,45 @@ implementation
       new(entry);
       entry^.package:=nil;
       entry^.realpkgname:=name;
-      packagelist.add(name,entry);
+      entry^.usedunits:=0;
+      packagelist.add(upper(name),entry);
+    end;
+
+
+  procedure add_package_unit_ref(package: tpackage);
+    var
+      pkgentry : ppackageentry;
+    begin
+      pkgentry:=ppackageentry(packagelist.find(package.packagename^));
+      if not assigned(pkgentry) then
+        internalerror(2015100301);
+      inc(pkgentry^.usedunits);
+    end;
+
+
+  procedure add_package_libs(l:tlinker);
+    var
+      pkgentry : ppackageentry;
+      i : longint;
+      pkgname : tpathstr;
+    begin
+      for i:=0 to packagelist.count-1 do
+        begin
+          pkgentry:=ppackageentry(packagelist[i]);
+          if pkgentry^.usedunits>0 then
+            begin
+              //writeln('package used: ',pkgentry^.realpkgname);
+              pkgname:=pkgentry^.package.pplfilename;
+              if copy(pkgname,1,length(target_info.sharedlibprefix))=target_info.sharedlibprefix then
+                delete(pkgname,1,length(target_info.sharedlibprefix));
+              if copy(pkgname,length(pkgname)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext))=target_info.sharedlibext then
+                delete(pkgname,length(pkgname)-length(target_info.sharedlibext)+1,length(target_info.sharedlibext));
+              //writeln('adding library: ', pkgname);
+              l.sharedlibfiles.concat(pkgname);
+            end
+          else
+            {writeln('ignoring package: ',pkgentry^.realpkgname)};
+        end;
     end;
 
 
