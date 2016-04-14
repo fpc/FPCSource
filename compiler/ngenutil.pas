@@ -770,8 +770,8 @@ implementation
               if foundinit and foundfini then
                 break;
             end;
-          {if not foundinit or not foundfini then
-            internalerror(2016041401);}
+          if not foundinit or not foundfini then
+            internalerror(2016041401);
         end;
 
     begin
@@ -815,7 +815,7 @@ implementation
                end
              else
                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
-             add_initfinal_import(hp.u.globalsymtable);
+             add_initfinal_import(hp.u.localsymtable);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
