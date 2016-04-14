@@ -515,10 +515,10 @@ type
     Destructor Destroy; override;
     Procedure AddObject(AObject : TPDFObject);
     // Commands. These will create objects in the objects list of the page.
-    Procedure SetFont(AFontIndex : Integer; AFontSize : Integer);
+    Procedure SetFont(AFontIndex : Integer; AFontSize : Integer); virtual;
     // used for stroking and nonstroking colors - purpose determined by the AStroke parameter
-    Procedure SetColor(AColor : TARGBColor; AStroke : Boolean = True);
-    Procedure SetPenStyle(AStyle : TPDFPenStyle);
+    Procedure SetColor(AColor : TARGBColor; AStroke : Boolean = True); virtual;
+    Procedure SetPenStyle(AStyle : TPDFPenStyle); virtual;
     { output coordinate is the font baseline. }
     Procedure WriteText(X, Y: TPDFFloat; AText : UTF8String); overload;
     Procedure WriteText(APos: TPDFCoord; AText : UTF8String); overload;
