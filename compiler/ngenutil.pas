@@ -118,7 +118,7 @@ implementation
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmtai,aasmcnst,
       symbase,symtable,defutil,symcreat,
-      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
+      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,ncgutil,
       ppu,
       pass_1;
 
@@ -695,6 +695,7 @@ implementation
       unitinits : ttai_typedconstbuilder;
       count : aint;
       tablecountplaceholder: ttypedconstplaceholder;
+      nameinit,namefini : TSymStr;
 
       procedure write_struct_inits(u: tmodule);
         var
@@ -711,17 +712,64 @@ implementation
           begin
             pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
-              unitinits.emit_procdef_const(pd)
+              begin
+                unitinits.emit_procdef_const(pd);
+                if u<>current_module then
+                  u.addimportedsym(pd.procsym);
+              end
             else
               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
-              unitinits.emit_procdef_const(pd)
+              begin
+                unitinits.emit_procdef_const(pd);
+                if u<>current_module then
+                  u.addimportedsym(pd.procsym);
+              end
             else
               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
             inc(count);
           end;
           structlist.free;
+        end;
+
+      procedure add_initfinal_import(symtable:tsymtable);
+        var
+          i,j : longint;
+          foundinit,foundfini : boolean;
+          sym : TSymEntry;
+          pd : tprocdef;
+        begin
+          if (nameinit='') and (namefini='') then
+            exit;
+          foundinit:=nameinit='';
+          foundfini:=namefini='';
+          for i:=0 to symtable.SymList.Count-1 do
+            begin
+              sym:=tsymentry(symtable.SymList[i]);
+              if sym.typ<>procsym then
+                continue;
+              for j:=0 to tprocsym(sym).procdeflist.count-1 do
+                begin
+                  pd:=tprocdef(tprocsym(sym).procdeflist[j]);
+                  if (nameinit<>'') and not foundinit and has_alias_name(pd,nameinit) then
+                    begin
+                      current_module.addimportedsym(sym);
+                      foundinit:=true;
+                    end;
+                  if (namefini<>'') and not foundfini and has_alias_name(pd,namefini) then
+                    begin
+                      current_module.addimportedsym(sym);
+                      foundfini:=true;
+                    end;
+                  if foundinit and foundfini then
+                    break;
+                end;
+              if foundinit and foundfini then
+                break;
+            end;
+          if not foundinit or not foundfini then
+            internalerror(20160414);
         end;
 
     begin
@@ -745,18 +793,27 @@ implementation
            begin
              if count=high(aint) then
                Message1(cg_f_max_units_reached,tostr(count));
+             nameinit:='';
+             namefini:='';
              if (hp.u.flags and uf_init)<>0 then
-               unitinits.emit_tai(
-                 Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0),
-                 voidcodepointertype)
+               begin
+                 nameinit:=make_mangledname('INIT$',hp.u.globalsymtable,'');
+                 unitinits.emit_tai(
+                   Tai_const.Createname(nameinit,AT_FUNCTION,0),
+                   voidcodepointertype);
+               end
              else
                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.emit_tai(
-                 Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0),
-                 voidcodepointertype)
+               begin
+                 namefini:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'');
+                 unitinits.emit_tai(
+                   Tai_const.Createname(namefini,AT_FUNCTION,0),
+                   voidcodepointertype)
+               end
              else
                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+             add_initfinal_import(hp.u.globalsymtable);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
