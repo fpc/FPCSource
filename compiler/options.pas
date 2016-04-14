@@ -3069,7 +3069,7 @@ begin
 
 {$ifdef hasamiga}
    { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
-   if target_info.system in [system_m68k_amiga,{system_powerpc_amiga,}system_powerpc_morphos] then
+   if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
      include(init_settings.globalswitches,cs_link_vlink);
 {$endif}
 end;
