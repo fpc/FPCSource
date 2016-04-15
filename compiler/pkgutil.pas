@@ -33,7 +33,7 @@ interface
   Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
-  procedure add_package(const name:string;ignoreduplicates:boolean);
+  procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
   procedure add_package_unit_ref(package:tpackage);
   procedure add_package_libs(l:tlinker);
 
@@ -382,13 +382,17 @@ implementation
 
   procedure load_packages;
     var
-      i : longint;
+      i,j : longint;
       pcp: tpcppackage;
-      entry : ppackageentry;
+      entry,
+      entryreq : ppackageentry;
+      name,
+      uname : string;
     begin
       if not (tf_supports_packages in target_info.flags) then
         exit;
-      for i:=0 to packagelist.count-1 do
+      i:=0;
+      while i<packagelist.count do
         begin
           entry:=ppackageentry(packagelist[i]);
           if assigned(entry^.package) then
@@ -397,11 +401,46 @@ implementation
           pcp:=tpcppackage.create(entry^.realpkgname);
           pcp.loadpcp;
           entry^.package:=pcp;
+
+          { add all required packages that are not yet part of packagelist }
+          for j:=0 to pcp.requiredpackages.count-1 do
+            begin
+              name:=pcp.requiredpackages.NameOfIndex(j);
+              uname:=upper(name);
+              if not assigned(packagelist.Find(uname)) then
+                begin
+                  New(entryreq);
+                  entryreq^.realpkgname:=name;
+                  entryreq^.package:=nil;
+                  entryreq^.usedunits:=0;
+                  entryreq^.direct:=false;
+                  packagelist.add(uname,entryreq);
+                end;
+            end;
+
+          Inc(i);
+        end;
+
+      { all packages are now loaded, so we can fill in the links of the required packages }
+      for i:=0 to packagelist.count-1 do
+        begin
+          entry:=ppackageentry(packagelist[i]);
+          if not assigned(entry^.package) then
+            internalerror(2015111301);
+          for j:=0 to entry^.package.requiredpackages.count-1 do
+            begin
+              if assigned(entry^.package.requiredpackages[j]) then
+                internalerror(2015111303);
+              entryreq:=packagelist.find(upper(entry^.package.requiredpackages.NameOfIndex(j)));
+              if not assigned(entryreq) then
+                internalerror(2015111302);
+              entry^.package.requiredpackages[j]:=entryreq^.package;
+            end;
         end;
     end;
 
 
-  procedure add_package(const name:string;ignoreduplicates:boolean);
+  procedure add_package(const name:string;ignoreduplicates:boolean;direct:boolean);
     var
       entry : ppackageentry;
       i : longint;
@@ -419,6 +458,7 @@ implementation
       entry^.package:=nil;
       entry^.realpkgname:=name;
       entry^.usedunits:=0;
+      entry^.direct:=direct;
       packagelist.add(upper(name),entry);
     end;
 

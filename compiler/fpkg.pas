@@ -56,6 +56,7 @@ interface
       package : tpackage;
       realpkgname : string;
       usedunits : longint;
+      direct : boolean;
     end;
     ppackageentry=^tpackageentry;
 
