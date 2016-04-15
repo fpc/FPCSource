@@ -453,16 +453,6 @@ begin
                           hp1.free;
                         end;
                 end;
-              A_XOR:
-                if (taicpu(p).oper[0]^.typ = top_reg) and
-                   (taicpu(p).oper[1]^.typ = top_reg) and
-                   (taicpu(p).oper[0]^.reg = taicpu(p).oper[1]^.reg) then
-                 { temporarily change this to 'mov reg,0' to make it easier }
-                 { for the CSE. Will be changed back in pass 2              }
-                  begin
-                    taicpu(p).opcode := A_MOV;
-                    taicpu(p).loadConst(0,0);
-                  end;
             end;
           end;
       end;
