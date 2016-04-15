@@ -470,6 +470,24 @@ begin
     end;
 end;
 
+{ skips all labels and returns the next "real" instruction }
+function SkipLabels(hp: tai; var hp2: tai): boolean;
+  begin
+    while assigned(hp.next) and
+          (tai(hp.next).typ in SkipInstr + [ait_label,ait_align]) Do
+      hp := tai(hp.next);
+    if assigned(hp.next) then
+      begin
+        SkipLabels := True;
+        hp2 := tai(hp.next)
+      end
+    else
+      begin
+        hp2 := hp;
+        SkipLabels := False
+      end;
+  end;
+
 
 { First pass of peephole optimizations }
 procedure PeepHoleOptPass1(Asml: TAsmList; BlockStart, BlockEnd: tai);
@@ -502,24 +520,6 @@ var
   UsedRegs, TmpUsedRegs: TRegSet;
 
   TmpBool1, TmpBool2: Boolean;
-
-  function SkipLabels(hp: tai; var hp2: tai): boolean;
-  {skips all labels and returns the next "real" instruction}
-  begin
-    while assigned(hp.next) and
-          (tai(hp.next).typ in SkipInstr + [ait_label,ait_align]) Do
-      hp := tai(hp.next);
-    if assigned(hp.next) then
-      begin
-        SkipLabels := True;
-        hp2 := tai(hp.next)
-      end
-    else
-      begin
-        hp2 := hp;
-        SkipLabels := False
-      end;
-  end;
 
   function GetFinalDestination(asml: TAsmList; hp: taicpu; level: longint): boolean;
   {traces sucessive jumps to their final destination and sets it, e.g.
@@ -2152,6 +2152,36 @@ begin
                       hp1.free;
                     end;
                 end;
+              A_JMP:
+                {
+                  change 
+                         jmp .L1
+                         ...
+                     .L1:
+                         ret
+                  into
+                         ret
+                }
+                if (taicpu(p).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full) then
+                  begin
+                    hp1:=dfa.getlabelwithsym(tasmlabel(taicpu(p).oper[0]^.ref^.symbol));
+                    if assigned(hp1) and SkipLabels(hp1,hp1) and (hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_RET) and (taicpu(p).condition=C_None) then
+                      begin
+                        tasmlabel(taicpu(p).oper[0]^.ref^.symbol).decrefs;
+                        taicpu(p).opcode:=A_RET;
+                        taicpu(p).is_jmp:=false;
+                        taicpu(p).ops:=taicpu(hp1).ops;
+                        case taicpu(hp1).ops of
+                          0:
+                            taicpu(p).clearop(0);
+                          1:
+                            taicpu(p).loadconst(0,taicpu(hp1).oper[0]^.val);
+                          else
+                            internalerror(2016041301);
+                        end;
+                        continue;
+                      end;
+                  end;
               A_MOV:
                 begin
                   if (taicpu(p).oper[0]^.typ = top_reg) and
