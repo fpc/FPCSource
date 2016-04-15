@@ -76,6 +76,8 @@ const
   uf_i8086_far_data     = $4000000; { this unit uses an i8086 memory model with far data (i.e. compact or large) }
   uf_i8086_huge_data    = $8000000; { this unit uses an i8086 memory model with huge data (i.e. huge) }
   uf_i8086_cs_equals_ds = $10000000; { this unit uses an i8086 memory model with CS=DS (i.e. tiny) }
+  uf_package_deny       = $20000000; { this unit must not be part of a package }
+  uf_package_weak       = $40000000; { this unit may be completely contained in a package }
 
 type
   { bestreal is defined based on the target architecture }

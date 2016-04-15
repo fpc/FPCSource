@@ -38,6 +38,7 @@ const
   subentryid          = 2;
   {special}
   iberror             = 0;
+  ibpputable          = 243;
   ibstartrequireds    = 244;
   ibendrequireds      = 245;
   ibstartcontained    = 246;

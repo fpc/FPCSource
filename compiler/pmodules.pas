@@ -1534,6 +1534,27 @@ type
          { All units are read, now give them a number }
          current_module.updatemaps;
 
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+           begin
+             if (hp<>current_module) and not assigned(hp.package) then
+               begin
+                 if (hp.flags and uf_package_deny) <> 0 then
+                   message1(package_e_unit_deny_package,hp.realmodulename^);
+                 { part of the package's used, aka contained units? }
+                 uu:=tused_unit(current_module.used_units.first);
+                 while assigned(uu) do
+                   begin
+                     if uu.u=hp then
+                       break;
+                     uu:=tused_unit(uu.next);
+                   end;
+                 if not assigned(uu) then
+                   message2(package_n_implicit_unit_import,hp.realmodulename^,current_module.realmodulename^);
+               end;
+             hp:=tmodule(hp.next);
+           end;
+
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
            tabstractunitsymtable(current_module.localsymtable).insertunit(cunitsym.create(current_module.realmodulename^,current_module));
@@ -1574,7 +1595,7 @@ type
              tstoredsymtable(current_module.localsymtable).allprivatesused;
              tstoredsymtable(current_module.localsymtable).check_forwards;
 
-             current_module.allunitsused;
+             { Note: all contained units are considered as used }
            end;
 
          if target_info.system in systems_windows then
@@ -1692,15 +1713,6 @@ type
                end;
 
              pkg.initmoduleinfo(current_module);
-
-             { finally rewrite all units included into the package }
-             uu:=tused_unit(usedunits.first);
-             while assigned(uu) do
-               begin
-                 if not assigned(uu.u.package) then
-                   RewritePPU(uu.u.ppufilename,uu.u.ppufilename);
-                 uu:=tused_unit(uu.next);
-               end;
 
              { create the executable when we are at level 1 }
              if (compile_level=1) then

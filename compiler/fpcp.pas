@@ -26,7 +26,7 @@ unit fpcp;
 interface
 
   uses
-    cclasses,
+    cclasses,cstreams,
     globtype,
     pcp,finput,fpkg;
 
@@ -43,14 +43,18 @@ interface
       procedure writecontainernames;
       procedure writecontainedunits;
       procedure writerequiredpackages;
+      procedure writepputable;
+      procedure writeppudata;
       procedure readcontainernames;
       procedure readcontainedunits;
       procedure readrequiredpackages;
+      procedure readpputable;
     public
       constructor create(const pn:string);
       destructor destroy; override;
       procedure loadpcp;
       procedure savepcp;
+      function getmodulestream(module:tmodulebase):tcstream;
       procedure initmoduleinfo(module:tmodulebase);
       procedure addunit(module:tmodulebase);
     end;
@@ -62,7 +66,7 @@ implementation
     cfileutl,cutils,
     systems,globals,version,
     verbose,
-    entfile,fppu,ppu;
+    entfile,fppu,ppu,pkgutil;
 
 { tpcppackage }
 
@@ -265,6 +269,59 @@ implementation
       pcpfile.writeentry(ibendrequireds);
     end;
 
+  procedure tpcppackage.writepputable;
+    var
+      module : pcontainedunit;
+      i : longint;
+    begin
+      { no need to write the count again; it's the same as for the contained units }
+      for i:=0 to containedmodules.count-1 do
+        begin
+          module:=pcontainedunit(containedmodules[i]);
+          pcpfile.putlongint(module^.offset);
+          pcpfile.putlongint(module^.size);
+        end;
+      pcpfile.writeentry(ibpputable);
+    end;
+
+  procedure tpcppackage.writeppudata;
+    const
+      align: array[0..15] of byte = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
+    var
+      i,j,
+      pos,
+      rem : longint;
+      module : pcontainedunit;
+      stream : TCStream;
+    begin
+      pcpfile.flush;
+
+      for i:=0 to containedmodules.count-1 do
+        begin
+          module:=pcontainedunit(containedmodules[i]);
+
+          pos:=pcpfile.position;
+          { align to 16 byte so that it can be nicely viewed in hex editors;
+            maybe we could also use 512 byte alignment instead }
+          rem:=$f-(pos and $f);
+          pcpfile.stream.write(align[0],rem+1);
+          pcpfile.flush;
+          module^.offset:=pcpfile.position;
+
+          { retrieve substream for the current position }
+          stream:=pcpfile.substream(module^.offset,-1);
+          rewriteppu(module^.module.ppufilename,stream);
+          module^.size:=stream.position;
+          stream.free;
+        end;
+
+      pos:=pcpfile.position;
+      { align to 16 byte so that it can be nicely viewed in hex editors;
+        maybe we could also use 512 byte alignment instead }
+      rem:=$f-(pos and $f);
+      pcpfile.stream.write(align[0],rem+1);
+    end;
+
   procedure tpcppackage.readcontainernames;
     begin
       if pcpfile.readentry<>ibpackagefiles then
@@ -297,10 +354,12 @@ implementation
       for i:=0 to cnt-1 do
         begin
           name:=pcpfile.getstring;
-          path:=ChangeFileExt(pcpfile.getstring,'.ppl.ppu');
+          path:=pcpfile.getstring;
           new(p);
           p^.module:=nil;
           p^.ppufile:=path;
+          p^.offset:=0;
+          p^.size:=0;
           containedmodules.add(name,p);
           message1(package_u_contained_unit,name);
         end;
@@ -327,6 +386,24 @@ implementation
           name:=pcpfile.getstring;
           requiredpackages.add(name,nil);
           Writeln('Found required package ',name);
+        end;
+    end;
+
+  procedure tpcppackage.readpputable;
+    var
+      module : pcontainedunit;
+      i : longint;
+    begin
+      if pcpfile.readentry<>ibpputable then
+        begin
+          message(package_f_pcp_read_error);
+          internalerror(2015103001);
+        end;
+      for i:=0 to containedmodules.count-1 do
+        begin
+          module:=pcontainedunit(containedmodules[i]);
+          module^.offset:=pcpfile.getlongint;
+          module^.size:=pcpfile.getlongint;
         end;
     end;
 
@@ -371,9 +448,14 @@ implementation
       readrequiredpackages;
 
       readcontainedunits;
+
+      readpputable;
     end;
 
   procedure tpcppackage.savepcp;
+    var
+      tablepos,
+      oldpos : longint;
     begin
       { create new ppufile }
       pcpfile:=tpcpfile.create(pcpfilename);
@@ -389,7 +471,16 @@ implementation
 
       writecontainedunits;
 
-      //writeppus;
+      { the offsets and the contents of the ppus are not crc'd }
+      pcpfile.do_crc:=false;
+
+      pcpfile.flush;
+      tablepos:=pcpfile.position;
+
+      { this will write a table with empty entries }
+      writepputable;
+
+      pcpfile.do_crc:=true;
 
       { the last entry ibend is written automatically }
 
@@ -406,12 +497,41 @@ implementation
       pcpfile.header.requiredlistsize:=requiredpackages.count;
       pcpfile.writeheader;
 
+      { write the ppu table which will also fill the offsets/sizes }
+      writeppudata;
+
+      pcpfile.flush;
+      oldpos:=pcpfile.position;
+
+      { now write the filled PPU table at the previously stored position }
+      pcpfile.position:=tablepos;
+      writepputable;
+
+      pcpfile.position:=oldpos;
+
       { save crc in current module also }
       //crc:=pcpfile.crc;
 
       pcpfile.closefile;
       pcpfile.free;
       pcpfile:=nil;
+    end;
+
+  function tpcppackage.getmodulestream(module:tmodulebase):tcstream;
+    var
+      i : longint;
+      contained : pcontainedunit;
+    begin
+      for i:=0 to containedmodules.count-1 do
+        begin
+          contained:=pcontainedunit(containedmodules[i]);
+          if contained^.module=module then
+            begin
+              result:=pcpfile.substream(contained^.offset,contained^.size);
+              exit;
+            end;
+        end;
+      result:=nil;
     end;
 
   procedure tpcppackage.initmoduleinfo(module: tmodulebase);
@@ -426,6 +546,8 @@ implementation
       new(containedunit);
       containedunit^.module:=module;
       containedunit^.ppufile:=extractfilename(module.ppufilename);
+      containedunit^.offset:=0;
+      containedunit^.size:=0;
       containedmodules.add(module.modulename^,containedunit);
     end;
 

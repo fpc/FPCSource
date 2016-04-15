@@ -27,10 +27,10 @@ unit pkgutil;
 interface
 
   uses
-    fmodule,fpkg,link;
+    fmodule,fpkg,link,cstreams;
 
   procedure createimportlibfromexternals;
-  Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
+  Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
   procedure export_unit(u:tmodule);
   procedure load_packages;
   procedure add_package(const name:string;ignoreduplicates:boolean);
@@ -195,7 +195,7 @@ implementation
         varexport(make_mangledname('THREADVARLIST',u.globalsymtable,''));
     end;
 
-  Function RewritePPU(const PPUFn,PPLFn:String):Boolean;
+  Function RewritePPU(const PPUFn:String;OutStream:TCStream):Boolean;
     Var
       MakeStatic : Boolean;
     Var
@@ -261,11 +261,8 @@ implementation
          MakeStatic:=true;
        end;
     { Create the new ppu }
-      if PPUFn=PPLFn then
-       outppu:=tppufile.create('ppumove.$$$')
-      else
-       outppu:=tppufile.create(PPLFn);
-      outppu.createfile;
+      outppu:=tppufile.create(PPUFn);
+      outppu.createstream(OutStream);
     { Create new header, with the new flags }
       outppu.header:=inppu.header;
       outppu.header.common.flags:=outppu.header.common.flags or uf_in_library;
@@ -379,17 +376,6 @@ implementation
       outppu.writeheader;
       outppu.free;
       inppu.free;
-    { rename }
-      if PPUFn=PPLFn then
-       begin
-         {$push}{$I-}
-          assign(f,PPUFn);
-          erase(f);
-          assign(f,'ppumove.$$$');
-          rename(f,PPUFn);
-         {$pop}
-         if ioresult<>0 then;
-       end;
       Result:=True;
     end;
 

@@ -127,7 +127,7 @@ uses
   aasmbase,ogbase,
   parser,
   comphook,
-  entfile,fpkg;
+  entfile,fpkg,fpcp;
 
 
 var
@@ -517,7 +517,7 @@ var
       end;
 
     function tppumodule.loadfrompackage: boolean;
-      var
+      (*var
         singlepathstring,
         filename : TCmdStr;
 
@@ -540,7 +540,7 @@ var
             if Found then
              Begin
                SetFileName(hs,false);
-               Found:=openppufile;
+               //Found:=OpenPPU;
              End;
             PPUSearchPath:=Found;
           end;
@@ -560,12 +560,13 @@ var
                hp:=TCmdStrListItem(hp.next);
              end;
             SearchPathList:=found;
-          end;
+          end;*)
 
       var
         pkg : ppackageentry;
         pkgunit : pcontainedunit;
         i,idx : longint;
+        strm : TCStream;
       begin
         result:=false;
         for i:=0 to packagelist.count-1 do
@@ -580,10 +581,17 @@ var
                 pkgunit:=pcontainedunit(pkg^.package.containedmodules[idx]);
                 if not assigned(pkgunit^.module) then
                   pkgunit^.module:=self;
-                filename:=pkgunit^.ppufile;
+                { ToDo: check whether we really don't need this anymore }
+                {filename:=pkgunit^.ppufile;
                 if not SearchPathList(unitsearchpath) then
+                  exit};
+                strm:=tpcppackage(pkg^.package).getmodulestream(self);
+                if not assigned(strm) then
+                  internalerror(2015103002);
+                if not openppustream(strm) then
                   exit;
                 package:=pkg^.package;
+                Message2(unit_u_loading_from_package,modulename^,pkg^.package.packagename^);
 
                 { now load the unit and all used units }
                 load_interface;

@@ -34,6 +34,8 @@ interface
     tcontainedunit=record
       module:tmodulebase;
       ppufile:tpathstr;
+      offset:longint;
+      size:longint;
     end;
     pcontainedunit=^tcontainedunit;
 

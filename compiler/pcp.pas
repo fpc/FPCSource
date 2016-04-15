@@ -29,7 +29,7 @@ interface
     cstreams,entfile;
 
   const
-    CurrentPCPVersion=2;
+    CurrentPCPVersion=3;
 
   { unit flags }
     //uf_init                = $000001; { unit has initialization section }
@@ -59,6 +59,7 @@ interface
       header : tpcpheader;
       { crc for the entire package }
       crc : cardinal;
+      do_crc : boolean;
     protected
       function getheadersize:longint;override;
       function getheaderaddr:pentryheader;override;
@@ -68,9 +69,13 @@ interface
     public
       procedure writeheader;override;
       function checkpcpid:boolean;
+      procedure putdata(const b;len:integer);override;
     end;
 
 implementation
+
+uses
+  fpccrc;
 
   { tpcpfile }
 
@@ -142,6 +147,7 @@ implementation
   procedure tpcpfile.resetfile;
     begin
       crc:=0;
+      do_crc:=true;
     end;
 
 
@@ -181,6 +187,16 @@ implementation
       result:=((Header.common.Id[1]='P') and
                 (Header.common.Id[2]='C') and
                 (Header.common.Id[3]='P'));
+    end;
+
+
+  procedure tpcpfile.putdata(const b;len:integer);
+    begin
+      if do_crc then
+        begin
+          crc:=UpdateCrc32(crc,b,len);
+        end;
+      inherited putdata(b, len);
     end;
 
 
