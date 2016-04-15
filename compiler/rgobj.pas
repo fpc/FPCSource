@@ -1465,7 +1465,6 @@ unit rgobj;
                    reginfo[n].colour:=c;
                    found:=true;
                    supregset_include(colourednodes,n);
-                   include(used_in_proc,c);
                    break;
                  end;
             end;
@@ -1478,8 +1477,6 @@ unit rgobj;
           n:=coalescednodes.buf^[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
-          if reginfo[k].colour<first_imaginary then
-            include(used_in_proc,reginfo[k].colour);
         end;
     end;
 
@@ -1806,6 +1803,8 @@ unit rgobj;
                         else
                           begin
                             u:=reginfo[getsupreg(reg)].colour;
+                            include(used_in_proc,u);
+
 {$ifdef EXTDEBUG}
                             if u>=maxreginfo then
                               internalerror(2015040501);
