@@ -78,10 +78,14 @@ implementation
       for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
         begin
           if not(tprocdef(tprocsym(sym).ProcdefList[i]).proccalloption in [pocall_internproc]) and
-            ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
-            ((symtable.symtabletype in [globalsymtable,recordsymtable,objectsymtable]) or
-             ((symtable.symtabletype=staticsymtable) and (po_public in tprocdef(tprocsym(sym).ProcdefList[i]).procoptions))
-            ) then
+              ((tprocdef(tprocsym(sym).ProcdefList[i]).procoptions*[po_external])=[]) and
+              (
+                (symtable.symtabletype in [globalsymtable,recordsymtable,objectsymtable]) or
+                (
+                  (symtable.symtabletype=staticsymtable) and
+                  ([po_public,po_has_public_name]*tprocdef(tprocsym(sym).ProcdefList[i]).procoptions<>[])
+                )
+              ) then
             begin
               exportallprocdefnames(tprocsym(sym),tprocdef(tprocsym(sym).ProcdefList[i]),[]);
             end;
@@ -170,11 +174,14 @@ implementation
           begin
             if publiconly and not (vo_is_public in tstaticvarsym(sym).varoptions) then
               exit;
-            varexport(tsym(sym).mangledname);
+            if target_info.system in systems_indirect_var_imports then
+              varexport(tsym(sym).mangledname)
+            else
+              varexport(tsym(sym).mangledname+suffix_indirect);
           end;
         else
           begin
-            writeln('unknown: ',ord(TSym(sym).typ));
+            writeln('unknown: ',TSym(sym).typ);
           end;
       end;
     end;
@@ -233,13 +240,6 @@ implementation
          Comment(V_Error,'Wrong PPU Version '+tostr(ppuversion)+' in '+PPUFn);
          Exit;
        end;
-    { No .o file generated for this ppu, just skip }
-      if (inppu.header.common.flags and uf_no_link)<>0 then
-       begin
-         inppu.free;
-         Result:=true;
-         Exit;
-       end;
     { Already a lib? }
       if (inppu.header.common.flags and uf_in_library)<>0 then
        begin
@@ -247,8 +247,8 @@ implementation
          Comment(V_Error,'PPU is already in a library : '+PPUFn);
          Exit;
        end;
-    { We need a static linked unit }
-      if (inppu.header.common.flags and uf_static_linked)=0 then
+    { We need a static linked unit, but we also accept those without .o file }
+      if (inppu.header.common.flags and (uf_static_linked or uf_no_link))=0 then
        begin
          inppu.free;
          Comment(V_Error,'PPU is not static linked : '+PPUFn);
@@ -440,6 +440,8 @@ implementation
       i : longint;
       pkgname : tpathstr;
     begin
+      if not (target_info.system in systems_indirect_var_imports) then
+        exit;
       for i:=0 to packagelist.count-1 do
         begin
           pkgentry:=ppackageentry(packagelist[i]);

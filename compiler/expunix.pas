@@ -131,6 +131,8 @@ procedure texportlibunix.generatelib;  // straight t_linux copy for now.
 var
   hp2 : texported_item;
   pd  : tprocdef;
+  anyhasalias : boolean;
+  i : longint;
 {$ifdef x86}
   sym : tasmsymbol;
   r : treference;
@@ -147,8 +149,17 @@ begin
       begin
         { the manglednames can already be the same when the procedure
           is declared with cdecl }
-        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
-        if not has_alias_name(pd,hp2.name^) then
+        { note: for "exports" sections we only allow non overloaded procsyms,
+                so checking all symbols only matters for packages }
+        anyhasalias:=false;
+        for i:=0 to tprocsym(hp2.sym).procdeflist.count-1 do
+          begin
+            pd:=tprocdef(tprocsym(hp2.sym).procdeflist[i]);
+            anyhasalias:=has_alias_name(pd,hp2.name^);
+            if anyhasalias then
+              break;
+          end;
+        if not anyhasalias then
          begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
