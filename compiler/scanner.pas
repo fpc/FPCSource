@@ -4231,7 +4231,7 @@ type
         if c=' ' then
          begin
            current_scanner.skipspace;
-           if c='}' then
+           if c in ['*','}'] then
              state:=fallback
            else
              begin
@@ -4244,7 +4244,7 @@ type
              end;
          end
         else
-          if c='}' then
+          if c in ['*','}'] then
             state:=fallback
           else
             state:=c;
