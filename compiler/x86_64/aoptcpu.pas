@@ -27,11 +27,12 @@ unit aoptcpu;
 
 interface
 
-uses cpubase, aasmtai, aopt, aoptcpub;
+uses cgbase, cpubase, aasmtai, aopt, aoptcpub;
 
 type
   TCpuAsmOptimizer = class(TAsmOptimizer)
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
+    function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
   end;
 
 implementation
@@ -40,7 +41,7 @@ uses
   globtype, globals,
   cutils,
   verbose,
-  cgbase, cgutils,
+  cgutils,
   aoptobj,
   aasmbase, aasmdata, aasmcpu,
   aoptx86,
@@ -62,6 +63,40 @@ begin
         (taicpu(hp1).oper[0]^.typ = top_reg) and
         (taicpu(hp1).oper[0]^.reg = reg);
     end;
+end;
+
+
+function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
+var
+  p: taicpu;
+begin
+  if not assigned(hp) or
+     (hp.typ <> ait_instruction) then
+   begin
+     Result := false;
+     exit;
+   end;
+  p := taicpu(hp);
+  Result :=
+    (((p.opcode = A_MOV) or
+      (p.opcode = A_MOVZX) or
+      (p.opcode = A_MOVSX) or
+      (p.opcode = A_LEA) or
+      (p.opcode = A_VMOVSS) or
+      (p.opcode = A_VMOVSD) or
+      (p.opcode = A_VMOVQ) or
+      (p.opcode = A_MOVSS) or
+      (p.opcode = A_MOVSD) or
+      (p.opcode = A_MOVQ)) and
+     (p.oper[1]^.typ = top_reg) and
+     (getsupreg(p.oper[1]^.reg) = getsupreg(reg)) and
+     ((p.oper[0]^.typ = top_const) or
+      ((p.oper[0]^.typ = top_reg) and
+       (getsupreg(p.oper[0]^.reg) <> getsupreg(reg))) or
+      ((p.oper[0]^.typ = top_ref) and
+       not RegInRef(reg,p.oper[0]^.ref^)))) or
+    ((p.opcode = A_POP) and
+     (getsupreg(p.oper[0]^.reg) = getsupreg(reg)));
 end;
 
 
