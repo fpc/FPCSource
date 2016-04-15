@@ -85,6 +85,8 @@ interface
       true) }
     procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
 
+    procedure import_external_proc(pd:tprocdef);
+
     procedure generate_specialization_procs;
 
 
@@ -2160,24 +2162,7 @@ implementation
              { Handle imports }
              if (po_external in pd.procoptions) then
                begin
-                 { Import DLL specified? }
-                 if assigned(pd.import_dll) then
-                   begin
-                     if assigned (pd.import_name) then
-                       current_module.AddExternalImport(pd.import_dll^,
-                         pd.import_name^,proc_get_importname(pd),
-                         pd.import_nr,false,false)
-                     else
-                       current_module.AddExternalImport(pd.import_dll^,
-                         proc_get_importname(pd),proc_get_importname(pd),
-                         pd.import_nr,false,true);
-                   end
-                 else
-                   begin
-                     { add import name to external list for DLL scanning }
-                     if tf_has_dllscanner in target_info.flags then
-                       current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
-                   end;
+                 import_external_proc(pd);
 {$ifdef cpuhighleveltarget}
                  { it's hard to factor this out in a virtual method, because the
                    generic version (the one inside this ifdef) doesn't fit in
@@ -2222,6 +2207,31 @@ implementation
          current_procinfo:=old_current_procinfo;
       end;
 
+
+    procedure import_external_proc(pd:tprocdef);
+      begin
+        if not (po_external in pd.procoptions) then
+          internalerror(2015121101);
+
+        { Import DLL specified? }
+        if assigned(pd.import_dll) then
+          begin
+            if assigned (pd.import_name) then
+              current_module.AddExternalImport(pd.import_dll^,
+                pd.import_name^,proc_get_importname(pd),
+                pd.import_nr,false,false)
+            else
+              current_module.AddExternalImport(pd.import_dll^,
+                proc_get_importname(pd),proc_get_importname(pd),
+                pd.import_nr,false,true);
+          end
+        else
+          begin
+            { add import name to external list for DLL scanning }
+            if tf_has_dllscanner in target_info.flags then
+              current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
+          end;
+      end;
 
 {****************************************************************************
                              DECLARATION PARSING

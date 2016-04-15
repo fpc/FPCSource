@@ -46,6 +46,7 @@ implementation
     cutils,
     globals,verbose,
     symtype,symconst,symsym,symdef,symbase,symtable,
+    psub,
     ppu,entfile,fpcp,
     export;
 
@@ -96,7 +97,7 @@ implementation
     end;
 
 
-  procedure exportabstractrecorddef(def:tabstractrecorddef); forward;
+  procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable); forward;
 
 
   procedure exportabstractrecordsymproc(sym:tobject;arg:pointer);
@@ -109,7 +110,7 @@ implementation
             case ttypesym(sym).typedef.typ of
               objectdef,
               recorddef:
-                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef));
+                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
             end;
           end;
         procsym:
@@ -127,10 +128,13 @@ implementation
     end;
 
 
-  procedure exportabstractrecorddef(def:tabstractrecorddef);
+  procedure exportabstractrecorddef(def:tabstractrecorddef;symtable:tsymtable);
     var
       hp : texported_item;
     begin
+      { for cross unit type aliases this might happen }
+      if def.owner<>symtable then
+        exit;
       def.symtable.SymList.ForEachCall(@exportabstractrecordsymproc,def.symtable);
       { don't export generics or their nested types }
       if df_generic in def.defoptions then
@@ -166,7 +170,7 @@ implementation
             case ttypesym(sym).typedef.typ of
               recorddef,
               objectdef:
-                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef));
+                exportabstractrecorddef(tabstractrecorddef(ttypesym(sym).typedef),tsymtable(arg));
             end;
           end;
         procsym:
@@ -538,6 +542,9 @@ implementation
         item : TCmdStrListItem;
       begin
         item := TCmdStrListItem(pd.aliasnames.first);
+        if not assigned(item) then
+          { at least import the mangled name }
+          current_module.addexternalimport(pkg.pplfilename,pd.mangledname,pd.mangledname,0,false,false);
         while assigned(item) do
           begin
             current_module.addexternalimport(pkg.pplfilename,item.str,item.str,0,false,false);
@@ -600,7 +607,12 @@ implementation
                               for l:=0 to tprocsym(sym).procdeflist.count-1 do
                                 begin
                                   pd:=tprocdef(tprocsym(sym).procdeflist[l]);
-                                  import_proc_symbol(pd,pkgentry^.package);
+                                  if [po_external,po_has_importdll]*pd.procoptions=[po_external,po_has_importdll] then
+                                    { if we use an external procedure of another unit we
+                                      need to import it ourselves from the correct library }
+                                    import_external_proc(pd)
+                                  else
+                                    import_proc_symbol(pd,pkgentry^.package);
                                 end;
                             end;
                           else
