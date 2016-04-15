@@ -138,6 +138,7 @@ var
   r : treference;
 {$endif x86}
 begin
+  pd:=nil;
   create_hlcodegen;
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
