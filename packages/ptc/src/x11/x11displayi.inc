@@ -448,7 +448,7 @@ var
   sym: TKeySym;
   sym_modded: TKeySym; { modifiers like shift are taken into account here }
   press: Boolean;
-  alt, shift, ctrl: Boolean;
+  modkeys: TPTCModifierKeys;
   uni: Integer;
   key: TPTCKeyEvent;
   buf: array [1..16] of Char;
@@ -457,9 +457,13 @@ begin
   XLookupString(@e, @buf, SizeOf(buf), @sym_modded, nil);
 //  Writeln('sym_modded = ', sym_modded);
   uni := X11ConvertKeySymToUnicode(sym_modded);
-  alt := (e.state and Mod1Mask) <> 0;
-  shift := (e.state and ShiftMask) <> 0;
-  ctrl := (e.state and ControlMask) <> 0;
+  modkeys := [];
+  if (e.state and Mod1Mask) <> 0 then
+    Include(modkeys, pmkAlt);
+  if (e.state and ShiftMask) <> 0 then
+    Include(modkeys, pmkShift);
+  if (e.state and ControlMask) <> 0 then
+    Include(modkeys, pmkControl);
   if e._type = KeyPress then
     press := True
   else
@@ -470,7 +474,7 @@ begin
   begin
     sym_modded := XK_Tab;
     uni := 9;
-    shift := True;
+    Include(modkeys, pmkShift);
   end;
 
   // Hack, used for handling the code of Shift-Key combinations
@@ -489,8 +493,8 @@ begin
 
   key := nil;
   case sym_modded shr 8 of
-    0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
-    $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, alt, shift, ctrl, press);
+    0: key := TPTCKeyEvent.Create(FNormalKeys[sym_modded and $FF], uni, modkeys, press);
+    $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym_modded and $FF], uni, modkeys, press);
     else
       key := TPTCKeyEvent.Create;
   end;
