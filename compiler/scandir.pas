@@ -118,11 +118,14 @@ unit scandir;
       end;
 
 
-    procedure do_moduleflagswitch(flag:cardinal);
+    procedure do_moduleflagswitch(flag:cardinal;optional:boolean);
       var
         state : char;
       begin
-        state:=current_scanner.readstate;
+        if optional then
+          state:=current_scanner.readoptionalstate('+')
+        else
+          state:=current_scanner.readstate;
         if state='-' then
           current_module.flags:=current_module.flags and not flag
         else
@@ -381,7 +384,7 @@ unit scandir;
 
     procedure dir_denypackageunit;
       begin
-        do_moduleflagswitch(uf_package_deny);
+        do_moduleflagswitch(uf_package_deny,true);
       end;
 
     procedure dir_description;
@@ -1584,7 +1587,9 @@ unit scandir;
 
     procedure dir_weakpackageunit;
       begin
-        do_moduleflagswitch(uf_package_weak);
+        { old Delphi versions seem to use merely $WEAKPACKAGEUNIT while newer
+          Delphis have $WEAPACKAGEUNIT ON... :/ }
+        do_moduleflagswitch(uf_package_weak, true);
       end;
 
     procedure dir_writeableconst;

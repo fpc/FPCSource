@@ -211,6 +211,7 @@ interface
           function  readcomment:string;
           function  readquotedstring:string;
           function  readstate:char;
+          function  readoptionalstate(fallback:char):char;
           function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
@@ -4219,6 +4220,37 @@ type
         if not (state in ['+','-']) then
          Message(scan_e_wrong_switch_toggle);
         readstate:=state;
+      end;
+
+
+    function tscannerfile.readoptionalstate(fallback:char):char;
+      var
+        state : char;
+      begin
+        state:=' ';
+        if c=' ' then
+         begin
+           current_scanner.skipspace;
+           if c='}' then
+             state:=fallback
+           else
+             begin
+               current_scanner.readid;
+               if pattern='ON' then
+                state:='+'
+               else
+                if pattern='OFF' then
+                 state:='-';
+             end;
+         end
+        else
+          if c='}' then
+            state:=fallback
+          else
+            state:=c;
+        if not (state in ['+','-']) then
+         Message(scan_e_wrong_switch_toggle);
+        readoptionalstate:=state;
       end;
 
 
