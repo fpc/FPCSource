@@ -909,10 +909,9 @@ unit cgx86;
 
       begin
         check_register_size(tosize,reg);
-        if a=0 then
-          list.concat(taicpu.op_reg_reg(A_XOR,TCGSize2OpSize[tosize],reg,reg))
-        else
-          list.concat(taicpu.op_const_reg(A_MOV,TCGSize2OpSize[tosize],a,reg));
+        { the optimizer will change it to "xor reg,reg" when loading zero, }
+        { no need to do it here too (JM)                                   }
+        list.concat(taicpu.op_const_reg(A_MOV,TCGSize2OpSize[tosize],a,reg))
       end;
 
 
