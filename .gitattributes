@@ -8169,6 +8169,7 @@ rtl/amicommon/classes.pp svneol=native#text/plain
 rtl/amicommon/dos.pp svneol=native#text/plain
 rtl/amicommon/osdebug.inc svneol=native#text/plain
 rtl/amicommon/osdebugh.inc svneol=native#text/plain
+rtl/amicommon/paramhandling.inc svneol=native#text/plain
 rtl/amicommon/rtldefs.inc svneol=native#text/plain
 rtl/amicommon/sysdir.inc svneol=native#text/plain
 rtl/amicommon/sysfile.inc svneol=native#text/plain
