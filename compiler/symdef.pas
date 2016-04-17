@@ -6401,7 +6401,9 @@ implementation
          pno:=[];
 {$endif EXTDEBUG}
          s:='<';
-         if po_classmethod in procoptions then
+         if po_is_block in procoptions then
+           s := s+'reference to'
+         else if po_classmethod in procoptions then
            s := s+'class method type of'
          else
            if po_addressonly in procoptions then
@@ -6417,11 +6419,7 @@ implementation
            s := s+' of object';
          if is_nested_pd(self) then
            s := s+' is nested';
-         { calling convention doesn't matter for blocks }
-         if po_is_block in procoptions then
-           GetTypeName := s+' is block;'
-         else
-           GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
+         GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 
