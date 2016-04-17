@@ -6355,6 +6355,7 @@ implementation
     function tprocvardef.is_addressonly:boolean;
       begin
         result:=(not(po_methodpointer in procoptions) and
+                 not(po_is_block in procoptions) and
                  not is_nested_pd(self)) or
                 (po_addressonly in procoptions);
       end;
