@@ -48,7 +48,8 @@ Type
      (fpu_none,
       fpu_soft,
       fpu_libgcc,
-      fpu_68881
+      fpu_68881,
+      fpu_coldfire
      );
 
    tcontrollertype =
@@ -108,10 +109,11 @@ Const
      'isac'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[8] = ('',
      'SOFT',
      'LIBGCC',
-     '68881'
+     '68881',
+     'COLDFIRE'
    );
 
    { Supported optimizations, only used for information }

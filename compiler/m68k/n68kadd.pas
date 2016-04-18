@@ -140,7 +140,7 @@ implementation
           swapleftright;
 
         case current_settings.fputype of
-          fpu_68881:
+          fpu_68881,fpu_coldfire:
             begin
               { have left in the register, right can be a memory location }
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -153,11 +153,11 @@ implementation
               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_FX,right.location.register,location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregsize,right.location.register,location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
                     end
                 else
@@ -182,7 +182,7 @@ implementation
           swapleftright;
 
         case current_settings.fputype of
-          fpu_68881:
+          fpu_68881,fpu_coldfire:
             begin
               { force left fpureg as register, right can be reference }
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -190,11 +190,11 @@ implementation
               { emit compare }
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,S_FX,right.location.register,left.location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregsize,right.location.register,left.location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
                     end
                 else

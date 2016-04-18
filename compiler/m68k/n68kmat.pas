@@ -194,18 +194,18 @@ implementation
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
             end;
           LOC_FPUREGISTER:
             begin
               location.register:=left.location.register;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,S_FX,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregsize,location.register));
             end;
           LOC_CFPUREGISTER:
             begin
                location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,S_FX,left.location.register,location.register));
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregsize,left.location.register,location.register));
             end;
           else
             internalerror(200306021);

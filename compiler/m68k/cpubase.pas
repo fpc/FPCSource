@@ -28,7 +28,7 @@ unit cpubase;
   interface
 
   uses
-    globtype,
+    globtype,globals,
     strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 {*****************************************************************************
@@ -356,6 +356,7 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
     function isintregister(reg : tregister) : boolean;
+    function fpuregsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function isregoverlap(reg1: tregister; reg2: tregister): boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -471,15 +472,17 @@ implementation
 
 
     function reg_cgsize(const reg: tregister): tcgsize;
+      { 68881 & compatibles -> 80 bit }
+      { CF FPU -> 64 bit }
+      const
+        fpureg_cgsize: array[boolean] of tcgsize = ( OS_F80, OS_F64 );
       begin
         case getregtype(reg) of
           R_ADDRESSREGISTER,
           R_INTREGISTER :
             result:=OS_32;
           R_FPUREGISTER :
-            { 68881 & compatibles -> 80 bit }
-            { CF FPU -> 64 bit, but that's unsupported for now }
-            result:=OS_F80;
+            result:=fpureg_cgsize[current_settings.fputype = fpu_coldfire];
           else
             internalerror(200303181);
         end;
@@ -518,6 +521,13 @@ implementation
     function isintregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=getregtype(reg)=R_INTREGISTER;
+      end;
+
+    function fpuregsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        fpu_regsize: array[boolean] of TOpSize = ( S_FX, S_FD );
+      begin
+        result:=fpu_regsize[current_settings.fputype = fpu_coldfire];
       end;
 
     // the function returns true, if the registers overlap (subreg of the same superregister and same type)

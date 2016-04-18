@@ -559,14 +559,14 @@ unit cgcpu;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
-        if current_settings.fputype in [fpu_68881] then
+        if current_settings.fputype in [fpu_68881,fpu_coldfire] then
           alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         alloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name(list,name,false);
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         dealloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
-        if current_settings.fputype in [fpu_68881] then
+        if current_settings.fputype in [fpu_68881,fpu_coldfire] then
           dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg);
@@ -594,14 +594,14 @@ unit cgcpu;
         paramanager.freecgpara(list,paraloc3);
         paramanager.freecgpara(list,paraloc2);
         paramanager.freecgpara(list,paraloc1);
-        if current_settings.fputype in [fpu_68881] then
+        if current_settings.fputype in [fpu_68881,fpu_coldfire] then
           alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
         a_call_name(list,name,false);
         dealloccpuregisters(list,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        if current_settings.fputype in [fpu_68881] then
+        if current_settings.fputype in [fpu_68881,fpu_coldfire] then
           dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         cg.a_load_reg_reg(list,OS_32,OS_32,NR_FUNCTION_RESULT_REG,reg2);
@@ -889,7 +889,7 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-        instr:=taicpu.op_reg_reg(A_FMOVE,S_FX,reg1,reg2);
+        instr:=taicpu.op_reg_reg(A_FMOVE,fpuregsize,reg1,reg2);
         add_move_instruction(instr);
         list.concat(instr);
       end;
@@ -901,11 +901,8 @@ unit cgcpu;
         href : treference;
       begin
         opsize := tcgsize2opsize[fromsize];
-        { extended is not supported, since it is not available on Coldfire }
-        if opsize = S_FX then
-          internalerror(20020729);
         href := ref;
-        fixref(list,href,false);
+        fixref(list,href,current_settings.fputype = fpu_coldfire);
         list.concat(taicpu.op_ref_reg(A_FMOVE,opsize,href,reg));
       end;
 
@@ -915,11 +912,8 @@ unit cgcpu;
         href : treference;
       begin
         opsize := tcgsize2opsize[tosize];
-        { extended is not supported, since it is not available on Coldfire }
-        if opsize = S_FX then
-          internalerror(20020729);
         href := ref;
-        fixref(list,href,false);
+        fixref(list,href,current_settings.fputype = fpu_coldfire);
         list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg,href));
       end;
 
@@ -927,7 +921,7 @@ unit cgcpu;
       var
         ref : treference;
       begin
-        if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
+        if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
           begin
             cgpara.check_simple_location;
             { FIXME: 68k cg really needs to support 2 byte stack alignment, otherwise the "Extended"
@@ -943,7 +937,6 @@ unit cgcpu;
     procedure tcg68k.a_loadfpu_ref_cgpara(list : TAsmList; size : tcgsize;const ref : treference;const cgpara : TCGPara);
       var
         href : treference;
-        fref : treference;
         freg : tregister;
       begin
         if current_settings.fputype = fpu_soft then
@@ -963,13 +956,11 @@ unit cgcpu;
               inherited a_loadfpu_ref_cgpara(list,size,ref,cgpara);
           end
         else
-          if use_push(cgpara) and (current_settings.fputype in [fpu_68881]) then
+          if use_push(cgpara) and (current_settings.fputype in [fpu_68881,fpu_coldfire]) then
             begin
-              fref:=ref;
-              fixref(list,fref,false);
               { fmove can't do <ea> -> <ea>, so move it to an fpreg first }
               freg:=getfpuregister(list,size);
-              a_loadfpu_ref_reg(list,size,size,fref,freg);
+              a_loadfpu_ref_reg(list,size,size,ref,freg);
               reference_reset_base(href, NR_STACK_POINTER_REG, 0, cgpara.alignment);
               href.direction := dir_dec;
               list.concat(taicpu.op_reg_ref(A_FMOVE,tcgsize2opsize[cgpara.location^.size],freg,href));
@@ -1796,9 +1787,9 @@ unit cgcpu;
                 { size is always longword aligned, while fsize is not }
                 inc(href.offset,size);
                 if fsize = 12{sizeof(extended)} then
-                  list.concat(taicpu.op_reg_ref(A_FMOVE,S_FX,hfreg,href))
+                  list.concat(taicpu.op_reg_ref(A_FMOVE,fpuregsize,hfreg,href))
                 else
-                  list.concat(taicpu.op_regset_ref(A_FMOVEM,S_FX,[],[],fpuregs,href));
+                  list.concat(taicpu.op_regset_ref(A_FMOVEM,fpuregsize,[],[],fpuregs,href));
               end;
           end;
       end;
@@ -1884,9 +1875,9 @@ unit cgcpu;
             { size is always longword aligned, while fsize is not }
             inc(href.offset,size);
             if fsize = 12{sizeof(extended)} then
-              list.concat(taicpu.op_ref_reg(A_FMOVE,S_FX,href,hfreg))
+              list.concat(taicpu.op_ref_reg(A_FMOVE,fpuregsize,href,hfreg))
             else
-              list.concat(taicpu.op_ref_regset(A_FMOVEM,S_FX,href,[],[],fpuregs));
+              list.concat(taicpu.op_ref_regset(A_FMOVEM,fpuregsize,href,[],[],fpuregs));
           end;
 
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);

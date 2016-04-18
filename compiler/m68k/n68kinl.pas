@@ -71,7 +71,7 @@ implementation
         else
           begin
             case current_settings.fputype of
-              fpu_68881:
+              fpu_68881,fpu_coldfire:
                 expectloc:=LOC_FPUREGISTER;
               else
                 internalerror(2015022206);
@@ -87,7 +87,7 @@ implementation
         else
           begin
             case current_settings.fputype of
-              fpu_68881:
+              fpu_68881,fpu_coldfire:
                 expectloc:=LOC_FPUREGISTER;
               else
                 internalerror(2015022201);
@@ -103,7 +103,7 @@ implementation
         else
           begin
             case current_settings.fputype of
-              fpu_68881:
+              fpu_68881,fpu_coldfire:
                 expectloc:=LOC_FPUREGISTER;
               else
                 internalerror(2015022203);
@@ -121,6 +121,11 @@ implementation
             case current_settings.fputype of
               fpu_68881:
                 expectloc:=LOC_FPUREGISTER;
+              fpu_soft,fpu_coldfire:
+                begin
+                  result:=inherited first_sin_real;
+                  exit;
+                end;
               else
                 internalerror(2015022203);
             end;
@@ -137,6 +142,11 @@ implementation
             case current_settings.fputype of
               fpu_68881:
                 expectloc:=LOC_FPUREGISTER;
+              fpu_soft,fpu_coldfire:
+                begin
+                  result:=inherited first_sin_real;
+                  exit;
+                end;
               else
                 internalerror(2015022203);
             end;
@@ -154,7 +164,7 @@ implementation
       begin
         secondpass(left);
         case current_settings.fputype of
-          fpu_68881:
+          fpu_68881,fpu_coldfire:
             begin
               //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('second_sqr_real called!')));
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -166,7 +176,7 @@ implementation
                   location.loc := LOC_FPUREGISTER;
                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
                 end;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,S_FX,left.location.register,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregsize,left.location.register,location.register));
             end;
         else
           internalerror(2015022202);
@@ -197,7 +207,7 @@ implementation
       begin
         secondpass(left);
         case current_settings.fputype of
-          fpu_68881:
+          fpu_68881,fpu_coldfire:
             begin
               location_reset(location,LOC_FPUREGISTER,left.location.size);
 
@@ -205,18 +215,18 @@ implementation
                 LOC_FPUREGISTER:
                   begin
                     location.register:=left.location.register;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,S_FX,location.register))
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,fpuregsize,location.register))
                   end;
                 LOC_CFPUREGISTER:
                   begin
                     location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_FX,left.location.register,location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregsize,left.location.register,location.register));
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin
                     location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                     href:=left.location.reference;
-                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                    tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
                     current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[left.location.size],href,location.register));
                   end;
                 else
