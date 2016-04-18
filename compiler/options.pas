@@ -3905,6 +3905,10 @@ begin
       end;
   end;
 {$endif mipsel}
+{$ifdef m68k}
+  if init_settings.cputype in cpu_coldfire then
+    def_system_macro('CPUCOLDFIRE');
+{$endif m68k}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
