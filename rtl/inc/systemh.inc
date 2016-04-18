@@ -210,12 +210,12 @@ Type
 {$ifdef CPUM68K}
   {$define DEFAULT_DOUBLE}
 
-  {$ifdef FPUSOFT}
+  {$if defined(CPUCOLDFIRE) or defined(CPU68000)}
     {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
     {$define FPC_INCLUDE_SOFTWARE_MUL}
   {$endif}
 
-  { m68k int64 shl/shr uses soft helper for non constaznt values }
+  { m68k int64 shl/shr uses soft helper for non constant values }
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$define SUPPORT_SINGLE}
