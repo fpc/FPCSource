@@ -2025,7 +2025,7 @@ Var
   Str : TStream;
   CWhite : TFPColor; // white color
 begin
-  FillChar(CWhite, SizeOf(CWhite), $FF);
+  FillMem(@CWhite, SizeOf(CWhite), $FF);
   FWidth:=Image.Width;
   FHeight:=Image.Height;
   Str := nil;
@@ -3541,7 +3541,7 @@ end;
 Function TPDFDocument.CreateFontDefs : TPDFFontDefs;
 
 begin
-  TPDFFontDefs.Create(TPDFFont);
+  Result := TPDFFontDefs.Create(TPDFFont);
 end;
 
 Function TPDFDocument.CreatePDFInfos : TPDFInfos;
@@ -3553,7 +3553,7 @@ end;
 Function TPDFDocument.CreatePDFImages : TPDFImages;
 
 begin
-Result:=TPDFImages.Create(Self,TPDFImageItem);
+  Result:=TPDFImages.Create(Self,TPDFImageItem);
 end;
 
 Function TPDFDocument.CreatePDFPages : TPDFPages;

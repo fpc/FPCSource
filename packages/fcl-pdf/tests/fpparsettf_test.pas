@@ -9,7 +9,7 @@ uses
   {$ifdef fptest}
   ,TestFramework
   {$else}
-  ,fpcunit, testutils, testregistry
+  ,fpcunit, testregistry
   {$endif}
   ,fpparsettf
   ;
@@ -356,7 +356,6 @@ implementation
 uses
   dateutils
   ,strutils
-  ,IniFiles
   ;
 
 const

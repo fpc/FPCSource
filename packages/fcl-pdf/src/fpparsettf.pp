@@ -864,17 +864,17 @@ end;
 
 function TTFFileInfo.Ascender: SmallInt;
 begin
-  Result:=ToNatural(FOS2Data.sTypoAscender);         // 2 bytes
+  Result:=FOS2Data.sTypoAscender;
 end;
 
 function TTFFileInfo.Descender: SmallInt;
 begin
-  Result := ToNatural(FOS2Data.sTypoDescender);        // 2 bytes
+  Result := FOS2Data.sTypoDescender;
 end;
 
 function TTFFileInfo.Leading: SmallInt;
 begin
-  Result := ToNatural(FOS2Data.sTypoLineGap);
+  Result := FOS2Data.sTypoLineGap;
 end;
 
 function TTFFileInfo.CapHeight: SmallInt;
@@ -882,7 +882,7 @@ begin
   With FOS2Data do
     begin
     if Version>= 2 then
-      Result:=ToNatural(sCapHeight)
+      Result:=sCapHeight
     else
       Result:=Ascender;
     end;

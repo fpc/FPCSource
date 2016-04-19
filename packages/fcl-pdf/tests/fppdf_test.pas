@@ -9,7 +9,7 @@ uses
   {$ifdef fptest}
   ,TestFramework
   {$else}
-  ,fpcunit, testutils, testregistry
+  ,fpcunit, testregistry
   {$endif}
   ,fppdf
   ;
@@ -73,6 +73,7 @@ type
     procedure   TestWrite;
     procedure   TestValidNames1;
     procedure   TestValidNames2;
+    procedure   TestValidNames3;
   end;
 
 
@@ -232,7 +233,8 @@ type
 
   TTestTPDFImageItem = class(TTestCase)
   published
-    procedure TestCreateStreamedData;
+    procedure TestCreateStreamedData_Compressed;
+    procedure TestCreateStreamedData_Uncompressed;
   end;
 
 implementation
@@ -509,6 +511,20 @@ var
   o: TPDFName;
 begin
   o := TPDFName.Create(PDF, 'Adobe Green');
+  try
+    AssertEquals('Failed on 1', '', S.DataString);
+    TMockPDFName(o).Write(S);
+    AssertEquals('Failed on 2', '/Adobe#20Green', S.DataString);
+  finally
+    o.Free;
+  end;
+end;
+
+procedure TTestPDFName.TestValidNames3;
+var
+  o: TPDFName;
+begin
+  o := TPDFName.Create(PDF, 'Adobe Green', False);
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFName(o).Write(S);
@@ -1630,37 +1646,87 @@ end;
 
 { TTestTPDFImageItem }
 
-procedure TTestTPDFImageItem.TestCreateStreamedData;
+procedure TTestTPDFImageItem.TestCreateStreamedData_Compressed;
 var
+  list: TPDFImages;
   itm: TPDFImageItem;
   img: TFPMemoryImage;
   b: TBytes;
 begin
-  itm := TPDFImageItem.Create(nil);
+  list := TPDFImages.Create(nil, TPDFImageItem);
   try
-    itm.OwnsImage := True;
-    img := TFPMemoryImage.Create(5, 5);
-    itm.Image := img;
-    b := itm.StreamedData;
-    AssertEquals('Failed on 1', 75 {5*5*3}, Length(b));
-  finally
-    itm.Free;
-  end;
-
-  itm := TPDFImageItem.Create(nil);
-  try
-    itm.OwnsImage := True;
-    img := TFPMemoryImage.Create(10, 20);
-    itm.Image := img;
-    { this try..except as to prove that we had a bug before we fixed it. }
+    itm := list.AddImageItem;
     try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(5, 5);
+      itm.Image := img;
       b := itm.StreamedData;
-    except
-      Fail('Failed on 2 - itm.StreamedData raised an exception');
+      AssertEquals('Failed on 1', 12, Length(b));
+    finally
+      itm.Free;
     end;
-    AssertEquals('Failed on 3', 600 {10*20*3}, Length(b));
+
+    itm := list.AddImageItem;
+    try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(10, 20);
+      itm.Image := img;
+      { this try..except is to prove that we had a bug before, but fixed it. }
+      try
+        b := itm.StreamedData;
+      except
+        Fail('Failed on 2 - itm.StreamedData raised an exception');
+      end;
+      AssertEquals('Failed on 3', 15, Length(b));
+    finally
+      itm.Free;
+    end;
   finally
-    itm.Free;
+    list.Free;
+  end;
+end;
+
+procedure TTestTPDFImageItem.TestCreateStreamedData_Uncompressed;
+var
+  pdf: TPDFDocument;
+  list: TPDFImages;
+  itm: TPDFImageItem;
+  img: TFPMemoryImage;
+  b: TBytes;
+begin
+  pdf := TPDFDocument.Create(nil);
+  pdf.Options := [];  // disables the default image compression
+  list := TPDFImages.Create(pdf, TPDFImageItem);
+  try
+    itm := list.AddImageItem;
+    try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(5, 5);
+      itm.Image := img;
+      b := itm.StreamedData;
+      AssertEquals('Failed on 1', 75 {5*5*3}, Length(b));
+    finally
+      itm.Free;
+    end;
+
+    itm := list.AddImageItem;
+    try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(10, 20);
+      itm.Image := img;
+      { this try..except is to prove that we had a bug before, but fixed it. }
+      try
+        b := itm.StreamedData;
+      except
+        Fail('Failed on 2 - itm.StreamedData raised an exception');
+      end;
+      AssertEquals('Failed on 3', 600 {10*20*3}, Length(b));
+    finally
+      itm.Free;
+    end;
+  finally
+    pdf.Free;
+    list.Free;
   end;
 end;
 
