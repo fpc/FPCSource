@@ -2707,7 +2707,8 @@ end;
 function TCustomSQLQuery.LoadField(FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 begin
   Result := SQLConnection.LoadField(Cursor, FieldDef, buffer, CreateBlob);
-  if Result and (FieldDef.DataType in ftBlobTypes) and (sqoAutoCommit in Options) then
+  // disable deferred blob loading for "disconnected" datasets
+  if Result and (FieldDef.DataType in ftBlobTypes) and (sqoKeepOpenOnCommit in Options) then
     CreateBlob:=True
 end;
 
