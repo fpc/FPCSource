@@ -3574,6 +3574,9 @@ endif
 ifeq ($(ARCH),x86_64)
   ASTARGET=--64
 endif
+ifeq ($(ARCH),powerpc)
+  ASTARGET=-a32
+endif
 ifeq ($(ARCH),powerpc64)
   ASTARGET=-a64
 endif
