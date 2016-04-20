@@ -44,6 +44,7 @@ unit agppcgas;
 
     TPPCGNUAssembler=class(TGNUassembler)
       constructor create(info: pasminfo; smart: boolean); override;
+      function MakeCmdLine: TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
@@ -404,6 +405,17 @@ unit agppcgas;
       end;
 
 
+    function TPPCGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+{$ifdef cpu64bitaddr}
+        Replace(result,'$ARCH','-a64')
+{$else cpu64bitaddr}
+        Replace(result,'$ARCH','-a32')
+{$endif cpu64bitaddr}
+      end;
+
+
     procedure TPPCGNUAssembler.WriteExtraHeader;
       var
          i : longint;
@@ -541,7 +553,7 @@ unit agppcgas;
 {$ifdef cpu64bitaddr}
          asmcmd : '-a64 $ENDIAN -o $OBJ $EXTRAOPT $ASM';
 {$else cpu64bitaddr}
-         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ASM';
+         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ARCH $ASM';
 {$endif cpu64bitaddr}
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];
