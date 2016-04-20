@@ -485,7 +485,8 @@ interface
           end
         else
           begin
-            if is_signed(resultdef) then
+            if is_signed(left.resultdef) and
+               is_signed(right.resultdef) then
               begin
                 case nodetype of
                   addn:
