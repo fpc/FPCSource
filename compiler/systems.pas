@@ -849,7 +849,7 @@ begin
 {$endif m68k}
 
 {$ifdef powerpc}
-  {$ifdef cpupowerpc}
+  {$ifdef cpupowerpc32}
     default_target(source_info.system);
     {$define default_target_set}
   {$else cpupowerpc}
