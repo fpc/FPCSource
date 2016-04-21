@@ -40,7 +40,7 @@ Unit aopt;
         Constructor create(_AsmL: TAsmList); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
-        Procedure Optimize;
+        Procedure Optimize;virtual;
         Destructor destroy;override;
 
       private
@@ -50,6 +50,7 @@ Unit aopt;
           Also fixes some RegDeallocs like "# %eax released; push (%eax)"  }
         Procedure BuildLabelTableAndFixRegAlloc;
         procedure clear;
+      protected
         procedure pass_1;
       End;
       TAsmOptimizerClass = class of TAsmOptimizer;

@@ -133,11 +133,7 @@ implementation
        ,cpuinfo
 {$endif arm}
        {$ifndef NOOPT}
-         {$ifdef i386}
-           ,aopt386
-         {$else i386}
-           ,aopt
-         {$endif i386}
+       ,aopt
        {$endif}
        ;
 

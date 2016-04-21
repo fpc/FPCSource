@@ -339,10 +339,10 @@ Unit AoptObj;
         procedure RemoveDelaySlot(hp1: tai);
 
         { peephole optimizer }
-        procedure PrePeepHoleOpts;
-        procedure PeepHoleOptPass1;
+        procedure PrePeepHoleOpts; virtual;
+        procedure PeepHoleOptPass1; virtual;
         procedure PeepHoleOptPass2; virtual;
-        procedure PostPeepHoleOpts;
+        procedure PostPeepHoleOpts; virtual;
 
         { processor dependent methods }
         // if it returns true, perform a "continue"
