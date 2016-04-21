@@ -189,7 +189,7 @@ Unit aopt;
                         hp2 := nil;
                         While Not(assigned(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next)))) And
                               GetNextInstruction(hp1, hp1) And
-                              RegInInstruction(tai_regalloc(p).Reg, hp1) Do
+                              InstructionLoadsFromReg(tai_regalloc(p).Reg, hp1) Do
                           hp2 := hp1;
                         { move deallocations }
                         If hp2 <> nil Then
