@@ -640,9 +640,13 @@ unit cgcpu;
             get_64bit_ops(op,op1,op2);
             tempref:=ref;
             tcgx86(cg).make_simple_ref(list,tempref);
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
             inc(tempref.offset,4);
             list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           begin
@@ -662,8 +666,10 @@ unit cgcpu;
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,-1,regdst.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               exit;
             end;
           OP_NOT :
@@ -676,8 +682,12 @@ unit cgcpu;
             end;
         end;
         get_64bit_ops(op,op1,op2);
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -695,8 +705,10 @@ unit cgcpu;
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_reg(op1,S_L,aint(lo(value)),reg.reglo));
               list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200204021);
@@ -722,9 +734,11 @@ unit cgcpu;
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),tempref));
               inc(tempref.offset,4);
               list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200204022);

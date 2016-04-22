@@ -326,7 +326,6 @@ unit aoptcpu;
     end;
 
 
-
   function TCpuAsmOptimizer.RegReadByInstruction(reg: TRegister; hp: tai): boolean;
     var
       p: taicpu;
@@ -389,6 +388,12 @@ unit aoptcpu;
                       RegReadByInstruction := true;
                       exit
                     end;
+                Ch_RFlags,Ch_RWFlags:
+                  if reg=NR_DEFAULTFLAGS then
+                    begin
+                      RegReadByInstruction := true;
+                      exit
+                  end;
               end;
           end;
       end;
@@ -2534,8 +2539,10 @@ var
   IsTestConstX: boolean;
 begin
   p := BlockStart;
+  ClearUsedRegs;
   while (p <> BlockEnd) Do
     begin
+      UpdateUsedRegs(UsedRegs, tai(p.next));
       case p.Typ Of
         Ait_Instruction:
           begin
@@ -2599,19 +2606,15 @@ begin
                       continue;
                     end;
                 end;
-(*
-Optimization is not safe; xor clears the carry flag.
-See test/tgadint64 in the test suite.
               A_MOV:
-                if (taicpu(p).oper[0]^.typ = Top_Const) and
-                   (taicpu(p).oper[0]^.val = 0) and
-                   (taicpu(p).oper[1]^.typ = Top_Reg) then
+                if MatchOperand(taicpu(p).oper[0]^,0) and
+                   (taicpu(p).oper[1]^.typ = Top_Reg) and
+                   not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
                   { change "mov $0, %reg" into "xor %reg, %reg" }
                   begin
                     taicpu(p).opcode := A_XOR;
                     taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
                   end;
-*)
               A_MOVZX:
                 { if register vars are on, it's possible there is code like }
                 {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }
