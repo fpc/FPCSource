@@ -349,11 +349,10 @@ uses
                   begin
                     { we use the full name of the type to uniquely identify it }
                     if (symtablestack.top.symtabletype=parasymtable) and
+                        (symtablestack.top.defowner.typ=procdef) and
                         (typeparam.resultdef.owner=symtablestack.top) then
                       begin
                         { special handling for specializations inside generic function declarations }
-                        if symtablestack.top.defowner.typ<>procdef then
-                          internalerror(2015080101);
                         namepart:=tdef(symtablestack.top.defowner).unique_id_str;
                         namepart:='genproc'+namepart+'_'+tdef(symtablestack.top.defowner).fullownerhierarchyname+'_'+tprocdef(symtablestack.top.defowner).procsym.realname+'_'+typeparam.resultdef.typename;
                         prettynamepart:=tdef(symtablestack.top.defowner).fullownerhierarchyname+tprocdef(symtablestack.top.defowner).procsym.prettyname;
@@ -795,7 +794,8 @@ uses
               { we specialize the partial specialization into the symtable of the currently parsed
                 generic }
               case current_genericdef.typ of
-                procvardef,
+                procvardef:
+                  specializest:=current_genericdef.getsymtable(gs_para);
                 procdef:
                   specializest:=current_genericdef.getsymtable(gs_local);
                 objectdef,
