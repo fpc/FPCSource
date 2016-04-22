@@ -166,7 +166,7 @@ begin
   P.WriteText(15, 200, 'Typography: “What’s wrong?”');
   P.WriteText(40, 210, '£17.99 vs £17·99');
   P.WriteText(40, 220, '€17.99 vs €17·99');
-  P.WriteText(40, 230, 'OK then…    êçèûÎÐð£¢ß');
+  P.WriteText(40, 230, 'OK then…    (êçèûÎÐð£¢ß)  \\//{}()#<>');
 
   P.WriteText(25, 280, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
 end;

@@ -2408,8 +2408,6 @@ begin
   inherited Create(ADocument);
   FValue := AValue;
   FFontIndex := AFontIndex;
-  if (Pos('(', FValue) > 0) or (Pos(')', FValue) > 0) or (Pos('\', FValue) > 0) then
-    FValue := InsertEscape(FValue);
 end;
 
 { TPDFArray }

@@ -82,11 +82,19 @@ type
     procedure   TestInsertEscape;
   end;
 
+
   TTestPDFString = class(TBasePDFTest)
   published
     procedure   TestWrite;
     procedure   TestWriteEscaped;
     procedure   TestWriteEscaped2;
+  end;
+
+
+  TTestPDFUTF8String = class(TBasePDFTest)
+  published
+    procedure   TestWrite;
+    procedure   TestWriteEscaped;
   end;
 
 
@@ -242,6 +250,9 @@ implementation
 uses
   FPImage;
 
+const
+  cFont1 = 'fonts' + PathDelim + 'LiberationSans-Regular.ttf';
+
 type
   // so we can access Protected methods in the tests
   TMockPDFObject = class(TPDFObject);
@@ -252,6 +263,7 @@ type
   TMockPDFReference = class(TPDFReference);
   TMockPDFName = class(TPDFName);
   TMockPDFString = class(TPDFString);
+  TMockPDFUTF8String = class(TPDFUTF8String);
   TMockPDFArray = class(TPDFArray);
   TMockPDFStream = class(TPDFStream);
   TMockPDFEmbeddedFont = class(TPDFEmbeddedFont);
@@ -568,11 +580,13 @@ begin
     o.Free;
   end;
 
+  S.Size := 0;  // empty out the Stream data
+
   { Length1 seems to be a special case? }
   o := TPDFString.Create(PDF, #$C2#$A3+#$C2#$BB); //  UTF-8 text of "£»"
   try
     TMockPDFString(o).Write(S);  // write will convert UTF-8 to ANSI
-    AssertEquals('Failed on 3', '(Test)('+#163#187+')', S.DataString);
+    AssertEquals('Failed on 3', '('+#163#187+')', S.DataString);
   finally
     o.Free;
   end;
@@ -602,6 +616,55 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFString(o).Write(S);
     AssertEquals('Failed on 2', '(Special characters \(*!&}^% and so on\).)', S.DataString);
+  finally
+    o.Free;
+  end;
+end;
+
+{ TTestPDFUTF8String }
+
+procedure TTestPDFUTF8String.TestWrite;
+var
+  o: TPDFUTF8String;
+  fnt: integer;
+begin
+  PDF.Options := []; // disable all compression
+  fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
+  o := TPDFUTF8String.Create(PDF, 'TestT', fnt);
+  try
+    AssertEquals('Failed on 1', '', S.DataString);
+    TMockPDFUTF8String(o).Write(S);
+    //                             T | e | s | t | T |
+    AssertEquals('Failed on 2', '<00370048005600570037>', S.DataString);
+  finally
+    o.Free;
+  end;
+
+  S.Size := 0;  // empty out the Stream data
+
+  { Length1 seems to be a special case? }
+  o := TPDFUTF8String.Create(PDF, #$C2#$A3+#$C2#$BB, fnt); //  UTF-8 text of "£»"
+  try
+    TMockPDFUTF8String(o).Write(S);
+    //                             £ | » |
+    AssertEquals('Failed on 3', '<0065007D>', S.DataString);
+  finally
+    o.Free;
+  end;
+end;
+
+procedure TTestPDFUTF8String.TestWriteEscaped;
+var
+  o: TPDFUTF8String;
+  fnt: integer;
+begin
+  fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
+  o := TPDFUTF8String.Create(PDF, 'a(b)c\def/g', fnt);
+  try
+    AssertEquals('Failed on 1', '', S.DataString);
+    TMockPDFUTF8String(o).Write(S);
+    //                              a| ( | b | ) | c | \ | d | e | f | / | g |
+    AssertEquals('Failed on 2', '<0044000B0045000C0046003F0047004800490012004A>', S.DataString);
   finally
     o.Free;
   end;
@@ -1741,6 +1804,7 @@ initialization
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFName{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFAbstractString{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFString{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFUTF8String{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFArray{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFStream{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFEmbeddedFont{$ifdef fptest}.Suite{$endif});
