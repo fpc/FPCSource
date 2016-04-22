@@ -411,7 +411,12 @@ unit agppcgas;
 {$ifdef cpu64bitaddr}
         Replace(result,'$ARCH','-a64')
 {$else cpu64bitaddr}
-        Replace(result,'$ARCH','-a32')
+        { MorphOS has an old 2.9.1 GNU AS, with a bunch of patches
+          to support the system, and it doesn't know the -a32 argument }
+        if target_info.system = system_powerpc_morphos then
+          Replace(result,'$ARCH','')
+        else
+          Replace(result,'$ARCH','-a32');
 {$endif cpu64bitaddr}
       end;
 
