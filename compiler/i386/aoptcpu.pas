@@ -216,9 +216,9 @@ unit aoptcpu;
         lastRemovedWasDealloc: boolean;
       begin
 {$ifdef EXTDEBUG}
-        if assigned(p1.optinfo) and
+{        if assigned(p1.optinfo) and
            (ptaiprop(p1.optinfo)^.usedregs <> initialusedregs) then
-         internalerror(2004101010);
+         internalerror(2004101010); }
 {$endif EXTDEBUG}
         start := p1;
        if (reg = NR_ESP) or
