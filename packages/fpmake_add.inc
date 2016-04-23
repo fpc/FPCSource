@@ -90,6 +90,7 @@
   add_openssl(ADirectory+IncludeTrailingPathDelimiter('openssl'));
   add_oracle(ADirectory+IncludeTrailingPathDelimiter('oracle'));
   add_os2units(ADirectory+IncludeTrailingPathDelimiter('os2units'));
+  add_os4units(ADirectory+IncludeTrailingPathDelimiter('os4units'));
   add_palmunits(ADirectory+IncludeTrailingPathDelimiter('palmunits'));
   add_pasjpeg(ADirectory+IncludeTrailingPathDelimiter('pasjpeg'));
   add_paszlib(ADirectory+IncludeTrailingPathDelimiter('paszlib'));
