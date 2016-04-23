@@ -124,6 +124,8 @@ type
     property Aborted;
     property Line;
   published
+    Property UseDollarString;
+    Property DollarStrings;
     property Directives;
     property Defines;
     property Script;
