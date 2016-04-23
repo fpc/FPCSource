@@ -69,7 +69,7 @@ interface
        tasminfo = record
           id          : tasm;
           idtxt       : string[12];
-          asmbin      : string[8];
+          asmbin      : string[16];
           asmcmd      : string[70];
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
