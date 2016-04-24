@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2016 by Free Pascal development team
 
-    exec.library functions
+    exec.library functions for Amiga OS 4.x
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -25,11 +25,12 @@ interface
 
 type
   STRPTR   = PChar;
+  PSTRPTR  = PPChar;
   ULONG    = Longword;
   LONG     = LongInt;
   APTR     = Pointer;
-  BPTR     = LongInt;
-  BSTR     = LongInt;
+  BPTR     = LongInt; // Long word (BCPL) pointer
+  BSTR     = LongInt; // Long word pointer to BCPL string
   BOOL     = SmallInt;
   UWORD    = Word;
   WORDBITS = Word;
@@ -114,14 +115,14 @@ const
 const
 // differentiates user tags from control tags
  TAG_USER = $80000000;    // differentiates user tags from system tags
-Type
+type
   Tag = LongWord;
   PTag = ^Tag;
 
   PTagItem = ^TTagItem;
   TTagItem = record
-   ti_Tag: Tag;
-   ti_Data: LongWord;
+    ti_Tag: Tag;        // identifies the type of data
+    ti_Data: LongWord;  // type-specific data
   end;
   PPTagItem = ^PTagItem;
 
@@ -1742,10 +1743,10 @@ const
 
 //**********************************************************************
 
-function Obtain(): LongWord; syscall IExec 60;
-function Release(): LongWord; syscall IExec 64;
-procedure Expunge(); syscall IExec 68;
-function Clone(): PInterface; syscall IExec 72;
+function ExecObtain(): LongWord; syscall IExec 60;
+function ExecRelease(): LongWord; syscall IExec 64;
+procedure ExecExpunge(); syscall IExec 68;
+function ExecClone(): PInterface; syscall IExec 72;
 procedure AddHead(List: PList; Node: PNode); syscall IExec 76;
 procedure AddMemHandler(MemHand: PInterrupt); syscall IExec 80;
 procedure AddMemList(Size: LongWord; Attributes: LongWord; Pri: LongInt; Base: APTR; const Name: PChar); syscall IExec 84;

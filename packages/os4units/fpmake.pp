@@ -32,6 +32,9 @@ begin
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('exec.pas');
+    T:=P.Targets.AddUnit('timer.pas');
+    T:=P.Targets.AddUnit('utility.pas');
+    T:=P.Targets.AddUnit('amigados.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
