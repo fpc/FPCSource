@@ -2603,14 +2603,7 @@ begin
                     end;
                 end;
               A_MOV:
-                if MatchOperand(taicpu(p).oper[0]^,0) and
-                   (taicpu(p).oper[1]^.typ = Top_Reg) and
-                   not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
-                  { change "mov $0, %reg" into "xor %reg, %reg" }
-                  begin
-                    taicpu(p).opcode := A_XOR;
-                    taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
-                  end;
+                PostPeepholeOpMov(p);
               A_MOVZX:
                 { if register vars are on, it's possible there is code like }
                 {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }

@@ -37,6 +37,8 @@ unit aoptx86;
     type
       TX86AsmOptimizer = class(TAsmOptimizer)
         function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
+      protected
+        procedure PostPeepholeOpMov(const p : tai);
       end;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
@@ -187,6 +189,18 @@ unit aoptx86;
            (getsupreg(p.oper[0]^.reg) = getsupreg(reg)));
       end;
 
+
+    procedure TX86AsmOptimizer.PostPeepholeOpMov(const p : tai);
+      begin
+       if MatchOperand(taicpu(p).oper[0]^,0) and
+          (taicpu(p).oper[1]^.typ = Top_Reg) and
+          not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
+         { change "mov $0, %reg" into "xor %reg, %reg" }
+         begin
+           taicpu(p).opcode := A_XOR;
+           taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
+         end;
+      end;
 
 end.
 

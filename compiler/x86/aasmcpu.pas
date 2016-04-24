@@ -3419,9 +3419,9 @@ implementation
                  (oper[0]^.reg=oper[1]^.reg)
                 ) or
                 (((opcode=A_MOVSS) or (opcode=A_MOVSD) or (opcode=A_MOVQ) or
-                  (opcode=A_MOVAPS) or (OPCODE=A_MOVAPD) or
+                  (opcode=A_MOVAPS) or (opcode=A_MOVAPD) or
                   (opcode=A_VMOVSS) or (opcode=A_VMOVSD) or (opcode=A_VMOVQ) or
-                  (opcode=A_VMOVAPS) or (OPCODE=A_VMOVAPD)) and
+                  (opcode=A_VMOVAPS) or (opcode=A_VMOVAPD)) and
                  (regtype = R_MMREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
