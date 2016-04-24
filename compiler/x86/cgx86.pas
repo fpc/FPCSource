@@ -1297,11 +1297,20 @@ unit cgx86;
               { needs correct size in case of spilling }
               case fromsize of
                 OS_F32:
-                  instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
+                  if UseAVX then
+                    instr:=taicpu.op_reg_reg(A_VMOVAPS,S_NO,reg1,reg2)
+                  else
+                    instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
                 OS_F64:
-                  instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
+                  if UseAVX then
+                    instr:=taicpu.op_reg_reg(A_VMOVAPD,S_NO,reg1,reg2)
+                  else
+                    instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
                 OS_M64:
-                  instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
+                  if UseAVX then
+                    instr:=taicpu.op_reg_reg(A_VMOVQ,S_NO,reg1,reg2)
+                  else
+                    instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
                 else
                   internalerror(2006091201);
               end
