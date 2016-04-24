@@ -1488,13 +1488,9 @@ begin
                                           mov mem2, reg1 }
                                          (taicpu(hp1).oper[0]^.ref^.refaddr = addr_no) and
                                          GetNextInstruction(hp1, hp2) and
-                                         (hp2.typ = ait_instruction) and
-                                         (taicpu(hp2).opcode = A_CMP) and
-                                         (taicpu(hp2).opsize = taicpu(p).opsize) and
-                                         (taicpu(hp2).oper[0]^.typ = TOp_Ref) and
-                                         (taicpu(hp2).oper[1]^.typ = TOp_Reg) and
-                                         RefsEqual(taicpu(hp2).oper[0]^.ref^, taicpu(p).oper[1]^.ref^) and
-                                         (taicpu(hp2).oper[1]^.reg= taicpu(p).oper[0]^.reg) and
+                                         MatchInstruction(hp2,A_CMP,[taicpu(p).opsize]) and
+                                         OpsEqual(taicpu(p).oper[1]^,taicpu(hp2).oper[0]^) and
+                                         OpsEqual(taicpu(p).oper[0]^,taicpu(hp2).oper[1]^) and
                                          not(RegUsedAfterInstruction(taicpu(p).oper[0]^.reg, hp2, TmpUsedRegs)) then
                                          { change                   to
                                            mov reg1, mem1           mov reg1, mem1
@@ -1506,6 +1502,8 @@ begin
                                           taicpu(hp1).opcode := A_CMP;
                                           taicpu(hp1).loadref(1,taicpu(hp1).oper[0]^.ref^);
                                           taicpu(hp1).loadreg(0,taicpu(p).oper[0]^.reg);
+                                          AllocRegBetween(taicpu(p).oper[0]^.reg,p,hp1,UsedRegs);
+                                          DebugMsg('Peephole MovMovCmp2MovCmp done',hp1);
                                         end;
                                       ReleaseUsedRegs(TmpUsedRegs);
                                     end;
@@ -1519,9 +1517,7 @@ begin
                                      (taicpu(hp1).oper[0]^.typ = top_reg) and
                                      (taicpu(hp1).oper[0]^.reg = taicpu(p).oper[1]^.reg) and
                                      (taicpu(hp1).oper[1]^.typ = top_ref) and
-                                     (tai(hp2).typ = ait_instruction) and
-                                     (taicpu(hp2).opcode = A_MOV) and
-                                     (taicpu(hp2).opsize = taicpu(p).opsize) and
+                                     MatchInstruction(hp2,A_MOV,[taicpu(p).opsize]) and
                                      (taicpu(hp2).oper[1]^.typ = top_reg) and
                                      (taicpu(hp2).oper[0]^.typ = top_ref) and
                                      RefsEqual(taicpu(hp2).oper[0]^.ref^, taicpu(hp1).oper[1]^.ref^)  then
