@@ -1433,7 +1433,10 @@ unit cgcpu;
        var
          ai : taicpu;
        begin
-         ai := Taicpu.op_sym(A_BXX,S_NO,l);
+         if not (f in FloatResFlags) then
+           ai := Taicpu.op_sym(A_BXX,S_NO,l)
+         else
+           ai := Taicpu.op_sym(A_FBXX,S_NO,l);
          ai.SetCondition(flags_to_cond(f));
          ai.is_jmp := true;
          list.concat(ai);
@@ -1444,7 +1447,19 @@ unit cgcpu;
          ai : taicpu;
          hreg : tregister;
          instr : taicpu;
+         htrue: tasmlabel;
        begin
+          if (f in FloatResFlags) then
+            begin
+              //list.concat(tai_comment.create(strpnew('flags2reg: float resflags')));
+              current_asmdata.getjumplabel(htrue);
+              a_load_const_reg(current_asmdata.CurrAsmList,OS_32,1,reg);
+              a_jmp_flags(list, f, htrue);
+              a_load_const_reg(current_asmdata.CurrAsmList,OS_32,0,reg);
+              a_label(current_asmdata.CurrAsmList,htrue);
+              exit;
+            end;
+
           { move to a Dx register? }
           if (isaddressregister(reg)) then
             hreg:=getintregister(list,OS_INT)

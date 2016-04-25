@@ -33,6 +33,7 @@ interface
        t68kaddnode = class(tcgaddnode)
        private
           function getresflags(unsigned: boolean) : tresflags;
+          function getfloatresflags: tresflags;
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
@@ -107,6 +108,34 @@ implementation
                   end;
              end;
          end;
+      end;
+
+
+    function t68kaddnode.getfloatresflags : tresflags;
+      begin
+        case nodetype of
+          equaln : getfloatresflags:=F_FE;
+          unequaln : getfloatresflags:=F_FNE;
+          else
+            if nf_swapped in flags then
+              case nodetype of
+                ltn : getfloatresflags:=F_FG;
+                lten : getfloatresflags:=F_FGE;
+                gtn : getfloatresflags:=F_FL;
+                gten : getfloatresflags:=F_FLE;
+                else
+                  internalerror(201604260);
+              end
+            else
+              case nodetype of
+                ltn : getfloatresflags:=F_FL;
+                lten : getfloatresflags:=F_FLE;
+                gtn : getfloatresflags:=F_FG;
+                gten : getfloatresflags:=F_FGE;
+                else
+                  internalerror(201604261);
+              end;
+        end;
       end;
 
 
@@ -201,17 +230,8 @@ implementation
                   internalerror(2015021502);
               end;
 
-              // temporary(?) hack, move condition result back to the CPU from the FPU.
-              // 6888x has its own FBcc branch instructions and FScc flags->reg instruction,
-              // which we don't support yet in the rest of the cg. (KB)
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-              ai:=taicpu.op_reg(A_FSxx,S_B,tmpreg);
-              ai.SetCondition(flags_to_cond(getresflags(false)));
-              current_asmdata.CurrAsmList.concat(ai);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NEG,S_B,tmpreg));
-
-              location_reset(location,LOC_REGISTER,OS_8);
-              location.register:=tmpreg;
+              location_reset(location,LOC_FLAGS,OS_NO);
+              location.resflags:=getfloatresflags;
             end;
           else
             // softfpu should be handled in pass1, others are not yet supported...
