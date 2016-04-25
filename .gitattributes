@@ -6316,6 +6316,7 @@ packages/os4units/Makefile svneol=native#text/plain
 packages/os4units/Makefile.fpc svneol=native#text/plain
 packages/os4units/Makefile.fpc.fpcmake svneol=native#text/plain
 packages/os4units/fpmake.pp svneol=native#text/pascal
+packages/os4units/src/agraphics.pas svneol=native#text/pascal
 packages/os4units/src/amigados.pas svneol=native#text/pascal
 packages/os4units/src/exec.pas svneol=native#text/pascal
 packages/os4units/src/timer.pas svneol=native#text/pascal

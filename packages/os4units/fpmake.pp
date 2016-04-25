@@ -35,6 +35,7 @@ begin
     T:=P.Targets.AddUnit('timer.pas');
     T:=P.Targets.AddUnit('utility.pas');
     T:=P.Targets.AddUnit('amigados.pas');
+    T:=P.Targets.AddUnit('agraphics.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

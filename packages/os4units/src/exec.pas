@@ -685,13 +685,13 @@ type
 const
 // Flags for ExceptionContext
 // enECFlags
-    ECF_FULL_GPRS = 1 shl 0; // Set if all register have been saved
-                             // If this flag is not set; gpr[14] through
-                             // gpr[31] are invalid
-    ECF_FPU       = 1 shl 1; // Set if the FPU registers have been saved
-    ECF_FULL_FPU  = 1 shl 2; // Set if all FPU registers have been saved
-    ECF_VECTOR    = 1 shl 3; // Set if vector registers have been saved
-    ECF_VRSAVE    = 1 shl 4; // Set if VRSAVE reflects state of vector registers saved
+  ECF_FULL_GPRS = 1 shl 0; // Set if all register have been saved
+                           // If this flag is not set; gpr[14] through
+                           // gpr[31] are invalid
+  ECF_FPU       = 1 shl 1; // Set if the FPU registers have been saved
+  ECF_FULL_FPU  = 1 shl 2; // Set if all FPU registers have been saved
+  ECF_VECTOR    = 1 shl 3; // Set if vector registers have been saved
+  ECF_VRSAVE    = 1 shl 4; // Set if VRSAVE reflects state of vector registers saved
 
 // Flags for ReadTaskContext/WriteTaskContext
 // enRTCFlags
@@ -733,8 +733,6 @@ const
   TRAPNUM_SMI                    = $10000000; // System Management interrupt
 
   TRAPNUM_NUMTRAPS               = 16;          // Number of hardware traps
-
-
 
 // Every Amiga Task has one of these Task structures associated with it.
 // To find yours, use FindTask(Nil).  AmigaDOS processes tack a few more
@@ -898,9 +896,7 @@ const
  SM_SHARED      = 1;
  SM_EXCLUSIVE   = 0;
 
-
 const
-
 // ------ Special constants ---------------------------------------
 // Note: This only applies to "legacy" 68k-based functions
   LIB_VECTSIZE  =  6;   //  Each library entry takes 6 bytes
@@ -1002,26 +998,26 @@ type
 // library vector offsets for device reserved vectors }
 const
 // enum enDeviceLibraryReserved
-    DEV_beginIO = -30;
-    DEV_ABORTIO = -36;
+  DEV_beginIO = -30;
+  DEV_ABORTIO = -36;
 
 // io_Flags defined bits
 
-    IOB_QUICK   = 0;
-    IOF_QUICK   = 1 shl IOB_QUICK;
+  IOB_QUICK   = 0;
+  IOF_QUICK   = 1 shl IOB_QUICK;
 
 // enDefaultDeviceCommands
-    CMD_INVALID = 0;
-    CMD_RESET   = 1;
-    CMD_READ    = 2;
-    CMD_WRITE   = 3;
-    CMD_UPDATE  = 4;
-    CMD_CLEAR   = 5;
-    CMD_STOP    = 6;
-    CMD_START   = 7;
-    CMD_FLUSH   = 8;
+  CMD_INVALID = 0;
+  CMD_RESET   = 1;
+  CMD_READ    = 2;
+  CMD_WRITE   = 3;
+  CMD_UPDATE  = 4;
+  CMD_CLEAR   = 5;
+  CMD_STOP    = 6;
+  CMD_START   = 7;
+  CMD_FLUSH   = 8;
 
-    CMD_NONSTD  = 9;
+  CMD_NONSTD  = 9;
 
 //**********************************************************************
 // The interface is the new way for exec libraries.
@@ -1203,10 +1199,8 @@ type
     Private06: TList;
     Private07: APTR;
     EmuWS: APTR;          // Emulator Workspace. Legacy libraries might access this field
-
-// Yes, there are more additions, but you don't need to know what it is
-end;
-
+  // Yes, there are more additions, but you don't need to know what it is
+  end;
 
 // ***** Bit defines for AttnFlags (see above) *************************
 
@@ -1242,24 +1236,24 @@ const
   AFB_PRIVATE = 15; // Just what it says
 
 // enAttnFlags
-    AFF_68010   = 1 shl  0;
-    AFF_68020   = 1 shl  1;
-    AFF_68030   = 1 shl  2;
-    AFF_68040   = 1 shl  3;
-    AFF_68881   = 1 shl  4;
-    AFF_68882   = 1 shl  5;
-    AFF_FPU40   = 1 shl  6;
-    AFF_68060   = 1 shl  7;
+  AFF_68010   = 1 shl  0;
+  AFF_68020   = 1 shl  1;
+  AFF_68030   = 1 shl  2;
+  AFF_68040   = 1 shl  3;
+  AFF_68881   = 1 shl  4;
+  AFF_68882   = 1 shl  5;
+  AFF_FPU40   = 1 shl  6;
+  AFF_68060   = 1 shl  7;
 
-    AFF_603     = 1 shl  8;
-    AFF_604     = 1 shl  9;
-    AFF_750     = 1 shl 10;
-    AFF_7400    = 1 shl 11;
-    AFF_ALTIVEC = 1 shl 12;
-    AFF_4XX     = 1 shl 13;
-    AFF_OTHER   = 1 shl 14;
+  AFF_603     = 1 shl  8;
+  AFF_604     = 1 shl  9;
+  AFF_750     = 1 shl 10;
+  AFF_7400    = 1 shl 11;
+  AFF_ALTIVEC = 1 shl 12;
+  AFF_4XX     = 1 shl 13;
+  AFF_OTHER   = 1 shl 14;
 
-    AFF_PRIVATE = 1 shl 15;
+  AFF_PRIVATE = 1 shl 15;
 
 
 //***** Selected flag definitions for Cache manipulation calls *********
@@ -1292,22 +1286,21 @@ const
 // The only fixed address in the Amiga memory space.
   AbsExecBase: PExecBase = Pointer(4);
 
-
 // Don't even think about the contents of this structure. Just embed it and reference it
 type
-   PAVLNode = ^TAVLNode;
-   TAVLNode = record
-     Teserved: array[0..3] of LongWord;
-   end;
-   PPAVLNode = ^PAVLNode;
+  PAVLNode = ^TAVLNode;
+  TAVLNode = record
+    Reserved: array[0..3] of LongWord;
+  end;
+  PPAVLNode = ^PAVLNode;
 
-   TAVLKey = Pointer;
+  TAVLKey = Pointer;
 
-   PAVLNODECOMP = ^AVLNODECOMP;
-   AVLNODECOMP = APTR;
+  PAVLNODECOMP = ^AVLNODECOMP;
+  AVLNODECOMP = APTR;
 
-   PAVLKEYCOMP = ^AVLKEYCOMP;
-   AVLKEYCOMP = APTR;
+  PAVLKEYCOMP = ^AVLKEYCOMP;
+  AVLKEYCOMP = APTR;
 
 const
 // Minimum size of the buffers to receive disassembled opcodes
@@ -1324,16 +1317,15 @@ type
     StackPointer: PLongWord; // The stack pointer itself
   end;
 
-  TenStackFrameMsgState = (
-    STACK_FRAME_DECODED               = 1,  // Decoded stack frame
-    STACK_FRAME_INVALID_BACKCHAIN_PTR = 2,  // Invalid backchain pointer
-    STACK_FRAME_TRASHED_MEMORY_LOOP   = 3,  // Memory loop caused by
-                                            // trashed memory
-    STACK_FRAME_BACKCHAIN_PTR_LOOP    = 4   // Backchain pointer loops
-   );
+const
+//enStackFrameMsgState
+  STACK_FRAME_DECODED               = 1;  // Decoded stack frame
+  STACK_FRAME_INVALID_BACKCHAIN_PTR = 2;  // Invalid backchain pointer
+  STACK_FRAME_TRASHED_MEMORY_LOOP   = 3;  // Memory loop caused by trashed memory
+  STACK_FRAME_BACKCHAIN_PTR_LOOP    = 4;   // Backchain pointer loops
 
 // Each DebugSymbol corresponds to some memory address.
-
+type
   TDebugSymbol = record
     StructSize: LongWord;       // Size of the data structure
     Type_: LongWord;            // Type of debug symbol
@@ -1349,15 +1341,15 @@ type
     SourceBaseName: STRPTR;     // Source code base name (may be NULL)
   end;
 
+const
+// enDebugSymbolType
+  DEBUG_SYMBOL_68K_MODULE    = 1; // 68K kernel module
+  DEBUG_SYMBOL_NATIVE_MODULE = 2; // Kernel data module
+  DEBUG_SYMBOL_KERNEL_MODULE = 3; // Kernel module
+  DEBUG_SYMBOL_MODULE        = 4; // Module
+  DEBUG_SYMBOL_MODULE_STABS  = 5; // Module with stabs debug
 
-  TenDebugSymbolType = (
-    DEBUG_SYMBOL_68K_MODULE    = 1,  // 68K kernel module
-    DEBUG_SYMBOL_NATIVE_MODULE = 2,  // Kernel data module
-    DEBUG_SYMBOL_KERNEL_MODULE = 3,  // Kernel module
-    DEBUG_SYMBOL_MODULE        = 4,  // Module
-    DEBUG_SYMBOL_MODULE_STABS  = 5   // Module with stabs debug
-   );
-
+type
 // Opaque datatype for the result of StartDebugOutputNotify.
   TDebugOutputNotify = record
   end;
