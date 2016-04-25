@@ -321,7 +321,7 @@ implementation
 
        { Coldfire supports byte/word compares only starting with ISA_B,
          !!see remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
-       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c]}) then
+       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
          begin
            { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing cg we can assume
                 that high bits of registers are correct.

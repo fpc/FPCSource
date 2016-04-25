@@ -665,7 +665,7 @@ unit cgcpu;
               list.concat(taicpu.op_reg_reg(A_SUB,S_L,register,register))
             else}
               { ISA B/C Coldfire has MOV3Q which can move -1 or 1..7 to any reg }
-              if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
+              if (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and 
                  ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then
                 list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
               else
@@ -680,7 +680,7 @@ unit cgcpu;
         else
          begin
            { Prefer MOV3Q if applicable, it allows replacement spilling for register }
-           if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
+           if (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
              ((longint(a)=-1) or ((longint(a)>0) and (longint(a)<8))) then
              list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
            else if (longint(a) >= low(shortint)) and (longint(a) <= high(shortint)) then
@@ -688,7 +688,7 @@ unit cgcpu;
            else
              begin
                { ISA B/C Coldfire has sign extend/zero extend moves }
-               if (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and 
+               if (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and 
                   (size in [OS_16, OS_8, OS_S16, OS_S8]) and 
                   ((longint(a) >= low(smallint)) and (longint(a) <= high(smallint))) then
                  begin
@@ -724,7 +724,7 @@ unit cgcpu;
         if (a=0) and not (current_settings.cputype = cpu_mc68000) then
           list.concat(taicpu.op_ref(A_CLR,tcgsize2opsize[tosize],href))
         else if (tcgsize2opsize[tosize]=S_L) and
-           (current_settings.cputype in [cpu_isa_b,cpu_isa_c]) and
+           (current_settings.cputype in [cpu_isa_b,cpu_isa_c,cpu_cfv4e]) and
            ((a=-1) or ((a>0) and (a<8))) then
           list.concat(taicpu.op_const_ref(A_MOV3Q,S_L,a,href))
         { for coldfire we need to go through a temporary register if we have a
@@ -1364,7 +1364,7 @@ unit cgcpu;
               it's actually *LEGAL*, see CFPRM, page 4-30, the bug also seems
               fixed in recent QEMU, but only when CPU cfv4e is forced, not by
               default. (KB) }
-            if current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c]} then
+            if current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cpu_cfv4e]} then
               begin
                 sign_extend(list, size, reg);
                 size:=OS_INT;
@@ -1399,7 +1399,7 @@ unit cgcpu;
 
     procedure tcg68k.a_cmp_reg_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel);
       begin
-         if (current_settings.cputype in cpu_coldfire-[cpu_isa_b,cpu_isa_c]) then
+         if (current_settings.cputype in cpu_coldfire-[cpu_isa_b,cpu_isa_c,cpu_cfv4e]) then
            begin
              sign_extend(list,size,reg1);
              sign_extend(list,size,reg2);

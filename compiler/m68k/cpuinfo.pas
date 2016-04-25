@@ -41,7 +41,8 @@ Type
        cpu_isa_a,
        cpu_isa_a_p,
        cpu_isa_b,
-       cpu_isa_c
+       cpu_isa_c,
+       cpu_cfv4e
       );
 
    tfputype =
@@ -96,7 +97,8 @@ Const
      'ISAA',
      'ISAA+',
      'ISAB',
-     'ISAC'
+     'ISAC',
+     'CFV4E'
    );
 
    gascputypestr : array[tcputype] of string[8] = ('',
@@ -106,7 +108,8 @@ Const
      'isaa',
      'isaaplus',
      'isab',
-     'isac'
+     'isac',
+     'cfv4e'
    );
 
    fputypestr : array[tfputype] of string[8] = ('',
@@ -151,11 +154,12 @@ const
       { cpu_isaa     } [],
       { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV],
       { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
-      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
+      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV],
+      { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
     );
 
   { all CPUs commonly called "coldfire" }
-  cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c];
+  cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c,cpu_cfv4e];
 
 Implementation
 
