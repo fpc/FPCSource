@@ -185,7 +185,13 @@ unit cpubase;
     type
       TResFlags = (
           F_E,F_NE,
-          F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE);
+          F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE,
+          F_FE,F_FNE,
+          F_FG,F_FL,F_FGE,F_FLE
+      );
+
+    const
+      FloatResFlags = [F_FE..F_FLE];
 
 {*****************************************************************************
                                 Reference
@@ -401,13 +407,16 @@ implementation
 
 
     procedure inverse_flags(var r: TResFlags);
-      const flagsinvers : array[F_E..F_BE] of tresflags =
+      const flagsinvers : array[F_E..F_FLE] of tresflags =
             (F_NE,F_E,
              F_LE,F_GE,
              F_L,F_G,
              F_NC,F_C,
              F_BE,F_B,
-             F_AE,F_A);
+             F_AE,F_A,
+             F_FNE,F_FE,
+             F_FLE,F_FGE,
+             F_FL,F_G);
       begin
          r:=flagsinvers[r];
       end;
@@ -427,7 +436,13 @@ implementation
           C_HI,{F_A     gt unsigned}
           C_CC,{F_AE    ge unsigned}
           C_CS,{F_B     lt unsigned}
-          C_LS);{F_BE    le unsigned}
+          C_LS,{F_BE    le unsigned}
+          C_EQ,{F_FEQ }
+          C_NE,{F_FNE }
+          C_GT,{F_FG  }
+          C_LT,{F_FL  }
+          C_GE,{F_FGE }
+          C_LE);{F_FLE }
       begin
         flags_to_cond := flags2cond[f];
       end;
