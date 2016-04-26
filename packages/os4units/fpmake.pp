@@ -36,6 +36,8 @@ begin
     T:=P.Targets.AddUnit('utility.pas');
     T:=P.Targets.AddUnit('amigados.pas');
     T:=P.Targets.AddUnit('agraphics.pas');
+    T:=P.Targets.AddUnit('layers.pas');
+    T:=P.Targets.AddUnit('inputevent.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
