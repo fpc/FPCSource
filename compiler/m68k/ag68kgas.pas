@@ -237,8 +237,18 @@ interface
         if op in [A_SXX, A_FSXX, A_DBXX, A_DBRA] then
           result:=gas_op2str[op]+cond2str[taicpu(hp).condition]
         else
-        if op in [a_bxx,a_fbxx] then
-          result:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
+        { fix me: a fugly hack to utilize GNU AS pseudo instructions for more optimal branching }
+        if op in [A_JSR] then
+          result:='jbsr'
+        else
+        if op in [A_JMP] then
+          result:='jra'
+        else
+        if op in [A_BXX] then
+          result:='j'+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
+        else
+        if op in [A_FBXX] then
+          result:='fj'+{gas_op2str[op]+}cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
           result:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
       end;
