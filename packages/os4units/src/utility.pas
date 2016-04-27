@@ -324,12 +324,12 @@ function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObj
 function TAG_(value: pointer): PtrUInt; overload; inline;
 function TAG_(value: PChar): PtrUInt; overload; inline;
 function TAG_(value: boolean): PtrUInt; overload; inline;
-function TAG_(value: integer): PtrUInt; overload; inline;
+function TAG_(value: LongInt): PtrUInt; overload; inline;
 
 function AsTag(value: pointer): PtrUInt; overload; inline;
 function AsTag(value: PChar): PtrUInt; overload; inline;
 function AsTag(value: boolean): PtrUInt; overload; inline;
-function AsTag(value: integer): PtrUInt; overload; inline;
+function AsTag(value: LongInt): PtrUInt; overload; inline;
 
 implementation
 
@@ -356,7 +356,7 @@ begin
     TAG_ := LFalse;
 end;
 
-function TAG_(value: integer): PtrUInt; inline;
+function TAG_(value: LongInt): PtrUInt; inline;
 begin
   TAG_:=PtrUInt(value);
 end;
@@ -379,7 +379,7 @@ begin
     AsTag := LFalse;
 end;
 
-function AsTag(value: integer): PtrUInt; inline;
+function AsTag(value: LongInt): PtrUInt; inline;
 begin
   AsTag:=PtrUInt(value);
 end;

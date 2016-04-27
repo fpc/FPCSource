@@ -350,12 +350,12 @@ SysCall MOS_UtilityBase 270;
 function TAG_(value: pointer): longword; overload; inline;
 function TAG_(value: pchar): longword; overload; inline;
 function TAG_(value: boolean): longword; overload; inline;
-function TAG_(value: integer): longword; overload; inline;
+function TAG_(value: LongInt): longword; overload; inline;
 
 function AsTag(value: pointer): longword; overload; inline;
 function AsTag(value: pchar): longword; overload; inline;
 function AsTag(value: boolean): longword; overload; inline;
-function AsTag(value: integer): longword; overload; inline;
+function AsTag(value: LongInt): longword; overload; inline;
 
 implementation
 
@@ -377,7 +377,7 @@ begin
     TAG_ := LFalse;
 end;
 
-function TAG_(value: integer): longword; inline;
+function TAG_(value: LongInt): longword; inline;
 begin
   TAG_:=longword(value);
 end;
@@ -400,7 +400,7 @@ begin
     AsTag := LFalse;
 end;
 
-function AsTag(value: integer): longword; inline;
+function AsTag(value: LongInt): longword; inline;
 begin
   AsTag:=longword(value);
 end;

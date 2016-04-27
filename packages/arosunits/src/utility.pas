@@ -258,12 +258,12 @@ function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): I
 function TAG_(Value: Pointer): PtrUInt; overload; inline;
 function TAG_(Value: PChar): PtrUInt; overload; inline;
 function TAG_(Value: boolean): PtrUInt; overload; inline;
-function TAG_(Value: integer): PtrUInt; overload; inline;
+function TAG_(Value: LongInt): PtrUInt; overload; inline;
 
 function AsTag(Value: Pointer): PtrUInt; overload; inline;
 function AsTag(Value: PChar): PtrUInt; overload; inline;
 function AsTag(Value: boolean): PtrUInt; overload; inline;
-function AsTag(Value: integer): PtrUInt; overload; inline;
+function AsTag(Value: LongInt): PtrUInt; overload; inline;
 
 implementation
 
@@ -308,7 +308,7 @@ begin
     TAG_ := LFalse;
 end;
 
-function TAG_(Value: Integer): PtrUInt; inline;
+function TAG_(Value: LongInt): PtrUInt; inline;
 begin
   TAG_ := PtrUInt(Value);
 end;
@@ -331,7 +331,7 @@ begin
     AsTag := LFalse;
 end;
 
-function AsTag(Value: Integer): PtrUInt; inline;
+function AsTag(Value: LongInt): PtrUInt; inline;
 begin
   AsTag := PtrUInt(Value);
 end;
