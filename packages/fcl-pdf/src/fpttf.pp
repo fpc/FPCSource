@@ -37,6 +37,7 @@ type
     FStyleFlags: TTrueTypeFontStyles;
     FFileInfo: TTFFileInfo;
     FOwner: TFPFontCacheList; // reference to FontCacheList that owns this instance
+    FPostScriptName: string;
     procedure   BuildFontCacheItem;
     procedure   SetStyleIfExists(var AText: string; var AStyleFlags: TTrueTypeFontStyles; const AStyleName: String; const AStyle: TTrueTypeFontStyle);
     function    GetIsBold: boolean;
@@ -50,6 +51,7 @@ type
     function    TextWidth(AStr: utf8string; APointSize: single): single;
     property    FileName: String read FFileName;
     property    FamilyName: String read FFamilyName;
+    property    PostScriptName: string read FPostScriptName;
     property    FontData: TTFFileInfo read FFileInfo;
     { A bitmasked value describing the full font style }
     property    StyleFlags: TTrueTypeFontStyles read FStyleFlags;
@@ -66,7 +68,7 @@ type
     FList: TObjectList;
     FSearchPath: TStringList;
     FDPI: integer;
-    procedure   SearchForFont(const AFontPath: String);
+    procedure   SearchForFonts(const AFontPath: String);
     procedure   SetDPI(AValue: integer);
   protected
     function    GetCount: integer; virtual;
@@ -77,11 +79,13 @@ type
     destructor  Destroy; override;
     procedure   BuildFontCache;
     function    Add(const AObject: TFPFontCacheItem): integer;
+    procedure   AssignFontList(const AStrings: TStrings);
     procedure   Clear;
     property    Count: integer read GetCount;
     function    IndexOf(const AObject: TFPFontCacheItem): integer;
-    function    Find(const AFontCacheItem: TFPFontCacheItem): integer;
-    function    Find(const AFamilyName: string; ABold: boolean = False; AItalic: boolean = False): TFPFontCacheItem;
+    function    Find(const AFontCacheItem: TFPFontCacheItem): integer; overload;
+    function    Find(const AFamilyName: string; ABold: boolean; AItalic: boolean): TFPFontCacheItem; overload;
+    function    Find(const APostScriptName: string): TFPFontCacheItem; overload;
     { not used: utility function doing a conversion for us. }
     function    PointSizeInPixels(const APointSize: single): single;
     property    Items[AIndex: Integer]: TFPFontCacheItem read GetItem write SetItem; default;
@@ -138,6 +142,7 @@ var
   s: string;
 begin
   s := FFileInfo.PostScriptName;
+  FPostScriptName := s;
   FFamilyName := FFileInfo.FamilyName;
   if Pos(s, FFamilyName) = 1 then
     Delete(s, 1, Length(FFamilyName));
@@ -272,7 +277,7 @@ end;
 
 { TFPFontCacheList }
 
-procedure TFPFontCacheList.SearchForFont(const AFontPath: String);
+procedure TFPFontCacheList.SearchForFonts(const AFontPath: String);
 var
   sr: TSearchRec;
   lFont: TFPFontCacheItem;
@@ -287,7 +292,7 @@ begin
       // We got something, so lets continue
       s := sr.Name;
       if (sr.Attr and faDirectory) <> 0 then // found a directory
-        SearchForFont(IncludeTrailingPathDelimiter(AFontPath + s))
+        SearchForFonts(IncludeTrailingPathDelimiter(AFontPath + s))
       else
       begin // we have a file
         if (lowercase(ExtractFileExt(s)) = '.ttf') or
@@ -349,7 +354,8 @@ begin
   for i := 0 to FSearchPath.Count-1 do
   begin
     lPath := FSearchPath[i];
-    SearchForFont(IncludeTrailingPathDelimiter(lPath));
+    if DirectoryExists(lPath) then
+      SearchForFonts(IncludeTrailingPathDelimiter(lPath));
   end;
 end;
 
@@ -357,6 +363,17 @@ function TFPFontCacheList.Add(const AObject: TFPFontCacheItem): integer;
 begin
   Result := FList.Add(AObject);
   AObject.FOwner := self;
+end;
+
+procedure TFPFontCacheList.AssignFontList(const AStrings: TStrings);
+var
+  i: integer;
+begin
+  if not Assigned(AStrings) then
+    Exit;
+  AStrings.Clear;
+  for i := 0 to FList.Count-1 do
+    AStrings.Add(TFPFontCacheItem(FList.Items[i]).PostScriptName);
 end;
 
 procedure TFPFontCacheList.Clear;
@@ -396,6 +413,19 @@ begin
         and (Result.IsBold = ABold)
     then
       exit;
+  end;
+  Result := nil;
+end;
+
+function TFPFontCacheList.Find(const APostScriptName: string): TFPFontCacheItem;
+var
+  i: integer;
+begin
+  for i := 0 to Count-1 do
+  begin
+    Result := Items[i];
+    if (Result.PostScriptName = APostScriptName) then
+      Exit;
   end;
   Result := nil;
 end;
