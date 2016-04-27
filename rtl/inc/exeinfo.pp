@@ -54,7 +54,7 @@ procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: st
 implementation
 
 uses
-  sysutils,strings{$ifdef windows},windows{$endif windows};
+  strings{$ifdef windows},windows{$endif windows};
 
 {$ifdef unix}
 
@@ -806,6 +806,13 @@ type
 var
   envp : ppchar external name 'operatingsystem_parameter_envp';
 {$endif not SOLARIS}
+var
+  LocalJmpBuf : Jmp_Buf;  
+procedure LocalError;
+begin
+  Longjmp(LocalJmpBuf,1);
+end;
+
 procedure GetExeInMemoryBaseAddr(addr : pointer; var BaseAddr : pointer;
                                  var filename : openstring);
 type
@@ -829,10 +836,14 @@ var
   phdr_size : ptruint;
   phdr :  ^telfproghdr;
   found_addr : ptruint;
-
+  SavedExitProc : pointer;
 begin
   filename:=ParamStr(0);
-  Try
+  SavedExitProc:=ExitProc;
+  ExitProc:=@LocalError;
+  if SetJmp(LocalJmpBuf)=0 then
+  begin
+  { Try, avoided in order to remove exception installation }
     pc:=envp;
     phdr_count:=-1;
     phdr_size:=0;
@@ -889,11 +900,14 @@ begin
      else
     writeln(stderr,'Error parsing stack');
   {$endif DEBUG}
-  except
+  end
+  else
+  begin
   {$ifdef DEBUG}
     writeln(stderr,'Exception parsing stack');
   {$endif DEBUG}
-  end
+  end;
+  ExitProc:=SavedExitProc;
 end;
 {$endif FIND_BASEADDR_ELF}
 
