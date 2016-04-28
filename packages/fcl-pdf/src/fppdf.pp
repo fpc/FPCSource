@@ -530,8 +530,11 @@ type
     Procedure DrawRect(const X, Y, W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean); overload;
     Procedure DrawRect(const APos: TPDFCoord; const W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean); overload;
     { X, Y coordinates are the bottom-left coordinate of the image. AWidth and AHeight are in image pixels. }
-    Procedure DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight, ANumber: integer); overload;
-    Procedure DrawImage(const APos: TPDFCoord; const AWidth, AHeight, ANumber: integer); overload;
+    Procedure DrawImage(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer); overload;
+    Procedure DrawImage(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer); overload;
+    { X, Y coordinates are the bottom-left coordinate of the image. AWidth and AHeight are in UnitOfMeasure units. }
+    Procedure DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight: TPDFFloat; const ANumber: integer); overload;
+    Procedure DrawImage(const APos: TPDFCoord; const AWidth, AHeight: TPDFFloat; const ANumber: integer); overload;
     { X, Y coordinates are the bottom-left coordinate of the boundry rectangle.
       The W and H parameters are in the UnitOfMeasure units. A negative AWidth will
       cause the ellpise to draw to the left of the origin point. }
@@ -922,6 +925,8 @@ function mmToPDF(mm: single): TPDFFloat;
 function cmToPDF(cm: single): TPDFFloat;
 function InchesToPDF(Inches: single): TPDFFloat;
 
+function PDFCoord(x, y: TPDFFloat): TPDFCoord;
+
 implementation
 
 
@@ -1087,6 +1092,12 @@ end;
 function InchesToPDF(Inches: single): TPDFFloat;
 begin
   Result := Inches * cDefaultDPI;
+end;
+
+function PDFCoord(x, y: TPDFFloat): TPDFCoord;
+begin
+  Result.x := x;
+  Result.y := y;
 end;
 
 function PDFtoInches(APixels: TPDFFloat): single;
@@ -1610,7 +1621,7 @@ begin
   end;
 end;
 
-procedure TPDFPage.CreateStdFontText(X: TPDFFloat; Y: TPDFFloat; AText: AnsiString; AFontIndex: integer);
+procedure TPDFPage.CreateStdFontText(X, Y: TPDFFloat; AText: AnsiString; AFontIndex: integer);
 var
   T: TPDFText;
 begin
@@ -1618,7 +1629,7 @@ begin
   AddObject(T);
 end;
 
-procedure TPDFPage.CreateTTFFontText(X: TPDFFloat; Y: TPDFFloat; AText: UTF8String; AFontIndex: integer);
+procedure TPDFPage.CreateTTFFontText(X, Y: TPDFFloat; AText: UTF8String; AFontIndex: integer);
 var
   T: TPDFUTF8Text;
 begin
@@ -1774,16 +1785,33 @@ begin
   DrawRect(APos.X, APos.Y, W, H, ALineWidth, AFill, AStroke);
 end;
 
-procedure TPDFPage.DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight, ANumber: integer);
+procedure TPDFPage.DrawImage(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer);
 var
   p1: TPDFCoord;
 begin
   p1 := Matrix.Transform(X, Y);
   DoUnitConversion(p1);
-  AddObject(Document.CreateImage(p1.X, p1.Y, AWidth, AHeight, ANumber));
+  AddObject(Document.CreateImage(p1.X, p1.Y, APixelWidth, APixelHeight, ANumber));
 end;
 
-procedure TPDFPage.DrawImage(const APos: TPDFCoord; const AWidth, AHeight, ANumber: integer);
+procedure TPDFPage.DrawImage(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer);
+begin
+  DrawImage(APos.X, APos.Y, APixelWidth, APixelHeight, ANumber);
+end;
+
+procedure TPDFPage.DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight: TPDFFloat; const ANumber: integer);
+var
+  p1, p2: TPDFCoord;
+begin
+  p1 := Matrix.Transform(X, Y);
+  DoUnitConversion(p1);
+  p2.X := AWidth;
+  p2.Y := AHeight;
+  DoUnitConversion(p2);
+  AddObject(Document.CreateImage(p1.X, p1.Y, round(p2.Y), round(p2.Y), ANumber));
+end;
+
+procedure TPDFPage.DrawImage(const APos: TPDFCoord; const AWidth, AHeight: TPDFFloat; const ANumber: integer);
 begin
   DrawImage(APos.X, APos.Y, AWidth, AHeight, ANumber);
 end;

@@ -48,7 +48,9 @@ type
     constructor Create(const AFilename: String);
     destructor  Destroy; override;
     { Result is in pixels }
-    function    TextWidth(AStr: utf8string; APointSize: single): single;
+    function    TextWidth(const AStr: utf8string; const APointSize: single): single;
+    { Result is in pixels }
+    function    TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
     property    FileName: String read FFileName;
     property    FamilyName: String read FFamilyName;
     property    PostScriptName: string read FPostScriptName;
@@ -206,7 +208,7 @@ end;
 { TextWidth returns with width of the text. If APointSize = 0.0, then it returns
   the text width in Font Units. If APointSize > 0 then it returns the text width
   in Pixels. }
-function TFPFontCacheItem.TextWidth(AStr: utf8string; APointSize: single): single;
+function TFPFontCacheItem.TextWidth(const AStr: utf8string; const APointSize: single): single;
 {
     From Microsoft's Typography website:
     Converting FUnits (font units) to pixels
@@ -273,6 +275,13 @@ begin
       pixels = glyph_units * pointSize * resolution / ( 72 points per inch * THead.UnitsPerEm )  }
     Result := lWidth * APointSize * FOwner.DPI / (72 * FFileInfo.Head.UnitsPerEm);
   end;
+end;
+
+function TFPFontCacheItem.TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
+begin
+  { Both lHeight and lDescenderHeight are in pixels }
+  Result := FFileInfo.CapHeight * APointSize * gTTFontCache.DPI / (72 * FFileInfo.Head.UnitsPerEm);
+  ADescender := Abs(FFileInfo.Descender) * APointSize * gTTFontCache.DPI / (72 * FFileInfo.Head.UnitsPerEm);
 end;
 
 { TFPFontCacheList }

@@ -273,13 +273,17 @@ begin
   IDX := D.Images.AddFromFile('poppy.jpg',False);
   W := D.Images[IDX].Width;
   H := D.Images[IDX].Height;
-  { scalled down image (small) }
-  P.DrawImage(25, 100, W div 2, H div 2, IDX); // left-bottom coordinate of image
-  P.WriteText(90, 75, '[Scaled image]');
+  { full size image }
+  P.DrawImage(25, 130, W, H, IDX);  // left-bottom coordinate of image
+  P.WriteText(145, 90, '[Full size (defined in pixels)]');
 
-  { large image }
-  P.DrawImage(35, 190, W, H, IDX);  // left-bottom coordinate of image
-  P.WriteText(160, 150, '[Default size]');
+  { half size image }
+  P.DrawImage(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
+  P.WriteText(90, 165, '[Quarter size (defined in pixels)]');
+
+  { scalled image to 2x2 centimeters }
+  P.DrawImage(25, 230, 20.0, 20.0, IDX); // left-bottom coordinate of image
+  P.WriteText(50, 220, '[2x2 cm scaled image]');
 end;
 
 procedure TPDFTestApp.SimpleShapes(D: TPDFDocument; APage: integer);
@@ -444,7 +448,6 @@ procedure TPDFTestApp.DoRun;
 
 var
   ErrorMsg: String;
-  v: integer;
 
 begin
   StopOnException:=True;

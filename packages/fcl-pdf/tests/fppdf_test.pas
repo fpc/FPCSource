@@ -29,6 +29,12 @@ type
   end;
 
 
+  TGeneralPDFTests = class(TTestCase)
+  published
+    procedure   TestPDFCoord;
+  end;
+
+
   TTestPDFObject = class(TBasePDFTest)
   published
     procedure   TestFloatStr;
@@ -181,6 +187,7 @@ type
   TTestPDFImage = class(TBasePDFTest)
   published
     procedure   TestWrite;
+    procedure   TestPageDrawImage_Pixels;
   end;
 
 
@@ -299,6 +306,22 @@ begin
   FPDF.Free;
   inherited TearDown;
 end;
+
+{ TGeneralPDFTests }
+
+procedure TGeneralPDFTests.TestPDFCoord;
+var
+  c: TPDFCoord;
+begin
+  c.x := 0;
+  c.y := 0;
+  AssertEquals('Failed on 1', 0, c.x);
+  AssertEquals('Failed on 2', 0, c.y);
+  c := PDFCoord(10, 20);
+  AssertEquals('Failed on 3', 10, c.x);
+  AssertEquals('Failed on 4', 20, c.y);
+end;
+
 
 { TTestPDFObject }
 
@@ -1347,6 +1370,29 @@ begin
   end;
 end;
 
+procedure TTestPDFImage.TestPageDrawImage_Pixels;
+var
+  p: TPDFPage;
+  img: TMockPDFImage;
+begin
+  p := PDF.Pages.AddPage;
+  AssertEquals('Failed on 1', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 200, 100, 1);
+  AssertEquals('Failed on 2', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 3', img <> nil);
+  AssertEquals('Failed on 4', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 5',
+    // save graphics state
+    'q'+CRLF+
+    '200 0 0 100 28.35 785.31 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+end;
+
 { TTestPDFLineStyle }
 
 procedure TTestPDFLineStyle.TestWrite_ppsSolid;
@@ -1795,6 +1841,7 @@ end;
 
 
 initialization
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TGeneralPDFTests{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFObject{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFDocumentObject{$ifdef fptest}.Suite{$endif});
   RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFBoolean{$ifdef fptest}.Suite{$endif});
