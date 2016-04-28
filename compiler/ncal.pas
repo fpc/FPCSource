@@ -3027,8 +3027,24 @@ implementation
                  begin
                    if not assigned(funcretnode) then
                      internalerror(200709083);
-                   para.left:=funcretnode;
-                   funcretnode:=nil;
+                   { if funcretnode is a temprefnode, we have to keep it intact
+                     if it may have been created in maybe_create_funcret_node(),
+                     because then it will also be destroyed by a
+                     ctempdeletenode.create_normal_temp() in the cleanup code
+                     for this call code. In that case we have to copy this
+                     ttemprefnode after the tempdeletenode to reset its
+                     tempinfo^.hookoncopy. This is done by copying funcretnode
+                     in tcallnode.getcopy(), but for that to work we can't reset
+                     funcretnode to nil here. }
+                   if (funcretnode.nodetype<>temprefn) or
+                      (not(cnf_return_value_used in callnodeflags) and
+                       (cnf_do_inline in callnodeflags)) then
+                     begin
+                       para.left:=funcretnode;
+                       funcretnode:=nil;
+                     end
+                   else
+                     para.left:=funcretnode.getcopy;
                  end
                 else
                  if vo_is_self in para.parasym.varoptions then
