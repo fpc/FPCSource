@@ -1,6 +1,7 @@
 unit fppdf_test;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
@@ -188,6 +189,7 @@ type
   published
     procedure   TestWrite;
     procedure   TestPageDrawImage_Pixels;
+    procedure   TestPageDrawImage_UnitsOfMeasure;
   end;
 
 
@@ -650,6 +652,7 @@ procedure TTestPDFUTF8String.TestWrite;
 var
   o: TPDFUTF8String;
   fnt: integer;
+  s8: UTF8String;
 begin
   PDF.Options := []; // disable all compression
   fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
@@ -666,7 +669,8 @@ begin
   S.Size := 0;  // empty out the Stream data
 
   { Length1 seems to be a special case? }
-  o := TPDFUTF8String.Create(PDF, #$C2#$A3+#$C2#$BB, fnt); //  UTF-8 text of "£»"
+  s8 := #$C2#$A3+#$C2#$BB;
+  o := TPDFUTF8String.Create(PDF, s8, fnt); //  UTF-8 text of "£»"
   try
     TMockPDFUTF8String(o).Write(S);
     //                             £ | » |
@@ -1376,6 +1380,7 @@ var
   img: TMockPDFImage;
 begin
   p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomMillimeters;
   AssertEquals('Failed on 1', 0, p.ObjectCount);
   p.DrawImage(10, 20, 200, 100, 1);
   AssertEquals('Failed on 2', 1, p.ObjectCount);
@@ -1387,6 +1392,70 @@ begin
     // save graphics state
     'q'+CRLF+
     '200 0 0 100 28.35 785.31 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+
+  S.Size := 0;  // clear the stream data
+
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomCentimeters;
+  AssertEquals('Failed on 6', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 200, 100, 1);
+  AssertEquals('Failed on 7', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 8', img <> nil);
+  AssertEquals('Failed on 9', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 10',
+    // save graphics state
+    'q'+CRLF+
+    '200 0 0 100 283.46 275.07 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+end;
+
+procedure TTestPDFImage.TestPageDrawImage_UnitsOfMeasure;
+var
+  p: TPDFPage;
+  img: TMockPDFImage;
+begin
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomMillimeters;
+  AssertEquals('Failed on 1', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 20.0, 10.0, 1);
+  AssertEquals('Failed on 2', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 3', img <> nil);
+  AssertEquals('Failed on 4', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 5',
+    // save graphics state
+    'q'+CRLF+
+    '57 0 0 28 28.35 785.31 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+
+  S.Size := 0;  // clear the stream data
+
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomCentimeters;
+  AssertEquals('Failed on 6', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 20.0, 10.0, 1);
+  AssertEquals('Failed on 7', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 8', img <> nil);
+  AssertEquals('Failed on 9', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 10',
+    // save graphics state
+    'q'+CRLF+
+    '567 0 0 283 283.46 275.07 cm'+CRLF+
     '/I1 Do'+CRLF+
     // restore graphics state
     'Q'+CRLF,

@@ -1808,7 +1808,7 @@ begin
   p2.X := AWidth;
   p2.Y := AHeight;
   DoUnitConversion(p2);
-  AddObject(Document.CreateImage(p1.X, p1.Y, round(p2.Y), round(p2.Y), ANumber));
+  AddObject(Document.CreateImage(p1.X, p1.Y, round(p2.X), round(p2.Y), ANumber));
 end;
 
 procedure TPDFPage.DrawImage(const APos: TPDFCoord; const AWidth, AHeight: TPDFFloat; const ANumber: integer);
