@@ -542,9 +542,6 @@ type
     ThreadvarTablesTable : Pointer;
     ResourceStringTables : Pointer;
     ResStrInitTables : Pointer;
-    {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-    WideInitTables : Pointer;
-    {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     ResLocation : Pointer;
     PascalMain : Procedure;
     valgrind_used : boolean;

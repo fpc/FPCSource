@@ -60,7 +60,6 @@
 {$else FPC_HAS_RESSTRINITS}
         ResStrInitTables : nil;
 {$endif FPC_HAS_RESSTRINITS}
-        WideInitTables : @WideInitTables;
         ResLocation : nil;
         PascalMain : @PascalMain;
         valgrind_used : false;
@@ -68,6 +67,7 @@
           asm_exit : @asm_exit;
           TlsKeyAddr : @TlsKeyVar;
           SysInstance : @SysInstance;
+          WideInitTables: @WideInitTables;
           );
         );
 
@@ -79,10 +79,10 @@
         EntryInformation.ThreadvarTablesTable:=@ThreadvarTablesTable;
         EntryInformation.ResourceStringTables:=@ResourceStringTables;
         EntryInformation.ResStrInitTables:=@ResStrInitTables;
-        EntryInformation.WideInitTables:=@WideInitTables;
         EntryInformation.OS.asm_exit:=@asm_exit;
         EntryInformation.OS.TlsKeyAddr:=@TlsKeyVar;
         EntryInformation.OS.SysInstance:=@SysInstance;
+        EntryInformation.OS.WideInitTables:=@WideInitTables;
         EntryInformation.PascalMain:=@PascalMain;}
         SysInitEntryInformation.valgrind_used:=valgrind_used;
       end;

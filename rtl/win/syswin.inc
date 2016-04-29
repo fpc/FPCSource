@@ -659,10 +659,13 @@ type
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 
-{$if not(defined(VER2_2) or defined(VER2_4))}
 var
-  WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
-{$endif}
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  WStrInitTablesTable: PWStrInitTablesTable;
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  WStrInitTablesTableVar: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
+  WStrInitTablesTable: PWStrInitTablesTable = @WStrInitTablesTableVar;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
 function GetACP:UINT; stdcall; external 'kernel32' name 'GetACP';
 function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP';
@@ -686,9 +689,9 @@ procedure InitWin32Widestrings;
   begin
 {$if not(defined(VER2_2) or defined(VER2_4))}
     { assign initial values to global Widestring typed consts }
-    for i:=1 to WStrInitTablesTable.count do
+    for i:=1 to WStrInitTablesTable^.count do
       begin
-        ptable:=WStrInitTablesTable.tables[i];
+        ptable:=WStrInitTablesTable^.tables[i];
         while Assigned(ptable^.addr) do
           begin
             fpc_widestr_assign(ptable^.addr^, ptable^.data);

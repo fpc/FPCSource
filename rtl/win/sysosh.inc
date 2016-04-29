@@ -55,6 +55,7 @@ type
     asm_exit : Procedure;stdcall;
     TlsKeyAddr : PDWord;
     SysInstance: PLongInt;
+    WideInitTables : Pointer;
   end;
 {$endif Win32}
 

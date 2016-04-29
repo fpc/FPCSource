@@ -137,6 +137,7 @@ procedure OsSetupEntryInformation(const info: TEntryInformation);
 begin
   TlsKey := info.OS.TlsKeyAddr;
   FPCSysInstance := info.OS.SysInstance;
+  WStrInitTablesTable := info.OS.WideInitTables;
 end;
 
 {*****************************************************************************
