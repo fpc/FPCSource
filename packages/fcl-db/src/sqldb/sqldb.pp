@@ -578,6 +578,8 @@ type
     property AfterCancel;
     property BeforeDelete;
     property AfterDelete;
+    property BeforeRefresh;
+    property AfterRefresh;
     property BeforeScroll;
     property AfterScroll;
     property OnCalcFields;
@@ -630,6 +632,7 @@ type
     Property AfterInsert;
     Property AfterOpen;
     Property AfterPost;
+    Property AfterRefresh;
     Property AfterScroll;
     Property BeforeCancel;
     Property BeforeClose;
@@ -638,6 +641,7 @@ type
     Property BeforeInsert;
     Property BeforeOpen;
     Property BeforePost;
+    Property BeforeRefresh;
     Property BeforeScroll;
     Property OnCalcFields;
     Property OnDeleteError;
