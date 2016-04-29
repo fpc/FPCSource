@@ -871,7 +871,7 @@ implementation
                 end;
 
               { symbol known? then get a new name }
-              if assigned(hp.sym) then
+              if assigned(hp.sym) and not (eo_no_sym_name in hp.options) then
                 case hp.sym.typ of
                   staticvarsym :
                     asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);

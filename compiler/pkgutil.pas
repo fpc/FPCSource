@@ -91,7 +91,7 @@ implementation
                 )
               ) then
             begin
-              exportallprocdefnames(tprocsym(sym),pd,[]);
+              exportallprocdefnames(tprocsym(sym),pd,[eo_name,eo_no_sym_name]);
             end;
         end;
     end;

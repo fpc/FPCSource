@@ -36,7 +36,8 @@ type
    texportoption=(eo_none,
      eo_resident,
      eo_index,
-     eo_name
+     eo_name,
+     eo_no_sym_name { don't try to use another mangled name if symbol is known }
    );
    texportoptions=set of texportoption;
 
