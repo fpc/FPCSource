@@ -373,6 +373,9 @@ begin
         end;
       end;
     end;
+  // Microsoft-IIS hack. IIS includes the script name in the PATH_INFO
+  if Pos('IIS', ServerSoftware) > 0 then
+    SetHTTPVariable(hvPathInfo,StringReplace(PathInfo, ScriptName, '', [rfReplaceAll, rfIgnoreCase]));
   R:=UpCase(Method);
   if (R='POST') or (R='PUT') or (ContentLength>0) then
     ReadContent;
