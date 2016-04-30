@@ -846,7 +846,7 @@ begin
     for r := 0 to 7 do
     begin
       If SigCheck[r] <> Signature[r] then
-        raise PNGImageException.Create('This is not PNG-data');
+        Exit(false);
     end;
     // Check IHDR
     ReadChunk;
