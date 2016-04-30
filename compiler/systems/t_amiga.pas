@@ -291,8 +291,11 @@ begin
       Add('');
       Add('  .comment      0 : { *(.comment) }');
       Add('');
-      Add('  __amigaos4__ = 1;');
-      Add('');
+      { Do not provide the __amigaos4__ symbol for now. It's provided by our prt0.o,
+        sadly various linkers for OS4 either provide it or not, which might or might
+        not work with our prt0.o unmodified. }
+      {Add('  __amigaos4__ = 1;');
+      Add('');}
       Add('  /* DWARF debug sections.');
       Add('     Symbols in the DWARF debugging sections are relative to the beginning');
       Add('     of the section so we begin them at 0.  */');
