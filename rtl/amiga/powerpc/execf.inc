@@ -47,7 +47,7 @@ procedure InitSemaphore(sigSem: PSignalSemaphore); syscall IExec 364;
 procedure ObtainSemaphore(sigSem: PSignalSemaphore); syscall IExec 368;
 procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore); syscall IExec 376;
 
-procedure ReleaseSemaphore(sigSem: PSignalSemaphore); syscall IExec 388;
+procedure ReleaseSemaphore(sigSem: PSignalSemaphore); syscall IExec 384;
 
 function OpenLibrary(name: PChar; version: longword): PLibrary; syscall IExec 424;
 function CloseLibrary(_library: PLibrary): Pointer; syscall IExec 428;
@@ -61,5 +61,4 @@ function CloseDevice(ioRequest: PIORequest): Pointer; syscall IExec 508;
 
 function DoIO(ioRequest: PIORequest): shortint; syscall IExec 528;
 
-{$WARNING FIXME: the offset is dummy, was too lazy to calculate for now }
-procedure RawPutChar(d0arg: Char); syscall IExec 4096;
+procedure RawPutChar(c: Char); syscall IExec 760;

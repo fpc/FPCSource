@@ -7,16 +7,16 @@ uses fpmkunit;
 
 procedure add_rtl_console(const ADirectory: string);
 
-Const 
+Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
- 
+
   WinEventOSes = [win32,win64];
   KVMAll       = [emx,go32v2,netware,netwlibc,os2,win32,win64,win16]+UnixLikes+AllAmigaLikeOSes;
-  
+
   // all full KVMers have crt too, except Amigalikes
-  CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos];
+  CrtOSes      = KVMALL+[msdos,WatCom]-[aros,morphos,amiga];
   KbdOSes      = KVMALL+[msdos];
   VideoOSes    = KVMALL;
   MouseOSes    = KVMALL;
@@ -41,16 +41,16 @@ begin
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.OSes:=Rtl_ConsoleOSes;
-    if Defaults.CPU=powerpc then
-      P.OSes:=P.OSes-[amiga];
     P.Email := '';
     P.Description := 'Rtl-console, console abstraction';
     P.NeedLibC:= false;
     P.Dependencies.Add('rtl-extra'); // linux,android gpm.
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
-    P.Dependencies.Add('amunits',[amiga]);
-
+    if Defaults.CPU=m68k then
+      P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=powerpc then
+      P.Dependencies.Add('os4units',[amiga]);
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
     P.SourcePath.Add('src/darwin',[iphonesim]);
@@ -111,7 +111,7 @@ begin
      AddUnit('video');
   end
 end;
- 
+
 {$ifndef ALLPACKAGES}
 begin
   add_rtl_console('');

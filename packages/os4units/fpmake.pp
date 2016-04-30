@@ -38,6 +38,10 @@ begin
     T:=P.Targets.AddUnit('agraphics.pas');
     T:=P.Targets.AddUnit('layers.pas');
     T:=P.Targets.AddUnit('inputevent.pas');
+    T:=P.Targets.AddUnit('keymap.pas');
+    T:=P.Targets.AddUnit('clipboard.pas');
+    T:=P.Targets.AddUnit('iffparse.pas');
+    T:=P.Targets.AddUnit('intuition.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

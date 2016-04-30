@@ -45,8 +45,6 @@ begin
     P.Description := 'Libraries to create fppkg package managers.';
     P.NeedLibC:= false;
     P.OSes := P.OSes - [embedded,nativent,msdos,win16];
-    if Defaults.CPU = powerpc then
-      P.OSes := P.OSes - [amiga];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

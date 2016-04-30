@@ -1846,7 +1846,7 @@ function Setfunction(Lib: PLibrary; FuncOffset: LongInt; const Newfunction: APTR
 procedure CacheClearE(Address: APTR; Length: LongWord; Caches: LongWord); syscall IExec 492;
 procedure CacheClearU(); syscall IExec 496;
 function Makefunctions(Target: APTR; const FunctionArray: APTR; const FuncDispBase: APTR): LongWord; syscall IExec 500;
-function OpenDevice(const DevName: STRPTR; UnitNumber: LongWord; IORequest: PIORequest; Flags: LongWord): LongInt; syscall IExec 508;
+function OpenDevice(const DevName: STRPTR; UnitNumber: LongWord; IORequest: PIORequest; Flags: LongWord): LongInt; syscall IExec 504;
 procedure CloseDevice(IORequest: PIORequest); syscall IExec 508;
 function CreateIORequest(const IOReplyPort: PMsgPort; Size: LongWord): PIORequest; syscall IExec 512;
 procedure DeleteIORequest(IORequest: PIORequest); syscall IExec 516;
