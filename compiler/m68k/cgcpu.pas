@@ -1485,108 +1485,104 @@ unit cgcpu;
 
 
     procedure tcg68k.g_concatcopy(list : TAsmList;const source,dest : treference;len : tcgint);
-
+     const
+       lentocgsize: array[1..4] of tcgsize = (OS_8,OS_16,OS_NO,OS_32);
      var
          helpsize : longint;
          i : byte;
          hregister : tregister;
          iregister : tregister;
          jregister : tregister;
-         hp1 : treference;
-         hp2 : treference;
          hl : tasmlabel;
+         srcrefp,dstrefp : treference;
          srcref,dstref : treference;
       begin
+         if (len in [1,2,4]) and (current_settings.cputype <> cpu_mc68000) then
+           begin
+             //list.concat(tai_comment.create(strpnew('g_concatcopy: small')));
+             a_load_ref_ref(list,lentocgsize[len],lentocgsize[len],source,dest);
+             exit;
+           end;
+
+         //list.concat(tai_comment.create(strpnew('g_concatcopy')));
          hregister := getintregister(list,OS_INT);
 
-         { from 12 bytes movs is being used }
-         if ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=12))) then
+         iregister:=getaddressregister(list);
+         reference_reset_base(srcref,iregister,0,source.alignment);
+         srcrefp:=srcref;
+         srcrefp.direction := dir_inc;
+
+         jregister:=getaddressregister(list);
+         reference_reset_base(dstref,jregister,0,dest.alignment);
+         dstrefp:=dstref;
+         dstrefp.direction := dir_inc;
+
+         { iregister = source }
+         { jregister = destination }
+
+         a_loadaddr_ref_reg(list,source,iregister);
+         a_loadaddr_ref_reg(list,dest,jregister);
+
+         if (current_settings.cputype <> cpu_mc68000) then 
            begin
-              srcref := source;
-              dstref := dest;
-              helpsize:=len div 4;
-              { move a dword x times }
-              for i:=1 to helpsize do
-                begin
-                   a_load_ref_reg(list,OS_INT,OS_INT,srcref,hregister);
-                   a_load_reg_ref(list,OS_INT,OS_INT,hregister,dstref);
-                   inc(srcref.offset,4);
-                   inc(dstref.offset,4);
-                   dec(len,4);
-                end;
-              { move a word }
-              if len>1 then
-                begin
-                   a_load_ref_reg(list,OS_16,OS_16,srcref,hregister);
-                   a_load_reg_ref(list,OS_16,OS_16,hregister,dstref);
-                   inc(srcref.offset,2);
-                   inc(dstref.offset,2);
-                   dec(len,2);
-                end;
-              { move a single byte }
-              if len>0 then
-                begin
-                   a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
-                   a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
-                end
+             if not ((len<=8) or (not(cs_opt_size in current_settings.optimizerswitches) and (len<=16))) then
+               begin
+                 //list.concat(tai_comment.create(strpnew('g_concatcopy tight copy loop 020+')));
+                 helpsize := len - len mod 4;
+                 len := len mod 4;
+                 a_load_const_reg(list,OS_INT,(helpsize div 4)-1,hregister);
+                 current_asmdata.getjumplabel(hl);
+                 a_label(list,hl);
+                 list.concat(taicpu.op_ref_ref(A_MOVE,S_L,srcrefp,dstrefp));
+                 if (current_settings.cputype in cpu_coldfire) or ((helpsize div 4)-1 > high(smallint)) then
+                   begin
+                     { Coldfire does not support DBRA, also it is word only }
+                     list.concat(taicpu.op_const_reg(A_SUBQ,S_L,1,hregister));
+                     list.concat(taicpu.op_sym(A_BPL,S_NO,hl));
+                   end
+                 else
+                   list.concat(taicpu.op_reg_sym(A_DBRA,S_NO,hregister,hl));
+               end;
+             helpsize:=len div 4;
+             { move a dword x times }
+             for i:=1 to helpsize do
+               begin
+                 dec(len,4);
+                 if (len > 0) then
+                   list.concat(taicpu.op_ref_ref(A_MOVE,S_L,srcrefp,dstrefp))
+                 else
+                   list.concat(taicpu.op_ref_ref(A_MOVE,S_L,srcref,dstref));
+               end;
+             { move a word }
+             if len>1 then
+               begin
+                 dec(len,2);
+                 if (len > 0) then
+                   list.concat(taicpu.op_ref_ref(A_MOVE,S_W,srcrefp,dstrefp))
+                 else
+                   list.concat(taicpu.op_ref_ref(A_MOVE,S_W,srcref,dstref));
+               end;
+             { move a single byte }
+             if len>0 then
+               list.concat(taicpu.op_ref_ref(A_MOVE,S_B,srcref,dstref));
            end
          else
            begin
-              iregister:=getaddressregister(list);
-              jregister:=getaddressregister(list);
-              { reference for move (An)+,(An)+ }
-              reference_reset(hp1,source.alignment);
-              hp1.base := iregister;   { source register }
-              hp1.direction := dir_inc;
-              reference_reset(hp2,dest.alignment);
-              hp2.base := jregister;
-              hp2.direction := dir_inc;
-              { iregister = source }
-              { jregister = destination }
-
-              a_loadaddr_ref_reg(list,source,iregister);
-              a_loadaddr_ref_reg(list,dest,jregister);
-
-              { double word move only on 68020+ machines }
-              { because of possible alignment problems   }
-              { use fast loop mode }
-              if (current_settings.cputype=cpu_MC68020) then
-                begin
-                   //list.concat(tai_comment.create(strpnew('g_concatcopy tight copy loop 020+')));
-                   helpsize := len - len mod 4;
-                   len := len mod 4;
-                   a_load_const_reg(list,OS_INT,(helpsize div 4)-1,hregister);
-                   current_asmdata.getjumplabel(hl);
-                   a_label(list,hl);
-                   list.concat(taicpu.op_ref_ref(A_MOVE,S_L,hp1,hp2));
-                   list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
-                   if len > 1 then
-                     begin
-                        dec(len,2);
-                        list.concat(taicpu.op_ref_ref(A_MOVE,S_W,hp1,hp2));
-                     end;
-                   if len = 1 then
-                     list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
-                end
-              else
-                begin
-                   { Fast 68010 loop mode with no possible alignment problems }
-                   //list.concat(tai_comment.create(strpnew('g_concatcopy tight byte copy loop')));
-                   a_load_const_reg(list,OS_INT,len - 1,hregister);
-                   current_asmdata.getjumplabel(hl);
-                   a_label(list,hl);
-                   list.concat(taicpu.op_ref_ref(A_MOVE,S_B,hp1,hp2));
-                   if current_settings.cputype in cpu_coldfire then
-                     begin
-                       { Coldfire does not support DBRA }
-                       list.concat(taicpu.op_const_reg(A_SUBQ,S_L,1,hregister));
-                       list.concat(taicpu.op_sym(A_BPL,S_NO,hl));
-                     end
-                   else
-                     list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
-                end;
+             { Fast 68010 loop mode with no possible alignment problems }
+             //list.concat(tai_comment.create(strpnew('g_concatcopy tight byte copy loop')));
+             a_load_const_reg(list,OS_INT,len - 1,hregister);
+             current_asmdata.getjumplabel(hl);
+             a_label(list,hl);
+             list.concat(taicpu.op_ref_ref(A_MOVE,S_B,srcrefp,dstrefp));
+             if (len - 1) > high(smallint) then
+               begin
+                 list.concat(taicpu.op_const_reg(A_SUBQ,S_L,1,hregister));
+                 list.concat(taicpu.op_sym(A_BPL,S_NO,hl));
+               end
+             else
+               list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
            end;
-    end;
+      end;
 
     procedure tcg68k.g_overflowcheck(list: TAsmList; const l:tlocation; def:tdef);
       var
