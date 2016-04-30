@@ -117,8 +117,8 @@ const
   {$ENDIF MACOS}
  {$ENDIF UNIX}
 {$ENDIF FPC}
- TestFileName = UTF8String('™estfilê.™st');
- TestDir1Name = UTF8String('TÊS™DIR1');
+ TestFileName = UTF8String('™estfil†.™st');
+ TestDir1Name = UTF8String('T†S™DIR1');
  TestDir2Name = UTF8String('TE∑™DIR2');
  HasErrors: boolean = false;
 

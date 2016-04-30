@@ -64,7 +64,11 @@ interface
 
        tstoreddef = class(tdef)
        private
+{$ifdef symansistr}
+          _fullownerhierarchyname : ansistring;
+{$else symansistr}
           _fullownerhierarchyname : pshortstring;
+{$endif symansistr}
           procedure writeentry(ppufile: tcompilerppufile; ibnr: byte);
        protected
           typesymderef  : tderef;
@@ -100,9 +104,9 @@ interface
           function  alignment:shortint;override;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  OwnerHierarchyName: string; override;
-          function  fullownerhierarchyname:string;override;
+          function  fullownerhierarchyname:TSymStr;override;
           function  needs_separate_initrtti:boolean;override;
           function  in_currentunit: boolean;
           { regvars }
@@ -427,7 +431,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  needs_separate_initrtti : boolean;override;
-          function  rtti_mangledname(rt:trttitype):string;override;
+          function  rtti_mangledname(rt:trttitype):TSymStr;override;
           function  vmt_mangledname : TSymStr;
           procedure check_forwards; override;
           procedure insertvmt;
@@ -462,7 +466,7 @@ interface
           function getcopy:tstoreddef;override;
           function GetTypeName:string;override;
           function is_publishable : boolean;override;
-          function rtti_mangledname(rt:trttitype):string;override;
+          function rtti_mangledname(rt:trttitype):TSymStr;override;
           procedure register_created_object_type;override;
        end;
        tclassrefdefclass = class of tclassrefdef;
@@ -1708,7 +1712,9 @@ implementation
             dispose(pderef(genericparaderefs[i]));
         genericparaderefs.free;
         genconstraintdata.free;
+{$ifndef symansistr}
         stringdispose(_fullownerhierarchyname);
+{$endif not symansistr}
         inherited destroy;
       end;
 
@@ -1776,7 +1782,7 @@ implementation
       end;
 
 
-    function tstoreddef.rtti_mangledname(rt : trttitype) : string;
+    function tstoreddef.rtti_mangledname(rt : trttitype) : TSymStr;
       var
         prefix : string[4];
       begin
@@ -1815,25 +1821,29 @@ implementation
         until tmp=nil;
       end;
 
-    function tstoreddef.fullownerhierarchyname: string;
+    function tstoreddef.fullownerhierarchyname: TSymStr;
       var
+        lastowner: tsymtable;
         tmp: tdef;
       begin
+{$ifdef symansistr}
+        if _fullownerhierarchyname<>'' then
+          exit(_fullownerhierarchyname);
+{$else symansistr}
         if assigned(_fullownerhierarchyname) then
-          begin
-            result:=_fullownerhierarchyname^;
-            exit;
-          end;
+          exit(_fullownerhierarchyname^);
+{$endif symansistr}
         { the def can only reside inside structured types or
           procedures/functions/methods }
         tmp:=self;
         result:='';
         repeat
+          lastowner:=tmp.owner;
           { can be not assigned in case of a forwarddef }
-          if not assigned(tmp.owner) then
+          if not assigned(lastowner) then
             break
           else
-            tmp:=tdef(tmp.owner.defowner);
+            tmp:=tdef(lastowner.defowner);
           if not assigned(tmp) then
             break;
           if tmp.typ in [recorddef,objectdef] then
@@ -1842,7 +1852,15 @@ implementation
             if tmp.typ=procdef then
               result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
         until tmp=nil;
+        { add the unit name }
+        if assigned(lastowner) and
+           assigned(lastowner.realname) then
+          result:=lastowner.realname^+'.'+result;
+{$ifdef symansistr}
+        _fullownerhierarchyname:=result;
+{$else symansistr}
         _fullownerhierarchyname:=stringdup(result);
+{$endif symansistr}
       end;
 
 
@@ -3250,7 +3268,7 @@ implementation
       end;
 
 
-    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+    function tclassrefdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
           result:=inherited rtti_mangledname(rt)
@@ -6587,7 +6605,7 @@ implementation
         result:=not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]);
       end;
 
-    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+    function tobjectdef.rtti_mangledname(rt: trttitype): TSymStr;
       begin
         if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
           result:=inherited rtti_mangledname(rt)

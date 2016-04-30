@@ -1120,8 +1120,12 @@ implementation
                cgsize:=paraloc.size;
                if paraloc.shiftval>0 then
                  a_op_const_reg_reg(list,OP_SHL,OS_INT,paraloc.shiftval,paraloc.register,paraloc.register)
+               { in case the original size was 3 or 5/6/7 bytes, the value was
+                 shifted to the top of the to 4 resp. 8 byte register on the
+                 caller side and needs to be stored with those bytes at the
+                 start of the reference -> don't shift right }
                else if (paraloc.shiftval<0) and
-                       (sizeleft in [1,2,4]) then
+                       ((-paraloc.shiftval) in [1,2,4]) then
                  begin
                    a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
                    { convert to a register of 1/2/4 bytes in size, since the
@@ -1333,8 +1337,10 @@ implementation
                       dec(tmpref.offset)
                     else
                       inc(tmpref.offset);
-                    a_load_ref_reg(list,OS_8,OS_16,tmpref,register);
-                    a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
+                    tmpreg2:=makeregsize(list,register,OS_16);
+                    a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg2);
+                    a_op_reg_reg(list,OP_OR,OS_16,tmpreg,tmpreg2);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg2,register);
                   end;
               OS_32,OS_S32:
                 if ref.alignment=2 then
@@ -1348,8 +1354,10 @@ implementation
                       dec(tmpref.offset,2)
                     else
                       inc(tmpref.offset,2);
-                    a_load_ref_reg(list,OS_16,OS_32,tmpref,register);
-                    a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
+                    tmpreg2:=makeregsize(list,register,OS_32);
+                    a_load_ref_reg(list,OS_16,OS_32,tmpref,tmpreg2);
+                    a_op_reg_reg(list,OP_OR,OS_32,tmpreg,tmpreg2);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg2,register);
                   end
                 else
                   begin
@@ -1368,7 +1376,7 @@ implementation
                         a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg2);
                         a_op_reg_reg(list,OP_OR,OS_32,tmpreg2,tmpreg);
                       end;
-                    a_load_reg_reg(list,OS_32,OS_32,tmpreg,register);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
                   end
               else
                 a_load_ref_reg(list,fromsize,tosize,tmpref,register);

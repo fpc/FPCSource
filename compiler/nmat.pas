@@ -133,6 +133,16 @@ implementation
                 { recover }
                 tordconstnode(right).value := 1;
               end;
+            { the following simplification is also required for correctness
+              on x86, as its transformation of divisions by constants to
+              multiplications and shifts does not handle -1 correctly }
+            if (rv=-1) and
+               (nodetype=divn) then
+              begin
+                result:=cunaryminusnode.create(left);
+                left:=nil;
+                exit;
+              end;
             if (nf_isomod in flags) and
               (rv<=0) then
                begin
