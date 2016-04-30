@@ -6332,6 +6332,7 @@ packages/os4units/src/inputevent.pas svneol=native#text/pascal
 packages/os4units/src/intuition.pas svneol=native#text/pascal
 packages/os4units/src/keymap.pas svneol=native#text/pascal
 packages/os4units/src/layers.pas svneol=native#text/pascal
+packages/os4units/src/mui.pas svneol=native#text/pascal
 packages/os4units/src/timer.pas svneol=native#text/pascal
 packages/os4units/src/utility.pas svneol=native#text/pascal
 packages/palmunits/Makefile svneol=native#text/plain

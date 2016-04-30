@@ -42,6 +42,7 @@ begin
     T:=P.Targets.AddUnit('clipboard.pas');
     T:=P.Targets.AddUnit('iffparse.pas');
     T:=P.Targets.AddUnit('intuition.pas');
+    T:=P.Targets.AddUnit('mui.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

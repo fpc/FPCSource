@@ -320,6 +320,7 @@ function UCS4Valid(UCS4: LongInt): LongInt; syscall IUtility 360;
 
 
 function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
+function CallHook(Hook: PHook; Obj: APTR; Params: array of PtrUInt): LongWord; inline;
 
 function TAG_(value: pointer): PtrUInt; overload; inline;
 function TAG_(value: PChar): PtrUInt; overload; inline;
@@ -336,6 +337,11 @@ implementation
 function AllocNamedObject(Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
 begin
   AllocNamedObject := AllocNamedObjectA(Name, @Tags);
+end;
+
+function CallHook(Hook: PHook; Obj: APTR; Params: array of PtrUInt): LongWord; inline;
+begin
+  CallHook := CallHookPkt(Hook, Obj, @Params);
 end;
 
 function TAG_(value: pointer): PtrUInt; inline;

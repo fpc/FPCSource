@@ -4037,6 +4037,12 @@ function SetAttrs(obj: Pointer; const Tags: array of PtrUInt): LongWord;
 function SetGadgetAttrs(gadget: PGadget; Window: PWindow; Requester: PRequester; const argv: array of PtrUInt): LongWord;
 function EasyRequest(Window: PWindow; const EasyStruct: PEasyStruct; IDCMPPtr: PLongWord; const args: array of PtrUInt): LongInt;
 procedure SetWindowPointer(Win: PWindow; const Tags: array of PtrUInt);
+function DoMethodA(Obj: PObject_; Message: APTR): LongWord;
+function DoMethod(Obj: PObject_; const Args: array of PtrUInt): LongWord;
+function CoerceMethodA(cl: PIClass; Obj: PObject_; Message: APTR): LongWord;
+function CoerceMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): LongWord;
+function DoSuperMethodA(cl: PIClass; Obj: PObject_; Message: APTR): LongWord;
+function DoSuperMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): LongWord;
 
 
 { Intuition macros }
@@ -4094,6 +4100,53 @@ end;
 procedure SetWindowPointer(Win: PWindow; const Tags: array of PtrUInt);
 begin
   SetWindowPointerA(Win, @Tags);
+end;
+
+// Functions wrapper
+
+function DoMethodA(Obj: PObject_; Message: APTR): LongWord; inline;
+begin
+  DoMethodA := 0;
+  if Obj = nil then
+    Exit;
+  DoMethodA := CallHookPkt(PHook(OCLASS(Obj)), Obj, Message);
+end;
+
+function DoMethod(Obj: PObject_; const Args: array of PtrUInt): LongWord; inline;
+begin
+  DoMethod := 0;
+  if obj = nil then
+    Exit;
+  DoMethod := CallHookPkt(PHook(OCLASS(Obj)), Obj, @Args);
+end;
+
+function DoSuperMethodA(cl: PIClass; Obj: PObject_; Message: APTR): LongWord; inline;
+begin
+  DoSuperMethodA := 0;
+  if (cl = nil) or (obj = nil) then
+    Exit;
+  DoSuperMethodA := CallHookPkt(PHook(cl^.cl_Super), Obj, Message);
+end;
+
+function DoSuperMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): LongWord; inline;
+begin
+  DoSuperMethod := 0;
+  if (cl = nil) or (obj = nil) then
+    Exit;
+  DoSuperMethod := CallHookPkt(PHook(cl^.cl_Super), Obj, @Args);
+end;
+
+function CoerceMethodA(cl: PIClass; Obj: PObject_; Message: APTR): LongWord; inline;
+begin
+  CoerceMethodA := 0;
+  if (cl = nil) or (obj = nil) then
+    Exit;
+  CoerceMethodA := CallHookPkt(PHook(cl), Obj, Message);
+end;
+
+function CoerceMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): LongWord; inline;
+begin
+  CoerceMethod := CoerceMethodA(cl, Obj, @Args);
 end;
 
 function INST_DATA(cl: PIClass; o: P_Object): Pointer; inline;
