@@ -1987,7 +1987,6 @@ packages/fcl-base/examples/testbs.pp svneol=native#text/plain
 packages/fcl-base/examples/testcgi.html -text
 packages/fcl-base/examples/testcgi.pp svneol=native#text/plain
 packages/fcl-base/examples/testcont.pp svneol=native#text/plain
-packages/fcl-base/examples/testexprpars.pp svneol=native#text/plain
 packages/fcl-base/examples/testez.pp svneol=native#text/plain
 packages/fcl-base/examples/testhres.pp svneol=native#text/plain
 packages/fcl-base/examples/testini.pp svneol=native#text/plain
@@ -2073,6 +2072,7 @@ packages/fcl-base/src/wtex.pp svneol=native#text/plain
 packages/fcl-base/tests/fclbase-unittests.lpi svneol=native#text/plain
 packages/fcl-base/tests/fclbase-unittests.pp svneol=native#text/plain
 packages/fcl-base/tests/tchashlist.pp svneol=native#text/plain
+packages/fcl-base/tests/testexprpars.pp svneol=native#text/plain
 packages/fcl-base/tests/tests_fptemplate.pp svneol=native#text/plain
 packages/fcl-base/texts/fptemplate.txt svneol=native#text/plain
 packages/fcl-db/Makefile svneol=native#text/plain
