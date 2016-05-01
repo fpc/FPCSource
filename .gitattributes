@@ -8052,6 +8052,7 @@ packages/x11/src/xf86dga1.inc svneol=native#text/plain
 packages/x11/src/xf86vmode.pp svneol=native#text/plain
 packages/x11/src/xft.pas svneol=native#text/pascal
 packages/x11/src/xi.pp svneol=native#text/plain
+packages/x11/src/xi2.pp svneol=native#text/plain
 packages/x11/src/xinerama.pp svneol=native#text/plain
 packages/x11/src/xkb.pp svneol=native#text/plain
 packages/x11/src/xkblib.pp svneol=native#text/plain
