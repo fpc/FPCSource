@@ -669,10 +669,12 @@ unit cgcpu;
                  ((longint(a) = -1) or ((longint(a) > 0) and (longint(a) < 8))) then
                 list.concat(taicpu.op_const_reg(A_MOV3Q,S_L,longint(a),register))
               else
-                { We don't have to specify the size here, the assembler will decide the size of
-                  the operand it needs. If this ends up as a MOVEA.W, that will sign extend the
-                  value in the dest. reg to full 32 bits (specific to Ax regs only) }
-                list.concat(taicpu.op_const_reg(A_MOVEA,S_NO,longint(a),register));
+                { MOVEA.W will sign extend the value in the dest. reg to full 32 bits 
+                  (specific to Ax regs only) }
+                if isvalue16bit(a) then
+                  list.concat(taicpu.op_const_reg(A_MOVEA,S_W,longint(a),register))
+                else
+                  list.concat(taicpu.op_const_reg(A_MOVEA,S_L,longint(a),register));
           end
         else
         if a = 0 then
