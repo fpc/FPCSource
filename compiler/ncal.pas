@@ -303,7 +303,7 @@ implementation
       verbose,globals,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,nld,ninl,nadd,ncon,nmem,nset,nobjc,
+      ncnv,nflw,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       ngenutil,objcutil,
       procinfo,cpuinfo,
       wpobase;
@@ -765,16 +765,24 @@ implementation
                  { move(para,temp,sizeof(arr)) (no "left.getcopy" below because
                    we replace left afterwards) }
                  addstatement(initstat,
-                   ccallnode.createintern('MOVE',
-                     ccallparanode.create(
-                       arraysize,
+                   cifnode.create_internal(
+                     caddnode.create_internal(
+                       unequaln,
+                       arraysize.getcopy,
+                       genintconstnode(0)
+                     ),
+                     ccallnode.createintern('MOVE',
                        ccallparanode.create(
-                         cderefnode.create(ctemprefnode.create(paratemp)),
+                         arraysize,
                          ccallparanode.create(
-                           arraybegin,nil
+                           cderefnode.create(ctemprefnode.create(paratemp)),
+                           ccallparanode.create(
+                             arraybegin,nil
+                           )
                          )
                        )
-                     )
+                     ),
+                     nil
                    )
                  );
                  { no reference count increases, that's still done on the callee
