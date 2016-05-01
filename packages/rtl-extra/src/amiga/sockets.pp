@@ -109,7 +109,9 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;  
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
 //function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
-{$ifdef AMIGA68k}
+
+{ remember, classic style calls are also compiled for MorphOS, so don't test against AMIGA68K }
+{$ifndef AMIGAOS4}
 threadvar
   SocketBase: PLibrary;
 
@@ -138,9 +140,9 @@ function bsd_gethostbyaddr(const Addr: PByte location 'a0'; Len: LongInt locatio
 function ObtainSocket(id: LongInt location 'd0'; domain: LongInt location 'd1'; _type: LongInt location 'd2'; protocol: LongInt location 'd3'): LongInt; syscall SocketBase 144;
 function ReleaseSocket(s: LongInt location 'd0'; id: LongInt location 'd1'): LongInt; syscall SocketBase 150;
 function ReleaseCopyOfSocket(s: LongInt location 'd0'; id: LongInt location 'd1'): LongInt; syscall SocketBase 156;
-{$endif}
 
-{$ifdef AMIGAOS4}
+{$else AMIGAOS4}
+
 var
   SocketBase: PLibrary;
   ISocket: PInterface;
@@ -170,7 +172,7 @@ function bsd_gethostbyaddr(const Addr: PByte; Len: LongInt; Type_: LongInt): PHo
 function ObtainSocket(id: LongInt; domain: LongInt; _type: LongInt; protocol: LongInt): LongInt; syscall ISocket 152;
 function ReleaseSocket(s: LongInt; id: LongInt): LongInt; syscall ISocket 156;
 function ReleaseCopyOfSocket(s: LongInt; id: LongInt): LongInt; syscall ISocket 160;
-{$endif}
+{$endif AMIGAOS4}
 
 
 { Definition for Release(CopyOf)Socket unique id }
