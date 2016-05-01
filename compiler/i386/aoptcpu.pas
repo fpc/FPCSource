@@ -2145,6 +2145,10 @@ begin
                         else if DoSubAddOpt(p) then
                           continue
                     end;
+                  A_VMOVAPS,
+                  A_VMOVAPD:
+                    if OptPass1VMOVAP(p) then
+                      continue;
                 end;
             end; { if is_jmp }
           end;
@@ -2603,7 +2607,7 @@ begin
                     end;
                 end;
               A_MOV:
-                PostPeepholeOpMov(p);
+                PostPeepholeOptMov(p);
               A_MOVZX:
                 { if register vars are on, it's possible there is code like }
                 {   "cmpl $3,%eax; movzbl 8(%ebp),%ebx; je .Lxxx"           }

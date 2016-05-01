@@ -517,8 +517,7 @@ begin
                 if GetNextInstruction(p, hp1) and
                   (tai(hp1).typ = ait_instruction) and
                   (taicpu(hp1).opcode = A_AND) and
-                  (taicpu(hp1).oper[0]^.typ = Top_Const) and
-                  (taicpu(hp1).oper[1]^.typ = Top_Reg) and
+                  MatchOpType(taicpu(hp1),top_const,top_reg) and
                   (taicpu(hp1).oper[1]^.reg =
                   taicpu(p).oper[1]^.reg) then
                   begin
@@ -577,6 +576,9 @@ begin
                 end;
             end;
           end;
+        A_VMOVAPS,
+        A_VMOVAPD:
+          result:=OptPass1VMOVAP(p);
         A_VDIVSD,
         A_VDIVSS,
         A_VSUBSD,
@@ -617,7 +619,7 @@ end;
             begin
               case taicpu(p).opcode of
                 A_MOV:
-                  PostPeepholeOpMov(p);
+                  PostPeepholeOptMov(p);
               end;
             end;
         end;
