@@ -8,7 +8,7 @@ version=3.1.1
 
 [target]
 units= amsgbox amigautils wbargs vartags pastoc tagsarray deadkeys \
-       deadkeys consoleio pcq linklist hisoft exec timerutils easyasl \
+       deadkeys consoleio linklist hisoft exec timerutils easyasl \
        doublebuffer intuition agraphics amigalib nonvolatile iffparse hardware  \
        expansion diskfont conunit amigados configvars keyboard bootblock icon  \
        cd realtime rexx translator scsidisk lowlevel configregs prefs parallel \

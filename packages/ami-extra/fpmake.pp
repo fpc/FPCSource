@@ -35,6 +35,7 @@ begin
     P.OSes:=AllAmigaLikeOSes;
 
     T:=P.Targets.AddUnit('cliputils.pas');
+    T:=P.Targets.AddUnit('pcq.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

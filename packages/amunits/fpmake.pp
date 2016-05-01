@@ -22,7 +22,7 @@ begin
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'A set of units for Amiga OS. 68k only?';
+    P.Description := 'A set of units for classic AmigaOS. (68k only)';
     P.NeedLibC:= false;
 
     P.CPUs:=[m68k];
@@ -41,7 +41,6 @@ begin
     T:=P.Targets.AddUnit('tagsarray.pas');
     T:=P.Targets.AddUnit('deadkeys.pas');
     T:=P.Targets.AddUnit('consoleio.pas');
-    T:=P.Targets.AddUnit('pcq.pas');
     T:=P.Targets.AddUnit('linklist.pas');
     T:=P.Targets.AddUnit('hisoft.pas');
     T:=P.Targets.AddUnit('timerutils.pas');
