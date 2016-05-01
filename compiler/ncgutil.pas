@@ -41,7 +41,7 @@ interface
 
       pusedregvars = ^tusedregvars;
       tusedregvars = record
-        intregvars, fpuregvars, mmregvars: Tsuperregisterworklist;
+        intregvars, addrregvars, fpuregvars, mmregvars: Tsuperregisterworklist;
       end;
 
 {
@@ -69,7 +69,7 @@ interface
 
     { allocate registers for a tlocation; assumes that loc.loc is already
       set to LOC_CREGISTER/LOC_CFPUREGISTER/... }
-    procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation);
+    procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
 
     procedure register_maybe_adjust_setbase(list: TAsmList; opdef: tdef; var l: tlocation; setbase: aint);
 
@@ -578,7 +578,7 @@ implementation
                     tcgassignmentnode thlcgobj.maybe_change_load_node_reg is
                     called for the temporary node; so the workaround for now is
                     to fix the symptoms... }
-              l.register:=cg.getintregister(list,l.size);
+              l.register:=hlcg.getregisterfordef(list,def);
           end;
       end;
 
@@ -652,7 +652,7 @@ implementation
       end;
 
 
-    procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation);
+    procedure gen_alloc_regloc(list:TAsmList;var loc: tlocation;def: tdef);
       begin
         case loc.loc of
           LOC_CREGISTER:
@@ -672,7 +672,10 @@ implementation
                 end
               else
 {$endif cpu64bitalu}
-                loc.register:=cg.getintregister(list,loc.size);
+                if hlcg.def2regtyp(def)=R_ADDRESSREGISTER then
+                  loc.register:=hlcg.getaddressregister(list,def)
+                else
+                  loc.register:=cg.getintregister(list,loc.size);
             end;
           LOC_CFPUREGISTER:
             begin
@@ -687,9 +690,17 @@ implementation
 
 
     procedure gen_alloc_regvar(list:TAsmList;sym: tabstractnormalvarsym; allocreg: boolean);
+      var
+        usedef: tdef;
       begin
         if allocreg then
-          gen_alloc_regloc(list,sym.initialloc);
+          begin
+            if sym.typ=paravarsym then
+              usedef:=tparavarsym(sym).paraloc[calleeside].def
+            else
+              usedef:=sym.vardef;
+            gen_alloc_regloc(list,sym.initialloc,usedef);
+          end;
         if (pi_has_label in current_procinfo.flags) then
           begin
             { Allocate register already, to prevent first allocation to be
@@ -856,7 +867,7 @@ implementation
                             { paraloc^ -> high
                               paraloc^.next -> low }
                             unget_para(paraloc^);
-                            gen_alloc_regloc(list,destloc);
+                            gen_alloc_regloc(list,destloc,vardef);
                             { reg->reg, alignment is irrelevant }
                             cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reghi,8);
                             unget_para(paraloc^.next^);
@@ -867,7 +878,7 @@ implementation
                             { paraloc^ -> low
                               paraloc^.next -> high }
                             unget_para(paraloc^);
-                            gen_alloc_regloc(list,destloc);
+                            gen_alloc_regloc(list,destloc,vardef);
                             cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^,destloc.register128.reglo,8);
                             unget_para(paraloc^.next^);
                             cg.a_load_cgparaloc_anyreg(list,OS_64,paraloc^.next^,destloc.register128.reghi,8);
@@ -875,7 +886,7 @@ implementation
                       end;
                     LOC_REFERENCE:
                       begin
-                        gen_alloc_regloc(list,destloc);
+                        gen_alloc_regloc(list,destloc,vardef);
                         reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,para.alignment);
                         cg128.a_load128_ref_reg(list,href,destloc.register128);
                         unget_para(paraloc^);
@@ -908,7 +919,7 @@ implementation
                                 { paraloc^ -> high
                                   paraloc^.next^.next^.next^.next -> low }
                                 unget_para(paraloc^);
-                                gen_alloc_regloc(list,destloc);
+                                gen_alloc_regloc(list,destloc,vardef);
                                 { reg->reg, alignment is irrelevant }
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,GetNextReg(destloc.register64.reghi),1);
                                 unget_para(paraloc^.next^);
@@ -924,7 +935,7 @@ implementation
                                   paraloc^.next^.next^.next^.next -> high }
                                 curparaloc:=paraloc;
                                 unget_para(curparaloc^);
-                                gen_alloc_regloc(list,destloc);
+                                gen_alloc_regloc(list,destloc,vardef);
                                 cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^,destloc.register64.reglo,2);
                                 unget_para(curparaloc^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_8,curparaloc^.next^,GetNextReg(destloc.register64.reglo),1);
@@ -952,7 +963,7 @@ implementation
                                 { paraloc^ -> high
                                   paraloc^.next^.next -> low }
                                 unget_para(paraloc^);
-                                gen_alloc_regloc(list,destloc);
+                                gen_alloc_regloc(list,destloc,vardef);
                                 { reg->reg, alignment is irrelevant }
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,GetNextReg(destloc.register64.reghi),2);
                                 unget_para(paraloc^.next^);
@@ -967,7 +978,7 @@ implementation
                                 { paraloc^ -> low
                                   paraloc^.next^.next -> high }
                                 unget_para(paraloc^);
-                                gen_alloc_regloc(list,destloc);
+                                gen_alloc_regloc(list,destloc,vardef);
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^,destloc.register64.reglo,2);
                                 unget_para(paraloc^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_16,paraloc^.next^,GetNextReg(destloc.register64.reglo),2);
@@ -983,7 +994,7 @@ implementation
                                 { paraloc^ -> high
                                   paraloc^.next -> low }
                                 unget_para(paraloc^);
-                                gen_alloc_regloc(list,destloc);
+                                gen_alloc_regloc(list,destloc,vardef);
                                 { reg->reg, alignment is irrelevant }
                                 cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register64.reghi,4);
                                 unget_para(paraloc^.next^);
@@ -994,7 +1005,7 @@ implementation
                                 { paraloc^ -> low
                                   paraloc^.next -> high }
                                 unget_para(paraloc^);
-                                gen_alloc_regloc(list,destloc);
+                                gen_alloc_regloc(list,destloc,vardef);
                                 cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,destloc.register64.reglo,4);
                                 unget_para(paraloc^.next^);
                                 cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,destloc.register64.reghi,4);
@@ -1006,7 +1017,7 @@ implementation
                       end;
                     LOC_REFERENCE:
                       begin
-                        gen_alloc_regloc(list,destloc);
+                        gen_alloc_regloc(list,destloc,vardef);
                         reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,para.alignment);
                         cg64.a_load64_ref_reg(list,href,destloc.register64);
                         unget_para(paraloc^);
@@ -1024,7 +1035,7 @@ implementation
                         (para.Size in [OS_PAIR,OS_SPAIR]) then
                         begin
                           unget_para(paraloc^);
-                          gen_alloc_regloc(list,destloc);
+                          gen_alloc_regloc(list,destloc,vardef);
                           cg.a_load_cgparaloc_anyreg(list,OS_INT,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
                           {$if defined(cpu16bitalu) or defined(cpu8bitalu)}
@@ -1038,7 +1049,7 @@ implementation
                         (para.Size in [OS_32,OS_S32]) then
                         begin
                           unget_para(paraloc^);
-                          gen_alloc_regloc(list,destloc);
+                          gen_alloc_regloc(list,destloc,vardef);
                           cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^,destloc.register,sizeof(aint));
                           unget_para(paraloc^.Next^);
                           cg.a_load_cgparaloc_anyreg(list,OS_8,paraloc^.Next^,GetNextReg(destloc.register),sizeof(aint));
@@ -1063,7 +1074,7 @@ implementation
                           { store everything first to memory, then load it in
                             destloc }
                           tg.gettemp(list,sizeleft,sizeleft,tt_persistent,tempref);
-                          gen_alloc_regloc(list,destloc);
+                          gen_alloc_regloc(list,destloc,vardef);
                           while sizeleft>0 do
                             begin
                               if not assigned(paraloc) then
@@ -1085,7 +1096,7 @@ implementation
                   else
                     begin
                       unget_para(paraloc^);
-                      gen_alloc_regloc(list,destloc);
+                      gen_alloc_regloc(list,destloc,vardef);
                       { we can't directly move regular registers into fpu
                         registers }
                       if getregtype(paraloc^.register)=R_FPUREGISTER then
@@ -1110,7 +1121,7 @@ implementation
                  (paraloc^.Loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
                 begin
                   unget_para(paraloc^);
-                  gen_alloc_regloc(list,destloc);
+                  gen_alloc_regloc(list,destloc,vardef);
                   cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,para.alignment);
                 end
               else if (destloc.size = OS_F32) and
@@ -1149,7 +1160,7 @@ implementation
                       dec(sizeleft,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
                     end;
-                  gen_alloc_regloc(list,destloc);
+                  gen_alloc_regloc(list,destloc,vardef);
                   cg.a_loadfpu_ref_reg(list,destloc.size,destloc.size,tempref,destloc.register);
                   tg.UnGetTemp(list,tempref);
                 end;
@@ -1168,12 +1179,12 @@ implementation
                   dec(sizeleft,TCGSize2Size[paraloc^.size]);
                   paraloc:=paraloc^.next;
                 end;
-              gen_alloc_regloc(list,destloc);
+              gen_alloc_regloc(list,destloc,vardef);
               cg.a_loadfpu_ref_reg(list,destloc.size,destloc.size,tempref,destloc.register);
               tg.UnGetTemp(list,tempref);
 {$else defined(sparc) or defined(arm)}
               unget_para(paraloc^);
-              gen_alloc_regloc(list,destloc);
+              gen_alloc_regloc(list,destloc,vardef);
               { from register to register -> alignment is irrelevant }
               cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
               if assigned(paraloc^.next) then
@@ -1209,7 +1220,7 @@ implementation
                   { don't free before the above, because then the getintregister
                     could reallocate this register and overwrite it }
                   unget_para(paraloc^);
-                  gen_alloc_regloc(list,destloc);
+                  gen_alloc_regloc(list,destloc,vardef);
                   if (target_info.endian=endian_big) then
                     { paraloc^ -> high
                       paraloc^.next -> low }
@@ -1224,7 +1235,7 @@ implementation
                   if not assigned(paraloc^.next) then
                     begin
                       unget_para(paraloc^);
-                      gen_alloc_regloc(list,destloc);
+                      gen_alloc_regloc(list,destloc,vardef);
                       { from register to register -> alignment is irrelevant }
                       cg.a_load_cgparaloc_anyreg(list,destloc.size,paraloc^,destloc.register,0);
                     end
@@ -1706,7 +1717,10 @@ implementation
               end
             else
 {$endif}
-              rv.intregvars.addnodup(getsupreg(location.register));
+              if getregtype(location.register)=R_INTREGISTER then
+                rv.intregvars.addnodup(getsupreg(location.register))
+              else
+                rv.addrregvars.addnodup(getsupreg(location.register));
           LOC_CFPUREGISTER:
             rv.fpuregvars.addnodup(getsupreg(location.register));
           LOC_CMMREGISTER:
@@ -1801,6 +1815,8 @@ implementation
       begin
         for count := 1 to rv.intregvars.length do
           cg.a_reg_sync(list,newreg(R_INTREGISTER,rv.intregvars.readidx(count-1),R_SUBWHOLE));
+        for count := 1 to rv.addrregvars.length do
+          cg.a_reg_sync(list,newreg(R_ADDRESSREGISTER,rv.addrregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.fpuregvars.length do
           cg.a_reg_sync(list,newreg(R_FPUREGISTER,rv.fpuregvars.readidx(count-1),R_SUBWHOLE));
         for count := 1 to rv.mmregvars.length do
