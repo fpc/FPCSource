@@ -63,10 +63,10 @@ type
     //Property setters
     Procedure Setadditions(AIndex : Integer; AValue : TChangeTypeadditionsArray); virtual;
     Procedure Setdeletions(AIndex : Integer; AValue : TChangeTypedeletionsArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -94,8 +94,8 @@ type
   Protected
     //Property setters
     Procedure Setchanges(AIndex : Integer; AValue : TChangesListResponseTypechangesArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -124,13 +124,13 @@ type
     FnameServers : TStringArray;
   Protected
     //Property setters
-    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdnsName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnameServerSet(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreationTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdnsName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnameServerSet(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnameServers(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -160,9 +160,9 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponseTypemanagedZonesArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -187,9 +187,9 @@ type
     Fquota : TQuota;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnumber(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnumber(AIndex : Integer; const AValue : String); virtual;
     Procedure Setquota(AIndex : Integer; AValue : TQuota); virtual;
   Public
   Published
@@ -215,7 +215,7 @@ type
     FtotalRrdataSizePerChange : integer;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmanagedZones(AIndex : Integer; AValue : integer); virtual;
     Procedure SetresourceRecordsPerRrset(AIndex : Integer; AValue : integer); virtual;
     Procedure SetrrsetAdditionsPerChange(AIndex : Integer; AValue : integer); virtual;
@@ -248,11 +248,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrrdatas(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setttl(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -278,8 +278,8 @@ type
     Frrsets : TResourceRecordSetsListResponseTyperrsetsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponseTyperrsetsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -457,7 +457,7 @@ end;
 
 
 
-Procedure TChange.Setid(AIndex : Integer; AValue : String); 
+Procedure TChange.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -467,7 +467,7 @@ end;
 
 
 
-Procedure TChange.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChange.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -477,7 +477,7 @@ end;
 
 
 
-Procedure TChange.SetstartTime(AIndex : Integer; AValue : String); 
+Procedure TChange.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -487,7 +487,7 @@ end;
 
 
 
-Procedure TChange.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TChange.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -528,7 +528,7 @@ end;
 
 
 
-Procedure TChangesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChangesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -538,7 +538,7 @@ end;
 
 
 
-Procedure TChangesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TChangesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -568,7 +568,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManagedZone.SetcreationTime(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.SetcreationTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -578,7 +578,7 @@ end;
 
 
 
-Procedure TManagedZone.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -588,7 +588,7 @@ end;
 
 
 
-Procedure TManagedZone.SetdnsName(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.SetdnsName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdnsName=AValue) then exit;
@@ -598,7 +598,7 @@ end;
 
 
 
-Procedure TManagedZone.Setid(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -608,7 +608,7 @@ end;
 
 
 
-Procedure TManagedZone.Setkind(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -618,7 +618,7 @@ end;
 
 
 
-Procedure TManagedZone.Setname(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -628,7 +628,7 @@ end;
 
 
 
-Procedure TManagedZone.SetnameServerSet(AIndex : Integer; AValue : String); 
+Procedure TManagedZone.SetnameServerSet(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnameServerSet=AValue) then exit;
@@ -668,7 +668,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TManagedZonesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TManagedZonesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -688,7 +688,7 @@ end;
 
 
 
-Procedure TManagedZonesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TManagedZonesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -718,7 +718,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProject.Setid(AIndex : Integer; AValue : String); 
+Procedure TProject.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -728,7 +728,7 @@ end;
 
 
 
-Procedure TProject.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProject.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -738,7 +738,7 @@ end;
 
 
 
-Procedure TProject.Setnumber(AIndex : Integer; AValue : String); 
+Procedure TProject.Setnumber(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnumber=AValue) then exit;
@@ -765,7 +765,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuota.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuota.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -842,7 +842,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceRecordSet.Setkind(AIndex : Integer; AValue : String); 
+Procedure TResourceRecordSet.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -852,7 +852,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setname(AIndex : Integer; AValue : String); 
+Procedure TResourceRecordSet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -882,7 +882,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Set_type(AIndex : Integer; AValue : String); 
+Procedure TResourceRecordSet.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -923,7 +923,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceRecordSetsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TResourceRecordSetsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -933,7 +933,7 @@ end;
 
 
 
-Procedure TResourceRecordSetsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TResourceRecordSetsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

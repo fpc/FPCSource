@@ -73,6 +73,7 @@ interface
       nflw,pass_2,ncgutil,
       cgbase,cgobj,hlcgobj,
       procinfo,
+      cpuinfo,
       tgobj
       ;
 
@@ -253,6 +254,8 @@ interface
              currenttai:=tai(current_asmdata.CurrAsmList.last);
              exit;
            end;
+         { Switch to the CPU instruction set, specified by the $ASMCPU directive }
+         current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[current_settings.asmcputype]));
 
          { Allocate registers used in the assembler block }
          { has_registerlist=true means that registers are specified and already allocated }
@@ -348,6 +351,9 @@ interface
          { Release register used in the assembler block }
          if (not has_registerlist) then
            cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+
+         { Switch back to the CPU instruction set of the target CPU }
+         current_asmdata.CurrAsmList.Concat(tai_directive.create(asd_cpu,cputypestr[current_settings.cputype]));
        end;
 
 

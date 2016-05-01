@@ -41,14 +41,16 @@ Type
        cpu_isa_a,
        cpu_isa_a_p,
        cpu_isa_b,
-       cpu_isa_c
+       cpu_isa_c,
+       cpu_cfv4e
       );
 
    tfputype =
      (fpu_none,
       fpu_soft,
       fpu_libgcc,
-      fpu_68881
+      fpu_68881,
+      fpu_coldfire
      );
 
    tcontrollertype =
@@ -95,7 +97,8 @@ Const
      'ISAA',
      'ISAA+',
      'ISAB',
-     'ISAC'
+     'ISAC',
+     'CFV4E'
    );
 
    gascputypestr : array[tcputype] of string[8] = ('',
@@ -105,13 +108,15 @@ Const
      'isaa',
      'isaaplus',
      'isab',
-     'isac'
+     'isac',
+     'cfv4e'
    );
 
-   fputypestr : array[tfputype] of string[6] = ('',
+   fputypestr : array[tfputype] of string[8] = ('',
      'SOFT',
      'LIBGCC',
-     '68881'
+     '68881',
+     'COLDFIRE'
    );
 
    { Supported optimizations, only used for information }
@@ -120,12 +125,13 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_nodecse,
+                                 [cs_opt_regvar,cs_opt_stackframe,cs_opt_loopunroll,
+                                  cs_opt_tailrecursion,cs_opt_nodecse,
                                   cs_opt_reorder_fields,cs_opt_fastmath];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
    level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
-     [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
+     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
    level4optimizerswitches = genericlevel4optimizerswitches + level3optimizerswitches + [];
 
@@ -148,11 +154,12 @@ const
       { cpu_isaa     } [],
       { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV],
       { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
-      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
+      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV],
+      { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
     );
 
   { all CPUs commonly called "coldfire" }
-  cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c];
+  cpu_coldfire = [cpu_isa_a,cpu_isa_a_p,cpu_isa_b,cpu_isa_c,cpu_cfv4e];
 
 Implementation
 

@@ -50,6 +50,7 @@ implementation
         datalist     : tasmlist;
         restree,
         previnit     : tnode;
+        symind       : tasmsymbol;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -133,6 +134,14 @@ implementation
             { and pointed data, if any }
             current_asmdata.asmlists[al_const].concatlist(datalist);
             { the (empty) lists themselves are freed by tcbuilder }
+
+            { add indirect symbol }
+            { ToDo: do we also need this for the else part? }
+            new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
+            symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA);
+            list.concat(Tai_symbol.Create_Global(symind,0));
+            list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
+            list.concat(tai_symbol_end.Create(symind));
           end
         else
           begin

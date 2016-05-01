@@ -60,6 +60,7 @@ unit parabase;
                if llvmvalueloc=false: must be a tempreg. Means that the value is
                stored in a temp with this register as base address }
              LOC_REGISTER:  (reg: tregister);
+             LOC_CONSTANT:  (value: tcgint);
          end;
 {$endif llvm}
          case TCGLoc of

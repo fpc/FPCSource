@@ -327,6 +327,8 @@ implementation
           result:=R_ARM_REL32;
         RELOC_RELATIVE_24:
           result:=R_ARM_JUMP24;
+        RELOC_RELATIVE_CALL:
+          result:=R_ARM_CALL;
         RELOC_RELATIVE_24_THUMB:
           result:=R_ARM_CALL;
         RELOC_RELATIVE_CALL_THUMB:

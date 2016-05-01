@@ -89,7 +89,7 @@ type
     Fmessage : TMessage;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TMessage); virtual;
   Public
   Published
@@ -112,7 +112,7 @@ type
     FmessagesDeleted : THistoryTypemessagesDeletedArray;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlabelsAdded(AIndex : Integer; AValue : THistoryTypelabelsAddedArray); virtual;
     Procedure SetlabelsRemoved(AIndex : Integer; AValue : THistoryTypelabelsRemovedArray); virtual;
     Procedure Setmessages(AIndex : Integer; AValue : THistoryTypemessagesArray); virtual;
@@ -229,15 +229,15 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlabelListVisibility(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmessageListVisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlabelListVisibility(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmessageListVisibility(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmessagesTotal(AIndex : Integer; AValue : integer); virtual;
     Procedure SetmessagesUnread(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetthreadsTotal(AIndex : Integer; AValue : integer); virtual;
     Procedure SetthreadsUnread(AIndex : Integer; AValue : integer); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -264,7 +264,7 @@ type
   Protected
     //Property setters
     Procedure Setdrafts(AIndex : Integer; AValue : TListDraftsResponseTypedraftsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -290,8 +290,8 @@ type
   Protected
     //Property setters
     Procedure Sethistory(AIndex : Integer; AValue : TListHistoryResponseTypehistoryArray); virtual;
-    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SethistoryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -336,7 +336,7 @@ type
   Protected
     //Property setters
     Procedure Setmessages(AIndex : Integer; AValue : TListMessagesResponseTypemessagesArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -361,7 +361,7 @@ type
     Fthreads : TListThreadsResponseTypethreadsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresultSizeEstimate(AIndex : Integer; AValue : integer); virtual;
     Procedure Setthreads(AIndex : Integer; AValue : TListThreadsResponseTypethreadsArray); virtual;
     //2.6.4. bug workaround
@@ -392,14 +392,14 @@ type
     FthreadId : String;
   Protected
     //Property setters
-    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SethistoryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlabelIds(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setpayload(AIndex : Integer; AValue : TMessagePart); virtual;
-    Procedure Setraw(AIndex : Integer; AValue : String); virtual;
+    Procedure Setraw(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsizeEstimate(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
-    Procedure SetthreadId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsnippet(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetthreadId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -432,10 +432,10 @@ type
   Protected
     //Property setters
     Procedure Setbody(AIndex : Integer; AValue : TMessagePartBody); virtual;
-    Procedure Setfilename(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfilename(AIndex : Integer; const AValue : String); virtual;
     Procedure Setheaders(AIndex : Integer; AValue : TMessagePartTypeheadersArray); virtual;
-    Procedure SetmimeType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpartId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmimeType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpartId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparts(AIndex : Integer; AValue : TMessagePartTypepartsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -463,8 +463,8 @@ type
     Fsize : integer;
   Protected
     //Property setters
-    Procedure SetattachmentId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
+    Procedure SetattachmentId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsize(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -484,8 +484,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -551,8 +551,8 @@ type
     FthreadsTotal : integer;
   Protected
     //Property setters
-    Procedure SetemailAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethistoryId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmessagesTotal(AIndex : Integer; AValue : integer); virtual;
     Procedure SetthreadsTotal(AIndex : Integer; AValue : integer); virtual;
   Public
@@ -576,10 +576,10 @@ type
     Fsnippet : String;
   Protected
     //Property setters
-    Procedure SethistoryId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SethistoryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmessages(AIndex : Integer; AValue : TThreadTypemessagesArray); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsnippet(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -902,7 +902,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TDraft.Setid(AIndex : Integer; AValue : String); 
+Procedure TDraft.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -929,7 +929,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THistory.Setid(AIndex : Integer; AValue : String); 
+Procedure THistory.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1127,7 +1127,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabel.Setid(AIndex : Integer; AValue : String); 
+Procedure TLabel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1137,7 +1137,7 @@ end;
 
 
 
-Procedure TLabel.SetlabelListVisibility(AIndex : Integer; AValue : String); 
+Procedure TLabel.SetlabelListVisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlabelListVisibility=AValue) then exit;
@@ -1147,7 +1147,7 @@ end;
 
 
 
-Procedure TLabel.SetmessageListVisibility(AIndex : Integer; AValue : String); 
+Procedure TLabel.SetmessageListVisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmessageListVisibility=AValue) then exit;
@@ -1177,7 +1177,7 @@ end;
 
 
 
-Procedure TLabel.Setname(AIndex : Integer; AValue : String); 
+Procedure TLabel.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1207,7 +1207,7 @@ end;
 
 
 
-Procedure TLabel.Set_type(AIndex : Integer; AValue : String); 
+Procedure TLabel.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1245,7 +1245,7 @@ end;
 
 
 
-Procedure TListDraftsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListDraftsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1295,7 +1295,7 @@ end;
 
 
 
-Procedure TListHistoryResponse.SethistoryId(AIndex : Integer; AValue : String); 
+Procedure TListHistoryResponse.SethistoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1305,7 +1305,7 @@ end;
 
 
 
-Procedure TListHistoryResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListHistoryResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1375,7 +1375,7 @@ end;
 
 
 
-Procedure TListMessagesResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListMessagesResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1415,7 +1415,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListThreadsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListThreadsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1465,7 +1465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessage.SethistoryId(AIndex : Integer; AValue : String); 
+Procedure TMessage.SethistoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1475,7 +1475,7 @@ end;
 
 
 
-Procedure TMessage.Setid(AIndex : Integer; AValue : String); 
+Procedure TMessage.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1505,7 +1505,7 @@ end;
 
 
 
-Procedure TMessage.Setraw(AIndex : Integer; AValue : String); 
+Procedure TMessage.Setraw(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fraw=AValue) then exit;
@@ -1525,7 +1525,7 @@ end;
 
 
 
-Procedure TMessage.Setsnippet(AIndex : Integer; AValue : String); 
+Procedure TMessage.Setsnippet(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -1535,7 +1535,7 @@ end;
 
 
 
-Procedure TMessage.SetthreadId(AIndex : Integer; AValue : String); 
+Procedure TMessage.SetthreadId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FthreadId=AValue) then exit;
@@ -1575,7 +1575,7 @@ end;
 
 
 
-Procedure TMessagePart.Setfilename(AIndex : Integer; AValue : String); 
+Procedure TMessagePart.Setfilename(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilename=AValue) then exit;
@@ -1595,7 +1595,7 @@ end;
 
 
 
-Procedure TMessagePart.SetmimeType(AIndex : Integer; AValue : String); 
+Procedure TMessagePart.SetmimeType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmimeType=AValue) then exit;
@@ -1605,7 +1605,7 @@ end;
 
 
 
-Procedure TMessagePart.SetpartId(AIndex : Integer; AValue : String); 
+Procedure TMessagePart.SetpartId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpartId=AValue) then exit;
@@ -1646,7 +1646,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePartBody.SetattachmentId(AIndex : Integer; AValue : String); 
+Procedure TMessagePartBody.SetattachmentId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FattachmentId=AValue) then exit;
@@ -1656,7 +1656,7 @@ end;
 
 
 
-Procedure TMessagePartBody.Setdata(AIndex : Integer; AValue : String); 
+Procedure TMessagePartBody.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -1683,7 +1683,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMessagePartHeader.Setname(AIndex : Integer; AValue : String); 
+Procedure TMessagePartHeader.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1693,7 +1693,7 @@ end;
 
 
 
-Procedure TMessagePartHeader.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TMessagePartHeader.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1792,7 +1792,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProfile.SetemailAddress(AIndex : Integer; AValue : String); 
+Procedure TProfile.SetemailAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FemailAddress=AValue) then exit;
@@ -1802,7 +1802,7 @@ end;
 
 
 
-Procedure TProfile.SethistoryId(AIndex : Integer; AValue : String); 
+Procedure TProfile.SethistoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1839,7 +1839,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThread.SethistoryId(AIndex : Integer; AValue : String); 
+Procedure TThread.SethistoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhistoryId=AValue) then exit;
@@ -1849,7 +1849,7 @@ end;
 
 
 
-Procedure TThread.Setid(AIndex : Integer; AValue : String); 
+Procedure TThread.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1869,7 +1869,7 @@ end;
 
 
 
-Procedure TThread.Setsnippet(AIndex : Integer; AValue : String); 
+Procedure TThread.Setsnippet(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsnippet=AValue) then exit;

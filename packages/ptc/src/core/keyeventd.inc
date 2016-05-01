@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2011  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2011, 2015  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -31,6 +31,8 @@
 }
 
 type
+  TPTCModifierKey = (pmkAlt, pmkShift, pmkControl);
+  TPTCModifierKeys = set of TPTCModifierKey;
   IPTCKeyEvent = interface(IPTCEvent)
     ['{9BD1CD41-1DF6-4392-99DC-885EADB6D85A}']
     function GetCode: Integer;
@@ -40,8 +42,7 @@ type
     function GetControl: Boolean;
     function GetPress: Boolean;
     function GetRelease: Boolean;
-
-//    function Equals(AKey: IPTCKeyEvent): Boolean;
+    function GetModifierKeys: TPTCModifierKeys;
 
     property Code: Integer read GetCode;
     property Unicode: Integer read GetUnicode;
@@ -50,6 +51,7 @@ type
     property Control: Boolean read GetControl;
     property Press: Boolean read GetPress;
     property Release: Boolean read GetRelease;
+    property ModifierKeys: TPTCModifierKeys read GetModifierKeys;
   end;
 
   TPTCKeyEventFactory = class
@@ -58,12 +60,18 @@ type
     class function CreateNew(ACode: Integer): IPTCKeyEvent;
     class function CreateNew(ACode, AUnicode: Integer): IPTCKeyEvent;
     class function CreateNew(ACode, AUnicode: Integer; APress: Boolean): IPTCKeyEvent;
-    class function CreateNew(ACode: Integer; AAlt, AShift, AControl: Boolean): IPTCKeyEvent;
-    class function CreateNew(ACode: Integer; AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent;
+    class function CreateNew(ACode: Integer; AAlt, AShift, AControl: Boolean): IPTCKeyEvent; deprecated;
+    class function CreateNew(ACode: Integer; AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent; deprecated;
     class function CreateNew(ACode, AUnicode: Integer;
-                             AAlt, AShift, AControl: Boolean): IPTCKeyEvent;
+                             AAlt, AShift, AControl: Boolean): IPTCKeyEvent; deprecated;
     class function CreateNew(ACode, AUnicode: Integer;
-                             AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent;
+                             AAlt, AShift, AControl, APress: Boolean): IPTCKeyEvent; deprecated;
+    class function CreateNew(ACode: Integer; const AModifierKeys: TPTCModifierKeys): IPTCKeyEvent;
+    class function CreateNew(ACode: Integer; const AModifierKeys: TPTCModifierKeys; APress: Boolean): IPTCKeyEvent;
+    class function CreateNew(ACode, AUnicode: Integer;
+                             const AModifierKeys: TPTCModifierKeys): IPTCKeyEvent;
+    class function CreateNew(ACode, AUnicode: Integer;
+                             const AModifierKeys: TPTCModifierKeys; APress: Boolean): IPTCKeyEvent;
     class function CreateNew(AKey: IPTCKeyEvent): IPTCKeyEvent;
   end;
 

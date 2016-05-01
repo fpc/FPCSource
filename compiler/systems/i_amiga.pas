@@ -37,7 +37,7 @@ unit i_amiga;
             flags        : [tf_files_case_aware,tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'AMIGAUNITS';
-            extradefines : 'HASAMIGA';
+            extradefines : 'HASAMIGA;AMIGA68K';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';

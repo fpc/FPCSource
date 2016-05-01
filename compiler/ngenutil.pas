@@ -117,8 +117,8 @@ implementation
       verbose,version,globals,cutils,constexp,
       scanner,systems,procinfo,fmodule,
       aasmbase,aasmtai,aasmcnst,
-      symbase,symtable,defutil,
-      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,
+      symbase,symtable,defutil,symcreat,
+      nadd,ncal,ncnv,ncon,nflw,ninl,nld,nmem,nobj,nutils,ncgutil,
       ppu,
       pass_1;
 
@@ -313,7 +313,8 @@ implementation
   class function tnodeutils.wrap_proc_body(pd: tprocdef; n: tnode): tnode;
     var
       stat: tstatementnode;
-      block: tnode;
+      block,
+      target: tnode;
       psym: tsym;
     begin
       result:=maybe_insert_trashing(pd,n);
@@ -384,6 +385,31 @@ implementation
             end;
           end;
         end;
+      if target_info.system in systems_fpnestedstruct then
+        begin
+          { if the funcretsym was moved to the parentfpstruct, move its value
+            back into the funcretsym now, as the code generator is hardcoded
+            to use the funcretsym when loading the value to be returned;
+            replacing it with an absolutevarsym that redirects to the field in
+            the parentfpstruct doesn't work, as the code generator cannot deal
+            with such symbols }
+          if assigned(pd.funcretsym) and
+             tabstractnormalvarsym(pd.funcretsym).inparentfpstruct then
+            begin
+              block:=internalstatements(stat);
+              addstatement(stat,result);
+              target:=cloadnode.create(pd.funcretsym,pd.funcretsym.owner);
+              { ensure the target of this assignment doesn't translate the
+                funcretsym also to its alias in the parentfpstruct }
+              include(target.flags,nf_internal);
+              addstatement(stat,
+                cassignmentnode.create(
+                  target,cloadnode.create(pd.funcretsym,pd.funcretsym.owner)
+                )
+              );
+              result:=block;
+            end;
+        end;
     end;
 
 
@@ -417,7 +443,11 @@ implementation
           ((vo_is_funcret in tabstractnormalvarsym(p).varoptions) or
            (tabstractnormalvarsym(p).varspez=vs_out)))) and
          not (vo_is_default_var in tabstractnormalvarsym(p).varoptions) and
-         not is_managed_type(tabstractnormalvarsym(p).vardef) and
+         (not is_managed_type(tabstractnormalvarsym(p).vardef) or
+          (is_string(tabstractnormalvarsym(p).vardef) and
+           (vo_is_funcret in tabstractnormalvarsym(p).varoptions)
+          )
+         ) and
          not assigned(tabstractnormalvarsym(p).defaultconstsym);
     end;
 
@@ -442,7 +472,19 @@ implementation
                   the procedure address -> cast to tmethod instead }
                 trashn:=ctypeconvnode.create_explicit(trashn,methodpointertype);
             end;
-          if ((p.typ=localvarsym) and
+          if is_managed_type(p.vardef) then
+            begin
+              if is_string(p.vardef) then
+                trash_small(stat,trashn,
+                  cstringconstnode.createstr(
+                    'uninitialized function result in '+
+                    tprocdef(p.owner.defowner).customprocname([pno_proctypeoption, pno_paranames,pno_ownername, pno_noclassmarker])
+                  )
+                )
+              else
+                internalerror(2016030601);
+            end
+          else if ((p.typ=localvarsym) and
               (not(vo_is_funcret in p.varoptions) or
                not is_shortstring(p.vardef))) or
              ((p.typ=paravarsym) and
@@ -520,6 +562,8 @@ implementation
 
 
   class procedure tnodeutils.insertbsssym(list: tasmlist; sym: tstaticvarsym; size: asizeint; varalign: shortint);
+    var
+      symind : tasmsymbol;
     begin
       if sym.globalasmsym then
         begin
@@ -539,6 +583,13 @@ implementation
         end
       else
         list.concat(Tai_datablock.create(sym.mangledname,size));
+
+      { add the indirect symbol if needed }
+      new_section(list,sec_rodata,lower(sym.mangledname),const_align(sym.vardef.alignment));
+      symind:=current_asmdata.DefineAsmSymbol(sym.mangledname,AB_INDIRECT,AT_DATA);
+      list.concat(Tai_symbol.Create_Global(symind,0));
+      list.concat(Tai_const.Createname(sym.mangledname,AT_DATA,0));
+      list.concat(tai_symbol_end.Create(symind));
     end;
 
 
@@ -602,6 +653,8 @@ implementation
         pd:=cprocdef.create(main_program_level,true)
       else
         pd:=cprocdef.create(normal_function_level,true);
+      { always register the def }
+      pd.register_def;
       pd.procsym:=ps;
       ps.ProcdefList.Add(pd);
       include(pd.procoptions,po_global);
@@ -644,6 +697,7 @@ implementation
       unitinits : ttai_typedconstbuilder;
       count : aint;
       tablecountplaceholder: ttypedconstplaceholder;
+      nameinit,namefini : TSymStr;
 
       procedure write_struct_inits(u: tmodule);
         var
@@ -660,17 +714,64 @@ implementation
           begin
             pd:=tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_constructor);
             if assigned(pd) then
-              unitinits.emit_procdef_const(pd)
+              begin
+                unitinits.emit_procdef_const(pd);
+                if u<>current_module then
+                  u.addimportedsym(pd.procsym);
+              end
             else
               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
             pd := tabstractrecorddef(structlist[i]).find_procdef_bytype(potype_class_destructor);
             if assigned(pd) then
-              unitinits.emit_procdef_const(pd)
+              begin
+                unitinits.emit_procdef_const(pd);
+                if u<>current_module then
+                  u.addimportedsym(pd.procsym);
+              end
             else
               unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
             inc(count);
           end;
           structlist.free;
+        end;
+
+      procedure add_initfinal_import(symtable:tsymtable);
+        var
+          i,j : longint;
+          foundinit,foundfini : boolean;
+          sym : TSymEntry;
+          pd : tprocdef;
+        begin
+          if (nameinit='') and (namefini='') then
+            exit;
+          foundinit:=nameinit='';
+          foundfini:=namefini='';
+          for i:=0 to symtable.SymList.Count-1 do
+            begin
+              sym:=tsymentry(symtable.SymList[i]);
+              if sym.typ<>procsym then
+                continue;
+              for j:=0 to tprocsym(sym).procdeflist.count-1 do
+                begin
+                  pd:=tprocdef(tprocsym(sym).procdeflist[j]);
+                  if (nameinit<>'') and not foundinit and has_alias_name(pd,nameinit) then
+                    begin
+                      current_module.addimportedsym(sym);
+                      foundinit:=true;
+                    end;
+                  if (namefini<>'') and not foundfini and has_alias_name(pd,namefini) then
+                    begin
+                      current_module.addimportedsym(sym);
+                      foundfini:=true;
+                    end;
+                  if foundinit and foundfini then
+                    break;
+                end;
+              if foundinit and foundfini then
+                break;
+            end;
+          if not foundinit or not foundfini then
+            internalerror(2016041401);
         end;
 
     begin
@@ -694,18 +795,27 @@ implementation
            begin
              if count=high(aint) then
                Message1(cg_f_max_units_reached,tostr(count));
+             nameinit:='';
+             namefini:='';
              if (hp.u.flags and uf_init)<>0 then
-               unitinits.emit_tai(
-                 Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),AT_FUNCTION,0),
-                 voidcodepointertype)
+               begin
+                 nameinit:=make_mangledname('INIT$',hp.u.globalsymtable,'');
+                 unitinits.emit_tai(
+                   Tai_const.Createname(nameinit,AT_FUNCTION,0),
+                   voidcodepointertype);
+               end
              else
                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.emit_tai(
-                 Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),AT_FUNCTION,0),
-                 voidcodepointertype)
+               begin
+                 namefini:=make_mangledname('FINALIZE$',hp.u.globalsymtable,'');
+                 unitinits.emit_tai(
+                   Tai_const.Createname(namefini,AT_FUNCTION,0),
+                   voidcodepointertype)
+               end
              else
                unitinits.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
+             add_initfinal_import(hp.u.localsymtable);
              inc(count);
            end;
          hp:=tused_unit(hp.next);
@@ -1003,25 +1113,28 @@ implementation
 
   class procedure tnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
     var
-      ResourceInfo : TAsmList;
+      tcb: ttai_typedconstbuilder;
     begin
       if (target_res.id in [res_elf,res_macho,res_xcoff]) then
         begin
-        ResourceInfo:=current_asmdata.asmlists[al_globals];
+          tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);
 
-        maybe_new_object_file(ResourceInfo);
-        new_section(ResourceInfo,sec_data,'FPC_RESLOCATION',sizeof(aint));
-        ResourceInfo.concat(Tai_symbol.Createname_global('FPC_RESLOCATION',AT_DATA,0));
-        if ResourcesUsed then
-          { Valid pointer to resource information }
-          ResourceInfo.concat(Tai_const.Createname('FPC_RESSYMBOL',0))
-        else
-          { Nil pointer to resource information }
-          {$IFNDEF cpu64bitaddr}
-          ResourceInfo.Concat(Tai_const.Create_32bit(0));
-          {$ELSE}
-          ResourceInfo.Concat(Tai_const.Create_64bit(0));
-          {$ENDIF}
+          if ResourcesUsed then
+            tcb.emit_tai(Tai_const.Createname('FPC_RESSYMBOL',0),voidpointertype)
+          else
+            { Nil pointer to resource information }
+            tcb.emit_tai(tai_const.Create_nil_dataptr,voidpointertype);
+          current_asmdata.asmlists[al_globals].concatList(
+            tcb.get_final_asmlist(
+              current_asmdata.DefineAsmSymbol('FPC_RESLOCATION',AB_GLOBAL,AT_DATA),
+              voidpointertype,
+              sec_rodata,
+              'FPC_RESLOCATION',
+              sizeof(puint)
+            )
+          );
+
+          tcb.free;
         end;
     end;
 

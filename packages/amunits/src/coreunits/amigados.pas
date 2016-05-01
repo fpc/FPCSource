@@ -327,8 +327,8 @@ CONST
 
 {--------- String/Date structures etc }
 Type
-       pDateTime = ^tDateTime;
-       tDateTime = record
+       _pDateTime = ^_tDateTime;
+       _tDateTime = record
         dat_Stamp   : tDateStamp;      { DOS DateStamp }
         dat_Format,                    { controls appearance of dat_StrDate }
         dat_Flags   : Byte;           { see BITDEF's below }
@@ -1597,7 +1597,7 @@ FUNCTION CreateNewProcTagList(const tags : pTagItem location 'd1') : pProcess; s
 FUNCTION CreateProc(const name : pCHAR location 'd1'; pri : LONGINT location 'd2'; segList : BPTR location 'd3'; stackSize : LONGINT location 'd4') : pMsgPort; syscall _DOSBase 138;
 FUNCTION CurrentDir(lock : BPTR location 'd1') : BPTR; syscall _DOSBase 126;
 PROCEDURE DateStamp(date : pDateStamp location 'd1'); syscall _DOSBase 192;
-FUNCTION DateToStr(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 744;
+FUNCTION DOSDateToStr(datetime : _PDateTime location 'd1') : LongBool; syscall _DOSBase 744;
 FUNCTION DOSDeleteFile(const name : pCHAR location 'd1') : LongBool; syscall _DOSBase 072;
 FUNCTION DeleteVar(const name : pCHAR location 'd1'; flags : ULONG location 'd2') : LongBool; syscall _DOSBase 912;
 FUNCTION DeviceProc(const name : pCHAR location 'd1') : pMsgPort; syscall _DOSBase 174;
@@ -1639,7 +1639,7 @@ FUNCTION FindSegment(const name : pCHAR location 'd1';const seg : pSegment locat
 FUNCTION FindVar(const name : pCHAR location 'd1'; type_ : ULONG location 'd2') : pLocalVar; syscall _DOSBase 918;
 FUNCTION Format(const filesystem : pCHAR location 'd1';const volumename : pCHAR location 'd2'; dostype : ULONG location 'd3') : LongBool; syscall _DOSBase 714;
 FUNCTION FPutC(fh : BPTR location 'd1'; ch : LONGINT location 'd2') : LONGINT; syscall _DOSBase 312;
-FUNCTION FPuts(fh : BPTR location 'd1';const str : pCHAR location 'd2') : LongBool; syscall _DOSBase 342;
+FUNCTION FPuts(fh : BPTR location 'd1';const str : pCHAR location 'd2') : LongInt; syscall _DOSBase 342;
 FUNCTION FRead(fh : BPTR location 'd1'; block : POINTER location 'd2'; blocklen : ULONG location 'd3'; number : ULONG location 'd4') : LONGINT; syscall _DOSBase 324;
 PROCEDURE FreeArgs(args : pRDArgs location 'd1'); syscall _DOSBase 858;
 PROCEDURE FreeDeviceProc(dp : pDevProc location 'd1'); syscall _DOSBase 648;
@@ -1720,7 +1720,7 @@ FUNCTION SetVar(const name : pCHAR location 'd1'; buffer : pCHAR location 'd2'; 
 FUNCTION SetVBuf(fh : BPTR location 'd1'; buff : pCHAR location 'd2'; type_ : LONGINT location 'd3'; size : LONGINT location 'd4') : LongBool; syscall _DOSBase 366;
 FUNCTION SplitName(const name : pCHAR location 'd1'; seperator : ULONG location 'd2'; buf : pCHAR location 'd3'; oldpos : LONGINT location 'd4'; size : LONGINT location 'd5') : smallint; syscall _DOSBase 414;
 FUNCTION StartNotify(notify : pNotifyRequest location 'd1') : LongBool; syscall _DOSBase 888;
-FUNCTION StrToDate(datetime : pDateTime location 'd1') : LongBool; syscall _DOSBase 750;
+FUNCTION DOSStrToDate(datetime : _PDateTime location 'd1') : LongBool; syscall _DOSBase 750;
 FUNCTION StrToLong(const string_ : pCHAR location 'd1'; VAR value : LONGINT location 'd2') : LONGINT; syscall _DOSBase 816;
 FUNCTION SystemTagList(const command : pCHAR location 'd1';const tags : pTagItem location 'd2') : LONGINT; syscall _DOSBase 606;
 FUNCTION DOSSystem(const command : pCHAR location 'd1';const tags : pTagItem location 'd2') : LONGINT; syscall _DOSBase 606;
@@ -1730,15 +1730,21 @@ PROCEDURE UnLock(lock : BPTR location 'd1'); syscall _DOSBase 090;
 PROCEDURE UnLockDosList(flags : ULONG location 'd1'); syscall _DOSBase 660;
 FUNCTION UnLockRecord(fh : BPTR location 'd1'; offset : ULONG location 'd2'; length : ULONG location 'd3') : LongBool; syscall _DOSBase 282;
 FUNCTION UnLockRecords(recArray : pRecordLock location 'd1') : LongBool; syscall _DOSBase 288;
-FUNCTION VFPrintf(fh : BPTR location 'd1';const format : pCHAR location 'd2';const argarray : POINTER location 'd3') : LONGINT; syscall _DOSBase 354;
+FUNCTION VFPrintf(fh : BPTR location 'd1';const format : pCHAR location 'd2';const argarray : PLongInt location 'd3') : LONGINT; syscall _DOSBase 354;
 PROCEDURE VFWritef(fh : BPTR location 'd1';const format : pCHAR location 'd2';const argarray : pLONGINT location 'd3'); syscall _DOSBase 348;
-FUNCTION VPrintf(const format : pCHAR location 'd1'; const argarray : POINTER location 'd2') : LONGINT; syscall _DOSBase 954;
+FUNCTION VPrintf(const format : pCHAR location 'd1'; const argarray : PLongInt location 'd2') : LONGINT; syscall _DOSBase 954;
 FUNCTION WaitForChar(file_ : BPTR location 'd1'; timeout : LONGINT location 'd2') : LongBool; syscall _DOSBase 204;
 FUNCTION WaitPkt : pDosPacket; syscall _DOSBase 252;
 FUNCTION WriteChars(const buf : pCHAR location 'd1'; buflen : ULONG location 'd2') : LONGINT; syscall _DOSBase 942;
 
 FUNCTION BADDR(bval :BPTR): POINTER;
 FUNCTION MKBADDR(adr: Pointer): BPTR;
+
+// var args version
+FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
+FUNCTION CreateNewProcTags(Const argv : Array of PtrUInt) : pProcess;
+FUNCTION NewLoadSegTags(file_ : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+FUNCTION SystemTags(command : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
 
 { overlay function and procedures}
 
@@ -1772,7 +1778,7 @@ FUNCTION FindVar(const name : string; type_ : ULONG) : pLocalVar;
 FUNCTION Format(const filesystem : string;const volumename : pCHAR; dostype : ULONG) : BOOLEAN;
 FUNCTION Format(const filesystem : pCHAR;const volumename : string; dostype : ULONG) : BOOLEAN;
 FUNCTION Format(const filesystem : string;const volumename : string; dostype : ULONG) : BOOLEAN;
-FUNCTION FPuts(fh : LONGINT;const str : string) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : string) : LongInt;
 FUNCTION GetDeviceProc(const name : string; dp : pDevProc) : pDevProc;
 FUNCTION GetVar(const name : string; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
 FUNCTION Inhibit(const name : string; onoff : LONGINT) : BOOLEAN;
@@ -1823,6 +1829,26 @@ FUNCTION MKBADDR(adr : POINTER): BPTR; inline;
 BEGIN
     MKBADDR := BPTR( LONGINT(adr) shr 2);
 END;
+
+FUNCTION AllocDosObjectTags(type_ : ULONG; Const argv : Array of PtrUInt) : POINTER;
+begin
+     AllocDosObjectTags := AllocDosObjectTagList(type_, @argv);
+end;
+
+FUNCTION CreateNewProcTags(Const argv : Array of PtrUInt) : pProcess;
+begin
+     CreateNewProcTags := CreateNewProcTagList(@argv);
+end;
+
+FUNCTION NewLoadSegTags(file_ : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+begin
+     NewLoadSegTags := NewLoadSegTagList(file_, @argv);
+end;
+
+FUNCTION SystemTags(command : pCHAR; Const argv : Array of PtrUInt) : LONGINT;
+begin
+     SystemTags := SystemTagList(command, @argv);
+end;
 
 FUNCTION AddBuffers(const name : string; number : LONGINT) : BOOLEAN;
 begin
@@ -1974,7 +2000,7 @@ begin
     Format := Format(PChar(RawByteString(filesystem)),PChar(RawByteString(volumename)),dostype);
 end;
 
-FUNCTION FPuts(fh : LONGINT;const str : string) : BOOLEAN;
+FUNCTION FPuts(fh : LONGINT;const str : string) : LongInt;
 begin
     FPuts := FPuts(fh,PChar(RawByteString(str)));
 end;

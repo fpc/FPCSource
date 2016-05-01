@@ -63,14 +63,14 @@ implementation
         srsymtable : TSymtable;
         hpname     : shortstring;
         index      : longint;
-        options    : word;
+        options    : texportoptions;
 
         function IsGreater(hp1,hp2:texported_item):boolean;
         var
           i2 : boolean;
         begin
-          i2:=(hp2.options and eo_index)<>0;
-          if (hp1.options and eo_index)<>0 then
+          i2:=eo_index in hp2.options;
+          if eo_index in hp1.options then
            begin
              if i2 then
                IsGreater:=hp1.index>hp2.index
@@ -88,7 +88,7 @@ implementation
          consume(_EXPORTS);
          repeat
            hpname:='';
-           options:=0;
+           options:=[];
            index:=0;
            if token=_ID then
              begin
@@ -151,7 +151,7 @@ implementation
                           index:=0;
                           consume(_INTCONST);
                         end;
-                       options:=options or eo_index;
+                       include(options,eo_index);
                        pt.free;
                        if target_info.system in [system_i386_win32,system_i386_wdosx,system_arm_wince,system_i386_wince] then
                         DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(index)
@@ -167,13 +167,13 @@ implementation
                          hpname:=chr(tordconstnode(pt).value.svalue and $ff)
                        else
                          consume(_CSTRING);
-                       options:=options or eo_name;
+                       include(options,eo_name);
                        pt.free;
                        DefString:=hpname+'='+InternalProcName;
                      end;
                     if try_to_consume(_RESIDENT) then
                      begin
-                       options:=options or eo_resident;
+                       include(options,eo_resident);
                        DefString:=srsym.realname+'='+InternalProcName;{Resident ignored!}
                      end;
                     if (DefString<>'') and UseDeffileForExports then
@@ -188,7 +188,7 @@ implementation
                       { export section (it doesn't make sense to export }
                       { the generic mangled name, because the name of   }
                       { the parent unit is used in that)                }
-                      if ((options and (eo_name or eo_index))=0) and
+                      if (options*[eo_name,eo_index]=[]) and
                          (tprocdef(tprocsym(srsym).procdeflist[0]).aliasnames.count>1) then
                         exportallprocsymnames(tprocsym(srsym),options)
                       else
@@ -198,7 +198,7 @@ implementation
                           { same index? And/or should we also export the aliases }
                           { if a name is specified? (JM)                         }
 
-                          if ((options and eo_name)=0) then
+                          if not (eo_name in options) then
                             { Export names are not mangled on Windows and OS/2 }
                             if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) then
                               hpname:=orgs
@@ -216,7 +216,7 @@ implementation
                     end;
                   staticvarsym:
                     begin
-                      if ((options and eo_name)=0) then
+                      if not (eo_name in options) then
                         { for "cvar" }
                         if (vo_has_mangledname in tstaticvarsym(srsym).varoptions) then
                           hpname:=srsym.mangledname

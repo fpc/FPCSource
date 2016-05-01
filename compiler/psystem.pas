@@ -141,13 +141,8 @@ implementation
         sinttype:=s8inttype;
 {$endif cpu8bitalu}
 
-{$ifndef avr}
         osuinttype:=uinttype;
         ossinttype:=sinttype;
-{$else avr}
-        osuinttype:=u16inttype;
-        ossinttype:=s16inttype;
-{$endif avr}
       end;
 
 
@@ -163,6 +158,25 @@ implementation
         voidcodepointertype:=voidpointertype;
         voidstackpointertype:=voidpointertype;
 {$endif i8086}
+        case voidcodepointertype.size of
+          2:
+            begin
+              codeptruinttype:=u16inttype;
+              codeptrsinttype:=s16inttype;
+            end;
+          4:
+            begin
+              codeptruinttype:=u32inttype;
+              codeptrsinttype:=s32inttype;
+            end;
+          8:
+            begin
+              codeptruinttype:=u64inttype;
+              codeptrsinttype:=s64inttype;
+            end;
+          else
+            Internalerror(2015112106);
+        end;
       end;
 
     procedure create_intern_types;
@@ -215,6 +229,12 @@ implementation
         s32inttype:=corddef.create(s32bit,int64(low(longint)),int64(high(longint)),true);
         u64inttype:=corddef.create(u64bit,low(qword),high(qword),true);
         s64inttype:=corddef.create(s64bit,low(int64),high(int64),true);
+        { upper/lower bound not yet properly set for 128 bit types, as we don't
+          support them yet at the Pascal level (nor for tconstexprint); they're
+          only used internally by the high level code generator for LLVM to
+          implement overflow checking }
+        u128inttype:=corddef.create(u128bit,0,0,true);
+        s128inttype:=corddef.create(s128bit,0,0,true);
         pasbool8type:=corddef.create(pasbool8,0,1,true);
         pasbool16type:=corddef.create(pasbool16,0,1,true);
         pasbool32type:=corddef.create(pasbool32,0,1,true);
@@ -421,6 +441,8 @@ implementation
         addtype('$longint',s32inttype);
         addtype('$qword',u64inttype);
         addtype('$int64',s64inttype);
+        addtype('$uint128',u128inttype);
+        addtype('$int128',s128inttype);
         addtype('$char',cansichartype);
         addtype('$widechar',cwidechartype);
         addtype('$shortstring',cshortstringtype);
@@ -545,6 +567,8 @@ implementation
         loadtype('longint',s32inttype);
         loadtype('qword',u64inttype);
         loadtype('int64',s64inttype);
+        loadtype('uint128',u128inttype);
+        loadtype('int128',s128inttype);
         loadtype('undefined',cundefinedtype);
         loadtype('formal',cformaltype);
         loadtype('typedformal',ctypedformaltype);
@@ -719,15 +743,7 @@ implementation
         aiclass[ait_stab]:=tai_stab;
         aiclass[ait_force_line]:=tai_force_line;
         aiclass[ait_function_name]:=tai_function_name;
-{$ifdef m68k}
-{ TODO: FIXME: tai_labeled_instruction doesn't exists}
-//        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
-{$endif m68k}
-{$ifdef SPARC}
-//        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
-{$endif SPARC}
         aiclass[ait_symbolpair]:=tai_symbolpair;
-        aiclass[ait_weak]:=tai_weak;
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;

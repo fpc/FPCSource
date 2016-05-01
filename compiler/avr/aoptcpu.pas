@@ -180,7 +180,7 @@ Implementation
                                         A_LSL,A_LSR,
                                         A_OR,A_ORI,A_ROL,A_ROR])))) or
                (MatchInstruction(hp1, A_CPI) and
-                (taicpu(p).opcode in [A_ANDI,A_ORI]) and
+                (taicpu(p).opcode = A_ANDI) and
                 (taicpu(p).oper[1]^.typ=top_const) and
                 (taicpu(hp1).oper[1]^.typ=top_const) and
                 (taicpu(p).oper[1]^.val=taicpu(hp1).oper[1]^.val))) and
@@ -207,6 +207,10 @@ Implementation
                     asml.insertbefore(hp2, p);
                   end;
                 }
+
+                // If we compare to the same value we are masking then invert the comparison
+                if (taicpu(hp1).opcode=A_CPI) then
+                  taicpu(hp2).condition:=inverse_cond(taicpu(hp2).condition);
 
                 asml.InsertBefore(tai_regalloc.alloc(NR_DEFAULTFLAGS,p), p);
                 asml.InsertAfter(tai_regalloc.dealloc(NR_DEFAULTFLAGS,hp2), hp2);

@@ -437,6 +437,10 @@ implementation
              (lt in [pointerconstn,niln]) and
              (rt in [pointerconstn,niln]) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
+            ) or
+            (
+             (lt = ordconstn) and (ld.typ = orddef) and is_currency(ld) and
+             (rt = ordconstn) and (rd.typ = orddef) and is_currency(rd)
             ) then
           begin
              t:=nil;
@@ -1995,6 +1999,10 @@ implementation
           begin
             if not(nodetype in [equaln,unequaln]) then
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+            if lt=niln then
+              inserttypeconv_explicit(left,right.resultdef)
+            else
+              inserttypeconv_explicit(right,left.resultdef)
           end
 
 {$ifdef SUPPORT_MMX}

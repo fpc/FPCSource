@@ -16,7 +16,7 @@ Program GadtoolsMenu;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses Exec, Intuition, Utility, GadTools, systemvartags;
+uses Exec, Intuition, Utility, GadTools;
 
 
 
@@ -130,7 +130,7 @@ begin
                              WA_Activate,    ltrue,
                              WA_Height, 100,
                              WA_CloseGadget, ltrue,
-                             WA_Title,  'Menu Test Window',
+                             WA_Title,  AsTag('Menu Test Window'),
                              WA_IDCMP,  IDCMP_CLOSEWINDOW or IDCMP_MENUPICK,
                              TAG_END]);
 

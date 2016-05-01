@@ -34,6 +34,7 @@ interface
           function  GetResFlags(unsigned:Boolean):TResFlags;
           function  GetFpuResFlags:TResFlags;
        public
+          function use_fma : boolean;override;
           function pass_1 : tnode;override;
           function use_generic_mul32to64: boolean; override;
           function use_generic_mul64bit: boolean; override;
@@ -158,6 +159,12 @@ interface
       end;
 
 
+    function tarmaddnode.use_fma : boolean;
+      begin
+       Result:=current_settings.fputype in [fpu_vfpv4];
+      end;
+
+
     procedure tarmaddnode.second_addfloat;
       var
         op : TAsmOp;
@@ -200,6 +207,7 @@ interface
             end;
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               { force mmreg as location, left right doesn't matter
@@ -299,6 +307,7 @@ interface
             end;
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);

@@ -106,6 +106,7 @@ Type
 
   TConnectionName = class (TSQLConnection)
   private
+    FSkipLibraryVersionCheck : Boolean;
     FHostInfo: String;
     FServerInfo: String;
     FMySQL : PMySQL;
@@ -153,8 +154,10 @@ Type
     function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): Boolean; override;
   Public
     constructor Create(AOwner : TComponent); override;
+{$IFNDEF MYSQL50_UP}
     procedure GetFieldNames(const TableName : string; List :  TStrings); override;
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); override;
+{$ENDIF}
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     Function GetInsertID: int64;
     procedure CreateDB; override;
@@ -164,6 +167,7 @@ Type
     property ClientInfo: string read GetClientInfo;
     property ServerStatus : String read GetServerStatus;
   published
+    Property SkipLibraryVersionCheck : Boolean Read FSkipLibraryVersionCheck Write FSkipLibraryVersionCheck;
     property DatabaseName;
     property HostName;
     property KeepConnection;
@@ -495,13 +499,16 @@ var
   FullVersion: string;
 begin
   InitialiseMysql;
-  FullVersion:=strpas(mysql_get_client_info());
-  // Version string should start with version number:
-  // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
-  // version only.
-  if (pos(MySQLVersion, FullVersion) <> 1) and
-     (pos(MariaDBVersion, FullVersion) <> 1) then
-    Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
+  if not SkipLibraryVersionCheck then
+    begin
+    FullVersion:=strpas(mysql_get_client_info());
+    // Version string should start with version number:
+    // Note: in case of MariaDB version mismatch: tough luck, we report MySQL
+    // version only.
+    if (pos(MySQLVersion, FullVersion) <> 1) and
+       (pos(MariaDBVersion, FullVersion) <> 1) then
+      Raise EInOutError.CreateFmt(SErrVersionMisMatch,[ClassName,MySQLVersion,FullVersion]);
+    end;  
   inherited DoInternalConnect;
   ConnectToServer;
   SelectDatabase;
@@ -1194,6 +1201,7 @@ begin
   FMySQL := Nil;
 end;
 
+{$IFNDEF MYSQL50_UP}
 procedure TConnectionName.GetFieldNames(const TableName: string; List: TStrings);
 begin
   GetDBInfo(stColumns,TableName,'field',List);
@@ -1203,6 +1211,7 @@ procedure TConnectionName.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
   GetDBInfo(stTables,'','tables_in_'+DatabaseName,List)
 end;
+{$ENDIF}
 
 function TConnectionName.GetConnectionInfo(InfoType: TConnInfoType): string;
 begin
@@ -1289,12 +1298,18 @@ function TConnectionName.GetSchemaInfoSQL(SchemaType: TSchemaType;
 
 begin
   case SchemaType of
+    {$IFDEF MYSQL50_UP}
+    stTables     : result := 'SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=SCHEMA() AND TABLE_TYPE IN (''BASE TABLE'',''VIEW'')';
+    stColumns    : result := 'SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=SCHEMA() AND TABLE_NAME='+QuotedStr(SchemaObjectName);
+    {$ELSE}
     stTables     : result := 'show tables';
     stColumns    : result := 'show columns from ' + EscapeString(SchemaObjectName);
+    {$ENDIF}
   else
-    DatabaseError(SMetadataUnavailable)
+                   result := inherited;
   end; {case}
 end;
+
 
 { TMySQLConnectionDef }
 

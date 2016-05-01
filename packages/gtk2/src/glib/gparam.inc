@@ -93,40 +93,40 @@ const
 
 { --- prototypes ---  }
 
-function g_param_spec_ref(pspec:PGParamSpec):PGParamSpec; cdecl; external gliblib;
-procedure g_param_spec_unref(pspec:PGParamSpec); cdecl; external gliblib;
-procedure g_param_spec_sink(pspec:PGParamSpec); cdecl; external gliblib;
-function g_param_spec_get_qdata(pspec:PGParamSpec; quark:TGQuark):gpointer; cdecl; external gliblib;
-procedure g_param_spec_set_qdata(pspec:PGParamSpec; quark:TGQuark; data:gpointer); cdecl; external gliblib;
-procedure g_param_spec_set_qdata_full(pspec:PGParamSpec; quark:TGQuark; data:gpointer; destroy:TGDestroyNotify); cdecl; external gliblib;
-function g_param_spec_steal_qdata(pspec:PGParamSpec; quark:TGQuark):gpointer; cdecl; external gliblib;
-procedure g_param_value_set_default(pspec:PGParamSpec; value:PGValue); cdecl; external gliblib;
-function g_param_value_defaults(pspec:PGParamSpec; value:PGValue):gboolean; cdecl; external gliblib;
-function g_param_value_validate(pspec:PGParamSpec; value:PGValue):gboolean; cdecl; external gliblib;
-function g_param_value_convert(pspec:PGParamSpec; src_value:PGValue; dest_value:PGValue; strict_validation:gboolean):gboolean; cdecl; external gliblib;
-function g_param_values_cmp(pspec:PGParamSpec; value1:PGValue; value2:PGValue):gint; cdecl; external gliblib;
-function g_param_spec_get_name(pspec:PGParamSpec):Pgchar; cdecl; external gliblib;
-function g_param_spec_get_nick(pspec:PGParamSpec):Pgchar; cdecl; external gliblib;
-function g_param_spec_get_blurb(pspec:PGParamSpec):Pgchar; cdecl; external gliblib;
-procedure g_value_set_param(value:PGValue; param:PGParamSpec); cdecl; external gliblib;
-function g_value_get_param(value:PGValue):PGParamSpec; cdecl; external gliblib;
-function g_value_dup_param(value:PGValue):PGParamSpec; cdecl; external gliblib;
+function g_param_spec_ref(pspec:PGParamSpec):PGParamSpec; cdecl; external gobjectlib;
+procedure g_param_spec_unref(pspec:PGParamSpec); cdecl; external gobjectlib;
+procedure g_param_spec_sink(pspec:PGParamSpec); cdecl; external gobjectlib;
+function g_param_spec_get_qdata(pspec:PGParamSpec; quark:TGQuark):gpointer; cdecl; external gobjectlib;
+procedure g_param_spec_set_qdata(pspec:PGParamSpec; quark:TGQuark; data:gpointer); cdecl; external gobjectlib;
+procedure g_param_spec_set_qdata_full(pspec:PGParamSpec; quark:TGQuark; data:gpointer; destroy:TGDestroyNotify); cdecl; external gobjectlib;
+function g_param_spec_steal_qdata(pspec:PGParamSpec; quark:TGQuark):gpointer; cdecl; external gobjectlib;
+procedure g_param_value_set_default(pspec:PGParamSpec; value:PGValue); cdecl; external gobjectlib;
+function g_param_value_defaults(pspec:PGParamSpec; value:PGValue):gboolean; cdecl; external gobjectlib;
+function g_param_value_validate(pspec:PGParamSpec; value:PGValue):gboolean; cdecl; external gobjectlib;
+function g_param_value_convert(pspec:PGParamSpec; src_value:PGValue; dest_value:PGValue; strict_validation:gboolean):gboolean; cdecl; external gobjectlib;
+function g_param_values_cmp(pspec:PGParamSpec; value1:PGValue; value2:PGValue):gint; cdecl; external gobjectlib;
+function g_param_spec_get_name(pspec:PGParamSpec):Pgchar; cdecl; external gobjectlib;
+function g_param_spec_get_nick(pspec:PGParamSpec):Pgchar; cdecl; external gobjectlib;
+function g_param_spec_get_blurb(pspec:PGParamSpec):Pgchar; cdecl; external gobjectlib;
+procedure g_value_set_param(value:PGValue; param:PGParamSpec); cdecl; external gobjectlib;
+function g_value_get_param(value:PGValue):PGParamSpec; cdecl; external gobjectlib;
+function g_value_dup_param(value:PGValue):PGParamSpec; cdecl; external gobjectlib;
 { --- marshaller specific ---  }
-procedure g_value_set_param_take_ownership(value:PGValue; param:PGParamSpec); cdecl; external gliblib;
+procedure g_value_set_param_take_ownership(value:PGValue; param:PGParamSpec); cdecl; external gobjectlib;
 { --- convenience functions ---  }
 
 
-function g_param_type_register_static(name:Pgchar; pspec_info:PGParamSpecTypeInfo):GType; cdecl; external gliblib;
+function g_param_type_register_static(name:Pgchar; pspec_info:PGParamSpecTypeInfo):GType; cdecl; external gobjectlib;
 { For registering builting types  }
-function _g_param_type_register_static_constant(name:Pgchar; pspec_info:PGParamSpecTypeInfo; opt_type:GType):GType; cdecl; external gliblib;
+function _g_param_type_register_static_constant(name:Pgchar; pspec_info:PGParamSpecTypeInfo; opt_type:GType):GType; cdecl; external gobjectlib;
 { --- protected ---  }
-function g_param_spec_internal(param_type:GType; name:Pgchar; nick:Pgchar; blurb:Pgchar; flags:TGParamFlags):gpointer; cdecl; external gliblib;
-function g_param_spec_pool_new(type_prefixing:gboolean):PGParamSpecPool; cdecl; external gliblib;
-procedure g_param_spec_pool_insert(pool:PGParamSpecPool; pspec:PGParamSpec; owner_type:GType); cdecl; external gliblib;
-procedure g_param_spec_pool_remove(pool:PGParamSpecPool; pspec:PGParamSpec); cdecl; external gliblib;
-function g_param_spec_pool_lookup(pool:PGParamSpecPool; param_name:Pgchar; owner_type:GType; walk_ancestors:gboolean):PGParamSpec; cdecl; external gliblib;
-function g_param_spec_pool_list_owned(pool:PGParamSpecPool; owner_type:GType):PGList; cdecl; external gliblib;
-function g_param_spec_pool_list(pool:PGParamSpecPool; owner_type:GType; n_pspecs_p:Pguint):PPGParamSpec; cdecl; external gliblib;
+function g_param_spec_internal(param_type:GType; name:Pgchar; nick:Pgchar; blurb:Pgchar; flags:TGParamFlags):gpointer; cdecl; external gobjectlib;
+function g_param_spec_pool_new(type_prefixing:gboolean):PGParamSpecPool; cdecl; external gobjectlib;
+procedure g_param_spec_pool_insert(pool:PGParamSpecPool; pspec:PGParamSpec; owner_type:GType); cdecl; external gobjectlib;
+procedure g_param_spec_pool_remove(pool:PGParamSpecPool; pspec:PGParamSpec); cdecl; external gobjectlib;
+function g_param_spec_pool_lookup(pool:PGParamSpecPool; param_name:Pgchar; owner_type:GType; walk_ancestors:gboolean):PGParamSpec; cdecl; external gobjectlib;
+function g_param_spec_pool_list_owned(pool:PGParamSpecPool; owner_type:GType):PGList; cdecl; external gobjectlib;
+function g_param_spec_pool_list(pool:PGParamSpecPool; owner_type:GType; n_pspecs_p:Pguint):PPGParamSpec; cdecl; external gobjectlib;
 
 { contracts:
 

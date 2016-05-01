@@ -20,16 +20,66 @@ unit sqldb;
 
 interface
 
-uses SysUtils, Classes, DB, bufdataset, sqlscript;
+uses SysUtils, Classes, DB, bufdataset, sqlscript, sqltypes;
 
 type
-  TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages, stSchemata, stSequences);
+  TSchemaType = sqltypes.TSchemaType;
+  TStatementType = sqltypes.TStatementType; 
+  TDBEventType = sqltypes.TDBEventType; 
+  TDBEventTypes = sqltypes.TDBEventTypes;
+  TQuoteChars = sqltypes.TQuoteChars;
 
-  TStatementType = (stUnknown, stSelect, stInsert, stUpdate, stDelete,
-    stDDL, stGetSegment, stPutSegment, stExecProcedure,
-    stStartTrans, stCommit, stRollback, stSelectForUpd);
+const
+  StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
+                  'insert', 'update', 'delete',
+                  'create', 'get', 'put', 'execute',
+                  'start','commit','rollback', '?'
+                 );
+  TSchemaObjectNames: array[TSchemaType] of String = ('???', 'table_name',
+      '???', 'procedure_name', 'column_name', 'param_name',
+      'index_name', 'package_name', 'schema_name','sequence');
+  SingleQuotes : TQuoteChars = ('''','''');
+  DoubleQuotes : TQuoteChars = ('"','"');
+  LogAllEvents      = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
+  LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
 
+  // Backwards compatibility alias constants.
+  
+  stNoSchema         = sqltypes.stNoSchema;
+  stTables           = sqltypes.stTables;
+  stSysTables        = sqltypes.stSysTables;
+  stProcedures       = sqltypes.stProcedures;
+  stColumns          = sqltypes.stColumns;
+  stProcedureParams  = sqltypes.stProcedureParams;
+  stIndexes          = sqltypes.stIndexes;
+  stPackages         = sqltypes.stPackages;
+  stSchemata         = sqltypes.stSchemata;
+  stSequences        = sqltypes.stSequences;
 
+  stUnknown       = sqltypes.stUnknown; 
+  stSelect        = sqltypes.stSelect; 
+  stInsert        = sqltypes.stInsert; 
+  stUpdate        = sqltypes.stUpdate; 
+  stDelete        = sqltypes.stDelete;
+  stDDL           = sqltypes.stDDL; 
+  stGetSegment    = sqltypes.stGetSegment; 
+  stPutSegment    = sqltypes.stPutSegment; 
+  stExecProcedure = sqltypes.stExecProcedure;
+  stStartTrans    = sqltypes.stStartTrans; 
+  stCommit        = sqltypes.stCommit; 
+  stRollback      = sqltypes.stRollback;  
+  stSelectForUpd  = sqltypes.stSelectForUpd;
+
+  detCustom      = sqltypes.detCustom; 
+  detPrepare     = sqltypes.detPrepare; 
+  detExecute     = sqltypes.detExecute; 
+  detFetch       = sqltypes.detFetch; 
+  detCommit      = sqltypes.detCommit; 
+  detRollBack    = sqltypes.detRollBack; 
+  detParamValue  = sqltypes.detParamValue; 
+  detActualSQL   = sqltypes.detActualSQL;
+
+Type
   TRowsCount = LargeInt;
 
   TSQLStatementInfo = Record
@@ -40,18 +90,12 @@ type
     WhereStopPos : integer;
   end;
 
-
   TSQLConnection = class;
   TSQLTransaction = class;
   TCustomSQLQuery = class;
   TCustomSQLStatement = Class;
   TSQLQuery = class;
   TSQLScript = class;
-
-
-  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL);
-  TDBEventTypes = set of TDBEventType;
-  TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
   TSQLHandle = Class(TObject)
   end;
@@ -111,18 +155,6 @@ type
     Class Function ParamClass : TParamClass; override;
   end;
 
-  TQuoteChars = array[0..1] of char;
-
-const
-  SingleQuotes : TQuoteChars = ('''','''');
-  DoubleQuotes : TQuoteChars = ('"','"');
-  LogAllEvents      = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
-  LogAllEventsExtra = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue,detActualSQL];
-  StatementTokens : Array[TStatementType] of string = ('(unknown)', 'select',
-                  'insert', 'update', 'delete',
-                  'create', 'get', 'put', 'execute',
-                  'start','commit','rollback', '?'
-                 );
 
 type
 
@@ -138,6 +170,8 @@ type
 type
 
   { TSQLConnection }
+  
+  TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
 
   TConnOption = (sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeSlash, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID, sqSupportReturning);
   TConnOptions= set of TConnOption;
@@ -204,7 +238,7 @@ type
     function RowsAffected(cursor: TSQLCursor): TRowsCount; virtual;
     function Fetch(cursor : TSQLCursor) : boolean; virtual; abstract;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); virtual; abstract;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
+    function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); virtual; abstract;
     procedure FreeFldBuffers(cursor : TSQLCursor); virtual;
 
@@ -234,6 +268,9 @@ type
     procedure EndTransaction; override;
     procedure ExecuteDirect(SQL : String); overload; virtual;
     procedure ExecuteDirect(SQL : String; ATransaction : TSQLTransaction); overload; virtual;
+    // Unified version
+    function GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual;
+    // Older versions.
     procedure GetTableNames(List : TStrings; SystemTables : Boolean = false); virtual;
     procedure GetProcedureNames(List : TStrings); virtual;
     procedure GetFieldNames(const TableName : string; List : TStrings); virtual;
@@ -475,7 +512,7 @@ type
     Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     // abstract & virtual methods of TBufDataset
     function Fetch : boolean; override;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function LoadField(FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure ApplyRecUpdate(UpdateKind : TUpdateKind); override;
     procedure SetPacketRecords(aValue : integer); override;
@@ -541,6 +578,8 @@ type
     property AfterCancel;
     property BeforeDelete;
     property AfterDelete;
+    property BeforeRefresh;
+    property AfterRefresh;
     property BeforeScroll;
     property AfterScroll;
     property OnCalcFields;
@@ -593,6 +632,7 @@ type
     Property AfterInsert;
     Property AfterOpen;
     Property AfterPost;
+    Property AfterRefresh;
     Property AfterScroll;
     Property BeforeCancel;
     Property BeforeClose;
@@ -601,6 +641,7 @@ type
     Property BeforeInsert;
     Property BeforeOpen;
     Property BeforePost;
+    Property BeforeRefresh;
     Property BeforeScroll;
     Property OnCalcFields;
     Property OnDeleteError;
@@ -656,6 +697,8 @@ type
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     property OnDirective: TSQLScriptDirectiveEvent read FOnDirective write FOnDirective;
+    Property UseDollarString; 
+    Property DollarStrings;     
     property Directives;
     property Defines;
     property Script;
@@ -696,7 +739,7 @@ type
     function Fetch(cursor : TSQLCursor) : boolean; override;
     procedure AddFieldDefs(cursor: TSQLCursor; FieldDefs : TfieldDefs); override;
     procedure UnPrepareStatement(cursor : TSQLCursor); override;
-    function LoadField(cursor : TSQLCursor;FieldDef : TfieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; override;
+    function LoadField(cursor : TSQLCursor; FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor; ATransaction : TSQLTransaction); override;
     procedure FreeFldBuffers(cursor : TSQLCursor); override;
 
@@ -1228,20 +1271,23 @@ begin
   if not ATransaction.Active then
     ATransaction.MaybeStartTransaction;
 
-  try
-    SQL := TrimRight(SQL);
-    if SQL = '' then
-      DatabaseError(SErrNoStatement);
+  SQL := TrimRight(SQL);
+  if SQL = '' then
+    DatabaseError(SErrNoStatement);
 
+  try
     Cursor := AllocateCursorHandle;
     Cursor.FStatementType := stUnknown;
     If LogEvent(detPrepare) then
       Log(detPrepare,SQL);
     PrepareStatement(Cursor,ATransaction,SQL,Nil);
-    If LogEvent(detExecute) then
-      Log(detExecute,SQL);
-    Execute(Cursor,ATransaction, Nil);
-    UnPrepareStatement(Cursor);
+    try
+      If LogEvent(detExecute) then
+        Log(detExecute,SQL);
+      Execute(Cursor,ATransaction, Nil);
+    finally
+      UnPrepareStatement(Cursor);
+    end;
   finally;
     DeAllocateCursorHandle(Cursor);
   end;
@@ -1352,6 +1398,46 @@ end;
 procedure TSQLConnection.GetSequenceNames(List: TStrings);
 begin
   GetDBInfo(stSequences,'','SEQUENCE_NAME',List);
+end;
+
+{
+  See if we can integrate/merge this with GetDBInfo. They are virtually identical
+}
+
+Function TSQLConnection.GetObjectNames(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList) : Integer; 
+var
+  qry : TCustomSQLQuery;
+  vSchemaName, vObjectName: String;
+  f: TField;
+begin
+  Result:=0;
+  if not assigned(Transaction) then
+    DatabaseError(SErrConnTransactionnSet);
+
+  qry := TCustomSQLQuery.Create(nil);
+  try
+    qry.transaction := Transaction;
+    qry.database := Self;
+    with qry do
+      begin
+      ParseSQL := False;
+      SetSchemaInfo(ASchemaType,TSchemaObjectNames[ASchemaType],'');
+      open;
+      f:=FindField(TSchemaObjectNames[stSchemata]);
+      while not eof do
+        begin
+        vSchemaName:='';
+        if Assigned(f) then
+           vSchemaName:=f.AsString;
+        vObjectName:=FieldByName(FSchemaObjectName).AsString;
+        AList.AddIdentifier(vObjectName, vSchemaName);
+        Next;
+        Inc(Result);
+        end;
+      end;
+  finally
+    qry.free;
+  end;
 end;
 
 function TSQLConnection.GetConnectionInfo(InfoType: TConnInfoType): string;
@@ -1902,6 +1988,8 @@ function TSQLConnection.GetSchemaInfoSQL( SchemaType : TSchemaType; SchemaObject
 
 begin
   case SchemaType of
+    stTables    : Result := 'SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=''BASE TABLE''';
+    stColumns   : Result := 'SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='+QuotedStr(SchemaObjectName);
     stProcedures: Result := 'SELECT *, ROUTINE_NAME AS PROCEDURE_NAME FROM INFORMATION_SCHEMA.ROUTINES';
     stSchemata  : Result := 'SELECT * FROM INFORMATION_SCHEMA.SCHEMATA';
     stSequences : Result := 'SELECT * FROM INFORMATION_SCHEMA.SEQUENCES';
@@ -2622,9 +2710,12 @@ begin
   Result:=FStatement.RowsAffected;
 end;
 
-function TCustomSQLQuery.LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
+function TCustomSQLQuery.LoadField(FieldDef : TFieldDef; buffer : pointer; out CreateBlob : boolean) : boolean;
 begin
-  result := SQLConnection.LoadField(Cursor,FieldDef,buffer, Createblob)
+  Result := SQLConnection.LoadField(Cursor, FieldDef, buffer, CreateBlob);
+  // disable deferred blob loading for "disconnected" datasets
+  if Result and (FieldDef.DataType in ftBlobTypes) and (sqoKeepOpenOnCommit in Options) then
+    CreateBlob:=True
 end;
 
 procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
@@ -3418,7 +3509,7 @@ begin
   FProxy.FreeFldBuffers(cursor);
 end;
 
-function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TfieldDef;
+function TSQLConnector.LoadField(cursor: TSQLCursor; FieldDef: TFieldDef;
   buffer: pointer; out CreateBlob: boolean): boolean;
 begin
   CheckProxy;
@@ -3549,6 +3640,9 @@ begin
     updated := True;
     end;
 end;
+
+
+
 
 Initialization
 

@@ -271,13 +271,6 @@ ifeq ($(PPC_TARGET),sparc)
 override LOCALOPT+=
 endif
 
-# m68k specific with low stack
-ifeq ($(PPC_TARGET),m68k)
-ifeq ($(OS_TARGET),amiga)
-override LOCALOPT+=-Ct
-endif
-endif
-
 # ARM specific
 ifeq ($(PPC_TARGET),arm)
 override LOCALOPT+=

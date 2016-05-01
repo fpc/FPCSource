@@ -8,6 +8,11 @@
   manually disassembles the instruction, checks that it is of the correct type
   and then skips the instruction. }
 
+{$ifdef FPC}
+{ FPC needs $goto on to accept labels and gotos }
+{$goto on}
+{$endif FPC}
+
 { this test is Turbo Pascal 7 compatible }
 
 program tfarcal4;

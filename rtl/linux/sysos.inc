@@ -113,6 +113,8 @@ begin
     ESysEEXIST,
     ESysENOTEMPTY,
     ESysEACCES:         r:=5;
+    ESysEBusy,
+    ESysENOTDIR,        // busy, enotdir, mantis #25931      
     ESysEISDIR:         r:=5;
   else
     r:=PosixErrno;

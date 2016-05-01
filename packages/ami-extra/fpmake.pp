@@ -21,7 +21,10 @@ begin
 
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
-    P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=m68k then
+      P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=powerpc then
+      P.Dependencies.Add('os4units',[amiga]);
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;

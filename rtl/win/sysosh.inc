@@ -49,6 +49,16 @@ type
   end;
 {$endif WINCE}
 
+{$ifdef Win32}
+  {$define HAS_ENTRYINFORMATION_OS}
+  TEntryInformationOS = record
+    asm_exit : Procedure;stdcall;
+    TlsKeyAddr : PDWord;
+    SysInstance: PLongInt;
+    WideInitTables : Pointer;
+  end;
+{$endif Win32}
+
 const
 {$ifdef WINCE}
   KernelDLL = 'coredll';

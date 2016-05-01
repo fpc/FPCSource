@@ -1184,7 +1184,7 @@ begin
     begin
     T:=SubString(LastSep,Sep-LastSep);
 //    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);
-    If (T<>'') or (not (ExcludeEmpty=Options)) then
+    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
       begin
       MaybeGrow(Len);
       Result[Len]:=T;
@@ -1193,7 +1193,7 @@ begin
     LastSep:=Sep+1;
     Sep:=NextSep(LastSep);
     end;
-  if (LastSep<Length-1) and ((ACount=0) or (Len<ACount)) then
+  if (LastSep<Length) and ((ACount=0) or (Len<ACount)) then
     begin
     T:=SubString(LastSep);
 //    Writeln('Examining >',T,'< at pos,',LastSep,' till pos ',Sep);
@@ -1267,7 +1267,7 @@ begin
   While (Sep<>-1) and ((ACount=0) or (Len<ACount)) do
     begin
     T:=SubString(LastSep,Sep-LastSep);
-    If (T<>'') or (not (ExcludeEmpty=Options)) then
+    If (T<>'') or (not (TStringSplitOptions.ExcludeEmpty=Options)) then
       begin
       MaybeGrow(Len);
       Result[Len]:=T;
@@ -1481,6 +1481,7 @@ end;
 {$IFDEF FPC_HAS_TYPE_SINGLE}
 {$define TFLOATHELPER:=TSingleHelper}
 {$define FLOATTYPE:=Single}
+{$define TFloatRec:=TSingleRec}
 {$i syshelpf.inc}
 {$ENDIF FPC_HAS_TYPE_SINGLE}
 
@@ -1490,6 +1491,7 @@ end;
 {$IFDEF FPC_HAS_TYPE_DOUBLE}
 {$define TFLOATHELPER:=TDoubleHelper}
 {$define FLOATTYPE:=Double}
+{$define TFloatRec:=TDoubleRec}
 {$i syshelpf.inc}
 {$ENDIF FPC_HAS_TYPE_DOUBLE}
 
@@ -1500,6 +1502,7 @@ end;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define TFLOATHELPER:=TExtendedHelper}
 {$define FLOATTYPE:=Extended}
+{$define TFloatRec:=TExtended80Rec}
 {$i syshelpf.inc}
 {$ENDIF FPC_HAS_TYPE_EXTENDED}
 

@@ -96,7 +96,7 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-{$if defined(ARM) or defined(i386) or defined(AVR) or defined(MIPSEL)}
+{$if defined(ARM) or defined(i386) or defined(x86_64) or defined(AVR) or defined(MIPSEL)}
   prtobj:='';
 {$else}
   prtobj:='prt0';
@@ -606,7 +606,13 @@ begin
          with embedded_controllers[current_settings.controllertype] do
           with linkres do
             begin
-              Add('ENTRY(_START)');
+              if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
+              or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
+                Add('ENTRY(_LOWLEVELSTART)')
+              else
+                Add('ENTRY(_START)');
               Add('MEMORY');
               Add('{');
               if flashsize<>0 then
@@ -643,18 +649,18 @@ begin
       Add('     .text :');
       Add('    {');
       Add('    _text_start = .;');
-      Add('    KEEP(*(.init, .init.*))');
+      Add('    KEEP(*(.init .init.*))');
       if (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D5')
          or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK20D7')
          or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK22F51212')
          or (embedded_controllers[current_settings.controllertype].controllerunitstr='MK64F12') then
         begin
           Add('    . = 0x400;');
-          Add('    KEEP(*(.flash_config, *.flash_config.*))');
+          Add('    KEEP(*(.flash_config *.flash_config.*))');
         end;
-      Add('    *(.text, .text.*)');
+      Add('    *(.text .text.*)');
       Add('    *(.strings)');
-      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
@@ -671,7 +677,7 @@ begin
       Add('    .data :');
       Add('    {');
       Add('    _data = .;');
-      Add('    *(.data, .data.*)');
+      Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
       if embedded_controllers[current_settings.controllertype].flashsize<>0 then
@@ -685,7 +691,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    } >ram');
       Add('. = ALIGN(4);');
@@ -705,17 +711,17 @@ begin
       Add('     .text ALIGN (0x1000) :');
       Add('    {');
       Add('    _text = .;');
-      Add('    KEEP(*(.init, .init.*))');
-      Add('    *(.text, .text.*)');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
       Add('    *(.strings)');
-      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.rodata .rodata.*)');
       Add('    *(.comment)');
       Add('    _etext = .;');
       Add('    }');
       Add('    .data ALIGN (0x1000) :');
       Add('    {');
       Add('    _data = .;');
-      Add('    *(.data, .data.*)');
+      Add('    *(.data .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    _edata = .;');
       Add('    }');
@@ -723,7 +729,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    }');
       Add('_bss_end = . ;');
@@ -731,6 +737,43 @@ begin
       Add('_end = .;');
     end;
 {$endif i386}
+
+{$ifdef x86_64}
+  with linkres do
+    begin
+      Add('ENTRY(_START)');
+      Add('SECTIONS');
+      Add('{');
+      Add('     . = 0x100000;');
+      Add('     .text ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _text = .;');
+      Add('    KEEP(*(.init .init.*))');
+      Add('    *(.text .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    }');
+      Add('    .data ALIGN (0x1000) :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    }');
+      Add('    . = ALIGN(4);');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss .bss.*)');
+      Add('    *(COMMON)');
+      Add('    }');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif x86_64}
 
 {$ifdef AVR}
   with linkres do
@@ -773,7 +816,7 @@ begin
           Add('  lock      (rw!x) : ORIGIN = 0x830000, LENGTH = 1K');
           Add('  signature (rw!x) : ORIGIN = 0x840000, LENGTH = 1K');
           Add('}');
-          Add('_stack_top = 0x' + IntToHex(sramsize-1,4) + ';');
+          Add('_stack_top = 0x' + IntToHex(srambase+sramsize-1,4) + ';');
         end;
       Add('SECTIONS');
       Add('{');
@@ -837,7 +880,7 @@ begin
       Add('  /* Internal text space or external memory.  */');
       Add('  .text   :');
       Add('  {');
-      Add('    KEEP(*(.init, .init.*))');
+      Add('    KEEP(*(.init .init.*))');
       Add('    /* For data that needs to reside in the lower 64k of progmem.  */');
       Add('    *(.progmem.gcc*)');
       Add('    *(.progmem*)');
@@ -1133,7 +1176,7 @@ begin
       Add('    .bss :');
       Add('    {');
       Add('    _bss_start = .;');
-      Add('    *(.bss, .bss.*)');
+      Add('    *(.bss .bss.*)');
       Add('    *(COMMON)');
       Add('    } >ram');
       Add('. = ALIGN(4);');
@@ -1438,6 +1481,11 @@ initialization
   RegisterLinker(ld_embedded,TLinkerEmbedded);
   RegisterTarget(system_i386_embedded_info);
 {$endif i386}
+
+{$ifdef x86_64}
+  RegisterLinker(ld_embedded,TLinkerEmbedded);
+  RegisterTarget(system_x86_64_embedded_info);
+{$endif x86_64}
 
 {$ifdef mipsel}
   RegisterLinker(ld_embedded,TLinkerEmbedded);

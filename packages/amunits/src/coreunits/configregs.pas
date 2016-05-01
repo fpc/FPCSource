@@ -75,7 +75,7 @@ Type
     pExpansionControl = ^tExpansionControl;
     tExpansionControl = record
         ec_Interrupt    : Byte;         { interrupt control register }
-        ec_Reserved11   : Byte;
+        ec_Z3_HighBase  : Byte;
         ec_BaseAddress  : Byte;         { set new config address }
         ec_Shutup       : Byte;         { don't respond, pass config out }
         ec_Reserved14   : Byte;

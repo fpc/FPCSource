@@ -40,7 +40,7 @@ Unit aopt;
         Constructor create(_AsmL: TAsmList); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
-        Procedure Optimize;
+        Procedure Optimize;virtual;
         Destructor destroy;override;
 
       private
@@ -50,6 +50,7 @@ Unit aopt;
           Also fixes some RegDeallocs like "# %eax released; push (%eax)"  }
         Procedure BuildLabelTableAndFixRegAlloc;
         procedure clear;
+      protected
         procedure pass_1;
       End;
       TAsmOptimizerClass = class of TAsmOptimizer;
@@ -189,7 +190,7 @@ Unit aopt;
                         hp2 := nil;
                         While Not(assigned(FindRegAlloc(tai_regalloc(p).Reg, tai(hp1.Next)))) And
                               GetNextInstruction(hp1, hp1) And
-                              RegInInstruction(tai_regalloc(p).Reg, hp1) Do
+                              InstructionLoadsFromReg(tai_regalloc(p).Reg, hp1) Do
                           hp2 := hp1;
                         { move deallocations }
                         If hp2 <> nil Then

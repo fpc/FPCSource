@@ -186,7 +186,7 @@ const
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 type
- 
+
   _CLIENT_ID = record
     UniqueProcess: HANDLE;
     UniqueThread: HANDLE;
@@ -455,7 +455,7 @@ type
   TFileNetworkOpenInformation = FILE_NETWORK_OPEN_INFORMATION;
   PFileNetworkOpenInformation = ^TFileNetworkOpenInformation;
 
-  
+
   _FILE_INFORMATION_CLASS = (
     FileFiller0,
     FileDirectoryInformation, // 1
@@ -4021,7 +4021,7 @@ function  NtContinue(
 function  ZwContinue(Context: PCONTEXT; TestAlert: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtCreateChannel(
@@ -4593,7 +4593,7 @@ function  NtIsSystemResumeAutomatic(): BOOLEAN; stdcall; {$IFNDEF RTDL}external 
 function  ZwIsSystemResumeAutomatic(): BOOLEAN; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtListenChannel(
@@ -4753,7 +4753,7 @@ function  ZwNotifyChangeMultipleKeys(KeyHandle: HANDLE; Flags: ULONG; KeyObjectA
     WatchSubtree: BOOLEAN; Buffer: PVOID; BufferLength: ULONG; Asynchronous: BOOLEAN): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtOpenChannel(
@@ -5538,7 +5538,7 @@ function  NtReplyWaitReplyPort(
 function  ZwReplyWaitReplyPort(PortHandle: HANDLE; ReplyMessage: PPORT_MESSAGE): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtReplyWaitSendChannel(
@@ -5654,7 +5654,7 @@ function  ZwSecureConnectPort(PortHandle: PHANDLE; PortName: PUNICODE_STRING; Se
     ConnectData: PVOID; ConnectDataLength: PULONG): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtSendWaitReplyChannel(
@@ -5666,7 +5666,7 @@ function  NtSendWaitReplyChannel(
 function  ZwSendWaitReplyChannel(x: PVOID; y: PVOID; z: PVOID; z2: PVOID): NTSTATUS; stdcall; {$IFNDEF RTDL}external ntdll;{$ENDIF}
 
 // Returns STATUS_NOT_IMPLEMENTED. Only MS knows the intention behind this.
-// 
+//
 // !!!DO NOT USE!!!
 // Compatibility: NT4, W2K
 function  NtSetContextChannel(
@@ -8310,9 +8310,9 @@ asm
   mov   EAX, DWORD PTR [EAX+018h] // PEB+$30 holds the ProcessHeap's handle
   {$endif}
   {$ifdef cpux86_64}
-    mov   RAX, GS:[48]              // EAX now holds the TEB address
-    mov   RAX, [RAX+060h]           // TEB+$30 holds the PEB address
-    mov   RAX, DWORD PTR [RAX+48]   // PEB+$30 holds the ProcessHeap's handle
+    mov   RAX, GS:[030h]            // EAX now holds the TEB address
+    mov   RAX, [RAX+060h]           // TEB+$60 holds the PEB address
+    mov   RAX, QWORD PTR [RAX+030h] // PEB+$30 holds the ProcessHeap's handle
   {$endif cpux86_64}
 end;
 
@@ -8326,7 +8326,7 @@ asm
   {$ifdef cpux86_64}
     mov   RAX, GS:[48]
   {$endif cpux86_64}
-  
+
 end;
 
 // Own function to retrieve the process environment block (PEB) pointer
@@ -8372,7 +8372,7 @@ asm
     {$endif cpux86_64}
        bswap EAX	// .. but bswap EAX is also 64-bit!!! 0F C8 isn't.
   {$endif}
-   
+
 (*
 // Does the same but perhaps slower ...
                         // Source = $11223344

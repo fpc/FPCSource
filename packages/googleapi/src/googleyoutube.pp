@@ -391,9 +391,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TActivityContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TActivitySnippet); virtual;
   Public
   Published
@@ -542,8 +542,8 @@ type
     FresourceId : TResourceId;
   Protected
     //Property setters
-    Procedure SetplaylistId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplaylistItemId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplaylistId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplaylistItemId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
   Public
   Published
@@ -571,16 +571,16 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure SetadTag(AIndex : Integer; AValue : String); virtual;
-    Procedure SetclickTrackingUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcreativeViewUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetctaType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomCtaButtonText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdescriptionText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdestinationUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadTag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetclickTrackingUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreativeViewUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetctaType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomCtaButtonText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdescriptionText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdestinationUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetforecastingUrl(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetimpressionUrl(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -611,7 +611,7 @@ type
     FseedResourceId : TResourceId;
   Protected
     //Property setters
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
     Procedure SetseedResourceId(AIndex : Integer; AValue : TResourceId); virtual;
   Public
@@ -636,11 +636,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreferenceUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setauthor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreferenceUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property author : String Index 0 Read Fauthor Write Setauthor;
@@ -676,7 +676,7 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property videoId : String Index 0 Read FvideoId Write SetvideoId;
@@ -700,15 +700,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TActivityListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -744,14 +744,14 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgroupId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgroupId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -777,9 +777,9 @@ type
     Fsnippet : TCaptionSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TCaptionSnippet); virtual;
   Public
   Published
@@ -803,11 +803,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TCaptionListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -843,19 +843,19 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure SetaudioTrackType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfailureReason(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaudioTrackType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfailureReason(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisAutoSynced(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisCC(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisDraft(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisEasyReader(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetisLarge(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastUpdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SettrackKind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettrackKind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property audioTrackType : String Index 0 Read FaudioTrackType Write SetaudioTrackType;
@@ -885,9 +885,9 @@ type
     FingestionType : String;
   Protected
     //Property setters
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     Procedure SetingestionInfo(AIndex : Integer; AValue : TIngestionInfo); virtual;
-    Procedure SetingestionType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetingestionType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property format : String Index 0 Read Fformat Write Setformat;
@@ -937,10 +937,10 @@ type
     Procedure SetcontentDetails(AIndex : Integer; AValue : TChannelContentDetails); virtual;
     Procedure SetcontentOwnerDetails(AIndex : Integer; AValue : TChannelContentOwnerDetails); virtual;
     Procedure SetconversionPings(AIndex : Integer; AValue : TChannelConversionPings); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinvideoPromotion(AIndex : Integer; AValue : TInvideoPromotion); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalizations(AIndex : Integer; AValue : TChannelTypelocalizations); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TChannelSnippet); virtual;
     Procedure Setstatistics(AIndex : Integer; AValue : TChannelStatistics); virtual;
@@ -1001,9 +1001,9 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1054,11 +1054,11 @@ type
     FwatchLater : String;
   Protected
     //Property setters
-    Procedure Setfavorites(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlikes(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuploads(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwatchHistory(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwatchLater(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfavorites(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlikes(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuploads(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwatchHistory(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwatchLater(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property favorites : String Index 0 Read Ffavorites Write Setfavorites;
@@ -1079,7 +1079,7 @@ type
     FrelatedPlaylists : TChannelContentDetailsTyperelatedPlaylists;
   Protected
     //Property setters
-    Procedure SetgooglePlusUserId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgooglePlusUserId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrelatedPlaylists(AIndex : Integer; AValue : TChannelContentDetailsTyperelatedPlaylists); virtual;
   Public
   Published
@@ -1098,7 +1098,7 @@ type
     FtimeLinked : TDatetime;
   Protected
     //Property setters
-    Procedure SetcontentOwner(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentOwner(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeLinked(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -1117,8 +1117,8 @@ type
     FconversionUrl : String;
   Protected
     //Property setters
-    Procedure Setcontext(AIndex : Integer; AValue : String); virtual;
-    Procedure SetconversionUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontext(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetconversionUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property context : String Index 0 Read Fcontext Write Setcontext;
@@ -1155,7 +1155,7 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property value : String Index 0 Read Fvalue Write Setvalue;
@@ -1179,15 +1179,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TChannelListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1216,8 +1216,8 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -1255,9 +1255,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TChannelSectionContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalizations(AIndex : Integer; AValue : TChannelSectionTypelocalizations); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TChannelSectionSnippet); virtual;
     Procedure Settargeting(AIndex : Integer; AValue : TChannelSectionTargeting); virtual;
@@ -1309,11 +1309,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TChannelSectionListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1337,7 +1337,7 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property title : String Index 0 Read Ftitle Write Settitle;
@@ -1360,13 +1360,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TChannelSectionLocalization); virtual;
     Procedure Setposition(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setstyle(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstyle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -1427,20 +1427,20 @@ type
     FunsubscribedTrailer : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultTab(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfeaturedChannelsTitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultTab(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfeaturedChannelsTitle(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfeaturedChannelsUrls(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkeywords(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkeywords(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmoderateComments(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetprofileColor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprofileColor(AIndex : Integer; const AValue : String); virtual;
     Procedure SetshowBrowseView(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetshowRelatedChannels(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SettrackingAnalyticsAccountId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetunsubscribedTrailer(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettrackingAnalyticsAccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetunsubscribedTrailer(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1479,13 +1479,13 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TChannelLocalization); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property country : String Index 0 Read Fcountry Write Setcountry;
@@ -1511,11 +1511,11 @@ type
     FviewCount : String;
   Protected
     //Property setters
-    Procedure SetcommentCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcommentCount(AIndex : Integer; const AValue : String); virtual;
     Procedure SethiddenSubscriberCount(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsubscriberCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetviewCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsubscriberCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetviewCount(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property commentCount : String Index 0 Read FcommentCount Write SetcommentCount;
@@ -1538,8 +1538,8 @@ type
   Protected
     //Property setters
     Procedure SetisLinked(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetlongUploadsStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlongUploadsStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property isLinked : boolean Index 0 Read FisLinked Write SetisLinked;
@@ -1580,9 +1580,9 @@ type
     Fsnippet : TCommentSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TCommentSnippet); virtual;
   Public
   Published
@@ -1609,14 +1609,14 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TCommentListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1659,21 +1659,21 @@ type
   Protected
     //Property setters
     Procedure SetauthorChannelId(AIndex : Integer; AValue : TChannelId); virtual;
-    Procedure SetauthorChannelUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetauthorDisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetauthorGoogleplusProfileUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetauthorProfileImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetauthorChannelUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetauthorDisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetauthorGoogleplusProfileUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetauthorProfileImageUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcanRate(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlikeCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmoderationStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetparentId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmoderationStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparentId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SettextDisplay(AIndex : Integer; AValue : String); virtual;
-    Procedure SettextOriginal(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextDisplay(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettextOriginal(AIndex : Integer; const AValue : String); virtual;
     Procedure SetupdatedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetviewerRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetviewerRating(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property authorChannelId : TChannelId Index 0 Read FauthorChannelId Write SetauthorChannelId;
@@ -1708,9 +1708,9 @@ type
     Fsnippet : TCommentThreadSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setreplies(AIndex : Integer; AValue : TCommentThreadReplies); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TCommentThreadSnippet); virtual;
   Public
@@ -1739,14 +1739,14 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TCommentThreadListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1799,11 +1799,11 @@ type
   Protected
     //Property setters
     Procedure SetcanReply(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisPublic(AIndex : Integer; AValue : boolean); virtual;
     Procedure SettopLevelComment(AIndex : Integer; AValue : TComment); virtual;
     Procedure SettotalReplyCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property canReply : boolean Index 0 Read FcanReply Write SetcanReply;
@@ -1888,70 +1888,70 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetacbRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetagcomRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetanatelRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbbfcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbfvcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbmukkRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcatvRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcatvfrRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcbfcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcccRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcceRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchfilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchvrsRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcicfRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcnaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcsaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcscfRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetczfilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdjctqRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetacbRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetagcomRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetanatelRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbbfcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbfvcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbmukkRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcatvRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcatvfrRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcbfcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcccRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcceRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchfilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchvrsRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcicfRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcnaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcsaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcscfRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetczfilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdjctqRating(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdjctqRatingReasons(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SeteefilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetegfilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteirinRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfcbmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfcoRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfmocRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfpbRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfskRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgrfilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SeticaaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetifcoRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetilfilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetincaaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetkfcbRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetkijkwijzerRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetkmrbRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlsfRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmccaaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmccypRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmdaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmedietilsynetRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmekuRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmibacRating(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_mocRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmoctwRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmpaaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmtrcbRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnbcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnbcplRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnfrcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnfvcbRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnkclvRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoflcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpefilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrcnofRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetresorteviolenciaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrtcRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrteRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrussiaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetskfilmRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsmaisRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsmsaRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SettvpgRating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetytRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteefilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetegfilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteirinRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfcbmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfcoRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfmocRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfpbRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfskRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgrfilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeticaaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetifcoRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetilfilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetincaaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetkfcbRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetkijkwijzerRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetkmrbRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlsfRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmccaaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmccypRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmdaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmedietilsynetRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmekuRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmibacRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_mocRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmoctwRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmpaaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmtrcbRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnbcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnbcplRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnfrcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnfvcbRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnkclvRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoflcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpefilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrcnofRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresorteviolenciaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrtcRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrteRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrussiaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetskfilmRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsmaisRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsmsaRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettvpgRating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetytRating(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2059,9 +2059,9 @@ type
     Fsnippet : TGuideCategorySnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TGuideCategorySnippet); virtual;
   Public
   Published
@@ -2089,15 +2089,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TGuideCategoryListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2126,8 +2126,8 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -2147,9 +2147,9 @@ type
     Fsnippet : TI18nLanguageSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TI18nLanguageSnippet); virtual;
   Public
   Published
@@ -2173,11 +2173,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TI18nLanguageListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2202,8 +2202,8 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Sethl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Sethl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property hl : String Index 0 Read Fhl Write Sethl;
@@ -2223,9 +2223,9 @@ type
     Fsnippet : TI18nRegionSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TI18nRegionSnippet); virtual;
   Public
   Published
@@ -2249,11 +2249,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TI18nRegionListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2278,8 +2278,8 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setgl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setgl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property gl : String Index 0 Read Fgl Write Setgl;
@@ -2318,27 +2318,27 @@ type
   Protected
     //Property setters
     Procedure SetbackgroundImageUrl(AIndex : Integer; AValue : TLocalizedProperty); virtual;
-    Procedure SetbannerExternalUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerMobileExtraHdImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerMobileHdImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerMobileImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerMobileLowImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerMobileMediumHdImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTabletExtraHdImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTabletHdImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTabletImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTabletLowImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTvHighImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTvImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTvLowImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbannerTvMediumImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbannerExternalUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerMobileExtraHdImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerMobileHdImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerMobileImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerMobileLowImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerMobileMediumHdImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTabletExtraHdImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTabletHdImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTabletImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTabletLowImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTvHighImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTvImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTvLowImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerTvMediumImageUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlargeBrandedBannerImageImapScript(AIndex : Integer; AValue : TLocalizedProperty); virtual;
     Procedure SetlargeBrandedBannerImageUrl(AIndex : Integer; AValue : TLocalizedProperty); virtual;
     Procedure SetsmallBrandedBannerImageImapScript(AIndex : Integer; AValue : TLocalizedProperty); virtual;
     Procedure SetsmallBrandedBannerImageUrl(AIndex : Integer; AValue : TLocalizedProperty); virtual;
-    Procedure SettrackingImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwatchIconImageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SettrackingImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwatchIconImageUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property backgroundImageUrl : TLocalizedProperty Index 0 Read FbackgroundImageUrl Write SetbackgroundImageUrl;
@@ -2377,9 +2377,9 @@ type
     FstreamName : String;
   Protected
     //Property setters
-    Procedure SetbackupIngestionAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure SetingestionAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstreamName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbackupIngestionAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetingestionAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstreamName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property backupIngestionAddress : String Index 0 Read FbackupIngestionAddress Write SetbackupIngestionAddress;
@@ -2401,10 +2401,10 @@ type
     Ftiming : TInvideoTiming;
   Protected
     //Property setters
-    Procedure SetimageBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimageUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimageBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; AValue : TInvideoPosition); virtual;
-    Procedure SettargetChannelId(AIndex : Integer; AValue : String); virtual;
+    Procedure SettargetChannelId(AIndex : Integer; const AValue : String); virtual;
     Procedure Settiming(AIndex : Integer; AValue : TInvideoTiming); virtual;
   Public
   Published
@@ -2427,8 +2427,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcornerPosition(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcornerPosition(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property cornerPosition : String Index 0 Read FcornerPosition Write SetcornerPosition;
@@ -2477,9 +2477,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdurationMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoffsetMs(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdurationMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoffsetMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property durationMs : String Index 0 Read FdurationMs Write SetdurationMs;
@@ -2497,7 +2497,7 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property value : String Index 0 Read Fvalue Write Setvalue;
@@ -2519,9 +2519,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TLiveBroadcastContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TLiveBroadcastSnippet); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TLiveBroadcastStatus); virtual;
   Public
@@ -2551,7 +2551,7 @@ type
     FstartWithSlate : boolean;
   Protected
     //Property setters
-    Procedure SetboundStreamId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetboundStreamId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetenableClosedCaptions(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetenableContentEncryption(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetenableDvr(AIndex : Integer; AValue : boolean); virtual;
@@ -2589,15 +2589,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TLiveBroadcastListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2636,14 +2636,14 @@ type
     //Property setters
     Procedure SetactualEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetactualStartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisDefaultBroadcast(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetscheduledEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetscheduledStartTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property actualEndTime : TDatetime Index 0 Read FactualEndTime Write SetactualEndTime;
@@ -2671,10 +2671,10 @@ type
     FrecordingStatus : String;
   Protected
     //Property setters
-    Procedure SetlifeCycleStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetliveBroadcastPriority(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrecordingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlifeCycleStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetliveBroadcastPriority(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrecordingStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property lifeCycleStatus : String Index 0 Read FlifeCycleStatus Write SetlifeCycleStatus;
@@ -2701,9 +2701,9 @@ type
     //Property setters
     Procedure Setcdn(AIndex : Integer; AValue : TCdnSettings); virtual;
     Procedure SetcontentDetails(AIndex : Integer; AValue : TLiveStreamContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TLiveStreamSnippet); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TLiveStreamStatus); virtual;
   Public
@@ -2731,10 +2731,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -2754,7 +2754,7 @@ type
     FisReusable : boolean;
   Protected
     //Property setters
-    Procedure SetclosedCaptionsIngestionUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclosedCaptionsIngestionUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisReusable(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -2775,8 +2775,8 @@ type
   Protected
     //Property setters
     Procedure SetconfigurationIssues(AIndex : Integer; AValue : TLiveStreamHealthStatusTypeconfigurationIssuesArray); virtual;
-    Procedure SetlastUpdateTimeS(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastUpdateTimeS(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2806,15 +2806,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TLiveStreamListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2846,11 +2846,11 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisDefaultStream(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -2872,7 +2872,7 @@ type
   Protected
     //Property setters
     Procedure SethealthStatus(AIndex : Integer; AValue : TLiveStreamHealthStatus); virtual;
-    Procedure SetstreamStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetstreamStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property healthStatus : TLiveStreamHealthStatus Index 0 Read FhealthStatus Write SethealthStatus;
@@ -2891,7 +2891,7 @@ type
     Flocalized : TLocalizedPropertyTypelocalizedArray;
   Protected
     //Property setters
-    Procedure Setdefault(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdefault(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdefaultLanguage(AIndex : Integer; AValue : TLanguageTag); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TLocalizedPropertyTypelocalizedArray); virtual;
     //2.6.4. bug workaround
@@ -2916,8 +2916,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property language : String Index 0 Read Flanguage Write Setlanguage;
@@ -2937,7 +2937,7 @@ type
   Protected
     //Property setters
     Procedure SetbroadcastStreamDelayMs(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetembedHtml(AIndex : Integer; AValue : String); virtual;
+    Procedure SetembedHtml(AIndex : Integer; const AValue : String); virtual;
     Procedure SetenableMonitorStream(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -2997,9 +2997,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TPlaylistContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalizations(AIndex : Integer; AValue : TPlaylistTypelocalizations); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlaylistPlayer); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TPlaylistSnippet); virtual;
@@ -3048,9 +3048,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TPlaylistItemContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TPlaylistItemSnippet); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TPlaylistItemStatus); virtual;
   Public
@@ -3076,10 +3076,10 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure SetendAt(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnote(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartAt(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendAt(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnote(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartAt(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property endAt : String Index 0 Read FendAt Write SetendAt;
@@ -3106,15 +3106,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TPlaylistItemListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3150,15 +3150,15 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplaylistId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplaylistId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; AValue : integer); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -3182,7 +3182,7 @@ type
     FprivacyStatus : String;
   Protected
     //Property setters
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property privacyStatus : String Index 0 Read FprivacyStatus Write SetprivacyStatus;
@@ -3206,15 +3206,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TPlaylistListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3243,8 +3243,8 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -3261,7 +3261,7 @@ type
     FembedHtml : String;
   Protected
     //Property setters
-    Procedure SetembedHtml(AIndex : Integer; AValue : String); virtual;
+    Procedure SetembedHtml(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property embedHtml : String Index 0 Read FembedHtml Write SetembedHtml;
@@ -3285,15 +3285,15 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TPlaylistLocalization); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3321,7 +3321,7 @@ type
     FprivacyStatus : String;
   Protected
     //Property setters
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property privacyStatus : String Index 0 Read FprivacyStatus Write SetprivacyStatus;
@@ -3340,7 +3340,7 @@ type
     Ftiming : TInvideoTiming;
   Protected
     //Property setters
-    Procedure SetcustomMessage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcustomMessage(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : TPromotedItemId); virtual;
     Procedure SetpromotedByContentOwner(AIndex : Integer; AValue : boolean); virtual;
     Procedure Settiming(AIndex : Integer; AValue : TInvideoTiming); virtual;
@@ -3366,10 +3366,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetrecentlyUploadedBy(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebsiteUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrecentlyUploadedBy(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebsiteUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property recentlyUploadedBy : String Index 0 Read FrecentlyUploadedBy Write SetrecentlyUploadedBy;
@@ -3390,8 +3390,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_property(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_property(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _property : String Index 0 Read F_property Write Set_property;
@@ -3411,10 +3411,10 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetplaylistId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetplaylistId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -3441,15 +3441,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TSearchListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3480,9 +3480,9 @@ type
     Fsnippet : TSearchResultSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : TResourceId); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TSearchResultSnippet); virtual;
   Public
   Published
@@ -3508,13 +3508,13 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetliveBroadcastContent(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetliveBroadcastContent(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -3542,9 +3542,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TSubscriptionContentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TSubscriptionSnippet); virtual;
     Procedure SetsubscriberSnippet(AIndex : Integer; AValue : TSubscriptionSubscriberSnippet); virtual;
   Public
@@ -3569,7 +3569,7 @@ type
     FtotalItemCount : integer;
   Protected
     //Property setters
-    Procedure SetactivityType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetactivityType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnewItemCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SettotalItemCount(AIndex : Integer; AValue : integer); virtual;
   Public
@@ -3597,15 +3597,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TSubscriptionListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3639,13 +3639,13 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetresourceId(AIndex : Integer; AValue : TResourceId); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -3670,10 +3670,10 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -3695,7 +3695,7 @@ type
   Protected
     //Property setters
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -3746,11 +3746,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TThumbnailSetResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3822,10 +3822,10 @@ type
     Procedure SetageGating(AIndex : Integer; AValue : TVideoAgeGating); virtual;
     Procedure SetcontentDetails(AIndex : Integer; AValue : TVideoContentDetails); virtual;
     Procedure SetconversionPings(AIndex : Integer; AValue : TVideoConversionPings); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfileDetails(AIndex : Integer; AValue : TVideoFileDetails); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetliveStreamingDetails(AIndex : Integer; AValue : TVideoLiveStreamingDetails); virtual;
     Procedure Setlocalizations(AIndex : Integer; AValue : TVideoTypelocalizations); virtual;
     Procedure SetmonetizationDetails(AIndex : Integer; AValue : TVideoMonetizationDetails); virtual;
@@ -3875,11 +3875,11 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure Setcomments(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreasonId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsecondaryReasonId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcomments(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreasonId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsecondaryReasonId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property comments : String Index 0 Read Fcomments Write Setcomments;
@@ -3902,9 +3902,9 @@ type
     Fsnippet : TVideoAbuseReportReasonSnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippet); virtual;
   Public
   Published
@@ -3928,11 +3928,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TVideoAbuseReportReasonListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3958,7 +3958,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsecondaryReasons(AIndex : Integer; AValue : TVideoAbuseReportReasonSnippetTypesecondaryReasonsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -3982,8 +3982,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_label(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -4004,7 +4004,7 @@ type
     //Property setters
     Procedure SetalcoholContent(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setrestricted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetvideoGameRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvideoGameRating(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property alcoholContent : boolean Index 0 Read FalcoholContent Write SetalcoholContent;
@@ -4025,9 +4025,9 @@ type
     Fsnippet : TVideoCategorySnippet;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TVideoCategorySnippet); virtual;
   Public
   Published
@@ -4055,15 +4055,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TVideoCategoryListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -4094,8 +4094,8 @@ type
   Protected
     //Property setters
     Procedure Setassignable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property assignable : boolean Index 0 Read Fassignable Write Setassignable;
@@ -4120,12 +4120,12 @@ type
     FregionRestriction : TVideoContentDetailsRegionRestriction;
   Protected
     //Property setters
-    Procedure Setcaption(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcaption(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontentRating(AIndex : Integer; AValue : TContentRating); virtual;
     Procedure SetcountryRestriction(AIndex : Integer; AValue : TAccessPolicy); virtual;
-    Procedure Setdefinition(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdimension(AIndex : Integer; AValue : String); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdefinition(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdimension(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setduration(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlicensedContent(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetregionRestriction(AIndex : Integer; AValue : TVideoContentDetailsRegionRestriction); virtual;
   Public
@@ -4174,8 +4174,8 @@ type
     FconversionUrl : String;
   Protected
     //Property setters
-    Procedure Setcontext(AIndex : Integer; AValue : String); virtual;
-    Procedure SetconversionUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontext(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetconversionUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property context : String Index 0 Read Fcontext Write Setcontext;
@@ -4222,13 +4222,13 @@ type
   Protected
     //Property setters
     Procedure SetaudioStreams(AIndex : Integer; AValue : TVideoFileDetailsTypeaudioStreamsArray); virtual;
-    Procedure SetbitrateBps(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcontainer(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcreationTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdurationMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileSize(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbitrateBps(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcontainer(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdurationMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileSize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrecordingLocation(AIndex : Integer; AValue : TGeoPoint); virtual;
     Procedure SetvideoStreams(AIndex : Integer; AValue : TVideoFileDetailsTypevideoStreamsArray); virtual;
     //2.6.4. bug workaround
@@ -4262,10 +4262,10 @@ type
     Fvendor : String;
   Protected
     //Property setters
-    Procedure SetbitrateBps(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbitrateBps(AIndex : Integer; const AValue : String); virtual;
     Procedure SetchannelCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setcodec(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvendor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcodec(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvendor(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property bitrateBps : String Index 0 Read FbitrateBps Write SetbitrateBps;
@@ -4292,12 +4292,12 @@ type
   Protected
     //Property setters
     Procedure SetaspectRatio(AIndex : Integer; AValue : double); virtual;
-    Procedure SetbitrateBps(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcodec(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbitrateBps(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcodec(AIndex : Integer; const AValue : String); virtual;
     Procedure SetframeRateFps(AIndex : Integer; AValue : double); virtual;
     Procedure SetheightPixels(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setrotation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvendor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrotation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvendor(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwidthPixels(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -4325,11 +4325,11 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TVideoGetRatingResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -4361,15 +4361,15 @@ type
     FvisitorId : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SeteventId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TVideoListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SetprevPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
-    Procedure SetvisitorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvisitorId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -4403,7 +4403,7 @@ type
     //Property setters
     Procedure SetactualEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetactualStartTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetconcurrentViewers(AIndex : Integer; AValue : String); virtual;
+    Procedure SetconcurrentViewers(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscheduledEndTime(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetscheduledStartTime(AIndex : Integer; AValue : TDatetime); virtual;
   Public
@@ -4426,8 +4426,8 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -4460,7 +4460,7 @@ type
     FembedHtml : String;
   Protected
     //Property setters
-    Procedure SetembedHtml(AIndex : Integer; AValue : String); virtual;
+    Procedure SetembedHtml(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property embedHtml : String Index 0 Read FembedHtml Write SetembedHtml;
@@ -4483,14 +4483,14 @@ type
     FthumbnailsAvailability : String;
   Protected
     //Property setters
-    Procedure SeteditorSuggestionsAvailability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfileDetailsAvailability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingFailureReason(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingIssuesAvailability(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteditorSuggestionsAvailability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfileDetailsAvailability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingFailureReason(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingIssuesAvailability(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprocessingProgress(AIndex : Integer; AValue : TVideoProcessingDetailsProcessingProgress); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SettagSuggestionsAvailability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetthumbnailsAvailability(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettagSuggestionsAvailability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetthumbnailsAvailability(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property editorSuggestionsAvailability : String Index 0 Read FeditorSuggestionsAvailability Write SeteditorSuggestionsAvailability;
@@ -4515,9 +4515,9 @@ type
     FtimeLeftMs : String;
   Protected
     //Property setters
-    Procedure SetpartsProcessed(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpartsTotal(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeLeftMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpartsProcessed(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpartsTotal(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeLeftMs(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property partsProcessed : String Index 0 Read FpartsProcessed Write SetpartsProcessed;
@@ -4556,8 +4556,8 @@ type
     FvideoId : String;
   Protected
     //Property setters
-    Procedure Setrating(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvideoId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setrating(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvideoId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property rating : String Index 0 Read Frating Write Setrating;
@@ -4577,7 +4577,7 @@ type
   Protected
     //Property setters
     Procedure Setlocation(AIndex : Integer; AValue : TGeoPoint); virtual;
-    Procedure SetlocationDescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlocationDescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrecordingDate(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -4606,17 +4606,17 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetcategoryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetchannelTitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefaultLanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetliveBroadcastContent(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcategoryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetchannelTitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetliveBroadcastContent(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocalized(AIndex : Integer; AValue : TVideoLocalization); virtual;
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setthumbnails(AIndex : Integer; AValue : TThumbnailDetails); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -4650,11 +4650,11 @@ type
     FviewCount : String;
   Protected
     //Property setters
-    Procedure SetcommentCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdislikeCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfavoriteCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlikeCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetviewCount(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcommentCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdislikeCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfavoriteCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlikeCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetviewCount(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property commentCount : String Index 0 Read FcommentCount Write SetcommentCount;
@@ -4682,13 +4682,13 @@ type
   Protected
     //Property setters
     Procedure Setembeddable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetfailureReason(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlicense(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprivacyStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfailureReason(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlicense(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprivacyStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublicStatsViewable(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetpublishAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetrejectionReason(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuploadStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrejectionReason(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuploadStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property embeddable : boolean Index 0 Read Fembeddable Write Setembeddable;
@@ -4745,7 +4745,7 @@ type
   Protected
     //Property setters
     Procedure SetcategoryRestricts(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Settag(AIndex : Integer; AValue : String); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -4791,9 +4791,9 @@ type
     FtextColor : String;
   Protected
     //Property setters
-    Procedure SetbackgroundColor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfeaturedPlaylistId(AIndex : Integer; AValue : String); virtual;
-    Procedure SettextColor(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbackgroundColor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfeaturedPlaylistId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettextColor(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property backgroundColor : String Index 0 Read FbackgroundColor Write SetbackgroundColor;
@@ -5974,7 +5974,7 @@ end;
 
 
 
-Procedure TActivity.Setetag(AIndex : Integer; AValue : String); 
+Procedure TActivity.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -5984,7 +5984,7 @@ end;
 
 
 
-Procedure TActivity.Setid(AIndex : Integer; AValue : String); 
+Procedure TActivity.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5994,7 +5994,7 @@ end;
 
 
 
-Procedure TActivity.Setkind(AIndex : Integer; AValue : String); 
+Procedure TActivity.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6223,7 +6223,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsPlaylistItem.SetplaylistId(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPlaylistItem.SetplaylistId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplaylistId=AValue) then exit;
@@ -6233,7 +6233,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPlaylistItem.SetplaylistItemId(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPlaylistItem.SetplaylistItemId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplaylistItemId=AValue) then exit;
@@ -6260,7 +6260,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsPromotedItem.SetadTag(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetadTag(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadTag=AValue) then exit;
@@ -6270,7 +6270,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetclickTrackingUrl(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetclickTrackingUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclickTrackingUrl=AValue) then exit;
@@ -6280,7 +6280,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetcreativeViewUrl(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetcreativeViewUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreativeViewUrl=AValue) then exit;
@@ -6290,7 +6290,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetctaType(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetctaType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FctaType=AValue) then exit;
@@ -6300,7 +6300,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetcustomCtaButtonText(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetcustomCtaButtonText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomCtaButtonText=AValue) then exit;
@@ -6310,7 +6310,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetdescriptionText(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetdescriptionText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdescriptionText=AValue) then exit;
@@ -6320,7 +6320,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetdestinationUrl(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetdestinationUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdestinationUrl=AValue) then exit;
@@ -6350,7 +6350,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsPromotedItem.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsPromotedItem.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -6381,7 +6381,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsRecommendation.Setreason(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsRecommendation.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -6418,7 +6418,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsSocial.Setauthor(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsSocial.Setauthor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fauthor=AValue) then exit;
@@ -6428,7 +6428,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsSocial.SetimageUrl(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsSocial.SetimageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -6438,7 +6438,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsSocial.SetreferenceUrl(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsSocial.SetreferenceUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreferenceUrl=AValue) then exit;
@@ -6458,7 +6458,7 @@ end;
 
 
 
-Procedure TActivityContentDetailsSocial.Set_type(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsSocial.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -6503,7 +6503,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityContentDetailsUpload.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TActivityContentDetailsUpload.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -6520,7 +6520,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TActivityListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6530,7 +6530,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TActivityListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -6550,7 +6550,7 @@ end;
 
 
 
-Procedure TActivityListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TActivityListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6560,7 +6560,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TActivityListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6580,7 +6580,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TActivityListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -6600,7 +6600,7 @@ end;
 
 
 
-Procedure TActivityListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TActivityListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -6630,7 +6630,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivitySnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TActivitySnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -6640,7 +6640,7 @@ end;
 
 
 
-Procedure TActivitySnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
+Procedure TActivitySnippet.SetchannelTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -6650,7 +6650,7 @@ end;
 
 
 
-Procedure TActivitySnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TActivitySnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6660,7 +6660,7 @@ end;
 
 
 
-Procedure TActivitySnippet.SetgroupId(AIndex : Integer; AValue : String); 
+Procedure TActivitySnippet.SetgroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgroupId=AValue) then exit;
@@ -6690,7 +6690,7 @@ end;
 
 
 
-Procedure TActivitySnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TActivitySnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -6700,7 +6700,7 @@ end;
 
 
 
-Procedure TActivitySnippet.Set_type(AIndex : Integer; AValue : String); 
+Procedure TActivitySnippet.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -6728,7 +6728,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCaption.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCaption.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6738,7 +6738,7 @@ end;
 
 
 
-Procedure TCaption.Setid(AIndex : Integer; AValue : String); 
+Procedure TCaption.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6748,7 +6748,7 @@ end;
 
 
 
-Procedure TCaption.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCaption.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6775,7 +6775,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCaptionListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCaptionListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6785,7 +6785,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TCaptionListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -6805,7 +6805,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCaptionListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6815,7 +6815,7 @@ end;
 
 
 
-Procedure TCaptionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TCaptionListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -6845,7 +6845,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCaptionSnippet.SetaudioTrackType(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.SetaudioTrackType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaudioTrackType=AValue) then exit;
@@ -6855,7 +6855,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.SetfailureReason(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.SetfailureReason(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfailureReason=AValue) then exit;
@@ -6915,7 +6915,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -6935,7 +6935,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.Setname(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6945,7 +6945,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -6955,7 +6955,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.SettrackKind(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.SettrackKind(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrackKind=AValue) then exit;
@@ -6965,7 +6965,7 @@ end;
 
 
 
-Procedure TCaptionSnippet.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TCaptionSnippet.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -6982,7 +6982,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCdnSettings.Setformat(AIndex : Integer; AValue : String); 
+Procedure TCdnSettings.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -7002,7 +7002,7 @@ end;
 
 
 
-Procedure TCdnSettings.SetingestionType(AIndex : Integer; AValue : String); 
+Procedure TCdnSettings.SetingestionType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FingestionType=AValue) then exit;
@@ -7082,7 +7082,7 @@ end;
 
 
 
-Procedure TChannel.Setetag(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7092,7 +7092,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7112,7 +7112,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7226,7 +7226,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelBannerResource.Setetag(AIndex : Integer; AValue : String); 
+Procedure TChannelBannerResource.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7236,7 +7236,7 @@ end;
 
 
 
-Procedure TChannelBannerResource.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannelBannerResource.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7246,7 +7246,7 @@ end;
 
 
 
-Procedure TChannelBannerResource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TChannelBannerResource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -7323,7 +7323,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelContentDetailsTyperelatedPlaylists.Setfavorites(AIndex : Integer; AValue : String); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.Setfavorites(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffavorites=AValue) then exit;
@@ -7333,7 +7333,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsTyperelatedPlaylists.Setlikes(AIndex : Integer; AValue : String); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.Setlikes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flikes=AValue) then exit;
@@ -7343,7 +7343,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsTyperelatedPlaylists.Setuploads(AIndex : Integer; AValue : String); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.Setuploads(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuploads=AValue) then exit;
@@ -7353,7 +7353,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsTyperelatedPlaylists.SetwatchHistory(AIndex : Integer; AValue : String); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.SetwatchHistory(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwatchHistory=AValue) then exit;
@@ -7363,7 +7363,7 @@ end;
 
 
 
-Procedure TChannelContentDetailsTyperelatedPlaylists.SetwatchLater(AIndex : Integer; AValue : String); 
+Procedure TChannelContentDetailsTyperelatedPlaylists.SetwatchLater(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwatchLater=AValue) then exit;
@@ -7380,7 +7380,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelContentDetails.SetgooglePlusUserId(AIndex : Integer; AValue : String); 
+Procedure TChannelContentDetails.SetgooglePlusUserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgooglePlusUserId=AValue) then exit;
@@ -7407,7 +7407,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelContentOwnerDetails.SetcontentOwner(AIndex : Integer; AValue : String); 
+Procedure TChannelContentOwnerDetails.SetcontentOwner(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentOwner=AValue) then exit;
@@ -7434,7 +7434,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelConversionPing.Setcontext(AIndex : Integer; AValue : String); 
+Procedure TChannelConversionPing.Setcontext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontext=AValue) then exit;
@@ -7444,7 +7444,7 @@ end;
 
 
 
-Procedure TChannelConversionPing.SetconversionUrl(AIndex : Integer; AValue : String); 
+Procedure TChannelConversionPing.SetconversionUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconversionUrl=AValue) then exit;
@@ -7491,7 +7491,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelId.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TChannelId.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -7508,7 +7508,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TChannelListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7518,7 +7518,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TChannelListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -7538,7 +7538,7 @@ end;
 
 
 
-Procedure TChannelListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannelListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7548,7 +7548,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TChannelListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7568,7 +7568,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TChannelListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -7588,7 +7588,7 @@ end;
 
 
 
-Procedure TChannelListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TChannelListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -7618,7 +7618,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelLocalization.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TChannelLocalization.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7628,7 +7628,7 @@ end;
 
 
 
-Procedure TChannelLocalization.Settitle(AIndex : Integer; AValue : String); 
+Procedure TChannelLocalization.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7668,7 +7668,7 @@ end;
 
 
 
-Procedure TChannelSection.Setetag(AIndex : Integer; AValue : String); 
+Procedure TChannelSection.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7678,7 +7678,7 @@ end;
 
 
 
-Procedure TChannelSection.Setid(AIndex : Integer; AValue : String); 
+Procedure TChannelSection.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7688,7 +7688,7 @@ end;
 
 
 
-Procedure TChannelSection.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannelSection.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7776,7 +7776,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7786,7 +7786,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -7806,7 +7806,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7816,7 +7816,7 @@ end;
 
 
 
-Procedure TChannelSectionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -7846,7 +7846,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionLocalization.Settitle(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionLocalization.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7863,7 +7863,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSectionSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -7873,7 +7873,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionSnippet.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -7903,7 +7903,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.Setstyle(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionSnippet.Setstyle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstyle=AValue) then exit;
@@ -7913,7 +7913,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7923,7 +7923,7 @@ end;
 
 
 
-Procedure TChannelSectionSnippet.Set_type(AIndex : Integer; AValue : String); 
+Procedure TChannelSectionSnippet.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -8003,7 +8003,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSettings.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -8013,7 +8013,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -8023,7 +8023,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetdefaultTab(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.SetdefaultTab(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultTab=AValue) then exit;
@@ -8033,7 +8033,7 @@ end;
 
 
 
-Procedure TChannelSettings.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8043,7 +8043,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetfeaturedChannelsTitle(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.SetfeaturedChannelsTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfeaturedChannelsTitle=AValue) then exit;
@@ -8063,7 +8063,7 @@ end;
 
 
 
-Procedure TChannelSettings.Setkeywords(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.Setkeywords(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkeywords=AValue) then exit;
@@ -8083,7 +8083,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetprofileColor(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.SetprofileColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprofileColor=AValue) then exit;
@@ -8113,7 +8113,7 @@ end;
 
 
 
-Procedure TChannelSettings.Settitle(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8123,7 +8123,7 @@ end;
 
 
 
-Procedure TChannelSettings.SettrackingAnalyticsAccountId(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.SettrackingAnalyticsAccountId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrackingAnalyticsAccountId=AValue) then exit;
@@ -8133,7 +8133,7 @@ end;
 
 
 
-Procedure TChannelSettings.SetunsubscribedTrailer(AIndex : Integer; AValue : String); 
+Procedure TChannelSettings.SetunsubscribedTrailer(AIndex : Integer; const AValue : String); 
 
 begin
   If (FunsubscribedTrailer=AValue) then exit;
@@ -8163,7 +8163,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelSnippet.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TChannelSnippet.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -8173,7 +8173,7 @@ end;
 
 
 
-Procedure TChannelSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TChannelSnippet.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -8183,7 +8183,7 @@ end;
 
 
 
-Procedure TChannelSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TChannelSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -8223,7 +8223,7 @@ end;
 
 
 
-Procedure TChannelSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TChannelSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -8240,7 +8240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannelStatistics.SetcommentCount(AIndex : Integer; AValue : String); 
+Procedure TChannelStatistics.SetcommentCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommentCount=AValue) then exit;
@@ -8260,7 +8260,7 @@ end;
 
 
 
-Procedure TChannelStatistics.SetsubscriberCount(AIndex : Integer; AValue : String); 
+Procedure TChannelStatistics.SetsubscriberCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsubscriberCount=AValue) then exit;
@@ -8270,7 +8270,7 @@ end;
 
 
 
-Procedure TChannelStatistics.SetvideoCount(AIndex : Integer; AValue : String); 
+Procedure TChannelStatistics.SetvideoCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoCount=AValue) then exit;
@@ -8280,7 +8280,7 @@ end;
 
 
 
-Procedure TChannelStatistics.SetviewCount(AIndex : Integer; AValue : String); 
+Procedure TChannelStatistics.SetviewCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FviewCount=AValue) then exit;
@@ -8307,7 +8307,7 @@ end;
 
 
 
-Procedure TChannelStatus.SetlongUploadsStatus(AIndex : Integer; AValue : String); 
+Procedure TChannelStatus.SetlongUploadsStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlongUploadsStatus=AValue) then exit;
@@ -8317,7 +8317,7 @@ end;
 
 
 
-Procedure TChannelStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
+Procedure TChannelStatus.SetprivacyStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -8364,7 +8364,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TComment.Setetag(AIndex : Integer; AValue : String); 
+Procedure TComment.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8374,7 +8374,7 @@ end;
 
 
 
-Procedure TComment.Setid(AIndex : Integer; AValue : String); 
+Procedure TComment.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8384,7 +8384,7 @@ end;
 
 
 
-Procedure TComment.Setkind(AIndex : Integer; AValue : String); 
+Procedure TComment.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8411,7 +8411,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCommentListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8421,7 +8421,7 @@ end;
 
 
 
-Procedure TCommentListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TCommentListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -8441,7 +8441,7 @@ end;
 
 
 
-Procedure TCommentListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCommentListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8451,7 +8451,7 @@ end;
 
 
 
-Procedure TCommentListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TCommentListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8481,7 +8481,7 @@ end;
 
 
 
-Procedure TCommentListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TCommentListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -8521,7 +8521,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorChannelUrl(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetauthorChannelUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FauthorChannelUrl=AValue) then exit;
@@ -8531,7 +8531,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorDisplayName(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetauthorDisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FauthorDisplayName=AValue) then exit;
@@ -8541,7 +8541,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorGoogleplusProfileUrl(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetauthorGoogleplusProfileUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FauthorGoogleplusProfileUrl=AValue) then exit;
@@ -8551,7 +8551,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetauthorProfileImageUrl(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetauthorProfileImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FauthorProfileImageUrl=AValue) then exit;
@@ -8571,7 +8571,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -8591,7 +8591,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetmoderationStatus(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetmoderationStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmoderationStatus=AValue) then exit;
@@ -8601,7 +8601,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetparentId(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetparentId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FparentId=AValue) then exit;
@@ -8621,7 +8621,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SettextDisplay(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SettextDisplay(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextDisplay=AValue) then exit;
@@ -8631,7 +8631,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SettextOriginal(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SettextOriginal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextOriginal=AValue) then exit;
@@ -8651,7 +8651,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -8661,7 +8661,7 @@ end;
 
 
 
-Procedure TCommentSnippet.SetviewerRating(AIndex : Integer; AValue : String); 
+Procedure TCommentSnippet.SetviewerRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FviewerRating=AValue) then exit;
@@ -8678,7 +8678,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentThread.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCommentThread.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8688,7 +8688,7 @@ end;
 
 
 
-Procedure TCommentThread.Setid(AIndex : Integer; AValue : String); 
+Procedure TCommentThread.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -8698,7 +8698,7 @@ end;
 
 
 
-Procedure TCommentThread.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCommentThread.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8735,7 +8735,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCommentThreadListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -8745,7 +8745,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -8765,7 +8765,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8775,7 +8775,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8805,7 +8805,7 @@ end;
 
 
 
-Procedure TCommentThreadListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -8875,7 +8875,7 @@ end;
 
 
 
-Procedure TCommentThreadSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -8915,7 +8915,7 @@ end;
 
 
 
-Procedure TCommentThreadSnippet.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TCommentThreadSnippet.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -8932,7 +8932,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TContentRating.SetacbRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetacbRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FacbRating=AValue) then exit;
@@ -8942,7 +8942,7 @@ end;
 
 
 
-Procedure TContentRating.SetagcomRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetagcomRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FagcomRating=AValue) then exit;
@@ -8952,7 +8952,7 @@ end;
 
 
 
-Procedure TContentRating.SetanatelRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetanatelRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FanatelRating=AValue) then exit;
@@ -8962,7 +8962,7 @@ end;
 
 
 
-Procedure TContentRating.SetbbfcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetbbfcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbbfcRating=AValue) then exit;
@@ -8972,7 +8972,7 @@ end;
 
 
 
-Procedure TContentRating.SetbfvcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetbfvcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbfvcRating=AValue) then exit;
@@ -8982,7 +8982,7 @@ end;
 
 
 
-Procedure TContentRating.SetbmukkRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetbmukkRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbmukkRating=AValue) then exit;
@@ -8992,7 +8992,7 @@ end;
 
 
 
-Procedure TContentRating.SetcatvRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcatvRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcatvRating=AValue) then exit;
@@ -9002,7 +9002,7 @@ end;
 
 
 
-Procedure TContentRating.SetcatvfrRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcatvfrRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcatvfrRating=AValue) then exit;
@@ -9012,7 +9012,7 @@ end;
 
 
 
-Procedure TContentRating.SetcbfcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcbfcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcbfcRating=AValue) then exit;
@@ -9022,7 +9022,7 @@ end;
 
 
 
-Procedure TContentRating.SetcccRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcccRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcccRating=AValue) then exit;
@@ -9032,7 +9032,7 @@ end;
 
 
 
-Procedure TContentRating.SetcceRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcceRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcceRating=AValue) then exit;
@@ -9042,7 +9042,7 @@ end;
 
 
 
-Procedure TContentRating.SetchfilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetchfilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchfilmRating=AValue) then exit;
@@ -9052,7 +9052,7 @@ end;
 
 
 
-Procedure TContentRating.SetchvrsRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetchvrsRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchvrsRating=AValue) then exit;
@@ -9062,7 +9062,7 @@ end;
 
 
 
-Procedure TContentRating.SetcicfRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcicfRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcicfRating=AValue) then exit;
@@ -9072,7 +9072,7 @@ end;
 
 
 
-Procedure TContentRating.SetcnaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcnaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcnaRating=AValue) then exit;
@@ -9082,7 +9082,7 @@ end;
 
 
 
-Procedure TContentRating.SetcsaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcsaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcsaRating=AValue) then exit;
@@ -9092,7 +9092,7 @@ end;
 
 
 
-Procedure TContentRating.SetcscfRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetcscfRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcscfRating=AValue) then exit;
@@ -9102,7 +9102,7 @@ end;
 
 
 
-Procedure TContentRating.SetczfilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetczfilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FczfilmRating=AValue) then exit;
@@ -9112,7 +9112,7 @@ end;
 
 
 
-Procedure TContentRating.SetdjctqRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetdjctqRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdjctqRating=AValue) then exit;
@@ -9132,7 +9132,7 @@ end;
 
 
 
-Procedure TContentRating.SeteefilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SeteefilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeefilmRating=AValue) then exit;
@@ -9142,7 +9142,7 @@ end;
 
 
 
-Procedure TContentRating.SetegfilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetegfilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FegfilmRating=AValue) then exit;
@@ -9152,7 +9152,7 @@ end;
 
 
 
-Procedure TContentRating.SeteirinRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SeteirinRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeirinRating=AValue) then exit;
@@ -9162,7 +9162,7 @@ end;
 
 
 
-Procedure TContentRating.SetfcbmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetfcbmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfcbmRating=AValue) then exit;
@@ -9172,7 +9172,7 @@ end;
 
 
 
-Procedure TContentRating.SetfcoRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetfcoRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfcoRating=AValue) then exit;
@@ -9182,7 +9182,7 @@ end;
 
 
 
-Procedure TContentRating.SetfmocRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetfmocRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfmocRating=AValue) then exit;
@@ -9192,7 +9192,7 @@ end;
 
 
 
-Procedure TContentRating.SetfpbRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetfpbRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfpbRating=AValue) then exit;
@@ -9202,7 +9202,7 @@ end;
 
 
 
-Procedure TContentRating.SetfskRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetfskRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfskRating=AValue) then exit;
@@ -9212,7 +9212,7 @@ end;
 
 
 
-Procedure TContentRating.SetgrfilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetgrfilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgrfilmRating=AValue) then exit;
@@ -9222,7 +9222,7 @@ end;
 
 
 
-Procedure TContentRating.SeticaaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SeticaaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FicaaRating=AValue) then exit;
@@ -9232,7 +9232,7 @@ end;
 
 
 
-Procedure TContentRating.SetifcoRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetifcoRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FifcoRating=AValue) then exit;
@@ -9242,7 +9242,7 @@ end;
 
 
 
-Procedure TContentRating.SetilfilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetilfilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FilfilmRating=AValue) then exit;
@@ -9252,7 +9252,7 @@ end;
 
 
 
-Procedure TContentRating.SetincaaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetincaaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FincaaRating=AValue) then exit;
@@ -9262,7 +9262,7 @@ end;
 
 
 
-Procedure TContentRating.SetkfcbRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetkfcbRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FkfcbRating=AValue) then exit;
@@ -9272,7 +9272,7 @@ end;
 
 
 
-Procedure TContentRating.SetkijkwijzerRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetkijkwijzerRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FkijkwijzerRating=AValue) then exit;
@@ -9282,7 +9282,7 @@ end;
 
 
 
-Procedure TContentRating.SetkmrbRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetkmrbRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FkmrbRating=AValue) then exit;
@@ -9292,7 +9292,7 @@ end;
 
 
 
-Procedure TContentRating.SetlsfRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetlsfRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlsfRating=AValue) then exit;
@@ -9302,7 +9302,7 @@ end;
 
 
 
-Procedure TContentRating.SetmccaaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmccaaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmccaaRating=AValue) then exit;
@@ -9312,7 +9312,7 @@ end;
 
 
 
-Procedure TContentRating.SetmccypRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmccypRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmccypRating=AValue) then exit;
@@ -9322,7 +9322,7 @@ end;
 
 
 
-Procedure TContentRating.SetmdaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmdaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmdaRating=AValue) then exit;
@@ -9332,7 +9332,7 @@ end;
 
 
 
-Procedure TContentRating.SetmedietilsynetRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmedietilsynetRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmedietilsynetRating=AValue) then exit;
@@ -9342,7 +9342,7 @@ end;
 
 
 
-Procedure TContentRating.SetmekuRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmekuRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmekuRating=AValue) then exit;
@@ -9352,7 +9352,7 @@ end;
 
 
 
-Procedure TContentRating.SetmibacRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmibacRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmibacRating=AValue) then exit;
@@ -9362,7 +9362,7 @@ end;
 
 
 
-Procedure TContentRating.Set_mocRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.Set_mocRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_mocRating=AValue) then exit;
@@ -9372,7 +9372,7 @@ end;
 
 
 
-Procedure TContentRating.SetmoctwRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmoctwRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmoctwRating=AValue) then exit;
@@ -9382,7 +9382,7 @@ end;
 
 
 
-Procedure TContentRating.SetmpaaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmpaaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmpaaRating=AValue) then exit;
@@ -9392,7 +9392,7 @@ end;
 
 
 
-Procedure TContentRating.SetmtrcbRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetmtrcbRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmtrcbRating=AValue) then exit;
@@ -9402,7 +9402,7 @@ end;
 
 
 
-Procedure TContentRating.SetnbcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetnbcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnbcRating=AValue) then exit;
@@ -9412,7 +9412,7 @@ end;
 
 
 
-Procedure TContentRating.SetnbcplRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetnbcplRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnbcplRating=AValue) then exit;
@@ -9422,7 +9422,7 @@ end;
 
 
 
-Procedure TContentRating.SetnfrcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetnfrcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnfrcRating=AValue) then exit;
@@ -9432,7 +9432,7 @@ end;
 
 
 
-Procedure TContentRating.SetnfvcbRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetnfvcbRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnfvcbRating=AValue) then exit;
@@ -9442,7 +9442,7 @@ end;
 
 
 
-Procedure TContentRating.SetnkclvRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetnkclvRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnkclvRating=AValue) then exit;
@@ -9452,7 +9452,7 @@ end;
 
 
 
-Procedure TContentRating.SetoflcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetoflcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoflcRating=AValue) then exit;
@@ -9462,7 +9462,7 @@ end;
 
 
 
-Procedure TContentRating.SetpefilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetpefilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpefilmRating=AValue) then exit;
@@ -9472,7 +9472,7 @@ end;
 
 
 
-Procedure TContentRating.SetrcnofRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetrcnofRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrcnofRating=AValue) then exit;
@@ -9482,7 +9482,7 @@ end;
 
 
 
-Procedure TContentRating.SetresorteviolenciaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetresorteviolenciaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresorteviolenciaRating=AValue) then exit;
@@ -9492,7 +9492,7 @@ end;
 
 
 
-Procedure TContentRating.SetrtcRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetrtcRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrtcRating=AValue) then exit;
@@ -9502,7 +9502,7 @@ end;
 
 
 
-Procedure TContentRating.SetrteRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetrteRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrteRating=AValue) then exit;
@@ -9512,7 +9512,7 @@ end;
 
 
 
-Procedure TContentRating.SetrussiaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetrussiaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrussiaRating=AValue) then exit;
@@ -9522,7 +9522,7 @@ end;
 
 
 
-Procedure TContentRating.SetskfilmRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetskfilmRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FskfilmRating=AValue) then exit;
@@ -9532,7 +9532,7 @@ end;
 
 
 
-Procedure TContentRating.SetsmaisRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetsmaisRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsmaisRating=AValue) then exit;
@@ -9542,7 +9542,7 @@ end;
 
 
 
-Procedure TContentRating.SetsmsaRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetsmsaRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsmsaRating=AValue) then exit;
@@ -9552,7 +9552,7 @@ end;
 
 
 
-Procedure TContentRating.SettvpgRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SettvpgRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtvpgRating=AValue) then exit;
@@ -9562,7 +9562,7 @@ end;
 
 
 
-Procedure TContentRating.SetytRating(AIndex : Integer; AValue : String); 
+Procedure TContentRating.SetytRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FytRating=AValue) then exit;
@@ -9640,7 +9640,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGuideCategory.Setetag(AIndex : Integer; AValue : String); 
+Procedure TGuideCategory.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9650,7 +9650,7 @@ end;
 
 
 
-Procedure TGuideCategory.Setid(AIndex : Integer; AValue : String); 
+Procedure TGuideCategory.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9660,7 +9660,7 @@ end;
 
 
 
-Procedure TGuideCategory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGuideCategory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9687,7 +9687,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGuideCategoryListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TGuideCategoryListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9697,7 +9697,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TGuideCategoryListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -9717,7 +9717,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGuideCategoryListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9727,7 +9727,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TGuideCategoryListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -9747,7 +9747,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TGuideCategoryListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -9767,7 +9767,7 @@ end;
 
 
 
-Procedure TGuideCategoryListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TGuideCategoryListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -9797,7 +9797,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGuideCategorySnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TGuideCategorySnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -9807,7 +9807,7 @@ end;
 
 
 
-Procedure TGuideCategorySnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TGuideCategorySnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -9824,7 +9824,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nLanguage.Setetag(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguage.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9834,7 +9834,7 @@ end;
 
 
 
-Procedure TI18nLanguage.Setid(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguage.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9844,7 +9844,7 @@ end;
 
 
 
-Procedure TI18nLanguage.Setkind(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguage.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9871,7 +9871,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nLanguageListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguageListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9881,7 +9881,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguageListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -9901,7 +9901,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguageListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -9911,7 +9911,7 @@ end;
 
 
 
-Procedure TI18nLanguageListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguageListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -9941,7 +9941,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nLanguageSnippet.Sethl(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguageSnippet.Sethl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhl=AValue) then exit;
@@ -9951,7 +9951,7 @@ end;
 
 
 
-Procedure TI18nLanguageSnippet.Setname(AIndex : Integer; AValue : String); 
+Procedure TI18nLanguageSnippet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -9968,7 +9968,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nRegion.Setetag(AIndex : Integer; AValue : String); 
+Procedure TI18nRegion.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -9978,7 +9978,7 @@ end;
 
 
 
-Procedure TI18nRegion.Setid(AIndex : Integer; AValue : String); 
+Procedure TI18nRegion.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -9988,7 +9988,7 @@ end;
 
 
 
-Procedure TI18nRegion.Setkind(AIndex : Integer; AValue : String); 
+Procedure TI18nRegion.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10015,7 +10015,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nRegionListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TI18nRegionListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10025,7 +10025,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TI18nRegionListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -10045,7 +10045,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TI18nRegionListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10055,7 +10055,7 @@ end;
 
 
 
-Procedure TI18nRegionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TI18nRegionListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -10085,7 +10085,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TI18nRegionSnippet.Setgl(AIndex : Integer; AValue : String); 
+Procedure TI18nRegionSnippet.Setgl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgl=AValue) then exit;
@@ -10095,7 +10095,7 @@ end;
 
 
 
-Procedure TI18nRegionSnippet.Setname(AIndex : Integer; AValue : String); 
+Procedure TI18nRegionSnippet.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -10122,7 +10122,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerExternalUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerExternalUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerExternalUrl=AValue) then exit;
@@ -10132,7 +10132,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerImageUrl=AValue) then exit;
@@ -10142,7 +10142,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileExtraHdImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerMobileExtraHdImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerMobileExtraHdImageUrl=AValue) then exit;
@@ -10152,7 +10152,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileHdImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerMobileHdImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerMobileHdImageUrl=AValue) then exit;
@@ -10162,7 +10162,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerMobileImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerMobileImageUrl=AValue) then exit;
@@ -10172,7 +10172,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileLowImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerMobileLowImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerMobileLowImageUrl=AValue) then exit;
@@ -10182,7 +10182,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerMobileMediumHdImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerMobileMediumHdImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerMobileMediumHdImageUrl=AValue) then exit;
@@ -10192,7 +10192,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletExtraHdImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTabletExtraHdImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTabletExtraHdImageUrl=AValue) then exit;
@@ -10202,7 +10202,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletHdImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTabletHdImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTabletHdImageUrl=AValue) then exit;
@@ -10212,7 +10212,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTabletImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTabletImageUrl=AValue) then exit;
@@ -10222,7 +10222,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTabletLowImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTabletLowImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTabletLowImageUrl=AValue) then exit;
@@ -10232,7 +10232,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvHighImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTvHighImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTvHighImageUrl=AValue) then exit;
@@ -10242,7 +10242,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTvImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTvImageUrl=AValue) then exit;
@@ -10252,7 +10252,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvLowImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTvLowImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTvLowImageUrl=AValue) then exit;
@@ -10262,7 +10262,7 @@ end;
 
 
 
-Procedure TImageSettings.SetbannerTvMediumImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetbannerTvMediumImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbannerTvMediumImageUrl=AValue) then exit;
@@ -10312,7 +10312,7 @@ end;
 
 
 
-Procedure TImageSettings.SettrackingImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SettrackingImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtrackingImageUrl=AValue) then exit;
@@ -10322,7 +10322,7 @@ end;
 
 
 
-Procedure TImageSettings.SetwatchIconImageUrl(AIndex : Integer; AValue : String); 
+Procedure TImageSettings.SetwatchIconImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwatchIconImageUrl=AValue) then exit;
@@ -10339,7 +10339,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIngestionInfo.SetbackupIngestionAddress(AIndex : Integer; AValue : String); 
+Procedure TIngestionInfo.SetbackupIngestionAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbackupIngestionAddress=AValue) then exit;
@@ -10349,7 +10349,7 @@ end;
 
 
 
-Procedure TIngestionInfo.SetingestionAddress(AIndex : Integer; AValue : String); 
+Procedure TIngestionInfo.SetingestionAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FingestionAddress=AValue) then exit;
@@ -10359,7 +10359,7 @@ end;
 
 
 
-Procedure TIngestionInfo.SetstreamName(AIndex : Integer; AValue : String); 
+Procedure TIngestionInfo.SetstreamName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstreamName=AValue) then exit;
@@ -10376,7 +10376,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInvideoBranding.SetimageBytes(AIndex : Integer; AValue : String); 
+Procedure TInvideoBranding.SetimageBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageBytes=AValue) then exit;
@@ -10386,7 +10386,7 @@ end;
 
 
 
-Procedure TInvideoBranding.SetimageUrl(AIndex : Integer; AValue : String); 
+Procedure TInvideoBranding.SetimageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageUrl=AValue) then exit;
@@ -10406,7 +10406,7 @@ end;
 
 
 
-Procedure TInvideoBranding.SettargetChannelId(AIndex : Integer; AValue : String); 
+Procedure TInvideoBranding.SettargetChannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetChannelId=AValue) then exit;
@@ -10433,7 +10433,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInvideoPosition.SetcornerPosition(AIndex : Integer; AValue : String); 
+Procedure TInvideoPosition.SetcornerPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcornerPosition=AValue) then exit;
@@ -10443,7 +10443,7 @@ end;
 
 
 
-Procedure TInvideoPosition.Set_type(AIndex : Integer; AValue : String); 
+Procedure TInvideoPosition.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -10531,7 +10531,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInvideoTiming.SetdurationMs(AIndex : Integer; AValue : String); 
+Procedure TInvideoTiming.SetdurationMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdurationMs=AValue) then exit;
@@ -10541,7 +10541,7 @@ end;
 
 
 
-Procedure TInvideoTiming.SetoffsetMs(AIndex : Integer; AValue : String); 
+Procedure TInvideoTiming.SetoffsetMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoffsetMs=AValue) then exit;
@@ -10551,7 +10551,7 @@ end;
 
 
 
-Procedure TInvideoTiming.Set_type(AIndex : Integer; AValue : String); 
+Procedure TInvideoTiming.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -10579,7 +10579,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLanguageTag.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TLanguageTag.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -10606,7 +10606,7 @@ end;
 
 
 
-Procedure TLiveBroadcast.Setetag(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcast.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10616,7 +10616,7 @@ end;
 
 
 
-Procedure TLiveBroadcast.Setid(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcast.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -10626,7 +10626,7 @@ end;
 
 
 
-Procedure TLiveBroadcast.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcast.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10663,7 +10663,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveBroadcastContentDetails.SetboundStreamId(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastContentDetails.SetboundStreamId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FboundStreamId=AValue) then exit;
@@ -10750,7 +10750,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveBroadcastListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -10760,7 +10760,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -10780,7 +10780,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -10790,7 +10790,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -10810,7 +10810,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -10830,7 +10830,7 @@ end;
 
 
 
-Procedure TLiveBroadcastListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -10880,7 +10880,7 @@ end;
 
 
 
-Procedure TLiveBroadcastSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -10890,7 +10890,7 @@ end;
 
 
 
-Procedure TLiveBroadcastSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -10950,7 +10950,7 @@ end;
 
 
 
-Procedure TLiveBroadcastSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -10967,7 +10967,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveBroadcastStatus.SetlifeCycleStatus(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastStatus.SetlifeCycleStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlifeCycleStatus=AValue) then exit;
@@ -10977,7 +10977,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetliveBroadcastPriority(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastStatus.SetliveBroadcastPriority(AIndex : Integer; const AValue : String); 
 
 begin
   If (FliveBroadcastPriority=AValue) then exit;
@@ -10987,7 +10987,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastStatus.SetprivacyStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -10997,7 +10997,7 @@ end;
 
 
 
-Procedure TLiveBroadcastStatus.SetrecordingStatus(AIndex : Integer; AValue : String); 
+Procedure TLiveBroadcastStatus.SetrecordingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrecordingStatus=AValue) then exit;
@@ -11034,7 +11034,7 @@ end;
 
 
 
-Procedure TLiveStream.Setetag(AIndex : Integer; AValue : String); 
+Procedure TLiveStream.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11044,7 +11044,7 @@ end;
 
 
 
-Procedure TLiveStream.Setid(AIndex : Integer; AValue : String); 
+Procedure TLiveStream.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11054,7 +11054,7 @@ end;
 
 
 
-Procedure TLiveStream.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLiveStream.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11091,7 +11091,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamConfigurationIssue.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamConfigurationIssue.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11101,7 +11101,7 @@ end;
 
 
 
-Procedure TLiveStreamConfigurationIssue.Setreason(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamConfigurationIssue.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -11111,7 +11111,7 @@ end;
 
 
 
-Procedure TLiveStreamConfigurationIssue.Setseverity(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamConfigurationIssue.Setseverity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -11121,7 +11121,7 @@ end;
 
 
 
-Procedure TLiveStreamConfigurationIssue.Set_type(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamConfigurationIssue.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -11149,7 +11149,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamContentDetails.SetclosedCaptionsIngestionUrl(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamContentDetails.SetclosedCaptionsIngestionUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclosedCaptionsIngestionUrl=AValue) then exit;
@@ -11186,7 +11186,7 @@ end;
 
 
 
-Procedure TLiveStreamHealthStatus.SetlastUpdateTimeS(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamHealthStatus.SetlastUpdateTimeS(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastUpdateTimeS=AValue) then exit;
@@ -11196,7 +11196,7 @@ end;
 
 
 
-Procedure TLiveStreamHealthStatus.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamHealthStatus.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -11226,7 +11226,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11236,7 +11236,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -11256,7 +11256,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11266,7 +11266,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -11286,7 +11286,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -11306,7 +11306,7 @@ end;
 
 
 
-Procedure TLiveStreamListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -11336,7 +11336,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLiveStreamSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -11346,7 +11346,7 @@ end;
 
 
 
-Procedure TLiveStreamSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11376,7 +11376,7 @@ end;
 
 
 
-Procedure TLiveStreamSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -11403,7 +11403,7 @@ end;
 
 
 
-Procedure TLiveStreamStatus.SetstreamStatus(AIndex : Integer; AValue : String); 
+Procedure TLiveStreamStatus.SetstreamStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstreamStatus=AValue) then exit;
@@ -11420,7 +11420,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedProperty.Setdefault(AIndex : Integer; AValue : String); 
+Procedure TLocalizedProperty.Setdefault(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdefault=AValue) then exit;
@@ -11470,7 +11470,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedString.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TLocalizedString.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -11480,7 +11480,7 @@ end;
 
 
 
-Procedure TLocalizedString.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TLocalizedString.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -11507,7 +11507,7 @@ end;
 
 
 
-Procedure TMonitorStreamInfo.SetembedHtml(AIndex : Integer; AValue : String); 
+Procedure TMonitorStreamInfo.SetembedHtml(AIndex : Integer; const AValue : String); 
 
 begin
   If (FembedHtml=AValue) then exit;
@@ -11584,7 +11584,7 @@ end;
 
 
 
-Procedure TPlaylist.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPlaylist.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11594,7 +11594,7 @@ end;
 
 
 
-Procedure TPlaylist.Setid(AIndex : Integer; AValue : String); 
+Procedure TPlaylist.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11604,7 +11604,7 @@ end;
 
 
 
-Procedure TPlaylist.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlaylist.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11688,7 +11688,7 @@ end;
 
 
 
-Procedure TPlaylistItem.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItem.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11698,7 +11698,7 @@ end;
 
 
 
-Procedure TPlaylistItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -11708,7 +11708,7 @@ end;
 
 
 
-Procedure TPlaylistItem.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItem.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11745,7 +11745,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemContentDetails.SetendAt(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemContentDetails.SetendAt(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendAt=AValue) then exit;
@@ -11755,7 +11755,7 @@ end;
 
 
 
-Procedure TPlaylistItemContentDetails.Setnote(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemContentDetails.Setnote(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnote=AValue) then exit;
@@ -11765,7 +11765,7 @@ end;
 
 
 
-Procedure TPlaylistItemContentDetails.SetstartAt(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemContentDetails.SetstartAt(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartAt=AValue) then exit;
@@ -11775,7 +11775,7 @@ end;
 
 
 
-Procedure TPlaylistItemContentDetails.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemContentDetails.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -11792,7 +11792,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -11802,7 +11802,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -11822,7 +11822,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -11832,7 +11832,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -11852,7 +11852,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -11872,7 +11872,7 @@ end;
 
 
 
-Procedure TPlaylistItemListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -11902,7 +11902,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -11912,7 +11912,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemSnippet.SetchannelTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -11922,7 +11922,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -11932,7 +11932,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.SetplaylistId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemSnippet.SetplaylistId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplaylistId=AValue) then exit;
@@ -11982,7 +11982,7 @@ end;
 
 
 
-Procedure TPlaylistItemSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -11999,7 +11999,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistItemStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
+Procedure TPlaylistItemStatus.SetprivacyStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -12016,7 +12016,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TPlaylistListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12026,7 +12026,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -12046,7 +12046,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlaylistListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12056,7 +12056,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlaylistListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12076,7 +12076,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TPlaylistListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -12096,7 +12096,7 @@ end;
 
 
 
-Procedure TPlaylistListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -12126,7 +12126,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistLocalization.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPlaylistLocalization.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12136,7 +12136,7 @@ end;
 
 
 
-Procedure TPlaylistLocalization.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPlaylistLocalization.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -12153,7 +12153,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistPlayer.SetembedHtml(AIndex : Integer; AValue : String); 
+Procedure TPlaylistPlayer.SetembedHtml(AIndex : Integer; const AValue : String); 
 
 begin
   If (FembedHtml=AValue) then exit;
@@ -12170,7 +12170,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TPlaylistSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12180,7 +12180,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
+Procedure TPlaylistSnippet.SetchannelTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -12190,7 +12190,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TPlaylistSnippet.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -12200,7 +12200,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPlaylistSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12250,7 +12250,7 @@ end;
 
 
 
-Procedure TPlaylistSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPlaylistSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -12280,7 +12280,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlaylistStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
+Procedure TPlaylistStatus.SetprivacyStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -12297,7 +12297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotedItem.SetcustomMessage(AIndex : Integer; AValue : String); 
+Procedure TPromotedItem.SetcustomMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomMessage=AValue) then exit;
@@ -12344,7 +12344,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPromotedItemId.SetrecentlyUploadedBy(AIndex : Integer; AValue : String); 
+Procedure TPromotedItemId.SetrecentlyUploadedBy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrecentlyUploadedBy=AValue) then exit;
@@ -12354,7 +12354,7 @@ end;
 
 
 
-Procedure TPromotedItemId.Set_type(AIndex : Integer; AValue : String); 
+Procedure TPromotedItemId.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -12364,7 +12364,7 @@ end;
 
 
 
-Procedure TPromotedItemId.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TPromotedItemId.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -12374,7 +12374,7 @@ end;
 
 
 
-Procedure TPromotedItemId.SetwebsiteUrl(AIndex : Integer; AValue : String); 
+Procedure TPromotedItemId.SetwebsiteUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebsiteUrl=AValue) then exit;
@@ -12402,7 +12402,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPropertyValue.Set_property(AIndex : Integer; AValue : String); 
+Procedure TPropertyValue.Set_property(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_property=AValue) then exit;
@@ -12412,7 +12412,7 @@ end;
 
 
 
-Procedure TPropertyValue.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TPropertyValue.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -12440,7 +12440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResourceId.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TResourceId.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12450,7 +12450,7 @@ end;
 
 
 
-Procedure TResourceId.Setkind(AIndex : Integer; AValue : String); 
+Procedure TResourceId.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12460,7 +12460,7 @@ end;
 
 
 
-Procedure TResourceId.SetplaylistId(AIndex : Integer; AValue : String); 
+Procedure TResourceId.SetplaylistId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplaylistId=AValue) then exit;
@@ -12470,7 +12470,7 @@ end;
 
 
 
-Procedure TResourceId.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TResourceId.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -12487,7 +12487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSearchListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12497,7 +12497,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TSearchListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -12517,7 +12517,7 @@ end;
 
 
 
-Procedure TSearchListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSearchListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12527,7 +12527,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12547,7 +12547,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TSearchListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -12567,7 +12567,7 @@ end;
 
 
 
-Procedure TSearchListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TSearchListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -12597,7 +12597,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchResult.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSearchResult.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12617,7 +12617,7 @@ end;
 
 
 
-Procedure TSearchResult.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSearchResult.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12644,7 +12644,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSearchResultSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TSearchResultSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12654,7 +12654,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
+Procedure TSearchResultSnippet.SetchannelTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -12664,7 +12664,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TSearchResultSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12674,7 +12674,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.SetliveBroadcastContent(AIndex : Integer; AValue : String); 
+Procedure TSearchResultSnippet.SetliveBroadcastContent(AIndex : Integer; const AValue : String); 
 
 begin
   If (FliveBroadcastContent=AValue) then exit;
@@ -12704,7 +12704,7 @@ end;
 
 
 
-Procedure TSearchResultSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TSearchResultSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -12731,7 +12731,7 @@ end;
 
 
 
-Procedure TSubscription.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12741,7 +12741,7 @@ end;
 
 
 
-Procedure TSubscription.Setid(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -12751,7 +12751,7 @@ end;
 
 
 
-Procedure TSubscription.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12788,7 +12788,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionContentDetails.SetactivityType(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionContentDetails.SetactivityType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FactivityType=AValue) then exit;
@@ -12825,7 +12825,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -12835,7 +12835,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -12855,7 +12855,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -12865,7 +12865,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -12885,7 +12885,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -12905,7 +12905,7 @@ end;
 
 
 
-Procedure TSubscriptionListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -12935,7 +12935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -12945,7 +12945,7 @@ end;
 
 
 
-Procedure TSubscriptionSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSnippet.SetchannelTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -12955,7 +12955,7 @@ end;
 
 
 
-Procedure TSubscriptionSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -12995,7 +12995,7 @@ end;
 
 
 
-Procedure TSubscriptionSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -13012,7 +13012,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionSubscriberSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSubscriberSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -13022,7 +13022,7 @@ end;
 
 
 
-Procedure TSubscriptionSubscriberSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSubscriberSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -13042,7 +13042,7 @@ end;
 
 
 
-Procedure TSubscriptionSubscriberSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TSubscriptionSubscriberSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -13069,7 +13069,7 @@ end;
 
 
 
-Procedure TThumbnail.Seturl(AIndex : Integer; AValue : String); 
+Procedure TThumbnail.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -13153,7 +13153,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TThumbnailSetResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TThumbnailSetResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13163,7 +13163,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TThumbnailSetResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -13183,7 +13183,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TThumbnailSetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13193,7 +13193,7 @@ end;
 
 
 
-Procedure TThumbnailSetResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TThumbnailSetResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -13273,7 +13273,7 @@ end;
 
 
 
-Procedure TVideo.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideo.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13293,7 +13293,7 @@ end;
 
 
 
-Procedure TVideo.Setid(AIndex : Integer; AValue : String); 
+Procedure TVideo.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13303,7 +13303,7 @@ end;
 
 
 
-Procedure TVideo.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideo.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13440,7 +13440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReport.Setcomments(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReport.Setcomments(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcomments=AValue) then exit;
@@ -13450,7 +13450,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReport.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -13460,7 +13460,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.SetreasonId(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReport.SetreasonId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreasonId=AValue) then exit;
@@ -13470,7 +13470,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.SetsecondaryReasonId(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReport.SetsecondaryReasonId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsecondaryReasonId=AValue) then exit;
@@ -13480,7 +13480,7 @@ end;
 
 
 
-Procedure TVideoAbuseReport.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReport.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -13497,7 +13497,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportReason.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReason.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13507,7 +13507,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReason.Setid(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReason.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13517,7 +13517,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReason.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReason.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13544,7 +13544,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportReasonListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReasonListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13554,7 +13554,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReasonListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -13574,7 +13574,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReasonListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13584,7 +13584,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportReasonListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReasonListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -13614,7 +13614,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportReasonSnippet.Set_label(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportReasonSnippet.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -13665,7 +13665,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoAbuseReportSecondaryReason.Setid(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportSecondaryReason.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13675,7 +13675,7 @@ end;
 
 
 
-Procedure TVideoAbuseReportSecondaryReason.Set_label(AIndex : Integer; AValue : String); 
+Procedure TVideoAbuseReportSecondaryReason.Set_label(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_label=AValue) then exit;
@@ -13723,7 +13723,7 @@ end;
 
 
 
-Procedure TVideoAgeGating.SetvideoGameRating(AIndex : Integer; AValue : String); 
+Procedure TVideoAgeGating.SetvideoGameRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoGameRating=AValue) then exit;
@@ -13740,7 +13740,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoCategory.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideoCategory.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13750,7 +13750,7 @@ end;
 
 
 
-Procedure TVideoCategory.Setid(AIndex : Integer; AValue : String); 
+Procedure TVideoCategory.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -13760,7 +13760,7 @@ end;
 
 
 
-Procedure TVideoCategory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideoCategory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13787,7 +13787,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoCategoryListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideoCategoryListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -13797,7 +13797,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TVideoCategoryListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -13817,7 +13817,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideoCategoryListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -13827,7 +13827,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TVideoCategoryListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -13847,7 +13847,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TVideoCategoryListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -13867,7 +13867,7 @@ end;
 
 
 
-Procedure TVideoCategoryListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TVideoCategoryListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -13907,7 +13907,7 @@ end;
 
 
 
-Procedure TVideoCategorySnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TVideoCategorySnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -13917,7 +13917,7 @@ end;
 
 
 
-Procedure TVideoCategorySnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TVideoCategorySnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -13934,7 +13934,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoContentDetails.Setcaption(AIndex : Integer; AValue : String); 
+Procedure TVideoContentDetails.Setcaption(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcaption=AValue) then exit;
@@ -13964,7 +13964,7 @@ end;
 
 
 
-Procedure TVideoContentDetails.Setdefinition(AIndex : Integer; AValue : String); 
+Procedure TVideoContentDetails.Setdefinition(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdefinition=AValue) then exit;
@@ -13974,7 +13974,7 @@ end;
 
 
 
-Procedure TVideoContentDetails.Setdimension(AIndex : Integer; AValue : String); 
+Procedure TVideoContentDetails.Setdimension(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdimension=AValue) then exit;
@@ -13984,7 +13984,7 @@ end;
 
 
 
-Procedure TVideoContentDetails.Setduration(AIndex : Integer; AValue : String); 
+Procedure TVideoContentDetails.Setduration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -14062,7 +14062,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoConversionPing.Setcontext(AIndex : Integer; AValue : String); 
+Procedure TVideoConversionPing.Setcontext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontext=AValue) then exit;
@@ -14072,7 +14072,7 @@ end;
 
 
 
-Procedure TVideoConversionPing.SetconversionUrl(AIndex : Integer; AValue : String); 
+Procedure TVideoConversionPing.SetconversionUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconversionUrl=AValue) then exit;
@@ -14129,7 +14129,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetbitrateBps(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.SetbitrateBps(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbitrateBps=AValue) then exit;
@@ -14139,7 +14139,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.Setcontainer(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.Setcontainer(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontainer=AValue) then exit;
@@ -14149,7 +14149,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetcreationTime(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.SetcreationTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTime=AValue) then exit;
@@ -14159,7 +14159,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetdurationMs(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.SetdurationMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdurationMs=AValue) then exit;
@@ -14169,7 +14169,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetfileName(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.SetfileName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileName=AValue) then exit;
@@ -14179,7 +14179,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetfileSize(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.SetfileSize(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileSize=AValue) then exit;
@@ -14189,7 +14189,7 @@ end;
 
 
 
-Procedure TVideoFileDetails.SetfileType(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetails.SetfileType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileType=AValue) then exit;
@@ -14240,7 +14240,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoFileDetailsAudioStream.SetbitrateBps(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsAudioStream.SetbitrateBps(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbitrateBps=AValue) then exit;
@@ -14260,7 +14260,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsAudioStream.Setcodec(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsAudioStream.Setcodec(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -14270,7 +14270,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsAudioStream.Setvendor(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsAudioStream.Setvendor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvendor=AValue) then exit;
@@ -14297,7 +14297,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.SetbitrateBps(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsVideoStream.SetbitrateBps(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbitrateBps=AValue) then exit;
@@ -14307,7 +14307,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.Setcodec(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsVideoStream.Setcodec(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcodec=AValue) then exit;
@@ -14337,7 +14337,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.Setrotation(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsVideoStream.Setrotation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frotation=AValue) then exit;
@@ -14347,7 +14347,7 @@ end;
 
 
 
-Procedure TVideoFileDetailsVideoStream.Setvendor(AIndex : Integer; AValue : String); 
+Procedure TVideoFileDetailsVideoStream.Setvendor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvendor=AValue) then exit;
@@ -14374,7 +14374,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoGetRatingResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideoGetRatingResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -14384,7 +14384,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TVideoGetRatingResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -14404,7 +14404,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideoGetRatingResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14414,7 +14414,7 @@ end;
 
 
 
-Procedure TVideoGetRatingResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TVideoGetRatingResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -14444,7 +14444,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVideoListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -14454,7 +14454,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SeteventId(AIndex : Integer; AValue : String); 
+Procedure TVideoListResponse.SeteventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventId=AValue) then exit;
@@ -14474,7 +14474,7 @@ end;
 
 
 
-Procedure TVideoListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVideoListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -14484,7 +14484,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TVideoListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -14504,7 +14504,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SetprevPageToken(AIndex : Integer; AValue : String); 
+Procedure TVideoListResponse.SetprevPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprevPageToken=AValue) then exit;
@@ -14524,7 +14524,7 @@ end;
 
 
 
-Procedure TVideoListResponse.SetvisitorId(AIndex : Integer; AValue : String); 
+Procedure TVideoListResponse.SetvisitorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvisitorId=AValue) then exit;
@@ -14574,7 +14574,7 @@ end;
 
 
 
-Procedure TVideoLiveStreamingDetails.SetconcurrentViewers(AIndex : Integer; AValue : String); 
+Procedure TVideoLiveStreamingDetails.SetconcurrentViewers(AIndex : Integer; const AValue : String); 
 
 begin
   If (FconcurrentViewers=AValue) then exit;
@@ -14611,7 +14611,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoLocalization.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TVideoLocalization.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14621,7 +14621,7 @@ end;
 
 
 
-Procedure TVideoLocalization.Settitle(AIndex : Integer; AValue : String); 
+Procedure TVideoLocalization.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -14655,7 +14655,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoPlayer.SetembedHtml(AIndex : Integer; AValue : String); 
+Procedure TVideoPlayer.SetembedHtml(AIndex : Integer; const AValue : String); 
 
 begin
   If (FembedHtml=AValue) then exit;
@@ -14672,7 +14672,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoProcessingDetails.SeteditorSuggestionsAvailability(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SeteditorSuggestionsAvailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeditorSuggestionsAvailability=AValue) then exit;
@@ -14682,7 +14682,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetfileDetailsAvailability(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SetfileDetailsAvailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfileDetailsAvailability=AValue) then exit;
@@ -14692,7 +14692,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetprocessingFailureReason(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SetprocessingFailureReason(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingFailureReason=AValue) then exit;
@@ -14702,7 +14702,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetprocessingIssuesAvailability(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SetprocessingIssuesAvailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingIssuesAvailability=AValue) then exit;
@@ -14722,7 +14722,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -14732,7 +14732,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SettagSuggestionsAvailability(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SettagSuggestionsAvailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtagSuggestionsAvailability=AValue) then exit;
@@ -14742,7 +14742,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetails.SetthumbnailsAvailability(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetails.SetthumbnailsAvailability(AIndex : Integer; const AValue : String); 
 
 begin
   If (FthumbnailsAvailability=AValue) then exit;
@@ -14759,7 +14759,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoProcessingDetailsProcessingProgress.SetpartsProcessed(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetailsProcessingProgress.SetpartsProcessed(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpartsProcessed=AValue) then exit;
@@ -14769,7 +14769,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetailsProcessingProgress.SetpartsTotal(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetailsProcessingProgress.SetpartsTotal(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpartsTotal=AValue) then exit;
@@ -14779,7 +14779,7 @@ end;
 
 
 
-Procedure TVideoProcessingDetailsProcessingProgress.SettimeLeftMs(AIndex : Integer; AValue : String); 
+Procedure TVideoProcessingDetailsProcessingProgress.SettimeLeftMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeLeftMs=AValue) then exit;
@@ -14826,7 +14826,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoRating.Setrating(AIndex : Integer; AValue : String); 
+Procedure TVideoRating.Setrating(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frating=AValue) then exit;
@@ -14836,7 +14836,7 @@ end;
 
 
 
-Procedure TVideoRating.SetvideoId(AIndex : Integer; AValue : String); 
+Procedure TVideoRating.SetvideoId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvideoId=AValue) then exit;
@@ -14863,7 +14863,7 @@ end;
 
 
 
-Procedure TVideoRecordingDetails.SetlocationDescription(AIndex : Integer; AValue : String); 
+Procedure TVideoRecordingDetails.SetlocationDescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlocationDescription=AValue) then exit;
@@ -14890,7 +14890,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoSnippet.SetcategoryId(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.SetcategoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcategoryId=AValue) then exit;
@@ -14900,7 +14900,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetchannelId(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.SetchannelId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelId=AValue) then exit;
@@ -14910,7 +14910,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetchannelTitle(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.SetchannelTitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FchannelTitle=AValue) then exit;
@@ -14920,7 +14920,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetdefaultLanguage(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.SetdefaultLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefaultLanguage=AValue) then exit;
@@ -14930,7 +14930,7 @@ end;
 
 
 
-Procedure TVideoSnippet.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -14940,7 +14940,7 @@ end;
 
 
 
-Procedure TVideoSnippet.SetliveBroadcastContent(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.SetliveBroadcastContent(AIndex : Integer; const AValue : String); 
 
 begin
   If (FliveBroadcastContent=AValue) then exit;
@@ -14990,7 +14990,7 @@ end;
 
 
 
-Procedure TVideoSnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TVideoSnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -15020,7 +15020,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVideoStatistics.SetcommentCount(AIndex : Integer; AValue : String); 
+Procedure TVideoStatistics.SetcommentCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcommentCount=AValue) then exit;
@@ -15030,7 +15030,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetdislikeCount(AIndex : Integer; AValue : String); 
+Procedure TVideoStatistics.SetdislikeCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdislikeCount=AValue) then exit;
@@ -15040,7 +15040,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetfavoriteCount(AIndex : Integer; AValue : String); 
+Procedure TVideoStatistics.SetfavoriteCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfavoriteCount=AValue) then exit;
@@ -15050,7 +15050,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetlikeCount(AIndex : Integer; AValue : String); 
+Procedure TVideoStatistics.SetlikeCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlikeCount=AValue) then exit;
@@ -15060,7 +15060,7 @@ end;
 
 
 
-Procedure TVideoStatistics.SetviewCount(AIndex : Integer; AValue : String); 
+Procedure TVideoStatistics.SetviewCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FviewCount=AValue) then exit;
@@ -15087,7 +15087,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetfailureReason(AIndex : Integer; AValue : String); 
+Procedure TVideoStatus.SetfailureReason(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfailureReason=AValue) then exit;
@@ -15097,7 +15097,7 @@ end;
 
 
 
-Procedure TVideoStatus.Setlicense(AIndex : Integer; AValue : String); 
+Procedure TVideoStatus.Setlicense(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flicense=AValue) then exit;
@@ -15107,7 +15107,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetprivacyStatus(AIndex : Integer; AValue : String); 
+Procedure TVideoStatus.SetprivacyStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprivacyStatus=AValue) then exit;
@@ -15137,7 +15137,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetrejectionReason(AIndex : Integer; AValue : String); 
+Procedure TVideoStatus.SetrejectionReason(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrejectionReason=AValue) then exit;
@@ -15147,7 +15147,7 @@ end;
 
 
 
-Procedure TVideoStatus.SetuploadStatus(AIndex : Integer; AValue : String); 
+Procedure TVideoStatus.SetuploadStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuploadStatus=AValue) then exit;
@@ -15248,7 +15248,7 @@ end;
 
 
 
-Procedure TVideoSuggestionsTagSuggestion.Settag(AIndex : Integer; AValue : String); 
+Procedure TVideoSuggestionsTagSuggestion.Settag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -15319,7 +15319,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWatchSettings.SetbackgroundColor(AIndex : Integer; AValue : String); 
+Procedure TWatchSettings.SetbackgroundColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbackgroundColor=AValue) then exit;
@@ -15329,7 +15329,7 @@ end;
 
 
 
-Procedure TWatchSettings.SetfeaturedPlaylistId(AIndex : Integer; AValue : String); 
+Procedure TWatchSettings.SetfeaturedPlaylistId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfeaturedPlaylistId=AValue) then exit;
@@ -15339,7 +15339,7 @@ end;
 
 
 
-Procedure TWatchSettings.SettextColor(AIndex : Integer; AValue : String); 
+Procedure TWatchSettings.SettextColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextColor=AValue) then exit;

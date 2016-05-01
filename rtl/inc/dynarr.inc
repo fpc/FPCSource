@@ -128,6 +128,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
      updatep: boolean;
      elesize : sizeint;
      eletype : pointer;
+     movsize : sizeint;
 
   begin
      { negative length is not allowed }
@@ -171,12 +172,15 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                updatep := true;
                { make an unique copy }
                getmem(newp,size);
-               fillchar(newp^,size,0);
+               fillchar(newp^,sizeof(tdynarray),0);
                if realp^.high < dims[0] then
                  movelen := realp^.high+1
                else
                  movelen := dims[0];
-               move(p^,(pointer(newp)+sizeof(tdynarray))^,elesize*movelen);
+               movsize := elesize*movelen;
+               move(p^,(pointer(newp)+sizeof(tdynarray))^, movsize);
+               if size-sizeof(tdynarray)>movsize then
+                 fillchar((pointer(newp)+sizeof(tdynarray)+movsize)^,size-sizeof(tdynarray)-movsize,0);
 
                { increment ref. count of members }
                for i:= 0 to movelen-1 do

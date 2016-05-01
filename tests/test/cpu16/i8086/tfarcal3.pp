@@ -10,6 +10,11 @@
 
 { this test is Turbo Pascal 7 compatible }
 
+{$ifdef FPC}
+{ FPC needs $goto on to accept labels and gotos }
+{$goto on}
+{$endif FPC}
+
 program tfarcal3;
 
 {$F+}

@@ -209,7 +209,11 @@ unit cgcpu;
               end
           end
         else
-          inherited a_load_ref_cgpara(list,size,r,cgpara);
+          begin
+            href:=r;
+            make_simple_ref(list,href);
+            inherited a_load_ref_cgpara(list,size,href,cgpara);
+          end;
       end;
 
 
@@ -217,9 +221,15 @@ unit cgcpu;
       var
         tmpreg : tregister;
         opsize : topsize;
-        tmpref : treference;
+        tmpref,dirref : treference;
       begin
-        with r do
+        dirref:=r;
+
+        { this could probably done in a more optimized way, but for now this
+          is sufficent }
+        make_direct_ref(list,dirref);
+
+        with dirref do
           begin
             if use_push(cgpara) then
               begin
@@ -230,11 +240,11 @@ unit cgcpu;
                     if assigned(symbol) then
                       begin
                         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                           ((r.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                           ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                             (cs_create_pic in current_settings.moduleswitches)) then
                           begin
                             tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            a_loadaddr_ref_reg(list,dirref,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                           end
                         else if cs_create_pic in current_settings.moduleswitches then
@@ -242,12 +252,12 @@ unit cgcpu;
                             if offset<>0 then
                               begin
                                 tmpreg:=getaddressregister(list);
-                                a_loadaddr_ref_reg(list,r,tmpreg);
+                                a_loadaddr_ref_reg(list,dirref,tmpreg);
                                 list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                               end
                             else
                               begin
-                                reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
+                                reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
 {$ifdef EXTDEBUG}
@@ -273,12 +283,12 @@ unit cgcpu;
                 else
                   begin
                     tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
+                    a_loadaddr_ref_reg(list,dirref,tmpreg);
                     list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                   end;
               end
             else
-              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,dirref,cgpara);
           end;
       end;
 
@@ -630,9 +640,13 @@ unit cgcpu;
             get_64bit_ops(op,op1,op2);
             tempref:=ref;
             tcgx86(cg).make_simple_ref(list,tempref);
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
             inc(tempref.offset,4);
             list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           begin
@@ -652,8 +666,10 @@ unit cgcpu;
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,-1,regdst.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               exit;
             end;
           OP_NOT :
@@ -666,8 +682,12 @@ unit cgcpu;
             end;
         end;
         get_64bit_ops(op,op1,op2);
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -685,8 +705,10 @@ unit cgcpu;
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_reg(op1,S_L,aint(lo(value)),reg.reglo));
               list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200204021);
@@ -712,9 +734,11 @@ unit cgcpu;
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),tempref));
               inc(tempref.offset,4);
               list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200204022);

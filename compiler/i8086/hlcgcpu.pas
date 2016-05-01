@@ -248,6 +248,15 @@ implementation
       if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
         size:=voidpointertype;
 
+      { procvars follow the default code pointer size for the current memory model }
+      if size.typ=procvardef then
+        if ((po_methodpointer in tprocvardef(size).procoptions) or
+            is_nested_pd(tprocvardef(size))) and
+           not(po_addressonly in tprocvardef(size).procoptions) then
+          internalerror(2015120101)
+        else
+          size:=voidcodepointertype;
+
       if is_farpointer(size) or is_hugepointer(size) then
         Result:=cg.getintregister(list,OS_32)
       else

@@ -26,10 +26,13 @@ unit nllvmcnv;
 interface
 
     uses
+      symtype,
       node,ncnv,ncgcnv,defcmp;
 
     type
        tllvmtypeconvnode = class(tcgtypeconvnode)
+         public
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; override;
          protected
           function first_int_to_real: tnode; override;
           function first_int_to_bool: tnode; override;
@@ -64,10 +67,24 @@ uses
   aasmbase,aasmdata,
   llvmbase,aasmllvm,
   procinfo,
-  symconst,symtype,symdef,defutil,
+  symconst,symdef,defutil,
   cgbase,cgutils,tgobj,hlcgobj,pass_2;
 
 { tllvmtypeconvnode }
+
+
+class function tllvmtypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+  begin
+    result:=
+      (fromdef<>todef) and
+      { two procdefs that are structurally the same but semantically different
+        still need a convertion }
+      (
+       ((fromdef.typ=procvardef) and
+        (todef.typ=procvardef))
+      );
+  end;
+
 
 function tllvmtypeconvnode.first_int_to_real: tnode;
   begin
@@ -108,7 +125,8 @@ procedure tllvmtypeconvnode.second_int_to_int;
     tosize:=resultdef.size;
     location_copy(location,left.location);
     if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) or
-       (fromsize<>tosize) then
+       ((fromsize<>tosize) and
+        not is_void(left.resultdef)) then
       begin
         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,left.location.loc=LOC_CREGISTER);
       end
@@ -144,7 +162,7 @@ procedure tllvmtypeconvnode.second_int_to_real;
     else
       op:=la_uitofp;
     { see comment about currency in thlcgllvm.a_loadfpu_ref_reg }
-    if not is_currency(resultdef) then
+    if not(tfloatdef(resultdef).floattype in [s64comp,s64currency]) then
       llvmtodef:=resultdef
     else
       llvmtodef:=s80floattype;
@@ -164,7 +182,7 @@ procedure tllvmtypeconvnode.second_proc_to_procvar;
         if location.loc<>LOC_REFERENCE then
           internalerror(2015111902);
         hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,
-          cpointerdef.getreusable(left.resultdef),
+          cpointerdef.getreusable(tprocdef(left.resultdef).getcopyas(procvardef,pc_normal)),
           cpointerdef.getreusable(resultdef),
           location.reference);
       end;
@@ -179,8 +197,8 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
     location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),href.alignment);
     location.reference:=href;
     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
-    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'proc',0,href);
-    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),'self',0,href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'proc',href);
+    hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'self',href);
   end;
 
 
@@ -270,8 +288,9 @@ procedure tllvmtypeconvnode.second_nothing;
   begin
     if left.resultdef<>resultdef then
       begin
-        { handle sometype(voidptr^) }
+        { handle sometype(voidptr^) and "absolute" }
         if not is_void(left.resultdef) and
+           not(nf_absolute in flags) and
            (left.resultdef.typ<>formaldef) and
           (left.resultdef.size<>resultdef.size) then
           internalerror(2014012216);

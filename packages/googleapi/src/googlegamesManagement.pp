@@ -68,7 +68,7 @@ type
     Fresults : TAchievementResetAllResponseTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TAchievementResetAllResponseTyperesultsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -92,7 +92,7 @@ type
   Protected
     //Property setters
     Procedure Setachievement_ids(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -116,9 +116,9 @@ type
     FupdateOccurred : boolean;
   Protected
     //Property setters
-    Procedure SetcurrentState(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdefinitionId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentState(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdefinitionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetupdateOccurred(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -140,7 +140,7 @@ type
   Protected
     //Property setters
     Procedure Setevent_ids(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -163,7 +163,7 @@ type
   Protected
     //Property setters
     Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoMatched : boolean Index 0 Read FautoMatched Write SetautoMatched;
@@ -183,9 +183,9 @@ type
     FnextLevel : TGamesPlayerLevelResource;
   Protected
     //Property setters
-    Procedure SetcurrentExperiencePoints(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrentLevel(AIndex : Integer; AValue : TGamesPlayerLevelResource); virtual;
-    Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextLevel(AIndex : Integer; AValue : TGamesPlayerLevelResource); virtual;
   Public
   Published
@@ -208,8 +208,8 @@ type
   Protected
     //Property setters
     Procedure Setlevel(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaxExperiencePoints(AIndex : Integer; AValue : String); virtual;
-    Procedure SetminExperiencePoints(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmaxExperiencePoints(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetminExperiencePoints(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property level : integer Index 0 Read Flevel Write Setlevel;
@@ -229,8 +229,8 @@ type
     Fplayer : TPlayer;
   Protected
     //Property setters
-    Procedure SethiddenTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SethiddenTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
   Public
   Published
@@ -252,8 +252,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : THiddenPlayerListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -276,8 +276,8 @@ type
     FgivenName : String;
   Protected
     //Property setters
-    Procedure SetfamilyName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgivenName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfamilyName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgivenName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property familyName : String Index 0 Read FfamilyName Write SetfamilyName;
@@ -301,14 +301,14 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetavatarImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetavatarImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexperienceInfo(AIndex : Integer; AValue : TGamesPlayerExperienceInfoResource); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastPlayedWith(AIndex : Integer; AValue : TGamesPlayedResource); virtual;
     Procedure Setname(AIndex : Integer; AValue : TPlayerTypename); virtual;
-    Procedure SetplayerId(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure SetplayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property avatarImageUrl : String Index 0 Read FavatarImageUrl Write SetavatarImageUrl;
@@ -332,7 +332,7 @@ type
     Fresults : TPlayerScoreResetAllResponseTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresults(AIndex : Integer; AValue : TPlayerScoreResetAllResponseTyperesultsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -356,8 +356,8 @@ type
     FresetScoreTimeSpans : TStringArray;
   Protected
     //Property setters
-    Procedure SetdefinitionId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdefinitionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresetScoreTimeSpans(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -381,7 +381,7 @@ type
     Fquest_ids : TStringArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setquest_ids(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -404,7 +404,7 @@ type
     Fleaderboard_ids : TStringArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setleaderboard_ids(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -621,7 +621,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementResetAllResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementResetAllResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -671,7 +671,7 @@ end;
 
 
 
-Procedure TAchievementResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -701,7 +701,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementResetResponse.SetcurrentState(AIndex : Integer; AValue : String); 
+Procedure TAchievementResetResponse.SetcurrentState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentState=AValue) then exit;
@@ -711,7 +711,7 @@ end;
 
 
 
-Procedure TAchievementResetResponse.SetdefinitionId(AIndex : Integer; AValue : String); 
+Procedure TAchievementResetResponse.SetdefinitionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -721,7 +721,7 @@ end;
 
 
 
-Procedure TAchievementResetResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementResetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -758,7 +758,7 @@ end;
 
 
 
-Procedure TEventsResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEventsResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -798,7 +798,7 @@ end;
 
 
 
-Procedure TGamesPlayedResource.SettimeMillis(AIndex : Integer; AValue : String); 
+Procedure TGamesPlayedResource.SettimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeMillis=AValue) then exit;
@@ -815,7 +815,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesPlayerExperienceInfoResource.SetcurrentExperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TGamesPlayerExperienceInfoResource.SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrentExperiencePoints=AValue) then exit;
@@ -835,7 +835,7 @@ end;
 
 
 
-Procedure TGamesPlayerExperienceInfoResource.SetlastLevelUpTimestampMillis(AIndex : Integer; AValue : String); 
+Procedure TGamesPlayerExperienceInfoResource.SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastLevelUpTimestampMillis=AValue) then exit;
@@ -872,7 +872,7 @@ end;
 
 
 
-Procedure TGamesPlayerLevelResource.SetmaxExperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TGamesPlayerLevelResource.SetmaxExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxExperiencePoints=AValue) then exit;
@@ -882,7 +882,7 @@ end;
 
 
 
-Procedure TGamesPlayerLevelResource.SetminExperiencePoints(AIndex : Integer; AValue : String); 
+Procedure TGamesPlayerLevelResource.SetminExperiencePoints(AIndex : Integer; const AValue : String); 
 
 begin
   If (FminExperiencePoints=AValue) then exit;
@@ -899,7 +899,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure THiddenPlayer.SethiddenTimeMillis(AIndex : Integer; AValue : String); 
+Procedure THiddenPlayer.SethiddenTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhiddenTimeMillis=AValue) then exit;
@@ -909,7 +909,7 @@ end;
 
 
 
-Procedure THiddenPlayer.Setkind(AIndex : Integer; AValue : String); 
+Procedure THiddenPlayer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -946,7 +946,7 @@ end;
 
 
 
-Procedure THiddenPlayerList.Setkind(AIndex : Integer; AValue : String); 
+Procedure THiddenPlayerList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -956,7 +956,7 @@ end;
 
 
 
-Procedure THiddenPlayerList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure THiddenPlayerList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -986,7 +986,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; AValue : String); 
+Procedure TPlayerTypename.SetfamilyName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfamilyName=AValue) then exit;
@@ -996,7 +996,7 @@ end;
 
 
 
-Procedure TPlayerTypename.SetgivenName(AIndex : Integer; AValue : String); 
+Procedure TPlayerTypename.SetgivenName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgivenName=AValue) then exit;
@@ -1013,7 +1013,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; AValue : String); 
+Procedure TPlayer.SetavatarImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FavatarImageUrl=AValue) then exit;
@@ -1023,7 +1023,7 @@ end;
 
 
 
-Procedure TPlayer.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -1043,7 +1043,7 @@ end;
 
 
 
-Procedure TPlayer.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayer.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1073,7 +1073,7 @@ end;
 
 
 
-Procedure TPlayer.SetplayerId(AIndex : Integer; AValue : String); 
+Procedure TPlayer.SetplayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FplayerId=AValue) then exit;
@@ -1083,7 +1083,7 @@ end;
 
 
 
-Procedure TPlayer.Settitle(AIndex : Integer; AValue : String); 
+Procedure TPlayer.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1100,7 +1100,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreResetAllResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResetAllResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1140,7 +1140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreResetResponse.SetdefinitionId(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResetResponse.SetdefinitionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdefinitionId=AValue) then exit;
@@ -1150,7 +1150,7 @@ end;
 
 
 
-Procedure TPlayerScoreResetResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPlayerScoreResetResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1190,7 +1190,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestsResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuestsResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1230,7 +1230,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScoresResetMultipleForAllRequest.Setkind(AIndex : Integer; AValue : String); 
+Procedure TScoresResetMultipleForAllRequest.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

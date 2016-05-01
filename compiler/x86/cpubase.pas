@@ -183,9 +183,6 @@ uses
 {$endif}
 
     const
-{ TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
-
       regnumber_table : array[tregisterindex] of tregister = (
 {$if defined(x86_64)}
         {$i r8664num.inc}

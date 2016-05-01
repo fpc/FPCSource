@@ -108,11 +108,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); virtual;
     Procedure Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -138,7 +138,7 @@ type
   Protected
     //Property setters
     Procedure Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsArray); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -189,10 +189,10 @@ type
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmime_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmime_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2Typepage_rect); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
@@ -230,7 +230,7 @@ type
     FruleResults : TResultTypeformattedResultsTyperuleResults;
   Protected
     //Property setters
-    Procedure Setlocale(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
     Procedure SetruleResults(AIndex : Integer; AValue : TResultTypeformattedResultsTyperuleResults); virtual;
   Public
   Published
@@ -260,19 +260,19 @@ type
     FtotalRequestBytes : String;
   Protected
     //Property setters
-    Procedure SetcssResponseBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetflashResponseBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SethtmlResponseBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetimageResponseBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SetjavascriptResponseBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcssResponseBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetflashResponseBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethtmlResponseBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetimageResponseBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetjavascriptResponseBytes(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumberCssResources(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberHosts(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberJsResources(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberResources(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumberStaticResources(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetotherResponseBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SettextResponseBytes(AIndex : Integer; AValue : String); virtual;
-    Procedure SettotalRequestBytes(AIndex : Integer; AValue : String); virtual;
+    Procedure SetotherResponseBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettextResponseBytes(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettotalRequestBytes(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property cssResponseBytes : String Index 0 Read FcssResponseBytes Write SetcssResponseBytes;
@@ -343,14 +343,14 @@ type
   Protected
     //Property setters
     Procedure SetformattedResults(AIndex : Integer; AValue : TResultTypeformattedResults); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinvalidRules(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageStats(AIndex : Integer; AValue : TResultTypepageStats); virtual;
     Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
     Procedure SetruleGroups(AIndex : Integer; AValue : TResultTyperuleGroups); virtual;
     Procedure Setscreenshot(AIndex : Integer; AValue : TPagespeedApiImageV2); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; AValue : TResultTypeversion); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -535,7 +535,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItem.Setkey(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -565,7 +565,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -575,7 +575,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -627,7 +627,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2.Setformat(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiFormatStringV2.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -704,7 +704,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiImageV2.Setdata(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiImageV2.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -724,7 +724,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setkey(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiImageV2.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -734,7 +734,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setmime_type(AIndex : Integer; AValue : String); 
+Procedure TPagespeedApiImageV2.Setmime_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmime_type=AValue) then exit;
@@ -784,7 +784,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTypeformattedResults.Setlocale(AIndex : Integer; AValue : String); 
+Procedure TResultTypeformattedResults.Setlocale(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -811,7 +811,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTypepageStats.SetcssResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SetcssResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcssResponseBytes=AValue) then exit;
@@ -821,7 +821,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetflashResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SetflashResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FflashResponseBytes=AValue) then exit;
@@ -831,7 +831,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SethtmlResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SethtmlResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhtmlResponseBytes=AValue) then exit;
@@ -841,7 +841,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetimageResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SetimageResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageResponseBytes=AValue) then exit;
@@ -851,7 +851,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetjavascriptResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SetjavascriptResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FjavascriptResponseBytes=AValue) then exit;
@@ -911,7 +911,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetotherResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SetotherResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FotherResponseBytes=AValue) then exit;
@@ -921,7 +921,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SettextResponseBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SettextResponseBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextResponseBytes=AValue) then exit;
@@ -931,7 +931,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SettotalRequestBytes(AIndex : Integer; AValue : String); 
+Procedure TResultTypepageStats.SettotalRequestBytes(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtotalRequestBytes=AValue) then exit;
@@ -998,7 +998,7 @@ end;
 
 
 
-Procedure TResult.Setid(AIndex : Integer; AValue : String); 
+Procedure TResult.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1018,7 +1018,7 @@ end;
 
 
 
-Procedure TResult.Setkind(AIndex : Integer; AValue : String); 
+Procedure TResult.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1068,7 +1068,7 @@ end;
 
 
 
-Procedure TResult.Settitle(AIndex : Integer; AValue : String); 
+Procedure TResult.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;

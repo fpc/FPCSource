@@ -461,10 +461,10 @@ var
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
 Procedure Insert(const source:shortstring;var s:shortstring;index:SizeInt);
 Procedure Insert(source:Char;var s:shortstring;index:SizeInt);
-Function  Pos(const substr:shortstring;const s:shortstring):SizeInt;
-Function  Pos(C:Char;const s:shortstring):SizeInt;
+Function  Pos(const substr:shortstring;const s:shortstring; Offset: Sizeint = 1):SizeInt;
+Function  Pos(C:Char;const s:shortstring; Offset: Sizeint = 1):SizeInt;
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function  Pos(const Substr : ShortString; const Source : RawByteString) : SizeInt;
+Function  Pos(const Substr : ShortString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
 
 {$ifdef FPC_HAS_CPSTRING}
 Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
@@ -509,8 +509,8 @@ function  pos(const substr : shortstring;c:char; Offset : Sizeint=1): SizeInt;
 
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure UniqueString(var S : RawByteString);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}external name 'FPC_ANSISTR_UNIQUE';
-Function  Pos (const Substr : RawByteString; const Source : RawByteString) : SizeInt;
-Function  Pos (c : AnsiChar; const s : RawByteString) : SizeInt;
+Function  Pos (const Substr : RawByteString; const Source : RawByteString; Offset: Sizeint = 1) : SizeInt;
+Function  Pos (c : AnsiChar; const s : RawByteString; Offset: Sizeint = 1) : SizeInt;
 Procedure Insert (const Source : RawByteString; var S : RawByteString; Index : SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 Procedure Delete (var S : RawByteString; Index,Size: SizeInt);{$ifdef FPC_HAS_CPSTRING}rtlproc;{$endif FPC_HAS_CPSTRING}
 Function  StringOfChar(c : Ansichar;l : SizeInt) : AnsiString;

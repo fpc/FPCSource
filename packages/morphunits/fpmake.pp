@@ -34,6 +34,8 @@ begin
     T:=P.Targets.AddUnit('exec.pas');
     T:=P.Targets.AddUnit('timer.pas');
     T:=P.Targets.AddUnit('utility.pas');
+    T:=P.Targets.AddUnit('akeyboard.pas');
+    T:=P.Targets.AddUnit('input.pas');
     T:=P.Targets.AddUnit('intuition.pas');
     T:=P.Targets.AddUnit('agraphics.pas');
     T:=P.Targets.AddUnit('amigalib.pas');
@@ -49,12 +51,14 @@ begin
     T:=P.Targets.AddUnit('mui.pas');
     T:=P.Targets.AddUnit('muihelper.pas');
     T:=P.Targets.AddUnit('ahi.pas');
-    T:=P.Targets.AddUnit('kvm.pas');
     T:=P.Targets.AddUnit('get9.pas');
     T:=P.Targets.AddUnit('tinygl.pas');
     T:=P.Targets.AddUnit('diskfont.pas');
     T:=P.Targets.AddUnit('cybergraphics.pas');
     T:=P.Targets.AddUnit('cgxvideo.pas');
+    T:=P.Targets.AddUnit('gadtools.pas');
+    T:=P.Targets.AddUnit('workbench.pas');
+    T:=P.Targets.AddUnit('icon.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

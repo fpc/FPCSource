@@ -68,14 +68,14 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetachievementType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetachievementType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdraft(AIndex : Integer; AValue : TAchievementConfigurationDetail); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetinitialState(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetinitialState(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TAchievementConfigurationDetail); virtual;
     Procedure SetstepsToUnlock(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property achievementType : String Index 0 Read FachievementType Write SetachievementType;
@@ -104,8 +104,8 @@ type
   Protected
     //Property setters
     Procedure Setdescription(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure SeticonUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
     Procedure SetpointValue(AIndex : Integer; AValue : integer); virtual;
     Procedure SetsortRank(AIndex : Integer; AValue : integer); virtual;
@@ -132,8 +132,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAchievementConfigurationListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -189,9 +189,9 @@ type
     Fsuffix : TGamesNumberAffixConfiguration;
   Protected
     //Property setters
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumDecimalPlaces(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumberFormatType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnumberFormatType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsuffix(AIndex : Integer; AValue : TGamesNumberAffixConfiguration); virtual;
   Public
   Published
@@ -214,10 +214,10 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure SetimageType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetresourceId(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetimageType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property imageType : String Index 0 Read FimageType Write SetimageType;
@@ -245,13 +245,13 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setdraft(AIndex : Integer; AValue : TLeaderboardConfigurationDetail); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_published(AIndex : Integer; AValue : TLeaderboardConfigurationDetail); virtual;
-    Procedure SetscoreMax(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreMin(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscoreOrder(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetscoreMax(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreMin(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscoreOrder(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property draft : TLeaderboardConfigurationDetail Index 0 Read Fdraft Write Setdraft;
@@ -278,8 +278,8 @@ type
     FsortRank : integer;
   Protected
     //Property setters
-    Procedure SeticonUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
     Procedure SetscoreFormat(AIndex : Integer; AValue : TGamesNumberFormatConfiguration); virtual;
     Procedure SetsortRank(AIndex : Integer; AValue : integer); virtual;
@@ -305,8 +305,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLeaderboardConfigurationListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -330,9 +330,9 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocale(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -351,7 +351,7 @@ type
     Ftranslations : TLocalizedStringBundleTypetranslationsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Settranslations(AIndex : Integer; AValue : TLocalizedStringBundleTypetranslationsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -483,7 +483,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementConfiguration.SetachievementType(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfiguration.SetachievementType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FachievementType=AValue) then exit;
@@ -503,7 +503,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Setid(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfiguration.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -513,7 +513,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.SetinitialState(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfiguration.SetinitialState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinitialState=AValue) then exit;
@@ -523,7 +523,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -553,7 +553,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Settoken(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfiguration.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -591,7 +591,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.SeticonUrl(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfigurationDetail.SeticonUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -601,7 +601,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfigurationDetail.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -658,7 +658,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfigurationListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -668,7 +668,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAchievementConfigurationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -765,7 +765,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesNumberFormatConfiguration.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TGamesNumberFormatConfiguration.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -785,7 +785,7 @@ end;
 
 
 
-Procedure TGamesNumberFormatConfiguration.SetnumberFormatType(AIndex : Integer; AValue : String); 
+Procedure TGamesNumberFormatConfiguration.SetnumberFormatType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnumberFormatType=AValue) then exit;
@@ -812,7 +812,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImageConfiguration.SetimageType(AIndex : Integer; AValue : String); 
+Procedure TImageConfiguration.SetimageType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FimageType=AValue) then exit;
@@ -822,7 +822,7 @@ end;
 
 
 
-Procedure TImageConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TImageConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -832,7 +832,7 @@ end;
 
 
 
-Procedure TImageConfiguration.SetresourceId(AIndex : Integer; AValue : String); 
+Procedure TImageConfiguration.SetresourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceId=AValue) then exit;
@@ -842,7 +842,7 @@ end;
 
 
 
-Procedure TImageConfiguration.Seturl(AIndex : Integer; AValue : String); 
+Procedure TImageConfiguration.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -869,7 +869,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Setid(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfiguration.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -879,7 +879,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -899,7 +899,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.SetscoreMax(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfiguration.SetscoreMax(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreMax=AValue) then exit;
@@ -909,7 +909,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.SetscoreMin(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfiguration.SetscoreMin(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreMin=AValue) then exit;
@@ -919,7 +919,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.SetscoreOrder(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfiguration.SetscoreOrder(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscoreOrder=AValue) then exit;
@@ -929,7 +929,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Settoken(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfiguration.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -957,7 +957,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardConfigurationDetail.SeticonUrl(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfigurationDetail.SeticonUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -967,7 +967,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfigurationDetail.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1024,7 +1024,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfigurationListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1034,7 +1034,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLeaderboardConfigurationListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1064,7 +1064,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedString.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLocalizedString.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1074,7 +1074,7 @@ end;
 
 
 
-Procedure TLocalizedString.Setlocale(AIndex : Integer; AValue : String); 
+Procedure TLocalizedString.Setlocale(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -1084,7 +1084,7 @@ end;
 
 
 
-Procedure TLocalizedString.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TLocalizedString.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1101,7 +1101,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocalizedStringBundle.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLocalizedStringBundle.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

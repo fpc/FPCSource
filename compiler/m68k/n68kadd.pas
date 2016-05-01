@@ -33,6 +33,7 @@ interface
        t68kaddnode = class(tcgaddnode)
        private
           function getresflags(unsigned: boolean) : tresflags;
+          function getfloatresflags: tresflags;
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
@@ -110,6 +111,34 @@ implementation
       end;
 
 
+    function t68kaddnode.getfloatresflags : tresflags;
+      begin
+        case nodetype of
+          equaln : getfloatresflags:=F_FE;
+          unequaln : getfloatresflags:=F_FNE;
+          else
+            if nf_swapped in flags then
+              case nodetype of
+                ltn : getfloatresflags:=F_FG;
+                lten : getfloatresflags:=F_FGE;
+                gtn : getfloatresflags:=F_FL;
+                gten : getfloatresflags:=F_FLE;
+                else
+                  internalerror(201604260);
+              end
+            else
+              case nodetype of
+                ltn : getfloatresflags:=F_FL;
+                lten : getfloatresflags:=F_FLE;
+                gtn : getfloatresflags:=F_FG;
+                gten : getfloatresflags:=F_FGE;
+                else
+                  internalerror(201604261);
+              end;
+        end;
+      end;
+
+
 {*****************************************************************************
                                 AddFloat
 *****************************************************************************}
@@ -140,7 +169,7 @@ implementation
           swapleftright;
 
         case current_settings.fputype of
-          fpu_68881:
+          fpu_68881,fpu_coldfire:
             begin
               { have left in the register, right can be a memory location }
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -153,11 +182,11 @@ implementation
               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,S_FX,right.location.register,location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregsize,right.location.register,location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
                     end
                 else
@@ -182,7 +211,7 @@ implementation
           swapleftright;
 
         case current_settings.fputype of
-          fpu_68881:
+          fpu_68881,fpu_coldfire:
             begin
               { force left fpureg as register, right can be reference }
               hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
@@ -190,28 +219,19 @@ implementation
               { emit compare }
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,S_FX,right.location.register,left.location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregsize,right.location.register,left.location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
                       current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
                     end
                 else
                   internalerror(2015021502);
               end;
 
-              // temporary(?) hack, move condition result back to the CPU from the FPU.
-              // 6888x has its own FBcc branch instructions and FScc flags->reg instruction,
-              // which we don't support yet in the rest of the cg. (KB)
-              tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
-              ai:=taicpu.op_reg(A_FSxx,S_B,tmpreg);
-              ai.SetCondition(flags_to_cond(getresflags(false)));
-              current_asmdata.CurrAsmList.concat(ai);
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_NEG,S_B,tmpreg));
-
-              location_reset(location,LOC_REGISTER,OS_8);
-              location.register:=tmpreg;
+              location_reset(location,LOC_FLAGS,OS_NO);
+              location.resflags:=getfloatresflags;
             end;
           else
             // softfpu should be handled in pass1, others are not yet supported...
@@ -307,7 +327,7 @@ implementation
              LOC_CREFERENCE:
                begin
                  href:=left.location.reference;
-                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                 tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,opsize,href));
                  location_freetemp(current_asmdata.CurrAsmList,left.location);
                end;
@@ -321,7 +341,7 @@ implementation
 
        { Coldfire supports byte/word compares only starting with ISA_B,
          !!see remark about Qemu weirdness in tcg68k.a_cmp_const_reg_label }
-       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c]}) then
+       if (opsize<>S_L) and (current_settings.cputype in cpu_coldfire{-[cpu_isa_b,cpu_isa_c,cfv4e]}) then
          begin
            { 1) Extension is needed for LOC_REFERENCE, but what about LOC_REGISTER ? Perhaps after fixing cg we can assume
                 that high bits of registers are correct.
@@ -350,7 +370,7 @@ implementation
          LOC_CREFERENCE:
            begin
              href:=right.location.reference;
-             tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+             tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,opsize,href,
                left.location.register));
            end;
@@ -475,7 +495,7 @@ implementation
               LOC_CREFERENCE:
                 begin
                   href:=left.location.reference;
-                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,S_L,href));
                   firstjmp64bitcmp;
                   inc(href.offset,4);
@@ -518,7 +538,7 @@ implementation
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
               href:=right.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_CMP,S_L,href,left.location.register64.reghi));
               firstjmp64bitcmp;
               inc(href.offset,4);

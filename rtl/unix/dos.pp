@@ -312,7 +312,7 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid      : longint; // pid_t?
   cmdline2 : ppchar;
-  commandline : ansistring;
+  commandline : RawByteString;
   realpath : ansistring;
 
 // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
@@ -330,7 +330,7 @@ Begin
      realpath:=path;
      if Comline<>'' Then
        begin
-         CommandLine:=ComLine;  // conversion must live till after fpexec!
+         CommandLine:=ToSingleByteFileSystemEncodedFileName(ComLine);  // conversion must live till after fpexec!
          cmdline2:=StringtoPPChar(CommandLine,1);
          cmdline2^:=pchar(realPath);
        end

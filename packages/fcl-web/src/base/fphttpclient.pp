@@ -54,6 +54,7 @@ Type
     FOnPassword: TPasswordEvent;
     FOnRedirect: TRedirectEvent;
     FPassword: String;
+    FIOTimeout: Integer;
     FSentCookies,
     FCookies: TStrings;
     FHTTPVersion: String;
@@ -73,6 +74,7 @@ Type
     Procedure ResetResponse;
     Procedure SetCookies(const AValue: TStrings);
     Procedure SetRequestHeaders(const AValue: TStrings);
+    procedure SetIOTimeout(AValue: Integer);
   protected
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
@@ -211,6 +213,8 @@ Type
     // Simple form of Posting a file
     Class Procedure SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
   Protected
+    // Timeouts
+    Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
@@ -256,6 +260,7 @@ Type
 
   TFPHTTPClient = Class(TFPCustomHTTPClient)
   Public
+    Property IOTimeout;
     Property RequestHeaders;
     Property RequestBody;
     Property ResponseHeaders;
@@ -384,6 +389,14 @@ begin
   FRequestHeaders.Assign(AValue);
 end;
 
+procedure TFPCustomHTTPClient.SetIOTimeout(AValue: Integer);
+begin
+  if AValue=FIOTimeout then exit;
+  FIOTimeout:=AValue;
+  if Assigned(FSocket) then
+    FSocket.IOTimeout:=AValue;
+end;
+
 procedure TFPCustomHTTPClient.DoDataRead;
 begin
   If Assigned(FOnDataReceived) Then
@@ -457,6 +470,8 @@ begin
   G:=GetSocketHandler(UseSSL);    
   FSocket:=TInetSocket.Create(AHost,APort,G);
   try
+    if FIOTimeout<>0 then
+      FSocket.IOTimeout:=FIOTimeout;
     FSocket.Connect;
   except
     FreeAndNil(FSocket);
@@ -956,6 +971,8 @@ end;
 constructor TFPCustomHTTPClient.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  // Infinite timeout on most platforms
+  FIOTimeout:=0;
   FRequestHeaders:=TStringList.Create;
   FResponseHeaders:=TStringList.Create;
   FHTTPVersion:='1.1';

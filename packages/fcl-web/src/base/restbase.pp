@@ -56,6 +56,7 @@ Type
     fadditionalProperties : TJSONObject;
     FBits : TBits;
     Function GetDynArrayProp(P: PPropInfo) : Pointer; virtual;
+    procedure SetArrayElements(AP: Pointer; ET: PTypeInfo; AValue: TJSONArray);
     procedure SetDynArrayProp(P: PPropInfo; AValue : Pointer); virtual;
     procedure SetObjectOptions(AValue: TObjectOptions);
     Function GetAdditionalProperties : TJSONObject;
@@ -536,10 +537,41 @@ begin
   Result:=Pointer(GetObjectProp(Self,P));
 end;
 
+{ $DEFINE DUMPARRAY}
+
+{$IFDEF DUMPARRAY}
+Procedure DumpArray(ClassName,N : String; P : Pointer);
+
+Type
+   pdynarray = ^tdynarray;   
+   tdynarray = packed record
+      refcount : ptrint;
+      high : tdynarrayindex;
+   end;
+   
+ Var
+   R : pdynarray;  
+   
+begin
+  if P=Nil then
+    Writeln(ClassName,' property ',N, ' is nil')
+  else
+    begin
+    r:=pdynarray(p-sizeof(tdynarray));
+    Writeln(ClassName,' property ',N, ' has ref count ',r^.refcount,' and high ',r^.high);
+    end;  
+end;
+{$ENDIF}
 
 procedure TBaseObject.SetDynArrayProp(P: PPropInfo; AValue: Pointer);
 begin
+{$IFDEF DUMPARRAY}
+  DumpArray(ClassName+' (set)',P^.PropType^.Name,AValue);
+{$ENDIF}
   SetObjectProp(Self,P,TObject(AValue));
+{$IFDEF DUMPARRAY}
+  DumpArray(ClassName+' (check)',P^.PropType^.Name,AValue);
+{$ENDIF}
 end;
 
 procedure TBaseObject.SetObjectOptions(AValue: TObjectOptions);
@@ -643,6 +675,53 @@ begin
     SetFloatProp(Self,P,0)
 end;
 
+procedure TBaseObject.SetArrayElements(AP : Pointer; ET: PTypeInfo; AValue: TJSONArray);
+
+Var
+  I : Integer;
+  AN : String;
+
+begin
+  AN:=ET^.Name;
+  // Fill in all elements
+  For I:=0 to AValue.Count-1 do
+    begin
+    Case ET^.Kind of
+      tkClass :
+        begin
+        // Writeln(ClassName,' Adding instance of type: ',AN);
+        TObjectArray(AP)[I]:=CreateObject(AN);
+        TObjectArray(AP)[I].LoadFromJSON(AValue.Objects[i]);
+        end;
+      tkFloat :
+        if IsDateTimeProp(ET) then
+          TDateTimeArray(AP)[I]:=RFC3339ToDateTime(AValue.Strings[i])
+        else
+          TFloatArray(AP)[I]:=AValue.Floats[i];
+      tkInt64 :
+        TInt64Array(AP)[I]:=AValue.Int64s[i];
+      tkBool :
+        begin
+        TBooleanArray(AP)[I]:=AValue.Booleans[i];
+        end;
+      tkInteger :
+       TIntegerArray(AP)[I]:=AValue.Integers[i];
+      tkUstring,
+      tkWstring :
+        TUnicodeStringArray(AP)[I]:=UTF8Decode(AValue.Strings[i]);
+      tkString,
+      tkAstring,
+      tkLString :
+        begin
+        // Writeln('Setting String ',i,': ',AValue.Strings[i]);
+        TStringArray(AP)[I]:=AValue.Strings[i];
+        end;
+    else
+      Raise ERESTAPI.CreateFmt('%s: unsupported array element type : ',[ClassName,GetEnumName(TypeInfo(TTypeKind),Ord(ET^.Kind))]);
+    end;
+    end;
+end;
+
 procedure TBaseObject.SetArrayProperty(P: PPropInfo; AValue: TJSONArray);
 
 Var
@@ -685,10 +764,10 @@ begin
     PA:=@(pdynarraytypeinfo(P^.PropType)^.elesize)+i;
     PA:=@(pdynarraytypeinfo(P^.PropType)^.eletype)+i;
     ET:=PTYpeInfo(PA^);
-    if ET^.Kind=tkClass then
+    if (ET^.Kind=tkClass) then
       begin
       // get object type name
-      AN:=PTYpeInfo(PA^)^.Name;
+      AN:=ET^.Name;
       // Free all objects
       O:=TObjectArray(AP);
       For I:=0 to Length(O)-1 do
@@ -715,43 +794,12 @@ begin
     I:=Length(TObjectArray(AP));
     SetDynArrayProp(P,AP);
 {$endif}
-    // Fill in all elements
-    For I:=0 to AValue.Count-1 do
-      begin
-      Case ET^.Kind of
-        tkClass :
-          begin
-          // Writeln(ClassName,' Adding instance of type: ',AN);
-          TObjectArray(AP)[I]:=CreateObject(AN);
-          TObjectArray(AP)[I].LoadFromJSON(AValue.Objects[i]);
-          end;
-        tkFloat :
-          if IsDateTimeProp(ET) then
-            TDateTimeArray(AP)[I]:=RFC3339ToDateTime(AValue.Strings[i])
-          else
-            TFloatArray(AP)[I]:=AValue.Floats[i];
-        tkInt64 :
-          TInt64Array(AP)[I]:=AValue.Int64s[i];
-        tkBool :
-          begin
-          TBooleanArray(AP)[I]:=AValue.Booleans[i];
-          end;
-        tkInteger :
-         TIntegerArray(AP)[I]:=AValue.Integers[i];
-        tkUstring,
-        tkWstring :
-          TUnicodeStringArray(AP)[I]:=UTF8Decode(AValue.Strings[i]);
-        tkString,
-        tkAstring,
-        tkLString :
-          begin
-          // Writeln('Setting String ',i,': ',AValue.Strings[i]);
-          TStringArray(AP)[I]:=AValue.Strings[i];
-          end;
-      else
-        Raise ERESTAPI.CreateFmt('%s: unsupported array element type : ',[ClassName,GetEnumName(TypeInfo(TTypeKind),Ord(ET^.Kind))]);
-      end;
-      end;
+    try
+      SetArrayElements(AP,ET,AValue);
+    finally
+      // Reduce ref. count, compiler does not do it for us for a pointer.
+      TObjectArray(AP):=Nil;
+    end;
     end;
 end;
 
@@ -1011,6 +1059,7 @@ end;
 
 procedure TBaseObject.ClearChildren(ChildTypes: TChildTypes);
 
+
 Type
   TObjectArr = Array of TObject;
 
@@ -1045,6 +1094,9 @@ begin
             if PTYpeInfo(PA^)^.Kind=tkClass then
               begin
               A:=GetDynArrayProp(P);
+{$IFDEF DUMPARRAY}              
+              DumpArray(ClassName+' (clear)',P^.PropType^.Name,A);
+{$ENDIF}
 //              Writeln(ClassName,' Examining array: ',P^.Name,'Count:',Length(TObjectArr(A)));
               For J:=0 to Length(TObjectArr(A))-1 do
                 begin

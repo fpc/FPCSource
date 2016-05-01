@@ -1,4 +1,4 @@
-{ %VERSION=1.1 }
+{ %OPT=-Oonofastmath }
 
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }

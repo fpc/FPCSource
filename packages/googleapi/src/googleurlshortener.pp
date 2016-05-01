@@ -57,10 +57,10 @@ type
     //Property setters
     Procedure Setbrowsers(AIndex : Integer; AValue : TAnalyticsSnapshotTypebrowsersArray); virtual;
     Procedure Setcountries(AIndex : Integer; AValue : TAnalyticsSnapshotTypecountriesArray); virtual;
-    Procedure SetlongUrlClicks(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlongUrlClicks(AIndex : Integer; const AValue : String); virtual;
     Procedure Setplatforms(AIndex : Integer; AValue : TAnalyticsSnapshotTypeplatformsArray); virtual;
     Procedure Setreferrers(AIndex : Integer; AValue : TAnalyticsSnapshotTypereferrersArray); virtual;
-    Procedure SetshortUrlClicks(AIndex : Integer; AValue : String); virtual;
+    Procedure SetshortUrlClicks(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -114,8 +114,8 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setcount(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -138,11 +138,11 @@ type
   Protected
     //Property setters
     Procedure Setanalytics(AIndex : Integer; AValue : TAnalyticsSummary); virtual;
-    Procedure Setcreated(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlongUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcreated(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlongUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property analytics : TAnalyticsSummary Index 0 Read Fanalytics Write Setanalytics;
@@ -169,8 +169,8 @@ type
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TUrlHistoryTypeitemsArray); virtual;
     Procedure SetitemsPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -283,7 +283,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.SetlongUrlClicks(AIndex : Integer; AValue : String); 
+Procedure TAnalyticsSnapshot.SetlongUrlClicks(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlongUrlClicks=AValue) then exit;
@@ -313,7 +313,7 @@ end;
 
 
 
-Procedure TAnalyticsSnapshot.SetshortUrlClicks(AIndex : Integer; AValue : String); 
+Procedure TAnalyticsSnapshot.SetshortUrlClicks(AIndex : Integer; const AValue : String); 
 
 begin
   If (FshortUrlClicks=AValue) then exit;
@@ -403,7 +403,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStringCount.Setcount(AIndex : Integer; AValue : String); 
+Procedure TStringCount.Setcount(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -413,7 +413,7 @@ end;
 
 
 
-Procedure TStringCount.Setid(AIndex : Integer; AValue : String); 
+Procedure TStringCount.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -440,7 +440,7 @@ end;
 
 
 
-Procedure TUrl.Setcreated(AIndex : Integer; AValue : String); 
+Procedure TUrl.Setcreated(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcreated=AValue) then exit;
@@ -450,7 +450,7 @@ end;
 
 
 
-Procedure TUrl.Setid(AIndex : Integer; AValue : String); 
+Procedure TUrl.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -460,7 +460,7 @@ end;
 
 
 
-Procedure TUrl.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUrl.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -470,7 +470,7 @@ end;
 
 
 
-Procedure TUrl.SetlongUrl(AIndex : Integer; AValue : String); 
+Procedure TUrl.SetlongUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlongUrl=AValue) then exit;
@@ -480,7 +480,7 @@ end;
 
 
 
-Procedure TUrl.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TUrl.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -517,7 +517,7 @@ end;
 
 
 
-Procedure TUrlHistory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUrlHistory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -527,7 +527,7 @@ end;
 
 
 
-Procedure TUrlHistory.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TUrlHistory.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

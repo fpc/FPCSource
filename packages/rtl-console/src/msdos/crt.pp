@@ -472,8 +472,8 @@ LInitDel1:
         mov     dx, $FFFF
         call    DelayLoop
 
-        mov     [DelayCnt], ax
-        mov     [DelayCnt + 2], dx
+        mov     word ptr [DelayCnt], ax
+        mov     word ptr [DelayCnt + 2], dx
   end ['AX','BX','DX', 'DI'];
   DelayCnt := -DelayCnt div $55;
 end;
@@ -490,10 +490,10 @@ asm
         mov     cx, MS
         test    cx, cx
         jz      LDelay2
-        mov     si, [DelayCnt + 2]
+        mov     si, word ptr [DelayCnt + 2]
         mov     bx, es:[di]
 LDelay1:
-        mov     ax, [DelayCnt]
+        mov     ax, word ptr [DelayCnt]
         mov     dx, si
         call    DelayLoop
         loop    LDelay1

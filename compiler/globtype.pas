@@ -92,8 +92,16 @@ interface
        PAInt = ^AInt;
 
        { target cpu specific type used to store data sizes }
+{$ifdef cpu16bitaddr}
+       { on small CPUs such as i8086, we use LongInt to support data structures
+         larger than 32767 bytes and up to 65535 bytes in size. Since asizeint
+         must be signed, we use LongInt/LongWord. }
+       ASizeInt = LongInt;
+       ASizeUInt = LongWord;
+{$else cpu16bitaddr}
        ASizeInt = PInt;
        ASizeUInt = PUInt;
+{$endif cpu16bitaddr}
 
        { type used for handling constants etc. in the code generator }
        TCGInt = Int64;
@@ -106,7 +114,7 @@ interface
 {$ifdef i8086}
        TConstPtrUInt = LongWord;  { 32-bit for far pointers support }
 {$else i8086}
-       TConstPtrUInt = AWord;
+       TConstPtrUInt = PUint;
 {$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
@@ -133,7 +141,7 @@ interface
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
-         cs_check_low_addr_load,
+         cs_check_low_addr_load,cs_imported_data,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -515,7 +523,10 @@ interface
          { constant records by reference.                            }
          pocall_mwpascal,
          { Special interrupt handler for embedded systems }
-         pocall_interrupt
+         pocall_interrupt,
+         { Directive for arm: pass floating point values in (v)float registers
+           regardless of the actual calling conventions }
+         pocall_hardfloat
        );
        tproccalloptions = set of tproccalloption;
 
@@ -533,7 +544,8 @@ interface
            'StdCall',
            'SoftFloat',
            'MWPascal',
-           'Interrupt'
+           'Interrupt',
+           'HardFloat'
          );
 
        { Default calling convention }
@@ -636,7 +648,12 @@ interface
          { set if the stack frame of the procedure is estimated }
          pi_estimatestacksize,
          { the routine calls a C-style varargs function }
-         pi_calls_c_varargs
+         pi_calls_c_varargs,
+         { the routine has an open array parameter,
+           for i8086 cpu huge memory model,
+           as this changes SP register it requires special handling
+           to restore DS segment register  }
+         pi_has_open_array_parameter
        );
        tprocinfoflags=set of tprocinfoflag;
 

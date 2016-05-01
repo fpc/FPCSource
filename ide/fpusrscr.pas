@@ -955,9 +955,10 @@ const
 procedure UpdateFileHandles;
 begin
   {StdInputHandle:=longint(GetStdHandle(STD_INPUT_HANDLE));}
-  StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+  StdOutputHandle:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
   {StdErrorHandle:=longint(GetStdHandle(STD_ERROR_HANDLE));}
   TextRec(Output).Handle:=StdOutputHandle;
+  VideoSetConsoleOutHandle(StdOutputHandle);
   TextRec(StdOut).Handle:=StdOutputHandle;
   {TextRec(StdErr).Handle:=StdErrorHandle;}
 end;

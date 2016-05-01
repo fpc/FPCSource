@@ -191,9 +191,11 @@ interface
           _vardef     : tdef;
           vardefderef : tderef;
 
-          procedure setvardef(def:tdef);
+          procedure setregable;
+          procedure setvardef(const def: tdef);
+          procedure setvardef_and_regable(def:tdef);
         public
-          property vardef: tdef read _vardef write setvardef;
+          property vardef: tdef read _vardef write setvardef_and_regable;
       end;
 
       tfieldvarsym = class(tabstractvarsym)
@@ -497,7 +499,9 @@ implementation
        aasmtai,aasmdata,
        { codegen }
        paramgr,
-       procinfo
+       procinfo,
+       { ppu }
+       entfile
        ;
 
 {****************************************************************************
@@ -1613,16 +1617,12 @@ implementation
 
 
     procedure tabstractvarsym.deref;
-      var
-        oldvarregable: tvarregable;
       begin
-        { setting the vardef also updates varregable. We just loaded this }
+        { assigning vardef also updates varregable. We just loaded this   }
         { value from a ppu, so it must not be changed (e.g. tw7817a.pp/   }
         { tw7817b.pp: the address is taken of a local variable in an      }
         { inlined procedure -> must remain non-regable when inlining)     }
-        oldvarregable:=varregable;
-        vardef:=tdef(vardefderef.resolve);
-        varregable:=oldvarregable;
+        setvardef(tdef(vardefderef.resolve));
       end;
 
 
@@ -1688,12 +1688,18 @@ implementation
       end;
 
 
-    procedure tabstractvarsym.setvardef(def:tdef);
+    procedure tabstractvarsym.setvardef_and_regable(def:tdef);
       begin
-        _vardef := def;
+        setvardef(def);
+         setregable;
+      end;
+
+
+    procedure tabstractvarsym.setregable;
+      begin
          { can we load the value into a register ? }
         if not assigned(owner) or
-           (owner.symtabletype in [localsymtable,parasymtable]) or
+           (owner.symtabletype in [localsymtable, parasymtable]) or
            (
             (owner.symtabletype=staticsymtable) and
             not(cs_create_pic in current_settings.moduleswitches)
@@ -1716,20 +1722,20 @@ implementation
                 (typ=paravarsym) and
                 (varspez=vs_const)) then
               varregable:=vr_intreg
-            else
-{ $warning TODO: no fpu regvar in staticsymtable yet, need initialization with 0 }
-              if {(
-                  not assigned(owner) or
-                  (owner.symtabletype<>staticsymtable)
-                 ) and }
-                 tstoreddef(vardef).is_fpuregable then
-                 begin
-                   if use_vectorfpu(vardef) then
-                     varregable:=vr_mmreg
-                   else
-                     varregable:=vr_fpureg;
-                 end;
+            else if tstoreddef(vardef).is_fpuregable then
+              begin
+                if use_vectorfpu(vardef) then
+                  varregable:=vr_mmreg
+                else
+                  varregable:=vr_fpureg;
+              end;
           end;
+      end;
+
+
+    procedure tabstractvarsym.setvardef(const def: tdef);
+      begin
+        _vardef := def;
       end;
 
 
@@ -1852,7 +1858,7 @@ implementation
           (owner.symtabletype=globalsymtable) or
           (create_smartlink and
            not(tf_smartlink_sections in target_info.flags)) or
-          DLLSource or
+          current_module.islibrary or
           (assigned(current_procinfo) and
            ((po_inline in current_procinfo.procdef.procoptions) or
             { globalasmsym is called normally before the body of a subroutine is parsed
@@ -2385,6 +2391,7 @@ implementation
            conststring,
            constresourcestring :
              begin
+               ppufile.getderef(constdefderef);
                value.len:=ppufile.getlongint;
                getmem(pc,value.len+1);
                ppufile.getdata(pc^,value.len);
@@ -2407,10 +2414,12 @@ implementation
              end;
            constguid :
              begin
+               ppufile.getderef(constdefderef);
                new(pguid(value.valueptr));
                ppufile.getdata(value.valueptr^,sizeof(tguid));
              end;
-           constnil : ;
+           constnil :
+             ppufile.getderef(constdefderef);
            else
              Message1(unit_f_ppu_invalid_entry,tostr(ord(consttyp)));
          end;
@@ -2440,15 +2449,27 @@ implementation
     procedure tconstsym.buildderef;
       begin
         inherited;
-        if consttyp in [constord,constreal,constpointer,constset] then
-          constdefderef.build(constdef);
+        case consttyp  of
+          constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constguid:
+            constdefderef.build(constdef);
+          constwstring:
+            ;
+          else
+            internalerror(2015120802);
+        end;
       end;
 
 
     procedure tconstsym.deref;
       begin
-        if consttyp in [constord,constreal,constpointer,constset] then
-          constdef:=tdef(constdefderef.resolve);
+        case consttyp of
+          constnil,constord,constreal,constpointer,constset,conststring,constresourcestring,constguid:
+            constdef:=tdef(constdefderef.resolve);
+          constwstring:
+            constdef:=carraydef.getreusable(cwidechartype,getlengthwidestring(pcompilerwidestring(value.valueptr)));
+          else
+            internalerror(2015120801);
+        end
       end;
 
 
@@ -2457,7 +2478,8 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(consttyp));
          case consttyp of
-           constnil : ;
+           constnil :
+             ppufile.putderef(constdefderef);
            constord :
              begin
                ppufile.putderef(constdefderef);
@@ -2470,12 +2492,14 @@ implementation
              end;
            constwstring :
              begin
+               { no need to store the def, we can reconstruct it }
                ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
                ppufile.putdata(pcompilerwidestring(value.valueptr)^.data^,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
              end;
            conststring,
            constresourcestring :
              begin
+               ppufile.putderef(constdefderef);
                ppufile.putlongint(value.len);
                ppufile.putdata(pchar(value.valueptr)^,value.len);
              end;
@@ -2490,7 +2514,10 @@ implementation
                ppufile.putnormalset(value.valueptr^);
              end;
            constguid :
-             ppufile.putdata(value.valueptr^,sizeof(tguid));
+             begin
+               ppufile.putderef(constdefderef);
+               ppufile.putdata(value.valueptr^,sizeof(tguid));
+             end;
          else
            internalerror(13);
          end;

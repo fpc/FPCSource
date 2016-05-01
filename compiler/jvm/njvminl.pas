@@ -305,6 +305,12 @@ implementation
              begin
                result:=typecheck_new(handled);
              end;
+           in_sizeof_x:
+             begin
+               { can't get the size of the data of a class/object }
+               if left.resultdef.typ in [objectdef,classrefdef] then
+                 Message(parser_e_illegal_expression);
+             end;
          end;
         if not handled then
           result:=inherited pass_typecheck;

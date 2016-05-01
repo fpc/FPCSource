@@ -42,6 +42,10 @@ procedure flushpendingswitchesstate;
 implementation
 uses
   systems,cpuinfo,
+{$ifdef llvm}
+  { override optimizer switches }
+  llvminfo,
+{$endif llvm}
   globals,verbose,comphook,dirparse,
   fmodule;
 
@@ -69,7 +73,7 @@ const
 {$else i8086}
    {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
 {$endif i8086}
-   {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+   {G} (typesw:localsw; setsw:ord(cs_imported_data)),
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),

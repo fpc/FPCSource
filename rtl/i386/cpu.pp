@@ -15,7 +15,11 @@
  **********************************************************************}
 {$mode objfpc}
 unit cpu;
+
   interface
+
+    uses
+      sysutils;
 
     { returns true, if the processor supports the cpuid instruction }
     function cpuid_support : boolean;
@@ -26,6 +30,8 @@ unit cpu;
     { returns the contents of the cr0 register }
     function cr0 : longint;
 
+    function InterlockedCompareExchange128Support : boolean;
+    function AESSupport : boolean;inline;
     function AVXSupport: boolean;inline;
     function AVX2Support: boolean;inline;
     function FMASupport: boolean;inline;
@@ -33,13 +39,23 @@ unit cpu;
     var
       is_sse3_cpu : boolean = false;
 
+    function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec;
+
   implementation
 
 {$ASMMODE INTEL}
     var
       _AVXSupport,
       _AVX2Support,
+      _AESSupport,
       _FMASupport : boolean;
+
+
+    function InterlockedCompareExchange128(var Target: Int128Rec; NewValue: Int128Rec; Comperand: Int128Rec): Int128Rec;
+      begin
+        RunError(217);
+      end;
+
 
     function cpuid_support : boolean;assembler;
       {
@@ -106,7 +122,8 @@ unit cpu;
                  movl %ecx,_ecx
                  popl %ebx
               end;
-              is_sse3_cpu:=(_ecx and $1)<>0;
+              _AESSupport:=(_ecx and $2000000)<>0;
+
               _AVXSupport:=
                 { XGETBV suspport? }
                 ((_ecx and $08000000)<>0) and
@@ -114,6 +131,8 @@ unit cpu;
                 ((XGETBV(0) and %110)=%110) and
                 { avx supported? }
                 ((_ecx and $10000000)<>0);
+
+              is_sse3_cpu:=(_ecx and $1)<>0;
 
               _FMASupport:=_AVXSupport and ((_ecx and $1000)<>0);
 
@@ -127,6 +146,19 @@ unit cpu;
               end;
               _AVX2Support:=_AVXSupport and ((_ebx and $20)<>0);
            end;
+      end;
+
+
+    function InterlockedCompareExchange128Support : boolean;
+      begin
+        { 32 Bit CPUs have no 128 Bit interlocked exchange support }
+        result:=false;
+      end;
+
+
+    function AESSupport : boolean;
+      begin
+        result:=_AESSupport;
       end;
 
 

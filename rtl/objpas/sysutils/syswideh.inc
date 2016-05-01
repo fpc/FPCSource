@@ -34,3 +34,4 @@ function StrLen(p: pwidechar): sizeint; external name 'FPC_PWIDECHAR_LENGTH'; ov
 function StrCopy(Dest, Source: PWideChar): PWideChar; overload;
 function StrLCopy(Dest,Source: PWideChar; MaxLen: SizeInt): PWideChar; overload;
 Function CharInSet(Ch:WideChar;Const CSet : TSysCharSet) : Boolean;
+function WideStringReplace(const S, OldPattern, NewPattern: WideString;  Flags: TReplaceFlags): WideString;

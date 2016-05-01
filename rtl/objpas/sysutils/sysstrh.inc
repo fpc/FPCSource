@@ -35,11 +35,11 @@ type
 const
   { For floattodatetime and VariantToDate }
 {$ifndef FPUNONE}
-  MinDateTime: TDateTime =  -693593.0;     { 01/01/0001 12:00:00.000 AM }
-  MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
+  MinDateTime: TDateTime =  -693593.0;        { 01/01/0001 12:00:00.000 AM }
+  MaxDateTime: TDateTime =  2958465.99999999; { 12/31/9999 11:59:59.999 PM }
 
 {$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128)}
-  MinCurrency: Currency = -922337203685477.5807;
+  MinCurrency: Currency = -922337203685477.5808;
   MaxCurrency: Currency =  922337203685477.5807;
 {$else}
   MinCurrency: Currency = -922337203685477.0000;
@@ -76,19 +76,20 @@ function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}in
 function CompareStr(const S1, S2: string): Integer; overload;
 function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function CompareText(const S1, S2: string): integer;
+function CompareText(const S1, S2: string): Integer;
 function SameText(const s1,s2:String):Boolean;
+function SameStr(const s1,s2:String):Boolean;
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareStr(const S1, S2: string): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiCompareText(const S1, S2: string): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiSameText(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiSameStr(const s1,s2:String):Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrComp(S1, S2: PChar): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrIComp(S1, S2: PChar): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
 function AnsiLastChar(const S: string): PChar;
@@ -103,7 +104,7 @@ function AnsiDequotedStr(const S: string; AQuote: Char): string;
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
-function IsValidIdent(const Ident: string): boolean;
+function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
 function IntToStr(Value: Longint): string;
 function IntToStr(Value: Int64): string;
 function IntToStr(Value: QWord): string;
@@ -111,12 +112,15 @@ function IntToHex(Value: Longint; Digits: integer): string;
 function IntToHex(Value: Int64; Digits: integer): string;
 function IntToHex(Value: QWord; Digits: integer): string;
 function StrToInt(const s: string): Longint;
-function TryStrToInt(const s: string; Out i : Longint) : boolean;
+function StrToDWord(const s: string): DWord;
 function StrToInt64(const s: string): int64;
-function TryStrToInt64(const s: string; Out i : int64) : boolean;
 function StrToQWord(const s: string): QWord;
+function TryStrToInt(const s: string; Out i : Longint) : boolean;
+function TryStrToDWord(const s: string; Out D : DWord) : boolean;
+function TryStrToInt64(const s: string; Out i : int64) : boolean;
 function TryStrToQWord(const s: string; Out Q : QWord) : boolean;
 function StrToIntDef(const S: string; Default: Longint): Longint;
+function StrToDWordDef(const S: string; Default: DWord): DWord;
 function StrToInt64Def(const S: string; Default: int64): int64;
 function StrToQWordDef(const S: string; Default: QWord): QWord;
 function LoadStr(Ident: integer): string;
@@ -214,9 +218,9 @@ function BoolToStr(B: Boolean;const TrueS,FalseS:string): string; inline;
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 
-function LastDelimiter(const Delimiters, S: string): Integer;
+function LastDelimiter(const Delimiters, S: string): SizeInt;
 function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
-Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 
 function SScanf(const s: string; const fmt : string;const Pointers : array of Pointer) : Integer;
 
@@ -224,12 +228,12 @@ function SScanf(const s: string; const fmt : string;const Pointers : array of Po
 Type
   TMbcsByteType = (mbSingleByte, mbLeadByte, mbTrailByte);
 
-Function ByteType(const S: string; Index: Integer): TMbcsByteType;
-Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
-Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
-Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
-Function ByteToCharIndex(const S: string; Index: Integer): Integer;
-Function StrCharLength(const Str: PChar): Integer;
+Function ByteType(const S: string; Index: SizeUInt): TMbcsByteType;
+Function StrByteType(Str: PChar; Index: SizeUInt): TMbcsByteType;
+Function ByteToCharLen(const S: string; MaxLen: SizeInt): SizeInt;
+Function CharToByteLen(const S: string; MaxLen: SizeInt): SizeInt;
+Function ByteToCharIndex(const S: string; Index: SizeInt): SizeInt;
+Function StrCharLength(const Str: PChar): SizeInt;
 function StrNextChar(const Str: PChar): PChar;
 
 

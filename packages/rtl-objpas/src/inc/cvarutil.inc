@@ -663,6 +663,9 @@ Function WStrToCurrency(p: Pointer) : Currency;
 var
   s     : ShortString;
   Error : Word;
+  {$IFNDEF FPC_HAS_STR_CURRENCY}
+  Temp  : Extended;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
 begin
   if Length(WideString(p)) > 255 then
     VariantTypeMismatch(varOleStr, varCurrency);
@@ -670,7 +673,12 @@ begin
   s := WideString(p);
   PrepareFloatStr(s);
 
+  {$IFDEF FPC_HAS_STR_CURRENCY}
   Val(s, Result, Error);
+  {$ELSE FPC_HAS_STR_CURRENCY} { needed for platforms where Currency = Int64 }
+  Val(s, Temp, Error);
+  Result := Temp;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
 
   if Error <> 0 then
     VariantTypeMismatch(varOleStr, varCurrency);
@@ -680,6 +688,9 @@ Function LStrToCurrency(p: Pointer) : Currency;
 var
   s     : ShortString;
   Error : Word;
+  {$IFNDEF FPC_HAS_STR_CURRENCY}
+  Temp  : Extended;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
 begin
   if Length(AnsiString(p)) > 255 then
     VariantTypeMismatch(varString, varCurrency);
@@ -687,7 +698,12 @@ begin
   s := AnsiString(p);
   PrepareFloatStr(s);
 
+  {$IFDEF FPC_HAS_STR_CURRENCY}
   Val(s, Result, Error);
+  {$ELSE FPC_HAS_STR_CURRENCY} { needed for platforms where Currency = Int64 }
+  Val(s, Temp, Error);
+  Result := Temp;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
 
   if Error <> 0 then
     VariantTypeMismatch(varString, varCurrency);
@@ -697,6 +713,9 @@ Function UStrToCurrency(p: Pointer) : Currency;
 var
   s     : ShortString;
   Error : Word;
+  {$IFNDEF FPC_HAS_STR_CURRENCY}
+  Temp  : Extended;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
 begin
   if Length(UnicodeString(p)) > 255 then
     VariantTypeMismatch(varUString, varCurrency);
@@ -704,7 +723,12 @@ begin
   s := UnicodeString(p);
   PrepareFloatStr(s);
 
+  {$IFDEF FPC_HAS_STR_CURRENCY}
   Val(s, Result, Error);
+  {$ELSE FPC_HAS_STR_CURRENCY} { needed for platforms where Currency = Int64 }
+  Val(s, Temp, Error);
+  Result := Temp;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
 
   if Error <> 0 then
     VariantTypeMismatch(varUString, varCurrency);

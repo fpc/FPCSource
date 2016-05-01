@@ -66,10 +66,10 @@ type
     Fversion : String;
   Protected
     //Property setters
-    Procedure SetdetailsUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpackageName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdetailsUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property detailsUrl : String Index 0 Read FdetailsUrl Write SetdetailsUrl;
@@ -95,13 +95,13 @@ type
     Fvalue : TDataPointTypevalueArray;
   Protected
     //Property setters
-    Procedure SetcomputationTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdataTypeName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendTimeNanos(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmodifiedTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoriginDataSourceId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrawTimestampNanos(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTimeNanos(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcomputationTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataTypeName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTimeNanos(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoriginDataSourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrawTimestampNanos(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTimeNanos(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TDataPointTypevalueArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -137,12 +137,12 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setapplication(AIndex : Integer; AValue : TApplication); virtual;
-    Procedure SetdataStreamId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdataStreamName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataStreamId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataStreamName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdataType(AIndex : Integer; AValue : TDataType); virtual;
     Procedure Setdevice(AIndex : Integer; AValue : TDevice); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property application : TApplication Index 0 Read Fapplication Write Setapplication;
@@ -166,7 +166,7 @@ type
   Protected
     //Property setters
     Procedure Setfield(AIndex : Integer; AValue : TDataTypeTypefieldArray); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -189,8 +189,8 @@ type
     Foptional : boolean;
   Protected
     //Property setters
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoptional(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -213,10 +213,10 @@ type
     Fpoint : TDatasetTypepointArray;
   Protected
     //Property setters
-    Procedure SetdataSourceId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmaxEndTimeNs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetminStartTimeNs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataSourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaxEndTimeNs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetminStartTimeNs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpoint(AIndex : Integer; AValue : TDatasetTypepointArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -246,11 +246,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setmanufacturer(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmodel(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmanufacturer(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmodel(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property manufacturer : String Index 0 Read Fmanufacturer Write Setmanufacturer;
@@ -293,7 +293,7 @@ type
   Protected
     //Property setters
     Procedure SetdeletedSession(AIndex : Integer; AValue : TListSessionsResponseTypedeletedSessionArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsession(AIndex : Integer; AValue : TListSessionsResponseTypesessionArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -324,15 +324,15 @@ type
     FstartTimeMillis : String;
   Protected
     //Property setters
-    Procedure SetactiveTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure SetactiveTimeMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SetactivityType(AIndex : Integer; AValue : integer); virtual;
     Procedure Setapplication(AIndex : Integer; AValue : TApplication); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmodifiedTimeMillis(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTimeMillis(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmodifiedTimeMillis(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property activeTimeMillis : String Index 0 Read FactiveTimeMillis Write SetactiveTimeMillis;
@@ -565,7 +565,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TApplication.SetdetailsUrl(AIndex : Integer; AValue : String); 
+Procedure TApplication.SetdetailsUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdetailsUrl=AValue) then exit;
@@ -575,7 +575,7 @@ end;
 
 
 
-Procedure TApplication.Setname(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -585,7 +585,7 @@ end;
 
 
 
-Procedure TApplication.SetpackageName(AIndex : Integer; AValue : String); 
+Procedure TApplication.SetpackageName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpackageName=AValue) then exit;
@@ -595,7 +595,7 @@ end;
 
 
 
-Procedure TApplication.Setversion(AIndex : Integer; AValue : String); 
+Procedure TApplication.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -612,7 +612,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataPoint.SetcomputationTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetcomputationTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcomputationTimeMillis=AValue) then exit;
@@ -622,7 +622,7 @@ end;
 
 
 
-Procedure TDataPoint.SetdataTypeName(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetdataTypeName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataTypeName=AValue) then exit;
@@ -632,7 +632,7 @@ end;
 
 
 
-Procedure TDataPoint.SetendTimeNanos(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetendTimeNanos(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTimeNanos=AValue) then exit;
@@ -642,7 +642,7 @@ end;
 
 
 
-Procedure TDataPoint.SetmodifiedTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetmodifiedTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodifiedTimeMillis=AValue) then exit;
@@ -652,7 +652,7 @@ end;
 
 
 
-Procedure TDataPoint.SetoriginDataSourceId(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetoriginDataSourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (ForiginDataSourceId=AValue) then exit;
@@ -662,7 +662,7 @@ end;
 
 
 
-Procedure TDataPoint.SetrawTimestampNanos(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetrawTimestampNanos(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrawTimestampNanos=AValue) then exit;
@@ -672,7 +672,7 @@ end;
 
 
 
-Procedure TDataPoint.SetstartTimeNanos(AIndex : Integer; AValue : String); 
+Procedure TDataPoint.SetstartTimeNanos(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTimeNanos=AValue) then exit;
@@ -722,7 +722,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataStreamId(AIndex : Integer; AValue : String); 
+Procedure TDataSource.SetdataStreamId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataStreamId=AValue) then exit;
@@ -732,7 +732,7 @@ end;
 
 
 
-Procedure TDataSource.SetdataStreamName(AIndex : Integer; AValue : String); 
+Procedure TDataSource.SetdataStreamName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataStreamName=AValue) then exit;
@@ -762,7 +762,7 @@ end;
 
 
 
-Procedure TDataSource.Setname(AIndex : Integer; AValue : String); 
+Procedure TDataSource.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -772,7 +772,7 @@ end;
 
 
 
-Procedure TDataSource.Set_type(AIndex : Integer; AValue : String); 
+Procedure TDataSource.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -810,7 +810,7 @@ end;
 
 
 
-Procedure TDataType.Setname(AIndex : Integer; AValue : String); 
+Procedure TDataType.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -840,7 +840,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataTypeField.Setformat(AIndex : Integer; AValue : String); 
+Procedure TDataTypeField.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -850,7 +850,7 @@ end;
 
 
 
-Procedure TDataTypeField.Setname(AIndex : Integer; AValue : String); 
+Procedure TDataTypeField.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -877,7 +877,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDataset.SetdataSourceId(AIndex : Integer; AValue : String); 
+Procedure TDataset.SetdataSourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataSourceId=AValue) then exit;
@@ -887,7 +887,7 @@ end;
 
 
 
-Procedure TDataset.SetmaxEndTimeNs(AIndex : Integer; AValue : String); 
+Procedure TDataset.SetmaxEndTimeNs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaxEndTimeNs=AValue) then exit;
@@ -897,7 +897,7 @@ end;
 
 
 
-Procedure TDataset.SetminStartTimeNs(AIndex : Integer; AValue : String); 
+Procedure TDataset.SetminStartTimeNs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FminStartTimeNs=AValue) then exit;
@@ -907,7 +907,7 @@ end;
 
 
 
-Procedure TDataset.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TDataset.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -947,7 +947,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDevice.Setmanufacturer(AIndex : Integer; AValue : String); 
+Procedure TDevice.Setmanufacturer(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmanufacturer=AValue) then exit;
@@ -957,7 +957,7 @@ end;
 
 
 
-Procedure TDevice.Setmodel(AIndex : Integer; AValue : String); 
+Procedure TDevice.Setmodel(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmodel=AValue) then exit;
@@ -967,7 +967,7 @@ end;
 
 
 
-Procedure TDevice.Set_type(AIndex : Integer; AValue : String); 
+Procedure TDevice.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -977,7 +977,7 @@ end;
 
 
 
-Procedure TDevice.Setuid(AIndex : Integer; AValue : String); 
+Procedure TDevice.Setuid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuid=AValue) then exit;
@@ -987,7 +987,7 @@ end;
 
 
 
-Procedure TDevice.Setversion(AIndex : Integer; AValue : String); 
+Procedure TDevice.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -1055,7 +1055,7 @@ end;
 
 
 
-Procedure TListSessionsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListSessionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1096,7 +1096,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSession.SetactiveTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSession.SetactiveTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FactiveTimeMillis=AValue) then exit;
@@ -1126,7 +1126,7 @@ end;
 
 
 
-Procedure TSession.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TSession.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1136,7 +1136,7 @@ end;
 
 
 
-Procedure TSession.SetendTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSession.SetendTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTimeMillis=AValue) then exit;
@@ -1146,7 +1146,7 @@ end;
 
 
 
-Procedure TSession.Setid(AIndex : Integer; AValue : String); 
+Procedure TSession.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1156,7 +1156,7 @@ end;
 
 
 
-Procedure TSession.SetmodifiedTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSession.SetmodifiedTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmodifiedTimeMillis=AValue) then exit;
@@ -1166,7 +1166,7 @@ end;
 
 
 
-Procedure TSession.Setname(AIndex : Integer; AValue : String); 
+Procedure TSession.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1176,7 +1176,7 @@ end;
 
 
 
-Procedure TSession.SetstartTimeMillis(AIndex : Integer; AValue : String); 
+Procedure TSession.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTimeMillis=AValue) then exit;

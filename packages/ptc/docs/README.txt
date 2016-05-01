@@ -1,4 +1,4 @@
-PTCPas 0.99.14
+PTCPas 0.99.14.1
 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
 PTCPas is a free, portable framebuffer library, written in Free Pascal. It is

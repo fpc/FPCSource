@@ -451,7 +451,7 @@ implementation
                       hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,aint((aword(1) shl (resultdef.size*8-1))),tmpreg);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,u32inttype,right.location,setbase);
                       cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,
                         right.location.register,tmpreg);
                       if left.location.loc <> LOC_CONSTANT then

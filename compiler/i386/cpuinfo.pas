@@ -45,6 +45,7 @@ Type
    tcputype =
       (cpu_none,
        cpu_386,
+       cpu_486,
        cpu_Pentium,
        cpu_Pentium2,
        cpu_Pentium3,
@@ -110,6 +111,7 @@ Const
 
    cputypestr : array[tcputype] of string[10] = ('',
      '80386',
+     '80486',
      'PENTIUM',
      'PENTIUM2',
      'PENTIUM3',
@@ -173,6 +175,7 @@ type
    cpu_capabilities : array[tcputype] of set of tcpuflags = (
      { cpu_none      } [],
      { cpu_386       } [],
+     { cpu_486       } [],
      { cpu_Pentium   } [],
      { cpu_Pentium2  } [CPUX86_HAS_CMOV],
      { cpu_Pentium3  } [CPUX86_HAS_CMOV,CPUX86_HAS_SSEUNIT],

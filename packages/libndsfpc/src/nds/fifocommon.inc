@@ -54,6 +54,8 @@ const
 	SDMMC_SD_START       : FifoSystemCommands = 1;
 	SDMMC_SD_IS_INSERTED : FifoSystemCommands = 2;
 	SDMMC_SD_STOP        : FifoSystemCommands = 3;
+	SDMMC_NAND_START     : FifoSystemCommands = 4;
+	SDMMC_NAND_STOP      : FifoSystemCommands = 5;
 
 type
   FifoFirmwareCommands = integer;
@@ -123,11 +125,23 @@ function fifoGetValue32(channel: integer): cuint32; cdecl; external;
 
 function fifoGetDatamsg(channel, buffersize: cint; destbuffer: pcuint8): cint; cdecl; external;
 
+procedure fifoWaitValue32(channel: cint); inline; 
+
 {$endif NDS_INTERFACE}
 
 
 
 {$ifdef NDS_IMPLEMENTATION}
+
+procedure fifoWaitValue32(channel: cint); inline; 
+begin
+
+	while (not fifoCheckValue32(channel)) do
+	begin
+		swiIntrWait(1, IRQ_FIFO_NOT_EMPTY);
+	end;
+
+end;
 
 
 {$endif NDS_IMPLEMENTATION}

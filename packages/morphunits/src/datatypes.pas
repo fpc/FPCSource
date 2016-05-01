@@ -1250,8 +1250,8 @@ Type
 
 { *************************************************************************** }
 
-var 
-  DataTypesBase : PLibrary;
+var
+  DataTypesBase : PLibrary = nil;
 
 const
   DATATYPESNAME : PChar = 'datatypes.library';
@@ -1439,37 +1439,19 @@ begin
   DoDTDomain:=DoDTDomainA(o, win, req, rport, which, domain, @attrs);
 end;
 
-
 const
   { Change VERSION and LIBVERSION to proper values }
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-var
-  datatypes_exit : Pointer;
-
-
-procedure CloseDatatypesLibrary;
-begin
-  ExitProc := datatypes_exit;
-  if DatatypesBase <> nil then begin
-    CloseLibrary(PLibrary(DatatypesBase));
-    DatatypesBase := nil;
-  end;
-end;
-
 function InitDatatypesLibrary : boolean;
 begin
-  DatatypesBase := nil;
-  DatatypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
-  if DatatypesBase <> nil then begin
-    datatypes_exit := ExitProc;
-    ExitProc := @CloseDatatypesLibrary;
-    InitDatatypesLibrary:=True;
-  end else begin
-    InitDatatypesLibrary:=False;
-  end;
+  InitDatatypesLibrary := Assigned(DatatypesBase);
 end;
 
-
+initialization
+  DatatypesBase := OpenLibrary(DATATYPESNAME,LIBVERSION);
+finalization
+  if Assigned(DatatypesBase) then
+    CloseLibrary(PLibrary(DatatypesBase));
 end. { UNIT DATATYPES }

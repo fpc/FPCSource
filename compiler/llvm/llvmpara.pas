@@ -144,6 +144,7 @@ unit llvmpara;
               paraloc^.size:=def_cgsize(paraloc^.def);
               paraloc^.loc:=LOC_REGISTER;
               paraloc^.register:=hlcg.getaddressregister(list,paraloc^.def);
+              paraloc^.shiftval:=0;
               { remove all other paralocs }
               nextloc:=paraloc^.next;
               while assigned(nextloc) do

@@ -117,8 +117,8 @@ implementation
     R_MIPS_PC16    = 10;
     R_MIPS_CALL16  = 11;
     R_MIPS_GPREL32 = 12;
-    R_MIPS_GOT_HI16 = 21;
-    R_MIPS_GOT_LO16 = 22;
+    R_MIPS_GOT_HI16 = 22;
+    R_MIPS_GOT_LO16 = 23;
     R_MIPS_CALL_HI16 = 30;
     R_MIPS_CALL_LO16 = 31;
     R_MIPS_JALR    = 37;
@@ -175,6 +175,62 @@ implementation
       offset:aword;
     end;
 
+
+  const
+    relocnames: array[0..50] of PChar = (
+      'R_MIPS_NONE',
+      'R_MIPS_16',
+      'R_MIPS_32',
+      'R_MIPS_REL32',
+      'R_MIPS_26',
+      'R_MIPS_HI16',
+      'R_MIPS_LO16',
+      'R_MIPS_GPREL16',
+      'R_MIPS_LITERAL',
+      'R_MIPS_GOT16',
+      'R_MIPS_PC16',
+      'R_MIPS_CALL16',
+      'R_MIPS_GPREL32',
+      nil,  {13}
+      nil,  {14}
+      nil,  {15}
+      nil,  {16}
+      nil,  {17}
+      nil,  {18}
+      nil,  {19}
+      nil,  {20}
+      nil,  {21}
+      'R_MIPS_GOT_HI16',
+      'R_MIPS_GOT_LO16',
+      nil,  {24}
+      nil,  {25}
+      nil,  {26}
+      nil,  {27}
+      nil,  {28}
+      nil,  {29}
+      'R_MIPS_CALL_HI16',
+      'R_MIPS_CALL_LO16',
+      nil,  {32}
+      nil,  {33}
+      nil,  {34}
+      nil,  {35}
+      nil,  {36}
+      'R_MIPS_JALR',
+      'R_MIPS_TLS_DTPMOD32',
+      'R_MIPS_TLS_DTPREL32',
+      'R_MIPS_TLS_DTPMOD64',
+      'R_MIPS_TLS_DTPREL64',
+      'R_MIPS_TLS_GD',
+      'R_MIPS_TLS_LDM',
+      'R_MIPS_TLS_DTPREL_HI16',
+      'R_MIPS_TLS_DTPREL_LO16',
+      'R_MIPS_TLS_GOTTPREL',
+      'R_MIPS_TLS_TPREL32',
+      'R_MIPS_TLS_TPREL64',
+      'R_MIPS_TLS_TPREL_HI16',
+      'R_MIPS_TLS_TPREL_LO16'
+    );
+
   procedure MaybeSwapElfReginfo(var h:TElfReginfo);
     var
       i: longint;
@@ -218,7 +274,11 @@ implementation
 
   function elf_mips_relocname(reltyp:byte):string;
     begin
-      result:='TODO';
+      if (reltyp<=high(relocnames)) and
+        (relocnames[reltyp]<>nil) then
+        result:=relocnames[reltyp]
+      else
+        result:='unknown ('+tostr(reltyp)+')';
     end;
 
 
@@ -863,6 +923,8 @@ implementation
               begin
                 tmp:=(address and $03FFFFFF) shl 2;
                 tmp:=((tmp or (curloc and $F0000000))+relocval) shr 2;
+                { TODO: Report overflow if upper 4 bits change
+                        However JAL to undefined weak symbol is not treated as an overflow }
                 address:=(address and $FC000000) or (tmp and $3FFFFFF);
               end;
 
@@ -955,8 +1017,12 @@ implementation
               end;
 
             R_MIPS_PC16:
-              //TODO: check overflow
-              address:=(address and $FFFF0000) or ((((SmallInt(address) shl 2)+relocval-curloc) shr 2) and $FFFF);
+              begin
+                tmp:=((SmallInt(address) shl 2)+relocval-curloc) shr 2;
+                if (tmp<>SmallInt(tmp)) then
+                  ReportRelocOverflow(reltyp,objsec,objreloc);
+                address:=(address and $FFFF0000) or (tmp and $FFFF);
+              end;
 
             R_MIPS_GPREL32:
               address:=address+relocval+TElfObjData(objsec.objdata).gp_value-gotsymbol.address;
@@ -986,8 +1052,18 @@ implementation
                 address:=(address and $FFFF0000) or (tmp and $FFFF);
               end;
 
-            R_MIPS_JALR: {optimization hint, ignore for now }
-              ;
+            R_MIPS_JALR: {optimization hint}
+              begin
+                { 4 is subtracted because branch is relative to delay slot, not instruction itself }
+                tmp:=(relocval-curloc-4) shr 2;
+                if (tmp=SmallInt(tmp)) then
+                  begin
+                    if (address=$0320f809) then        { JALR $t9 -> BAL addr }
+                      address:=$04110000 or (tmp and $FFFF)
+                    else if (address=$03200008) then   { JR $t9   -> B addr }
+                      address:=$10000000 or (tmp and $FFFF);
+                  end;
+              end;
           else
             begin
               writeln(objsec.fullname,'+',objreloc.dataoffset,' ',objreloc.ftype);
