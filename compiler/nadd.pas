@@ -824,7 +824,11 @@ implementation
                   begin
                     t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,nil);
                     typecheckpass(t);
-                    tstringconstnode(t).changestringtype(resultdef);
+                    if not is_ansistring(resultdef) or
+                       (tstringdef(resultdef).encoding<>globals.CP_NONE) then
+                      tstringconstnode(t).changestringtype(resultdef)
+                    else
+                      tstringconstnode(t).changestringtype(getansistringdef)
                   end;
                 ltn :
                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool8type,true);
@@ -1859,7 +1863,7 @@ implementation
                     begin
                       { use same code page if possible (don't force same code
                         page in case both are ansistrings with code page <>
-                        CP_NONE, since then data loss can occur (the ansistring
+                        CP_NONE, since then data loss can occur: the ansistring
                         helpers will convert them at run time to an encoding
                         that can represent both encodings) }
                       if is_ansistring(ld) and

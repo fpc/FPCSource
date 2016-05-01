@@ -15044,6 +15044,7 @@ tests/webtbs/tw30035.pp svneol=native#text/plain
 tests/webtbs/tw30035a.pp svneol=native#text/plain
 tests/webtbs/tw3004.pp svneol=native#text/plain
 tests/webtbs/tw3005.pp svneol=native#text/plain
+tests/webtbs/tw30082.pp svneol=native#text/plain
 tests/webtbs/tw3010.pp svneol=native#text/plain
 tests/webtbs/tw3012.pp svneol=native#text/plain
 tests/webtbs/tw3023.pp svneol=native#text/plain
