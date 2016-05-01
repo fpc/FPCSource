@@ -7,11 +7,11 @@ uses fpmkunit;
 
 procedure add_rtl_extra(const ADirectory: string);
 
-Const 
+Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
- 
+
   // Android has a dummy clocale unit, while it also includes unix dir.
   ClocaleOSes   = UnixLikes -[beos];
   CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
@@ -23,14 +23,14 @@ Const
   PrinterOSes   = [go32v2,msdos,os2,win32,win64]+unixlikes-[beos,haiku,morphos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
   UComplexOSes  = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
-  MatrixOSes	= [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
+  MatrixOSes  = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
   ObjectsOSes   = [amiga,aros,emx,gba,go32v2,morphos,msdos,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
   SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,wince,win32,win64];
   Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd,dragonfly];
-  Socklibc	= unixlikes-socksyscall;
-  gpmOSes	= [Linux,Android];
+  Socklibc  = unixlikes-socksyscall;
+  gpmOSes = [Linux,Android];
   AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+
                       SerialOSes +PrinterOSes+SocketsOSes+gpmOSes;
 
@@ -54,7 +54,10 @@ begin
     P.NeedLibC:= false;
     P.Dependencies.Add('morphunits',[morphos]);
     P.Dependencies.Add('arosunits',[aros]);
-    P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=m68k then
+      P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=powerpc then
+      P.Dependencies.Add('os4units',[amiga]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
@@ -106,8 +109,6 @@ begin
 
     T:=P.Targets.AddUnit('serial.pp',SerialOSes);
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
-    if Defaults.CPU=powerpc then
-      T.OSes:=T.OSes-[amiga];
     with T.Dependencies do
      begin
        addinclude('osdefs.inc',AllUnixOSes);
@@ -118,7 +119,7 @@ begin
        addinclude('unxsockh.inc',UnixLikes);
        addinclude('stdsock.inc',socklibc);
        addinclude('unixsock.inc',socksyscall);
-     end; 
+     end;
 
     T:=P.Targets.AddUnit('ipc.pp',IPCOSes);
     with T.Dependencies do
@@ -136,7 +137,7 @@ begin
      end;
   end
 end;
- 
+
 {$ifndef ALLPACKAGES}
 begin
   add_rtl_extra('');
