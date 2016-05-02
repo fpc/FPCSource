@@ -348,6 +348,7 @@ type
 {$ELSE}
         XEventClass = culong;
 {$ENDIF}
+        PPXEventClass = ^PXEventClass;
         PXEventClass = ^TXEventClass;
         TXEventClass = XEventClass;
 
