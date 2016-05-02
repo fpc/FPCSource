@@ -338,12 +338,15 @@ const
 { Make XEventClass be a CARD32 for 64 bit servers.  Don't affect client
   definition of XEventClass since that would be a library interface change.
   See the top of X.h for more _XSERVER64 magic.
+
+  But, don't actually use the CARD32 type.  We can't get it defined here
+  without polluting the namespace.
 }
 type
 {$ifdef _XSERVER64}
-        XEventClass = CARD32;
+        XEventClass = cuint;
 {$ELSE}
-        XEventClass = Longword;
+        XEventClass = culong;
 {$ENDIF}
         TXEventClass = XEventClass;
 
