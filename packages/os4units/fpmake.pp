@@ -43,6 +43,9 @@ begin
     T:=P.Targets.AddUnit('iffparse.pas');
     T:=P.Targets.AddUnit('intuition.pas');
     T:=P.Targets.AddUnit('mui.pas');
+    T:=P.Targets.AddUnit('diskfont.pas');
+    T:=P.Targets.AddUnit('workbench.pas');
+    T:=P.Targets.AddUnit('asl.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
