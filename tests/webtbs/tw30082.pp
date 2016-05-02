@@ -10,6 +10,7 @@ begin
    halt(1);
  s:=s+'NAME';
  writeln(stringcodepage(s));
- if stringcodepage(s)<>0 then
+ if (stringcodepage(s)<>0) and
+    (stringcodepage(s)<>DefaultSystemCodePage) then
    halt(2);
 end.
