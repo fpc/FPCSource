@@ -318,7 +318,7 @@ end;
 function TCGIRequest.DoGetCGIVar(AVarName : String) : String;
 
 begin
-  GetEnvironmentVariable(AVarName);
+  Result := GetEnvironmentVariable(AVarName);
 end;
 
 function TCGIRequest.GetCGIVar(Index: integer): String;
