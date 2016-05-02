@@ -176,7 +176,7 @@ implementation
                   location.loc := LOC_FPUREGISTER;
                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
                 end;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregsize,left.location.register,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMUL,fpuregopsize,left.location.register,location.register));
             end;
         else
           internalerror(2015022202);
@@ -215,12 +215,12 @@ implementation
                 LOC_FPUREGISTER:
                   begin
                     location.register:=left.location.register;
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,fpuregsize,location.register))
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg(op,fpuregopsize,location.register))
                   end;
                 LOC_CFPUREGISTER:
                   begin
                     location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregsize,left.location.register,location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,left.location.register,location.register));
                   end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                   begin

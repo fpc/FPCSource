@@ -182,7 +182,7 @@ implementation
               cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregsize,right.location.register,location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,right.location.register,location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;
@@ -219,7 +219,7 @@ implementation
               { emit compare }
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregsize,right.location.register,left.location.register));
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
                       href:=right.location.reference;

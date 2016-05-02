@@ -200,12 +200,12 @@ implementation
           LOC_FPUREGISTER:
             begin
               location.register:=left.location.register;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregsize,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregopsize,location.register));
             end;
           LOC_CFPUREGISTER:
             begin
                location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregsize,left.location.register,location.register));
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
             end;
           else
             internalerror(200306021);

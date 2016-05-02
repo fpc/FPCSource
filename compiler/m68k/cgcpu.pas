@@ -879,7 +879,7 @@ unit cgcpu;
       var
         instr : taicpu;
       begin
-        instr:=taicpu.op_reg_reg(A_FMOVE,fpuregsize,reg1,reg2);
+        instr:=taicpu.op_reg_reg(A_FMOVE,fpuregopsize,reg1,reg2);
         add_move_instruction(instr);
         list.concat(instr);
       end;
@@ -1754,7 +1754,7 @@ unit cgcpu;
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
                 hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBNONE);
-                inc(fsize,12{sizeof(extended)});
+                inc(fsize,fpuregsize);
                 fpuregs:=fpuregs + [saved_fpu_registers[r]];
               end;
 
@@ -1787,10 +1787,10 @@ unit cgcpu;
               begin
                 { size is always longword aligned, while fsize is not }
                 inc(href.offset,size);
-                if fsize = 12{sizeof(extended)} then
-                  list.concat(taicpu.op_reg_ref(A_FMOVE,fpuregsize,hfreg,href))
+                if fsize = fpuregsize then
+                  list.concat(taicpu.op_reg_ref(A_FMOVE,fpuregopsize,hfreg,href))
                 else
-                  list.concat(taicpu.op_regset_ref(A_FMOVEM,fpuregsize,[],[],fpuregs,href));
+                  list.concat(taicpu.op_regset_ref(A_FMOVEM,fpuregopsize,[],[],fpuregs,href));
               end;
           end;
       end;
@@ -1845,7 +1845,7 @@ unit cgcpu;
           for r:=low(saved_fpu_registers) to high(saved_fpu_registers) do
             if saved_fpu_registers[r] in rg[R_FPUREGISTER].used_in_proc then
               begin
-                inc(fsize,12{sizeof(extended)});
+                inc(fsize,fpuregsize);
                 hfreg:=newreg(R_FPUREGISTER,saved_fpu_registers[r],R_SUBNONE);
                 { Allocate register so the optimizer does not remove the load }
                 a_reg_alloc(list,hfreg);
@@ -1875,10 +1875,10 @@ unit cgcpu;
           begin
             { size is always longword aligned, while fsize is not }
             inc(href.offset,size);
-            if fsize = 12{sizeof(extended)} then
-              list.concat(taicpu.op_ref_reg(A_FMOVE,fpuregsize,href,hfreg))
+            if fsize = fpuregsize then
+              list.concat(taicpu.op_ref_reg(A_FMOVE,fpuregopsize,href,hfreg))
             else
-              list.concat(taicpu.op_ref_regset(A_FMOVEM,fpuregsize,href,[],[],fpuregs));
+              list.concat(taicpu.op_ref_regset(A_FMOVEM,fpuregopsize,href,[],[],fpuregs));
           end;
 
         tg.UnGetTemp(list,current_procinfo.save_regs_ref);
