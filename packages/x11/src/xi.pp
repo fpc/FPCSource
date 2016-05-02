@@ -345,6 +345,7 @@ type
 {$ELSE}
         XEventClass = Longword;
 {$ENDIF}
+        TXEventClass = XEventClass;
 
 (*******************************************************************
  *
