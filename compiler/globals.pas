@@ -493,7 +493,11 @@ interface
   {$ifdef i8086}
         cputype : cpu_8086;
         optimizecputype : cpu_8086;
-        asmcputype : cpu_8086;
+        { Use cpu_none by default,
+        because using cpu_8086 by default means
+        that we reject any instruction above bare 8086 instruction set
+        for all assembler code PM }
+        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
 {$endif not GENERIC_CPU}

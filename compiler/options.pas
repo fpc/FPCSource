@@ -3913,6 +3913,13 @@ begin
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
 
+  { Use init_settings cpu type for asm cpu type,
+    if asmcputype is cpu_none,
+    at least as long as there is no explicit 
+    option to set it on command line PM }
+  if init_settings.asmcputype = cpu_none then
+    init_settings.asmcputype:=init_settings.cputype;
+
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
 {$ifdef llvm}
