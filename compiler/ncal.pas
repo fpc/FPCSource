@@ -1797,6 +1797,12 @@ implementation
             printnode(t,methodpointer);
           end;
 
+        if assigned(funcretnode) then
+          begin
+            writeln(t,printnodeindention,'funcretnode =');
+            printnode(t,funcretnode);
+          end;
+
         if assigned(callinitblock) then
           begin
             writeln(t,printnodeindention,'callinitblock =');
