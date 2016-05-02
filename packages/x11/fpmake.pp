@@ -70,6 +70,15 @@ begin
           AddUnit('x');
           AddUnit('xlib');
         end;
+    T:=P.Targets.AddUnit('xinput2.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('x');
+          AddUnit('xlib');
+          AddUnit('xi2');
+          AddUnit('xge');
+          AddUnit('xfixes');
+        end;
     T:=P.Targets.AddUnit('xkblib.pp');
       with T.Dependencies do
         begin
