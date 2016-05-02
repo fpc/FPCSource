@@ -58,6 +58,12 @@ begin
           AddUnit('xlib');
           AddUnit('xi');
         end;
+    T:=P.Targets.AddUnit('xge.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
     T:=P.Targets.AddUnit('xkblib.pp');
       with T.Dependencies do
         begin
