@@ -362,7 +362,8 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
     function isintregister(reg : tregister) : boolean;
-    function fpuregsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function isregoverlap(reg1: tregister; reg2: tregister): boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
