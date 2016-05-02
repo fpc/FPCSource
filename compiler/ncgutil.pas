@@ -1127,7 +1127,7 @@ implementation
               else if (destloc.size = OS_F32) and
                  (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
-                  gen_alloc_regloc(list,destloc);
+                  gen_alloc_regloc(list,destloc,vardef);
                   unget_para(paraloc^);
                   list.Concat(taicpu.op_reg_reg(A_MTC1,paraloc^.register,destloc.register));
                 end
@@ -1137,7 +1137,7 @@ implementation
                       (paraloc^.Loc in [LOC_REGISTER,LOC_CREGISTER]) and
                       (paraloc^.next^.Loc in [LOC_REGISTER,LOC_CREGISTER]) then
                 begin
-                  gen_alloc_regloc(list,destloc);
+                  gen_alloc_regloc(list,destloc,vardef);
 
                   tmpreg:=destloc.register;
                   unget_para(paraloc^);
