@@ -36,11 +36,7 @@ begin
     T:=P.Targets.AddUnit('src/uuid.pas');
     T:=P.Targets.AddUnit('src/hmac.pp');
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
-    T:=P.Targets.AddUnit('src/uhpacktables.pp');
-    T:=P.Targets.AddUnit('src/uhpackimp.pp');
-    T:=P.Targets.AddUnit('src/uhpack.pp');
-    
-    T.OSes:=[Linux];
+      T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
     T:=P.Targets.AddExampleunit('examples/crctest.pas');
     T:=P.Targets.AddExampleunit('examples/sha1test.pp');

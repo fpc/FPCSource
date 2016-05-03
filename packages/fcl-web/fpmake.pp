@@ -19,8 +19,6 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
     P.OSes := [beos,haiku,freebsd,darwin,iphonesim,solaris,netbsd,openbsd,linux,win32,win64,wince,aix,amiga,aros,morphos,dragonfly];
-    if Defaults.CPU=powerpc then
-      P.OSes:=P.OSes-[amiga];
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
@@ -138,7 +136,7 @@ begin
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
-    with P.Targets.AddUnit('custapache.pp') do
+    with P.Targets.AddUnit('fpapache.pp') do
       begin
         OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('httpprotocol');
@@ -146,22 +144,12 @@ begin
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
-    with P.Targets.AddUnit('fpapache.pp') do
-      begin
-        OSes:=AllOses-[amiga,aros,morphos];
-        Dependencies.AddUnit('custapache');
-      end;
-    with P.Targets.AddUnit('custapache24.pp') do
+    with P.Targets.AddUnit('fpapache24.pp') do
       begin
         OSes:=AllOses-[amiga,aros,morphos];
         Dependencies.AddUnit('fphttp');
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
-      end;
-    with P.Targets.AddUnit('fpapache24.pp') do
-      begin
-        OSes:=AllOses-[amiga,aros,morphos];
-        Dependencies.AddUnit('custapache24');
       end;
     T:=P.Targets.AddUnit('fcgigate.pp');
     T.ResourceStrings:=true;

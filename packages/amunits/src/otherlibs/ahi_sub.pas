@@ -136,40 +136,333 @@ USES Exec, ahi, utility;
 
 
 
-VAR AHIsubBase : pLibrary = nil;
+VAR AHIsubBase : pLibrary;
 
 const
     AHI_SUBNAME : PChar = 'ahi_sub.library';
 
 
-FUNCTION AHIsub_AllocAudio(tagList : pTagItem location 'a1'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 30;
-PROCEDURE AHIsub_Disable(AudioCtrl : pAHIAudioCtrlDrv location 'a2'); syscall AHIsubBase 42;
-PROCEDURE AHIsub_Enable(AudioCtrl : pAHIAudioCtrlDrv location 'a2'); syscall AHIsubBase 48;
-PROCEDURE AHIsub_FreeAudio(AudioCtrl : pAHIAudioCtrlDrv location 'a2'); syscall AHIsubBase 36;
-FUNCTION AHIsub_GetAttr(Attribute : longword location 'd0'; Argument : LONGINT location 'd1'; d2arg : LONGINT location 'd2'; tagList : pTagItem location 'a1'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : LONGINT; syscall AHIsubBase 108;
-FUNCTION AHIsub_HardwareControl(Attribute : longword location 'd0'; Argument : LONGINT location 'd1'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : LONGINT; syscall AHIsubBase 114;
-FUNCTION AHIsub_LoadSound(Sound : WORD location 'd0'; _Type : longword location 'd1'; Info : POINTER location 'a0'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 96;
-FUNCTION AHIsub_SetEffect(Effect : POINTER location 'a0'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 90;
-FUNCTION AHIsub_SetFreq(Channel : WORD location 'd0'; Freq : longword location 'd1'; AudioCtrl : pAHIAudioCtrlDrv location 'a2'; Flags : longword location 'd2') : longword; syscall AHIsubBase 78;
-FUNCTION AHIsub_SetSound(Channel : WORD location 'd0'; Sound : WORD location 'd1'; Offset : longword location 'd2'; Length : LONGINT location 'd3'; AudioCtrl : pAHIAudioCtrlDrv location 'a2'; Flags : longword location 'd4') : longword; syscall AHIsubBase 84;
-FUNCTION AHIsub_SetVol(Channel : WORD location 'd0'; Volume : LONGINT location 'd1'; Pan : LONGINT location 'd2'; AudioCtrl : pAHIAudioCtrlDrv location 'a2'; Flags : longword location 'd3') : longword; syscall AHIsubBase 72;
-FUNCTION AHIsub_Start(Flags : longword location 'd0'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 54;
-FUNCTION AHIsub_Stop(Flags : longword location 'd0'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 66;
-FUNCTION AHIsub_UnloadSound(Sound : WORD location 'd0'; Audioctrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 102;
-FUNCTION AHIsub_Update(Flags : longword location 'd0'; AudioCtrl : pAHIAudioCtrlDrv location 'a2') : longword; syscall AHIsubBase 60;
+FUNCTION AHIsub_AllocAudio(tagList : pTagItem; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+PROCEDURE AHIsub_Disable(AudioCtrl : pAHIAudioCtrlDrv);
+PROCEDURE AHIsub_Enable(AudioCtrl : pAHIAudioCtrlDrv);
+PROCEDURE AHIsub_FreeAudio(AudioCtrl : pAHIAudioCtrlDrv);
+FUNCTION AHIsub_GetAttr(Attribute : longword; Argument : LONGINT; d2arg : LONGINT; tagList : pTagItem; AudioCtrl : pAHIAudioCtrlDrv) : LONGINT;
+FUNCTION AHIsub_HardwareControl(Attribute : longword; Argument : LONGINT; AudioCtrl : pAHIAudioCtrlDrv) : LONGINT;
+FUNCTION AHIsub_LoadSound(Sound : WORD; _Type : longword; Info : POINTER; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+FUNCTION AHIsub_SetEffect(Effect : POINTER; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+FUNCTION AHIsub_SetFreq(Channel : WORD; Freq : longword; AudioCtrl : pAHIAudioCtrlDrv; Flags : longword) : longword;
+FUNCTION AHIsub_SetSound(Channel : WORD; Sound : WORD; Offset : longword; Length : LONGINT; AudioCtrl : pAHIAudioCtrlDrv; Flags : longword) : longword;
+FUNCTION AHIsub_SetVol(Channel : WORD; Volume : LONGINT; Pan : LONGINT; AudioCtrl : pAHIAudioCtrlDrv; Flags : longword) : longword;
+FUNCTION AHIsub_Start(Flags : longword; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+FUNCTION AHIsub_Stop(Flags : longword; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+FUNCTION AHIsub_UnloadSound(Sound : WORD; Audioctrl : pAHIAudioCtrlDrv) : longword;
+FUNCTION AHIsub_Update(Flags : longword; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitAHI_SUBLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    AHI_SUBIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
+
+FUNCTION AHIsub_AllocAudio(tagList : pTagItem; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L tagList,A1
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE AHIsub_Disable(AudioCtrl : pAHIAudioCtrlDrv);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE AHIsub_Enable(AudioCtrl : pAHIAudioCtrlDrv);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE AHIsub_FreeAudio(AudioCtrl : pAHIAudioCtrlDrv);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION AHIsub_GetAttr(Attribute : longword; Argument : LONGINT; d2arg : LONGINT; tagList : pTagItem; AudioCtrl : pAHIAudioCtrlDrv) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Attribute,D0
+        MOVE.L  Argument,D1
+        MOVE.L  d2arg,D2
+        MOVEA.L tagList,A1
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_HardwareControl(Attribute : longword; Argument : LONGINT; AudioCtrl : pAHIAudioCtrlDrv) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Attribute,D0
+        MOVE.L  Argument,D1
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_LoadSound(Sound : WORD; _Type : longword; Info : POINTER; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Sound,D0
+        MOVE.L  _Type,D1
+        MOVEA.L Info,A0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_SetEffect(Effect : POINTER; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L Effect,A0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_SetFreq(Channel : WORD; Freq : longword; AudioCtrl : pAHIAudioCtrlDrv; Flags : longword) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Channel,D0
+        MOVE.L  Freq,D1
+        MOVEA.L AudioCtrl,A2
+        MOVE.L  Flags,D2
+        MOVEA.L AHIsubBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_SetSound(Channel : WORD; Sound : WORD; Offset : longword; Length : LONGINT; AudioCtrl : pAHIAudioCtrlDrv; Flags : longword) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Channel,D0
+        MOVE.L  Sound,D1
+        MOVE.L  Offset,D2
+        MOVE.L  Length,D3
+        MOVEA.L AudioCtrl,A2
+        MOVE.L  Flags,D4
+        MOVEA.L AHIsubBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_SetVol(Channel : WORD; Volume : LONGINT; Pan : LONGINT; AudioCtrl : pAHIAudioCtrlDrv; Flags : longword) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Channel,D0
+        MOVE.L  Volume,D1
+        MOVE.L  Pan,D2
+        MOVEA.L AudioCtrl,A2
+        MOVE.L  Flags,D3
+        MOVEA.L AHIsubBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_Start(Flags : longword; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Flags,D0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_Stop(Flags : longword; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Flags,D0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_UnloadSound(Sound : WORD; Audioctrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Sound,D0
+        MOVEA.L Audioctrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION AHIsub_Update(Flags : longword; AudioCtrl : pAHIAudioCtrlDrv) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  Flags,D0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIsubBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  AHIsubBase := OpenLibrary(AHI_SUBNAME,LIBVERSION);
-finalization
-  if Assigned(AHIsubBase) then
-    CloseLibrary(AHIsubBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of ahi_sub.library}
+  {$Info don't forget to use InitAHI_SUBLibrary in the beginning of your program}
+
+var
+    ahi_sub_exit : Pointer;
+
+procedure Closeahi_subLibrary;
+begin
+    ExitProc := ahi_sub_exit;
+    if AHIsubBase <> nil then begin
+        CloseLibrary(AHIsubBase);
+        AHIsubBase := nil;
+    end;
+end;
+
+procedure InitAHI_SUBLibrary;
+begin
+    AHIsubBase := nil;
+    AHIsubBase := OpenLibrary(AHI_SUBNAME,LIBVERSION);
+    if AHIsubBase <> nil then begin
+        ahi_sub_exit := ExitProc;
+        ExitProc := @Closeahi_subLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ahi_sub.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    AHI_SUBIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of ahi_sub.library}
+
+var
+    ahi_sub_exit : Pointer;
+
+procedure Closeahi_subLibrary;
+begin
+    ExitProc := ahi_sub_exit;
+    if AHIsubBase <> nil then begin
+        CloseLibrary(AHIsubBase);
+        AHIsubBase := nil;
+    end;
+end;
+
+begin
+    AHIsubBase := nil;
+    AHIsubBase := OpenLibrary(AHI_SUBNAME,LIBVERSION);
+    if AHIsubBase <> nil then begin
+        ahi_sub_exit := ExitProc;
+        ExitProc := @Closeahi_subLibrary;
+        AHI_SUBIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ahi_sub.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    AHI_SUBIsCompiledHow := 3;
+   {$Warning No autoopening of ahi_sub.library compiled}
+   {$Warning Make sure you open ahi_sub.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT AHI_SUB *)
 
 

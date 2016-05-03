@@ -106,8 +106,8 @@ BEGIN
 
    dummy := TR_EasyRequestTags(Triton_App,'Sure you want to delete'+#10+
                             strpas(GetNodeData(mynode)),'_Remove|_Cancel',[
-                            TREZ_LockProject, AsTag(Project),
-                            TREZ_Title, AsTag('Delete this file?'),
+                            TREZ_LockProject,Project,
+                            TREZ_Title,'Delete this file?',
                             TREZ_Activate,1,
                             TAG_END]);
    IF dummy = 1 THEN BEGIN
@@ -124,8 +124,8 @@ VAR
 BEGIN
    dummy := TR_EasyRequestTags(Triton_App,'Sure you want to remove all files?',
                                       '_Remove|_Cancel',[
-                                      TREZ_LockProject, AsTag(Project),
-                                      TREZ_Title, AsTag('Delete all?'),
+                                      TREZ_LockProject,Project,
+                                      TREZ_Title,'Delete all?',
                                       TREZ_Activate,1,
                                       TAG_END]);
    IF dummy = 1 THEN BEGIN
@@ -255,18 +255,13 @@ END;
 
 
 BEGIN  { Main }
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
         Triton_App := TR_CreateAppTags([
-                       TRCA_Name, AsTag('Triton ListView Demo'),
-                       TRCA_LongName, AsTag('Demo of ListView in Triton, made in FPC Pascal'),
-                       TRCA_Version, AsTag('0.01'),
-                       TRCA_Info, AsTag('Uses tritonsupport'),
-                       TRCA_Release, AsTag('11'),
-                       TRCA_Date, AsTag('03-02-1998'),
+                       TRCA_Name,'Triton ListView Demo',
+                       TRCA_LongName,'Demo of ListView in Triton, made in FPC Pascal',
+                       TRCA_Version,'0.01',
+                       TRCA_Info,'Uses tritonsupport',
+                       TRCA_Release,'11',
+                       TRCA_Date,'03-02-1998',
                        TAG_END]);
         if Triton_App <> nil then begin
         path := @pdummy;

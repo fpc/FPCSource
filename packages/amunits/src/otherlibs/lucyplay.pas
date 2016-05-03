@@ -28,12 +28,18 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
+
 UNIT LUCYPLAY;
 
 INTERFACE
 USES Exec;
 
-VAR LucyPlayBase : pLibrary = nil;
+VAR LucyPlayBase : pLibrary;
 
 const
     LUCYPLAYNAME : PChar = 'lucyplay.library';
@@ -90,33 +96,276 @@ const
      LUC_ERR_READJOYPORT = 9;
      LUC_ERR_DOIO = 10;
 
-PROCEDURE lucAudioFree(smp : pLucyPlaySample location 'a0'); syscall LucyPlayBase 48;
-FUNCTION lucAudioInit : LONGINT; syscall LucyPlayBase 30;
-PROCEDURE lucAudioKill; syscall LucyPlayBase 36;
-FUNCTION lucAudioLoad(fname : pCHAR location 'a0') : pLucyPlaySample; syscall LucyPlayBase 42;
-PROCEDURE lucAudioPlay(smp : pLucyPlaySample location 'a0'); syscall LucyPlayBase 54;
-PROCEDURE lucAudioStop; syscall LucyPlayBase 60;
-PROCEDURE lucAudioWait; syscall LucyPlayBase 66;
-FUNCTION lucBestModeID(w : longword location 'd0'; h : longword location 'd1'; d : longword location 'd2') : longword; syscall LucyPlayBase 96;
-FUNCTION lucError : longword; syscall LucyPlayBase 108;
-FUNCTION lucJoyInit : pLucyPlayJoystick; syscall LucyPlayBase 72;
-FUNCTION lucJoyInitForce : pLucyPlayJoystick; syscall LucyPlayBase 102;
-PROCEDURE lucJoyKill(joy : pLucyPlayJoystick location 'a0'); syscall LucyPlayBase 78;
-PROCEDURE lucJoyRead(joy : pLucyPlayJoystick location 'a0'); syscall LucyPlayBase 84;
-FUNCTION lucJoyReadBool : longword; syscall LucyPlayBase 90;
+
+
+
+PROCEDURE lucAudioFree(smp : pLucyPlaySample);
+FUNCTION lucAudioInit : LONGINT;
+PROCEDURE lucAudioKill;
+FUNCTION lucAudioLoad(fname : pCHAR) : pLucyPlaySample;
+PROCEDURE lucAudioPlay(smp : pLucyPlaySample);
+PROCEDURE lucAudioStop;
+PROCEDURE lucAudioWait;
+FUNCTION lucBestModeID(w : longword; h : longword; d : longword) : longword;
+FUNCTION lucError : longword;
+FUNCTION lucJoyInit : pLucyPlayJoystick;
+FUNCTION lucJoyInitForce : pLucyPlayJoystick;
+PROCEDURE lucJoyKill(joy : pLucyPlayJoystick);
+PROCEDURE lucJoyRead(joy : pLucyPlayJoystick);
+FUNCTION lucJoyReadBool : longword;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitLUCYPLAYLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    LUCYPLAYIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+{$ifndef dont_use_openlib}
+uses amsgbox;
+{$endif dont_use_openlib}
+
+PROCEDURE lucAudioFree(smp : pLucyPlaySample);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L smp,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION lucAudioInit : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE lucAudioKill;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION lucAudioLoad(fname : pCHAR) : pLucyPlaySample;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L fname,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE lucAudioPlay(smp : pLucyPlaySample);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L smp,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE lucAudioStop;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE lucAudioWait;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION lucBestModeID(w : longword; h : longword; d : longword) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  w,D0
+        MOVE.L  h,D1
+        MOVE.L  d,D2
+        MOVEA.L LucyPlayBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION lucError : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION lucJoyInit : pLucyPlayJoystick;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION lucJoyInitForce : pLucyPlayJoystick;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE lucJoyKill(joy : pLucyPlayJoystick);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L joy,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE lucJoyRead(joy : pLucyPlayJoystick);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L joy,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION lucJoyReadBool : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  LucyPlayBase := OpenLibrary(LUCYPLAYNAME,LIBVERSION);
-finalization
-  if Assigned(LucyPlayBase) then
-    CloseLibrary(LucyPlayBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of lucyplay.library}
+  {$Info don't forget to use InitLUCYPLAYLibrary in the beginning of your program}
+
+var
+    lucyplay_exit : Pointer;
+
+procedure CloselucyplayLibrary;
+begin
+    ExitProc := lucyplay_exit;
+    if LucyPlayBase <> nil then begin
+        CloseLibrary(LucyPlayBase);
+        LucyPlayBase := nil;
+    end;
+end;
+
+procedure InitLUCYPLAYLibrary;
+begin
+    LucyPlayBase := nil;
+    LucyPlayBase := OpenLibrary(LUCYPLAYNAME,LIBVERSION);
+    if LucyPlayBase <> nil then begin
+        lucyplay_exit := ExitProc;
+        ExitProc := @CloselucyplayLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open lucyplay.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    LUCYPLAYIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of lucyplay.library}
+
+var
+    lucyplay_exit : Pointer;
+
+procedure CloselucyplayLibrary;
+begin
+    ExitProc := lucyplay_exit;
+    if LucyPlayBase <> nil then begin
+        CloseLibrary(LucyPlayBase);
+        LucyPlayBase := nil;
+    end;
+end;
+
+begin
+    LucyPlayBase := nil;
+    LucyPlayBase := OpenLibrary(LUCYPLAYNAME,LIBVERSION);
+    if LucyPlayBase <> nil then begin
+        lucyplay_exit := ExitProc;
+        ExitProc := @CloselucyplayLibrary;
+        LUCYPLAYIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open lucyplay.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    LUCYPLAYIsCompiledHow := 3;
+   {$Warning No autoopening of lucyplay.library compiled}
+   {$Warning Make sure you open lucyplay.library yourself}
+{$endif dont_use_openlib}
+
 END. (* UNIT LUCYPLAY *)
 
 

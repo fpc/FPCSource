@@ -37,7 +37,7 @@ const
   UPDATED_FIELDS = [  ];
   COLLATION_NAME = 'sv';
   BASE_COLLATION = '';
-  VERSION_STRING = '$Revision: 10632 $';
+  VERSION_STRING = '$Revision: 7611 $';
   VARIABLE_LOW_LIMIT = 65535;
   VARIABLE_HIGH_LIMIT = 0;
   VARIABLE_WEIGHT = 0;
@@ -45,7 +45,7 @@ const
   BACKWARDS_1 = False;
   BACKWARDS_2 = False;
   BACKWARDS_3 = False;
-  PROP_COUNT  = 1710;
+  PROP_COUNT  = 1563;
 
 const
   UCA_TABLE_1 : array[0..255] of Byte = (

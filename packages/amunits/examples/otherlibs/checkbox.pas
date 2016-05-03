@@ -29,14 +29,10 @@ begin
 end;
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
-     App := TR_CreateAppTags([TRCA_Name, AsTag('Triton CheckBox'),
-                              TRCA_Release, AsTag('1.0'),
-                              TRCA_Date, AsTag('03-06-1998'),
+
+     App := TR_CreateAppTags([TRCA_Name,'Triton CheckBox',
+                              TRCA_Release,'1.0',
+                              TRCA_Date,'03-06-1998',
                               TAG_DONE]);
 
      if App = nil then CleanUp('Can''t create application',20);
@@ -69,18 +65,16 @@ begin
                CASE trmsg^.trm_Class OF
                  TRMS_CLOSEWINDOW : begin
                                      if TR_GetCheckBox(Project,10) then
-                                       writeln('CheckBox was on')
-                                     else
-                                       writeln('CheckBox was off');
+writeln('CheckBox was on')
+                                        else writeln('CheckBox was off');
                                      close_me := True;
                                     end;
                  TRMS_ERROR:        WriteLN(TR_GetErrorString(trmsg^.trm_Data));
                  TRMS_NEWVALUE    : begin
                                       IF trmsg^.trm_ID = 10 then begin
-                                        if trmsg^.trm_Data = 0 then
-                                          writeln('CheckBox off')
-                                        else
-                                          writeln('CheckBox on');
+                                          if trmsg^.trm_Data = 0 then
+writeln('CheckBox off')
+                                            else writeln('CheckBox on');
                                       end;
                                     end;
                END;

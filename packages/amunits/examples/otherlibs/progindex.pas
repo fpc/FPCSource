@@ -112,14 +112,9 @@ end;
 (* /////////////////////////////////////////////////////////////////////////////////////////////////////// *)
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
   Triton_App := TR_CreateAppTags([
-                TRCA_Name, AsTag('trProgIndDemo'),
-                TRCA_Version, AsTag('1.0'),
+                TRCA_Name,'trProgIndDemo',
+                TRCA_Version,'1.0',
                 TAG_END]);
 
   if Triton_App <> nil then begin

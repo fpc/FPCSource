@@ -84,7 +84,7 @@ const
 
  LAYERSNAME : PChar = 'layers.library';
 
-VAR LayersBase : pLibrary = nil;
+VAR LayersBase : pLibrary;
 
 FUNCTION BeginUpdate(l : pLayer location 'a0') : LONGINT; syscall LayersBase 078;
 FUNCTION BehindLayer(dummy : LONGINT location 'a0'; layer : pLayer location 'a1') : LONGINT; syscall LayersBase 054;
@@ -119,18 +119,106 @@ PROCEDURE UnlockLayers(li : pLayer_Info location 'a0'); syscall LayersBase 114;
 FUNCTION UpfrontLayer(dummy : LONGINT location 'a0'; layer : pLayer location 'a1') : LONGINT; syscall LayersBase 048;
 FUNCTION WhichLayer(li : pLayer_Info location 'a0'; x : LONGINT location 'd0'; y : LONGINT location 'd1') : pLayer; syscall LayersBase 132;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitLAYERSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    LAYERSIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+uses
+{$ifndef dont_use_openlib}
+amsgbox;
+{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
-finalization
-  if Assigned(LayersBase) then
-    CloseLibrary(LayersBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of layers.library}
+  {$Info don't forget to use InitLAYERSLibrary in the beginning of your program}
+
+var
+    layers_exit : Pointer;
+
+procedure CloselayersLibrary;
+begin
+    ExitProc := layers_exit;
+    if LayersBase <> nil then begin
+        CloseLibrary(LayersBase);
+        LayersBase := nil;
+    end;
+end;
+
+procedure InitLAYERSLibrary;
+begin
+    LayersBase := nil;
+    LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
+    if LayersBase <> nil then begin
+        layers_exit := ExitProc;
+        ExitProc := @CloselayersLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open layers.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    LAYERSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of layers.library}
+
+var
+    layers_exit : Pointer;
+
+procedure CloselayersLibrary;
+begin
+    ExitProc := layers_exit;
+    if LayersBase <> nil then begin
+        CloseLibrary(LayersBase);
+        LayersBase := nil;
+    end;
+end;
+
+begin
+    LayersBase := nil;
+    LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
+    if LayersBase <> nil then begin
+        layers_exit := ExitProc;
+        ExitProc := @CloselayersLibrary;
+        LAYERSIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open layers.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    LAYERSIsCompiledHow := 3;
+   {$Warning No autoopening of layers.library compiled}
+   {$Warning Make sure you open layers.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT LAYERS *)
 
 

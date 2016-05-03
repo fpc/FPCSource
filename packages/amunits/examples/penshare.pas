@@ -32,7 +32,7 @@ Program PenShare;
   nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, agraphics, intuition, utility;
+uses exec, agraphics, intuition, utility,systemvartags;
 
 VAR RP : pRastPort;
     Win : pWindow;
@@ -58,7 +58,7 @@ Begin
 
   Win:=OpenWindowTags(nil,[WA_Width,150,
                         WA_Height,100,
-                        WA_Title,AsTag('PenShare'),
+                        WA_Title,'PenShare',
                         WA_Flags,WFLG_CLOSEGADGET+WFLG_DRAGBAR,
                         WA_IDCMP,IDCMP_CLOSEWINDOW,
                         TAG_END]);

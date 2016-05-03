@@ -21,7 +21,7 @@ PROGRAM ImageGadget;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-USES Intuition, Exec, AGraphics, GadTools, Utility;
+USES Intuition, Exec, AGraphics, GadTools, Utility, systemvartags,pastoc;
 
 
 CONST
@@ -361,8 +361,8 @@ BEGIN
   g^.SelectRender := @selecti;
 
   wp := OpenWindowTags(NIL,[
-                WA_Gadgets, AsTag(gl),
-                WA_Title, AsTag('Images in Gadgets'),
+                WA_Gadgets,gl,
+                WA_Title, 'Images in Gadgets',
                 WA_Flags, WFLG_SMART_REFRESH OR WFLG_NOCAREREFRESH OR
                                 WFLG_DEPTHGADGET OR WFLG_DRAGBAR OR WFLG_CLOSEGADGET OR
                                 WFLG_ACTIVATE,
@@ -391,7 +391,7 @@ BEGIN
         CASE iclass OF
           IDCMP_CLOSEWINDOW : ende := TRUE;
           IDCMP_GADGETUP :
-             i := EasyReq(wp,WIN_TITLE, 'You have clicked on the Gadget!', 'Wheeew!');
+             i := EasyReq(wp,WIN_TITLE,pas2c('You have clicked on the Gadget!'),pas2c('Wheeew!'));
         ELSE END;
        msg := GT_GetIMsg(wp^.UserPort);
      END;

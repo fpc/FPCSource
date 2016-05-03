@@ -1,6 +1,6 @@
 {
     Free Pascal port of the OpenPTC C++ library.
-    Copyright (C) 2001-2003, 2006, 2007, 2009-2013, 2015  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Copyright (C) 2001-2003, 2006, 2007, 2009-2013  Nikolay Nikolov (nickysn@users.sourceforge.net)
     Original C++ version by Glenn Fiedler (ptc@gaffer.org)
 
     This library is free software; you can redistribute it and/or
@@ -31,7 +31,6 @@
 }
 
 type
-  TPTCBaseConsoleClass = class of TPTCBaseConsole;
   TPTCConsole = class(TPTCBaseConsole)
   private
     FConsole: IPTCConsole;
@@ -134,15 +133,12 @@ const
  {$IFDEF WinCE}
   ConsoleTypesNumber = 2;
  {$ENDIF WinCE}
- {$IFDEF X11}
+ {$IFDEF UNIX}
   ConsoleTypesNumber = 1;
- {$ENDIF X11}
- {$IFDEF COCOA}
-  ConsoleTypesNumber = 1;
- {$ENDIF COCOA}
+ {$ENDIF UNIX}
   ConsoleTypes: array [0..ConsoleTypesNumber - 1] of
     record
-      ConsoleClass: TPTCBaseConsoleClass;
+      ConsoleClass: class of TPTCBaseConsole;
       Names: array [1..2] of string;
       OpenGL: Boolean;
     end =
@@ -164,13 +160,9 @@ const
    (ConsoleClass: TWinCEGDIConsole;  Names: ('GDI', '');         OpenGL: False)
   {$ENDIF WinCE}
 
-  {$IFDEF X11}
+  {$IFDEF UNIX}
    (ConsoleClass: TX11Console;       Names: ('X11', '');         OpenGL: {$IFDEF ENABLE_X11_EXTENSION_GLX}True{$ELSE}False{$ENDIF})
-  {$ENDIF X11}
-
-  {$IFDEF COCOA}
-   (ConsoleClass: TCocoaConsole;       Names: ('COCOA', '');         OpenGL: False)
-  {$ENDIF COCOA}
+  {$ENDIF UNIX}
   );
 
 constructor TPTCConsole.Create;

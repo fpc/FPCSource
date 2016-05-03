@@ -10,7 +10,7 @@ PROGRAM DirDemo;
     nils.sjoholm@mailbox.swipnet
 }
 
-uses Amigados, exec, strings, linklist, amigalib;
+uses Amigados, exec, strings, linklist,pastoc, amigalib;
 
 CONST BufferSize = 2048;
       CSI      = chr($9b);
@@ -26,7 +26,7 @@ VAR ExData       : pExAllData;
     Buffer       : PChar;
     i,temp       : longint;
     TotalSize    : longint;
-    TheDir       : AnsiString;
+    TheDir       : string;
 
 PROCEDURE CleanUp(TheMsg : STRING; ErrCode : INTEGER);
 BEGIN
@@ -57,11 +57,11 @@ BEGIN
     EAC := AllocDosObject(DOS_EXALLCONTROL,NIL);
     IF EAC = NIL THEN CleanUp('No AllocDosObject',10);
 
-    ExData := ExecAllocMem(BufferSize,0);
+    ExData := AllocMem(BufferSize,0);
     EAC^.eac_LastKey := 0;
     EAC^.eac_MatchString := NIL;
     EAC^.eac_MatchFunc := NIL;
-    MyLock:=Lock(PChar(TheDir),SHARED_LOCK);
+    MyLock:=Lock(pas2c(TheDir),SHARED_LOCK);
     IF MyLock=0 THEN CleanUp('No lock on directory',10);
 
     REPEAT
@@ -88,13 +88,13 @@ BEGIN
     tempnode := GetFirstNode(DirList);
 
     FOR i := 1 TO NodesInList(DirList) DO BEGIN
-        printf('%-30s  <DIR>'#10,[PtrUInt(GetNodeData(tempnode))]);
+        printf('%-30s  <DIR>'#10,[long(GetNodeData(tempnode))]);
         tempnode := GetNextNode(tempnode);
     END;
     Write(CSI, '0m');
     tempnode := GetFirstNode(FileList);
     FOR i := 1 TO NodesInList(FileList) DO BEGIN
-        printf('%-30s%7ld'#10 ,[PtrUInt(GetNodeData(tempnode)),tempnode^.ln_Size]);
+        printf('%-30s%7ld'#10 ,[long(GetNodeData(tempnode)),tempnode^.ln_Size]);
         TotalSize := TotalSize + tempnode^.ln_Size;
         tempnode := GetNextNode(tempnode);
     END;

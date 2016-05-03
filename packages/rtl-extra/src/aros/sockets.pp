@@ -110,7 +110,7 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;  
 //function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
 //function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
 
-threadvar
+var
   SocketBase: PLibrary;
 
 function bsd_socket(Domain: LongInt; Type_: LongInt; Protocol: LongInt): LongInt; syscall SocketBase 5;

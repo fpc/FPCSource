@@ -352,15 +352,10 @@ BEGIN
 END;
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
   Triton_App := TR_CreateAppTags([
-                TRCA_Name, AsTag('Envprint'),
-                TRCA_LongName, AsTag('EnvPrint GUI demo'),
-                TRCA_Version, AsTag('2.0'),
+                TRCA_Name,'Envprint',
+                TRCA_LongName,'EnvPrint GUI demo',
+                TRCA_Version,'2.0',
                 TAG_END]);
 
   if Triton_App <> nil then begin

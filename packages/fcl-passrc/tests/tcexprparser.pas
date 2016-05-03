@@ -86,7 +86,6 @@ type
     Procedure TestBinaryLargerThanEqual;
     procedure TestBinaryFullIdent;
     Procedure TestArrayElement;
-    Procedure TestArrayElementrecord;
     Procedure TestArrayElement2Dims;
     Procedure TestFunctionCall;
     Procedure TestFunctionCall2args;
@@ -120,7 +119,6 @@ type
     Procedure TestPrecedenceMultiplyDiv;
     Procedure TestPrecedenceDivMultiply;
     Procedure TestTypeCast;
-    procedure TestTypeCast2;
     Procedure TestCreate;
   end;
 
@@ -202,23 +200,6 @@ begin
   AssertExpression('Simple identifier',p.params[0],pekNumber,'1');
 end;
 
-procedure TTestExpressions.TestArrayElementrecord;
-
-Var
-  P : TParamsExpr;
-  B : TBinaryExpr;
-begin
-  DeclareVar('record a : array[1..2] of integer; end ','b');
-  ParseExpression('b.a[1]');
-  P:=TParamsExpr(AssertExpression('Simple identifier',theExpr,pekArrayParams,TParamsExpr));
-  B:=AssertExpression('Name of array',P.Value,pekBinary,TBInaryExpr) as TBInaryExpr;
-  AssertEquals('name is Subident',eopSubIdent,B.Opcode);
-  AssertExpression('Name of array',B.Left,pekIdent,'b');
-  AssertExpression('Name of array',B.Right,pekIdent,'a');
-  AssertEquals('One dimension',1,Length(p.params));
-  AssertExpression('Simple identifier',p.params[0],pekNumber,'1');
-end;
-
 procedure TTestExpressions.TestArrayElement2Dims;
 Var
   P : TParamsExpr;
@@ -277,18 +258,15 @@ end;
 procedure TTestExpressions.TestRange;
 
 Var
-  P : TParamsExpr;
   B : TBinaryExpr;
 
 begin
   DeclareVar('boolean','a');
   DeclareVar('byte','b');
-  ParseExpression('b in [0..10]');
+  ParseExpression('b in 0..10');
   AssertBinaryExpr('Simple binary In',eopIn,FLeft,FRight);
   AssertExpression('Left is b',TheLeft,pekIdent,'b');
-  P:=TParamsExpr(AssertExpression('Right is set',TheRight,pekSet,TParamsExpr));
-  AssertEquals('Number of items',1,Length(P.Params));
-  B:=TBinaryExpr(AssertExpression('First element is range',P.Params[0],pekRange,TBinaryExpr));
+  B:=TBinaryExpr(AssertExpression('Right is range',TheRight,pekRange,TBinaryExpr));
   AssertExpression('Left is 0',B.Left,pekNumber,'0');
   AssertExpression('Right is 10',B.Right,pekNumber,'10');
 end;
@@ -488,12 +466,6 @@ procedure TTestExpressions.TestTypeCast;
 begin
   DeclareVar('TSDOBaseDataObjectClass');
   ParseExpression('TSDOBaseDataObjectClass(Self.ClassType).Create');
-end;
-
-procedure TTestExpressions.TestTypeCast2;
-begin
-  DeclareVar('TSDOBaseDataObjectClass');
-  ParseExpression('TSDOBaseDataObjectClass(Self.ClassType).Create.D');
 end;
 
 procedure TTestExpressions.TestCreate;

@@ -605,17 +605,15 @@ Var
   N  : TDomElement;
   DN : TDomNode;
   L : Integer;
-  S: Ansistring; 
 begin
   N:=FindValueKey(Name);
   Result:=(N<>Nil);
   If Result then
     begin
     DN:=N.FirstChild;
-    if Assigned(DN) and (DN.NodeType=TEXT_NODE) then begin
-      S := DN.NodeValue;
-      L:=Length(S);
-    end else
+    if Assigned(DN) and (DN.NodeType=TEXT_NODE) then
+      L:=TDOMText(DN).Length
+    else
       L:=0;
     With Info do
       begin

@@ -25,8 +25,7 @@ Type
                     poUsePipes,poStderrToOutPut,
                     poNoConsole,poNewConsole,
                     poDefaultErrorMode,poNewProcessGroup,
-                    poDebugProcess,poDebugOnlyThisProcess,
-                    poPassInput);
+                    poDebugProcess,poDebugOnlyThisProcess);
 
   TShowWindowOptions = (swoNone,swoHIDE,swoMaximize,swoMinimize,swoRestore,swoShow,
                         swoShowDefault,swoShowMaximized,swoShowMinimized,
@@ -122,7 +121,6 @@ Type
     Function Suspend : Integer; virtual;
     Function Terminate (AExitCode : Integer): Boolean; virtual;
     Function WaitOnExit : Boolean;
-    Function WaitOnExit(Timeout : DWord) : Boolean;
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
     Property Handle : THandle Read FProcessHandle;
     Property ProcessHandle : THandle Read FProcessHandle;
@@ -175,13 +173,12 @@ Var
   Function DetectXTerm : String;
 {$endif unix}
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; out exitstatus:integer; Options : TProcessOptions = []):integer;
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
-function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string):boolean;
+function RunCommandInDir(const curdir,cmdline:string;var outputstring:string):boolean; deprecated;
 
-
-function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
-function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommand(const exename:string;const commands:array of string;var outputstring:string):boolean;
+function RunCommand(const cmdline:string;var outputstring:string):boolean; deprecated;
 
 
 implementation
@@ -478,8 +475,8 @@ Const
 // helperfunction that does the bulk of the work.
 // We need to also collect stderr output in order to avoid
 // lock out if the stderr pipe is full.
-function internalRuncommand(p:TProcess;out outputstring:string;
-                            out stderrstring:string; out exitstatus:integer):integer;
+function internalRuncommand(p:TProcess;var outputstring:string;
+                            var stderrstring:string; var exitstatus:integer):integer;
 var
     numbytes,bytesread,available : integer;
     outputlength, stderrlength : integer;
@@ -488,7 +485,7 @@ begin
   result:=-1;
   try
     try
-    p.Options := p.Options + [poUsePipes];
+    p.Options :=  [poUsePipes];
     bytesread:=0;
     outputlength:=0;
     stderrbytesread:=0;
@@ -573,18 +570,13 @@ end;
 
 { Functions without StderrString }
 
-Const
-  ForbiddenOptions = [poRunSuspended,poWaitOnExit];
-
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string;out exitstatus:integer; Options : TProcessOptions = []):integer;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string;var exitstatus:integer):integer;
 Var
     p : TProcess;
     i : integer;
     ErrorString : String;
 begin
   p:=TProcess.create(nil);
-  if Options<>[] then
-    P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
@@ -594,7 +586,7 @@ begin
   result:=internalruncommand(p,outputstring,errorstring,exitstatus);
 end;
 
-function RunCommandInDir(const curdir,cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommandInDir(const curdir,cmdline:string;var outputstring:string):boolean; deprecated;
 Var
     p : TProcess;
     exitstatus : integer;
@@ -608,7 +600,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommandIndir(const curdir:string;const exename:string;const commands:array of string;var outputstring:string):boolean;
 Var
     p : TProcess;
     i,
@@ -616,8 +608,6 @@ Var
     ErrorString : String;
 begin
   p:=TProcess.create(nil);
-  if Options<>[] then
-    P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
   if curdir<>'' then
     p.CurrentDirectory:=curdir;
@@ -628,7 +618,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const cmdline:string;out outputstring:string):boolean; deprecated;
+function RunCommand(const cmdline:string;var outputstring:string):boolean; deprecated;
 Var
     p : TProcess;
     exitstatus : integer;
@@ -640,7 +630,7 @@ begin
   if exitstatus<>0 then result:=false;
 end;
 
-function RunCommand(const exename:string;const commands:array of string;out outputstring:string; Options : TProcessOptions = []):boolean;
+function RunCommand(const exename:string;const commands:array of string;var outputstring:string):boolean;
 Var
     p : TProcess;
     i,
@@ -648,8 +638,6 @@ Var
     ErrorString : String;
 begin
   p:=TProcess.create(nil);
-  if Options<>[] then
-    P.Options:=Options - ForbiddenOptions;
   p.Executable:=exename;
   if high(commands)>=0 then
    for i:=low(commands) to high(commands) do

@@ -73,23 +73,19 @@ BEGIN
 END;
 
 BEGIN
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
+
     CreateList(MyList);
     FOR i := 0 TO NumInList-2 DO BEGIN
         MyNode := AddNewNode(MyList,mxstrings[i]);
     END;
 
     Triton_App := TR_CreateAppTags([
-                     TRCA_Name, AsTag('FPC Pascal Demo'),
-                     TRCA_LongName, AsTag('FPC Pascal Application Demo :)'),
-                     TRCA_Version, AsTag('0.01'),
-                     TRCA_Info, AsTag('Just a test of Triton'),
-                     TRCA_Release, AsTag('1.0'),
-                     TRCA_Date, AsTag('01-05-1996'),
+                     TRCA_Name,'FPC Pascal Demo',
+                     TRCA_LongName,'FPC Pascal Application Demo :)',
+                     TRCA_Version,'0.01',
+                     TRCA_Info,'Just a test of Triton',
+                     TRCA_Release,'1.0',
+                     TRCA_Date,'01-05-1996',
                      TAG_DONE]);
 
     if Triton_App = NIL then CleanExit('Can''t create application',20);

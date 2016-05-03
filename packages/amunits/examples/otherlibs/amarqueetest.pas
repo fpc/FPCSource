@@ -21,15 +21,11 @@ Var
 const
   errid : longint = 0;
 begin
-  if not Assigned(AMarqueeBase) then
-  begin
-    writeln('cannot open ' + AMARQUEENAME);
-    Halt(5);
-  end;
+
 
     {Connect to localhost}
     session := QNewSessionTags('localhost', 2957, 'pascal test',[QSESSION_ERRORCODEPTR,
-                                                                AsTag(@errid),TAG_DONE]);
+                                                                @errid,TAG_DONE]);
     if session = nil then begin
       writeln('Could not create connection to localhost/2957');
       writeln('the error was ',QErrorName(errid));

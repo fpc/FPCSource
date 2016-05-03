@@ -71,30 +71,47 @@ begin
   end
 end;
 
-function TFPCustomImage.SaveToFile (const filename:String):boolean;
+procedure TFPCustomImage.SaveToFile (const filename:String);
 
-var h : TFPCustomImageWriterClass;
+var e,s : string;
+    r : integer;
+    f : TFileStream;
+    h : TFPCustomImageWriterClass;
     Writer : TFPCustomImageWriter;
+    d : TIHData;
     Msg : string;
 
 begin
-  Msg := '';
-  try
-    h := FindWriterFromFileName(filename);
-    Result := assigned (h);
-    if Result then
+  e := lowercase (ExtractFileExt(filename));
+  if (e <> '') and (e[1] = '.') then
+    delete (e,1,1);
+  with ImageHandlers do
+    begin
+    r := count-1;
+    s := e + ';';
+    while (r >= 0) do
       begin
-      Writer := h.Create;
-      try
-        SaveTofile (filename, Writer);
-      finally
-        Writer.Free;
-      end;
-      end;
-  except
-    on e : exception do
-      Msg := e.message;
-  end;
+      d := GetData(r);
+      if (pos(s,d.Fextension+';') <> 0) then
+        try
+          h := d.FWriter;
+          if assigned (h) then
+            begin
+            Writer := h.Create;
+            try
+              SaveTofile (filename, Writer);
+            finally
+              Writer.Free;
+            end;
+            break;
+            end;
+        except
+          on e : exception do
+            Msg := e.message;
+        end;
+      dec (r);
+      end
+    end;
   if (Msg<>'') then
     FPImgError (StrWriteWithError, [Msg]);
 end;
@@ -106,9 +123,7 @@ var r : integer;
     reader : TFPCustomImageReader;
     msg : string;
     d : TIHData;
-    startPos: Int64;
 begin
-  startPos := str.Position;
   with ImageHandlers do
     try
       r := count-1;
@@ -124,7 +139,6 @@ begin
             try
               if CheckContents (str) then
                 try
-                  str.Position := startPos;
                   FStream := str;
                   FImage := self;
                   InternalRead (str, self);
@@ -135,7 +149,7 @@ begin
                 end;
             finally
               Free;
-              str.Position := startPos;
+              str.seek (soFromBeginning, 0);
             end;
           end;
         dec (r);
@@ -151,32 +165,48 @@ begin
       FPImgError (StrReadWithError, [Msg]);
 end;
 
-function TFPCustomImage.LoadFromFile (const filename:String):boolean;
-var f : TFileStream;
+procedure TFPCustomImage.LoadFromFile (const filename:String);
+var e,s : string;
+    r : integer;
+    f : TFileStream;
     h : TFPCustomImageReaderClass;
     reader : TFPCustomImageReader;
+    d : TIHData;
     Msg : string;
 begin
-  Msg := '';
-  try
-    h := FindReaderFromFileName(filename);
-    Result := assigned (h);
-    if Result then
-      begin
-      reader := h.Create;
-      try
-        loadfromfile (filename, reader);
-      finally
-        Reader.Free;
-      end;
-      end;
-  except
-    on e : exception do
-      Msg := e.message;
-  end;
+  e := lowercase (ExtractFileExt(filename));
+  if (e <> '') and (e[1] = '.') then
+    delete (e,1,1);
+  with ImageHandlers do
+    begin
+      r := count-1;
+      s := e + ';';
+      while (r >= 0) do
+        begin
+        d := GetData(r);
+        if (pos(s,d.Fextension+';') <> 0) then
+          try
+            h := d.FReader;
+            if assigned (h) then
+              begin
+              reader := h.Create;
+              try
+                loadfromfile (filename, reader);
+              finally
+                Reader.Free;
+              end;
+              break;
+              end;
+          except
+            on e : exception do
+              Msg := e.message;
+          end;
+        dec (r);
+        end
+    end;
   if Msg = '' then
     begin
-    if h = nil then
+    if r < 0 then
       begin
       f := TFileStream.Create (filename, fmOpenRead);
       try
@@ -263,63 +293,6 @@ end;
 function  TFPCustomImage.ExtraCount : integer;
 begin
   result := FExtra.count;
-end;
-
-class function TFPCustomImage.FindHandlerFromExtension(extension: String
-  ): TIHData;
-var s : string;
-    r : integer;
-begin
-  extension := lowercase (extension);
-  if (extension <> '') and (extension[1] = '.') then
-    delete (extension,1,1);
-  with ImageHandlers do
-    begin
-      r := count-1;
-      s := extension + ';';
-      while (r >= 0) do
-        begin
-        Result := GetData(r);
-        if (pos(s,Result.Fextension+';') <> 0) then
-          Exit;
-        dec (r);
-        end;
-    end;
-  Result := nil;
-end;
-
-class function TFPCustomImage.FindReaderFromExtension(const extension: String
-  ): TFPCustomImageReaderClass;
-var d : TIHData;
-begin
-  d := FindHandlerFromExtension(extension);
-  if d<>nil then
-    Result := d.FReader
-  else
-    Result := nil;
-end;
-
-class function TFPCustomImage.FindReaderFromFileName(const filename: String
-  ): TFPCustomImageReaderClass;
-begin
-  Result := FindReaderFromExtension(ExtractFileExt(filename));
-end;
-
-class function TFPCustomImage.FindWriterFromExtension(const extension: String
-  ): TFPCustomImageWriterClass;
-var d : TIHData;
-begin
-  d := FindHandlerFromExtension(extension);
-  if d<>nil then
-    Result := d.FWriter
-  else
-    Result := nil;
-end;
-
-class function TFPCustomImage.FindWriterFromFileName(const filename: String
-  ): TFPCustomImageWriterClass;
-begin
-  Result := FindWriterFromExtension(ExtractFileExt(filename));
 end;
 
 procedure TFPCustomImage.RemoveExtra (const key:string);

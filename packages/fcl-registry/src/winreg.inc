@@ -48,7 +48,7 @@ Var
 begin
   SecurityAttributes := Nil;
   P:=PrepKey(Key);
-  FLastError:=RegCreateKeyExA(GetBaseKey(RelativeKey(Key)),
+  Result:=RegCreateKeyExA(GetBaseKey(RelativeKey(Key)),
                          P,
                          0,
                          '',
@@ -56,8 +56,7 @@ begin
                          KEY_ALL_ACCESS,
                          SecurityAttributes,
                          Handle,
-                         @Disposition);
-  Result:=FLastError=ERROR_SUCCESS;
+                         @Disposition) = ERROR_SUCCESS;
   RegCloseKey(Handle);
 end;
 
@@ -67,14 +66,12 @@ Var
   P: PChar;
 begin
   P:=PRepKey(Key);
-  FLastError:=RegDeleteKeyA(GetBaseKey(RelativeKey(Key)),P);
-  Result:=FLastError=ERROR_SUCCESS;
+  Result:=RegDeleteKeyA(GetBaseKey(RelativeKey(Key)),P)=ERROR_SUCCESS;
 end;
 
 function TRegistry.DeleteValue(const Name: String): Boolean;
 begin
-  FLastError:= RegDeleteValueA(fCurrentKey, @Name[1]);
-  Result:=FLastError=ERROR_SUCCESS;
+  Result := RegDeleteValueA(fCurrentKey, @Name[1]) = ERROR_SUCCESS;
 end;
 
 function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
@@ -85,9 +82,8 @@ Var
 
 begin
   P := PChar(Name);
-  FLastError:=RegQueryValueExA(fCurrentKey,P,Nil,
-                      @RD,Buffer,lpdword(@BufSize));
-  if (FLastError<>ERROR_SUCCESS) Then
+  If RegQueryValueExA(fCurrentKey,P,Nil,
+                      @RD,Buffer,lpdword(@BufSize))<>ERROR_SUCCESS Then
     Result:=-1
   else
     begin
@@ -113,10 +109,7 @@ Var
 begin
   P:=PChar(ValueName);
   With Value do
-    begin
-    FLastError:=RegQueryValueExA(fCurrentKey,P,Nil,lpdword(@RegData),Nil,lpdword(@DataSize));
-    Result:=FLastError=ERROR_SUCCESS;
-    end;
+    Result:=RegQueryValueExA(fCurrentKey,P,Nil,lpdword(@RegData),Nil,lpdword(@DataSize))=ERROR_SUCCESS;
   If Not Result Then
     begin
     Value.RegData := rdUnknown;
@@ -136,9 +129,9 @@ begin
   if not(Rel) then
     Delete(S,1,1);
 {$ifdef WinCE}
-  FLastError:=RegOpenKeyEx(GetBaseKey(Rel),PWideChar(WideString(S)),0,FAccess,Result);
+  RegOpenKeyEx(GetBaseKey(Rel),PWideChar(WideString(S)),0,FAccess,Result);
 {$else WinCE}
-  FLastError:=RegOpenKeyEx(GetBaseKey(Rel),PChar(S),0,FAccess,Result);
+  RegOpenKeyEx(GetBaseKey(Rel),PChar(S),0,FAccess,Result);
 {$endif WinCE}
 end;
 
@@ -150,12 +143,9 @@ var
 begin
   FillChar(Value, SizeOf(Value), 0);
   With Value do
-    begin
-    FLastError:=RegQueryInfoKeyA(CurrentKey,nil,nil,nil,lpdword(@NumSubKeys),
+    Result:=RegQueryInfoKeyA(CurrentKey,nil,nil,nil,lpdword(@NumSubKeys),
               lpdword(@MaxSubKeyLen),nil,lpdword(@NumValues),lpdword(@MaxValueLen),
-              lpdword(@MaxDataLen),nil,@winFileTime);
-    Result:=FLastError=ERROR_SUCCESS;          
-    end;          
+              lpdword(@MaxDataLen),nil,@winFileTime)=ERROR_SUCCESS;
   if Result then
   begin
     FileTimeToSystemTime(@winFileTime, @sysTime);
@@ -206,19 +196,16 @@ begin
   If CanCreate then
     begin
     Handle:=0;
-    FLastError:=RegCreateKeyExA(GetBaseKey(RelativeKey(Key)),P,0,'',
+    Result:=RegCreateKeyExA(GetBaseKey(RelativeKey(Key)),P,0,'',
 
                            REG_OPTION_NON_VOLATILE,
                            fAccess,SecurityAttributes,Handle,
-                           pdword(@Disposition));
-    Result:=FLastError=ERROR_SUCCESS;
+                           pdword(@Disposition))=ERROR_SUCCESS
+
     end
   else
-    begin
-    FLastError:=RegOpenKeyExA(GetBaseKey(RelativeKey(Key)),
-                         P,0,fAccess,Handle);
-    Result:=FLastError=ERROR_SUCCESS;
-    end;                     
+    Result:=RegOpenKeyExA(GetBaseKey(RelativeKey(Key)),
+                         P,0,fAccess,Handle)=ERROR_SUCCESS;
   If Result then begin
     if RelativeKey(Key) then
       S:=CurrentPath + Key
@@ -251,8 +238,7 @@ begin
 {$ifdef WinCE}
   Result:=False;
 {$else}
-  FLastError:=RegConnectRegistryA(PChar(UNCName),RootKey,newroot);
-  Result:=FLastError=ERROR_SUCCESS;
+  Result:=RegConnectRegistryA(PChar(UNCName),RootKey,newroot)=ERROR_SUCCESS;
   if Result then begin
     RootKey:=newroot;
     PWinRegData(FSysData)^.RootKeyOwned:=True;
@@ -385,8 +371,7 @@ begin
     rdBinary       : RegDataType:=REG_BINARY;
   end;
   P:=PChar(Name);
-  FLastError:=RegSetValueExA(fCurrentKey,P,0,RegDataType,Buffer,BufSize);
-  Result:=FLastError=ERROR_SUCCESS;
+  Result:=RegSetValueExA(fCurrentKey,P,0,RegDataType,Buffer,BufSize)=ERROR_SUCCESS;
 end;
 
 procedure TRegistry.RenameValue(const OldName, NewName: string);
@@ -430,13 +415,5 @@ begin
     PWinRegData(FSysData)^.RootKeyOwned := False;
   end;
   fRootKey := Value;
-end;
-
-function TRegistry.GetLastErrorMsg: string;
-begin
-  if FLastError <> ERROR_SUCCESS then
-    Result:=SysErrorMessage(FLastError)
-  else
-    Result:='';
 end;
 

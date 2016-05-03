@@ -22,7 +22,6 @@
 Unit sysmsg;
 
 interface
-{$i platform.inc}
 
 type
   TSystemMessage = (

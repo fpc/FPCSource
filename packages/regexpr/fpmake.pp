@@ -19,7 +19,7 @@ begin
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
     P.Version:='3.1.1';
-    P.OSes:=P.OSes-[embedded];
+    P.OSes:=P.OSes-[embedded,win16];
     P.Dependencies.Add('rtl-objpas');
     P.SourcePath.Add('src');
 
@@ -34,7 +34,7 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testreg1.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

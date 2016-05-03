@@ -28,7 +28,7 @@ make them  }
 
 }
 
-uses Exec, Intuition, Utility,amsgbox;
+uses Exec, Intuition, Utility,amsgbox, systemvartags;
 
 
 
@@ -98,7 +98,7 @@ BEGIN
     GA_Left,     (w^.BorderLeft) + 5,
     GA_Width,    PROPGADGETWIDTH,
     GA_Height,   PROPGADGETHEIGHT,
-    ICA_MAP,     AsTag(@prop2intmap),
+    ICA_MAP,     @prop2intmap,
     PGA_Total,   TOTAL,
     PGA_Top,     INITIALVAL,
     PGA_Visible, VISIBLE,
@@ -108,24 +108,24 @@ BEGIN
     IF prop = NIL THEN CleanUp('No propgadget',20);
 
     int := NewObject(NIL, 'strgclass',[
-      GA_ID,      INTGADGET_ID,
-      GA_Top,     (w^.BorderTop) + 5,
-      GA_Left,    (w^.BorderLeft) + PROPGADGETWIDTH + 10,
-      GA_Width,   MINWINDOWWIDTH -
+    GA_ID,      INTGADGET_ID,
+    GA_Top,     (w^.BorderTop) + 5,
+    GA_Left,    (w^.BorderLeft) + PROPGADGETWIDTH + 10,
+    GA_Width,   MINWINDOWWIDTH -
                                   (w^.BorderLeft + w^.BorderRight +
                                   PROPGADGETWIDTH + 15),
-      GA_Height,  INTGADGETHEIGHT,
+    GA_Height,  INTGADGETHEIGHT,
 
-      ICA_MAP,    AsTag(@int2propmap),
-      ICA_TARGET, AsTag(prop),
-      GA_Previous,AsTag(prop),
+    ICA_MAP,    @int2propmap,
+    ICA_TARGET, prop,
+    GA_Previous, prop,
 
     STRINGA_LongVal,  INITIALVAL,
     STRINGA_MaxChars, MAXCHARS,
     TAG_END]);
 
     temp := SetGadgetAttrs(prop, w, NIL,[
-    ICA_TARGET, AsTag(int),
+    ICA_TARGET, int,
     TAG_END]);
 
     IF int = NIL THEN CleanUp('No INTEGER gadget',20);

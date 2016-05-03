@@ -39,25 +39,20 @@ BEGIN
 END;
 
 begin
-  if not Assigned(P96Base) then
-  begin
-    writeln('Cannot open ', PICASSO96APINAME);
-    Halt(5);
-  end;
    BoardName := @boardtmp;
 
-   tmp := p96GetRTGDataTags([P96RD_NumberOfBoards, AsTag(@NumBoards), TAG_END]);
+   tmp := p96GetRTGDataTags([P96RD_NumberOfBoards, @NumBoards, TAG_END]);
 
    writeln('Looking through all boards installed for Picasso96');
 
    for i := 0 to NumBoards-1 do begin
-       p96GetBoardDataTags(i,[P96BD_BoardName, AsTag(@BoardName),
-                              P96BD_RGBFormats, AsTag(@RGBFormats),
-                              P96BD_TotalMemory, AsTag(@MemorySize),
-                              P96BD_FreeMemory, AsTag(@FreeMemory),
-                              P96BD_LargestFreeMemory, AsTag(@LargestFreeMemory),
-                              P96BD_MemoryClock, AsTag(@MemoryClock),
-                              P96BD_MonitorSwitch, AsTag(@MoniSwitch),
+       p96GetBoardDataTags(i,[P96BD_BoardName, @BoardName,
+                              P96BD_RGBFormats, @RGBFormats,
+                              P96BD_TotalMemory, @MemorySize,
+                              P96BD_FreeMemory, @FreeMemory,
+                              P96BD_LargestFreeMemory, @LargestFreeMemory,
+                              P96BD_MemoryClock, @MemoryClock,
+                              P96BD_MonitorSwitch, @MoniSwitch,
                               TAG_END]);
 
       writeln('--------------------------------------------------');

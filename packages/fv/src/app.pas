@@ -807,25 +807,17 @@ BEGIN
     video unit capabilities, the mono modus can't be handled
   }
   Drivers.DetectVideo;
-{ ScreenMode.Row may be 0 if there's no console on startup }
-  if ScreenMode.Row = 0 then
-   begin
-    ShadowSize.X := 2;
-    AppPalette := apColor;
-   end
+  if (ScreenMode.Col div ScreenMode.Row<2) then
+    ShadowSize.X := 1
   else
-   begin
-    if (ScreenMode.Col div ScreenMode.Row<2) then
-     ShadowSize.X := 1
-    else
-     ShadowSize.X := 2;
-    if ScreenMode.color then
-     AppPalette := apColor
-    else
-     AppPalette := apBlackWhite;
-   end;
+    ShadowSize.X := 2;
+
   ShadowSize.Y := 1;
   ShowMarkers := False;
+  if ScreenMode.color then
+    AppPalette := apColor
+  else
+    AppPalette := apBlackWhite;
   Buffer := Views.PVideoBuf(VideoBuf);
 END;
 

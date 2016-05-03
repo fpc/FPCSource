@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Florian Klaempfl
     member of the Free Pascal development team
 
-    Video unit for Win32/Win64
+    Video unit for Win32
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,9 +19,6 @@ interface
 {$i videoh.inc}
 const
   useunicodefunctions : boolean = false;
-
-
-procedure VideoSetConsoleOutHandle (NewHandle: THandle);
 
 implementation
 
@@ -306,7 +303,7 @@ const
     LastCursorType: word = crUnderline;
     OrigScreen: PVideoBuf = nil;
     OrigScreenSize: cardinal = 0;
-    ConsoleOutDeviceName: string [8] = 'CONOUT$'#0;
+
 
 var ConsoleInfo : TConsoleScreenBufferInfo;
     ConsoleCursorInfo : TConsoleCursorInfo;
@@ -314,49 +311,16 @@ var ConsoleInfo : TConsoleScreenBufferInfo;
     OrigCP: cardinal;
     OrigConsoleCursorInfo : TConsoleCursorInfo;
     OrigConsoleInfo : TConsoleScreenBufferInfo;
-    NoConsoleOnStart: boolean;
-    NewConsoleHandleAllocated:  boolean;
-    ConsoleOutHandle: THandle;
 
 procedure SysInitVideo;
-var
-  SecAttr: TSecurityAttributes;
+
 begin
   ScreenColor:=true;
-  if NoConsoleOnStart then
-   begin
-    if not (AllocConsole) then
-     begin
-      WriteLn ('Error: No console available and console creation failed!');
-      RunError (103);
-     end;
-{Reopen StdOut/StdErr/StdIn}
-    OrigCP := GetACP;
-    with SecAttr do
-     begin 
-      nLength := SizeOf (TSecurityAttributes);
-      SecAttr.bInheritHandle := true;
-      SecAttr.lpSecurityDescriptor := nil;
-     end;
-    ConsoleOutHandle := CreateFile (@ConsoleOutDeviceName [1], Generic_Read or Generic_Write, File_Share_Write, @SecAttr, Open_Existing, File_Attribute_Normal, 0);
-    if ConsoleOutHandle = Invalid_Handle_Value then
-     begin
-      WriteLn ('Error: Console output not possible!');
-      RunError (103);
-     end
-    else
-     NewConsoleHandleAllocated := true;
-    GetConsoleScreenBufferInfo (ConsoleOutHandle, ConsoleInfo);
-    GetConsoleCursorInfo (ConsoleOutHandle, ConsoleCursorInfo);
-   end
-  else
-   begin
-    GetConsoleScreenBufferInfo(ConsoleOutHandle, OrigConsoleInfo);
-    GetConsoleCursorInfo(ConsoleOutHandle, OrigConsoleCursorInfo);
-    OrigCP := GetConsoleCP;
-    ConsoleInfo:=OrigConsoleInfo;
-    ConsoleCursorInfo:=OrigConsoleCursorInfo;
-   end;
+  GetConsoleScreenBufferInfo(TextRec(Output).Handle, OrigConsoleInfo);
+  GetConsoleCursorInfo(TextRec(Output).Handle, OrigConsoleCursorInfo);
+  OrigCP := GetConsoleCP;
+  ConsoleInfo:=OrigConsoleInfo;
+  ConsoleCursorInfo:=OrigConsoleCursorInfo;
   {
     About the ConsoleCursorInfo record: There are 3 possible
     structures in it that can be regarded as the 'screen':
@@ -385,38 +349,12 @@ begin
 end;
 
 
-
-procedure VideoSetConsoleOutHandle (NewHandle: THandle);
-begin
-  if NewHandle <> ConsoleOutHandle then
-   begin
-    if NewConsoleHandleAllocated then
-     begin
-      CloseHandle (ConsoleOutHandle);
-      NewConsoleHandleAllocated := false;
-     end;
-    ConsoleOutHandle := NewHandle;
-   end;
-end;
-
-
-
 procedure SysDoneVideo;
 begin
-  if NoConsoleOnStart then
-   begin
-    CloseHandle (ConsoleOutHandle);
-    NewConsoleHandleAllocated := false;
-    ConsoleOutHandle := Invalid_Handle_Value;
-    FreeConsole;
-   end
-  else
-   begin
-    SetConsoleScreenBufferSize (ConsoleOutHandle, OrigConsoleInfo.dwSize);
-    SetConsoleWindowInfo (ConsoleOutHandle, true, OrigConsoleInfo.srWindow);
-    SetConsoleCursorInfo(ConsoleOutHandle, OrigConsoleCursorInfo);
-    SetConsoleCP(OrigCP);
-   end;
+  SetConsoleScreenBufferSize (TextRec (Output).Handle, OrigConsoleInfo.dwSize);
+  SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, OrigConsoleInfo.srWindow);
+  SetConsoleCursorInfo(TextRec(Output).Handle, OrigConsoleCursorInfo);
+  SetConsoleCP(OrigCP);
 end;
 
 
@@ -432,7 +370,7 @@ var
 begin
    pos.x:=NewCursorX;
    pos.y:=NewCursorY;
-   SetConsoleCursorPosition(ConsoleOutHandle,pos);
+   SetConsoleCursorPosition(TextRec(Output).Handle,pos);
    CursorX:=pos.x;
    CursorY:=pos.y;
 end;
@@ -440,7 +378,7 @@ end;
 
 function SysGetCursorType: Word;
 begin
-   GetConsoleCursorInfo(ConsoleOutHandle,ConsoleCursorInfo);
+   GetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
    if not ConsoleCursorInfo.bvisible then
      SysGetCursorType:=crHidden
    else
@@ -457,7 +395,7 @@ end;
 
 procedure SysSetCursorType(NewType: Word);
 begin
-   GetConsoleCursorInfo(ConsoleOutHandle,ConsoleCursorInfo);
+   GetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
    if newType=crHidden then
      ConsoleCursorInfo.bvisible:=false
    else
@@ -474,7 +412,7 @@ begin
              ConsoleCursorInfo.dwSize:=99;
         end
      end;
-   SetConsoleCursorInfo(ConsoleOutHandle,ConsoleCursorInfo);
+   SetConsoleCursorInfo(TextRec(Output).Handle,ConsoleCursorInfo);
 end;
 
 function SysVideoModeSelector (const VideoMode: TVideoMode): boolean;
@@ -484,7 +422,7 @@ var MI: Console_Screen_Buffer_Info;
     SR: Small_Rect;
 
 begin
-  if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, MI)) then
+  if not (GetConsoleScreenBufferInfo (TextRec (Output).Handle, MI)) then
     SysVideoModeSelector := false
   else
     begin
@@ -506,8 +444,8 @@ begin
           if VideoMode.Row <= Bottom then
             Bottom := Pred (VideoMode.Row);
         end;
-      if SetConsoleWindowInfo (ConsoleOutHandle, true, SR) then
-        if SetConsoleScreenBufferSize (ConsoleOutHandle, C) then
+      if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, SR) then
+        if SetConsoleScreenBufferSize (TextRec (Output).Handle, C) then
           begin
             with SR do
               begin
@@ -515,7 +453,7 @@ begin
                 Right := Pred (VideoMode.Col);
                 Bottom := Pred (VideoMode.Row);
               end;
-            if SetConsoleWindowInfo (ConsoleOutHandle, true, SR) then
+            if SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, SR) then
               begin
                 SysVideoModeSelector := true;
                 SetCursorType (LastCursorType);
@@ -524,15 +462,15 @@ begin
             else
               begin
                 SysVideoModeSelector := false;
-                SetConsoleScreenBufferSize (ConsoleOutHandle, MI.dwSize);
-                SetConsoleWindowInfo (ConsoleOutHandle, true, MI.srWindow);
+                SetConsoleScreenBufferSize (TextRec (Output).Handle, MI.dwSize);
+                SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, MI.srWindow);
                 SetCursorType (LastCursorType);
               end
           end
         else
           begin
             SysVideoModeSelector := false;
-            SetConsoleWindowInfo (ConsoleOutHandle, true, MI.srWindow);
+            SetConsoleWindowInfo (cardinal (TextRec (Output).Handle), true, MI.srWindow);
             SetCursorType (LastCursorType);
           end
       else
@@ -743,9 +681,9 @@ begin
       writeln('Y2: ',y2);
       }
       if useunicodefunctions then
-        WriteConsoleOutputW(ConsoleOutHandle, @LineBuf, BufSize, BufCoord, WriteRegion)
+        WriteConsoleOutputW(TextRec(Output).Handle, @LineBuf, BufSize, BufCoord, WriteRegion)
       else
-        WriteConsoleOutput(ConsoleOutHandle, @LineBuf, BufSize, BufCoord, WriteRegion);
+        WriteConsoleOutput(TextRec(Output).Handle, @LineBuf, BufSize, BufCoord, WriteRegion);
 
       move(VideoBuf^,OldVideoBuf^,VideoBufSize);
    end;
@@ -772,74 +710,36 @@ var
   C: Coord;
   SR: Small_Rect;
   VioMode: TConsoleScreenBufferInfo;
-  SecAttr: TSecurityAttributes;
 begin
-  NewConsoleHandleAllocated := false;
-  FillChar (VioMode, 0, SizeOf (VioMode));
-  ConsoleOutHandle := GetStdHandle (Std_Output_Handle);
-{MSDN: If an application does not have associated standard handles, such as a service running on an
- interactive desktop, and has not redirected them, the return value is NULL.}
-  if (ConsoleOutHandle = 0) or (ConsoleOutHandle = Invalid_Handle_Value) then
-   NoConsoleOnStart := true
-  else
-   if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, VioMode)) then
+  GetConsoleScreenBufferInfo (TextRec (Output).Handle, VioMode);
+  { Register the curent video mode in reserved slot in System Modes}
+  with VioMode do
     begin
-{ StdOut may be redirected, let's try to access the console using a new handle }
-     with SecAttr do
-      begin 
-       nLength := SizeOf (TSecurityAttributes);
-       SecAttr.bInheritHandle := true;
-       SecAttr.lpSecurityDescriptor := nil;
-      end;
-     ConsoleOutHandle := CreateFile (@ConsoleOutDeviceName [1], Generic_Read or Generic_Write, File_Share_Write, @SecAttr, Open_Existing, File_Attribute_Normal, 0);
-     if ConsoleOutHandle = Invalid_Handle_Value then
-      NoConsoleOnStart := true
-     else
-      NewConsoleHandleAllocated := true;
-     if not (GetConsoleScreenBufferInfo (ConsoleOutHandle, VioMode)) then
-      begin
-       NoConsoleOnStart := true;
-       CloseHandle (ConsoleOutHandle);
-       ConsoleOutHandle := Invalid_Handle_Value;
-       NewConsoleHandleAllocated := false;
-      end;
-    end;
-  if not (NoConsoleOnStart) then
-   begin
-    with VioMode do
-     begin
+      {Assume we have at least 16 colours available in "colour" modes}
+      SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
+      SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
+      SysVMD[SysVideoModeCount-1].Color:=true;
       OrigScreenSize := max(dwMaximumWindowSize.X,dwSize.X) * max(dwMaximumWindowSize.Y,dwSize.Y) * SizeOf (Char_Info);
-      if OrigScreenSize > 0 then
-       begin
-      { Register the curent video mode in reserved slot in System Modes}
-        SysVMD[SysVideoModeCount-1].Col:=dwMaximumWindowSize.X;
-        SysVMD[SysVideoModeCount-1].Row:=dwMaximumWindowSize.Y;
-        SysVMD[SysVideoModeCount-1].Color:=true;
-        GetMem (OrigScreen, OrigScreenSize);
-       end;
-     end;
-    if OrigScreenSize > 0 then
-     begin
-      with C do
-       begin
-        X := 0;
-        Y := 0;
-       end;
-      with SR do
-       begin
-        Top := 0;
-        Left := 0;
-        Right := Pred (VioMode.dwSize.X);
-        Bottom := Pred (VioMode.dwSize.Y);
-       end;
-      if not (ReadConsoleOutput (ConsoleOutHandle, OrigScreen, VioMode.dwSize, C, SR)) then
-       begin
-        FreeMem (OrigScreen, OrigScreenSize);
-        OrigScreen := nil;
-        OrigScreenSize := 0;
-       end;
-     end;
-   end;
+    end;
+  GetMem (OrigScreen, OrigScreenSize);
+  with C do
+    begin
+      X := 0;
+      Y := 0;
+    end;
+  with SR do
+    begin
+      Top := 0;
+      Left := 0;
+      Right := Pred (VioMode.dwSize.X);
+      Bottom := Pred (VioMode.dwSize.Y);
+    end;
+  if not (ReadConsoleOutput (TextRec (Output).Handle, OrigScreen, VioMode.dwSize, C, SR)) then
+    begin
+      FreeMem (OrigScreen, OrigScreenSize);
+      OrigScreen := nil;
+      OrigScreenSize := 0;
+    end;
 end;
 
 
@@ -854,6 +754,5 @@ finalization
       OrigScreen := nil;
       OrigScreenSize := 0;
     end;
-  if NewConsoleHandleAllocated then
-   CloseHandle (ConsoleOutHandle);
+
 end.

@@ -358,8 +358,6 @@ begin
     begin
       URI:=ParseURI(DownloadURL);
       Result:=URI.Document;
-      if Result='' then
-        Result:=ChangeFileExt(Name,'.zip');
     end
   else
     Result:=FFileName;
