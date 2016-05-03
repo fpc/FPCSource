@@ -115,10 +115,13 @@
 {$define SYSTEM_HAS_FREXP}
     function c_frexp(x: double; out e: longint): double; cdecl; external 'c' name 'frexp';
 
-    procedure frexp(x:ValReal; out Mantissa: ValReal; out Exponent: longint); {$ifdef MATHINLINE}inline;{$endif}
+    function frexp(x:ValReal; out e:Integer ):ValReal; {$ifdef MATHINLINE}inline;{$endif}
+    var
+      l: longint;
     begin
       resetexcepts;
-      Mantissa := c_frexp(x,Exponent);
+      frexp := c_frexp(x,l);
+      e := l;
       checkexcepts;
     end;
 {$endif not SYSTEM_HAS_FREXP}

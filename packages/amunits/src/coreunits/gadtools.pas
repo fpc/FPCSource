@@ -465,7 +465,7 @@ Type
 
 
 VAR
-    GadToolsBase : pLibrary = nil;
+    GadToolsBase : pLibrary;
 
 FUNCTION CreateContext(glistptr : pGadget location 'a0'): pGadget; syscall GadToolsBase 114;
 FUNCTION CreateGadgetA(kind : ULONG location 'd0'; gad : pGadget location 'a0'; const ng : pNewGadget location 'a1'; const taglist : pTagItem location 'a2') : pGadget; syscall GadToolsBase 030;
@@ -487,59 +487,26 @@ PROCEDURE GT_SetGadgetAttrsA(gad : pGadget location 'a0'; win : pWindow location
 FUNCTION LayoutMenuItemsA(firstitem : pMenuItem location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : LongBool; syscall GadToolsBase 060;
 FUNCTION LayoutMenusA(firstmenu : pMenu location 'a0'; vi : POINTER location 'a1'; const taglist : pTagItem location 'a2') : LongBool; syscall GadToolsBase 066;
 
-function CreateGadget(kind : ULONG; gad : pGadget; ng : pNewGadget; Const argv : array of PtrUInt) : pGadget;
-function CreateMenus(newmenu : pNewMenu; Const argv : array of PtrUInt) : pMenu;
-procedure DrawBevelBox(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT; Const argv : array of PtrUInt);
-function GetVisualInfo(screen : pScreen; Const argv : array of PtrUInt) : POINTER;
-function GT_GetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt) : LONGINT;
-procedure GT_SetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt);
-function LayoutMenuItems(firstitem : pMenuItem; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
-function LayoutMenus(firstmenu : pMenu; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
-
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 function GTMENU_USERDATA(menu : pMenu): pointer;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitGADTOOLSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    GADTOOLSIsCompiledHow : longint;
+
 IMPLEMENTATION
 
-function CreateGadget(kind : ULONG; gad : pGadget; ng : pNewGadget; Const argv : array of PtrUInt) : pGadget;
-begin
-    CreateGadget := CreateGadgetA(kind,gad,ng,@argv);
-end;
-
-function CreateMenus(newmenu : pNewMenu; Const argv : array of PtrUInt) : pMenu;
-begin
-    CreateMenus := CreateMenusA(newmenu,@argv);
-end;
-
-procedure DrawBevelBox(rport : pRastPort; left : LONGINT; top : LONGINT; width : LONGINT; height : LONGINT; Const argv : array of PtrUInt);
-begin
-    DrawBevelBoxA(rport,left,top,width,height,@argv);
-end;
-
-function GetVisualInfo(screen : pScreen; Const argv : array of PtrUInt) : POINTER;
-begin
-    GetVisualInfo := GetVisualInfoA(screen,@argv);
-end;
-
-function GT_GetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt) : LONGINT;
-begin
-    GT_GetGadgetAttrs := GT_GetGadgetAttrsA(gad,win,req,@argv);
-end;
-
-procedure GT_SetGadgetAttrs(gad : pGadget; win : pWindow; req : pRequester; Const argv : array of PtrUInt);
-begin
-    GT_SetGadgetAttrsA(gad,win,req,@argv);
-end;
-
-function LayoutMenuItems(firstitem : pMenuItem; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
-begin
-    LayoutMenuItems := LayoutMenuItemsA(firstitem,vi,@argv);
-end;
-
-function LayoutMenus(firstmenu : pMenu; vi : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
-begin
-    LayoutMenus := LayoutMenusA(firstmenu,vi,@argv);
-end;
+uses
+{$ifndef dont_use_openlib}
+amsgbox;
+{$endif dont_use_openlib}
 
 function GTMENUITEM_USERDATA(menuitem : pMenuItem): pointer;
 begin
@@ -553,14 +520,86 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
-finalization
-  if Assigned(GadToolsBase) then
-    CloseLibrary(GadToolsBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of gadtools.library}
+  {$Info don't forget to use InitGADTOOLSLibrary in the beginning of your program}
+
+var
+    gadtools_exit : Pointer;
+
+procedure ClosegadtoolsLibrary;
+begin
+    ExitProc := gadtools_exit;
+    if GadToolsBase <> nil then begin
+        CloseLibrary(GadToolsBase);
+        GadToolsBase := nil;
+    end;
+end;
+
+procedure InitGADTOOLSLibrary;
+begin
+    GadToolsBase := nil;
+    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
+    if GadToolsBase <> nil then begin
+        gadtools_exit := ExitProc;
+        ExitProc := @ClosegadtoolsLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open gadtools.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    GADTOOLSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of gadtools.library}
+
+var
+    gadtools_exit : Pointer;
+
+procedure ClosegadtoolsLibrary;
+begin
+    ExitProc := gadtools_exit;
+    if GadToolsBase <> nil then begin
+        CloseLibrary(GadToolsBase);
+        GadToolsBase := nil;
+    end;
+end;
+
+begin
+    GadToolsBase := nil;
+    GadToolsBase := OpenLibrary(GADTOOLSNAME,LIBVERSION);
+    if GadToolsBase <> nil then begin
+        gadtools_exit := ExitProc;
+        ExitProc := @ClosegadtoolsLibrary;
+        GADTOOLSIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open gadtools.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    GADTOOLSIsCompiledHow := 3;
+   {$Warning No autoopening of gadtools.library compiled}
+   {$Warning Make sure you open gadtools.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT GADTOOLS *)
 
 

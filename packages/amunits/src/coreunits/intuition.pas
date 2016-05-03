@@ -1085,7 +1085,7 @@ Type
 { ======================================================================== }
 
 Type
-    pScreen = ^tScreen;
+
     pWindow = ^tWindow;
     tWindow = record
         NextWindow      : pWindow;      { for the linked list in a screen }
@@ -1115,7 +1115,7 @@ Type
 
         ReqCount        : smallint;        { count of reqs blocking Window }
 
-        WScreen         : PScreen;      { this Window's Screen }
+        WScreen         : Pointer;      { this Window's Screen }
         RPort           : pRastPort;  { this Window's very own RastPort }
 
     { the border variables describe the window border.   If you specify
@@ -1216,71 +1216,6 @@ Type
         MoreFlags       : ULONG;
 
     {**** Data beyond this point are Intuition Private.  DO NOT USE ****}
-
-    end;
-
-{ ======================================================================== }
-{ === Screen ============================================================= }
-{ ======================================================================== }
-
-    tScreen = record
-        NextScreen      : pScreen;      { linked list of screens }
-        FirstWindow     : pWindow;      { linked list Screen's Windows }
-
-        LeftEdge,
-        TopEdge         : smallint;        { parameters of the screen }
-        Width,
-        Height          : smallint;        { parameters of the screen }
-
-        MouseY,
-        MouseX          : smallint;        { position relative to upper-left }
-
-        Flags           : Word;        { see definitions below }
-
-        Title           : STRPTR;       { null-terminated Title text }
-        DefaultTitle    : STRPTR;       { for Windows without ScreenTitle }
-
-    { Bar sizes for this Screen and all Window's in this Screen }
-        BarHeight,
-        BarVBorder,
-        BarHBorder,
-        MenuVBorder,
-        MenuHBorder     : Shortint;
-        WBorTop,
-        WBorLeft,
-        WBorRight,
-        WBorBottom      : Shortint;
-
-        Font            : pTextAttr;  { this screen's default font       }
-
-    { the display data structures for this Screen (note the prefix S)}
-        ViewPort        : tViewPort;     { describing the Screen's display }
-        RastPort        : tRastPort;     { describing Screen rendering      }
-        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
-        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
-
-    { You supply a linked-list of Gadgets for your Screen.
-     *  This list DOES NOT include system Gadgets.  You get the standard
-     *  system Screen Gadgets by default
-     }
-
-        FirstGadget     : pGadget;
-
-        DetailPen,
-        BlockPen        : Byte;         { for bar/border/gadget rendering }
-
-    { the following variable(s) are maintained by Intuition to support the
-     * DisplayBeep() color flashing technique
-     }
-        SaveColor0      : Word;
-
-    { This layer is for the Screen and Menu bars }
-        BarLayer        : pLayer;
-
-        ExtData         : Pointer;
-        UserData        : Pointer;
-                        { general-purpose pointer to User data extension }
-    {**** Data below this point are SYSTEM PRIVATE ****}
 
     end;
 
@@ -1858,7 +1793,7 @@ Type
  tDrawInfo = record
     dri_Version : Word;    { will be  DRI_VERSION                 }
     dri_NumPens : Word;    { guaranteed to be >= numDrIPens       }
-    dri_Pens    : PWord;  { pointer to pen array                 }
+    dri_Pens    : Pointer;  { pointer to pen array                 }
 
     dri_Font    : pTextFont;      { screen default font          }
     dri_Depth   : Word;            { (initial) depth of screen bitmap     }
@@ -1908,6 +1843,74 @@ CONST
  PEN_C2        =  $FEFD;          { Complement of color 2 }
  PEN_C1        =  $FEFE;          { Complement of color 1 }
  PEN_C0        =  $FEFF;          { Complement of color 0 }
+
+{ ======================================================================== }
+{ === Screen ============================================================= }
+{ ======================================================================== }
+
+Type
+
+    pScreen = ^tScreen;
+    tScreen = record
+        NextScreen      : pScreen;      { linked list of screens }
+        FirstWindow     : pWindow;      { linked list Screen's Windows }
+
+        LeftEdge,
+        TopEdge         : smallint;        { parameters of the screen }
+        Width,
+        Height          : smallint;        { parameters of the screen }
+
+        MouseY,
+        MouseX          : smallint;        { position relative to upper-left }
+
+        Flags           : Word;        { see definitions below }
+
+        Title           : STRPTR;       { null-terminated Title text }
+        DefaultTitle    : STRPTR;       { for Windows without ScreenTitle }
+
+    { Bar sizes for this Screen and all Window's in this Screen }
+        BarHeight,
+        BarVBorder,
+        BarHBorder,
+        MenuVBorder,
+        MenuHBorder     : Shortint;
+        WBorTop,
+        WBorLeft,
+        WBorRight,
+        WBorBottom      : Shortint;
+
+        Font            : pTextAttr;  { this screen's default font       }
+
+    { the display data structures for this Screen (note the prefix S)}
+        ViewPort        : tViewPort;     { describing the Screen's display }
+        RastPort        : tRastPort;     { describing Screen rendering      }
+        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
+        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
+
+    { You supply a linked-list of Gadgets for your Screen.
+     *  This list DOES NOT include system Gadgets.  You get the standard
+     *  system Screen Gadgets by default
+     }
+
+        FirstGadget     : pGadget;
+
+        DetailPen,
+        BlockPen        : Byte;         { for bar/border/gadget rendering }
+
+    { the following variable(s) are maintained by Intuition to support the
+     * DisplayBeep() color flashing technique
+     }
+        SaveColor0      : Word;
+
+    { This layer is for the Screen and Menu bars }
+        BarLayer        : pLayer;
+
+        ExtData         : Pointer;
+        UserData        : Pointer;
+                        { general-purpose pointer to User data extension }
+    {**** Data below this point are SYSTEM PRIVATE ****}
+
+    end;
 
 Const
 
@@ -4061,8 +4064,6 @@ CONST
  *      You should always leave the SGA_REDISPLAY flag set, since Intuition
  *      uses this processing when activating a string gadget.
  }
-var
-  IntuitionBase: pIntuitionBase;
 
 FUNCTION ActivateGadget(gadgets : pGadget location 'a0'; window : pWindow location 'a1'; requester : pRequester location 'a2') : LongBool syscall _IntuitionBase 462;
 PROCEDURE ActivateWindow(window : pWindow location 'a0'); syscall _IntuitionBase 450;
@@ -4080,7 +4081,7 @@ PROCEDURE ChangeWindowBox(window : pWindow location 'a0'; left : LONGINT locatio
 FUNCTION ClearDMRequest(window : pWindow location 'a0') : LongBool; syscall _IntuitionBase 048;
 PROCEDURE ClearMenuStrip(window : pWindow location 'a0'); syscall _IntuitionBase 054;
 PROCEDURE ClearPointer(window : pWindow location 'a0'); syscall _IntuitionBase 060;
-function CloseScreen(screen : pScreen location 'a0'): LongBool; syscall _IntuitionBase 066;
+PROCEDURE CloseScreen(screen : pScreen location 'a0'); syscall _IntuitionBase 066;
 PROCEDURE CloseWindow(window : pWindow location 'a0'); syscall _IntuitionBase 072;
 FUNCTION CloseWorkBench : LongBool; syscall _IntuitionBase 078;
 PROCEDURE CurrentTime(VAR seconds : ULONG location 'a0'; VAR micros : ULONG location 'a1'); syscall _IntuitionBase 084;
@@ -4187,23 +4188,13 @@ PROCEDURE WindowToBack(window : pWindow location 'a0'); syscall _IntuitionBase 3
 PROCEDURE WindowToFront(window : pWindow location 'a0'); syscall _IntuitionBase 312;
 PROCEDURE ZipWindow(window : pWindow location 'a0'); syscall _IntuitionBase 504;
 
-function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
-function OpenWindowTags(newWindow : pNewWindow; tagList : array of PtrUInt) : pWindow;
-function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
-function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
-function SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : array of PtrUInt) : ULONG;
-function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
-function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
-procedure SetWindowPointer(win : pWindow; tags: array of DWord);
-
-
 { Intuition macros }
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 function SIZEOF_INSTANCE (cl: pIClass): Longint;
 function BASEOBJECT (o: p_Object): Pointer;
-function _OBJ(o: p_Object): p_Object; inline;
-function __OBJECT (o: Pointer): p_Object; inline;
-function OCLASS (o: Pointer): pIClass; inline;
+function _OBJ(o: p_Object): p_Object;
+function __OBJECT (o: Pointer): p_Object;
+function OCLASS (o: Pointer): pIClass;
 function SHIFTITEM (n: smallint): word;
 function SHIFTMENU (n: smallint): word;
 function SHIFTSUB (n: smallint): word;
@@ -4228,46 +4219,6 @@ FUNCTION TimedDisplayAlert(alertNumber : ULONG;const string_ : string; height : 
 PROCEDURE UnlockPubScreen(const name : string; screen : pScreen);
 
 IMPLEMENTATION
-
-function OpenScreenTags(newScreen : pNewScreen; tagList : array of PtrUInt) : pScreen;
-begin
-    OpenScreenTags := OpenScreenTagList(newScreen, @tagList);
-end;
-
-function OpenWindowTags(newWindow : pNewWindow; tagList : array of PtrUInt) : pWindow;
-begin
-    OpenWindowTags := OpenWindowTagList(newWindow, @tagList);
-end;
-
-function NewObject(classPtr : pIClass; classID : pCHAR; Const argv : array of PtrUInt) : POINTER;
-begin
-    NewObject := NewObjectA(classPtr,classID, @argv);
-end;
-
-function NewObject(classPtr : pIClass; classID : string; Const argv : array of PtrUInt ) : POINTER;
-begin
-      NewObject := NewObjectA(classPtr,PChar(RawByteString(classID)),@argv);
-end;
-
-function SetAttrs(obj : POINTER; tags: array of DWord) : ULONG;
-begin
-  SetAttrs := SetAttrsA(obj, @tags);
-end;
-
-function SetGadgetAttrs(gadget : pGadget; window : pWindow; requester : pRequester; Const argv : array of PtrUInt) : ULONG;
-begin
-    SetGadgetAttrs := SetGadgetAttrsA(gadget,window,requester,@argv);
-end;
-
-function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT;
-begin
-  EasyRequest := EasyRequestArgs(window, easystruct, idcmpptr, @args);
-end;
-
-procedure SetWindowPointer(win : pWindow; tags: array of DWord);
-begin
-  SetWindowPointerA(win, @tags);
-end;
 
 function INST_DATA (cl: pIClass; o: p_Object): Pointer; inline;
 begin
@@ -4295,8 +4246,11 @@ begin
 end;
 
 function OCLASS (o: Pointer): pIClass; inline;
+var
+    obj: p_Object;
 begin
-    OCLASS := p_Object(o - sizeof(t_Object))^.o_Class;
+    obj := p_Object(Longint(o) - sizeof(t_Object));
+    OCLASS := obj^.o_Class;
 end;
 
 function SHIFTITEM (n: smallint): word; inline;
@@ -4413,8 +4367,7 @@ begin
       UnlockPubScreen(PChar(RawByteString(name)),screen);
 end;
 
-initialization
-  IntuitionBase := pIntuitionBase(_IntuitionBase);
+
 END. (* UNIT INTUITION *)
 
 

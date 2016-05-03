@@ -128,7 +128,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;
+    assembler;nostackframe;
     asm
       fldt d
       fsqrt
@@ -147,7 +147,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;
+    assembler;nostackframe;
     asm
       fldt d
       fld1
@@ -164,7 +164,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;
+    assembler;nostackframe;
     asm
       fldln2
       fldt d
@@ -181,7 +181,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;
+    assembler;nostackframe;
     asm
       fldt d
       fsin
@@ -197,7 +197,7 @@ const
       runerror(207);
       result:=0;
 {$else not cpullvm}
-    assembler;
+    assembler;nostackframe;
     asm
       fldt d
       fcos
@@ -240,17 +240,22 @@ const
             fld         %st
             fabs
             fld1
-            fcomip
-            fstp        %st
+            fcompp
+            fstsw       %ax
+            sahf
             jp          .L3               { NaN }
             jae         .L1               { |frac(z)| <= 1, good }
 
             fld         %st(1)
             fabs
-            flds        large(%rip)
-            fcomip
-            fstp        %st
-            jb          .L3               { int(z) >= 24576 }
+            fcomps      large(%rip)
+            fstsw       %ax
+            sahf
+            jb          .L0               { int(z) < 24576 }
+   .L3:
+            fstp        %st               { pop frac(z) and load 0 }
+            fldz
+            jmp         .L1
    .L0:
             { Calculate 2**frac(z)-1 as N*(N+2), where N=2**(frac(z)/2)-1 }
             fmuls       half(%rip)
@@ -259,9 +264,6 @@ const
             fadds       two(%rip)
             fmulp       %st,%st(1)
             jmp         .L2
-   .L3:
-            fstp        %st               { pop frac(z) and load 0 }
-            fldz
    .L1:
             f2xm1
    .L2:

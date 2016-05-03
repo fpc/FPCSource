@@ -86,7 +86,7 @@ implementation
 
     uses
       systems,
-      cutils,cclasses,verbose,globals,constexp,fmodule,
+      cutils,cclasses,verbose,globals,constexp,
       symconst,symbase,symdef,symsym,symcpu,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
@@ -106,7 +106,7 @@ implementation
         href    : treference;
         pool    : THashSet;
         entry   : PHashSetItem;
-        indirect : boolean;
+
       begin
          location_reset(location,LOC_REGISTER,def_cgsize(voidpointertype));
          if (left.nodetype=typen) then
@@ -114,19 +114,8 @@ implementation
              location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
              if not is_objcclass(left.resultdef) then
                begin
-                 { we are using a direct reference if any of the following is true:
-                   - the target does not support packages
-                   - the target does not use indirect references
-                   - the class is located inside the same unit }
-                 indirect:=(tf_supports_packages in target_info.flags) and
-                           (target_info.system in systems_indirect_var_imports) and
-                           not sym_is_owned_by(left.resultdef.typesym,current_module.globalsymtable) and
-                           (
-                             (current_module.globalsymtable=current_module.localsymtable) or
-                             not sym_is_owned_by(left.resultdef.typesym,current_module.localsymtable)
-                           );
                  reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA,indirect),0,
+                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname,AT_DATA),0,
                    voidpointertype.size);
                  hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,href,location.register);
                end
@@ -145,7 +134,7 @@ implementation
                      objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                    end;
                  reference_reset_symbol(href,tasmlabel(entry^.Data),0,voidpointertype.size);
-                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,objc_idtype,objc_idtype,href,location.register);
+                 hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,location.register);
                end;
            end
          else
@@ -336,7 +325,6 @@ implementation
         paraloc1 : tcgpara;
         tmpref: treference;
         sref: tsubsetreference;
-        awordoffset,
         offsetcorrection : aint;
         pd : tprocdef;
         sym : tsym;
@@ -463,18 +451,13 @@ implementation
                        offsetcorrection:=0;
                        if (left.location.size in [OS_PAIR,OS_SPAIR]) then
                          begin
-                           if not is_packed_record_or_object(left.resultdef) then
-                             awordoffset:=sizeof(aword)
-                           else
-                             awordoffset:=sizeof(aword)*8;
-
-                           if (vs.fieldoffset>=awordoffset) xor (target_info.endian=endian_big) then
+                           if (vs.fieldoffset>=sizeof(aword)) xor (target_info.endian=endian_big) then
                              location.sreg.subsetreg := left.location.registerhi
                            else
                              location.sreg.subsetreg := left.location.register;
 
-                           if vs.fieldoffset>=awordoffset then
-                             offsetcorrection := sizeof(aword)*8;
+                           if (vs.fieldoffset>=sizeof(aword)) then
+                             offsetcorrection:=sizeof(aword)*8;
 
                            location.sreg.subsetregsize := OS_INT;
                          end
@@ -541,7 +524,6 @@ implementation
              }
              asmsym:=current_asmdata.RefAsmSymbol(vs.mangledname);
              reference_reset_symbol(tmpref,asmsym,0,sizeof(pint));
-             hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,cpointerdef.getreusable(resultdef),location.reference);
              location.reference.index:=hlcg.getintregister(current_asmdata.CurrAsmList,ptruinttype);
              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,ptruinttype,ptruinttype,tmpref,location.reference.index);
              { always packrecords C -> natural alignment }
@@ -782,22 +764,20 @@ implementation
                firstpass(hightree);
                secondpass(hightree);
                { generate compares }
-{$ifndef cpuhighleveltarget}
                if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                  hreg:=cg.makeregsize(current_asmdata.CurrAsmList,right.location.register,OS_INT)
                else
-{$endif not cpuhighleveltarget}
                  begin
-                   hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,ossinttype);
-                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,ossinttype,right.location,hreg);
+                   hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                   hlcg.a_load_loc_reg(current_asmdata.CurrAsmList,right.resultdef,osuinttype,right.location,hreg);
                  end;
                current_asmdata.getjumplabel(neglabel);
                current_asmdata.getjumplabel(poslabel);
-               hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,ossinttype,OC_LT,0,hreg,poslabel);
-               hlcg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,osuinttype,OC_BE,hightree.location,hreg,neglabel);
-               hlcg.a_label(current_asmdata.CurrAsmList,poslabel);
-               hlcg.g_call_system_proc(current_asmdata.CurrAsmList,'fpc_rangeerror',[],nil).resetiftemp;
-               hlcg.a_label(current_asmdata.CurrAsmList,neglabel);
+               cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_LT,0,hreg,poslabel);
+               cg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_BE,hightree.location,hreg,neglabel);
+               cg.a_label(current_asmdata.CurrAsmList,poslabel);
+               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RANGEERROR',false);
+               cg.a_label(current_asmdata.CurrAsmList,neglabel);
                { release hightree }
                hightree.free;
              end;
@@ -983,10 +963,8 @@ implementation
            begin
               { may happen in case of function results }
               case left.location.loc of
-                LOC_CSUBSETREG,
                 LOC_CREGISTER,
                 LOC_CMMREGISTER,
-                LOC_SUBSETREG,
                 LOC_REGISTER,
                 LOC_MMREGISTER:
                   hlcg.location_force_mem(current_asmdata.CurrAsmList,left.location,left.resultdef);

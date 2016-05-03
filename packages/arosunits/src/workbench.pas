@@ -13,7 +13,10 @@
 
  **********************************************************************}
 unit Workbench;
+
+{$MODE OBJFPC} {$H+}
 {$PACKRECORDS C}
+
 
 Interface
 
@@ -585,64 +588,90 @@ function SendAppWindowMessage(Win: PWindow; NumFiles: LongWord; Files: PPChar; C
 function GetNextAppIcon(LastDiskObj: PDiskObject; Text_: PChar): PDiskObject; syscall WorkbenchBase 27;
 
 // varargs versions:
-function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of PtrUInt): PAppIcon;
-function AddAppMenuItem(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort; const Tags: array of PtrUInt): PAppMenuItem;
-function AddAppWindow(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort; const Tags: array of PtrUInt): PAppWindow;
-function AddAppWindowDropZone(Aw: PAppWindow; ID: LongWord; UserData: LongWord; const Tags: array of PtrUInt): PAppWindowDropZone;
-function CloseWorkbenchObject(Name: STRPTR; const Tags: array of PtrUInt): LongBool; unimplemented;
-function MakeWorkbenchObjectVisible(Name: STRPTR; const Tags: array of PtrUInt): LongBool; unimplemented;
-function OpenWorkbenchObject(Name: STRPTR; const Tags: array of PtrUInt): LongBool;
-function WorkbenchControl(Name: STRPTR; const Tags: array of PtrUInt): LongBool;
+function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of const): PAppIcon;
+function AddAppMenuItem(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort; const Tags: array of const): PAppMenuItem;
+function AddAppWindow(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort; const Tags: array of const): PAppWindow;
+function AddAppWindowDropZone(Aw: PAppWindow; ID: LongWord; UserData: LongWord; const Tags: array of const): PAppWindowDropZone;
+function CloseWorkbenchObject(Name: STRPTR; const Tags: array of const): LongBool; unimplemented;
+function MakeWorkbenchObjectVisible(Name: STRPTR; const Tags: array of const): LongBool; unimplemented;
+function OpenWorkbenchObject(Name: STRPTR; const Tags: array of const): LongBool;
+function WorkbenchControl(Name: STRPTR; const Tags: array of const): LongBool;
 
 implementation
 
+uses
+  TagsArray;
+
 
 // varargs versions:
-function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of PtrUInt): PAppIcon; inline;
+function AddAppIcon(ID: LongWord; UserData: LongWord; Text_: PChar; MsgPort: PMsgPort; Lock: BPTR; DiskObj: PDiskObject; const Tags: array of const): PAppIcon;
+var
+  TagList: TTagsList;
 begin
-  AddAppIcon := AddAppIconA(ID, UserData, Text_, MsgPort, Lock, DiskObj, @Tags);
+  AddTags(TagList, Tags);
+  AddAppIcon := AddAppIconA(ID, UserData, Text_, MsgPort, Lock, DiskObj, GetTagPtr(TagList));
 end;
 
 
-function AddAppMenuItem(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort;  const Tags: array of PtrUInt): PAppMenuItem; inline;
+function AddAppMenuItem(ID: LongWord; UserData: LongWord; Text_: APTR; MsgPort: PMsgPort;  const Tags: array of const): PAppMenuItem;
+var
+  TagList: TTagsList;
 begin
-  AddAppMenuItem := AddAppMenuItemA(ID, UserData, Text_, MsgPort, @Tags);
+  AddAppMenuItem := AddAppMenuItemA(ID, UserData, Text_, MsgPort, GetTagPtr(TagList));
 end;
 
 
-function AddAppWindow(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort;  const Tags: array of PtrUInt): PAppWindow; inline;
+function AddAppWindow(ID: LongWord; UserData: LongWord; Window: PWindow; MsgPort: PMsgPort;  const Tags: array of const): PAppWindow;
+var
+  TagList: TTagsList;
 begin
-  AddAppWindow := AddAppWindowA(ID, UserData, Window, MsgPort, @Tags);
+  AddTags(TagList, Tags);
+  AddAppWindow := AddAppWindowA(ID, UserData, Window, MsgPort, GetTagPtr(TagList));
 end;
 
 
-function AddAppWindowDropZone(Aw: PAppWindow; ID: LongWord; UserData: LongWord;  const Tags: array of PtrUInt): PAppWindowDropZone; inline;
+function AddAppWindowDropZone(Aw: PAppWindow; ID: LongWord; UserData: LongWord;  const Tags: array of const): PAppWindowDropZone;
+var
+  TagList: TTagsList;
 begin
-  AddAppWindowDropZone := AddAppWindowDropZoneA(Aw, ID, UserData, @Tags);
+  AddTags(TagList, Tags);
+  AddAppWindowDropZone := AddAppWindowDropZoneA(Aw, ID, UserData, GetTagPtr(TagList));
 end;
 
 
-function CloseWorkbenchObject(Name: STRPTR;  const Tags: array of PtrUInt): LongBool; inline;
+function CloseWorkbenchObject(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  CloseWorkbenchObject := CloseWorkbenchObjectA(Name, @Tags);
+  AddTags(TagList, Tags);
+  CloseWorkbenchObject := CloseWorkbenchObjectA(Name, GetTagPtr(TagList));
 end;
 
 
-function MakeWorkbenchObjectVisible(Name: STRPTR;  const Tags: array of PtrUInt): LongBool; inline;
+function MakeWorkbenchObjectVisible(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  MakeWorkbenchObjectVisible := MakeWorkbenchObjectVisibleA(Name, @Tags);
+  AddTags(TagList, Tags);
+  MakeWorkbenchObjectVisible := MakeWorkbenchObjectVisibleA(Name, GetTagPtr(TagList));
 end;
 
 
-function OpenWorkbenchObject(Name: STRPTR;  const Tags: array of PtrUInt): LongBool; inline;
+function OpenWorkbenchObject(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  OpenWorkbenchObject := OpenWorkbenchObjectA(Name, @Tags);
+  AddTags(TagList, Tags);
+  OpenWorkbenchObject := OpenWorkbenchObjectA(Name, GetTagPtr(TagList));
 end;
 
 
-function WorkbenchControl(Name: STRPTR;  const Tags: array of PtrUInt): LongBool; inline;
+function WorkbenchControl(Name: STRPTR;  const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  WorkbenchControl := WorkbenchControlA(Name, @Tags);
+  AddTags(TagList, Tags);
+  WorkbenchControl := WorkbenchControlA(Name, GetTagPtr(TagList));
 end;
 
 

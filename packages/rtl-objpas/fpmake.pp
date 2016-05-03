@@ -61,11 +61,11 @@ begin
 
 
     T:=P.Targets.AddUnit('strutils.pp',StrUtilsOses);
-    T:=P.Targets.AddUnit('widestrutils.pp',StrUtilsOses-ConvUtilOSes);
     T:=P.Targets.AddUnit('varutils.pp',VarUtilsOses);
     with T.Dependencies do
       begin
         AddInclude('varutilh.inc');
+        AddInclude('varerror.inc');
         AddInclude('varutils.inc',VarUtilsOSes-[win32,win64]);
         AddInclude('cvarutil.inc');
       end;

@@ -19,10 +19,7 @@ unit sqlscript;
 interface
 
 uses
-  Classes, SysUtils;
-
-Const
-  MinSQLSeps = 5; // Default, minimum number of standard SQL separators.
+  Classes, SysUtils; 
 
 type
 
@@ -36,7 +33,6 @@ type
   TCustomSQLScript = class(TComponent)
   private
     FAutoCommit: Boolean;
-    FDollarStrings: Tstrings;
     FLine: Integer;
     FCol: Integer;
     FDefines: TStrings;
@@ -47,7 +43,6 @@ type
     FSkipModeStack: array[0..255] of TSQLSkipMode;
     FIsSkippingStack: array[0..255] of Boolean;
     FAborted: Boolean;
-    FUseDollarString: Boolean;
     FUseSetTerm, FUseDefines, FUseCommit,
     FCommentsInSQL: Boolean;
     FTerminator: AnsiString;
@@ -57,18 +52,12 @@ type
     FDirectives: TStrings;
     FComment,
     FEmitLine: Boolean;
-    FSeps : Array of string;
     procedure SetDefines(const Value: TStrings);
-    function  FindNextSeparator(ASeps: Array of string; Out IsExtended : Boolean): AnsiString;
+    function FindNextSeparator(sep: array of string): AnsiString;
     procedure AddToStatement(value: AnsiString; ForceNewLine : boolean);
     procedure SetDirectives(value: TStrings);
-    procedure SetDollarStrings(AValue: TStrings);
     procedure SetSQL(value: TStrings);
-    procedure SetTerminator(AValue: AnsiString);
-    procedure SetUseDollarString(AValue: Boolean);
     procedure SQLChange(Sender: TObject);
-    procedure DollarStringsChange(Sender : TObject);
-    Procedure RecalcSeps;
     function GetLine: Integer;
   protected
     procedure ClearStatement; virtual;
@@ -97,12 +86,10 @@ type
     property UseSetTerm: Boolean read FUseSetTerm write FUseSetTerm;
     property UseCommit: Boolean read FUseCommit write FUseCommit;
     property UseDefines: Boolean read FUseDefines write FUseDefines;
-    Property UseDollarString : Boolean Read FUseDollarString Write SetUseDollarString;
-    Property DollarStrings : TStrings Read FDollarStrings Write SetDollarStrings;
     property Defines : TStrings Read FDefines Write SetDefines;
     property Directives: TStrings read FDirectives write SetDirectives;
     property Script: TStrings read FSQL write SetSQL;  // script to execute
-    property Terminator: AnsiString read FTerminator write SetTerminator;
+    property Terminator: AnsiString read FTerminator write FTerminator;
     property OnException : TSQLScriptExceptionEvent read FOnException write FOnException;
   end;
 
@@ -124,8 +111,6 @@ type
     property Aborted;
     property Line;
   published
-    Property UseDollarString;
-    Property DollarStrings;
     property Directives;
     property Defines;
     property Script;
@@ -170,21 +155,21 @@ begin
   Result := Result and ((L2 = L1) or (s1[L2+1] = ' '));
 end;
 
-function GetFirstSeparator(S: AnsiString; Sep: array of string): integer;
+function GetFirstSeparator(S: AnsiString; Sep: array of string): AnsiString;
 
 var
   i, C, M: Integer;
 
 begin
   M:=length(S) + 1;
-  Result:=-1;
+  Result:='';
   for i:=0 to high(Sep) do
     begin
     C:=Pos(Sep[i],S);
     if (C<>0) and (C<M) then
       begin
       M:=C;
-      Result:=i;
+      Result:=Sep[i];
       end;
     end;
 end;
@@ -207,34 +192,6 @@ begin
   FCol:=1;
 end;
 
-procedure TCustomSQLScript.DollarStringsChange(Sender: TObject);
-begin
-  RecalcSeps;
-end;
-
-procedure TCustomSQLScript.RecalcSeps;
-
-Var
-  L : Integer;
-
-begin
-  L:=MinSQLSeps;
-  If UseDollarString then
-     L:=L+1+DollarStrings.Count;
-  SetLength(FSeps,L);
-  FSeps[0]:=FTerminator;
-  FSeps[1]:='/*';
-  FSeps[2]:='"';
-  FSeps[3]:='''';
-  FSeps[4]:='--';
-  If UseDollarString then
-    begin
-    FSeps[MinSQLSeps]:='$$';
-    For L:=0 to FDollarStrings.Count-1 do
-      FSeps[MinSQLSeps+1+L]:='$'+FDollarStrings[L]+'$';
-    end;
-end;
-
 procedure TCustomSQLScript.SetDirectives(value: TStrings);
 
 var 
@@ -255,14 +212,6 @@ begin
   DefaultDirectives;
 end;
 
-procedure TCustomSQLScript.SetDollarStrings(AValue: TStrings);
-begin
-  if FDollarStrings=AValue then Exit;
-  FDollarStrings.Assign(AValue);
-  If FUseDollarString then
-    RecalcSeps;
-end;
-
 procedure TCustomSQLScript.SetSQL(value: TStrings);
 begin
   FSQL.Assign(value);
@@ -270,27 +219,12 @@ begin
   FCol:=1;
 end;
 
-procedure TCustomSQLScript.SetTerminator(AValue: AnsiString);
-begin
-  if FTerminator=AValue then Exit;
-  FTerminator:=AValue;
-  if Length(FSeps)>0 then
-    FSeps[0]:=FTerminator;
-end;
-
-procedure TCustomSQLScript.SetUseDollarString(AValue: Boolean);
-begin
-  if FUseDollarString=AValue then Exit;
-  FUseDollarString:=AValue;
-  RecalcSeps;
-end;
 function TCustomSQLScript.GetLine: Integer;
 begin
   Result:=FLine - 1;
 end;
 
-procedure TCustomSQLScript.AddToStatement(value: AnsiString;
-  ForceNewLine: boolean);
+procedure TCustomSQLScript.AddToStatement(value: AnsiString; ForceNewLine : Boolean);
 
   Procedure DA(L : TStrings);
 
@@ -308,12 +242,10 @@ begin
     DA(FCurrentStripped);
 end;
 
-function TCustomSQLScript.FindNextSeparator(ASeps: array of string; out
-  IsExtended: Boolean): AnsiString;
+function TCustomSQLScript.FindNextSeparator(Sep: array of string): AnsiString;
 
 var
   S: AnsiString;
-  I : Integer;
 
 begin
   Result:='';
@@ -324,8 +256,8 @@ begin
       begin
       S:=Copy(S,FCol,length(S));
       end;
-    I:=GetFirstSeparator(S,ASeps);
-    if (I=-1) then
+    Result:=GetFirstSeparator(S,Sep);
+    if (Result='') then
       begin
       if FEmitLine then
         AddToStatement(S,(FCol<=1));
@@ -334,8 +266,6 @@ begin
       end
     else
       begin
-      Result:=ASeps[i];
-      IsExtended:=I>=MinSQLSeps;
       if FEmitLine then
         AddToStatement(Copy(S,1,Pos(Result,S)-1),(FCol=1));
       FCol:=(FCol-1)+Pos(Result,S);
@@ -348,11 +278,7 @@ function TCustomSQLScript.Available: Boolean;
 
 begin
   With FSQL do
-    Result:=(FLine<Count) or
-            (
-              ( FLine = Count ) and
-              ( FCol < Length(Strings[Count-1] ) )
-            );
+    Result:=(FLine<Count) or (FCol<Length(Strings[Count-1]))
 end;
 
 procedure TCustomSQLScript.InternalStatement(Statement: TStrings;  var StopExecution: Boolean);
@@ -483,10 +409,7 @@ begin
         InternalCommit(true)
       else if FUseSetTerm
         and (Directive = 'SET TERM' {Firebird/Interbase only}) then
-          begin
-          FTerminator:=S;
-          RecalcSeps;
-          end
+        FTerminator:=S
       else
         InternalDirective (Directive,S,FAborted)
       end
@@ -519,14 +442,15 @@ function TCustomSQLScript.NextStatement: AnsiString;
 
 var
   pnt: AnsiString;
-  b,isExtra,terminator_found: Boolean;
+  addnewline,terminator_found: Boolean;
 
 begin
   terminator_found:=False;
   ClearStatement;
+  addnewline:=false;
   while FLine <= FSQL.Count do
     begin
-    pnt:=FindNextSeparator(FSeps,isExtra);
+    pnt:=FindNextSeparator([FTerminator, '/*', '"', '''', '--']);
     if (pnt=FTerminator) then
       begin
       FCol:=FCol + length(pnt);
@@ -541,7 +465,7 @@ begin
       else
         FEmitLine:=False;
       FCol:=FCol + length(pnt);
-      pnt:=FindNextSeparator(['*/'],b);
+      pnt:=FindNextSeparator(['*/']);
       if FCommentsInSQL then
         AddToStatement(pnt,false)
       else
@@ -553,16 +477,19 @@ begin
       begin
       FComment:=True;
       if FCommentsInSQL then
+        begin
         AddToStatement(Copy(FSQL[FLine-1],FCol,Length(FSQL[FLine-1])-FCol+1),False);
+        AddNewLine:=true;
+        end;
       Inc(Fline);
-      FCol:=1;
+      FCol:=0;
       FComment:=False;
       end
     else if pnt = '"' then
       begin
       AddToStatement(pnt,false);
       FCol:=FCol + length(pnt);
-      pnt:=FindNextSeparator(['"'],b);
+      pnt:=FindNextSeparator(['"']);
       AddToStatement(pnt,false);
       FCol:=FCol + length(pnt);
       end
@@ -570,17 +497,10 @@ begin
       begin
       AddToStatement(pnt,False);
       FCol:=FCol + length(pnt);
-      pnt:=FindNextSeparator([''''],b);
-      AddToStatement(pnt,false);
+      pnt:=FindNextSeparator(['''']);
+      AddToStatement(pnt,addnewline);
+      addnewline:=False;
       FCol:=FCol + length(pnt);
-      end
-    else if IsExtra then
-      begin
-        AddToStatement(pnt,false);
-        FCol:=FCol + length(pnt);
-        pnt:=FindNextSeparator([pnt],b);
-        AddToStatement(pnt,false);
-        FCol:=FCol + length(pnt);
       end;
     end;
   if not terminator_found then
@@ -592,7 +512,7 @@ begin
   Result:=FCurrentStatement.Text;
 end;
 
-constructor TCustomSQLScript.Create(AnOwner: TComponent);
+Constructor TCustomSQLScript.Create (AnOwner: TComponent);
 
 Var
   L : TStringList;
@@ -611,10 +531,6 @@ begin
   L:=TStringList.Create();
   L.OnChange:=@SQLChange;
   FSQL:=L;
-  L:=TStringList.Create();
-  L.OnChange:=@DollarStringsChange;
-  FDollarStrings:=L;
-  ReCalcSeps;
   FDirectives:=TStringList.Create();
   FCurrentStripped:=TStringList.Create();
   FCurrentStatement:=TStringList.Create();
@@ -635,7 +551,6 @@ begin
   FreeAndNil(FSQL);
   FreeAndNil(FDirectives);
   FreeAndNil(FDefines);
-  FreeAndNil(FDollarStrings);
   inherited Destroy;
 end;
 
@@ -670,8 +585,7 @@ begin
     end;
 end;
 
-function TCustomSQLScript.ProcessConditional(Directive: String; Param: String
-  ): Boolean;
+Function TCustomSQLScript.ProcessConditional(Directive: String; Param : String) : Boolean;
 
   Procedure PushSkipMode;
 

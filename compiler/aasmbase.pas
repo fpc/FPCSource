@@ -42,10 +42,7 @@ interface
          { global in the current program/library, but not visible outside it }
          AB_PRIVATE_EXTERN,AB_LAZY,AB_IMPORT,
          { a symbol that's internal to the compiler and used as a temp }
-         AB_TEMP,
-         { a global symbol that points to another global symbol and is only used
-           to allow indirect loading in case of packages and indirect imports }
-         AB_INDIRECT,AB_EXTERNAL_INDIRECT);
+         AB_TEMP);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -68,9 +65,7 @@ interface
     const
        asmlabeltypeprefix : array[TAsmLabeltype] of char = ('j','a','d','l','f','t','c');
        asmsymbindname : array[TAsmsymbind] of string[23] = ('none', 'external','common',
-       'local','global','weak external','private external','lazy','import','internal temp',
-       'indirect','external indirect');
-       asmsymbindindirect = [AB_INDIRECT,AB_EXTERNAL_INDIRECT];
+       'local','global','weak external','private external','lazy','import','internal temp');
 
     type
        TAsmSectiontype=(sec_none,
@@ -103,8 +98,6 @@ interface
          sec_debug_info,
          sec_debug_line,
          sec_debug_abbrev,
-         sec_debug_aranges,
-         sec_debug_ranges,
          { Yury: "sec_fpc is intended for storing fpc specific data
                   which must be recognized and processed specially by linker.
                   Currently fpc version string, dummy links to stab sections
@@ -157,8 +150,6 @@ interface
          { initial heap segment for 16-bit DOS }
          sec_heap
        );
-
-       TObjCAsmSectionType = sec_objc_class..sec_objc_protolist;
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
 

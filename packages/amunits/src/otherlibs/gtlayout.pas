@@ -24,7 +24,7 @@
     Added MessageBox for error report.
     31 Jul 2000.
 
-    Added functions and procedures with array of PtrUInt.
+    Added functions and procedures with array of const.
     For use with fpc 1.0.
     06 Jan 2003.
 
@@ -38,6 +38,13 @@
     nils.sjoholm@mailbox.swipnet.se
 
 }
+{$mode objfpc}
+
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+    {$smartlink on}
+{$endif use_amiga_smartlink}
+
 
 UNIT GTLAYOUT;
 
@@ -554,138 +561,747 @@ const
        ppGadget = ^pGadget;
        pUWORD   = ^UWORD;
 
-VAR GTLayoutBase : pLibrary = nil;
-
-PROCEDURE LT_LevelWidth(par1 : pLayoutHandle location 'a0'; par2 : pCHAR location 'a1'; par3 : POINTER location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : pLONGINT location 'a3'; par7 : pLONGINT location 'a5'; last : LONGINT location 'd2'); syscall GTLayoutBase 30;
-PROCEDURE LT_DeleteHandle(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 36;
-FUNCTION LT_CreateHandle(par1 : pScreen location 'a0'; last : pTextAttr location 'a1') : pLayoutHandle; syscall GTLayoutBase 42;
-FUNCTION LT_CreateHandleTagList(par1 : pScreen location 'a0'; tags : pTagItem location 'a1') : pLayoutHandle; syscall GTLayoutBase 48;
-FUNCTION LT_Rebuild(par1 : pLayoutHandle location 'a0'; par2 : pIBox location 'a1'; par3 : LONGINT location 'a2'; par4 : LONGINT location 'd0'; last : LONGINT location 'd1') : BOOLEAN; syscall GTLayoutBase 54;
-PROCEDURE LT_HandleInput(par1 : pLayoutHandle location 'a0'; par2 : ulong location 'd0'; par3 : pulong location 'a1'; par4 : pUWORD location 'a2'; last :ppGadget location 'a3'); syscall GTLayoutBase 60;
-PROCEDURE LT_BeginRefresh(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 66;
-PROCEDURE LT_EndRefresh(par1 : pLayoutHandle location 'a0'; last : LONGINT location 'd0'); syscall GTLayoutBase 72;
-FUNCTION LT_GetAttributesA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; tags : pTagItem location 'a1') : LONGINT; syscall GTLayoutBase 78;
-PROCEDURE LT_SetAttributesA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; tags : pTagItem location 'a1'); syscall GTLayoutBase 84;
-PROCEDURE LT_AddA(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; par3 : pCHAR location 'd1'; par4 : LONGINT location 'd2'; tags : pTagItem location 'a1'); syscall GTLayoutBase 90;
-PROCEDURE LT_NewA(par1 : pLayoutHandle location 'a0'; tags : pTagItem location 'a1'); syscall GTLayoutBase 96;
-PROCEDURE LT_EndGroup(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 102;
-FUNCTION LT_LayoutA(par1 : pLayoutHandle location 'a0'; par2 : pCHAR location 'a1'; par3 : pIBox location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : ulong location 'd2'; par7 : LONGINT location 'd3'; tags : pTagItem location 'A3') : pWindow; syscall GTLayoutBase 108;
-FUNCTION LT_LayoutMenusA(par1 : pLayoutHandle location 'a0'; par2 : pNewMenu location 'a1'; tags : pTagItem location 'a2') : pMenu; syscall GTLayoutBase 114;
-FUNCTION LT_LabelWidth(par1 : pLayoutHandle location 'a0'; last : pCHAR location 'a1') : LONGINT; syscall GTLayoutBase 138;
-FUNCTION LT_LabelChars(par1 : pLayoutHandle location 'a0'; last : pCHAR location 'a1') : LONGINT; syscall GTLayoutBase 144;
-PROCEDURE LT_LockWindow(last : pWindow location 'a0'); syscall GTLayoutBase 150;
-PROCEDURE LT_UnlockWindow(last : pWindow location 'a0'); syscall GTLayoutBase 156;
-PROCEDURE LT_DeleteWindowLock(last : pWindow location 'a0'); syscall GTLayoutBase 162;
-PROCEDURE LT_ShowWindow(par1 : pLayoutHandle location 'a0'; last : LONGINT location 'a1'); syscall GTLayoutBase 168;
-PROCEDURE LT_Activate(par1 : pLayoutHandle location 'a0'; last : LONGINT location 'd0'); syscall GTLayoutBase 174;
-FUNCTION LT_PressButton(par1 : pLayoutHandle location 'a0'; last : LONGINT location 'd0') : BOOLEAN; syscall GTLayoutBase 180;
-FUNCTION LT_GetCode(par1 : ulong location 'd0'; par2 : ulong location 'd1'; par3 : ulong location 'd2'; last : pGadget location 'a0') : LONGINT; syscall GTLayoutBase 186;
-FUNCTION LT_GetIMsg(last : pLayoutHandle location 'a0') : pIntuiMessage; syscall GTLayoutBase 192;
-PROCEDURE LT_ReplyIMsg(last : pIntuiMessage location 'a0'); syscall GTLayoutBase 198;
-FUNCTION LT_BuildA(par1 : pLayoutHandle location 'a0'; tags : pTagItem location 'a1') : pWindow; syscall GTLayoutBase 204;
-FUNCTION LT_RebuildTagList(par1 : pLayoutHandle location 'a0'; par2 : LONGINT location 'd0'; tags : pTagItem location 'a1') : BOOLEAN; syscall GTLayoutBase 210;
-PROCEDURE LT_UpdateStrings(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 216;
-PROCEDURE LT_DisposeMenu(last : pMenu location 'a0'); syscall GTLayoutBase 222;
-FUNCTION LT_NewMenuTemplate(par1 : pScreen location 'a0'; par2 : pTextAttr location 'a1'; par3 : pImage location 'a2'; par4 : pImage location 'a3'; par5 : pLONGINT location 'd0'; last : pNewMenu location 'd1') : pMenu; syscall GTLayoutBase 228;
-FUNCTION LT_NewMenuTagList(tags : pTagItem location 'a0') : pMenu; syscall GTLayoutBase 234;
-PROCEDURE LT_MenuControlTagList(par1 : pWindow location 'a0'; par2 : pMenu location 'a1'; tags : pTagItem location 'a2'); syscall GTLayoutBase 240;
-FUNCTION LT_GetMenuItem(par1 : pMenu location 'a0'; last : ulong location 'd0') : pMenuItem; syscall GTLayoutBase 246;
-FUNCTION LT_FindMenuCommand(par1 : pMenu location 'a0'; par2 : ulong location 'd0'; par3 : ulong location 'd1'; last : pGadget location 'a1') : pMenuItem; syscall GTLayoutBase 252;
-PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle location 'a0'; par2 : pCHAR location 'a1'; par3 : POINTER location 'a2'; par4 : LONGINT location 'd0'; par5 : LONGINT location 'd1'; par6 : pLONGINT location 'a3'; par7 : pLONGINT location 'd3'; last : LONGINT location 'd2'); syscall GTLayoutBase 258;
-PROCEDURE LT_Refresh(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 264;
-PROCEDURE LT_CatchUpRefresh(last : pLayoutHandle location 'a0'); syscall GTLayoutBase 270;
-FUNCTION LT_GetWindowUserData(par1 : pWindow location 'a0'; last : POINTER location 'a1') : POINTER; syscall GTLayoutBase 276;
+PROCEDURE LT_LevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; par6 : pLONGINT; par7 : pLONGINT; last : LONGINT);
+PROCEDURE LT_DeleteHandle(last : pLayoutHandle);
+FUNCTION LT_CreateHandle(par1 : pScreen; last : pTextAttr) : pLayoutHandle;
+FUNCTION LT_CreateHandleTagList(par1 : pScreen; tags : pTagItem) : pLayoutHandle;
+FUNCTION LT_Rebuild(par1 : pLayoutHandle; par2 : pIBox; par3 : LONGINT; par4 : LONGINT; last : LONGINT) : BOOLEAN;
+PROCEDURE LT_HandleInput(par1 : pLayoutHandle; par2 : ulong; par3 : pulong; par4 : pUWORD; last :ppGadget);
+PROCEDURE LT_BeginRefresh(last : pLayoutHandle);
+PROCEDURE LT_EndRefresh(par1 : pLayoutHandle; last : LONGINT);
+FUNCTION LT_GetAttributesA(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem) : LONGINT;
+PROCEDURE LT_SetAttributesA(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem);
+PROCEDURE LT_AddA(par1 : pLayoutHandle; par2 : LONGINT; par3 : pCHAR; par4 : LONGINT; tags : pTagItem);
+PROCEDURE LT_NewA(par1 : pLayoutHandle; tags : pTagItem);
+PROCEDURE LT_EndGroup(last : pLayoutHandle);
+FUNCTION LT_LayoutA(par1 : pLayoutHandle; par2 : pCHAR; par3 : pIBox; par4 : LONGINT; par5 : LONGINT; par6 : ulong; par7 : LONGINT; tags : pTagItem) : pWindow;
+FUNCTION LT_LayoutMenusA(par1 : pLayoutHandle; par2 : pNewMenu; tags : pTagItem) : pMenu;
+FUNCTION LT_LabelWidth(par1 : pLayoutHandle; last : pCHAR) : LONGINT;
+FUNCTION LT_LabelChars(par1 : pLayoutHandle; last : pCHAR) : LONGINT;
+PROCEDURE LT_LockWindow(last : pWindow);
+PROCEDURE LT_UnlockWindow(last : pWindow);
+PROCEDURE LT_DeleteWindowLock(last : pWindow);
+PROCEDURE LT_ShowWindow(par1 : pLayoutHandle; last : LONGINT);
+PROCEDURE LT_Activate(par1 : pLayoutHandle; last : LONGINT);
+FUNCTION LT_PressButton(par1 : pLayoutHandle; last : LONGINT) : BOOLEAN;
+FUNCTION LT_GetCode(par1 : ulong; par2 : ulong; par3 : ulong; last : pGadget) : LONGINT;
+FUNCTION LT_GetIMsg(last : pLayoutHandle) : pIntuiMessage;
+PROCEDURE LT_ReplyIMsg(last : pIntuiMessage);
+FUNCTION LT_BuildA(par1 : pLayoutHandle; tags : pTagItem) : pWindow;
+FUNCTION LT_RebuildTagList(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem) : BOOLEAN;
+PROCEDURE LT_UpdateStrings(last : pLayoutHandle);
+PROCEDURE LT_DisposeMenu(last : pMenu);
+FUNCTION LT_NewMenuTemplate(par1 : pScreen; par2 : pTextAttr; par3 : pImage; par4 : pImage; par5 : pLONGINT; last : pNewMenu) : pMenu;
+FUNCTION LT_NewMenuTagList(tags : pTagItem) : pMenu;
+PROCEDURE LT_MenuControlTagList(par1 : pWindow; par2 : pMenu; tags : pTagItem);
+FUNCTION LT_GetMenuItem(par1 : pMenu; last : ulong) : pMenuItem;
+FUNCTION LT_FindMenuCommand(par1 : pMenu; par2 : ulong; par3 : ulong; last : pGadget) : pMenuItem;
+PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT; par6 : pLONGINT; par7 : pLONGINT; last : LONGINT);
+PROCEDURE LT_Refresh(last : pLayoutHandle);
+PROCEDURE LT_CatchUpRefresh(last : pLayoutHandle);
+FUNCTION LT_GetWindowUserData(par1 : pWindow; last : POINTER) : POINTER;
 
 {
-     This is functions and procedures with array of PtrUInt.
+     This is functions and procedures with array of const.
      For use with fpc 1.0.7 and above.
 }
 
-FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : array of PtrUInt) : pLayoutHandle;
-FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt) : LONGINT;
-PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt);
-PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : array of PtrUInt);
-PROCEDURE LT_New(handle : pLayoutHandle; const tagList : array of PtrUInt);
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
-FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : array of PtrUInt) : pMenu;
-FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : array of PtrUInt) : pWindow;
-FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : array of PtrUInt) : BOOLEAN;
-FUNCTION LT_NewMenuTags(const tagList : array of PtrUInt) : pMenu;
-PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : array of PtrUInt);
+FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : Array Of Const) : pLayoutHandle;
+FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const) : LONGINT;
+PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const);
+PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : Array Of Const);
+PROCEDURE LT_New(handle : pLayoutHandle; const tagList : Array Of Const);
+FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : Array Of Const) : pWindow;
+FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : Array Of Const) : pMenu;
+FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : Array Of Const) : pWindow;
+FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : Array Of Const) : BOOLEAN;
+FUNCTION LT_NewMenuTags(const tagList : Array Of Const) : pMenu;
+PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : Array Of Const);
 
 
+VAR GTLayoutBase : pLibrary;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitGTLAYOUTLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    GTLAYOUTIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
+PROCEDURE LT_LevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT;  par6 : pLONGINT;  par7 : pLONGINT; last : LONGINT);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L par3,A2
+        MOVE.L  par4,D0
+        MOVE.L  par5,D1
+        MOVEA.L par6,A3
+        MOVEA.L par7,A5
+        MOVE.L  last,D2
+        MOVEA.L GTLayoutBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_DeleteHandle(last : pLayoutHandle);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_CreateHandle(par1 : pScreen; last : pTextAttr) : pLayoutHandle;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L last,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_CreateHandleTagList(par1 : pScreen; tags : pTagItem) : pLayoutHandle;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_Rebuild(par1 : pLayoutHandle; par2 : pIBox; par3 : LONGINT; par4 : LONGINT; last : LONGINT) : BOOLEAN;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L par3,A2
+        MOVE.L  par4,D0
+        MOVE.L  last,D1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_HandleInput(par1 : pLayoutHandle; par2 : ulong; par3 : pulong;par4 : pUWORD; last : ppGadget);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  par2,D0
+        MOVEA.L par3,A1
+        MOVEA.L par4,A2
+        MOVEA.L last,A3
+        MOVEA.L GTLayoutBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_BeginRefresh(last : pLayoutHandle);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_EndRefresh(par1 : pLayoutHandle; last : LONGINT);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  last,D0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_GetAttributesA(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  par2,D0
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_SetAttributesA(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  par2,D0
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_AddA(par1 : pLayoutHandle; par2 : LONGINT; par3 : pCHAR; par4 : LONGINT; tags : pTagItem);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  par2,D0
+        MOVE.L  par3,D1
+        MOVE.L  par4,D2
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_NewA(par1 : pLayoutHandle; tags : pTagItem);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_EndGroup(last : pLayoutHandle);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_LayoutA(par1 : pLayoutHandle; par2 : pCHAR; par3 : pIBox; par4 : LONGINT; par5 : LONGINT; par6 : ulong; par7 : LONGINT; tags : pTagItem) : pWindow;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L par3,A2
+        MOVE.L  par4,D0
+        MOVE.L  par5,D1
+        MOVE.L  par6,D2
+        MOVE.L  par7,D3
+        MOVEA.L tags,A3
+        MOVEA.L GTLayoutBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_LayoutMenusA(par1 : pLayoutHandle; par2 : pNewMenu; tags : pTagItem) : pMenu;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L tags,A2
+        MOVEA.L GTLayoutBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_LabelWidth(par1 : pLayoutHandle; last : pCHAR) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L last,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_LabelChars(par1 : pLayoutHandle; last : pCHAR) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L last,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_LockWindow(last : pWindow);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_UnlockWindow(last : pWindow);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_DeleteWindowLock(last : pWindow);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_ShowWindow(par1 : pLayoutHandle; last : LONGINT);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L last,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_Activate(par1 : pLayoutHandle; last : LONGINT);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  last,D0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_PressButton(par1 : pLayoutHandle; last : LONGINT) : BOOLEAN;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  last,D0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_GetCode(par1 : ulong; par2 : ulong; par3 : ulong; last : pGadget) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  par1,D0
+        MOVE.L  par2,D1
+        MOVE.L  par3,D2
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_GetIMsg(last : pLayoutHandle) : pIntuiMessage;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_ReplyIMsg(last : pIntuiMessage);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_BuildA(par1 : pLayoutHandle; tags : pTagItem) : pWindow;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -204(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_RebuildTagList(par1 : pLayoutHandle; par2 : LONGINT; tags : pTagItem) : BOOLEAN;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  par2,D0
+        MOVEA.L tags,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -210(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_UpdateStrings(last : pLayoutHandle);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -216(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_DisposeMenu(last : pMenu);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -222(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_NewMenuTemplate(par1 : pScreen; par2 : pTextAttr; par3 : pImage; par4 : pImage; par5 : pLONGINT; last : pNewMenu) : pMenu;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L par3,A2
+        MOVEA.L par4,A3
+        MOVE.L  par5,D0
+        MOVE.L  last,D1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -228(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_NewMenuTagList(tags : pTagItem) : pMenu;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L tags,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -234(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_MenuControlTagList(par1 : pWindow; par2 : pMenu; tags : pTagItem);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L tags,A2
+        MOVEA.L GTLayoutBase,A6
+        JSR     -240(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_GetMenuItem(par1 : pMenu; last : ulong) : pMenuItem;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  last,D0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -246(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION LT_FindMenuCommand(par1 : pMenu; par2 : ulong; par3 : ulong; last : pGadget) : pMenuItem;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVE.L  par2,D0
+        MOVE.L  par3,D1
+        MOVEA.L last,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -252(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE LT_NewLevelWidth(par1 : pLayoutHandle; par2 : pCHAR; par3 : POINTER; par4 : LONGINT; par5 : LONGINT;  par6 : pLONGINT;  par7 : pLONGINT; last : LONGINT);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L par2,A1
+        MOVEA.L par3,A2
+        MOVE.L  par4,D0
+        MOVE.L  par5,D1
+        MOVEA.L par6,A3
+        MOVE.L  par7,D3
+        MOVE.L  last,D2
+        MOVEA.L GTLayoutBase,A6
+        JSR     -258(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_Refresh(last : pLayoutHandle);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -264(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE LT_CatchUpRefresh(last : pLayoutHandle);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L last,A0
+        MOVEA.L GTLayoutBase,A6
+        JSR     -270(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION LT_GetWindowUserData(par1 : pWindow; last : POINTER) : POINTER;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L par1,A0
+        MOVEA.L last,A1
+        MOVEA.L GTLayoutBase,A6
+        JSR     -276(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : array of PtrUInt) : pLayoutHandle;
+FUNCTION LT_CreateHandleTags(screen : pScreen; const tagList : Array Of Const) : pLayoutHandle;
 begin
-    LT_CreateHandleTags := LT_CreateHandleTagList(screen , @tagList);
+    LT_CreateHandleTags := LT_CreateHandleTagList(screen , readintags(tagList));
 end;
 
-FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt) : LONGINT;
+FUNCTION LT_GetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const) : LONGINT;
 begin
-    LT_GetAttributes := LT_GetAttributesA(handle , id , @tagList);
+    LT_GetAttributes := LT_GetAttributesA(handle , id , readintags(tagList));
 end;
 
-PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : array of PtrUInt);
+PROCEDURE LT_SetAttributes(handle : pLayoutHandle; id : LONGINT; const tagList : Array Of Const);
 begin
-    LT_SetAttributesA(handle , id , @tagList);
+    LT_SetAttributesA(handle , id , readintags(tagList));
 end;
 
-PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : array of PtrUInt);
+PROCEDURE LT_Add(handle : pLayoutHandle; _type : LONGINT; _label : pCHAR; id : LONGINT; const tagList : Array Of Const);
 begin
-    LT_AddA(handle , _type , _label , id , @tagList);
+    LT_AddA(handle , _type , _label , id , readintags(tagList));
 end;
 
-PROCEDURE LT_New(handle : pLayoutHandle; const tagList : array of PtrUInt);
+PROCEDURE LT_New(handle : pLayoutHandle; const tagList : Array Of Const);
 begin
-    LT_NewA(handle , @tagList);
+    LT_NewA(handle , readintags(tagList));
 end;
 
-FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : array of PtrUInt) : pWindow;
+FUNCTION LT_Layout(handle : pLayoutHandle; title : pCHAR; bounds : pIBox; extraWidth : LONGINT; extraHeight : LONGINT; idcmp : longword; align : LONGINT; const tagParams : Array Of Const) : pWindow;
 begin
-    LT_Layout := LT_LayoutA(handle , title , bounds , extraWidth , extraHeight , idcmp , align , @tagParams);
+    LT_Layout := LT_LayoutA(handle , title , bounds , extraWidth , extraHeight , idcmp , align , readintags(tagParams));
 end;
 
-FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : array of PtrUInt) : pMenu;
+FUNCTION LT_LayoutMenus(handle : pLayoutHandle; menuTemplate : pNewMenu; const tagParams : Array Of Const) : pMenu;
 begin
-    LT_LayoutMenus := LT_LayoutMenusA(handle , menuTemplate , @tagParams);
+    LT_LayoutMenus := LT_LayoutMenusA(handle , menuTemplate , readintags(tagParams));
 end;
 
-FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : array of PtrUInt) : pWindow;
+FUNCTION LT_Build(handle : pLayoutHandle; const tagParams : Array Of Const) : pWindow;
 begin
-    LT_Build := LT_BuildA(handle , @tagParams);
+    LT_Build := LT_BuildA(handle , readintags(tagParams));
 end;
 
-FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION LT_RebuildTags(handle : pLayoutHandle; clear : LONGINT; const tags : Array Of Const) : BOOLEAN;
 begin
-    LT_RebuildTags := LT_RebuildTagList(handle , clear , @tags);
+    LT_RebuildTags := LT_RebuildTagList(handle , clear , readintags(tags));
 end;
 
-FUNCTION LT_NewMenuTags(const tagList : array of PtrUInt) : pMenu;
+FUNCTION LT_NewMenuTags(const tagList : Array Of Const) : pMenu;
 begin
-    LT_NewMenuTags := LT_NewMenuTagList(@tagList);
+    LT_NewMenuTags := LT_NewMenuTagList(readintags(tagList));
 end;
 
-PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : array of PtrUInt);
+PROCEDURE LT_MenuControlTags(window : pWindow; intuitionMenu : pMenu; const tags : Array Of Const);
 begin
-    LT_MenuControlTagList(window , intuitionMenu , @tags);
+    LT_MenuControlTagList(window , intuitionMenu , readintags(tags));
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : Cardinal = 0;
 
-initialization
-  GTLayoutBase := OpenLibrary(GTLAYOUTNAME,LIBVERSION);
-finalization
-  if Assigned(GTLayoutBase) then
-    CloseLibrary(GTLayoutBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of gtlayout.library}
+  {$Info don't forget to use InitGTLAYOUTLibrary in the beginning of your program}
+
+var
+    gtlayout_exit : Pointer;
+
+procedure ClosegtlayoutLibrary;
+begin
+    ExitProc := gtlayout_exit;
+    if GTLayoutBase <> nil then begin
+        CloseLibrary(GTLayoutBase);
+        GTLayoutBase := nil;
+    end;
+end;
+
+procedure InitGTLAYOUTLibrary;
+begin
+    GTLayoutBase := nil;
+    GTLayoutBase := OpenLibrary(GTLAYOUTNAME,LIBVERSION);
+    if GTLayoutBase <> nil then begin
+        gtlayout_exit := ExitProc;
+        ExitProc := @ClosegtlayoutLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open gtlayout.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    GTLAYOUTIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of gtlayout.library}
+
+var
+    gtlayout_exit : Pointer;
+
+procedure ClosegtlayoutLibrary;
+begin
+    ExitProc := gtlayout_exit;
+    if GTLayoutBase <> nil then begin
+        CloseLibrary(GTLayoutBase);
+        GTLayoutBase := nil;
+    end;
+end;
+
+begin
+    GTLayoutBase := nil;
+    GTLayoutBase := OpenLibrary(GTLAYOUTNAME,LIBVERSION);
+    if GTLayoutBase <> nil then begin
+        gtlayout_exit := ExitProc;
+        ExitProc := @ClosegtlayoutLibrary;
+        GTLAYOUTIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open gtlayout.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    GTLAYOUTIsCompiledHow := 3;
+   {$Warning No autoopening of gtlayout.library compiled}
+   {$Warning Make sure you open gtlayout.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT GTLAYOUT *)
 
 

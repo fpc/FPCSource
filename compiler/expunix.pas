@@ -88,7 +88,7 @@ var
   hp2 : texported_item;
 begin
   { first test the index value }
-  if eo_index in hp.options then
+  if (hp.options and eo_index)<>0 then
    begin
      Message1(parser_e_no_export_with_index_for_target,target_info.shortname);
      exit;
@@ -102,7 +102,7 @@ begin
   if assigned(hp2) and (hp2.name^=hp.name^) then
     begin
       { this is not allowed !! }
-      duplicatesymbol(hp.name^);
+      Message1(parser_e_export_name_double,hp.name^);
       exit;
     end;
   if hp2=texported_item(current_module._exports.first) then
@@ -131,36 +131,23 @@ procedure texportlibunix.generatelib;  // straight t_linux copy for now.
 var
   hp2 : texported_item;
   pd  : tprocdef;
-  anyhasalias : boolean;
-  i : longint;
 {$ifdef x86}
   sym : tasmsymbol;
   r : treference;
 {$endif x86}
 begin
-  pd:=nil;
   create_hlcodegen;
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
    begin
      if (not hp2.is_var) and
-        assigned(hp2.sym) and
         (hp2.sym.typ=procsym) then
       begin
         { the manglednames can already be the same when the procedure
           is declared with cdecl }
-        { note: for "exports" sections we only allow non overloaded procsyms,
-                so checking all symbols only matters for packages }
-        anyhasalias:=false;
-        for i:=0 to tprocsym(hp2.sym).procdeflist.count-1 do
-          begin
-            pd:=tprocdef(tprocsym(hp2.sym).procdeflist[i]);
-            anyhasalias:=has_alias_name(pd,hp2.name^);
-            if anyhasalias then
-              break;
-          end;
-        if not anyhasalias then
+        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
+        if not has_alias_name(pd,hp2.name^) then
          begin
            { place jump in al_procedures }
            current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));

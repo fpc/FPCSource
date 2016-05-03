@@ -18,10 +18,6 @@
 { unicodestring is a plain java.lang.String }
 {$define FPC_UNICODESTRING_TYPE_DEFINED}
 
-{ helpers for converting between Windows and Java code page identifiers }
-
-{$i jwin2javacharset.inc}
-
 {$define FPC_HAS_DEFAULT_UNICODE_2_ANSI_MOVE}
 procedure DefaultUnicode2AnsiMove(source:punicodechar;var dest:RawByteString;cp : TSystemCodePage;len:SizeInt);
 var
@@ -425,16 +421,12 @@ procedure fpc_unicodestr_to_chararray(out res: array of AnsiChar; const src: Uni
 var
   len: longint;
   temp: array of jbyte;
-  csname: unicodestring;
 begin
   len:=length(src);
   { make sure we don't dereference src if it can be nil (JM) }
   if len>0 then
     begin
-      csname:=win2javacs(DefaultSystemCodePage);
-      if csname='<unsupported>' then
-        csname:='US-ASCII';
-      temp:=JLString(src).getBytes(csname);
+      temp:=JLString(src).getBytes;
       len:=length(temp);
       if len>length(res) then
         len:=length(res);
@@ -660,21 +652,21 @@ end;
 
 
 {$define FPC_HAS_POS_UNICODESTR_UNICODESTR}
-Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (Const Substr : UnicodeString; Const Source : UnicodeString) : SizeInt;
 begin
   Pos:=0;
-  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
-    Pos:=JLString(Source).indexOf(SubStr,Offset-1)+1
+  if Length(SubStr)>0 then
+    Pos:=JLString(Source).indexOf(SubStr)+1;
 end;
 
 
 { Faster version for a unicodechar alone }
 {$define FPC_HAS_POS_UNICODECHAR_UNICODESTR}
-Function Pos (c : UnicodeChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (c : UnicodeChar; Const s : UnicodeString) : SizeInt;
 begin
   Pos:=0;
-  if (Offset>0) and (Offset<=Length(s)) then
-    Pos:=JLString(s).indexOf(ord(c),Offset-1)+1;
+  if length(S)>0 then
+    Pos:=JLString(s).indexOf(ord(c))+1;
 end;
 
 
@@ -683,13 +675,13 @@ end;
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
 {$define FPC_HAS_POS_CHAR_UNICODESTR}
-Function Pos (c : AnsiChar; Const s : UnicodeString; Offset: Sizeint = 1) : SizeInt;
+Function Pos (c : AnsiChar; Const s : UnicodeString) : SizeInt;
 var
   i: SizeInt;
   wc : unicodechar;
 begin
   wc:=c;
-  result:=Pos(wc,s,Offset);
+  result:=Pos(wc,s);
 end;
 
 
@@ -802,15 +794,18 @@ function UTF8Encode(const s : UnicodeString) : RawByteString;
 function UTF8Decode(const s : RawByteString): UnicodeString;
   var
     i : SizeInt;
+    hs : UnicodeString;
     chars: array of widechar;
   begin
     result:='';
     if s='' then
       exit;
-    SetLength(chars,length(s)+1);
-    i:=Utf8ToUnicode(pwidechar(chars),length(s)+1,pchar(s),length(s));
+    SetLength(chars,length(s));
+    i:=Utf8ToUnicode(pwidechar(chars),length(hs)+1,pchar(s),length(s));
     if i>0 then
-      result:=JLString.Create(chars,0,i-1);
+      begin
+        result:=JLString.Create(chars,0,i);
+      end;
   end;
 
 
@@ -919,6 +914,10 @@ Begin
   result:=AnsiString(AnsistringClass.Create(arr,DefaultFileSystemCodePage));
 End;
 
+
+{ helpers for converting between Windows and Java code page identifiers }
+
+{$i jwin2javacharset.inc}
 
 { *************************************************************************** }
 { ************************* Collator threadvar ****************************** }

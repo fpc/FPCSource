@@ -21,15 +21,11 @@ VAR
      App : pTR_App;
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
+
     App := TR_CreateAppTags([
-                     TRCA_Name, AsTag('Triton String Demo'),
-                     TRCA_Release, AsTag('1.0'),
-                     TRCA_Date, AsTag('03-06-1998'),
+                     TRCA_Name,'Triton String Demo',
+                     TRCA_Release,'1.0',
+                     TRCA_Date,'03-06-1998',
                      TAG_DONE]);
     if App <> nil then begin
       ProjectStart;

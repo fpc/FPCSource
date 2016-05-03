@@ -21,32 +21,25 @@ function dosInput: longint; syscall IDOS 92;
 function dosOutput: longint; syscall IDOS 96;
 function dosSeek(_file: longint;position: longint;offset: longint): longint; syscall IDOS 100;
 function dosDeleteFile(name: PChar): LongBool; syscall IDOS 104;
-function dosRename(oldName: PChar;newName: PChar): longint; syscall IDOS 108;
+function dosRename(oldName: PChar;newName: PChar): LongBool; syscall IDOS 108;
 function Lock(name: PChar;_type: longint): longint; syscall IDOS 112;
 procedure UnLock(lock: longint); syscall IDOS 116;
 
-function Examine(lock: longint; fileInfoBlock: PFileInfoBlock): LongInt; syscall IDOS 124;
+function Examine(lock: longint; fileInfoBlock: PFileInfoBlock): LongBool; syscall IDOS 124;
 
-function Info(lock: longint; parameterBlock: PInfoData): LongInt; syscall IDOS 132;
+function Info(lock: longint; parameterBlock: PInfoData): LongBool; syscall IDOS 132;
 function dosCreateDir(name: PChar): longint; syscall IDOS 136;
 function CurrentDir(lock: longint): longint; syscall IDOS 140;
 function IoErr: longint; syscall IDOS 144;
 
-function SetProtection(name: PChar; protect: longword): LongInt; syscall IDOS 180;
+function SetProtection(name: PChar; protect: longword): LongBool; syscall IDOS 180;
 function DateStamp(date: PDateStamp): PDateStamp; syscall IDOS 184;
-procedure DOSDelay(timeout: LongInt); syscall IDOS 188;
 
-function AllocDosObject(type1: Cardinal; tags : PTagItem): Pointer; syscall IDOS 208;
-procedure FreeDosObject(type1: Cardinal; ptr  : Pointer); syscall IDOS 220;
-
-function ExamineFH(fh : BPTR; fib: PFileInfoBlock): LongBool; syscall IDOS 352;
-function SetFileDate(name: PChar; date: PDateStamp): LongBool; syscall IDOS 356; { Seems this got renamed to SetDate() in OS4? }
+function SetFileDate(name: PChar; date: PDateStamp): LongBool; syscall IDOS 356;
 function NameFromLock(lock: longint; buffer: PChar; len: longint): LongBool; syscall IDOS 360;
-function NameFromFH(fh: longint; buffer: PChar; len: longint): LongBool; syscall IDOS 364;
+function NameFromFH(fh: longint; buffer: PChar; len: longint): longint; syscall IDOS 364;
 
 function SetFileSize(fh: longint; pos: longint; mode: longint): longint; syscall IDOS 396;
-
-function CreateNewProc(tags: PTagItem): PProcess; syscall IDOS 424;
 
 function GetArgStr: PChar; syscall IDOS 456;
 function SetArgStr(_string: PChar): PChar; syscall IDOS 460;

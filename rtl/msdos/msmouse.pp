@@ -247,7 +247,7 @@ Begin
         push    bp
         int     $33
         pop     bp
-        mov     word ptr @Result, bx
+        mov     @Result, bx
 {$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
         mov     di, x
         mov     [di], cx
@@ -279,7 +279,7 @@ begin
         push    bp
         int     $33
         pop     bp
-        mov     word ptr @Result, bx
+        mov     @Result, bx
 {$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
         mov     di, x
         mov     [di], cx

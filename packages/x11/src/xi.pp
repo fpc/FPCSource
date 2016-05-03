@@ -63,9 +63,6 @@ Histroy:
 unit xi;
 interface
 
-uses
-  ctypes;
-
 const
         sz_xGetExtensionVersionReq           =  8;
         sz_xGetExtensionVersionReply         = 32;
@@ -124,12 +121,6 @@ const
         sz_xGetDeviceControlReply            = 32;
         sz_xChangeDeviceControlReq           =  8;
         sz_xChangeDeviceControlReply         = 32;
-        sz_xListDevicePropertiesReq          =  8;
-        sz_xListDevicePropertiesReply        = 32;
-        sz_xChangeDevicePropertyReq          = 20;
-        sz_xDeleteDevicePropertyReq          = 12;
-        sz_xGetDevicePropertyReq             = 24;
-        sz_xGetDevicePropertyReply           = 32;
 
 const
         INAME  = 'XInputExtension';
@@ -153,7 +144,6 @@ const
         XI_EYETRACKER  = 'EYETRACKER';
         XI_CURSORKEYS  = 'CURSORKEYS';
         XI_FOOTMOUSE   = 'FOOTMOUSE';
-        XI_JOYSTICK    = 'JOYSTICK';
 
 const
         Dont_Check                      = 0;
@@ -161,8 +151,6 @@ const
         XInput_Add_XDeviceBell          = 2;
         XInput_Add_XSetDeviceValuators  = 3;
         XInput_Add_XChangeDeviceControl = 4;
-        XInput_Add_DevicePresenceNotify = 5;
-        XInput_Add_DeviceProperties     = 6;
 
 const
         XI_Absent  = 0;
@@ -185,19 +173,7 @@ const
         XI_Add_XChangeDeviceControl_Minor = 3;
 
 const
-        XI_Add_DevicePresenceNotify_Major = 1;
-        XI_Add_DevicePresenceNotify_Minor = 4;
-
-const
-        XI_Add_DeviceProperties_Major = 1;
-        XI_Add_DeviceProperties_Minor = 5;
-
-const
         DEVICE_RESOLUTION = 1;
-        DEVICE_ABS_CALIB  = 2;
-        DEVICE_CORE       = 3;
-        DEVICE_ENABLE     = 4;
-        DEVICE_ABS_AREA   = 5;
 
 const
         NoSuchExtension = 1;
@@ -221,8 +197,6 @@ const
         IsXPointer         = 0;
         IsXKeyboard        = 1;
         IsXExtensionDevice = 2;
-        IsXExtensionKeyboard = 3;
-        IsXExtensionPointer  = 4;
 
 const
         AsyncThisDevice   = 0;
@@ -291,7 +265,6 @@ const
         ProximityClass = 4;
         FocusClass     = 5;
         OtherClass     = 6;
-        AttachClass    = 7;
 
 const
         KbdFeedbackClass     = 0;
@@ -317,18 +290,6 @@ const
         _devicePresence = 0;
 
 const
-        _deviceEnter = 0;
-        _deviceLeave = 1;
-
-const
-        DeviceAdded          = 0;
-        DeviceRemoved        = 1;
-        DeviceEnabled        = 2;
-        DeviceDisabled       = 3;
-        DeviceUnrecoverable  = 4;
-        DeviceControlChanged = 5;
-
-const
         XI_BadDevice  = 0;
         XI_BadEvent   = 1;
         XI_BadMode    = 2;
@@ -338,19 +299,13 @@ const
 { Make XEventClass be a CARD32 for 64 bit servers.  Don't affect client
   definition of XEventClass since that would be a library interface change.
   See the top of X.h for more _XSERVER64 magic.
-
-  But, don't actually use the CARD32 type.  We can't get it defined here
-  without polluting the namespace.
 }
 type
 {$ifdef _XSERVER64}
-        XEventClass = cuint;
+        XEventClass = CARD32;
 {$ELSE}
-        XEventClass = culong;
+        XEventClass = Longword;
 {$ENDIF}
-        PPXEventClass = ^PXEventClass;
-        PXEventClass = ^TXEventClass;
-        TXEventClass = XEventClass;
 
 (*******************************************************************
  *
@@ -361,9 +316,9 @@ type
 type
         PXExtensionVersion = ^TXExtensionVersion;
         TXExtensionVersion = record
-                              present       : cint;
-                              major_version : cshort;
-                              minor_version : cshort;
+                              present       : Smallint;
+                              major_version : Smallint;
+                              minor_version : Smallint;
                              end;
 
 implementation

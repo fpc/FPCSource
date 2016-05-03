@@ -133,8 +133,6 @@ unit optutils;
               write(text(arg^),' Successor: ',nodetype2str[n.successor.nodetype],'(',n.successor.fileinfo.line,',',n.successor.fileinfo.column,')')
             else
               write(text(arg^),' Successor: nil');
-            write(text(arg^),' DefSum: ');
-            PrintDFASet(text(arg^),n.optinfo^.defsum);
             writeln(text(arg^));
           end;
         result:=fen_false;

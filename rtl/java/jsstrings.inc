@@ -232,16 +232,16 @@ end;
 
 
 {$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
-Function Pos (Const Substr : Shortstring; Const s : Shortstring; Offset: Sizeint = 1) : SizeInt;
+Function Pos (Const Substr : Shortstring; Const s : Shortstring) : SizeInt;
 var
   i,j,k,MaxLen, SubstrLen : SizeInt;
 begin
   Pos:=0;
   SubstrLen:=Length(SubStr);
-  if (SubstrLen>0) and (Offset>0) and (Offset<=Length(S)) then
+  if SubstrLen>0 then
    begin
-     MaxLen:=Length(s)-SubstrLen;
-     i:=Offset-1;
+     MaxLen:=Length(s)-Length(SubStr);
+     i:=0;
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -265,11 +265,11 @@ end;
 
 {$define FPC_HAS_SHORTSTR_POS_CHAR}
 {Faster when looking for a single char...}
-function pos(c:char;const s:shortstring; Offset: Sizeint = 1):SizeInt;
+function pos(c:char;const s:shortstring):SizeInt;
 var
   i : SizeInt;
 begin
-  for i:=Offset-1 to length(s)-1 do
+  for i:=0 to length(s)-1 do
    begin
      if ShortStringClass(@s).fdata[i]=c then
        begin

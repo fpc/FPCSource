@@ -255,24 +255,14 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
 
-function ExecuteProcess (const Path: RawByteString;
-                               const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
-begin
-  result := -1;
-end;
 
-function ExecuteProcess (const Path: UnicodeString; const ComLine: UnicodeString;Flags:TExecuteFlags=[]): integer;
-begin
-  result := -1;
-end;
-
-function ExecuteProcess (const Path: UnicodeString;
-                               const ComLine: array of UnicodeString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: AnsiString;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;

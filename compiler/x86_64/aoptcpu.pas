@@ -27,12 +27,11 @@ unit aoptcpu;
 
 interface
 
-uses cgbase, cpubase, aasmtai, aopt, aoptx86, aoptcpub;
+uses cpubase, aasmtai, aopt, aoptcpub;
 
 type
-  TCpuAsmOptimizer = class(TX86AsmOptimizer)
+  TCpuAsmOptimizer = class(TAsmOptimizer)
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
-    function PostPeepHoleOptsCpu(var p : tai) : boolean; override;
   end;
 
 implementation
@@ -41,9 +40,10 @@ uses
   globtype, globals,
   cutils,
   verbose,
-  cgutils,
+  cgbase, cgutils,
   aoptobj,
   aasmbase, aasmdata, aasmcpu,
+  aoptx86,
   itcpugas;
 
 function isFoldableArithOp(hp1: taicpu; reg: tregister): boolean;
@@ -517,7 +517,8 @@ begin
                 if GetNextInstruction(p, hp1) and
                   (tai(hp1).typ = ait_instruction) and
                   (taicpu(hp1).opcode = A_AND) and
-                  MatchOpType(taicpu(hp1),top_const,top_reg) and
+                  (taicpu(hp1).oper[0]^.typ = Top_Const) and
+                  (taicpu(hp1).oper[1]^.typ = Top_Reg) and
                   (taicpu(hp1).oper[1]^.reg =
                   taicpu(p).oper[1]^.reg) then
                   begin
@@ -576,9 +577,6 @@ begin
                 end;
             end;
           end;
-        A_VMOVAPS,
-        A_VMOVAPD:
-          result:=OptPass1VMOVAP(p);
         A_VDIVSD,
         A_VDIVSS,
         A_VSUBSD,
@@ -609,22 +607,6 @@ begin
       end;
     end;
 end;
-
-
-    function TCpuAsmOptimizer.PostPeepHoleOptsCpu(var p: tai): boolean;
-      begin
-        result := false;
-        case p.typ of
-          ait_instruction:
-            begin
-              case taicpu(p).opcode of
-                A_MOV:
-                  PostPeepholeOptMov(p);
-              end;
-            end;
-        end;
-      end;
-
 
 begin
   casmoptimizer := TCpuAsmOptimizer;

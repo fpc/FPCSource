@@ -67,17 +67,15 @@ begin
   Result.Text:=r;
 end;
 
-function ParseCmdLine: boolean;
+procedure ParseCmdLine;
 var
   i: integer;
   s, ss: string;
   sl: TStringList;
 begin
-  Result:=False;
   if ParamCount = 0 then begin
     ShowUsage;
-    ExitCode:=1;
-    exit;
+    Halt(1);
   end;
   for i:=1 to Paramcount do begin
     s:=ParamStr(i);
@@ -153,13 +151,12 @@ begin
         '?', 'H':
           begin
             ShowUsage;
-            exit;
+            Halt(0);
           end;
         else
           begin
             writeln('Illegal parameter: -', s);
-            ExitCode:=1;
-            exit;
+            Halt(1);
           end;
       end;
     end
@@ -173,21 +170,20 @@ begin
       w.Units.Add(ExtractFileName(s));
     end;
   end;
-  Result:=True;
 end;
 
 begin
   try
     w:=TWriter.Create;
     try
-      if ParseCmdLine then
-        w.ProcessUnits;
+      ParseCmdLine;
+      w.ProcessUnits;
     finally
       w.Free;
     end;
   except
     writeln(Exception(ExceptObject).Message);
-    ExitCode:=2;
+    Halt(2);
   end;
 end.
 

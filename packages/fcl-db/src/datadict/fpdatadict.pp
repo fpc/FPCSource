@@ -20,7 +20,7 @@ unit fpdatadict;
 interface
 
 uses
-  Classes, SysUtils,inicol, inifiles, contnrs, db, sqltypes;
+  Classes, SysUtils,inicol, inifiles, contnrs, db;
 
 Type
   // Supported objects in this data dictionary
@@ -577,7 +577,6 @@ Type
     Procedure Disconnect ; virtual; abstract;
     procedure ImportDatadict (Adatadict: TFPDataDictionary; UpdateExisting : Boolean);
     Function GetTableList(List : TStrings) : Integer; virtual; abstract;
-    Function GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; virtual; abstract;
     Function ImportTables(Tables : TDDTableDefs; List : TStrings; UpdateExisting : Boolean) : Integer;
     Function ImportFields(Table : TDDTableDef) : Integer; virtual; abstract;
     Function ImportIndexes(Table : TDDTableDef) : Integer; virtual; abstract;
@@ -2515,10 +2514,10 @@ end;
 function TFPDDSQLEngine.CreateSequenceSQL(Sequence: TDDSequenceDef): String;
 begin
   Result:='CREATE SEQUENCE '+Sequence.SequenceName;
-  If (Sequence.StartValue<>0) then
-    Result:=Result+' START WITH '+IntToStr(Sequence.StartValue);
+  If (Sequence.StartValue>0) then
+    Result:=Result+'START WITH '+IntToStr(Sequence.StartValue);
   If (Sequence.Increment<>0) then
-    Result:=Result+' INCREMENT BY '+IntToStr(Sequence.Increment);
+    Result:=Result+'INCREMENT BY '+IntToStr(Sequence.Increment);
 end;
 
 function TFPDDSQLEngine.CreateSequencesSQL(Sequences: TFPDDSequenceList): String;
@@ -2845,7 +2844,7 @@ begin
     WriteString(ASection,KeyCaseInsFields,CaseInsFields);
     WriteString(ASection,KeyDescFields,DescFields);
     WriteString(ASection,KeySource,Source);
-    O:=Integer(self.Options);
+    O:=Integer(Options);
     T:=TypeInfo(TIndexOptions);
     WriteString(ASection,KeyOptions,SetToString(T,O,False));
     end;
@@ -2871,7 +2870,7 @@ begin
     T:=TypeInfo(TIndexOptions);
     O:=StringToSet(T,S);
     OP:=TIndexOptions(O);
-    Self.Options:=OP;
+    Options:=OP;
     end;
 end;
 

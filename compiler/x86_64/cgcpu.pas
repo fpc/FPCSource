@@ -168,7 +168,6 @@ unit cgcpu;
     procedure tcgx86_64.g_proc_entry(list : TAsmList;localsize:longint;nostackframe:boolean);
       var
         hitem: tlinkedlistitem;
-        seh_proc: tai_seh_directive;
         r: integer;
         href: treference;
         templist: TAsmList;
@@ -190,11 +189,9 @@ unit cgcpu;
       procedure push_regs;
         var
           r: longint;
-          usedregs: tcpuregisterset;
         begin
-          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
           for r := low(saved_standard_registers) to high(saved_standard_registers) do
-            if saved_standard_registers[r] in usedregs then
+            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
               begin
                 inc(stackmisalignment,sizeof(pint));
                 push_one_reg(newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE));
@@ -266,7 +263,7 @@ unit cgcpu;
               begin
                 if target_info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
-                g_stackpointer_alloc(list,localsize);
+                cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
@@ -292,11 +289,7 @@ unit cgcpu;
         if not (pi_has_unwind_info in current_procinfo.flags) then
           exit;
         { Generate unwind data for x86_64-win64 }
-        seh_proc:=cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname);
-        if assigned(hitem) then
-          list.insertafter(seh_proc,hitem)
-        else
-          list.insert(seh_proc);
+        list.insertafter(cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname),hitem);
         templist:=TAsmList.Create;
 
         { We need to record postive offsets from RSP; if registers are saved

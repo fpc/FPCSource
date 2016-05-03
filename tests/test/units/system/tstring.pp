@@ -834,7 +834,7 @@ procedure test_insert;
   if position <> 7 then
     _result := 16;
 
-  str3:='Hello world';
+  str1:='Hello world';
   position:=Pos('world',str3,8);
   if position <> 0 then
     _result := 23;

@@ -137,7 +137,7 @@ Type
 const
     DISKFONTNAME : PChar = 'diskfont.library';
 
-VAR DiskfontBase : pLibrary = nil;
+VAR DiskfontBase : pLibrary;
 
 FUNCTION AvailFonts(buffer : pCHAR location 'a0'; bufBytes : LONGINT location 'd0'; flags : LONGINT location 'd1') : LONGINT; syscall DiskfontBase 036;
 PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader location 'a1'); syscall DiskfontBase 048;
@@ -147,18 +147,110 @@ FUNCTION OpenDiskFont(textAttr : pTextAttr location 'a0') : pTextFont; syscall D
 FUNCTION GetDiskFontCtrl(tagid : LONGINT location 'd0') : LONGINT; syscall DiskfontBase 060;
 PROCEDURE SetDiskFontCtrlA(taglist : pTagItem location 'a0'); syscall DiskfontBase 066;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitDISKFONTLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    DISKFONTIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+{
+ If you don't use array of const then just remove tagsarray
+}
+uses
+{$ifndef dont_use_openlib}
+amsgbox;
+{$endif dont_use_openlib}
+
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
-finalization
-  if Assigned(DiskfontBase) then
-    CloseLibrary(DiskfontBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of diskfont.library}
+  {$Info don't forget to use InitDISKFONTLibrary in the beginning of your program}
+
+var
+    diskfont_exit : Pointer;
+
+procedure ClosediskfontLibrary;
+begin
+    ExitProc := diskfont_exit;
+    if DiskfontBase <> nil then begin
+        CloseLibrary(DiskfontBase);
+        DiskfontBase := nil;
+    end;
+end;
+
+procedure InitDISKFONTLibrary;
+begin
+    DiskfontBase := nil;
+    DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
+    if DiskfontBase <> nil then begin
+        diskfont_exit := ExitProc;
+        ExitProc := @ClosediskfontLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open diskfont.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    DISKFONTIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of diskfont.library}
+
+var
+    diskfont_exit : Pointer;
+
+procedure ClosediskfontLibrary;
+begin
+    ExitProc := diskfont_exit;
+    if DiskfontBase <> nil then begin
+        CloseLibrary(DiskfontBase);
+        DiskfontBase := nil;
+    end;
+end;
+
+begin
+    DiskfontBase := nil;
+    DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
+    if DiskfontBase <> nil then begin
+        diskfont_exit := ExitProc;
+        ExitProc := @ClosediskfontLibrary;
+        DISKFONTIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open diskfont.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    DISKFONTIsCompiledHow := 3;
+   {$Warning No autoopening of diskfont.library compiled}
+   {$Warning Make sure you open diskfont.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT DISKFONT *)
 
 

@@ -72,7 +72,7 @@ const
  LAYERSNAME : PChar = 'layers.library';
 
 var
-  LayersBase : PLibrary = nil;
+  LayersBase : PLibrary;
 
 procedure InitLayers(li : pLayer_Info location 'a0');
 SysCall LayersBase 030;
@@ -194,6 +194,7 @@ function CreateBehindLayerTags(li : pLayer_Info; bm : pBitMap; x0 : LongInt; y0 
 { Helper func }
 function InitLayersLibrary : boolean;
 
+
 implementation
 
 const
@@ -201,14 +202,30 @@ const
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-function InitLayersLibrary : boolean;
+var
+  layers_exit : Pointer;
+
+procedure CloseLayersLibrary;
 begin
-  InitLayersLibrary := Assigned(LayersBase);
+  ExitProc := layers_exit;
+  if LayersBase <> nil then begin
+    CloseLibrary(LayersBase);
+    LayersBase := nil;
+  end;
 end;
 
-initialization
+function InitLayersLibrary : boolean;
+begin
+  LayersBase := nil;
   LayersBase := OpenLibrary(LAYERSNAME,LIBVERSION);
-finalization
-  if Assigned(LayersBase) then
-    CloseLibrary(LayersBase);
+  if LayersBase <> nil then begin
+    layers_exit := ExitProc;
+    ExitProc := @CloseLayersLibrary;
+    InitLayersLibrary:=True;
+  end else begin
+    InitLayersLibrary:=False;
+  end;
+end;
+
+
 end.

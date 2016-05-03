@@ -73,7 +73,6 @@ procedure fpc_tcon_int64_array_from_string(const s: unicodestring; var arr: arra
 { specifying compilerprocs using an external name doesn't work yet }
 
 procedure fpc_tcon_shortint_array_from_string_intern_as_byte(const s: unicodestring; var arr: array of byte; startindex, len: longint); external name 'fpc_tcon_shortint_array_from_string';
-procedure fpc_tcon_ansichar_array_from_string(const s: unicodestring; var arr: array of ansichar; startindex, len: longint); external name 'fpc_tcon_shortint_array_from_string';
 procedure fpc_tcon_smallint_array_from_string_intern_as_word(const s: unicodestring; var arr: array of word; startindex, len: longint); external name 'fpc_tcon_smallint_array_from_string';
 procedure fpc_tcon_longint_array_from_string_intern_as_cardinal(const s: unicodestring; var arr: array of cardinal; startindex, len: longint); external name 'fpc_tcon_longint_array_from_string';
 procedure fpc_tcon_int64_array_from_string_intern_as_int64(const s: unicodestring; var arr: array of qword; startindex, len: longint); external name 'fpc_tcon_int64_array_from_string';

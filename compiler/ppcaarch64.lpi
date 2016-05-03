@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -32,6 +32,7 @@
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="pp"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -39,7 +40,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="aarch64\pp"/>
+      <Filename Value="arm\pp"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="aarch64"/>
@@ -63,7 +64,11 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
       <CustomOptions Value="-daarch64"/>
+      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
 </CONFIG>

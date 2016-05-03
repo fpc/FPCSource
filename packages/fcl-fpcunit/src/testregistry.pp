@@ -63,7 +63,7 @@ var
   lSuiteName: String;
   lPathRemainder: String;
   lDotPos: Integer;
-
+  lTests: TFPList;
 begin
   if APath = '' then
   begin
@@ -89,15 +89,19 @@ begin
 
     // Check to see if the path already exists
     lTargetSuite := nil;
-    I:=0;
-    While (lTargetSuite=Nil) and (I<ARootSuite.ChildTestCount) do
-      begin
-      lCurrentTest:= ARootSuite.Test[i];
+    lTests := ARootSuite.Tests;
+    for i := 0 to lTests.Count -1 do
+    begin
+      lCurrentTest := TTest(lTests[i]);
       if lCurrentTest is TTestSuite then
+      begin
         if (lCurrentTest.TestName = lSuiteName) then
+        begin
           lTargetSuite := TTestSuite(lCurrentTest);
-      Inc(I);
+          break;
+        end;
       end;  { if }
+    end;  { for }
 
     if not Assigned(lTargetSuite) then
     begin

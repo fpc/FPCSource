@@ -12,6 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
 {$packrecords C}
 unit mui;
 
@@ -3762,13 +3763,16 @@ function MUIV_Window_Width_Screen(p: LongInt): LongInt;
 
 
 // Functions and procedures with array of const go here
-function MUI_AllocAslRequestTags(ReqTyp: Longword; const Tags: array of PtrUInt): Pointer;
-function MUI_AslRequestTags(req: Pointer; const Tags : array of PtrUInt): LongBool;
-function MUI_MakeObject(_Type: LongInt; const Params : array of PtrUInt): PObject_;
-function MUI_NewObject(a0arg: PChar; const Tags: array of PtrUInt): PObject_;
-function MUI_Request(App: Pointer; win: Pointer; Flags: LongWord; Title: PChar; Gadgets: PChar; Format: PChar; const Params: Array Of PtrUInt): LongInt;
+function MUI_AllocAslRequestTags(ReqTyp: Longword; const Tags: array of const): Pointer;
+function MUI_AslRequestTags(req: Pointer; const Tags : array of const): LongBool;
+function MUI_MakeObject(_type: LongInt; const Params : array of const): PLongWord;
+function MUI_NewObject(a0arg: PCHAR; const Tags: array of const): PLongWord;
+function MUI_Request(App: Pointer; Win: Pointer; Flags: LongWord; Title: PChar; Gadgets: PChar; Format: PChar; const Params: array of const): LongInt;
 
 implementation
+
+uses
+  tagsarray, longarray;
 
 function MUINotifyData(Obj: APTR): PMUI_NotifyData; inline;
 begin
@@ -4034,34 +4038,49 @@ end;
 
 function MUIV_Window_Width_Screen(p : LongInt) : LongInt; inline;
 begin
-  MUIV_Window_Width_Screen := (-200 - (p));
+    MUIV_Window_Width_Screen := (-200 - (p));
 end;
 
 // Functions and procedures with array of const go here
 
-function MUI_AllocAslRequestTags(ReqTyp : longword; const Tags: array of PtrUInt) : Pointer; inline;
+function MUI_AllocAslRequestTags(ReqTyp : longword; const tags : Array Of Const) : Pointer;
+var
+  TagList: TTagsList;
 begin
-  MUI_AllocAslRequestTags := MUI_AllocAslRequest(ReqTyp, @Tags);
+  AddTags(TagList, Tags);
+  MUI_AllocAslRequestTags := MUI_AllocAslRequest(ReqTyp, GetTagPtr(TagList));
 end;
 
-function MUI_AslRequestTags(Req: Pointer; const Tags: array of PtrUInt) : LongBool; inline;
+function MUI_AslRequestTags(req : Pointer; const tags : Array Of Const) : LongBool;
+var
+  TagList: TTagsList;
 begin
-  MUI_AslRequestTags := MUI_AslRequest(Req, @Tags);
+  AddTags(TagList, Tags);
+  MUI_AslRequestTags := MUI_AslRequest(req, GetTagPtr(TagList));
 end;
 
-function MUI_MakeObject(_Type : LongInt; const Params: array of PtrUInt): PObject_; inline;
+function MUI_MakeObject(_type : LongInt; const params : Array Of Const) : pLongWord;
+var
+  Args: TArgList;
 begin
-  MUI_MakeObject := MUI_MakeObjectA(_Type, @Params);
+  AddArguments(Args, params);
+  MUI_MakeObject := MUI_MakeObjectA(_type, GetArgPtr(Args));
 end;
 
-function MUI_NewObject(a0arg: PChar; const Tags: array of PtrUInt): PObject_; inline;
+function MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pLongWord;
+var
+  TagList: TTagsList;
 begin
-  MUI_NewObject := MUI_NewObjectA(a0arg , @Tags);
+  AddTags(TagList, Tags);
+  MUI_NewObject := MUI_NewObjectA(a0arg , GetTagPtr(TagList));
 end;
 
-function MUI_Request(App: Pointer; win: Pointer; Flags: LongWord; Title: PChar; Gadgets: PChar; Format: PChar; const Params: Array Of PtrUInt): LongInt;
+function MUI_Request(app : Pointer; win : Pointer; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LongInt;
+var
+  Args: TArgList;
 begin
-  MUI_Request := MUI_RequestA(App, Win, Flags, Title, Gadgets, Format, @Params);
+  AddArguments(Args, params);
+  MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , GetArgPtr(Args));
 end;
 
 const

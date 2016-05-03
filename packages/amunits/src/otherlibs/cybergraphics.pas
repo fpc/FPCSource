@@ -28,12 +28,14 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$mode objfpc}
+
 UNIT CYBERGRAPHICS;
 
 INTERFACE
 USES Exec,agraphics,utility;
 
-VAR CyberGfxBase : pLibrary = nil;
+VAR CyberGfxBase : pLibrary;
 
 const
     CYBERGRAPHICSNAME : PChar = 'cybergraphics.library';
@@ -241,56 +243,72 @@ FUNCTION WriteLUTPixelArray(srcRect : POINTER location 'a0'; SrcX : WORD locatio
 FUNCTION WritePixelArray(srcRect : POINTER location 'a0'; SrcX : WORD location 'd0'; SrcY : WORD location 'd1'; SrcMod : WORD location 'd2'; a1arg : pRastPort location 'a1'; DestX : WORD location 'd3'; DestY : WORD location 'd4'; SizeX : WORD location 'd5'; SizeY : WORD location 'd6'; SrcFormat : byte location 'd7') : longword; syscall CyberGfxBase 126;
 FUNCTION WriteRGBPixel(a1arg : pRastPort location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; argb : longword location 'd2') : LONGINT; syscall CyberGfxBase 114;
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION AllocCModeListTags(const ModeListTags : array of PtrUInt) : pList;
-FUNCTION BestCModeIDTags(const BestModeIDTags : array of PtrUInt) : longword;
-FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : array of PtrUInt) : longword;
-PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : array of PtrUInt);
-PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : array of PtrUInt);
-FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : array of PtrUInt) : POINTER;
-PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : array of PtrUInt);
+FUNCTION AllocCModeListTags(const ModeListTags : Array Of Const) : pList;
+FUNCTION BestCModeIDTags(const BestModeIDTags : Array Of Const) : longword;
+FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : Array Of Const) : longword;
+PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : Array Of Const);
+PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : Array Of Const);
+FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : Array Of Const) : POINTER;
+PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
 
 function SHIFT_PIXFMT(fmt : longint) : longint;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitCYBERGRAPHICSLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    CYBERGRAPHICSIsCompiledHow : longint;
+
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION AllocCModeListTags(const ModeListTags : array of PtrUInt) : pList;
+FUNCTION AllocCModeListTags(const ModeListTags : Array Of Const) : pList;
 begin
-    AllocCModeListTags := AllocCModeListTagList(@ModeListTags);
+    AllocCModeListTags := AllocCModeListTagList(readintags(ModeListTags));
 end;
 
-FUNCTION BestCModeIDTags(const BestModeIDTags : array of PtrUInt) : longword;
+FUNCTION BestCModeIDTags(const BestModeIDTags : Array Of Const) : longword;
 begin
-    BestCModeIDTags := BestCModeIDTagList(@BestModeIDTags);
+    BestCModeIDTags := BestCModeIDTagList(readintags(BestModeIDTags));
 end;
 
-FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : array of PtrUInt) : longword;
+FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : Array Of Const) : longword;
 begin
-    CModeRequestTags := CModeRequestTagList(ModeRequest , @ModeRequestTags);
+    CModeRequestTags := CModeRequestTagList(ModeRequest , readintags(ModeRequestTags));
 end;
 
-PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : array of PtrUInt);
+PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : Array Of Const);
 begin
-    CVideoCtrlTagList(ViewPort , @TagList);
+    CVideoCtrlTagList(ViewPort , readintags(TagList));
 end;
 
-PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : array of PtrUInt);
+PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : Array Of Const);
 begin
-    DoCDrawMethodTagList(Hook , a1arg , @TagList);
+    DoCDrawMethodTagList(Hook , a1arg , readintags(TagList));
 end;
 
-FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : array of PtrUInt) : POINTER;
+FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : Array Of Const) : POINTER;
 begin
-    LockBitMapTags := LockBitMapTagList(BitMap , @TagList);
+    LockBitMapTags := LockBitMapTagList(BitMap , readintags(TagList));
 end;
 
-PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : array of PtrUInt);
+PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
 begin
-    UnLockBitMapTagList(Handle , @TagList);
+    UnLockBitMapTagList(Handle , readintags(TagList));
 end;
 
 function SHIFT_PIXFMT(fmt : longint) : longint;
@@ -298,16 +316,89 @@ begin
     SHIFT_PIXFMT:=(ULONG(fmt)) shl 24;
 end;
 
+
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
-finalization
-  if Assigned(CyberGfxBase) then
-    CloseLibrary(CyberGfxBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of cybergraphics.library}
+  {$Info don't forget to use InitCYBERGRAPHICSLibrary in the beginning of your program}
+
+var
+    cybergraphics_exit : Pointer;
+
+procedure ClosecybergraphicsLibrary;
+begin
+    ExitProc := cybergraphics_exit;
+    if CyberGfxBase <> nil then begin
+        CloseLibrary(CyberGfxBase);
+        CyberGfxBase := nil;
+    end;
+end;
+
+procedure InitCYBERGRAPHICSLibrary;
+begin
+    CyberGfxBase := nil;
+    CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
+    if CyberGfxBase <> nil then begin
+        cybergraphics_exit := ExitProc;
+        ExitProc := @ClosecybergraphicsLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open cybergraphics.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    CYBERGRAPHICSIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of cybergraphics.library}
+
+var
+    cybergraphics_exit : Pointer;
+
+procedure ClosecybergraphicsLibrary;
+begin
+    ExitProc := cybergraphics_exit;
+    if CyberGfxBase <> nil then begin
+        CloseLibrary(CyberGfxBase);
+        CyberGfxBase := nil;
+    end;
+end;
+
+begin
+    CyberGfxBase := nil;
+    CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
+    if CyberGfxBase <> nil then begin
+        cybergraphics_exit := ExitProc;
+        ExitProc := @ClosecybergraphicsLibrary;
+        CYBERGRAPHICSIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open cybergraphics.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    CYBERGRAPHICSIsCompiledHow := 3;
+   {$Warning No autoopening of cybergraphics.library compiled}
+   {$Warning Make sure you open cybergraphics.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT CYBERGRAPHICS *)
 
 

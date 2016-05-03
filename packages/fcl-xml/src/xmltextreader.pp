@@ -1911,15 +1911,12 @@ begin
   CheckName;
   SetString(FDocType.FName, FName.Buffer, FName.Length);
   DTDName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
-
-  if SkipS then
-  begin
-    StoreLocation(Locs[0]);
-    HasAtts := ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, Locs[1], False);
-    if HasAtts then
-      Locs[2] := FTokenStart;
-    SkipS;
-  end;
+  SkipS(True);
+  StoreLocation(Locs[0]);
+  HasAtts := ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, Locs[1], False);
+  if HasAtts then
+    Locs[2] := FTokenStart;
+  SkipS;
 
   if CheckForChar('[') then
   begin

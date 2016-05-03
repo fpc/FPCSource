@@ -31,9 +31,7 @@ Type
   TCompareOption = system.TCompareOption;
   TCompareOptions = system.TCompareOptions;
 
-{$SCOPEDENUMS ON}
   TStringSplitOptions = (None, ExcludeEmpty);
-{$SCOPEDENUMS OFF}
 
   { TStringHelper }
 

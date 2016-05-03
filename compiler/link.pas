@@ -754,7 +754,7 @@ Implementation
          begin
            if showinfo then
              begin
-               if current_module.islibrary then
+               if DLLsource then
                  AsmRes.AddLinkCommand(Command,Para,current_module.sharedlibfilename)
                else
                  AsmRes.AddLinkCommand(Command,Para,current_module.exefilename);

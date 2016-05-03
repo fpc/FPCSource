@@ -20,15 +20,11 @@ VAR
      dummy : longint;
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
+
     App := TR_CreateAppTags([
-                     TRCA_Name, AsTag(' Triton Scroller Demo'),
-                     TRCA_Release, AsTag(' 1.0'),
-                     TRCA_Date, AsTag(' 03-08-1998'),
+                     TRCA_Name,' Triton Scroller Demo' ,
+                     TRCA_Release,' 1.0' ,
+                     TRCA_Date,' 03-08-1998' ,
                      TAG_DONE]);
 
     if App <> nil then begin

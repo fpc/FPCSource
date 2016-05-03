@@ -546,45 +546,119 @@ Const
   FONF_DOWILDFUNC  = 128;
 {$endif ASL_V38_NAMES_ONLY}
 
-VAR AslBase : pLibrary = nil;
+VAR AslBase : pLibrary;
 
 
 FUNCTION AllocAslRequest(reqType : ULONG location 'd0'; tagList : pTagItem location 'a0') : POINTER; syscall AslBase 048;
 FUNCTION AllocFileRequest : pFileRequester; syscall AslBase 030;
-FUNCTION AslRequest(requester : POINTER location 'a0'; tagList : pTagItem location 'a1') : LongBool; syscall AslBase 060;
+FUNCTION AslRequest(requester : POINTER location 'a0'; tagList : pTagItem location 'a1') : LongInt; syscall AslBase 060;
 PROCEDURE FreeAslRequest(requester : POINTER location 'a0'); syscall AslBase 054;
 PROCEDURE FreeFileRequest(fileReq : pFileRequester location 'a0'); syscall AslBase 036;
-FUNCTION RequestFile(fileReq : pFileRequester location 'a0') : LongBool; syscall AslBase 042;
+FUNCTION RequestFile(fileReq : pFileRequester location 'a0') : LongInt; syscall AslBase 042;
 
 PROCEDURE AbortAslRequest(requester : POINTER location 'a0'); syscall AslBase 078;
 PROCEDURE ActivateAslRequest(requester : POINTER location 'a0'); syscall AslBase 084;
 
-function AllocAslRequestTags(reqType : ULONG; Const argv : array of PtrUInt) : POINTER;
-function AslRequestTags(requester : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitASLLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    ASLIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-function AllocAslRequestTags(reqType : ULONG; Const argv : array of PtrUInt) : POINTER;
-begin
-    AllocAslRequestTags := AllocAslRequest(reqType,@argv);
-end;
-
-function AslRequestTags(requester : POINTER; Const argv : array of PtrUInt) : BOOLEAN;
-begin
-    AslRequestTags := AslRequest(requester,@argv);
-end;
+{$ifndef dont_use_openlib}
+uses amsgbox;
+{$endif dont_use_openlib}
 
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  AslBase := OpenLibrary(ASLNAME,LIBVERSION);
-finalization
-  if Assigned(AslBase) then
-    CloseLibrary(AslBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of asl.library}
+  {$Info don't forget to use InitASLLibrary in the beginning of your program}
+
+var
+    asl_exit : Pointer;
+
+procedure CloseaslLibrary;
+begin
+    ExitProc := asl_exit;
+    if AslBase <> nil then begin
+        CloseLibrary(AslBase);
+        AslBase := nil;
+    end;
+end;
+
+procedure InitASLLibrary;
+begin
+    AslBase := nil;
+    AslBase := OpenLibrary(ASLNAME,LIBVERSION);
+    if AslBase <> nil then begin
+        asl_exit := ExitProc;
+        ExitProc := @CloseaslLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open asl.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    ASLIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of asl.library}
+
+var
+    asl_exit : Pointer;
+
+procedure CloseaslLibrary;
+begin
+    ExitProc := asl_exit;
+    if AslBase <> nil then begin
+        CloseLibrary(AslBase);
+        AslBase := nil;
+    end;
+end;
+
+begin
+    AslBase := nil;
+    AslBase := OpenLibrary(ASLNAME,LIBVERSION);
+    if AslBase <> nil then begin
+        asl_exit := ExitProc;
+        ExitProc := @CloseaslLibrary;
+        ASLIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open asl.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    ASLIsCompiledHow := 3;
+   {$Warning No autoopening of asl.library compiled}
+   {$Warning Make sure you open asl.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT ASL *)
 
 

@@ -51,7 +51,6 @@
   {$define cpumm}
   {$define fewintregisters}
   {//$define cpurox}
-  {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define cpuneedsmulhelper}
   { TODO: add another define in order to disable the div helper for 16-bit divs? }
@@ -71,7 +70,6 @@
   {$define cpumm}
   {$define fewintregisters}
   {$define cpurox}
-  {$define cpurefshaveindexreg}
   {$define SUPPORT_SAFECALL}
   {$define SUPPORT_GET_FRAME}
   {$define cpucapabilities}

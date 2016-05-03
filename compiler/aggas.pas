@@ -52,7 +52,7 @@ interface
         procedure WriteExtraHeader;virtual;
         procedure WriteExtraFooter;virtual;
         procedure WriteInstruction(hp: tai);
-        procedure WriteWeakSymbolRef(s: tasmsymbol); virtual;
+        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
         procedure WriteAixStringConst(hp: tai_string);
         procedure WriteAixIntConst(hp: tai_const);
         procedure WriteUnalignedIntConst(hp: tai_const);
@@ -91,8 +91,8 @@ interface
       TAppleGNUAssembler=class(TGNUAssembler)
        protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-        procedure WriteWeakSymbolRef(s: tasmsymbol); override;
-        procedure WriteDirectiveName(dir: TAsmDirective); override;
+        procedure WriteWeakSymbolDef(s: tasmsymbol); override;
+
        end;
 
 
@@ -113,7 +113,7 @@ implementation
 {$ifdef m68k}
       cpuinfo,aasmcpu,
 {$endif m68k}
-      cpubase,objcasm;
+      cpubase;
 
     const
       line_length = 70;
@@ -232,7 +232,7 @@ implementation
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '.toc',
           '.init',
@@ -291,7 +291,7 @@ implementation
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
           '.fpc',
           '.toc',
           '.init',
@@ -416,7 +416,7 @@ implementation
             result:='r';
 
           sec_stab,sec_stabstr,
-          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
+          sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
             result:='n';
         else
           result:='';  { defaults to data+load }
@@ -460,7 +460,7 @@ implementation
          system_powerpc_aix,
          system_powerpc64_aix:
            begin
-             if (atype in [sec_stub]) then
+             if (atype in [sec_stub,sec_objc_data,sec_objc_const,sec_data_coalesced]) then
                writer.AsmWrite('.section ');
            end
          else
@@ -1206,6 +1206,13 @@ implementation
                    writer.AsmWriteLn(tai_symbolpair(hp).value^);
                  end;
              end;
+           ait_weak:
+             begin
+               if replaceforbidden then
+                 writer.AsmWriteLn(#9'.weak '+ReplaceForbiddenAsmSymbolChars(tai_weak(hp).sym^))
+               else
+                 writer.AsmWriteLn(#9'.weak '+tai_weak(hp).sym^);
+             end;
            ait_symbol_end :
              begin
                if tf_needs_symbol_size in target_info.flags then
@@ -1371,7 +1378,7 @@ implementation
       end;
 
 
-    procedure TGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
+    procedure TGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
       begin
         writer.AsmWriteLn(#9'.weak '+s.name);
       end;
@@ -1522,12 +1529,7 @@ implementation
 
     procedure TGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
     begin
-      { TODO: implement asd_cpu for GAS => usually .arch or .cpu, but the CPU
-        name has to be translated as well }
-      if dir=asd_cpu then
-        writer.AsmWrite(asminfo^.comment+' CPU ')
-      else
-        writer.AsmWrite('.'+directivestr[dir]+' ');
+      writer.AsmWrite('.'+directivestr[dir]+' ');
     end;
 
 
@@ -1570,7 +1572,7 @@ implementation
       { add weak symbol markers }
       for i:=0 to current_asmdata.asmsymboldict.count-1 do
         if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
-          WriteWeakSymbolRef(tasmsymbol(current_asmdata.asmsymboldict[i]));
+          writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
          (target_info.system in systems_darwin) then
@@ -1631,16 +1633,6 @@ implementation
                  result := '.section __DWARF,__debug_abbrev,regular,debug';
                  exit;
                end;
-            sec_debug_aranges:
-               begin
-                 result := '.section __DWARF,__debug_aranges,regular,debug';
-                 exit;
-               end;
-            sec_debug_ranges:
-               begin
-                 result := '.section __DWARF,__debug_ranges,regular,debug';
-                 exit;
-               end;
             sec_rodata:
               begin
                 result := '.const_data';
@@ -1686,31 +1678,137 @@ implementation
                 result:='.section __DATA, __mod_term_func, mod_term_funcs';
                 exit;
               end;
-            low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
+            sec_objc_protocol_ext:
               begin
-                result:='.section '+objc_section_name(atype);
+                result:='.section __OBJC, __protocol_ext, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_class_ext:
+              begin
+                result:='.section __OBJC, __class_ext, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_property:
+              begin
+                result:='.section __OBJC, __property, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_image_info:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  result:='.section __DATA,__objc_imageinfo,regular,no_dead_strip'
+                else
+                  result:='.section __OBJC, __image_info, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_cstring_object:
+              begin
+                result:='.section __OBJC, __cstring_object, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_sel_fixup:
+              begin
+                result:='.section __OBJC, __sel_fixup, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_message_refs:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_selrefs, literal_pointers, no_dead_strip';
+                    exit;
+                  end;
+              end;
+            sec_objc_cls_refs:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_clsrefs, regular, no_dead_strip';
+                    exit;
+                  end;
+              end;
+            sec_objc_meth_var_types:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_methtype,cstring_literals';
+                    exit
+                  end;
+              end;
+            sec_objc_meth_var_names:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_methname,cstring_literals';
+                    exit
+                  end;
+              end;
+            sec_objc_class_names:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __TEXT,__objc_classname,cstring_literals';
+                    exit
+                  end;
+              end;
+            sec_objc_inst_meth,
+            sec_objc_cls_meth,
+            sec_objc_cat_inst_meth,
+            sec_objc_cat_cls_meth:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_const';
+                    exit;
+                  end;
+              end;
+            sec_objc_meta_class,
+            sec_objc_class:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_data';
+                    exit;
+                  end;
+              end;
+            sec_objc_sup_refs:
+              begin
+                result:='.section __DATA, __objc_superrefs, regular, no_dead_strip';
                 exit
+              end;
+            sec_objc_classlist:
+              begin
+                result:='.section __DATA, __objc_classlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_nlclasslist:
+              begin
+                result:='.section __DATA, __objc_nlclasslist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_catlist:
+              begin
+                result:='.section __DATA, __objc_catlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_nlcatlist:
+              begin
+                result:='.section __DATA, __objc_nlcatlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_protolist:
+              begin
+                result:='.section __DATA, __objc_protolist, coalesced, no_dead_strip';
+                exit;
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;
 
 
-    procedure TAppleGNUAssembler.WriteWeakSymbolRef(s: tasmsymbol);
+    procedure TAppleGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
       begin
         writer.AsmWriteLn(#9'.weak_reference '+s.name);
-      end;
-
-    procedure TAppleGNUAssembler.WriteDirectiveName(dir: TAsmDirective);
-      begin
-        case dir of
-          asd_weak_reference:
-            writer.AsmWrite('.weak_reference ');
-          asd_weak_definition:
-            writer.AsmWrite('.weak_definition ');
-          else
-            inherited;
-        end;
       end;
 
 
@@ -1754,8 +1852,6 @@ implementation
          sec_debug_info,
          sec_debug_line,
          sec_debug_abbrev,
-         sec_debug_aranges,
-         sec_debug_ranges,
          { ELF resources (+ references to stabs debug information sections) }
          sec_code (* sec_fpc *),
          { Table of contents section }

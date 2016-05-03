@@ -475,10 +475,7 @@ implementation
           FpcBaseNestedProcVarType, pass nestedfpstruct to constructor and
           copy it }
         if name='' then
-          begin
-            if is_nested_pd(tabstractprocdef(def)) then
-              internalerror(2011071901);
-          end;
+          internalerror(2011071901);
 
         setup_for_new_class('jvm_pvar_class',sstate,islocal,oldsymtablestack);
 

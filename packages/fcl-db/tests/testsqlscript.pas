@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-unit testsqlscript;
+unit testcsqlscript;
 
 {$mode objfpc}{$H+}
 
@@ -34,7 +34,7 @@ type
   protected
     procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
     procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
-    procedure ExecuteCommit(CommitRetaining: boolean=true); override;
+    procedure ExecuteCommit; override;
     procedure DefaultDirectives; override;
   public
     constructor create (AnOwner: TComponent); override;
@@ -44,8 +44,6 @@ type
     property DoException : string read FExcept write FExcept;
     property Aborted;
     property Line;
-    property UseDollarString;
-    property dollarstrings;
     property Directives;
     property Defines;
     property Script;
@@ -100,7 +98,6 @@ type
     procedure TestCommentInComment;
     procedure TestCommentInQuotes1;
     procedure TestCommentInQuotes2;
-    Procedure TestDashDashComment;
     procedure TestQuote1InComment;
     procedure TestQuote2InComment;
     procedure TestQuoteInQuotes1;
@@ -116,9 +113,6 @@ type
     procedure TestDirectiveOnException2;
     procedure TestCommitOnException1;
     procedure TestCommitOnException2;
-    procedure TestUseDollarSign;
-    procedure TestUseDollarSign2;
-    procedure TestUseDollarSign3;
   end;
 
   { TTestEventSQLScript }
@@ -180,7 +174,7 @@ begin
     raise exception.create(DoException);
 end;
 
-procedure TMyScript.ExecuteCommit(CommitRetaining: boolean=true);
+procedure TMyScript.ExecuteCommit;
 begin
   inc (FCommits);
   if DoException <> '' then
@@ -276,20 +270,7 @@ begin
     AssertFalse ('Aborted', Aborted);
     AssertEquals ('Line', 0, Line);
     AssertEquals ('Defines', 0, Defines.count);
-    AssertEquals ('Directives', 12, Directives.count);
-    AssertTrue('Have SET TERM',Directives.IndexOf('SET TERM')<>-1);
-    AssertTrue('Have COMMIT WORK',Directives.IndexOf('COMMIT WORK')<>-1);
-    AssertTrue('Have COMMIT RETAIN',Directives.IndexOf('COMMIT RETAIN')<>-1);
-    AssertTrue('Have COMMIT',Directives.IndexOf('COMMIT')<>-1);
-    AssertTrue('Have #IFDEF',Directives.IndexOf('#IFDEF')<>-1);
-    AssertTrue('Have #IFNDEF',Directives.IndexOf('#IFNDEF')<>-1);
-    AssertTrue('Have #ELSE',Directives.IndexOf('#ELSE')<>-1);
-    AssertTrue('Have #ENDIF',Directives.IndexOf('#ENDIF')<>-1);
-    AssertTrue('Have #DEFINE',Directives.IndexOf('#DEFINE')<>-1);
-    AssertTrue('Have #UNDEF',Directives.IndexOf('#UNDEF')<>-1);
-    AssertTrue('Have #UNDEFINE',Directives.IndexOf('#UNDEFINE')<>-1);
-    // This is defined in our test class.
-    AssertTrue('Have STOP',Directives.IndexOf('STOP')<>-1);
+    AssertEquals ('Directives', 10, Directives.count);
     end;
 end;
 
@@ -532,18 +513,6 @@ begin
   AssertStatDir('"iets ""/* meer */"""', '');
 end;
 
-procedure TTestSQLScript.TestDashDashComment;
-begin
-  script.CommentsInSQL := false;
-  Add('-- my comment');
-  Add('CREATE TABLE "tPatients" (');
-  Add('  "BloodGroup" character(2),');
-  Add('  CONSTRAINT "ck_tPatients_BloodGroup" CHECK (("BloodGroup" = ANY (ARRAY[''A''::bpchar, ''B''::bpchar, ''AB''::bpchar, ''0''::bpchar]))),');
-  Add(');');
-  script.execute;
-  AssertStatDir('"CREATE TABLE ""tPatients"" (   ""BloodGroup"" character(2),   CONSTRAINT ""ck_tPatients_BloodGroup"" CHECK ((""BloodGroup"" = ANY (ARRAY[''A''::bpchar, ''B''::bpchar, ''AB''::bpchar, ''0''::bpchar]))), )"', '');
-end;
-
 procedure TTestSQLScript.TestQuote1InComment;
 begin
   script.CommentsInSQL := false;
@@ -696,77 +665,6 @@ begin
   AssertEquals ('exception message', 'Fout', exceptionmessage);
   AssertEquals ('exception statement', 'COMMIT', exceptionstatement);
   AssertEquals ('commit count', 1, Script.FCommits);
-end;
-
-
-Const
-  PLSQL1 = 'CREATE or replace FUNCTION test_double_bad_sum ( value1 int, value2 int ) '+
-    'RETURNS int AS $$  '+
-    'DECLARE  '+
-    '  TheDoubleSum int;  '+
-    'BEGIN  '+
-    '  -- Start  '+
-    '  TheDoubleSum := value1; '+
-    '  /* sum  '+
-    '       number  '+
-    '       1 */  '+
-    '  TheDoubleSum := TheDoubleSum + value2; '+
-    '  TheDoubleSum := TheDoubleSum + value2; -- Sum number 2  '+
-    '  return TheDoubleSum; '+
-    'END;  '+
-    '$$ '+
-    'LANGUAGE plpgsql';
-  PLSQL2 = 'COMMENT ON FUNCTION test_double_bad_sum(IN integer, IN integer) '+
-    '  IS ''Just a  '+
-    '  test function '+
-    '  !!!''';
-  PLSQL3 = 'CREATE or replace FUNCTION test_double_bad_sum ( value1 int, value2 int ) '+
-    'RETURNS int AS $BOB$  '+
-    'DECLARE  '+
-    '  TheDoubleSum int;  '+
-    'BEGIN  '+
-    '  -- Start  '+
-    '  TheDoubleSum := value1; '+
-    '  /* sum  '+
-    '       number  '+
-    '       1 */  '+
-    '  TheDoubleSum := TheDoubleSum + value2; '+
-    '  TheDoubleSum := TheDoubleSum + value2; -- Sum number 2  '+
-    '  return TheDoubleSum; '+
-    'END;  '+
-    '$BOB$ '+
-    'LANGUAGE plpgsql';
-
-procedure TTestSQLScript.TestUseDollarSign;
-
-begin
-  script.UseDollarString:=True;
-  Add(PLSQL1+';');
-  script.execute;
-  // Double quotes because there are spaces.
-  AssertStatDir('"'+plsql1+'"', '');
-end;
-
-procedure TTestSQLScript.TestUseDollarSign2;
-begin
-  script.UseDollarString:=True;
-  Add(PLSQL1+';');
-  Add(PLSQL2+';');
-  script.execute;
-  // Double quotes because there are spaces.
-  AssertStatDir('"'+plsql1+'","'+PLSQL2+'"', '');
-
-end;
-
-procedure TTestSQLScript.TestUseDollarSign3;
-begin
-  script.UseDollarString:=True;
-  script.DollarStrings.Add('BOB');
-  Add(PLSQL3+';');
-  script.execute;
-  // Double quotes because there are spaces.
-  AssertStatDir('"'+plsql3+'"', '');
-
 end;
 
 { TTestEventSQLScript }

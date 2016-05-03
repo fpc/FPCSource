@@ -26,16 +26,17 @@ Unit racpugas;
 Interface
 
   uses
-    cgbase,raatt,racpu;
+    raatt,racpu;
 
   type
     tSparcReader = class(tattreader)
-      actrel: trefaddr;
       function is_asmopcode(const s: string):boolean;override;
       procedure handleopcode;override;
       procedure BuildReference(oper : tSparcoperand);
       procedure BuildOperand(oper : tSparcoperand);
       procedure BuildOpCode(instr : tSparcinstruction);
+      procedure ReadPercent(oper : tSparcoperand);
+      procedure ReadSym(oper : tSparcoperand);
       procedure ConvertCalljmp(instr : tSparcinstruction);
       procedure handlepercent;override;
     end;
@@ -57,8 +58,64 @@ Interface
       scanner,
       procinfo,
       rabase,rautils,
-      cgobj
+      cgbase,cgobj
       ;
+
+    procedure TSparcReader.ReadSym(oper : tSparcoperand);
+      var
+         tempstr, mangledname : string;
+         typesize,l,k : aint;
+      begin
+        tempstr:=actasmpattern;
+        Consume(AS_ID);
+        { typecasting? }
+        if (actasmtoken=AS_LPAREN) and
+           SearchType(tempstr,typesize) then
+          begin
+            oper.hastype:=true;
+            Consume(AS_LPAREN);
+            BuildOperand(oper);
+            Consume(AS_RPAREN);
+            if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
+              oper.SetSize(typesize,true);
+          end
+        else
+          if not oper.SetupVar(tempstr,false) then
+            Message1(sym_e_unknown_id,tempstr);
+        { record.field ? }
+        if actasmtoken=AS_DOT then
+          begin
+            BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
+           if (mangledname<>'') then
+             Message(asmr_e_invalid_reference_syntax);
+            inc(oper.opr.ref.offset,l);
+          end;
+      end;
+
+
+    procedure TSparcReader.ReadPercent(oper : tSparcoperand);
+      begin
+        { check for ...@ }
+        if actasmtoken=AS_AT then
+          begin
+            if (oper.opr.ref.symbol=nil) and
+               (oper.opr.ref.offset = 0) then
+              Message(asmr_e_invalid_reference_syntax);
+            Consume(AS_AT);
+            if actasmtoken=AS_ID then
+              begin
+                if upper(actasmpattern)='LO' then
+                  oper.opr.ref.refaddr:=addr_low
+                else if upper(actasmpattern)='HI' then
+                  oper.opr.ref.refaddr:=addr_high
+                else
+                  Message(asmr_e_invalid_reference_syntax);
+                Consume(AS_ID);
+              end
+            else
+              Message(asmr_e_invalid_reference_syntax);
+          end;
+      end;
 
 
     Procedure TSparcReader.BuildReference(oper : tSparcoperand);
@@ -154,15 +211,12 @@ Interface
          uppervar(actasmpattern);
          if is_register(actasmpattern) then
            exit;
-         actrel:=addr_no;
          if (actasmpattern='%HI') then
-           actrel:=addr_high
+           actasmtoken:=AS_HI
          else if (actasmpattern='%LO')then
-           actrel:=addr_low
+           actasmtoken:=AS_LO
          else
            Message(asmr_e_invalid_register);
-         if (actrel<>addr_no) then
-           actasmtoken:=AS_RELTYPE;
       end;
 
 
@@ -296,12 +350,16 @@ Interface
                 gotplus:=false;
               end;
 
-            AS_RELTYPE:
+            AS_HI,
+            AS_LO:
               begin
                 { Low or High part of a constant (or constant
                   memory location) }
                 oper.InitRef;
-                oper.opr.ref.refaddr:=actrel;
+                if actasmtoken=AS_LO then
+                  oper.opr.ref.refaddr:=addr_low
+                else
+                  oper.opr.ref.refaddr:=addr_high;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
@@ -367,7 +425,9 @@ Interface
                        end
                       else
                        begin
-                         if not oper.SetupVar(expr,false) then
+                         if oper.SetupVar(expr,false) then
+                           ReadPercent(oper)
+                         else
                           Begin
                             { look for special symbols ... }
                             if expr= '__HIGH' then

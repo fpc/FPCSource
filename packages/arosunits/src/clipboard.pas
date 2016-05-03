@@ -16,7 +16,8 @@
 unit clipboard;
 
 interface
-{$H+}
+
+{$mode objfpc}{$H+}
 
 uses exec;
 
@@ -73,8 +74,8 @@ type
     chm_ClipID : LongInt;        { the clip identifier of the new data }
    END;
 
-function GetTextFromClip(ClipUnit: Byte): AnsiString;
-function PutTextToClip(ClipUnit: Byte; Text: AnsiString): Boolean;
+function GetTextFromClip(ClipUnit: Byte): string;
+function PutTextToClip(ClipUnit: Byte; Text: string): Boolean;
 
 implementation
 
@@ -86,7 +87,7 @@ const
   ID_FTXT = 1179932756;
   ID_CHRS = 1128813139;
 
-function GetTextFromClip(ClipUnit: Byte): AnsiString;
+function GetTextFromClip(ClipUnit: Byte): string;
 var
   Iff: PIffHandle;
   Error: LongInt;
@@ -95,7 +96,7 @@ var
   Len: Integer;
   Cu: LongInt;
 begin
-  GetTextFromClip := '';
+  Result := '';
   Cu := ClipUnit;
   Iff := AllocIff;
   if Assigned(Iff) then
@@ -123,9 +124,12 @@ begin
             begin
               GetMem(Buf, Len + 1);
               FillChar(Buf^, Len + 1, #0);
-              ReadChunkBytes(Iff, Buf, Len);
-              GetTextFromClip := GetTextFromClip + AnsiString(Buf);
-              FreeMem(Buf);
+              try
+                ReadChunkBytes(Iff, Buf, Len);
+                Result := Result + string(Buf);
+              finally
+                FreeMem(Buf);
+              end;
             end;
           end;
         end;
@@ -137,13 +141,13 @@ begin
   end;
 end;
 
-function PutTextToClip(ClipUnit: Byte; Text: AnsiString): Boolean;
+function PutTextToClip(ClipUnit: Byte; Text: string): Boolean;
 var
   Iff: PIffHandle;
-  TText: AnsiString;
+  TText: string;
   Len: Integer;
 begin
-  PutTextToClip := False;
+  Result := False;
   Iff := AllocIff;
   if Assigned(Iff) then
   begin
@@ -159,7 +163,7 @@ begin
           begin
             Len := Length(Text);
             TText := Text + #0;
-            PutTextToClip := WriteChunkBytes(iff, @(TText[1]), Len) = len;
+            Result := WriteChunkBytes(iff, @(TText[1]), Len) = len;
             PopChunk(iff);
           end;
           PopChunk(iff);

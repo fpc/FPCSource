@@ -29,6 +29,7 @@
 }
 {$PACKRECORDS 2}
 
+{$mode objfpc}
 
 UNIT AHI;
 
@@ -36,7 +37,7 @@ INTERFACE
 
 USES Exec,utility;
 
-VAR AHIBase : pLibrary = nil;
+VAR AHIBase : pLibrary;
 
 {
         $VER: ahi.h 4.2 (27.4.97)
@@ -521,66 +522,152 @@ PROCEDURE AHI_SetVol(Channel : WORD location 'd0'; Volume : LONGINT location 'd1
 PROCEDURE AHI_UnloadSound(Sound : WORD location 'd0'; Audioctrl : pAHIAudioCtrl location 'a2'); syscall AHIBase 96;
 
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION AHI_AllocAudio(const tagList : array of PtrUInt) : pAHIAudioCtrl;
-FUNCTION AHI_AllocAudioRequest(const tagList : array of PtrUInt) : pAHIAudioModeRequester;
-FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : array of PtrUInt) : BOOLEAN;
-FUNCTION AHI_BestAudioID(const tagList : array of PtrUInt) : longword;
-FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : longword;
-FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : BOOLEAN;
-PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt);
+FUNCTION AHI_AllocAudio(const tagList : Array Of Const) : pAHIAudioCtrl;
+FUNCTION AHI_AllocAudioRequest(const tagList : Array Of Const) : pAHIAudioModeRequester;
+FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : Array Of Const) : BOOLEAN;
+FUNCTION AHI_BestAudioID(const tagList : Array Of Const) : longword;
+FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : Array Of Const) : longword;
+FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const) : BOOLEAN;
+PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const);
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitAHILibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    AHIIsCompiledHow : longint;
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION AHI_AllocAudio(const tagList : array of PtrUInt) : pAHIAudioCtrl;
+FUNCTION AHI_AllocAudio(const tagList : Array Of Const) : pAHIAudioCtrl;
 begin
-    AHI_AllocAudio := AHI_AllocAudioA(@TagList);
+    AHI_AllocAudio := AHI_AllocAudioA(readintags(tagList));
 end;
 
-FUNCTION AHI_AllocAudioRequest(const tagList : array of PtrUInt) : pAHIAudioModeRequester;
+FUNCTION AHI_AllocAudioRequest(const tagList : Array Of Const) : pAHIAudioModeRequester;
 begin
-    AHI_AllocAudioRequest := AHI_AllocAudioRequestA(@TagList);
+    AHI_AllocAudioRequest := AHI_AllocAudioRequestA(readintags(tagList));
 end;
 
-FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : array of PtrUInt) : BOOLEAN;
+FUNCTION AHI_AudioRequest(Requester : pAHIAudioModeRequester; const tagList : Array Of Const) : BOOLEAN;
 begin
-    AHI_AudioRequest := AHI_AudioRequestA(Requester , @TagList);
+    AHI_AudioRequest := AHI_AudioRequestA(Requester , readintags(tagList));
 end;
 
-FUNCTION AHI_BestAudioID(const tagList : array of PtrUInt) : longword;
+FUNCTION AHI_BestAudioID(const tagList : Array Of Const) : longword;
 begin
-    AHI_BestAudioID := AHI_BestAudioIDA(@TagList);
+    AHI_BestAudioID := AHI_BestAudioIDA(readintags(tagList));
 end;
 
-FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : longword;
+FUNCTION AHI_ControlAudio(AudioCtrl : pAHIAudioCtrl; const tagList : Array Of Const) : longword;
 begin
-    AHI_ControlAudio := AHI_ControlAudioA(AudioCtrl , @TagList);
+    AHI_ControlAudio := AHI_ControlAudioA(AudioCtrl , readintags(tagList));
 end;
 
-FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt) : BOOLEAN;
+FUNCTION AHI_GetAudioAttrs(ID : longword; Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const) : BOOLEAN;
 begin
-    AHI_GetAudioAttrs := AHI_GetAudioAttrsA(ID , Audioctrl , @TagList);
+    AHI_GetAudioAttrs := AHI_GetAudioAttrsA(ID , Audioctrl , readintags(tagList));
 end;
 
-PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : array of PtrUInt);
+PROCEDURE AHI_Play(Audioctrl : pAHIAudioCtrl; const tagList : Array Of Const);
 begin
-    AHI_PlayA(Audioctrl , @TagList);
+    AHI_PlayA(Audioctrl , readintags(tagList));
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  AHIBase := OpenLibrary(AHINAME,LIBVERSION);
-finalization
-  if Assigned(AHIBase) then
-    CloseLibrary(AHIBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of ahi.library}
+  {$Info don't forget to use InitAHILibrary in the beginning of your program}
+
+var
+    ahi_exit : Pointer;
+
+procedure CloseahiLibrary;
+begin
+    ExitProc := ahi_exit;
+    if AHIBase <> nil then begin
+        CloseLibrary(AHIBase);
+        AHIBase := nil;
+    end;
+end;
+
+procedure InitAHILibrary;
+begin
+    AHIBase := nil;
+    AHIBase := OpenLibrary(AHINAME,LIBVERSION);
+    if AHIBase <> nil then begin
+        ahi_exit := ExitProc;
+        ExitProc := @CloseahiLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ahi.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    AHIIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of ahi.library}
+
+var
+    ahi_exit : Pointer;
+
+procedure CloseahiLibrary;
+begin
+    ExitProc := ahi_exit;
+    if AHIBase <> nil then begin
+        CloseLibrary(AHIBase);
+        AHIBase := nil;
+    end;
+end;
+
+begin
+    AHIBase := nil;
+    AHIBase := OpenLibrary(AHINAME,LIBVERSION);
+    if AHIBase <> nil then begin
+        ahi_exit := ExitProc;
+        ExitProc := @CloseahiLibrary;
+        AHIIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ahi.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    AHIIsCompiledHow := 3;
+   {$Warning No autoopening of ahi.library compiled}
+   {$Warning Make sure you open ahi.library yourself}
+{$endif dont_use_openlib}
+
 END. (* UNIT AHI *)
 
 

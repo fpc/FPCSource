@@ -380,35 +380,107 @@ FUNCTION OpenEngine : pGlyphEngine; syscall BulletBase 030;
 FUNCTION ReleaseInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 054;
 FUNCTION SetInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 042;
 
-function ObtainInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
-function ReleaseInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
-function SetInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitBULLETLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    BULLETIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-function ObtainInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
-begin
-    ObtainInfo := ObtainInfoA(glyphEngine,@argv);
-end;
-
-function ReleaseInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
-begin
-    ReleaseInfo := releaseInfoA(glyphEngine,@argv);
-end;
-
-function SetInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
-begin
-    SetInfo := SetInfoA(glyphEngine,@argv);
-end;
+{
+ If you don't use array of const then just remove tagsarray
+}
+uses
+{$ifndef dont_use_openlib}
+amsgbox;
+{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
-finalization
-  if Assigned(BulletBase) then
-    CloseLibrary(BulletBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of bullet.library}
+  {$Info don't forget to use InitBULLETLibrary in the beginning of your program}
+
+var
+    bullet_exit : Pointer;
+
+procedure ClosebulletLibrary;
+begin
+    ExitProc := bullet_exit;
+    if BulletBase <> nil then begin
+        CloseLibrary(BulletBase);
+        BulletBase := nil;
+    end;
+end;
+
+procedure InitBULLETLibrary;
+begin
+    BulletBase := nil;
+    BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
+    if BulletBase <> nil then begin
+        bullet_exit := ExitProc;
+        ExitProc := @ClosebulletLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open bullet.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    BULLETIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of bullet.library}
+
+var
+    bullet_exit : Pointer;
+
+procedure ClosebulletLibrary;
+begin
+    ExitProc := bullet_exit;
+    if BulletBase <> nil then begin
+        CloseLibrary(BulletBase);
+        BulletBase := nil;
+    end;
+end;
+
+begin
+    BulletBase := nil;
+    BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
+    if BulletBase <> nil then begin
+        bullet_exit := ExitProc;
+        ExitProc := @ClosebulletLibrary;
+        BULLETIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open bullet.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    BULLETIsCompiledHow := 3;
+   {$Warning No autoopening of bullet.library compiled}
+   {$Warning Make sure you open bullet.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT BULLET *)

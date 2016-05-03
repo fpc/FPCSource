@@ -89,12 +89,11 @@ end;
 function TPoint.Add(const apt: TPoint): TPoint;
 begin
   result.x:=x+apt.x;
-  result.y:=y+apt.y;
 end;
 
-function TPoint.Distance(const apt: TPoint): ValReal;
+function TPoint.Distance(const apt : TPoint) : Double;
 begin
-  result:=sqrt(sqr(ValReal(apt.x)-ValReal(x))+sqr(ValReal(apt.y)-ValReal(y))); // convert to ValReal to prevent integer overflows
+  result:=sqrt(sqr(apt.x-x)+sqr(apt.y-y));
 end;
 
 function TPoint.IsZero : Boolean;
@@ -105,13 +104,6 @@ end;
 function TPoint.Subtract(const apt : TPoint): TPoint;
 begin
   result.x:=x-apt.x;
-  result.y:=y-apt.y;
-end;
-
-class function TPoint.Zero: TPoint;
-begin
-  Result.x := 0;
-  Result.y := 0;
 end;
 
 procedure TPoint.SetLocation(const apt :TPoint);
@@ -125,20 +117,14 @@ end;
 
 procedure TPoint.Offset(const apt :TPoint);
 begin
- x:=x+apt.x;
- y:=y+apt.y;
-end;
-
-class function TPoint.PointInCircle(const apt, acenter: TPoint;
-  const aradius: Integer): Boolean;
-begin
-  Result := apt.Distance(acenter) <= aradius;
+ x:=x-apt.x;
+ y:=y-apt.y;
 end;
 
 procedure TPoint.Offset(dx,dy : Longint);
 begin
-  x:=x+dx;
-  y:=y+dy;
+  x:=x-dx;
+  y:=y-dy;
 end;
 
 class operator TPoint.= (const apt1, apt2 : TPoint) : Boolean;
@@ -178,125 +164,6 @@ end;
 
 { TRect }
 
-class operator TRect. * (L, R: TRect): TRect;
-begin
-  Result := TRect.Intersect(L, R);
-end;
-
-class operator TRect. + (L, R: TRect): TRect;
-begin
-  Result := TRect.Union(L, R);
-end;
-
-class operator TRect. <> (L, R: TRect): Boolean;
-begin
-  Result := not(L=R);
-end;
-
-class operator TRect. = (L, R: TRect): Boolean;
-begin
-  Result :=
-    (L.Left = R.Left) and (L.Right = R.Right) and
-    (L.Top = R.Top) and (L.Bottom = R.Bottom);
-end;
-
-{$IFDEF VER3_0_0}
-class function TRect.Create(ALeft, ATop, ARight, ABottom: Longint): TRect;
-begin
-  Result.Left := ALeft;
-  Result.Top := ATop;
-  Result.Right := ARight;
-  Result.Bottom := ABottom;
-end;
-
-class function TRect.Create(P1, P2: TPoint; Normalize: Boolean): TRect;
-begin
-  Result.TopLeft := P1;
-  Result.BottomRight := P2;
-  if Normalize then
-    Result.NormalizeRect;
-end;
-
-class function TRect.Create(Origin: TPoint): TRect;
-begin
-  Result.TopLeft := Origin;
-  Result.BottomRight := Origin;
-end;
-
-class function TRect.Create(Origin: TPoint; AWidth, AHeight: Longint): TRect;
-begin
-  Result.TopLeft := Origin;
-  Result.Width := AWidth;
-  Result.Height := AHeight;
-end;
-
-class function TRect.Create(R: TRect; Normalize: Boolean): TRect;
-begin
-  Result := R;
-  if Normalize then
-    Result.NormalizeRect;
-end;
-
-{$ELSE}
-
-constructor TRect.Create(ALeft, ATop, ARight, ABottom: Longint);
-begin
-  Left := ALeft;
-  Top := ATop;
-  Right := ARight;
-  Bottom := ABottom;
-end;
-
-constructor TRect.Create(P1, P2: TPoint; Normalize: Boolean);
-begin
-  TopLeft := P1;
-  BottomRight := P2;
-  if Normalize then
-    NormalizeRect;
-end;
-
-constructor TRect.Create(Origin: TPoint);
-begin
-  TopLeft := Origin;
-  BottomRight := Origin;
-end;
-
-constructor TRect.Create(Origin: TPoint; AWidth, AHeight: Longint);
-begin
-  TopLeft := Origin;
-  Width := AWidth;
-  Height := AHeight;
-end;
-
-constructor TRect.Create(R: TRect; Normalize: Boolean);
-begin
-  Self := R;
-  if Normalize then
-    NormalizeRect;
-end;
-{$ENDIF}
-
-function TRect.CenterPoint: TPoint;
-begin
-  Result.X := (Right-Left) div 2 + Left;
-  Result.Y := (Bottom-Top) div 2 + Top;
-end;
-
-function TRect.Contains(Pt: TPoint): Boolean;
-begin
-  Result := (Left <= Pt.X) and (Pt.X <= Right) and (Top <= Pt.Y) and (Pt.Y <= Bottom);
-end;
-
-function TRect.Contains(R: TRect): Boolean;
-begin
-  Result := (Left <= R.Left) and (R.Right <= Right) and (Top <= R.Top) and (R.Bottom <= Bottom);
-end;
-
-class function TRect.Empty: TRect;
-begin
-  Result := TRect.Create(0,0,0,0);
-end;
-
 function TRect.getHeight: Longint;
 begin
   result:=bottom-top;
@@ -317,80 +184,14 @@ begin
   result:=right-left;
 end;
 
-procedure TRect.Inflate(DX, DY: Longint);
-begin
-  InflateRect(Self, DX, DY);
-end;
-
-procedure TRect.Intersect(R: TRect);
-begin
-  Self := Intersect(Self, R);
-end;
-
-class function TRect.Intersect(R1: TRect; R2: TRect): TRect;
-begin
-  IntersectRect(Result, R1, R2);
-end;
-
-function TRect.IntersectsWith(R: TRect): Boolean;
-begin
-  Result := (Left < R.Right) and (R.Left < Right) and (Top < R.Bottom) and (R.Top < Bottom);
-end;
-
-function TRect.IsEmpty: Boolean;
-begin
-  Result := (Right <= Left) or (Bottom <= Top);
-end;
-
-procedure TRect.NormalizeRect;
-var
-  x: LongInt;
-begin
-  if Top>Bottom then
-  begin
-    x := Top;
-    Top := Bottom;
-    Bottom := x;
-  end;
-  if Left>Right then
-  begin
-    x := Left;
-    Left := Right;
-    Right := x;
-  end
-end;
-
-procedure TRect.Inflate(DL, DT, DR, DB: Longint);
-begin
-  Dec(Left, DL);
-  Dec(Top, DT);
-  Inc(Right, DR);
-  Inc(Bottom, DB);
-end;
-
-procedure TRect.Offset(DX, DY: Longint);
-begin
-  OffsetRect(Self, DX, DY);
-end;
-
-procedure TRect.Offset(DP: TPoint);
-begin
-  OffsetRect(Self, DP.X, DP.Y);
-end;
-
 procedure TRect.setHeight(AValue: Longint);
 begin
-  bottom:=top+avalue;
+  right:=left+avalue;
 end;
 
-procedure TRect.SetLocation(X, Y: Longint);
+procedure TRect.setLocation(AValue: TPoint);
 begin
-  Offset(X-Left, Y-Top);
-end;
-
-procedure TRect.SetLocation(P: TPoint);
-begin
-  SetLocation(P.X, P.Y);
+  top:=avalue.x; left:=avalue.y;
 end;
 
 procedure TRect.setSize(AValue: TSize);
@@ -401,59 +202,7 @@ end;
 
 procedure TRect.setWidth(AValue: Longint);
 begin
-  right:=left+avalue;
-end;
-
-function TRect.SplitRect(SplitType: TSplitRectType; Percent: Double): TRect;
-begin
-  Result := Self;
-  case SplitType of
-    srLeft: Result.Right := Left + Trunc(Percent*Width);
-    srRight: Result.Left := Right - Trunc(Percent*Width);
-    srTop: Result.Bottom := Top + Trunc(Percent*Height);
-    srBottom: Result.Top := Bottom - Trunc(Percent*Height);
-  end;
-end;
-
-function TRect.SplitRect(SplitType: TSplitRectType; ASize: Longint): TRect;
-begin
-  Result := Self;
-  case SplitType of
-    srLeft: Result.Right := Left + ASize;
-    srRight: Result.Left := Right - ASize;
-    srTop: Result.Bottom := Top + ASize;
-    srBottom: Result.Top := Bottom - ASize;
-  end;
-end;
-
-class function TRect.Union(const Points: array of TPoint): TRect;
-var
-  i: Integer;
-begin
-  if Length(Points) > 0 then
-  begin
-    Result.TopLeft := Points[Low(Points)];
-    Result.BottomRight := Points[Low(Points)];
-
-    for i := Low(Points)+1 to High(Points) do
-    begin
-      if Points[i].X < Result.Left then Result.Left := Points[i].X;
-      if Points[i].X > Result.Right then Result.Right := Points[i].X;
-      if Points[i].Y < Result.Top then Result.Top := Points[i].Y;
-      if Points[i].Y > Result.Bottom then Result.Bottom := Points[i].Y;
-    end;
-  end else
-    Result := Empty;
-end;
-
-procedure TRect.Union(R: TRect);
-begin
-  Self := Union(Self, R);
-end;
-
-class function TRect.Union(R1, R2: TRect): TRect;
-begin
-  UnionRect(Result, R1, R2);
+  bottom:=top+avalue;
 end;
 
 

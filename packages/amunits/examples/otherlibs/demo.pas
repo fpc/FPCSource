@@ -115,7 +115,7 @@ VAR
 
 BEGIN
     ProjectStart;
-    WindowTitle('Groups'); WindowPosition(TRWP_CENTERDISPLAY); WindowUnderscore(string('~')); WindowID(1);
+    WindowTitle('Groups'); WindowPosition(TRWP_CENTERDISPLAY); WindowUnderscore('~'); WindowID(1);
 
     HorizGroupA; Space; VertGroupA;
     Space;
@@ -994,8 +994,8 @@ ProjectStart;
                                          ELSE reqstr := 'Icon(s) dropped into the window.' + #9 + 'Name of first dropped icon:' + #10 + '%3' + strpas(dirname);
                                       END;
                                       TR_EasyRequestTags(App,reqstr,'_Ok',[
-                                                     TREZ_LockProject, AsTag(appwindow_project),
-                                                     TREZ_Title, AsTag('AppWindow report'),
+                                                     TREZ_LockProject, appwindow_project,
+                                                     TREZ_Title,'AppWindow report',
                                                      TREZ_Activate,1,
                                                      TAG_END]);
 
@@ -1103,8 +1103,8 @@ BEGIN
                                                 TR_EasyRequestTags(App,'To get help, move the mouse pointer over' + #10 +
                                                 'any gadget or menu item and press <Help>'+#10+
                                                 'or turn on QuickHelp before.','_Ok',[
-                                                TREZ_LockProject, AsTag(Main_Project),
-                                                TREZ_Title, AsTag('Triton help'),
+                                                TREZ_LockProject,Main_Project,
+                                                TREZ_Title,'Triton help',
                                                 TAG_END]);
                                              end;
                                         103: quit := True;
@@ -1118,8 +1118,8 @@ BEGIN
                                          reqstr := 'No help available for object ' + IntToStr(trmsg^.trm_ID);
                                       END;
                                       TR_EasyRequestTags(App,reqstr,'_Ok',[
-                                                     TREZ_LockProject, AsTag(Main_Project),
-                                                     TREZ_Title, AsTag('Triton help'),
+                                                     TREZ_LockProject,Main_Project,
+                                                     TREZ_Title,'Triton help',
                                                      TAG_END]);
                                     END;
                  TRMS_ERROR:        WriteLN(TR_GetErrorString(trmsg^.trm_Data));
@@ -1136,16 +1136,11 @@ BEGIN
 END;
 
 BEGIN
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
 
     App := TR_CreateAppTags([
-              TRCA_Name, AsTag('TritonDemo'),
-              TRCA_LongName, AsTag('Triton Demo'),
-              TRCA_Version, AsTag('2.0'),
+              TRCA_Name,'TritonDemo',
+              TRCA_LongName,'Triton Demo',
+              TRCA_Version,'2.0',
               TAG_DONE]);
 
     if App <> nil then begin

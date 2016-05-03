@@ -68,9 +68,9 @@ type
   end;
 
 const
-  AsmPrefixes = 8{$ifdef i8086}+2{$endif i8086};
+  AsmPrefixes = 6;
   AsmPrefix : array[0..AsmPrefixes-1] of TasmOP =(
-    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ,A_XACQUIRE,A_XRELEASE{$ifdef i8086},A_REPC,A_REPNC{$endif i8086}
+    A_LOCK,A_REP,A_REPE,A_REPNE,A_REPNZ,A_REPZ
   );
 
   AsmOverrides = 6;
@@ -197,13 +197,7 @@ begin
     32: size := OS_M256;
   end;
 
-{$ifdef i8086}
-  { allows e.g. using 32-bit registers in i8086 inline asm }
-  if size in [OS_32,OS_S32] then
-    opsize:=S_L
-  else
-{$endif i8086}
-    opsize:=TCGSize2Opsize[size];
+  opsize:=TCGSize2Opsize[size];
 end;
 
 
@@ -1092,12 +1086,6 @@ begin
     begin
       if (ops=1) and (opcode=A_INT) then
         siz:=S_B;
-      if (ops=1) and (opcode=A_XABORT) then
-        siz:=S_B;
-{$ifdef i8086}
-      if (ops=1) and (opcode=A_BRKEM) then
-        siz:=S_B;
-{$endif i8086}
       if (ops=1) and (opcode=A_RET) or (opcode=A_RETN) or (opcode=A_RETF) then
         siz:=S_W;
       if (ops=1) and (opcode=A_PUSH) then

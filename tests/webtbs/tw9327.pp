@@ -1,4 +1,3 @@
-{ %skiptarget=android }
 { %opt=-Cg- }
 { %cpu=i386 }
 

@@ -26,7 +26,7 @@ Program Bezier2;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, agraphics, utility;
+uses exec, intuition, agraphics, utility, systemvartags;
 
 type
     PointRec = Record
@@ -242,12 +242,11 @@ begin
 end;
 
 begin
-      s := OpenScreenTags(nil,[
-        SA_Pens, AsTag(@pens),
-        SA_Depth,     2,
-        SA_DisplayID, HIRES_KEY,
-        SA_Title,     AsTag('Simple Bezier Curves'),
-        TAG_END]);
+      s := OpenScreenTags(nil,[SA_Pens, @pens,
+      SA_Depth,     2,
+      SA_DisplayID, HIRES_KEY,
+      SA_Title,     'Simple Bezier Curves',
+      TAG_END]);
 
     if s = NIL then CleanUpAndDie;
 
@@ -263,8 +262,8 @@ begin
       WA_ReportMouse,  ltrue,
       WA_SmartRefresh, ltrue,
       WA_Activate,     ltrue,
-      WA_Title,        AsTag('Close the Window to Quit'),
-      WA_CustomScreen, AsTag(s),
+      WA_Title,        'Close the Window to Quit',
+      WA_CustomScreen, s,
       TAG_END]);
 
     IF w=NIL THEN CleanUpAndDie;

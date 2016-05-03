@@ -42,11 +42,6 @@ begin
 end;
 
 begin
-  if not Assigned(GTLayoutBase) then
-  begin
-    writeln('cannot open ' + GTLAYOUTNAME);
-    Halt(5);
-  end;
     done := false;
     handle := LT_CreateHandleTags(nil,[
                     LAHN_AutoActivate, lfalse,
@@ -55,26 +50,26 @@ begin
     if handle = nil then CleanUp('Could''t create a handle',20);
 
     LT_New(handle,[LA_Type,VERTICAL_KIND,       { A vertical group. }
-                   LA_LabelText, AsTag('Main Group'),
+                   LA_LabelText,'Main Group',
                    TAG_DONE]);
 
     LT_New(handle,[LA_Type,BUTTON_KIND,         { A plain button. }
-                   LA_LabelText, AsTag('A button'),
+                   LA_LabelText,'A button',
                    LA_ID,11,
                    TAG_DONE]);
 
     LT_New(handle,[LA_Type,XBAR_KIND,TAG_DONE]); { A separator bar. }
 
     LT_New(handle,[LA_Type,BUTTON_KIND,          { A plain button. }
-                   LA_LabelText, AsTag('Another button'),
+                   LA_LabelText,'Another button',
                    LA_ID,22,
                    TAG_DONE]);
 
-    LT_New(handle,[LA_Type,CHECKBOX_KIND,LA_LabelText,AsTag('test'),LA_ID,33,LA_BOOL,1,TAG_DONE]);
+    LT_New(handle,[LA_Type,CHECKBOX_KIND,LA_LabelText,'test',LA_ID,33,LA_BOOL,1,TAG_DONE]);
 
     LT_New(handle,[La_Type,END_KIND,TAG_DONE]);  { This ends the current group. }
 
-    win := LT_Build(handle,[LAWN_Title, AsTag('Window title'),
+    win := LT_Build(handle,[LAWN_Title,'Window title',
                             LAWN_IDCMP, IDCMP_CLOSEWINDOW,
                             WA_CloseGadget, ltrue,
                             TAG_DONE]);

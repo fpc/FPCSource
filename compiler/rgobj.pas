@@ -227,7 +227,6 @@ unit rgobj;
         constrained_moves : Tlinkedlist;
         extended_backwards,
         backwards_was_first : tbitset;
-        has_usedmarks: boolean;
 
         { Disposes of the reginfo array.}
         procedure dispose_reginfo;
@@ -523,7 +522,7 @@ unit rgobj;
 
     function trgobj.uses_registers:boolean;
       begin
-        result:=(maxreg>first_imaginary) or has_usedmarks;
+        result:=(maxreg>first_imaginary);
       end;
 
 
@@ -1465,6 +1464,7 @@ unit rgobj;
                    reginfo[n].colour:=c;
                    found:=true;
                    supregset_include(colourednodes,n);
+                   include(used_in_proc,c);
                    break;
                  end;
             end;
@@ -1477,6 +1477,8 @@ unit rgobj;
           n:=coalescednodes.buf^[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
+          if reginfo[k].colour<first_imaginary then
+            include(used_in_proc,reginfo[k].colour);
         end;
     end;
 
@@ -1731,10 +1733,7 @@ unit rgobj;
                           end;
                         ra_markused :
                           if (supreg<first_imaginary) then
-                            begin
-                              include(used_in_proc,supreg);
-                              has_usedmarks:=true;
-                            end;
+                            include(used_in_proc,supreg);
                       end;
                       { constraints needs always to be updated }
                       add_constraints(reg);
@@ -1803,8 +1802,6 @@ unit rgobj;
                         else
                           begin
                             u:=reginfo[getsupreg(reg)].colour;
-                            include(used_in_proc,u);
-
 {$ifdef EXTDEBUG}
                             if u>=maxreginfo then
                               internalerror(2015040501);

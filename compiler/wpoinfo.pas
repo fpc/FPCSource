@@ -73,8 +73,7 @@ implementation
   uses
     globals,
     symdef,
-    verbose,
-    entfile;
+    verbose;
 
   procedure tunitwpoinfo.clearderefinfo;
     begin

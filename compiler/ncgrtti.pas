@@ -108,8 +108,7 @@ implementation
         { pocall_stdcall    } 3,
         { pocall_softfloat  } 10,
         { pocall_mwpascal   } 11,
-        { pocall_interrupt  } 12,
-        { pocall_hardfloat  } 13
+        { pocall_interrupt  } 12
        );
 
     type
@@ -377,7 +376,6 @@ implementation
         sym : tsym;
         proctypesinfo : byte;
         propnameitem  : tpropnamelistitem;
-        propdefname : string;
 
         procedure writeaccessproc(pap:tpropaccesslisttypes; shiftvalue : byte; unsetvalue: byte);
         var
@@ -398,7 +396,7 @@ implementation
            until not assigned(hpropsym);
            if not(assigned(propaccesslist) and assigned(propaccesslist.firstsym))  then
              begin
-               tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),codeptruinttype);
+               tcb.emit_tai(Tai_const.Create_int_codeptr(unsetvalue),voidcodepointertype);
                typvalue:=3;
              end
            else if propaccesslist.firstsym^.sym.typ=fieldvarsym then
@@ -438,7 +436,7 @@ implementation
                      end;
                      hp:=hp^.next;
                   end;
-                tcb.emit_tai(Tai_const.Create_int_codeptr(address),codeptruinttype);
+                tcb.emit_tai(Tai_const.Create_int_codeptr(address),voidcodepointertype);
                 typvalue:=0;
              end
            else
@@ -449,8 +447,7 @@ implementation
                 if not(po_virtualmethod in tprocdef(propaccesslist.procdef).procoptions) or
                    is_objectpascal_helper(tprocdef(propaccesslist.procdef).struct) then
                   begin
-                    tcb.queue_init(codeptruinttype);
-                    tcb.queue_emit_proc(tprocdef(propaccesslist.procdef));
+                    tcb.emit_procdef_const(tprocdef(propaccesslist.procdef));
                     typvalue:=1;
                   end
                 else
@@ -459,7 +456,7 @@ implementation
                     extnumber:=tprocdef(propaccesslist.procdef).extnumber;
                     tcb.emit_tai(Tai_const.Create_int_codeptr(
                       tobjectdef(tprocdef(propaccesslist.procdef).struct).vmtmethodoffset(extnumber)),
-                      codeptruinttype);
+                      voidcodepointertype);
                     { register for wpo }
                     tobjectdef(tprocdef(propaccesslist.procdef).struct).register_vmt_call(extnumber);
                     {$ifdef vtentry}
@@ -483,17 +480,10 @@ implementation
             if (sym.typ=propertysym) and
                (sym.visibility=vis_published) then
               begin
-                { we can only easily reuse defs if the property is not stored,
-                  because otherwise the rtti layout depends on how the "stored"
-                  is defined (field, indexed expression, virtual method, ...) }
-                if not(ppo_stored in tpropertysym(sym).propoptions) then
-                  propdefname:=internaltypeprefixName[itp_rtti_prop]+tostr(length(tpropertysym(sym).realname))
-                else
-                  propdefname:='';
                 { TPropInfo is a packed record (even on targets that require
                   alignment), but it starts aligned }
                 tcb.begin_anonymous_record(
-                  propdefname,
+                  internaltypeprefixName[itp_rtti_prop]+tostr(length(tpropertysym(sym).realname)),
                   1,reqalign,
                   targetinfos[target_info.system]^.alignment.recordalignmin,
                   targetinfos[target_info.system]^.alignment.maxCrecordalign);
@@ -508,7 +498,7 @@ implementation
                 if not(ppo_stored in tpropertysym(sym).propoptions) then
                   begin
                     { no, so put a constant zero }
-                    tcb.emit_tai(Tai_const.Create_nil_codeptr,codeptruinttype);
+                    tcb.emit_tai(Tai_const.Create_nil_codeptr,voidcodepointertype);
                     proctypesinfo:=proctypesinfo or (3 shl 4);
                   end
                 else
@@ -750,8 +740,8 @@ implementation
           const
             trans : array[tordtype] of byte =
               (otUByte{otNone},
-               otUByte,otUWord,otULong,otUByte{otNone},otUByte{otNone},
-               otSByte,otSWord,otSLong,otUByte{otNone},otUByte{otNone},
+               otUByte,otUWord,otULong,otUByte{otNone},
+               otSByte,otSWord,otSLong,otUByte{otNone},
                otUByte,otUWord,otULong,otUByte,
                otSByte,otSWord,otSLong,otSByte,
                otUByte,otUWord,otUByte);
@@ -985,7 +975,6 @@ implementation
 
         procedure procvardef_rtti(def:tprocvardef);
 
-
            procedure write_para(parasym:tparavarsym);
              begin
                { only store user visible parameters }
@@ -1180,7 +1169,7 @@ implementation
             IntfFlags:=0;
             if assigned(def.iidguid) then
               IntfFlags:=IntfFlags or (1 shl ord(ifHasGuid));
-            if (def.objecttype=odt_interfacecorba) and (def.iidstr^<>'') then
+            if assigned(def.iidstr) then
               IntfFlags:=IntfFlags or (1 shl ord(ifHasStrGUID));
             if (def.objecttype=odt_dispinterface) then
               IntfFlags:=IntfFlags or (1 shl ord(ifDispInterface));
@@ -1203,12 +1192,12 @@ implementation
               targetinfos[target_info.system]^.alignment.maxCrecordalign);
 
             { write iidstr }
-            if def.objecttype=odt_interfacecorba then
+            if def.objecttype = odt_interfacecorba then
               begin
-                { prepareguid always allocates an empty string }
-                if not assigned(def.iidstr) then
-                  internalerror(2016021901);
-                tcb.emit_shortstring_const(def.iidstr^)
+                if assigned(def.iidstr) then
+                  tcb.emit_shortstring_const(def.iidstr^)
+                else
+                  tcb.emit_shortstring_const('');
               end;
 
             { write published properties for this object }
@@ -1351,7 +1340,7 @@ implementation
           in sstrings.inc. }
         procedure enumdef_rtti_ord2stringindex(rttidef: trecorddef; const syms: tfplist);
 
-        var rttilab,rttilabind:Tasmsymbol;
+        var rttilab:Tasmsymbol;
             h,i,o,prev_value:longint;
             mode:(lookup,search); {Modify with care, ordinal value of enum is written.}
             r:single;             {Must be real type because of integer overflow risk.}
@@ -1452,14 +1441,6 @@ implementation
               rttilab,tcb.end_anonymous_record,sec_rodata,
               rttilab.name,const_align(sizeof(pint))));
             tcb.free;
-
-            { write indirect symbol }
-            tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
-            rttilabind:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_INDIRECT,AT_DATA);
-            tcb.emit_tai(Tai_const.Createname(rttilab.name,AT_DATA,0),voidpointertype);
-            current_asmdata.AsmLists[al_rtti].concatList(
-              tcb.get_final_asmlist(rttilabind,voidpointertype,sec_rodata,rttilabind.name,const_align(sizeof(pint))));
-            tcb.free;
         end;
 
 
@@ -1470,8 +1451,7 @@ implementation
 
         var
           tcb: ttai_typedconstbuilder;
-          rttilab,
-          rttilabind : Tasmsymbol;
+          rttilab:Tasmsymbol;
           i:longint;
         begin
           { write rtti data }
@@ -1503,13 +1483,6 @@ implementation
           current_asmdata.asmlists[al_rtti].concatlist(tcb.get_final_asmlist(
             rttilab,tcb.end_anonymous_record,sec_rodata,
             rttilab.name,const_align(sizeof(pint))));
-          tcb.free;
-          { write indirect symbol }
-          tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
-          rttilabind:=current_asmdata.DefineAsmSymbol(Tstoreddef(def).rtti_mangledname(rt)+'_s2o',AB_INDIRECT,AT_DATA);
-          tcb.emit_tai(Tai_const.Createname(rttilab.name,AT_DATA,0),voidpointertype);
-          current_asmdata.AsmLists[al_rtti].concatList(
-            tcb.get_final_asmlist(rttilabind,voidpointertype,sec_rodata,rttilabind.name,const_align(sizeof(pint))));
           tcb.free;
         end;
 
@@ -1639,8 +1612,7 @@ implementation
     procedure TRTTIWriter.write_rtti(def:tdef;rt:trttitype);
       var
         tcb: ttai_typedconstbuilder;
-        rttilab,
-        rttilabind : tasmsymbol;
+        rttilab: tasmsymbol;
         rttidef: tdef;
       begin
         { only write rtti of definitions from the current module }
@@ -1668,16 +1640,8 @@ implementation
         rttidef:=tcb.end_anonymous_record;
         current_asmdata.AsmLists[al_rtti].concatList(
           tcb.get_final_asmlist(rttilab,rttidef,sec_rodata,rttilab.name,const_align(sizeof(pint))));
-        tcb.free;
-        { write indirect symbol }
-        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
-        rttilabind:=current_asmdata.DefineAsmSymbol(tstoreddef(def).rtti_mangledname(rt),AB_INDIRECT,AT_DATA);
-        tcb.emit_tai(Tai_const.Createname(rttilab.name,AT_DATA,0),voidpointertype);
-        current_asmdata.AsmLists[al_rtti].concatList(
-          tcb.get_final_asmlist(rttilabind,voidpointertype,sec_rodata,rttilabind.name,const_align(sizeof(pint))));
-        tcb.free;
-        { write additional data }
         write_rtti_extrasyms(def,rt,rttilab);
+        tcb.free;
       end;
 
 

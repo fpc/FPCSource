@@ -14,6 +14,8 @@
  **********************************************************************}
 unit Intuition;
 
+{$mode objfpc}
+
 {$define INTUI_V36_NAMES_ONLY}
 
 interface
@@ -3337,25 +3339,25 @@ procedure WindowToFront(Window: PWindow); syscall IntuitionBase 52;
 procedure ZipWindow(Window: PWindow); syscall IntuitionBase 84;
 
 // VarArgs Versions
-function SetAttrs(Obj: APTR; const Tags: array of PtrUInt): LongWord;
-function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR;
-function BuildEasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; const Args: array of PtrUInt): PWindow;
-function DoGadgetMethod(Gad: PGadget; Win: PWindow; Req: PRequester; const Args: array of PtrUInt): IPTR;
-function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of PtrUInt): LongInt;
-function OpenScreenTags(NewScreen: PNewScreen; const Tags: array of PtrUInt): PScreen;
-function OpenWindowTags(NewWindow: PNewWindow; const Tags: array of PtrUInt): PWindow;
-function SetGadgetAttrs(Gadget: PGadget; Window: PWindow; Requester: PRequester; const Tags: array of PtrUInt): IPTR;
-procedure SetWindowPointer(Win: PWindow; const Tags: array of PtrUInt);
+function SetAttrs(Obj: APTR; const Tags: array of const): LongWord;
+function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of const): APTR;
+function BuildEasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; const Args: array of const): PWindow;
+function DoGadgetMethod(Gad: PGadget; Win: PWindow; Req: PRequester; const Args: array of const): IPTR;
+function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of const): LongInt;
+function OpenScreenTags(NewScreen: PNewScreen; const Tags: array of const): PScreen;
+function OpenWindowTags(NewWindow: PNewWindow; const Tags: array of const): PWindow;
+function SetGadgetAttrs(Gadget: PGadget; Window: PWindow; Requester: PRequester; const Tags: array of const): IPTR;
+procedure SetWindowPointer(Win: PWindow; const Tags: array of const);
 
 // Function wrapper
 function SetSuperAttrsA(cl: PIClass; Obj: PObject_; TagList: PTagItem): IPTR;
-function SetSuperAttrs(cl: PIClass; Obj: PObject_; const Tags: array of PtrUInt): IPTR;
+function SetSuperAttrs(cl: PIClass; Obj: PObject_; Tags: array of const): IPTR;
 function DoMethodA(Obj: PObject_; Message: APTR): IPTR;
-function DoMethod(Obj: PObject_; const Args: array of PtrUInt): IPTR;
+function DoMethod(Obj: PObject_; MethodID: LongWord; Args: array of const): IPTR;
 function CoerceMethodA(cl: PIClass; Obj: PObject_; Message: APTR): IPTR;
-function CoerceMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): IPTR;
+function CoerceMethod(cl: PIClass; Obj: PObject_; MethodID: LongWord; const Args: array of const): IPTR;
 function DoSuperMethodA(cl: PIClass; Obj: PObject_; Message: APTR): IPTR;
-function DoSuperMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): IPTR;
+function DoSuperMethod(cl: PIClass; Obj: PObject_; Args: array of const): IPTR;
 
 function Has_Children(Win: PWindow): Boolean;
 function Is_Children(Win: PWindow): Boolean;
@@ -3365,9 +3367,9 @@ function Is_Children(Win: PWindow): Boolean;
 function INST_DATA(Cl: PIClass; O: P_Object): Pointer;
 function SIZEOF_INSTANCE(Cl: PIClass): LongInt;
 function BASEOBJECT(O: P_Object): Pointer;
-function _OBJ(O: Pointer): P_Object; inline;
-function __OBJECT(O: Pointer): P_Object; inline;
-function OCLASS(O: Pointer): PIClass; inline;
+function _OBJ(O: Pointer): P_Object;
+function __OBJECT(O: Pointer): P_Object;
+function OCLASS(O: Pointer): PIClass;
 function SHIFTITEM(N: SmallInt): Word;
 function SHIFTMENU(N: SmallInt): Word;
 function SHIFTSUB(N: SmallInt): Word;
@@ -3389,110 +3391,154 @@ function SHAKNUM(x: Word): Word;
 
 implementation
 
-function SetAttrs(Obj: APTR; const Tags: array of PtrUInt): LongWord; inline;
+uses
+  tagsarray, longarray;
+
+function SetAttrs(Obj: APTR; const Tags: array of const): LongWord;
+var
+  TagList: TTagsList;
 begin
-  SetAttrs := SetAttrsA(Obj, @Tags);
+  AddTags(TagList, Tags);
+  Result := SetAttrsA(Obj, GetTagPtr(TagList));
 end;
 
-function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of PtrUInt): APTR; inline;
+function NewObject(ClassPtr: PIClass; ClassID: PChar; const Tags: array of const): APTR;
+var
+  TagList: TTagsList;
 begin
-  NewObject := NewObjectA(ClassPtr, ClassID, @Tags);
+  AddTags(TagList, Tags);
+  Result := NewObjectA(ClassPtr, ClassID, GetTagPtr(TagList));
 end;
 
-function BuildEasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; const Args: array of PtrUInt): PWindow; inline;
+function BuildEasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP: LongWord; const Args: array of const): PWindow;
+var
+  ArgList: TArgList;
 begin
-  BuildEasyRequest := BuildEasyRequestArgs(Window, EasyStruct, IDCMP, @Args);
+  AddArguments(ArgList, Args);
+  Result := BuildEasyRequestArgs(Window, EasyStruct, IDCMP, GetArgPtr(ArgList));
 end;
 
-function DoGadgetMethod(Gad: PGadget; Win: PWindow; Req: PRequester; const Args: array of PtrUInt): IPTR; inline;
+function DoGadgetMethod(Gad: PGadget; Win: PWindow; Req: PRequester; const Args: array of const): IPTR;
+var
+  ArgList: TArgList;
 begin
+  AddArguments(ArgList, Args);
 {$ifdef i386}
-  DoGadgetMethod := DoGadgetMethodA(Gad, Win, Req, TMsg(@Args));
+  Result := DoGadgetMethodA(Gad, Win, Req, TMsg(ArgList));
 {$else}
 {$warning fix me!}
 {$endif}
 end;
 
-function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of PtrUInt): LongInt; inline;
+function EasyRequest(Window: PWindow; EasyStruct: PEasyStruct; IDCMP_Ptr: PLongWord; const Args: array of const): LongInt;
+var
+  ArgList: TArgList;
 begin
-  EasyRequest := EasyRequestArgs(Window, EasyStruct, IDCMP_Ptr, @Args);
+  AddArguments(ArgList, Args);
+  Result := EasyRequestArgs(Window, EasyStruct, IDCMP_Ptr, @(ArgList[0]));
 end;
 
-function OpenScreenTags(NewScreen: PNewScreen; const Tags: array of PtrUInt): PScreen; inline;
+function OpenScreenTags(NewScreen: PNewScreen; const Tags: array of const): PScreen;
+var
+  TagList: TTagsList;
 begin
-  OpenScreenTags := OpenScreenTagList(NewScreen, @Tags);
+  AddTags(TagList, Tags);
+  Result := OpenScreenTagList(NewScreen, GetTagPtr(TagList));
 end;
 
-function OpenWindowTags(NewWindow: PNewWindow; const Tags: array of PtrUInt): PWindow; inline;
+function OpenWindowTags(NewWindow: PNewWindow; const Tags: array of const): PWindow;
+var
+  TagList: TTagsList;
 begin
-  OpenWindowTags := OpenWindowTagList(NewWindow, @Tags);
+  AddTags(TagList, Tags);
+  Result := OpenWindowTagList(NewWindow, GetTagPtr(TagList));
 end;
 
-function SetGadgetAttrs(Gadget: PGadget; Window: PWindow; Requester: PRequester; const Tags: array of PtrUInt): IPTR; inline;
+function SetGadgetAttrs(Gadget: PGadget; Window: PWindow; Requester: PRequester; const Tags: array of const): IPTR;
+var
+  TagList: TTagsList;
 begin
-  SetGadgetAttrs := SetGadgetAttrsA(Gadget, Window, Requester, @Tags);
+  AddTags(TagList, Tags);
+  Result := SetGadgetAttrsA(Gadget, Window, Requester, GetTagPtr(TagList));
 end;
 
-procedure SetWindowPointer(Win: PWindow; const Tags: array of PtrUInt); inline;
+procedure SetWindowPointer(Win: PWindow; const Tags: array of const);
+var
+  TagList: TTagsList;
 begin
-  SetWindowPointerA(Win, @Tags);
+  AddTags(TagList, Tags);
+  SetWindowPointerA(Win, GetTagPtr(TagList));
 end;
 
 // Functions wrapper
 
-function DoMethodA(Obj: PObject_; Message: APTR): IPTR; inline;
+function DoMethodA(Obj: PObject_; Message: APTR): IPTR;
 begin
-  DoMethodA := 0;
+  Result := 0;
   if Obj = nil then
     Exit;
-  DoMethodA := CALLHOOKPKT_(PHook(OCLASS(Obj)), Obj, Message);
+  Result := CALLHOOKPKT_(PHook(OCLASS(Obj)), Obj, Message);
 end;
 
-function DoMethod(Obj: PObject_; const Args: array of PtrUInt): IPTR; inline;
+function DoMethod(Obj: PObject_; MethodID: LongWord; Args: array of const): IPTR;
+var
+  ArgList: TArgList;
 begin
-  DoMethod := 0;
+  Result := 0;
   if obj = nil then
     Exit;
-  DoMethod := CALLHOOKPKT_(PHook(OCLASS(Obj)), Obj, @Args);
+  AddArguments(ArgList, [MethodID]);
+  AddArguments(ArgList, Args);
+  Result := CALLHOOKPKT_(PHook(OCLASS(Obj)), Obj, @(ArgList[0]));
 end;
 
-function DoSuperMethodA(cl: PIClass; Obj: PObject_; Message: APTR): IPTR; inline;
+function DoSuperMethodA(cl: PIClass; Obj: PObject_; Message: APTR): IPTR;
 begin
-  DoSuperMethodA := 0;
+  Result := 0;
   if (cl = nil) or (obj = nil) then
     Exit;
-  DoSuperMethodA := CALLHOOKPKT_(PHook(cl^.cl_Super), Obj, Message);
+  Result := CALLHOOKPKT_(PHook(cl^.cl_Super), Obj, Message);
 end;
 
-function DoSuperMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): IPTR; inline;
-begin
-  DoSuperMethod := 0;
-  if (cl = nil) or (obj = nil) then
-    Exit;
-  DoSuperMethod := CALLHOOKPKT_(PHook(cl^.cl_Super), Obj, @Args);
-end;
-
-function CoerceMethodA(cl: PIClass; Obj: PObject_; Message: APTR): IPTR; inline;
-begin
-  CoerceMethodA := 0;
-  if (cl = nil) or (obj = nil) then
-    Exit;
-  CoerceMethodA := CALLHOOKPKT_(PHook(cl), Obj, Message);
-end;
-
-function CoerceMethod(cl: PIClass; Obj: PObject_; const Args: array of PtrUInt): IPTR; inline;
-begin
-  CoerceMethod := CoerceMethodA(cl, Obj, @Args);
-end;
-
-function SetSuperAttrs(cl: PIClass; Obj: PObject_; const Tags: array of PtrUInt): IPTR;
+function DoSuperMethod(cl: PIClass; Obj: PObject_; Args: array of const): IPTR;
 var
+  ArgList: TArgList;
+begin
+  Result := 0;
+  if (cl = nil) or (obj = nil) then
+    Exit;
+  AddArguments(ArgList, Args);
+  Result := CALLHOOKPKT_(PHook(cl^.cl_Super), Obj, @(ArgList[0]));
+end;
+
+function CoerceMethodA(cl: PIClass; Obj: PObject_; Message: APTR): IPTR;
+begin
+  Result := 0;
+  if (cl = nil) or (obj = nil) then
+    Exit;
+  Result := CALLHOOKPKT_(PHook(cl), Obj, Message);
+end;
+
+function CoerceMethod(cl: PIClass; Obj: PObject_; MethodID: LongWord; const Args: array of const): IPTR;
+var
+  ArgList: TArgList;
+begin
+  AddArguments(ArgList,[MethodID]);
+  AddArguments(ArgList, Args);
+  Result := CoerceMethodA(cl, Obj, @(ArgList[0]));
+end;
+
+
+function SetSuperAttrs(cl: PIClass; Obj: PObject_; Tags: array of const): IPTR;
+var
+  TagList: TTagsList;
   ops: TopSet;
 begin
+  AddTags(TagList, Tags);
   ops.MethodID := OM_SET;
-  ops.ops_AttrList := @Tags;
+  ops.ops_AttrList := GetTagPtr(TagList);
   ops.ops_GInfo := nil;
-  SetSuperAttrs := DoSuperMethodA(cl, obj, @ops);
+  Result := DoSuperMethodA(cl, obj, @ops);
 end;
 
 function SetSuperAttrsA(cl: PIClass; Obj: PObject_; TagList: PTagItem): IPTR;
@@ -3502,37 +3548,41 @@ begin
   ops.MethodID := OM_SET;
   ops.ops_AttrList := TagList;
   ops.ops_GInfo := nil;
-  SetSuperAttrsA := DoSuperMethodA(cl, obj, @ops);
+  Result := DoSuperMethodA(cl, obj, @ops);
 end;
 
-function INST_DATA(Cl: PIClass; O: P_Object): Pointer; inline;
+
+function INST_DATA(Cl: PIClass; O: P_Object): Pointer;
 begin
   INST_DATA := Pointer(PtrUInt(O) + Cl^.cl_InstOffset);
 end;
 
-function SIZEOF_INSTANCE(Cl: PIClass): LongInt; inline;
+function SIZEOF_INSTANCE(Cl: PIClass): LongInt;
 begin
   SIZEOF_INSTANCE := Cl^.cl_InstOffset + Cl^.cl_InstSize + SizeOf(T_Object);
 end;
 
-function BASEOBJECT(O: P_Object): Pointer; inline;
+function BASEOBJECT(O: P_Object): Pointer;
 begin
   BASEOBJECT := Pointer(PtrUInt(O) + SizeOf(T_Object));
 end;
 
-function _OBJ(O: Pointer): P_Object; inline;
+function _OBJ(O: Pointer): P_Object;
 begin
  _OBJ := P_Object(O);
 end;
 
-function __OBJECT(O: Pointer): P_Object; inline;
+function __OBJECT(O: Pointer): P_Object;
 begin
   __OBJECT := P_Object(PtrUInt(O) - SizeOf(T_Object))
 end;
 
-function OCLASS(O: Pointer): PIClass; inline;
+function OCLASS(O: Pointer): PIClass;
+var
+  Obj: P_Object;
 begin
-  OCLASS := P_Object(PtrUInt(O) - SizeOf(T_Object))^.o_Class;
+  Obj := P_Object(PtrUInt(O) - SizeOf(T_Object));
+  OCLASS := Obj^.o_Class;
 end;
 
 function SHIFTITEM(N: SmallInt): Word;
@@ -3540,17 +3590,17 @@ begin
   SHIFTITEM := (N and $3f) shl 5
 end;
 
-function SHIFTMENU(N: SmallInt): Word; inline;
+function SHIFTMENU(N: SmallInt): Word;
 begin
   SHIFTMENU := N and $1f
 end;
 
-function SHIFTSUB(N: SmallInt): Word; inline;
+function SHIFTSUB(N: SmallInt): Word;
 begin
   SHIFTSUB := (N and $1f) shl 11
 end;
 
-function FULLMENUNUM(Menu, Item, Sub: SmallInt): Word; inline;
+function FULLMENUNUM(Menu, Item, Sub: SmallInt): Word;
 begin
   FULLMENUNUM := ((Sub and $1f) shl 11) or ((Item and $3f) shl 5) or (Menu and $1f);
 end;
@@ -3561,84 +3611,84 @@ end;
   in pascal, of course!
 }
 
-function IM_BGPEN(Im: PImage): Byte; inline;
+function IM_BGPEN(Im: PImage): Byte;
 begin
   IM_BGPEN := Im^.PlaneOnOff;
 end;
 
-function IM_BOX(Im: PImage): PIBox; inline;
+function IM_BOX(Im: PImage): PIBox;
 begin
   IM_BOX := PIBox(@Im^.LeftEdge);
 END;
 
-function IM_FGPEN (Im: PImage): Byte; inline;
+function IM_FGPEN (Im: PImage): Byte;
 begin
   IM_FGPEN := Im^.PlanePick;
 end;
 
-function GADGET_BOX(G: PGadget): PIBox; inline;
+function GADGET_BOX(G: PGadget): PIBox;
 begin
   GADGET_BOX := PIBox(@G^.LeftEdge);
 end;
 
-function CUSTOM_HOOK (Gadget: PGadget): PHook; inline;
+function CUSTOM_HOOK (Gadget: PGadget): PHook;
 begin
     CUSTOM_HOOK := PHook(Gadget^.MutualExclude);
 end;
 
-function ITEMNUM(N: Word): Word; inline;
+function ITEMNUM(N: Word): Word;
 begin
   ITEMNUM := (N shr 5) and $3F
 end;
 
-function MENUNUM(N: Word): Word; inline;
+function MENUNUM(N: Word): Word;
 begin
  MENUNUM := N and $1f
 end;
 
-function SUBNUM(N: Word): Word; inline;
+function SUBNUM(N: Word): Word;
 begin
   SUBNUM := (N shr 11) and $1f
 end;
 
-function IAM_Resolution(x, y: Word): LongWord; inline;
+function IAM_Resolution(x, y: Word): LongWord;
 begin
-  IAM_Resolution := (x shl 16) or y;
+  Result := (x shl 16) or y;
 end;
 
-function SRBNUM(x: Word): Word; inline;
+function SRBNUM(x: Word): Word;
 begin
   SRBNUM := $08 - (x shr 4);
 end;
 
-function SWBNUM(x: Word): Word; inline;
+function SWBNUM(x: Word): Word;
 begin
   SWBNUM := $08 - (x and $0f);
 end;
 
-function SSBNUM(x: Word): Word; inline;
+function SSBNUM(x: Word): Word;
 begin
   SSBNUM := $01 + (x shr 4);
 end;
 
-function SPARNUM(x: Word): Word; inline;
+function SPARNUM(x: Word): Word;
 begin
   SPARNUM := x shr 4;
 end;
 
-function SHAKNUM(x: Word): Word; inline;
+function SHAKNUM(x: Word): Word;
 begin
   SHAKNUM := x and $0f;
 end;
 
-function Has_Children(Win: PWindow): Boolean; inline;
+function Has_Children(Win: PWindow): Boolean;
 begin
-  Has_Children := Assigned(Win^.FirstChild);
+  Result := Assigned(Win^.FirstChild);
 end;
 
-function Is_Children(Win: PWindow): Boolean; inline;
+function Is_Children(Win: PWindow): Boolean;
 begin
-  Is_Children := Assigned(Win^.Parent2);
+  Result := Assigned(Win^.Parent2);
 end;
 
 initialization

@@ -46,15 +46,11 @@ BEGIN
 END;
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
+
     Triton_App := TR_CreateAppTags([
-                     TRCA_Name, AsTag('Triton ListView'),
-                     TRCA_Release, AsTag('1.0'),
-                     TRCA_Date, AsTag('03-02-1998'),
+                     TRCA_Name,'Triton ListView',
+                     TRCA_Release,'1.0',
+                     TRCA_Date,'03-02-1998',
                      TAG_DONE]);
 
     if Triton_App = nil then Cleanexit('Can''t create application',20);

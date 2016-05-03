@@ -18,25 +18,20 @@ var
     SigBit : shortint;
     SigMask : longint;
 
-procedure CleanUp(why : string; err : integer);
+procedure CleanUp(why : string, err : integer);
 begin
     if why <> '' then writeln(why);
     halt(err);
 end;
 
 begin
-  if not Assigned(PTReplayBase) then
-  begin
-    writeln('cannot open ' + PTREPLAYNAME);
-    Halt(5);
-  end;
     module := nil;
     if ParamCount > 1 then
        CleanUp('Specify one module only',20);
     if ParamCount < 0 then
        CleanUp('Play what module?',20);
 
-    module := PTLoadModule(ParamStr(1));
+    module := PTLoadModule(ParamStr[1]);
     if not assigned(module) then
        CleanUp('Couldn''t open/load module',20);
 
@@ -48,7 +43,7 @@ begin
     PTPlay(module);
 
     SigMask := Wait(SIGBREAKF_CTRL_C or (1 shl SigBit));
-    if (SigMask and SIGBREAKF_CTRL_C) <> 0 then
+    if (SigMask and SIGBREAKF_CTRL_C) then
         PTFade(module,1)
     else
         PTStop(module);

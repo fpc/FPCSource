@@ -69,11 +69,7 @@ implementation
               // one syscall convention for AROS
               current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('AROS SysCall')));
               reference_reset(tmpref,sizeof(pint));
-              { re-read the libbase pushed first on the stack, instead of just trusting the
-                mangledname will work. this is important for example for threadvar libbases.
-                and this way they also don't need to be resolved twice then. (KB) }
-              tmpref.base:=NR_ESP;
-              tmpref.offset:=pushedparasize-sizeof(pint);
+              tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tcpuprocdef(procdefinition).libsym).mangledname);
               cg.getcpuregister(current_asmdata.CurrAsmList,NR_EAX);
               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,NR_EAX);
               reference_reset_base(tmpref,NR_EAX,-tprocdef(procdefinition).extnumber,sizeof(pint));

@@ -1030,7 +1030,6 @@ reg32,reg32,reg32          \x80\xFB\x40\xF0\x0                 THUMB32,ARMv6T2
 reg32,reg32,reg32          \x15\x7\x00\x5\xF                   ARM32,ARMv6
 
 [SRScc]
-[RFEcc]
 
 [SSATcc]
 reg32,immshifter,reg32            \x83\xF3\x00\x0\x0          THUMB32,ARMv6T2
@@ -1668,12 +1667,12 @@ vreg,vreg,vreg          \x92\xEE\xA0\xA\x40          THUMB32,VFPv4
 vreg,vreg,vreg          \x42\xE\xA0\xA\x40          ARM32,VFPv4
 
 [VFNMA]
-vreg,vreg,vreg          \x92\xEE\x90\xA\x40          THUMB32,VFPv4
-vreg,vreg,vreg          \x42\xE\x90\xA\x40          ARM32,VFPv4
-
-[VFNMS]
 vreg,vreg,vreg          \x92\xEE\x90\xA\x00          THUMB32,VFPv4
 vreg,vreg,vreg          \x42\xE\x90\xA\x00          ARM32,VFPv4
+
+[VFNMS]
+vreg,vreg,vreg          \x92\xEE\x90\xA\x40          THUMB32,VFPv4
+vreg,vreg,vreg          \x42\xE\x90\xA\x40          ARM32,VFPv4
 
 [VNEGcc]
 vreg,vreg               \x92\xEE\xB1\xA\x40         THUMB32,VFPv2

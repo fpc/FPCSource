@@ -233,7 +233,7 @@ CONST
  IFFSCC_WRITE   = IFFCMD_WRITE;
  IFFSCC_SEEK    = IFFCMD_SEEK;
 
-VAR IFFParseBase : pLibrary = nil;
+VAR IFFParseBase : pLibrary;
 
 FUNCTION AllocIFF : pIFFHandle; syscall IFFParseBase 030;
 FUNCTION AllocLocalItem(typ : LONGINT location 'd0'; id : LONGINT location 'd1'; ident : LONGINT location 'd2'; dataSize : LONGINT location 'd3') : pLocalContextItem; syscall IFFParseBase 186;
@@ -278,7 +278,24 @@ FUNCTION WriteChunkRecords(iff : pIFFHandle location 'a0'; const buf : POINTER l
 
 Function Make_ID(str : String) : LONGINT;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitIFFPARSELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    IFFPARSEIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+uses
+{$ifndef dont_use_openlib}
+amsgbox;
+{$endif dont_use_openlib}
+
 
 Function Make_ID(str : String) : LONGINT;
 begin
@@ -289,14 +306,86 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
-finalization
-  if Assigned(IFFParseBase) then
-    CloseLibrary(IFFParseBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of iffparse.library}
+  {$Info don't forget to use InitIFFPARSELibrary in the beginning of your program}
+
+var
+    iffparse_exit : Pointer;
+
+procedure CloseiffparseLibrary;
+begin
+    ExitProc := iffparse_exit;
+    if IFFParseBase <> nil then begin
+        CloseLibrary(IFFParseBase);
+        IFFParseBase := nil;
+    end;
+end;
+
+procedure InitIFFPARSELibrary;
+begin
+    IFFParseBase := nil;
+    IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
+    if IFFParseBase <> nil then begin
+        iffparse_exit := ExitProc;
+        ExitProc := @CloseiffparseLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open iffparse.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    IFFPARSEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of iffparse.library}
+
+var
+    iffparse_exit : Pointer;
+
+procedure CloseiffparseLibrary;
+begin
+    ExitProc := iffparse_exit;
+    if IFFParseBase <> nil then begin
+        CloseLibrary(IFFParseBase);
+        IFFParseBase := nil;
+    end;
+end;
+
+begin
+    IFFParseBase := nil;
+    IFFParseBase := OpenLibrary(IFFPARSENAME,LIBVERSION);
+    if IFFParseBase <> nil then begin
+        iffparse_exit := ExitProc;
+        ExitProc := @CloseiffparseLibrary;
+        IFFPARSEIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open iffparse.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    IFFPARSEIsCompiledHow := 3;
+   {$Warning No autoopening of iffparse.library compiled}
+   {$Warning Make sure you open iffparse.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT IFFPARSE *)
 
 

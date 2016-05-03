@@ -34,7 +34,6 @@ Interface
 {$endif}
 {$ifdef windows}
 {$define implemented}
-{$define USES_UNIT_PROCESS}
 {$endif}
 {$ifdef linux}
 {$define implemented}
@@ -119,9 +118,6 @@ Uses
 
 {$endif}
 
-{$ifdef USES_UNIT_PROCESS}
-  process,
-{$endif USES_UNIT_PROCESS}
 
 {$ifdef usedos}
   dos;
@@ -268,12 +264,10 @@ begin
     end;
 end;
 {$else}
-{$ifndef USES_UNIT_PROCESS}
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 begin
     result:=ExecuteProcess(path,comline);
 end;
-{$endif ndef USES_UNIT_PROCESS}
 {$endif}
 {$ifend}
 {$endif}
@@ -1065,67 +1059,6 @@ begin
    TransformfpSystemToShell:=s;
 end;
 {$endif def UNIX}
-
-
-
-{****************************************************************************
-                                Helpers
-****************************************************************************}
-
-{$ifdef USES_UNIT_PROCESS}
-const
-  max_count = 60000; { should be 60 seconds }
-
-function ExecuteProcess(const Path: string; const ComLine: string; Flags:TExecuteFlags=[]): integer;
-var
-  P: TProcess;
-  counter : longint;
-  TerminateSentCount : longint;
-
-begin
-  result := -1;
-  TerminateSentCount:=0;
-
-  P := TProcess.Create(nil);
-  try
-    P.CommandLine := Path + ' ' + ComLine;
-
-    P.InheritHandles:=(execinheritshandles in flags);
-
-    P.Execute;
-{$if FPC_FULLVERSION < 30100}
-{$ifdef Windows}
-    WaitForSingleObject(P.ProcessHandle,max_count);
-    counter:=max_count;
-{$else not Windows}
-    counter:=0;
-{$endif not Windows}
-{$else}
-    P.WaitOnExit(max_count);
-    counter:=max_count;
-{$endif}
-
-    while P.Running do
-      begin
-        if counter>max_count then
-          begin
-            P.Terminate(255);
-            if TerminateSentCount=0 then
-              Writeln(stderr,'Terminate requested for ',Path);
-            Inc(TerminateSentCount);
-          end;
-
-        Sleep(1);
-        inc(counter);
-      end;
-
-    result := P.ExitStatus;
-  finally
-    P.Free;
-  end;
-end;
-{$endif HAS_UNIT_PROCESS}
-
 
   procedure DosExecute(ProgName, ComLine : String);
 

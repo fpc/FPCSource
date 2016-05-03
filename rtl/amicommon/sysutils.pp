@@ -34,9 +34,6 @@ interface
 {$DEFINE HAS_SLEEP}
 {$DEFINE HAS_OSERROR}
 
-{OS has only 1 byte version for ExecuteProcess}
-{$define executeprocuni}
-
 { used OS file system APIs use ansistring }
 {$define SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}
 { OS has an ansistring/single byte environment variable API }
@@ -118,7 +115,7 @@ function AmigaFileDateToDateTime(aDate: TDateStamp; out success: boolean): TDate
 var
   tmpSecs: DWord;
   tmpDate: TDateTime;
-  tmpTime: TDateTime;
+  tmpTime: TDateTime; 
   clockData: TClockData;
 begin
   with aDate do
@@ -245,13 +242,13 @@ begin
   dosResult:=-1;
 
   { Open file in MODDE_READWRITE, then truncate it by hand rather than
-    opening it in MODE_NEWFILE, because that returns an exclusive lock
+    opening it in MODE_NEWFILE, because that returns an exclusive lock 
     so some operations might fail with it (KB) }
   SystemFileName:=PathConv(ToSingleByteFileSystemEncodedFileName(FileName));
   dosResult:=Open(PChar(SystemFileName),MODE_READWRITE);
   if dosResult = 0 then exit;
 
-  if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then
+  if SetFileSize(dosResult, 0, OFFSET_BEGINNING) = 0 then 
     AddToList(ASYS_fileList,dosResult)
   else begin
     dosClose(dosResult);
@@ -306,7 +303,7 @@ begin
   end;
 
   dosSeek(Handle, FOffset, seekMode);
-  { get the current position when FileSeek ends, which should return
+  { get the current position when FileSeek ends, which should return 
     the *NEW* position, while Amiga Seek() returns the old one }
   FileSeek:=dosSeek(Handle, 0, OFFSET_CURRENT);
 end;
@@ -332,7 +329,7 @@ var
   dosResult: LongInt;
 begin
   FileTruncate:=False;
-
+  
   if Size > high (longint) then exit;
 {$WARNING Possible support for 64-bit FS to be checked!}
 
@@ -543,10 +540,10 @@ end;
 var
   DeviceList: array[0..26] of string[20];
   NumDevices: Integer = 0;
-
+  
 const
   IllegalDevices: array[0..12] of string =(
-                   'PED:',
+                   'PED:',  
                    'PRJ:',
                    'PIPE:',   // Pipes
                    'XPIPE:',  // Extented Pipe
@@ -757,7 +754,7 @@ end;
 
 Procedure InitInternational;
 begin
-  InitInternationalGeneric;
+  InitInternationalGeneric; 
   InitAnsi;
 end;
 
@@ -779,7 +776,7 @@ end;
 var
   StrOfPaths: String;
 
-function SystemTags(const command: PChar; const tags: array of PtrUInt): LongInt;
+function SystemTags(const command: PChar; const tags: array of DWord): LongInt;
 begin
   SystemTags:=SystemTagList(command,@tags);
 end;
@@ -794,7 +791,7 @@ begin
 
    { Alternatively, this could use PIPE: handler on systems which
      have this by default (not the case on classic Amiga), but then
-     the child process should be started async, which for a simple
+     the child process should be started async, which for a simple 
      Path command probably isn't worth the trouble. (KB) }
    assign(f,'T:'+HexStr(FindTask(nil))+'_path.tmp');
    rewrite(f);
@@ -840,21 +837,21 @@ begin
   Result:=Dos.EnvStr(Index);
 end;
 
-function ExecuteProcess (const Path: RawByteString; const ComLine: RawByteString;Flags:TExecuteFlags=[]):
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
-  tmpPath,
-  convPath: RawByteString;
+  tmpPath: AnsiString;
+  convPath: AnsiString;
   CommandLine: AnsiString;
   tmpLock: longint;
 
   E: EOSError;
 begin
   DosError:= 0;
-
-  convPath:=PathConv(ToSingleByteFileSystemEncodedFileName(Path));
-  tmpPath:=convPath+' '+ToSingleByteFileSystemEncodedFileName(ComLine);
-
+  
+  convPath:=PathConv(Path);
+  tmpPath:=convPath+' '+ComLine;
+  
   { Here we must first check if the command we wish to execute }
   { actually exists, because this is NOT handled by the        }
   { _SystemTagList call (program will abort!!)                 }
@@ -873,32 +870,32 @@ begin
     end
   else
     DosError:=3;
-
+  
   if DosError <> 0 then begin
     if ComLine = '' then
       CommandLine := Path
     else
       CommandLine := Path + ' ' + ComLine;
-
+    
     E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, DosError]);
     E.ErrorCode := DosError;
     raise E;
   end;
 end;
 
-function ExecuteProcess (const Path: RawByteString;
-                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: AnsiString;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 var
-  CommandLine: RawByteString;
+  CommandLine: AnsiString;
   I: integer;
 
 begin
   Commandline := '';
   for I := 0 to High (ComLine) do
    if Pos (' ', ComLine [I]) <> 0 then
-    CommandLine := CommandLine + ' ' + '"' + ToSingleByteFileSystemEncodedFileName(ComLine [I]) + '"'
+    CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
-    CommandLine := CommandLine + ' ' + ToSingleByteFileSystemEncodedFileName(Comline [I]);
+    CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
 end;
 
@@ -916,10 +913,10 @@ end;
 Initialization
   InitExceptions;
   InitInternational;    { Initialize internationalization settings }
-  OnBeep:=Nil;          { No SysBeep() on Amiga, for now. Figure out if we want
+  OnBeep:=Nil;          { No SysBeep() on Amiga, for now. Figure out if we want 
                           to use intuition.library/DisplayBeep() for this (KB) }
   StrOfPaths:='';
-
+  
   RefreshDeviceList;
 Finalization
   DoneExceptions;

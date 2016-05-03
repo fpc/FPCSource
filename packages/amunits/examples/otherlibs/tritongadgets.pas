@@ -57,18 +57,14 @@ END;
 
 
 begin
-  if not Assigned(TritonBase) then
-  begin
-    writeln('cannot open ' + TRITONNAME);
-    Halt(5);
-  end;
+
     Triton_App := TR_CreateAppTags([
-                     TRCA_Name, AsTag('TritonGadtools'),
-                     TRCA_LongName, AsTag('GadToolsDemo in Triton'),
-                     TRCA_Version, AsTag('0.01'),
-                     TRCA_Info, AsTag('Just a test of Triton'),
-                     TRCA_Release, AsTag('1.0'),
-                     TRCA_Date, AsTag('26-05-1998'),
+                     TRCA_Name,'TritonGadtools',
+                     TRCA_LongName,'GadToolsDemo in Triton',
+                     TRCA_Version,'0.01',
+                     TRCA_Info,'Just a test of Triton',
+                     TRCA_Release,'1.0',
+                     TRCA_Date,'26-05-1998',
                      TAG_DONE]);
 
      if Triton_App = nil then CleanExit('Can''t create Application',20);
@@ -88,7 +84,7 @@ begin
                         Space;
                         SliderGadget(SLIDER_MIN,SLIDER_MAX,5,MYGAD_SLIDER);
                         Space;
-                        TextID(string('5'),MYGAD_SLIDERTEXT); SetTRTag(TRAT_MinWidth, 2);
+                        TextID('5',MYGAD_SLIDERTEXT); SetTRTag(TRAT_MinWidth, 2);
                         Space;
                     EndLine;
                     SpaceS;

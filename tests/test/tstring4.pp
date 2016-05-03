@@ -449,7 +449,7 @@ begin
   Writeln (S);
 end;
 
-Var GlobalStartMem,StartMem : SizeInt;
+Var GlobalStartMem,StartMem : PtrInt;
 
 begin
   GlobalStartMem:=0;

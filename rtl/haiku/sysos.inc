@@ -108,8 +108,6 @@ begin
     ESysEROFS,
    ESysEEXIST,
    ESysENOTEMPTY,
-   ESysEBusy,
-   ESysENOTDIR,        // busy, enotdir, mantis #25931
    ESysEACCES : Inoutres:=5;
    ESysEISDIR : InOutRes:=5;
    ESysEPERM  : InOutRes:=5;

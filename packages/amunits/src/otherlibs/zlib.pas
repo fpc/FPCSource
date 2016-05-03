@@ -33,7 +33,7 @@ UNIT ZLIB;
 INTERFACE
 USES Exec;
 
-VAR ZLibBase : pLibrary = nil;
+VAR ZLibBase : pLibrary;
 
 const
     ZLIBNAME : PChar = 'zlib.library';
@@ -61,18 +61,103 @@ FUNCTION GZ_OpenFromFH(fh : LONGINT location 'a0'; openmode : longword location 
 FUNCTION GZ_Read(handle : POINTER location 'a0'; buf : POINTER location 'a1'; len : longword location 'd0') : LONGINT; syscall ZLibBase 048;
 FUNCTION GZ_Write(handle : POINTER location 'a0'; buf : POINTER location 'a1'; len : longword location 'd0') : LONGINT; syscall ZLibBase 066;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitZLIBLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    ZLIBIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+{$ifndef dont_use_openlib}
+uses amsgbox;
+{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  ZLibBase := OpenLibrary(ZLIBNAME,LIBVERSION);
-finalization
-  if Assigned(ZLibBase) then
-    CloseLibrary(ZLibBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of zlib.library}
+  {$Info don't forget to use InitZLIBLibrary in the beginning of your program}
+
+var
+    zlib_exit : Pointer;
+
+procedure ClosezlibLibrary;
+begin
+    ExitProc := zlib_exit;
+    if ZLibBase <> nil then begin
+        CloseLibrary(ZLibBase);
+        ZLibBase := nil;
+    end;
+end;
+
+procedure InitZLIBLibrary;
+begin
+    ZLibBase := nil;
+    ZLibBase := OpenLibrary(ZLIBNAME,LIBVERSION);
+    if ZLibBase <> nil then begin
+        zlib_exit := ExitProc;
+        ExitProc := @ClosezlibLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open zlib.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    ZLIBIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of zlib.library}
+
+var
+    zlib_exit : Pointer;
+
+procedure ClosezlibLibrary;
+begin
+    ExitProc := zlib_exit;
+    if ZLibBase <> nil then begin
+        CloseLibrary(ZLibBase);
+        ZLibBase := nil;
+    end;
+end;
+
+begin
+    ZLibBase := nil;
+    ZLibBase := OpenLibrary(ZLIBNAME,LIBVERSION);
+    if ZLibBase <> nil then begin
+        zlib_exit := ExitProc;
+        ExitProc := @ClosezlibLibrary;
+        ZLIBIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open zlib.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    ZLIBIsCompiledHow := 3;
+   {$Warning No autoopening of zlib.library compiled}
+   {$Warning Make sure you open zlib.library yourself}
+{$endif dont_use_openlib}
+
 END. (* UNIT ZLIB *)
 
 

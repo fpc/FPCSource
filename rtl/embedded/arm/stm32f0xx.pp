@@ -3056,7 +3056,6 @@ implementation
      .section ".init.interrupt_vectors"
   interrupt_vectors:
      .long _stack_top
-     .long Startup
      .long NonMaskableInt_interrupt
      .long HardFault_interrupt
      .long 0

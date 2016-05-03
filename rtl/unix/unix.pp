@@ -70,15 +70,15 @@ Procedure ReReadLocalTime;
 
 {**  Process Handling  **}
 
-function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:ppchar):cint;
-function FpExecL  (Const PathName:RawByteString;const S:Array Of RawByteString):cint;
-function FpExecLP (Const PathName:RawByteString;const S:Array Of RawByteString):cint;
-function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:ppchar):cint;
-function FpExecV  (Const PathName:RawByteString;args:ppchar):cint;
-function FpExecVP (Const PathName:RawByteString;args:ppchar):cint;
-function FpExecVPE(Const PathName:RawByteString;args,env:ppchar):cint;
+function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
+function FpExecL  (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLP (Const PathName:AnsiString;const S:Array Of AnsiString):cint;
+function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
+function FpExecV  (Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVP (Const PathName:AnsiString;args:ppchar):cint;
+function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
-Function fpSystem(const Command:RawByteString):cint;
+Function fpSystem(const Command:AnsiString):cint;
 
 Function WaitProcess (Pid:cint):cint; 
 
@@ -116,10 +116,8 @@ Type
                            CurrentDirectoryFirst,
                            CurrentDirectoryLast);
 
-Function  FSearch  (const path:RawByteString;dirlist:RawByteString;CurrentDirStrategy:TFSearchOption):RawByteString;
-Function  FSearch  (const path:RawByteString;dirlist:RawByteString):RawByteString;
-Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString;CurrentDirStrategy:TFSearchOption):UnicodeString;
-Function  FSearch  (const path:UnicodeString;dirlist:UnicodeString):UnicodeString;
+Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
+Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 
 {$ifdef FPC_USE_LIBC}
   const clib = 'c';
@@ -181,14 +179,14 @@ begin
    end;
 end;
 
-function intFpExecVEMaybeP (Const PathName:RawByteString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
+function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPath:Boolean):cint;
 // does an ExecVE, but still has to handle P
 // execv variants call this directly, execl variants indirectly via
 //     intfpexecl
 
 Var
-  NewCmd  : RawByteString;
-  ThePath : RawByteString;
+  NewCmd  : ansistring;
+  ThePath : AnsiString;
 
 Begin
   If SearchPath and (pos('/',pathname)=0) Then
@@ -198,21 +196,19 @@ Begin
       // Stevens says only search if newcmd contains no '/'
       // fsearch is not ansistring clean yet.
       ThePath:=fpgetenv('PATH');
-      SetCodePage(ThePath,DefaultSystemCodePage,false);
-      SetCodePage(ThePath,DefaultFileSystemCodePage,true);
       if thepath='' then
         thepath:='.';     // FreeBSD uses _PATH_DEFPATH = /usr/bin:/bin
                           // but a quick check showed that _PATH_DEFPATH
                           // varied from OS to OS
 
-      newcmd:=ToSingleByteFileSystemEncodedFileName(FSearch(pathname,thepath,NoCurrentDirectory));
+      newcmd:=FSearch(pathname,thepath,NoCurrentDirectory);
       // FreeBSD libc keeps on trying till a file is successfully run.
       // Stevens says "try each path prefix"
 
       // execp puts newcmd here.
         args^:=pchar(newcmd);
    End else
-      newcmd:=ToSingleByteFileSystemEncodedFileName(pathname);
+      newcmd:=pathname;
  // repeat
 //      if searchpath then args^:=pchar(commandtorun)
 
@@ -222,8 +218,9 @@ Begin
 // Should we deallocate p on fail? -> no fpexit is run no matter what
 //
 }
-// if intfpexecvemaybep=-1 then seach next file.
+// if intfpexecvemaybep=-1 then zoekvolgende file.
 // until (Goexit) or SearchExit;
+
 
 {
  If IntFpExec=-1 Then
@@ -237,23 +234,19 @@ Begin
 }
 end;
 
-function intFpExecl (Const PathName:RawByteString;const s:array of RawByteString;MyEnv:ppchar;SearchPath:Boolean):cint;
+function intFpExecl (Const PathName:AnsiString;const s:array of ansistring;MyEnv:ppchar;SearchPath:Boolean):cint;
 { Handles the array of ansistring -> ppchar conversion.
   Base for the the "l" variants.
 }
 var p:ppchar;
-    i:integer;
-    s2:array of Rawbytestring;
+
 begin
   If PathName='' Then
     Begin
       fpsetErrno(ESysEnoEnt);
       Exit(-1);                 // Errno?
     End;
-  setlength(s2,high(s)+1);
-  for i:=low(s) to high(s) do
-    s2[i]:=ToSingleByteFileSystemEncodedFileName(s[i]);
-  p:=ArrayStringToPPchar(s2,1);
+  p:=ArrayStringToPPchar(s,1);
   if p=NIL Then
     Begin
       GetMem(p,2*sizeof(pchar));
@@ -273,44 +266,44 @@ begin
   Freemem(p);
 end;
 
-function FpExecLE (Const PathName:RawByteString;const S:Array Of RawByteString;MyEnv:ppchar):cint;
+function FpExecLE (Const PathName:AnsiString;const S:Array Of AnsiString;MyEnv:ppchar):cint;
 
 Begin
   FpExecLE:=intFPExecl(PathName,s,MyEnv,false);
 End;
 
 
-function FpExecL(Const PathName:RawByteString;const S:Array Of RawByteString):cint;
+function FpExecL(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 
 Begin
   FpExecL:=intFPExecl(PathName,S,EnvP,false);
 End;
 
-function FpExecLP(Const PathName:RawByteString;const S:Array Of RawByteString):cint;
+function FpExecLP(Const PathName:AnsiString;const S:Array Of AnsiString):cint;
 
 Begin
   FpExecLP:=intFPExecl(PathName,S,EnvP,True);
 End;
 
-function FpExecLPE(Const PathName:RawByteString;const S:Array Of RawByteString;env:ppchar):cint;
+function FpExecLPE(Const PathName:AnsiString;const S:Array Of AnsiString;env:ppchar):cint;
 
 Begin
   FpExecLPE:=intFPExecl(PathName,S,Env,True);
 End;
 
-function FpExecV(Const PathName:RawByteString;args:ppchar):cint;
+function FpExecV(Const PathName:AnsiString;args:ppchar):cint;
 
 Begin
  fpexecV:=intFpExecVEMaybeP (PathName,args,envp,false);
 End;
 
-function FpExecVP(Const PathName:RawByteString;args:ppchar):cint;
+function FpExecVP(Const PathName:AnsiString;args:ppchar):cint;
 
 Begin
  fpexecVP:=intFpExecVEMaybeP (PathName,args,envp,true);
 End;
 
-function FpExecVPE(Const PathName:RawByteString;args,env:ppchar):cint;
+function FpExecVPE(Const PathName:AnsiString;args,env:ppchar):cint;
 
 Begin
  fpexecVPE:=intFpExecVEMaybeP (PathName,args,env,true);
@@ -329,16 +322,13 @@ End;
 {$ifdef FPC_USE_LIBC}
 function xfpsystem(p:pchar):cint; cdecl; external clib name 'system';
 
-Function fpSystem(const Command:RawByteString):cint;
-var
-  cmd: RawByteString;
+Function fpSystem(const Command:AnsiString):cint;
 begin
-  cmd:=ToSingleByteFileSystemEncodedFileName(Command);
-  fpsystem:=xfpsystem(pchar(cmd));
+  fpsystem:=xfpsystem(pchar(command));
 end;
 
 {$else}
-Function fpSystem(const Command:RawByteString):cint;
+Function fpSystem(const Command:AnsiString):cint;
 var
   pid,savedpid   : cint;
   pstat          : cint;
@@ -349,10 +339,8 @@ var
  {$ifndef SHELL_USE_FPEXEC}
    p      : ppchar;
  {$endif}
-  cmd     : RawByteString;
 
 begin { Changes as above }
-  { fpexec* take care of converting the command to the right code page }
   if command='' then exit(1);
   {$ifndef SHELL_USE_FPEXEC}
     p:=CreateShellArgv(command);
@@ -1138,7 +1126,7 @@ end;
                              Utility calls
 ******************************************************************************}
 
-Function FSearch(const path:RawByteString;dirlist:RawByteString;CurrentDirStrategy:TFSearchOption):RawByteString;
+Function FSearch(const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
@@ -1149,18 +1137,17 @@ stringhandling overhead at the same time.
 
 }
 Var
-  mypath,
-  mydir,NewDir : RawByteString;
+  mydir,NewDir : ansistring;
   p1     : cint;
   Info   : Stat;
   i,j      : cint;
   p      : pchar;
 Begin
- SetCodePage(dirlist,DefaultFileSystemCodePage);
+
  if CurrentDirStrategy=CurrentDirectoryFirst Then
-     Dirlist:=ToSingleByteFileSystemEncodedFileName('.:')+dirlist             {Make sure current dir is first to be searched.}
- else if CurrentDirStrategy=CurrentDirectoryLast Then
-     Dirlist:=dirlist+ToSingleByteFileSystemEncodedFileName('.:');             {Make sure current dir is last to be searched.}
+     Dirlist:='.:'+dirlist;             {Make sure current dir is first to be searched.}
+ if CurrentDirStrategy=CurrentDirectoryLast Then
+     Dirlist:=dirlist+':.';             {Make sure current dir is last to be searched.}
 
 {Replace ':' and ';' with #0}
 
@@ -1173,19 +1160,14 @@ Begin
    FSearch:='' {No wildcards allowed in these things.}
   Else
    Begin
-     mypath:=ToSingleByteFileSystemEncodedFileName(path);
      p:=pchar(dirlist);
      i:=length(dirlist);
      j:=1;
      Repeat
-       mydir:=RawByteString(p);
+       mydir:=ansistring(p);
        if (length(mydir)>0) and (mydir[length(mydir)]<>'/') then
-          begin
-            { concatenate character without influencing code page }
-            setlength(mydir,length(mydir)+1);
-            mydir[length(mydir)]:='/';
-          end;
-       NewDir:=mydir+mypath;
+          mydir:=mydir+'/';
+       NewDir:=mydir+Path;
        if (FpStat(NewDir,Info)>=0) and
           (not fpS_ISDIR(Info.st_Mode)) then
         Begin
@@ -1199,25 +1181,14 @@ Begin
        if p^=#0 then inc(p);
      Until (j>=i) or (Length(NewDir) > 0);
      FSearch:=NewDir;
-     SetCodePage(FSearch,DefaultRTLFileSystemCodePage);
    End;
 End;
 
+Function FSearch(const path:AnsiString;dirlist:Ansistring):AnsiString;
 
-Function FSearch(const path:RawByteString;dirlist:RawByteString):RawByteString;
 Begin
  FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
-
-function FSearch(const path: UnicodeString; dirlist: UnicodeString; CurrentDirStrategy: TFSearchOption): UnicodeString;
-begin
-  FSearch:=FSearch(ToSingleByteFileSystemEncodedFileName(path),ToSingleByteFileSystemEncodedFileName(dirlist),CurrentDirStrategy);
-end;
-
-function FSearch(const path: UnicodeString; dirlist: UnicodeString): UnicodeString;
-begin
-  FSearch:=FSearch(ToSingleByteFileSystemEncodedFileName(path),ToSingleByteFileSystemEncodedFileName(dirlist),CurrentDirectoryFirst);
-end;
 
 Initialization
 {$IFNDEF DONT_READ_TIMEZONE}

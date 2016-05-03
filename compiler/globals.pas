@@ -44,9 +44,6 @@ interface
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
-{$if defined(LLVM) and not defined(GENERIC_CPU)}
-      llvminfo,
-{$endif LLVM and not GENERIC_CPU}
       globtype,version,systems;
 
     const
@@ -151,8 +148,7 @@ interface
          maxfpuregisters : shortint;
 
          cputype,
-         optimizecputype,
-         asmcputype      : tcputype;
+         optimizecputype : tcputype;
          fputype         : tfputype;
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
@@ -170,10 +166,6 @@ interface
 {$if defined(ARM)}
          instructionset : tinstructionset;
 {$endif defined(ARM)}
-
-{$if defined(LLVM) and not defined(GENERIC_CPU)}
-         llvmversion: tllvmversion;
-{$endif defined(LLVM) and not defined(GENERIC_CPU)}
 
         { CPU targets with microcontroller support can add a controller specific unit }
          controllertype   : tcontrollertype;
@@ -277,12 +269,11 @@ interface
        objectsearchpath,
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
-       packagesearchpath     : TSearchPathList;
-       { contains tpackageentry entries }
-       packagelist : TFPHashList;
        autoloadunits      : string;
 
        { linking }
+       usegnubinutils : boolean;
+       forceforwardslash : boolean;
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
@@ -355,6 +346,8 @@ interface
        prop_auto_setter_prefix : string;
 
     const
+       DLLsource : boolean = false;
+
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
@@ -398,7 +391,7 @@ interface
         globalswitches : [cs_check_unit_name,cs_link_static];
         targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath,cs_imported_data{$ifdef i8086},cs_force_far_calls{$endif}];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath{$ifdef i8086},cs_force_far_calls{$endif}];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];
@@ -421,83 +414,66 @@ interface
 {$ifdef GENERIC_CPU}
         cputype : cpu_none;
         optimizecputype : cpu_none;
-        asmcputype : cpu_none;
         fputype : fpu_none;
 {$else not GENERIC_CPU}
   {$ifdef i386}
         cputype : cpu_Pentium;
         optimizecputype : cpu_Pentium3;
-        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i386}
   {$ifdef m68k}
         cputype : cpu_MC68020;
         optimizecputype : cpu_MC68020;
-        asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif m68k}
   {$ifdef powerpc}
         cputype : cpu_PPC604;
         optimizecputype : cpu_ppc7400;
-        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif powerpc}
   {$ifdef POWERPC64}
         cputype : cpu_PPC970;
         optimizecputype : cpu_ppc970;
-        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
         cputype : cpu_SPARC_V9;
         optimizecputype : cpu_SPARC_V9;
-        asmcputype : cpu_none;
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
         cputype : cpu_armv4;
         optimizecputype : cpu_armv4;
-        asmcputype : cpu_none;
         fputype : fpu_fpa;
   {$endif arm}
   {$ifdef x86_64}
         cputype : cpu_athlon64;
         optimizecputype : cpu_athlon64;
-        asmcputype : cpu_none;
         fputype : fpu_sse64;
   {$endif x86_64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
-        asmcputype : cpu_none;
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
         cputype : cpu_mips2;
         optimizecputype : cpu_mips2;
-        asmcputype : cpu_none;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}
         cputype : cpu_none;
         optimizecputype : cpu_none;
-        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
   {$ifdef aarch64}
         cputype : cpu_armv8;
         optimizecputype : cpu_armv8;
-        asmcputype : cpu_none;
         fputype : fpu_vfp;
   {$endif aarch64}
   {$ifdef i8086}
         cputype : cpu_8086;
         optimizecputype : cpu_8086;
-        { Use cpu_none by default,
-        because using cpu_8086 by default means
-        that we reject any instruction above bare 8086 instruction set
-        for all assembler code PM }
-        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
 {$endif not GENERIC_CPU}
@@ -518,9 +494,6 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-{$if defined(LLVM) and not defined(GENERIC_CPU)}
-        llvmversion    : llvmver_3_6_0;
-{$endif defined(LLVM) and not defined(GENERIC_CPU)}
         controllertype : ct_none;
         pmessage : nil;
       );
@@ -544,7 +517,6 @@ interface
 
     procedure InitGlobals;
     procedure DoneGlobals;
-    procedure register_initdone_proc(init,done:tprocedure);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
@@ -774,10 +746,10 @@ implementation
      get the current time in a string HH:MM:SS
    }
       var
-        st: TSystemTime;
+        hour,min,sec,hsec : word;
       begin
-        GetLocalTime(st);
-        gettimestr:=L0(st.Hour)+':'+L0(st.Minute)+':'+L0(st.Second);
+        DecodeTime(Time,hour,min,sec,hsec);
+        gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
       end;
 
 
@@ -786,10 +758,10 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
-        st: TSystemTime;
+        Year,Month,Day: Word;
       begin
-        GetLocalTime(st);
-        getdatestr:=L0(st.Year)+'/'+L0(st.Month)+'/'+L0(st.Day);
+        DecodeDate(Date,year,month,day);
+        getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
       end;
 
 
@@ -817,10 +789,10 @@ implementation
 
    function getrealtime : real;
      var
-       st:TSystemTime;
+       h,m,s,s1000 : word;
      begin
-       GetLocalTime(st);
-       result:=st.Hour*3600.0+st.Minute*60.0+st.Second+st.MilliSecond/1000.0;
+       DecodeTime(Time,h,m,s,s1000);
+       result:=h*3600.0+m*60.0+s+s1000/1000.0;
      end;
 
 {****************************************************************************
@@ -1096,8 +1068,7 @@ implementation
          'STDCALL',
          'SOFTFLOAT',
          'MWPASCAL',
-         'INTERRUPT',
-         'HARDFLOAT'
+         'INTERRUPT'
         );
       var
         t  : tproccalloption;
@@ -1372,70 +1343,8 @@ implementation
 
 
 
-   type
-     tinitdoneentry=record
-       init:tprocedure;
-       done:tprocedure;
-     end;
-     pinitdoneentry=^tinitdoneentry;
-
-
-   var
-     initdoneprocs : TFPList;
-
-
-   procedure register_initdone_proc(init,done:tprocedure);
-     var
-       entry : pinitdoneentry;
-     begin
-       new(entry);
-       entry^.init:=init;
-       entry^.done:=done;
-       initdoneprocs.add(entry);
-     end;
-
-
-   procedure callinitprocs;
-     var
-       i : longint;
-     begin
-       for i:=0 to initdoneprocs.count-1 do
-         with pinitdoneentry(initdoneprocs[i])^ do
-           if assigned(init) then
-             init();
-     end;
-
-
-   procedure calldoneprocs;
-     var
-       i : longint;
-     begin
-       for i:=0 to initdoneprocs.count-1 do
-         with pinitdoneentry(initdoneprocs[i])^ do
-           if assigned(done) then
-             done();
-     end;
-
-
-   procedure allocinitdoneprocs;
-     begin
-       initdoneprocs:=tfplist.create;
-     end;
-
-
-   procedure freeinitdoneprocs;
-     var
-       i : longint;
-     begin
-       for i:=0 to initdoneprocs.count-1 do
-         dispose(pinitdoneentry(initdoneprocs[i]));
-       initdoneprocs.free;
-     end;
-
-
    procedure DoneGlobals;
      begin
-       calldoneprocs;
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1443,7 +1352,6 @@ implementation
        frameworksearchpath.Free;
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
-       packagesearchpath.Free;
      end;
 
    procedure InitGlobals;
@@ -1456,6 +1364,7 @@ implementation
         do_make:=true;
         compile_level:=0;
         codegenerror:=false;
+        DLLsource:=false;
 
         { Output }
         OutputFileName:='';
@@ -1479,7 +1388,6 @@ implementation
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
-        packagesearchpath:=TSearchPathList.Create;
 
         { Def file }
         usewindowapi:=false;
@@ -1521,12 +1429,6 @@ implementation
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
-
-        callinitprocs;
      end;
 
-initialization
-  allocinitdoneprocs;
-finalization
-  freeinitdoneprocs;
 end.

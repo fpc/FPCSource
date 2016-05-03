@@ -478,7 +478,7 @@ Const
     CTF_LOWER   = 128;
 
 
-VAR RexxSysBase : pLibrary = nil;
+VAR RexxSysBase : pLibrary;
 
 const
     REXXSYSLIBNAME : PChar = 'rexxsyslib.library';
@@ -486,7 +486,7 @@ const
 PROCEDURE ClearRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'); syscall RexxSysBase 156;
 FUNCTION CreateArgstring(const argstring : pCHAR location 'a0'; length : ULONG location 'd0') : pCHAR; syscall RexxSysBase 126;
 FUNCTION CreateRexxMsg(const port : pMsgPort location 'a0'; const extension : pCHAR location 'a1'; host : pCHAR location 'd0') : pRexxMsg; syscall RexxSysBase 144;
-PROCEDURE DeleteArgstring(argstring : pCHAR location 'a0'); syscall RexxSysBase 132;
+PROCEDURE DeleteArgstring(argstring : pCHAR location 'd0'); syscall RexxSysBase 132;
 PROCEDURE DeleteRexxMsg(packet : pRexxMsg location 'a0'); syscall RexxSysBase 150;
 FUNCTION FillRexxMsg(msgptr : pRexxMsg location 'a0'; count : ULONG location 'd0'; mask : ULONG location 'd1') : LongBool; syscall RexxSysBase 162;
 FUNCTION IsRexxMsg(const msgptr : pRexxMsg location 'a0') : LongBool; syscall RexxSysBase 168;
@@ -496,7 +496,23 @@ PROCEDURE UnlockRexxBase(resource : ULONG location 'd0'); syscall RexxSysBase 45
 
 FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitREXXSYSLIBLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    REXXSYSLIBIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+{$ifndef dont_use_openlib}
+uses
+  amsgbox;
+{$endif dont_use_openlib}
 
 FUNCTION CreateArgstring(const argstring : string; length : ULONG) : pCHAR;
 begin
@@ -505,14 +521,86 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  RexxSysBase := OpenLibrary(REXXSYSLIBNAME,LIBVERSION);
-finalization
-  if Assigned(RexxSysBase) then
-    CloseLibrary(RexxSysBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of rexxsyslib.library}
+  {$Info don't forget to use InitREXXSYSLIBLibrary in the beginning of your program}
+
+var
+    rexxsyslib_exit : Pointer;
+
+procedure CloserexxsyslibLibrary;
+begin
+    ExitProc := rexxsyslib_exit;
+    if RexxSysBase <> nil then begin
+        CloseLibrary(RexxSysBase);
+        RexxSysBase := nil;
+    end;
+end;
+
+procedure InitREXXSYSLIBLibrary;
+begin
+    RexxSysBase := nil;
+    RexxSysBase := OpenLibrary(REXXSYSLIBNAME,LIBVERSION);
+    if RexxSysBase <> nil then begin
+        rexxsyslib_exit := ExitProc;
+        ExitProc := @CloserexxsyslibLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open rexxsyslib.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    REXXSYSLIBIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of rexxsyslib.library}
+
+var
+    rexxsyslib_exit : Pointer;
+
+procedure CloserexxsyslibLibrary;
+begin
+    ExitProc := rexxsyslib_exit;
+    if RexxSysBase <> nil then begin
+        CloseLibrary(RexxSysBase);
+        RexxSysBase := nil;
+    end;
+end;
+
+begin
+    RexxSysBase := nil;
+    RexxSysBase := OpenLibrary(REXXSYSLIBNAME,LIBVERSION);
+    if RexxSysBase <> nil then begin
+        rexxsyslib_exit := ExitProc;
+        ExitProc := @CloserexxsyslibLibrary;
+        REXXSYSLIBIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open rexxsyslib.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    REXXSYSLIBIsCompiledHow := 3;
+   {$Warning No autoopening of rexxsyslib.library compiled}
+   {$Warning Make sure you open rexxsyslib.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT REXXSYSLIB *)
 
 

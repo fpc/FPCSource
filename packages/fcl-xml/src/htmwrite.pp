@@ -46,7 +46,6 @@ type
   private
     FStream: TStream;
     FInsideTextNode: Boolean;
-    FInsideScript: Boolean;
     FBuffer: PChar;
     FBufPos: PChar;
     FCapacity: Integer;
@@ -325,7 +324,6 @@ begin
       ElFlags := HTMLElementProps[j].Flags;
       if j = etMeta then
         meta := True;
-      FInsideScript := (j=etScript) or (j=etStyle);
       break;
     end;
 
@@ -373,10 +371,7 @@ end;
 
 procedure THTMLWriter.VisitText(node: TDOMNode);
 begin
-  if FInsideScript then
-    WrtStr(TDOMCharacterData(node).Data)
-  else
-    ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
+  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
 end;
 
 procedure THTMLWriter.VisitCDATA(node: TDOMNode);

@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993-98 by Florian Klaempfl
+    Copyright (c) 1993-2015 by Florian Klaempfl
     member of the Free Pascal development team
 
     This is the install program for the DOS and OS/2 versions of Free Pascal
@@ -94,11 +94,11 @@ program install;
 
   const
      installerversion='3.1.1';
-     installercopyright='Copyright (c) 1993-2011 Florian Klaempfl';
+     installercopyright='Copyright (c) 1993-2015 Florian Klaempfl';
 
 
      maxpacks=20;
-     maxpackages=60;
+     maxpackages=32;
      maxdefcfgs=1024;
 
      HTMLIndexExt = '.htx';
@@ -912,7 +912,7 @@ program install;
           S := 'Extend your LIBPATH with ''' + S;
          System.Delete (S, Length (S) - 6, 7);
          S := S + 'dll''';
-         R.Assign (2, YB - 14, 64, YB - 12);
+         R.Assign (2, YB - 15, 64, YB - 13);
          P := New (PStaticText, Init (R, S));
          Insert (P);
        end;
@@ -1135,7 +1135,7 @@ program install;
        found:=false;
        for j:=1 to cfg.packs do
         if packmask[j]<>0 then
-         found:=true;
+          found:=true;
        if not found then
         begin
           messagebox('No components found to install, aborting.',nil,mferror+mfokbutton);

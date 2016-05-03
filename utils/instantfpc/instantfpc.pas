@@ -29,11 +29,9 @@ const
   // 1.3 compile in a separate directory, so that parallel invocations do not overwrite link.res files
 
 
-Procedure Usage(Err : string);
+Procedure Usage;
 
 begin
-  if (Err<>'') then
-    Writeln('Error : ',Err);
   writeln('instantfpc '+Version);
   writeln;
   writeln('Run pascal source files as scripts.');
@@ -78,7 +76,7 @@ begin
   writeln;
   writeln('  -B');
   writeln('      Always recompile.');
-  Halt(Ord(Err<>''));
+  Halt(0);
 end;
 
 Procedure DisplayCache;
@@ -110,7 +108,7 @@ begin
     Halt(1);
     end
   else if p='-h' then 
-    usage('')
+    usage
   else if p='--get-cache' then 
     DisplayCache
   else if copy(p,1,11)='--compiler=' then 
@@ -169,8 +167,12 @@ begin
       end;  
   end;
   if (Filename='') then 
-    Usage('Missing source file');
+    begin
+    writeln('missing source file');
+    Halt(1);
+    end;
   CheckSourceName(Filename);
+
   Src:=TStringList.Create;
   try
     Src.LoadFromFile(Filename);

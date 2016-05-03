@@ -1,4 +1,3 @@
-{ %skiptarget=android }
 { %opt=-O2r -Cg- }
 { %cpu=i386 }
 {$mode delphi}

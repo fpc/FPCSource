@@ -29,14 +29,14 @@ const
   TINYGLNAME : PChar = 'tinygl.library';
 
 var
-  TinyGLBase: Pointer = nil;
-  tglContext: Pointer = nil;
+  TinyGLBase: Pointer;
+  tglContext: Pointer;
 
 function InitTinyGLLibrary : boolean;
 
 implementation
 
-function _GLInit: Pointer;
+function _GLInit: Pointer; 
 syscall sysvbase TinyGLBase 640;
 
 procedure _GLClose(gcl: pointer);
@@ -47,18 +47,34 @@ const
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-function InitTinyGLLibrary : boolean;
+var
+  tinygl_exit : Pointer;
+
+procedure CloseTinyGLLibrary;
 begin
-  InitTinyGLLibrary := Assigned(tglContext) and Assigned(TinyGLBase);
+  ExitProc := tinygl_exit;
+  if TinyGLBase <> nil then begin
+    if tglContext <> nil then begin
+      _GLClose(tglContext);
+      tglContext := nil;
+    end;
+    CloseLibrary(PLibrary(TinyGLBase));
+    TinyGLBase := nil;
+  end;
 end;
 
-initialization
+function InitTinyGLLibrary : boolean;
+begin
+  TinyGLBase := nil;
   TinyGLBase := OpenLibrary(TINYGLNAME,LIBVERSION);
-  if Assigned(TinyGLBase) then
+  if TinyGLBase <> nil then begin
+    tinygl_exit := ExitProc;
+    ExitProc := @CloseTinyGLLibrary;
     tglContext := _GLInit;
-finalization
-  if Assigned(tglContext) then
-    _GLClose(tglContext);
-  if Assigned(TinyGLBase) then
-    CloseLibrary(PLibrary(TinyGLBase));
+    InitTinyGLLibrary := True;
+  end else begin
+    InitTinyGLLibrary := False;
+  end;
+end;
+
 end.

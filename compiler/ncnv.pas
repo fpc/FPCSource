@@ -65,10 +65,6 @@ interface
             replace this explicit type conversion with a different node, or to
             reject it after all }
           function target_specific_explicit_typeconv: boolean;virtual;
-
-          { called when inserttypeconv is used to convert to a def that is equal
-            according to compare_defs() }
-          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; virtual;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -330,8 +326,7 @@ implementation
           still expects the resultdef of the node to be a stringdef) }
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
-           not is_bitpacked_access(p) and
-           not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def) then
+           not is_bitpacked_access(p) then
           begin
             { don't replace encoded string constants to rawbytestring encoding.
               preserve the codepage }
@@ -1993,12 +1988,6 @@ implementation
       end;
 
 
-    class function ttypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
-      begin
-        result:=false;
-      end;
-
-
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
@@ -2563,11 +2552,8 @@ implementation
                 result:=
                   (docheckremoveinttypeconvs(tbinarynode(n).left) and
                    docheckremoveinttypeconvs(tbinarynode(n).right)) or
-                  { in case of div/mod, the result of that division/modulo can
-                    usually be different in 32 and 64 bit }
-                  (not gotdivmod and
-                   (((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
-                    ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
+                  ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
+                  ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right));
               end;
           end;
         end;
@@ -2657,17 +2643,14 @@ implementation
           remove the typeconv node }
         case left.nodetype of
           stringconstn :
-            if (resultdef.typ=stringdef) and
-               ((convtype=tc_equal) or
-                ((convtype=tc_string_2_string) and
-                 (
-                  ((not is_widechararray(left.resultdef) and
-                    not is_wide_or_unicode_string(left.resultdef)) or
-                   (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
-                  )
-                 )
+            if (convtype=tc_string_2_string) and
+               (resultdef.typ=stringdef) and
+              (
+                ((not is_widechararray(left.resultdef) and
+                  not is_wide_or_unicode_string(left.resultdef)) or
+                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
                 )
-               ) then
+              ) then
               begin
                 { output string consts in local ansistring encoding }
                 if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then

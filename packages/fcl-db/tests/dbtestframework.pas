@@ -28,9 +28,7 @@ uses
   TestSpecificTBufDataset,
   TestSpecificTDBF,
   TestSpecificTMemDataset,
-  TestDBExport, 
-  tccsvdataset,
-  testsqlscript,
+  TestDBExport, tccsvdataset,
   consoletestrunner;
 
 Procedure LegacyOutput;

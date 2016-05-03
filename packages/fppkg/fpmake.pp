@@ -44,9 +44,10 @@ begin
     P.Email := '';
     P.Description := 'Libraries to create fppkg package managers.';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('fprepos.pp');
     T.ResourceStrings:=true;
@@ -66,6 +67,7 @@ begin
     T:=P.Targets.AddUnit('pkgmkconv.pp');
     T:=P.Targets.AddUnit('pkgdownload.pp');
     T:=P.Targets.AddUnit('pkgfpmake.pp');
+    T.Dependencies.AddInclude('fpmkunitsrc.inc');
     T:=P.Targets.AddUnit('pkgcommands.pp');
 
     T:=P.Targets.AddUnit('pkgwget.pp', TargetsWithWGet);

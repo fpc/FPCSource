@@ -38,7 +38,7 @@ const
   CGXVIDEONAME = 'cgxvideo.library';
 
 var
-  CGXVideoBase: PLibrary = nil;
+  CGXVideoBase: PLibrary;
 
 type
   TVLayerHandle = Pointer;
@@ -202,17 +202,33 @@ implementation
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-function InitCGXVideoLibrary: boolean;
+var
+    cgxvideo_exit : Pointer;
+
+procedure CloseCGXVideoLibrary;
 begin
-  InitCGXVideoLibrary := Assigned(CGXVideoBase);
+    ExitProc := cgxvideo_exit;
+    if CGXVideoBase <> nil then begin
+        CloseLibrary(CGXVideoBase);
+        CGXVideoBase := nil;
+    end;
 end;
 
-initialization
-  CGXVideoBase := OpenLibrary(CGXVIDEONAME,LIBVERSION);
-finalization
-  if Assigned(CGXVideoBase) then
-    CloseLibrary(CGXVideoBase);
+function InitCGXVideoLibrary: boolean;
+begin
+    CGXVideoBase := nil;
+    CGXVideoBase := OpenLibrary(CGXVIDEONAME,LIBVERSION);
+    if CGXVideoBase <> nil then begin
+        cgxvideo_exit := ExitProc;
+        ExitProc := @CloseCGXVideoLibrary;
+        InitCGXVideoLibrary := true;
+    end else begin
+        InitCGXVideoLibrary := false;
+    end;
+end;
+
 end.

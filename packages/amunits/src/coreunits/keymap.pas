@@ -105,7 +105,7 @@ Const
     DP_2DINDEXMASK      = $0f;  { mask for index for 1st of two dead keys }
     DP_2DFACSHIFT       = 4;    { shift for factor for 1st of two dead keys }
 
-VAR KeymapBase : pLibrary = nil;
+VAR KeymapBase : pLibrary;
 
 const
     KEYMAPNAME : PChar = 'keymap.library';
@@ -117,16 +117,50 @@ PROCEDURE SetKeyMapDefault(keyMap : pKeyMap location 'a0'); syscall KeymapBase 0
 
 IMPLEMENTATION
 
+uses amsgbox;
+
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of keymap.library}
+
+var
+    keymap_exit : Pointer;
+
+procedure ClosekeymapLibrary;
+begin
+    ExitProc := keymap_exit;
+    if KeymapBase <> nil then begin
+        CloseLibrary(KeymapBase);
+        KeymapBase := nil;
+    end;
+end;
+
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
-finalization
-  if Assigned(KeymapBase) then
-    CloseLibrary(KeymapBase);
+begin
+    KeymapBase := nil;
+    KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
+    if KeymapBase <> nil then begin
+        keymap_exit := ExitProc;
+        ExitProc := @ClosekeymapLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open keymap.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of keymap.library compiled}
+   {$Info Make sure you open keymap.library yourself}
+{$endif use_auto_openlib}
+
+
 END. (* UNIT KEYMAP *)
 
 

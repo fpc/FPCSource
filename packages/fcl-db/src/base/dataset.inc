@@ -105,9 +105,7 @@ begin
         begin
         FFieldDef := nil;
         FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
-        if FieldIndex = -1 then
-          DatabaseErrorFmt(SFieldNotFound,[Fields[i].FieldName],Self)
-        else
+        if FieldIndex <> -1 then
           begin
           FFieldDef := FieldDefs[FieldIndex];
           FFieldNo := FFieldDef.FieldNo;
@@ -1028,7 +1026,7 @@ end;
 
 procedure TDataSet.InternalPost;
 
-  Procedure CheckRequiredFields;
+  Procedure Checkrequired;
 
   Var I : longint;
 
@@ -1042,7 +1040,7 @@ procedure TDataSet.InternalPost;
   end;
 
 begin
-  CheckRequiredFields;
+  Checkrequired;
 end;
 
 procedure TDataSet.InternalSetToRecord(Buffer: TRecordBuffer);

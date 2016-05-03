@@ -20,20 +20,13 @@ function atexit(proc:TCdeclProcedure):longint;cdecl;external 'c' name 'atexit';
 procedure _cleanup;cdecl;external 'c' name '_cleanup';
 procedure _DYNAMIC;cdecl;external 'c' name '_DYNAMIC';
 procedure __fpstart;cdecl;external 'c' name '__fpstart';
-procedure PascalMain;external name 'PASCALMAIN';
+procedure PascalMain;cdecl;external name 'PASCALMAIN';
 
 procedure _start;assembler;nostackframe;public name '_start';
 asm
-        // Terminate the stack frame
+        // Terminate the stack frame, and reserve space for functions to
+        //   drop their arguments.
         mov     %g0, %fp
-
-        // Save current %sp to StackTopPtr
-        mov     %sp, %o2
-        sethi   %hi(StackTopPtr),%o1
-        or      %o1,%lo(StackTopPtr),%o1
-        st      %o2, [%o1]
-
-        // Reserve space for functions to drop their arguments.
         sub     %sp, 6*4, %sp
 
         // Extract the arguments and environment as encoded on the stack.  The

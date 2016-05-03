@@ -300,8 +300,6 @@ interface
           function jvm_full_typename(with_package_name: boolean): string;
           { check if the symtable contains a float field }
           function contains_float_field : boolean;
-          { check if the symtable contains a field that spans an aword boundary }
-          function contains_cross_aword_field: boolean;
        end;
 
        pvariantrecdesc = ^tvariantrecdesc;
@@ -626,7 +624,6 @@ interface
           function  compatible_with_pointerdef_size(ptr: tpointerdef): boolean; virtual;
           procedure check_mark_as_nested;
           procedure init_paraloc_info(side: tcallercallee);
-          procedure done_paraloc_info(side: tcallercallee);
           function stack_tainting_parameter(side: tcallercallee): boolean;
           function is_pushleftright: boolean;virtual;
           function address_type:tdef;virtual;
@@ -1037,8 +1034,6 @@ interface
        s32inttype,                { 32-Bit signed integer }
        u64inttype,                { 64-bit unsigned integer }
        s64inttype,                { 64-bit signed integer }
-       u128inttype,               { 128-bit unsigned integer }
-       s128inttype,               { 128-bit signed integer }
        s32floattype,              { 32 bit floating point number }
        s64floattype,              { 64 bit floating point number }
        s80floattype,              { 80 bit floating point number }
@@ -1061,7 +1056,7 @@ interface
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
-       { default integer type, normally s32inttype on 32 bit systems and s64bittype on 64 bit systems }
+       { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
        sinttype,
        uinttype,
        { integer types corresponding to OS_SINT/OS_INT }
@@ -1070,9 +1065,6 @@ interface
        { unsigned and signed ord type with the same size as a pointer }
        ptruinttype,
        ptrsinttype,
-       { unsigned and signed ord type with the same size as a codepointer }
-       codeptruinttype,
-       codeptrsinttype,
        { several types to simulate more or less C++ objects for GDB }
        vmttype,
        vmtarraytype,
@@ -1196,8 +1188,7 @@ implementation
       fmodule,
       { other }
       gendef,
-      fpccrc,
-      entfile
+      fpccrc
       ;
 
 {****************************************************************************
@@ -1215,7 +1206,6 @@ implementation
     function getansistringdef:tstringdef;
       var
         symtable:tsymtable;
-        oldstack : tsymtablestack;
       begin
         { if a codepage is explicitly defined in this mudule we need to return
           a replacement for ansistring def }
@@ -1232,16 +1222,9 @@ implementation
                   symtable:=current_module.globalsymtable
                 else
                   symtable:=current_module.localsymtable;
-                { create a temporary stack as it's not good (TM) to mess around
-                  with the order if the unit contains generics or helpers; don't
-                  use a def aware symtablestack though }
-                oldstack:=symtablestack;
-                symtablestack:=tsymtablestack.create;
                 symtablestack.push(symtable);
                 current_module.ansistrdef:=cstringdef.createansi(current_settings.sourcecodepage,true);
                 symtablestack.pop(symtable);
-                symtablestack.free;
-                symtablestack:=oldstack;
               end;
             result:=tstringdef(current_module.ansistrdef);
           end
@@ -1881,7 +1864,6 @@ implementation
 
     function tstoreddef.fullownerhierarchyname: TSymStr;
       var
-        lastowner: tsymtable;
         tmp: tdef;
       begin
 {$ifdef symansistr}
@@ -1896,12 +1878,11 @@ implementation
         tmp:=self;
         result:='';
         repeat
-          lastowner:=tmp.owner;
           { can be not assigned in case of a forwarddef }
-          if not assigned(lastowner) then
+          if not assigned(tmp.owner) then
             break
           else
-            tmp:=tdef(lastowner.defowner);
+            tmp:=tdef(tmp.owner.defowner);
           if not assigned(tmp) then
             break;
           if tmp.typ in [recorddef,objectdef] then
@@ -1910,10 +1891,6 @@ implementation
             if tmp.typ=procdef then
               result:=tprocdef(tmp).customprocname([pno_paranames,pno_proctypeoption])+'.'+result;
         until tmp=nil;
-        { add the unit name }
-        if assigned(lastowner) and
-           assigned(lastowner.realname) then
-          result:=lastowner.realname^+'.'+result;
 {$ifdef symansistr}
         _fullownerhierarchyname:=result;
 {$else symansistr}
@@ -2051,7 +2028,10 @@ implementation
               begin
                 symderef:=pderef(genericparaderefs[i]);
                 genericparas.items[i]:=symderef^.resolve;
+                dispose(symderef);
               end;
+            genericparaderefs.free;
+            genericparaderefs:=nil;
           end;
       end;
 
@@ -2124,14 +2104,12 @@ implementation
               recsize:=size;
               is_intregable:=
                 ispowerof2(recsize,temp) and
-                ((recsize<=sizeof(aint)*2) and
-                 not trecorddef(self).contains_cross_aword_field and
+                (((recsize <= sizeof(asizeint)*2) and
                  { records cannot go into registers on 16 bit targets for now }
-                 (sizeof(aint)>2) and
-                 (not trecorddef(self).contains_float_field) or
-                  (recsize <= sizeof(aint))
-                 ) and
-                 not needs_inittable;
+                  (sizeof(asizeint)>2) and
+                  not trecorddef(self).contains_float_field) or
+                  (recsize <= sizeof(asizeint))) and
+                not needs_inittable;
 {$endif llvm}
             end;
         end;
@@ -2781,8 +2759,8 @@ implementation
       const
         sizetbl : array[tordtype] of longint = (
           0,
-          1,2,4,8,16,
-          1,2,4,8,16,
+          1,2,4,8,
+          1,2,4,8,
           1,2,4,8,
           1,2,4,8,
           1,2,8
@@ -2831,8 +2809,8 @@ implementation
       const
         basetype2vardef : array[tordtype] of longint = (
           varUndefined,
-          varbyte,varword,varlongword,varqword,varUndefined,
-          varshortint,varsmallint,varinteger,varint64,varUndefined,
+          varbyte,varword,varlongword,varqword,
+          varshortint,varsmallint,varinteger,varint64,
           varboolean,varboolean,varboolean,varboolean,
           varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
@@ -2861,8 +2839,8 @@ implementation
       const
         names : array[tordtype] of string[20] = (
           'untyped',
-          'Byte','Word','DWord','QWord','UInt128',
-          'ShortInt','SmallInt','LongInt','Int64','Int128',
+          'Byte','Word','DWord','QWord',
+          'ShortInt','SmallInt','LongInt','Int64',
           'Boolean','Boolean16','Boolean32','Boolean64',
           'ByteBool','WordBool','LongBool','QWordBool',
           'Char','WideChar','Currency');
@@ -3799,13 +3777,6 @@ implementation
         if (ado_IsBitPacked in arrayoptions) then
           { can't just add 7 and divide by 8, because that may overflow }
           result:=result div 8 + ord((result mod 8)<>0);
-{$ifdef cpu16bitaddr}
-        if result>65535 then
-          begin
-            result:=-1;
-            exit;
-          end;
-{$endif cpu16bitaddr}
       end;
 
 
@@ -4258,41 +4229,6 @@ implementation
                 { search recursively }
                 if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
                   (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_float_field) then
-                  exit;
-              end;
-          end;
-        result:=false;
-      end;
-
-
-    function tabstractrecorddef.contains_cross_aword_field: boolean;
-      var
-        i : longint;
-        foffset, fsize: aword;
-      begin
-        result:=true;
-        for i:=0 to symtable.symlist.count-1 do
-          begin
-            if (tsym(symtable.symlist[i]).typ<>fieldvarsym) or
-               (sp_static in tsym(symtable.symlist[i]).symoptions) then
-              continue;
-            if assigned(tfieldvarsym(symtable.symlist[i]).vardef) then
-              begin
-                if is_packed then
-                  begin
-                    foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset;
-                    fsize:=tfieldvarsym(symtable.symlist[i]).vardef.packedbitsize;
-                  end
-                else
-                  begin
-                    foffset:=tfieldvarsym(symtable.symlist[i]).fieldoffset*8;
-                    fsize:=tfieldvarsym(symtable.symlist[i]).vardef.size*8;
-                  end;
-                if (foffset div (sizeof(aword)*8)) <> ((foffset+fsize-1) div (sizeof(aword)*8)) then
-                  exit;
-                { search recursively }
-                if (tstoreddef(tfieldvarsym(symtable.symlist[i]).vardef).typ=recorddef) and
-                  (tabstractrecorddef(tfieldvarsym(symtable.symlist[i]).vardef).contains_cross_aword_field) then
                   exit;
               end;
           end;
@@ -5083,36 +5019,6 @@ implementation
               has_paraloc_info:=callbothsides
             else
               has_paraloc_info:=calleeside;
-          end;
-      end;
-
-
-    procedure tabstractprocdef.done_paraloc_info(side: tcallercallee);
-      var
-        i: longint;
-      begin
-        if (side in [callerside,callbothsides]) and
-           (has_paraloc_info in [callerside,callbothsides]) then
-          begin
-            funcretloc[callerside].done;
-            for i:=0 to paras.count-1 do
-              tparavarsym(paras[i]).paraloc[callerside].done;
-            if has_paraloc_info=callerside then
-              has_paraloc_info:=callnoside
-            else
-              has_paraloc_info:=calleeside;
-          end;
-
-        if (side in [calleeside,callbothsides]) and
-           (has_paraloc_info in [calleeside,callbothsides]) then
-          begin
-            funcretloc[calleeside].done;
-            for i:=0 to paras.count-1 do
-              tparavarsym(paras[i]).paraloc[calleeside].done;
-            if has_paraloc_info=calleeside then
-              has_paraloc_info:=callnoside
-            else
-              has_paraloc_info:=callerside;
           end;
       end;
 
@@ -6005,15 +5911,15 @@ implementation
 {$ifdef NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[2] = (
              '',
-             'Uc','Us','Ui','Us','',
-             'Sc','s','i','x','',
+             'Uc','Us','Ui','Us',
+             'Sc','s','i','x',
              'b','b','b','b','b',
              'c','w','x');
 {$else NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[1] = (
              'v',
-             'h','t','j','y','',
-             'a','s','i','x','',
+             'h','t','j','y',
+             'a','s','i','x',
              'b','b','b','b',
              'b','b','b','b',
              'c','w','x');
@@ -6355,7 +6261,6 @@ implementation
     function tprocvardef.is_addressonly:boolean;
       begin
         result:=(not(po_methodpointer in procoptions) and
-                 not(po_is_block in procoptions) and
                  not is_nested_pd(self)) or
                 (po_addressonly in procoptions);
       end;
@@ -6401,9 +6306,7 @@ implementation
          pno:=[];
 {$endif EXTDEBUG}
          s:='<';
-         if po_is_block in procoptions then
-           s := s+'reference to'
-         else if po_classmethod in procoptions then
+         if po_classmethod in procoptions then
            s := s+'class method type of'
          else
            if po_addressonly in procoptions then
@@ -6419,7 +6322,11 @@ implementation
            s := s+' of object';
          if is_nested_pd(self) then
            s := s+' is nested';
-         GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
+         { calling convention doesn't matter for blocks }
+         if po_is_block in procoptions then
+           GetTypeName := s+' is block;'
+         else
+           GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 
 

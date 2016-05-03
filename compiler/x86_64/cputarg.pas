@@ -52,9 +52,7 @@ implementation
     {$ifndef NOTARGETAROS}
       ,t_aros
     {$endif}
-    {$ifndef NOTARGETEMBEDDED}
-      ,t_embed
-    {$endif}
+
 
 {**************************************
              Assemblers

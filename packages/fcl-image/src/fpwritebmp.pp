@@ -17,7 +17,6 @@
    - Removed FBytesPerPixel, BytesPerPixel property is now deprecated, use BitsPerPixel instead.
    - Rewritten a large part of the file, so we can handle all bmp color depths
    - Support for RLE4 and RLE8 encoding
-  03/2015 MvdV finally removed bytesperpixel. 10 years should be enough.
 }
 
 {$mode objfpc}{$h+}
@@ -37,8 +36,6 @@ type
     BFH : TBitMapFileHeader;
     BFI : TBitMapInfoHeader;
     Colinfo : array of TColorRGBA;
-    fXPelsPerMeter,
-    fYPelsPerMeter : integer;
     procedure SetColorSize (AValue : Byte);
     function GetColorSize : byte;
     procedure SetBpp (const abpp : byte);
@@ -56,9 +53,8 @@ type
   public
     constructor Create; override;
     property BitsPerPixel : byte read FBpp write SetBpp;
-    property XPelsPerMeter : integer read fXPelsPerMeter write fXPelsPerMeter;
-    property YPelsPerMeter : integer read fYPelsPerMeter write fYPelsPerMeter;
     property RLECompress : boolean read FRleCompress write FRleCompress;
+    Property BytesPerPixel : Byte Read GetColorSize Write SetColorSize; deprecated;
   end;
 
 
@@ -90,8 +86,6 @@ end;
 constructor TFPWriterBMP.create;
 begin
   inherited create;
-  fXPelsPerMeter:=100;
-  fYPelsPerMeter:=100;
   FBpp:=24;
   FRleCompress:=false;
 end;
@@ -253,8 +247,8 @@ begin
     Planes:=1;
     if FBpp=15 then BitCount:=16
     else BitCount:=FBpp;
-    XPelsPerMeter:=fXPelsPerMeter;
-    YPelsPerMeter:=fYPelsPerMeter;
+    XPelsPerMeter:=100;
+    YPelsPerMeter:=100;
     ClrImportant:=0;
     end;
   with BFH do

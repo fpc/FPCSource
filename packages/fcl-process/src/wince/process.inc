@@ -243,8 +243,10 @@ begin
 end;
 
 Function TProcess.WaitOnExit : Boolean;
+
 Var
   R : DWord;
+
 begin
   R:=WaitForSingleObject (FProcessHandle,Infinite);
   Result:=(R<>Wait_Failed);
@@ -252,21 +254,6 @@ begin
     GetExitStatus;
   FRunning:=False;
 end;
-
-
-Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
-Var
-  R : DWord;
-begin
-  R:=WaitForSingleObject (FProcessHandle,Timeout);
-  Result:=R=0;
-  If Result then
-    begin
-      GetExitStatus;
-      FRunning:=False;
-    end;
-end;
-
 
 Function TProcess.Suspend : Longint;
 

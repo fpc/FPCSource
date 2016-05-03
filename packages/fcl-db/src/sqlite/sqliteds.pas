@@ -184,16 +184,12 @@ begin
     begin
       AType := ftString;
     end;
-    FieldDefs.Add(FieldDefs.MakeNameUnique(String(ColumnNames[i])), AType, DataSize);
+    FieldDefs.Add(String(ColumnNames[i]), AType, DataSize);
     //Set the pchar2sql function
-    case AType of
-      ftString:
-        FGetSqlStr[i] := @Char2SQLStr;
-      ftMemo:
-        FGetSqlStr[i] := @Memo2SQLStr;
+    if AType in [ftString, ftMemo] then
+      FGetSqlStr[i] := @Char2SQLStr
     else
       FGetSqlStr[i] := @Num2SQLStr;
-    end;
   end;
   sqlite_finalize(vm, nil);
   {

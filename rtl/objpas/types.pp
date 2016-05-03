@@ -69,7 +69,6 @@ type
 {$endif}
 
 {$ifdef Windows}
-  TArray4IntegerType = Windows.TArray4IntegerType;
   TSmallPoint = Windows.TSmallPoint;
   PSmallPoint = Windows.PSmallPoint;
 
@@ -83,13 +82,6 @@ type
 
   TRect  = Windows.TRect;
   PRect  = Windows.PRect;
-  TSplitRectType = Windows.TSplitRectType;
-const
-  srLeft = TSplitRectType.srLeft;
-  srRight = TSplitRectType.srRight;
-  srTop = TSplitRectType.srTop;
-  srBottom = TSplitRectType.srBottom;
-type
 {$else}
   {$i typshrdh.inc}
    TagSize = tSize deprecated;
@@ -128,10 +120,6 @@ type
           class operator <> (const apt1, apt2 : TPointF): Boolean;
           class operator + (const apt1, apt2 : TPointF): TPointF;
           class operator - (const apt1, apt2 : TPointF): TPointF;
-          class operator - (const apt1 : TPointF): TPointF;
-          class operator * (const apt1, apt2: TPointF): Single; // scalar product
-          class operator * (const apt1: TPointF; afactor: single): TPointF;
-          class operator * (afactor: single; const apt1: TPointF): TPointF;
        end;
   { TRectF }
 
@@ -307,13 +295,17 @@ type
   end;
 
   IStream = interface(ISequentialStream) ['{0000000C-0000-0000-C000-000000000046}']
-     function Seek(dlibMove : LargeUInt; dwOrigin : Longint; out libNewPosition : LargeUInt) : HResult;stdcall;
-     function SetSize(libNewSize : LargeUInt) : HRESULT;stdcall;
-     function CopyTo(stm: IStream;cb : LargeUInt;out cbRead : LargeUInt; out cbWritten : LargeUInt) : HRESULT;stdcall;
+     function Seek(dlibMove : LargeInt; dwOrigin : Longint;
+       out libNewPosition : LargeInt) : HResult;stdcall;
+     function SetSize(libNewSize : LargeInt) : HRESULT;stdcall;
+     function CopyTo(stm: IStream;cb : LargeInt;out cbRead : LargeInt;
+       out cbWritten : LargeInt) : HRESULT;stdcall;
      function Commit(grfCommitFlags : Longint) : HRESULT;stdcall;
      function Revert : HRESULT;stdcall;
-     function LockRegion(libOffset : LargeUInt;cb : LargeUInt; dwLockType : Longint) : HRESULT;stdcall;
-     function UnlockRegion(libOffset : LargeUInt;cb : LargeUInt; dwLockType : Longint) : HRESULT;stdcall;
+     function LockRegion(libOffset : LargeInt;cb : LargeInt;
+       dwLockType : Longint) : HRESULT;stdcall;
+     function UnlockRegion(libOffset : LargeInt;cb : LargeInt;
+       dwLockType : Longint) : HRESULT;stdcall;
      Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
@@ -608,21 +600,6 @@ begin
   result:=NOT (SameValue(apt1.x,apt2.x) and Samevalue(apt1.y,apt2.y));
 end;
 
-class operator TPointF. * (const apt1, apt2: TPointF): Single;
-begin
-  result:=apt1.x*apt2.x + apt1.y*apt2.y;
-end;
-
-class operator TPointF. * (afactor: single; const apt1: TPointF): TPointF;
-begin
-  result:=apt1.Scale(afactor);
-end;
-
-class operator TPointF. * (const apt1: TPointF; afactor: single): TPointF;
-begin
-  result:=apt1.Scale(afactor);
-end;
-
 class operator TPointF.+ (const apt1, apt2 : TPointF): TPointF;
 begin
   result.x:=apt1.x+apt2.x;
@@ -633,12 +610,6 @@ class operator TPointF.- (const apt1, apt2 : TPointF): TPointF;
 begin
   result.x:=apt1.x-apt2.x;
   result.y:=apt1.y-apt2.y;
-end;
-
-class operator TPointF. - (const apt1: TPointF): TPointF;
-begin
-  Result.x:=-apt1.x;
-  Result.y:=-apt1.y;
 end;
 
 procedure TPointF.SetLocation(const apt :TPointF);

@@ -651,12 +651,12 @@ implementation
 
     procedure TExportLibWin.exportprocedure(hp : texported_item);
       begin
-        if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
+        if ((hp.options and eo_index)<>0) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin
            message1(parser_e_export_invalid_index,tostr(hp.index));
            exit;
           end;
-        if eo_index in hp.options then
+        if hp.options and eo_index=eo_index then
           EList_indexed.Add(hp)
         else
           EList_nonindexed.Add(hp);
@@ -681,7 +681,7 @@ implementation
             if hp2.name^=hp.name^ then
               begin
                 { this is not allowed !! }
-                duplicatesymbol(hp.name^);
+                message1(parser_e_export_name_double,hp.name^);
                 exit;
               end;
             current_module._exports.insertbefore(hp,hp2);
@@ -830,7 +830,7 @@ implementation
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-              if eo_name in hp.options then
+              if (hp.options and eo_name)<>0 then
                 begin
                    current_asmdata.getjumplabel(name_label);
                    name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));
@@ -871,7 +871,7 @@ implementation
                 end;
 
               { symbol known? then get a new name }
-              if assigned(hp.sym) and not (eo_no_sym_name in hp.options) then
+              if assigned(hp.sym) then
                 case hp.sym.typ of
                   staticvarsym :
                     asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);

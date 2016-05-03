@@ -22,6 +22,11 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$mode objfpc}
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT XADMASTER;
 
@@ -1177,153 +1182,575 @@ const
      XADCID_DMS = 9000;
      XADCID_DMSSFX = 9001;
 
-VAR xadMasterBase : pxadMasterBase = nil;
+VAR xadMasterBase : pxadMasterBase;
 
 
-FUNCTION xadAddDiskEntryA(di : pxadDiskInfo location 'a0'; ai : pxadArchiveInfo location 'a1'; CONST tags : pTagItem location 'a2') : LONGINT; syscall xadMasterBase 162;
-FUNCTION xadAddFileEntryA(fi : pxadFileInfo location 'a0'; ai : pxadArchiveInfo location 'a1'; CONST tags : pTagItem location 'a2') : LONGINT; syscall xadMasterBase 156;
-FUNCTION xadAllocObjectA(_type : LONGINT location 'd0'; CONST tags : pTagItem location 'a0') : POINTER; syscall xadMasterBase 30;
-FUNCTION xadAllocVec(size : longword location 'd0'; flags : longword location 'd1') : POINTER; syscall xadMasterBase 108;
-FUNCTION xadCalcCRC16(id : longword location 'd0'; init : longword location 'd1'; size : longword location 'd2'; buffer : pCHAR location 'a0') : WORD; syscall xadMasterBase 96;
-FUNCTION xadCalcCRC32(id : longword location 'd0'; init : longword location 'd1'; size : longword location 'd2'; buffer : pCHAR location 'a0') : longword; syscall xadMasterBase 102;
-FUNCTION xadConvertDatesA(CONST tags : pTagItem location 'a0') : LONGINT; syscall xadMasterBase 90;
-FUNCTION xadConvertNameA(charset : longword location 'd0'; CONST tags : pTagItem location 'a0') : pCHAR; syscall xadMasterBase 174;
-FUNCTION xadConvertProtectionA(CONST tags : pTagItem location 'a0') : LONGINT; syscall xadMasterBase 126;
-PROCEDURE xadCopyMem(src : POINTER location 'a0'; dest : POINTER location 'a1'; size : longword location 'd0'); syscall xadMasterBase 114;
-FUNCTION xadDiskFileUnArcA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 138;
-FUNCTION xadDiskUnArcA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 66;
-FUNCTION xadFileUnArcA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 60;
-FUNCTION xadFreeHookAccessA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 150;
-PROCEDURE xadFreeInfo(ai : pxadArchiveInfo location 'a0'); syscall xadMasterBase 54;
-PROCEDURE xadFreeObjectA(obj : POINTER location 'a0'; CONST tags : pTagItem location 'a1'); syscall xadMasterBase 36;
-FUNCTION xadGetClientInfo : pxadClient; syscall xadMasterBase 78;
-FUNCTION xadGetDiskInfoA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 132;
-FUNCTION xadGetErrorText(errnum : longword location 'd0') : pCHAR; syscall xadMasterBase 72;
-FUNCTION xadGetFilenameA(buffersize : longword location 'd0'; buffer : pCHAR location 'a0'; path : pCHAR location 'a1'; name : pCHAR location 'a2'; CONST tags : pTagItem location 'a3') : LONGINT; syscall xadMasterBase 168;
-FUNCTION xadGetHookAccessA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 144;
-FUNCTION xadGetInfoA(ai : pxadArchiveInfo location 'a0'; CONST tags : pTagItem location 'a1') : LONGINT; syscall xadMasterBase 48;
-FUNCTION xadHookAccess(command : longword location 'd0'; data : LONGINT location 'd1'; buffer : POINTER location 'a0'; ai : pxadArchiveInfo location 'a1') : LONGINT; syscall xadMasterBase 84;
-FUNCTION xadHookTagAccessA(command : longword location 'd0'; data : LONGINT location 'd1'; buffer : POINTER location 'a0'; ai : pxadArchiveInfo location 'a1'; CONST tags : pTagItem location 'a2') : LONGINT; syscall xadMasterBase 120;
-FUNCTION xadRecogFileA(size : longword location 'd0'; memory : POINTER location 'a0'; CONST tags : pTagItem location 'a1') : pxadClient; syscall xadMasterBase 42;
+FUNCTION xadAddDiskEntryA(di : pxadDiskInfo; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadAddFileEntryA(fi : pxadFileInfo; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadAllocObjectA(_type : LONGINT; CONST tags : pTagItem) : POINTER;
+FUNCTION xadAllocVec(size : longword; flags : longword) : POINTER;
+FUNCTION xadCalcCRC16(id : longword; init : longword; size : longword; buffer : pCHAR) : WORD;
+FUNCTION xadCalcCRC32(id : longword; init : longword; size : longword; buffer : pCHAR) : longword;
+FUNCTION xadConvertDatesA(CONST tags : pTagItem) : LONGINT;
+FUNCTION xadConvertNameA(charset : longword; CONST tags : pTagItem) : pCHAR;
+FUNCTION xadConvertProtectionA(CONST tags : pTagItem) : LONGINT;
+PROCEDURE xadCopyMem(src : POINTER; dest : POINTER; size : longword);
+FUNCTION xadDiskFileUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadDiskUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadFileUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadFreeHookAccessA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+PROCEDURE xadFreeInfo(ai : pxadArchiveInfo);
+PROCEDURE xadFreeObjectA(obj : POINTER; CONST tags : pTagItem);
+FUNCTION xadGetClientInfo : pxadClient;
+FUNCTION xadGetDiskInfoA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadGetErrorText(errnum : longword) : pCHAR;
+FUNCTION xadGetFilenameA(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadGetHookAccessA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadGetInfoA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadHookAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo) : LONGINT;
+FUNCTION xadHookTagAccessA(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+FUNCTION xadRecogFileA(size : longword; memory : POINTER; CONST tags : pTagItem) : pxadClient;
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadAllocObject(_type : LONGINT; const tags : array of PtrUInt) : POINTER;
-FUNCTION xadConvertDates(const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : pCHAR;
-FUNCTION xadConvertProtection(const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-PROCEDURE xadFreeObject(obj : POINTER; const tags : array of PtrUInt);
-FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
-FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : array of PtrUInt) : pxadClient;
+FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadAllocObject(_type : LONGINT; const tags : Array Of Const) : POINTER;
+FUNCTION xadConvertDates(const tags : Array Of Const) : LONGINT;
+FUNCTION xadConvertName(charset : longword; const tags : Array Of Const) : pCHAR;
+FUNCTION xadConvertProtection(const tags : Array Of Const) : LONGINT;
+FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+PROCEDURE xadFreeObject(obj : POINTER; const tags : Array Of Const);
+FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
+FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : Array Of Const) : pxadClient;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitXADMASTERLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    XADMASTERIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
+
+
+FUNCTION xadAddDiskEntryA(di : pxadDiskInfo; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L di,A0
+        MOVEA.L ai,A1
+        MOVEA.L tags,A2
+        MOVEA.L xadMasterBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadAddFileEntryA(fi : pxadFileInfo; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L fi,A0
+        MOVEA.L ai,A1
+        MOVEA.L tags,A2
+        MOVEA.L xadMasterBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadAllocObjectA(_type : LONGINT; CONST tags : pTagItem) : POINTER;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  _type,D0
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadAllocVec(size : longword; flags : longword) : POINTER;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  size,D0
+        MOVE.L  flags,D1
+        MOVEA.L xadMasterBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadCalcCRC16(id : longword; init : longword; size : longword; buffer : pCHAR) : WORD;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  id,D0
+        MOVE.L  init,D1
+        MOVE.L  size,D2
+        MOVEA.L buffer,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadCalcCRC32(id : longword; init : longword; size : longword; buffer : pCHAR) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  id,D0
+        MOVE.L  init,D1
+        MOVE.L  size,D2
+        MOVEA.L buffer,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadConvertDatesA(CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadConvertNameA(charset : longword; CONST tags : pTagItem) : pCHAR;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  charset,D0
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadConvertProtectionA(CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE xadCopyMem(src : POINTER; dest : POINTER; size : longword);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L src,A0
+        MOVEA.L dest,A1
+        MOVE.L  size,D0
+        MOVEA.L xadMasterBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION xadDiskFileUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadDiskUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadFileUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadFreeHookAccessA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE xadFreeInfo(ai : pxadArchiveInfo);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE xadFreeObjectA(obj : POINTER; CONST tags : pTagItem);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION xadGetClientInfo : pxadClient;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L xadMasterBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadGetDiskInfoA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadGetErrorText(errnum : longword) : pCHAR;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  errnum,D0
+        MOVEA.L xadMasterBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadGetFilenameA(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  buffersize,D0
+        MOVEA.L buffer,A0
+        MOVEA.L path,A1
+        MOVEA.L name,A2
+        MOVEA.L tags,A3
+        MOVEA.L xadMasterBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadGetHookAccessA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadGetInfoA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadHookAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  command,D0
+        MOVE.L  data,D1
+        MOVEA.L buffer,A0
+        MOVEA.L ai,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadHookTagAccessA(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  command,D0
+        MOVE.L  data,D1
+        MOVEA.L buffer,A0
+        MOVEA.L ai,A1
+        MOVEA.L tags,A2
+        MOVEA.L xadMasterBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION xadRecogFileA(size : longword; memory : POINTER; CONST tags : pTagItem) : pxadClient;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  size,D0
+        MOVEA.L memory,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadAddDiskEntry(di : pxadDiskInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadAddDiskEntry := xadAddDiskEntryA(di , ai , @tags);
+    xadAddDiskEntry := xadAddDiskEntryA(di , ai , readintags(tags));
 end;
 
-FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadAddFileEntry(fi : pxadFileInfo; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadAddFileEntry := xadAddFileEntryA(fi , ai , @tags);
+    xadAddFileEntry := xadAddFileEntryA(fi , ai , readintags(tags));
 end;
 
-FUNCTION xadAllocObject(_type : LONGINT; const tags : array of PtrUInt) : POINTER;
+FUNCTION xadAllocObject(_type : LONGINT; const tags : Array Of Const) : POINTER;
 begin
-    xadAllocObject := xadAllocObjectA(_type , @tags);
+    xadAllocObject := xadAllocObjectA(_type , readintags(tags));
 end;
 
-FUNCTION xadConvertDates(const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadConvertDates(const tags : Array Of Const) : LONGINT;
 begin
-    xadConvertDates := xadConvertDatesA(@tags);
+    xadConvertDates := xadConvertDatesA(readintags(tags));
 end;
 
-FUNCTION xadConvertName(charset : longword; const tags : array of PtrUInt) : pCHAR;
+FUNCTION xadConvertName(charset : longword; const tags : Array Of Const) : pCHAR;
 begin
-    xadConvertName := xadConvertNameA(charset , @tags);
+    xadConvertName := xadConvertNameA(charset , readintags(tags));
 end;
 
-FUNCTION xadConvertProtection(const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadConvertProtection(const tags : Array Of Const) : LONGINT;
 begin
-    xadConvertProtection := xadConvertProtectionA(@tags);
+    xadConvertProtection := xadConvertProtectionA(readintags(tags));
 end;
 
-FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadDiskFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadDiskFileUnArc := xadDiskFileUnArcA(ai , @tags);
+    xadDiskFileUnArc := xadDiskFileUnArcA(ai , readintags(tags));
 end;
 
-FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadDiskUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadDiskUnArc := xadDiskUnArcA(ai , @tags);
+    xadDiskUnArc := xadDiskUnArcA(ai , readintags(tags));
 end;
 
-FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadFileUnArc(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadFileUnArc := xadFileUnArcA(ai , @tags);
+    xadFileUnArc := xadFileUnArcA(ai , readintags(tags));
 end;
 
-FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadFreeHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadFreeHookAccess := xadFreeHookAccessA(ai , @tags);
+    xadFreeHookAccess := xadFreeHookAccessA(ai , readintags(tags));
 end;
 
-PROCEDURE xadFreeObject(obj : POINTER; const tags : array of PtrUInt);
+PROCEDURE xadFreeObject(obj : POINTER; const tags : Array Of Const);
 begin
-    xadFreeObjectA(obj , @tags);
+    xadFreeObjectA(obj , readintags(tags));
 end;
 
-FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetDiskInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadGetDiskInfo := xadGetDiskInfoA(ai , @tags);
+    xadGetDiskInfo := xadGetDiskInfoA(ai , readintags(tags));
 end;
 
-FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetFilename(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; const tags : Array Of Const) : LONGINT;
 begin
-    xadGetFilename := xadGetFilenameA(buffersize , buffer , path , name , @tags);
+    xadGetFilename := xadGetFilenameA(buffersize , buffer , path , name , readintags(tags));
 end;
 
-FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetHookAccess(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadGetHookAccess := xadGetHookAccessA(ai , @tags);
+    xadGetHookAccess := xadGetHookAccessA(ai , readintags(tags));
 end;
 
-FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadGetInfo(ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadGetInfo := xadGetInfoA(ai , @tags);
+    xadGetInfo := xadGetInfoA(ai , readintags(tags));
 end;
 
-FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : array of PtrUInt) : LONGINT;
+FUNCTION xadHookTagAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; const tags : Array Of Const) : LONGINT;
 begin
-    xadHookTagAccess := xadHookTagAccessA(command , data , buffer , ai , @tags);
+    xadHookTagAccess := xadHookTagAccessA(command , data , buffer , ai , readintags(tags));
 end;
 
-FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : array of PtrUInt) : pxadClient;
+FUNCTION xadRecogFile(size : longword; memory : POINTER; const tags : Array Of Const) : pxadClient;
 begin
-    xadRecogFile := xadRecogFileA(size , memory , @tags);
+    xadRecogFile := xadRecogFileA(size , memory , readintags(tags));
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  xadMasterBase := pxadMasterBase(OpenLibrary(XADMASTERNAME,LIBVERSION));
-finalization
-  if Assigned(xadMasterBase) then
-    CloseLibrary(pLibrary(xadMasterBase));
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of xadmaster.library}
+  {$Info don't forget to use InitXADMASTERLibrary in the beginning of your program}
+
+var
+    xadmaster_exit : Pointer;
+
+procedure ClosexadmasterLibrary;
+begin
+    ExitProc := xadmaster_exit;
+    if xadMasterBase <> nil then begin
+        CloseLibrary(pLibrary(xadMasterBase));
+        xadMasterBase := nil;
+    end;
+end;
+
+procedure InitXADMASTERLibrary;
+begin
+    xadMasterBase := nil;
+    xadMasterBase := pxadMasterBase(OpenLibrary(XADMASTERNAME,LIBVERSION));
+    if xadMasterBase <> nil then begin
+        xadmaster_exit := ExitProc;
+        ExitProc := @ClosexadmasterLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open xadmaster.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    XADMASTERIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of xadmaster.library}
+
+var
+    xadmaster_exit : Pointer;
+
+procedure ClosexadmasterLibrary;
+begin
+    ExitProc := xadmaster_exit;
+    if xadMasterBase <> nil then begin
+        CloseLibrary(pLibrary(xadMasterBase));
+        xadMasterBase := nil;
+    end;
+end;
+
+begin
+    xadMasterBase := nil;
+    xadMasterBase := pxadMasterBase(OpenLibrary(XADMASTERNAME,LIBVERSION));
+    if xadMasterBase <> nil then begin
+        xadmaster_exit := ExitProc;
+        ExitProc := @ClosexadmasterLibrary;
+        XADMASTERIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open xadmaster.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    XADMASTERIsCompiledHow := 3;
+   {$Warning No autoopening of xadmaster.library compiled}
+   {$Warning Make sure you open xadmaster.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT XADMASTER *)

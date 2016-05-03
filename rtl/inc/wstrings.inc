@@ -18,9 +18,10 @@
   This file contains the implementation of the WideString type,
   and all things that are needed for it.
   WideString is defined as a 'silent' pwidechar :
-  a pwidechar that points to:
+  a pwidechar that points to :
 
-  @-4  : DWord for size; size=number of bytes, not the number of chars. Divide or multiply
+  @-8  : SizeInt for reference count;
+  @-4  : SizeInt for size; size=number of bytes, not the number of chars. Divide or multiply
          with sizeof(WideChar) to convert. This is needed to be compatible with Delphi and
          Windows COM BSTR.
   @    : String + Terminating #0;
@@ -583,10 +584,10 @@ var
   pc : pwidechar;
 begin
   Pos:=0;
-  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<Length(Source)) then
    begin
-     MaxLen:=Length(source)-Length(SubStr)-(Offset-1);
-     i:=0;
+     MaxLen:=Length(source)-Length(SubStr);
+     i:=Offset-1;
      pc:=@source[Offset];
      while (i<=MaxLen) do
       begin
@@ -594,7 +595,7 @@ begin
         if (SubStr[1]=pc^) and
            (CompareWord(Substr[1],pc^,Length(SubStr))=0) then
          begin
-           Pos:=Offset+i-1;
+           Pos:=i;
            exit;
          end;
         inc(pc);
@@ -609,20 +610,18 @@ var
   i: SizeInt;
   pc : pwidechar;
 begin
-  if (Offset>0) and (Offset<=length(s)) then
-   begin
-     pc:=@s[OffSet];
-     for i:=OffSet to length(s) do
-       begin
-         if pc^=c then
-           begin
-             pos:=i;
-             exit;
-           end;
-         inc(pc);
-       end;
-   end;
   pos:=0;
+  if (Offset<1) or (Offset>Length(s)) then exit;
+  pc:=@s[Offset];
+  for i:=Offset to length(s) do
+   begin
+     if pc^=c then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
 end;
 
 { DO NOT inline these! Inlining a managed typecast creates an implicit try..finally
@@ -654,26 +653,27 @@ Function Pos (const c : WideString; Const s : RawByteString;Offset : SizeInt = 1
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : Char; Const s : WideString;Offset : SizeInt = 1) : SizeInt;
 var
   i: SizeInt;
   wc : widechar;
   pc : pwidechar;
 begin
-  if (Offset>0) and (Offset<=Length(S)) then
-    begin
-      wc:=c;
-      pc:=@s[OffSet];
-      for i:=OffSet to length(s) do
-       begin
-         if pc^=wc then
-          begin
-            pos:=i;
-            exit;
-          end;
-         inc(pc);
-       end;
-    end;
+  Pos:=0;
+  if (Offset<1) or (OffSet>Length(S)) then 
+    exit;
+  wc:=c;
+  
+  pc:=@s[offset];
+  for i:=Offset to length(s) do
+   begin
+     if pc^=wc then
+      begin
+        pos:=i;
+        exit;
+      end;
+     inc(pc);
+   end;
   pos:=0;
 end;
 

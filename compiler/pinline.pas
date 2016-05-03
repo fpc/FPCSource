@@ -515,7 +515,6 @@ implementation
       var
         paras, strpara, pcharpara: tnode;
         procname: string;
-        cp: tstringencoding;
       begin
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
@@ -535,12 +534,7 @@ implementation
                   ( = paras.right.right) is an ansistring, add a codepage
                   parameter }
                 if is_ansistring(strpara.resultdef) then
-                  begin
-                    cp:=tstringdef(strpara.resultdef).encoding;
-                    if (cp=globals.CP_NONE) then
-                      cp:=0;
-                    paras:=ccallparanode.create(genintconstnode(cp),paras);
-                  end;
+                  paras:=ccallparanode.create(genintconstnode(tstringdef(strpara.resultdef).encoding),paras);
                 procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
                 { decide which version to call based on the second parameter }
                 if not is_shortstring(strpara.resultdef) then

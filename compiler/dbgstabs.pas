@@ -701,9 +701,7 @@ implementation
                 ss:=def_stabstr_evaluate(def,'r${numberstring};0;255;',[]);
               u32bit,
               s64bit,
-              u64bit,
-              s128bit,
-              u128bit:
+              u64bit :
                 ss:=def_stabstr_evaluate(def,'r${numberstring};0;-1;',[]);
               else
                 ss:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);

@@ -410,7 +410,6 @@ begin
           Writeln(hstdout^,BackTraceStrFunc(Exc^.Frames[i]));
       end;
       Writeln(hstdout^,'');
-      ErrorCode:=word(code);
       Halt(code);
     end
     else

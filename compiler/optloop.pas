@@ -87,7 +87,6 @@ unit optloop;
               internalerror(2012090402);
             n.free;
             n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
-            do_firstpass(n);
           end;
         result:=fen_false;
       end;
@@ -186,7 +185,6 @@ unit optloop;
                     { create block statement }
                     result:=internalstatements(newforstatement);
                     addstatement(newforstatement,unrollblock);
-                    doinlinesimplify(result);
                   end;
               end
             else
@@ -490,7 +488,6 @@ unit optloop;
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
-            initcode:=nil;
             addstatement(newcodestatements,node);
             addstatement(newcodestatements,deletecode);
           end;

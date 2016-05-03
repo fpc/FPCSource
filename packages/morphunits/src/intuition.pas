@@ -1059,7 +1059,7 @@ Type
 { ======================================================================== }
 
 Type
-    pScreen = ^tScreen;
+
     pWindow = ^tWindow;
     tWindow = record
         NextWindow      : pWindow;      { for the linked list in a screen }
@@ -1089,7 +1089,7 @@ Type
 
         ReqCount        : smallint;        { count of reqs blocking Window }
 
-        WScreen         : PScreen;      { this Window's Screen }
+        WScreen         : Pointer;      { this Window's Screen }
         RPort           : pRastPort;  { this Window's very own RastPort }
 
     { the border variables describe the window border.   If you specify
@@ -1192,72 +1192,6 @@ Type
     {**** Data beyond this point are Intuition Private.  DO NOT USE ****}
 
     end;
-
-{ ======================================================================== }
-{ === Screen ============================================================= }
-{ ======================================================================== }
-
-    tScreen = record
-        NextScreen      : pScreen;      { linked list of screens }
-        FirstWindow     : pWindow;      { linked list Screen's Windows }
-
-        LeftEdge,
-        TopEdge         : smallint;        { parameters of the screen }
-        Width,
-        Height          : smallint;        { parameters of the screen }
-
-        MouseY,
-        MouseX          : smallint;        { position relative to upper-left }
-
-        Flags           : Word;        { see definitions below }
-
-        Title           : PChar;       { null-terminated Title text }
-        DefaultTitle    : PChar;       { for Windows without ScreenTitle }
-
-    { Bar sizes for this Screen and all Window's in this Screen }
-        BarHeight,
-        BarVBorder,
-        BarHBorder,
-        MenuVBorder,
-        MenuHBorder     : Shortint;
-        WBorTop,
-        WBorLeft,
-        WBorRight,
-        WBorBottom      : Shortint;
-
-        Font            : pTextAttr;  { this screen's default font       }
-
-    { the display data structures for this Screen (note the prefix S)}
-        ViewPort        : tViewPort;     { describing the Screen's display }
-        RastPort        : tRastPort;     { describing Screen rendering      }
-        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
-        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
-
-    { You supply a linked-list of Gadgets for your Screen.
-     *  This list DOES NOT include system Gadgets.  You get the standard
-     *  system Screen Gadgets by default
-     }
-
-        FirstGadget     : pGadget;
-
-        DetailPen,
-        BlockPen        : Byte;         { for bar/border/gadget rendering }
-
-    { the following variable(s) are maintained by Intuition to support the
-     * DisplayBeep() color flashing technique
-     }
-        SaveColor0      : Word;
-
-    { This layer is for the Screen and Menu bars }
-        BarLayer        : pLayer;
-
-        ExtData         : Pointer;
-        UserData        : Pointer;
-                        { general-purpose pointer to User data extension }
-    {**** Data below this point are SYSTEM PRIVATE ****}
-
-    end;
-
 
 CONST
 { --- Flags requested at OpenWindow() time by the application --------- }
@@ -1833,7 +1767,7 @@ Type
  tDrawInfo = record
     dri_Version : Word;    { will be  DRI_VERSION                 }
     dri_NumPens : Word;    { guaranteed to be >= numDrIPens       }
-    dri_Pens    : PWord;  { pointer to pen array                 }
+    dri_Pens    : Pointer;  { pointer to pen array                 }
 
     dri_Font    : pTextFont;      { screen default font          }
     dri_Depth   : Word;            { (initial) depth of screen bitmap     }
@@ -1884,6 +1818,73 @@ CONST
  PEN_C1        =  $FEFE;          { Complement of color 1 }
  PEN_C0        =  $FEFF;          { Complement of color 0 }
 
+{ ======================================================================== }
+{ === Screen ============================================================= }
+{ ======================================================================== }
+
+Type
+
+    pScreen = ^tScreen;
+    tScreen = record
+        NextScreen      : pScreen;      { linked list of screens }
+        FirstWindow     : pWindow;      { linked list Screen's Windows }
+
+        LeftEdge,
+        TopEdge         : smallint;        { parameters of the screen }
+        Width,
+        Height          : smallint;        { parameters of the screen }
+
+        MouseY,
+        MouseX          : smallint;        { position relative to upper-left }
+
+        Flags           : Word;        { see definitions below }
+
+        Title           : PChar;       { null-terminated Title text }
+        DefaultTitle    : PChar;       { for Windows without ScreenTitle }
+
+    { Bar sizes for this Screen and all Window's in this Screen }
+        BarHeight,
+        BarVBorder,
+        BarHBorder,
+        MenuVBorder,
+        MenuHBorder     : Shortint;
+        WBorTop,
+        WBorLeft,
+        WBorRight,
+        WBorBottom      : Shortint;
+
+        Font            : pTextAttr;  { this screen's default font       }
+
+    { the display data structures for this Screen (note the prefix S)}
+        ViewPort        : tViewPort;     { describing the Screen's display }
+        RastPort        : tRastPort;     { describing Screen rendering      }
+        BitMap          : tBitMap;       { extra copy of RastPort BitMap   }
+        LayerInfo       : tLayer_Info;   { each screen gets a LayerInfo     }
+
+    { You supply a linked-list of Gadgets for your Screen.
+     *  This list DOES NOT include system Gadgets.  You get the standard
+     *  system Screen Gadgets by default
+     }
+
+        FirstGadget     : pGadget;
+
+        DetailPen,
+        BlockPen        : Byte;         { for bar/border/gadget rendering }
+
+    { the following variable(s) are maintained by Intuition to support the
+     * DisplayBeep() color flashing technique
+     }
+        SaveColor0      : Word;
+
+    { This layer is for the Screen and Menu bars }
+        BarLayer        : pLayer;
+
+        ExtData         : Pointer;
+        UserData        : Pointer;
+                        { general-purpose pointer to User data extension }
+    {**** Data below this point are SYSTEM PRIVATE ****}
+
+    end;
 
 Const
 
@@ -4042,7 +4043,7 @@ const
   INTUITIONNAME : PChar = 'intuition.library';
 
 var
-  intuitionbase : PIntuitionBase = nil;
+  intuitionbase : PIntuitionBase;
 
 
 procedure OpenIntuition;
@@ -4165,7 +4166,7 @@ SysCall IntuitionBase 258;
 function SetMenuStrip(window : pWindow location 'a0'; menu : pMenu location 'a1') : LongBool;
 SysCall IntuitionBase 264;
 
-procedure SetPointer(window : pWindow location 'a0'; pointer : PWord location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
+procedure SetPointer(window : pWindow location 'a0'; VAR pointer : Word location 'a1'; height : LongInt location 'd0'; width : LongInt location 'd1'; xOffset : LongInt location 'd2'; yOffset : LongInt location 'd3');
 SysCall IntuitionBase 270;
 
 procedure SetWindowTitles(window : pWindow location 'a0'; windowTitle : PChar location 'a1'; screenTitle : PChar location 'a2');
@@ -4449,9 +4450,9 @@ SysCall IntuitionBase 954;
 function INST_DATA (cl: pIClass; o: p_Object): Pointer;
 function SIZEOF_INSTANCE (cl: pIClass): Longint;
 function BASEOBJECT (o: p_Object): Pointer;
-function _OBJ(o: p_Object): p_Object; inline;
-function __OBJECT (o: Pointer): p_Object; inline;
-function OCLASS (o: Pointer): pIClass; inline;
+function _OBJ(o: p_Object): p_Object;
+function __OBJECT (o: Pointer): p_Object;
+function OCLASS (o: Pointer): pIClass;
 function SHIFTITEM (n: smallint): word;
 function SHIFTMENU (n: smallint): word;
 function SHIFTSUB (n: smallint): word;
@@ -4464,11 +4465,6 @@ function CUSTOM_HOOK (gadget: pGadget): pHook;
 function ITEMNUM( n : Word): Word;
 function MENUNUM( n : Word): Word;
 function SUBNUM( n : Word): Word;
-
-function SetAttrs(object1 : POINTER; tags : array of dword) : CARDINAL; inline;
-function SetGadgetAttrs(gadget:  pGadget; window : pWindow; requester : pRequester; tags : array of dword) : CARDINAL; inline;
-function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT; inline;
-procedure SetWindowPointer(win : pWindow; tags: array of DWord); inline;
 
 {
 FUNCTION DisplayAlert(alertNumber : Cardinal;string_ : string; height : Cardinal) : BOOLEAN;
@@ -4533,9 +4529,12 @@ begin
     __OBJECT := p_Object(Longint(o) - sizeof(t_Object))
 end;
 
-function OCLASS (o: Pointer): pIClass; inline;
+function OCLASS (o: Pointer): pIClass;
+var
+    obj: p_Object;
 begin
-  OCLASS := p_Object(o - sizeof(t_Object))^.o_Class;
+    obj := p_Object(Longint(o) - sizeof(t_Object));
+    OCLASS := obj^.o_Class;
 end;
 
 function SHIFTITEM (n: smallint): word;
@@ -4668,40 +4667,37 @@ begin
 end;
 }
 
-function SetAttrs(object1 : POINTER; tags : array of dword) : CARDINAL; inline;
-begin
-  SetAttrs := SetAttrsA(object1, @tags);
-end;
-
-function SetGadgetAttrs(gadget:  pGadget; window : pWindow; requester : pRequester; tags : array of dword) : CARDINAL; inline;
-begin
-  SetGadgetAttrs := SetGadgetAttrsA(gadget, window, requester, @tags);
-end;
-
-function EasyRequest(window : pWindow;const easyStruct : pEasyStruct; idcmpPtr : pULONG; args : array of DWord) : LONGINT; inline;
-begin
-  EasyRequest := EasyRequestArgs(window, easystruct, idcmpptr, @args);
-end;
-
-procedure SetWindowPointer(win : pWindow; tags: array of DWord); inline;
-begin
-  SetWindowPointerA(win, @tags);
-end;
 
 const
   { Change VERSION and LIBVERSION to proper values }
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-function InitIntuitionLibrary : boolean;
+var
+  intuition_exit : Pointer;
+
+procedure CloseIntuitionLibrary;
 begin
-  InitIntuitionLibrary := Assigned(IntuitionBase);
+  ExitProc := intuition_exit;
+  if IntuitionBase <> nil then begin
+    CloseLibrary(PLibrary(IntuitionBase));
+    IntuitionBase := nil;
+  end;
 end;
 
-initialization
+function InitIntuitionLibrary : boolean;
+begin
+  IntuitionBase := nil;
   IntuitionBase := OpenLibrary(INTUITIONNAME,LIBVERSION);
-finalization
-  if Assigned(IntuitionBase) then
-    CloseLibrary(PLibrary(IntuitionBase));
+  if IntuitionBase <> nil then begin
+    intuition_exit := ExitProc;
+    ExitProc := @CloseIntuitionLibrary;
+    InitIntuitionLibrary:=True;
+  end else begin
+    InitIntuitionLibrary:=False;
+  end;
+end;
+
+
 end. (* UNIT INTUITION *)
 

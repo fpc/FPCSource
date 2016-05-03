@@ -1428,8 +1428,6 @@ var
   pRecord: pDbfRecord;
   I, newRecord: Integer;
 begin
-  // check required fields
-  inherited;
   // if internalpost is called, we know we are active
   pRecord := pDbfRecord(ActiveBuffer);
   // commit blobs

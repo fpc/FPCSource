@@ -59,7 +59,7 @@ USES Exec;
           Replen   : WORD;                 { Repeat length in number of words  }
        end;
 
-VAR PTReplayBase : pLibrary = nil;
+VAR PTReplayBase : pLibrary;
 
 FUNCTION PTLoadModule(name : pCHAR location 'a0') : pModule; syscall PTReplayBase 030;
 PROCEDURE PTUnloadModule(module : pModule location 'a0'); syscall PTReplayBase 036;
@@ -88,7 +88,23 @@ FUNCTION PTGetSample(Module : pModule location 'a0'; Nr : smallint location 'd0'
 
 FUNCTION PTLoadModule(const name : String) : pModule;
 
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitPTREPLAYLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    PTREPLAYIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+{$ifndef dont_use_openlib}
+uses
+  amsgbox;
+{$endif dont_use_openlib}
+
 
 FUNCTION PTLoadModule(const name : string) : pModule;
 var
@@ -100,12 +116,84 @@ end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  PTReplayBase := OpenLibrary(PTREPLAYNAME,LIBVERSION);
-finalization
-  if Assigned(PTReplayBase) then
-    CloseLibrary(PTReplayBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of ptreplay.library}
+  {$Info don't forget to use InitPTREPLAYLibrary in the beginning of your program}
+
+var
+    ptreplay_exit : Pointer;
+
+procedure CloseptreplayLibrary;
+begin
+    ExitProc := ptreplay_exit;
+    if PTReplayBase <> nil then begin
+        CloseLibrary(PTReplayBase);
+        PTReplayBase := nil;
+    end;
+end;
+
+procedure InitPTREPLAYLibrary;
+begin
+    PTReplayBase := nil;
+    PTReplayBase := OpenLibrary(PTREPLAYNAME,LIBVERSION);
+    if PTReplayBase <> nil then begin
+        ptreplay_exit := ExitProc;
+        ExitProc := @CloseptreplayLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ptreplay.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    PTREPLAYIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of ptreplay.library}
+
+var
+    ptreplay_exit : Pointer;
+
+procedure CloseptreplayLibrary;
+begin
+    ExitProc := ptreplay_exit;
+    if PTReplayBase <> nil then begin
+        CloseLibrary(PTReplayBase);
+        PTReplayBase := nil;
+    end;
+end;
+
+begin
+    PTReplayBase := nil;
+    PTReplayBase := OpenLibrary(PTREPLAYNAME,LIBVERSION);
+    if PTReplayBase <> nil then begin
+        ptreplay_exit := ExitProc;
+        ExitProc := @CloseptreplayLibrary;
+        PTREPLAYIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ptreplay.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    PTREPLAYIsCompiledHow := 3;
+   {$Warning No autoopening of ptreplay.library compiled}
+   {$Warning Make sure you open ptreplay.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT PTREPLAY *)

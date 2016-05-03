@@ -39,7 +39,7 @@ uses
 {$else unix}
   dos,
 {$endif unix}
-  cutils,ppu,entfile,systems,
+  cutils,ppu,systems,
   getopts;
 
 const
@@ -266,7 +266,7 @@ begin
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  ppuversion:=inppu.getversion;
+  ppuversion:=inppu.GetPPUVersion;
   if ppuversion<CurrentPPUVersion then
    begin
      inppu.free;
@@ -274,7 +274,7 @@ begin
      Exit;
    end;
 { No .o file generated for this ppu, just skip }
-  if (inppu.header.common.flags and uf_no_link)<>0 then
+  if (inppu.header.flags and uf_no_link)<>0 then
    begin
      inppu.free;
      If Not Quiet then
@@ -283,21 +283,21 @@ begin
      Exit;
    end;
 { Already a lib? }
-  if (inppu.header.common.flags and uf_in_library)<>0 then
+  if (inppu.header.flags and uf_in_library)<>0 then
    begin
      inppu.free;
      Error('Error: PPU is already in a library : '+PPUFn,false);
      Exit;
    end;
 { We need a static linked unit }
-  if (inppu.header.common.flags and uf_static_linked)=0 then
+  if (inppu.header.flags and uf_static_linked)=0 then
    begin
      inppu.free;
      Error('Error: PPU is not static linked : '+PPUFn,false);
      Exit;
    end;
 { Check if shared is allowed }
-  if tsystem(inppu.header.common.target) in [system_i386_go32v2] then
+  if tsystem(inppu.header.target) in [system_i386_go32v2] then
    begin
      Writeln('Warning: shared library not supported for ppu target, switching to static library');
      MakeStatic:=true;
@@ -310,11 +310,11 @@ begin
   outppu.createfile;
 { Create new header, with the new flags }
   outppu.header:=inppu.header;
-  outppu.header.common.flags:=outppu.header.common.flags or uf_in_library;
+  outppu.header.flags:=outppu.header.flags or uf_in_library;
   if MakeStatic then
-   outppu.header.common.flags:=outppu.header.common.flags or uf_static_linked
+   outppu.header.flags:=outppu.header.flags or uf_static_linked
   else
-   outppu.header.common.flags:=outppu.header.common.flags or uf_shared_linked;
+   outppu.header.flags:=outppu.header.flags or uf_shared_linked;
 { read until the object files are found }
   untilb:=iblinkunitofiles;
   repeat

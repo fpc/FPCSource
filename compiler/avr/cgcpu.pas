@@ -402,18 +402,11 @@ unit cgcpu;
 
 
     procedure tcgavr.a_call_name(list : TAsmList;const s : string; weak: boolean);
-      var
-        sym: TAsmSymbol;
       begin
-        if weak then
-          sym:=current_asmdata.WeakRefAsmSymbol(s)
-        else
-          sym:=current_asmdata.RefAsmSymbol(s);
-
         if CPUAVR_HAS_JMP_CALL in cpu_capabilities[current_settings.cputype] then
-          list.concat(taicpu.op_sym(A_CALL,sym))
+          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)))
         else
-          list.concat(taicpu.op_sym(A_RCALL,sym));
+          list.concat(taicpu.op_sym(A_RCALL,current_asmdata.RefAsmSymbol(s)));
 
         include(current_procinfo.flags,pi_do_call);
       end;
@@ -1599,17 +1592,17 @@ unit cgcpu;
             end;
 
             if swapped then
-              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg))
+              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1))
             else
-              list.concat(taicpu.op_reg_reg(A_CP,reg,NR_R1));
+              list.concat(taicpu.op_reg_reg(A_CP,NR_R1,reg));
 
             for i:=2 to tcgsize2size[size] do
               begin
                 reg:=GetNextReg(reg);
                 if swapped then
-                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg))
+                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1))
                 else
-                  list.concat(taicpu.op_reg_reg(A_CPC,reg,NR_R1));
+                  list.concat(taicpu.op_reg_reg(A_CPC,NR_R1,reg));
               end;
 
             a_jmp_cond(list,cmp_op,l);

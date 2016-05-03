@@ -29,6 +29,6 @@ end;
 
 function CMSG_DATA(cmsg: Pointer): PByte;
 begin
-  Result:=PByte(Ptruint(cmsg) + SizeOf(cmsghdr));
+  Result:=PByte(Cardinal(cmsg) + SizeOf(Pcmsghdr));
 end;
 

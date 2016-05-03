@@ -28,13 +28,18 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
+{$mode objfpc}
+{$I useamigasmartlink.inc}
+{$ifdef use_amiga_smartlink}
+   {$smartlink on}
+{$endif use_amiga_smartlink}
 
 UNIT TTENGINE;
 
 INTERFACE
 USES Exec,utility,agraphics;
 
-VAR TTEngineBase : pLibrary = nil;
+VAR TTEngineBase : pLibrary;
 
 const
     TTENGINENAME : PChar = 'ttengine.library';
@@ -190,70 +195,357 @@ const
   { BOOL,             TRUE               }
      TTRQ_DoSizes = $6EDA2000;
 
-FUNCTION TT_AllocRequest : POINTER; syscall TTEngineBase 102;
-PROCEDURE TT_CloseFont(font : POINTER location 'a0'); syscall TTEngineBase 42;
-PROCEDURE TT_DoneRastPort(rp : pRastPort location 'a1'); syscall TTEngineBase 96;
-PROCEDURE TT_FreePixmap(pixmap : pTT_Pixmap location 'a0'); syscall TTEngineBase 90;
-PROCEDURE TT_FreeRequest(request : POINTER location 'a0'); syscall TTEngineBase 114;
-FUNCTION TT_GetAttrsA(rp : pRastPort location 'a1'; taglist : pTagItem location 'a0') : longword; syscall TTEngineBase 60;
-FUNCTION TT_GetPixmapA(font : POINTER location 'a1'; _string : POINTER location 'a2'; count : longword location 'd0'; taglist : pTagItem location 'a0') : pTT_Pixmap; syscall TTEngineBase 84;
-FUNCTION TT_OpenFontA(taglist : pTagItem location 'a0') : POINTER; syscall TTEngineBase 30;
-FUNCTION TT_RequestA(request : POINTER location 'a0'; taglist : pTagItem location 'a1') : pTagItem; syscall TTEngineBase 108;
-FUNCTION TT_SetAttrsA(rp : pRastPort location 'a1'; taglist : pTagItem location 'a0') : longword; syscall TTEngineBase 54;
-FUNCTION TT_SetFont(rp : pRastPort location 'a1'; font : POINTER location 'a0') : BOOLEAN; syscall TTEngineBase 36;
-PROCEDURE TT_Text(rp : pRastPort location 'a1'; _string : POINTER location 'a0'; count : longword location 'd0'); syscall TTEngineBase 48;
-PROCEDURE TT_TextExtent(rp : pRastPort location 'a1'; _string : POINTER location 'a0'; count : LONGINT location 'd0'; te : pTextExtent location 'a2'); syscall TTEngineBase 72;
-FUNCTION TT_TextFit(rp : pRastPort location 'a1'; _string : POINTER location 'a0'; count : longword location 'd0'; te : pTextExtent location 'a2'; tec : pTextExtent location 'a3'; dir : LONGINT location 'd1'; cwidth : longword location 'd2'; cheight : longword location 'd3') : longword; syscall TTEngineBase 78;
-FUNCTION TT_TextLength(rp : pRastPort location 'a1'; _string : POINTER location 'a0'; count : longword location 'd0') : longword; syscall TTEngineBase 66;
+
+
+FUNCTION TT_AllocRequest : POINTER;
+PROCEDURE TT_CloseFont(font : POINTER);
+PROCEDURE TT_DoneRastPort(rp : pRastPort);
+PROCEDURE TT_FreePixmap(pixmap : pTT_Pixmap);
+PROCEDURE TT_FreeRequest(request : POINTER);
+FUNCTION TT_GetAttrsA(rp : pRastPort; taglist : pTagItem) : longword;
+FUNCTION TT_GetPixmapA(font : POINTER; _string : POINTER; count : longword; taglist : pTagItem) : pTT_Pixmap;
+FUNCTION TT_OpenFontA(taglist : pTagItem) : POINTER;
+FUNCTION TT_RequestA(request : POINTER; taglist : pTagItem) : pTagItem;
+FUNCTION TT_SetAttrsA(rp : pRastPort; taglist : pTagItem) : longword;
+FUNCTION TT_SetFont(rp : pRastPort; font : POINTER) : BOOLEAN;
+PROCEDURE TT_Text(rp : pRastPort; _string : POINTER; count : longword);
+PROCEDURE TT_TextExtent(rp : pRastPort; _string : POINTER; count : LONGINT; te : pTextExtent);
+FUNCTION TT_TextFit(rp : pRastPort; _string : POINTER; count : longword; te : pTextExtent; tec : pTextExtent; dir : LONGINT; cwidth : longword; cheight : longword) : longword;
+FUNCTION TT_TextLength(rp : pRastPort; _string : POINTER; count : longword) : longword;
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
-FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : array of PtrUInt) : pTT_Pixmap;
-FUNCTION TT_OpenFont(const taglist : array of PtrUInt) : POINTER;
-FUNCTION TT_Request(request : POINTER; const taglist : array of PtrUInt) : pTagItem;
-FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
+FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
+FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : Array Of Const) : pTT_Pixmap;
+FUNCTION TT_OpenFont(const taglist : Array Of Const) : POINTER;
+FUNCTION TT_Request(request : POINTER; const taglist : Array Of Const) : pTagItem;
+FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitTTENGINELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    TTENGINEIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
+FUNCTION TT_AllocRequest : POINTER;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L TTEngineBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE TT_CloseFont(font : POINTER);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L font,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE TT_DoneRastPort(rp : pRastPort);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L TTEngineBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE TT_FreePixmap(pixmap : pTT_Pixmap);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L pixmap,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE TT_FreeRequest(request : POINTER);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L request,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION TT_GetAttrsA(rp : pRastPort; taglist : pTagItem) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION TT_GetPixmapA(font : POINTER; _string : POINTER; count : longword; taglist : pTagItem) : pTT_Pixmap;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L font,A1
+        MOVEA.L _string,A2
+        MOVE.L  count,D0
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION TT_OpenFontA(taglist : pTagItem) : POINTER;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION TT_RequestA(request : POINTER; taglist : pTagItem) : pTagItem;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L request,A0
+        MOVEA.L taglist,A1
+        MOVEA.L TTEngineBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION TT_SetAttrsA(rp : pRastPort; taglist : pTagItem) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION TT_SetFont(rp : pRastPort; font : POINTER) : BOOLEAN;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L font,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
+  END;
+END;
+
+PROCEDURE TT_Text(rp : pRastPort; _string : POINTER; count : longword);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L TTEngineBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+PROCEDURE TT_TextExtent(rp : pRastPort; _string : POINTER; count : LONGINT; te : pTextExtent);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L te,A2
+        MOVEA.L TTEngineBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION TT_TextFit(rp : pRastPort; _string : POINTER; count : longword; te : pTextExtent; tec : pTextExtent; dir : LONGINT; cwidth : longword; cheight : longword) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L te,A2
+        MOVEA.L tec,A3
+        MOVE.L  dir,D1
+        MOVE.L  cwidth,D2
+        MOVE.L  cheight,D3
+        MOVEA.L TTEngineBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION TT_TextLength(rp : pRastPort; _string : POINTER; count : longword) : longword;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L TTEngineBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
+FUNCTION TT_GetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
 begin
-    TT_GetAttrs := TT_GetAttrsA(rp , @taglist);
+    TT_GetAttrs := TT_GetAttrsA(rp , readintags(taglist));
 end;
 
-FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : array of PtrUInt) : pTT_Pixmap;
+FUNCTION TT_GetPixmap(font : POINTER; _string : POINTER; count : longword; const taglist : Array Of Const) : pTT_Pixmap;
 begin
-    TT_GetPixmap := TT_GetPixmapA(font , _string , count , @taglist);
+    TT_GetPixmap := TT_GetPixmapA(font , _string , count , readintags(taglist));
 end;
 
-FUNCTION TT_OpenFont(const taglist : array of PtrUInt) : POINTER;
+FUNCTION TT_OpenFont(const taglist : Array Of Const) : POINTER;
 begin
-    TT_OpenFont := TT_OpenFontA(@taglist);
+    TT_OpenFont := TT_OpenFontA(readintags(taglist));
 end;
 
-FUNCTION TT_Request(request : POINTER; const taglist : array of PtrUInt) : pTagItem;
+FUNCTION TT_Request(request : POINTER; const taglist : Array Of Const) : pTagItem;
 begin
-    TT_Request := TT_RequestA(request , @taglist);
+    TT_Request := TT_RequestA(request , readintags(taglist));
 end;
 
-FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : array of PtrUInt) : longword;
+FUNCTION TT_SetAttrs(rp : pRastPort; const taglist : Array Of Const) : longword;
 begin
-    TT_SetAttrs := TT_SetAttrsA(rp , @taglist);
+    TT_SetAttrs := TT_SetAttrsA(rp , readintags(taglist));
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  TTEngineBase := OpenLibrary(TTENGINENAME,LIBVERSION);
-finalization
-  if Assigned(TTEngineBase) then
-    CloseLibrary(TTEngineBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of ttengine.library}
+  {$Info don't forget to use InitTTENGINELibrary in the beginning of your program}
+
+var
+    ttengine_exit : Pointer;
+
+procedure ClosettengineLibrary;
+begin
+    ExitProc := ttengine_exit;
+    if TTEngineBase <> nil then begin
+        CloseLibrary(TTEngineBase);
+        TTEngineBase := nil;
+    end;
+end;
+
+procedure InitTTENGINELibrary;
+begin
+    TTEngineBase := nil;
+    TTEngineBase := OpenLibrary(TTENGINENAME,LIBVERSION);
+    if TTEngineBase <> nil then begin
+        ttengine_exit := ExitProc;
+        ExitProc := @ClosettengineLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ttengine.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    TTENGINEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of ttengine.library}
+
+var
+    ttengine_exit : Pointer;
+
+procedure ClosettengineLibrary;
+begin
+    ExitProc := ttengine_exit;
+    if TTEngineBase <> nil then begin
+        CloseLibrary(TTEngineBase);
+        TTEngineBase := nil;
+    end;
+end;
+
+begin
+    TTEngineBase := nil;
+    TTEngineBase := OpenLibrary(TTENGINENAME,LIBVERSION);
+    if TTEngineBase <> nil then begin
+        ttengine_exit := ExitProc;
+        ExitProc := @ClosettengineLibrary;
+        TTENGINEIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open ttengine.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    TTENGINEIsCompiledHow := 3;
+   {$Warning No autoopening of ttengine.library compiled}
+   {$Warning Make sure you open ttengine.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT TTENGINE *)
 
 

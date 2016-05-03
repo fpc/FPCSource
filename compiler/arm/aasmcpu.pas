@@ -275,7 +275,7 @@ uses
          insoffset : longint;
          LastInsOffset : longint; { need to be public to be reset }
          insentry  : PInsEntry;
-         procedure BuildArmMasks(objdata:TObjData);
+         procedure BuildArmMasks;
          function  InsEnd:longint;
          procedure create_ot(objdata:TObjData);
          function  Matches(p:PInsEntry):longint;
@@ -872,7 +872,6 @@ implementation
                 result:=operand_write
               else
                 result:=operand_read;
-            A_VFMA,A_VFMS,A_VFNMA,A_VFNMS,
             A_BFC:
               if opnr in [0] then
                 result:=operand_readwrite
@@ -1417,36 +1416,6 @@ implementation
               ait_instruction:
                 begin
                   case taicpu(curtai).opcode of
-                    A_STM:
-                      begin
-                        if (taicpu(curtai).ops=2) and
-                           (taicpu(curtai).oper[0]^.typ=top_ref) and
-                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
-                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
-                           (taicpu(curtai).oppostfix in [PF_FD,PF_DB]) then
-                          begin
-                            taicpu(curtai).oppostfix:=PF_None;
-                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
-                            taicpu(curtai).ops:=1;
-                            taicpu(curtai).opcode:=A_PUSH;
-                          end;
-                      end;
-
-                    A_LDM:
-                      begin
-                        if (taicpu(curtai).ops=2) and
-                           (taicpu(curtai).oper[0]^.typ=top_ref) and
-                           (taicpu(curtai).oper[0]^.ref^.index=NR_STACK_POINTER_REG) and
-                           (taicpu(curtai).oper[0]^.ref^.addressmode=AM_PREINDEXED) and
-                           (taicpu(curtai).oppostfix in [PF_FD,PF_IA]) then
-                          begin
-                            taicpu(curtai).oppostfix:=PF_None;
-                            taicpu(curtai).loadregset(0, taicpu(curtai).oper[1]^.regtyp, taicpu(curtai).oper[1]^.subreg, taicpu(curtai).oper[1]^.regset^);
-                            taicpu(curtai).ops:=1;
-                            taicpu(curtai).opcode:=A_POP;
-                          end;
-                      end;
-
                     A_ADD,
                     A_AND,A_EOR,A_ORR,A_BIC,
                     A_LSL,A_LSR,A_ASR,A_ROR,
@@ -2125,7 +2094,7 @@ implementation
       end;
 
 
-    procedure taicpu.BuildArmMasks(objdata:TObjData);
+    procedure taicpu.BuildArmMasks;
       const
         Masks: array[tcputype] of longint =
           (
@@ -2166,8 +2135,7 @@ implementation
       begin
         fArmVMask:=Masks[current_settings.cputype] or FPUMasks[current_settings.fputype];
 
-        if objdata.ThumbFunc then
-        //if current_settings.instructionset=is_thumb then
+        if current_settings.instructionset=is_thumb then
           begin
             fArmMask:=IF_THUMB;
             if CPUARM_HAS_THUMB2 in cpu_capabilities[current_settings.cputype] then
@@ -2668,7 +2636,7 @@ implementation
            { create the .ot fields }
            create_ot(objdata);
 
-           BuildArmMasks(objdata);
+           BuildArmMasks;
            { set the file postion }
            current_filepos:=fileinfo;
          end
@@ -2779,15 +2747,15 @@ implementation
 
       function MakeRegList(reglist: tcpuregisterset): word;
         var
-          i, w: integer;
+          i, w: word;
         begin
           result:=0;
-          w:=0;
+          w:=1;
           for i:=RS_R0 to RS_R15 do
             begin
               if i in reglist then
-                result:=result or (1 shl w);
-              inc(w);
+                result:=result or w;
+              w:=w shl 1
             end;
         end;
 
@@ -2976,15 +2944,13 @@ implementation
               else
                 begin
                   currsym:=objdata.symbolref(oper[0]^.ref^.symbol);
-
-                  bytes:=bytes or (((oper[0]^.ref^.offset-8) shr 2) and $ffffff);
-
-                  if (opcode<>A_BL) or (condition<>C_None) then
-                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_24)
+                  if (currsym.bind<>AB_LOCAL) and (currsym.objsection<>objdata.CurrObjSec) then
+                    begin
+                      objdata.writereloc(oper[0]^.ref^.offset,0,currsym,RELOC_RELATIVE_24);
+                      bytes:=bytes or $fffffe; // TODO: Not sure this is right, but it matches the output of gas
+                    end
                   else
-                    objdata.writereloc(aint(bytes),4,currsym,RELOC_RELATIVE_CALL);
-
-                  exit;
+                    bytes:=bytes or (((currsym.offset-insoffset-8) shr 2) and $ffffff);
                 end;
             end;
           #$02:
@@ -4521,9 +4487,11 @@ implementation
               bytes:=bytes or (ord(insentry^.code[1]) shl 8);
               bytes:=bytes or ord(insentry^.code[2]);
 
+
               case opcode of
                 A_SUB:
                   begin
+                    bytes:=bytes or (getsupreg(oper[0]^.reg) and $7);
                     if (ops=3) and
                        (oper[2]^.typ=top_const) then
                       bytes:=bytes or ((oper[2]^.val shr 2) and $7F)
@@ -4683,7 +4651,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;
@@ -4694,7 +4662,7 @@ implementation
                         bytes:=bytes or (1 shl r);
 
                     if oper[0]^.typ=top_ref then
-                      bytes:=bytes or (getsupreg(oper[0]^.ref^.index) shl 8)
+                      bytes:=bytes or (getsupreg(oper[0]^.ref^.base) shl 8)
                     else
                       bytes:=bytes or (getsupreg(oper[0]^.reg) shl 8);
                   end;

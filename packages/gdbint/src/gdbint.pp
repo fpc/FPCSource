@@ -59,28 +59,6 @@ interface
 
 {$undef GDB_VERSION_RECOGNIZED}
 
-{ 7.11.x }
-{$ifdef GDB_V711}
-  {$info using gdb 7.11.x}
-  {$define GDB_VERSION_RECOGNIZED}
-  {$define GDB_VER_GE_711}
-{$endif}
-
-{$ifdef GDB_VER_GE_711}
-  {$define GDB_VER_GE_710}
-{$endif}
-
-{ 7.10.x }
-{$ifdef GDB_V710}
-  {$info using gdb 7.10.x}
-  {$define GDB_VERSION_RECOGNIZED}
-  {$define GDB_VER_GE_710}
-{$endif}
-
-{$ifdef GDB_VER_GE_710}
-  {$define GDB_VER_GE_709}
-{$endif}
-
 { 7.9.x }
 {$ifdef GDB_V709}
   {$info using gdb 7.9.x}
@@ -90,7 +68,6 @@ interface
 
 {$ifdef GDB_VER_GE_709}
   {$define GDB_VER_GE_708}
-  {$define SYMTAB_HAS_COMPUNIT_SYMTAB}
 {$endif}
 
 { 7.8.x }
@@ -1279,15 +1256,6 @@ type
      psymtab = ^symtab;
      symtab = record
           next : psymtab;
-{$ifdef SYMTAB_HAS_COMPUNIT_SYMTAB}
-          comp_unit : pointer; {^compunit_symtab }
-          linetable : pointer; {^linetable;}
-          filename : pchar;
-          nlines : longint;
-          line_charpos : ^longint;
-          language : tlanguage;
-          fullname : pchar;
-{$else not SYMTAB_HAS_COMPUNIT_SYMTAB}
           blockvector : pointer; {^blockvector;}
           linetable : pointer; {^linetable;}
           block_line_section : longint;
@@ -1307,7 +1275,6 @@ type
           version : pchar;
           fullname : pchar;
           objfile : pointer; {^objfile;}
-{$endif not SYMTAB_HAS_COMPUNIT_SYMTAB}
        end;
 
      psymtab_and_line = ^symtab_and_line;

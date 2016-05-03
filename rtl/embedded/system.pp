@@ -163,9 +163,16 @@ const calculated_cmdline:Pchar=nil;
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-procedure haltproc;cdecl;external name '_haltproc';
+procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
-procedure System_exit;noreturn;external name '_haltproc';
+procedure System_exit;noreturn;
+begin
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
+  haltproc(ExitCode);
+{$else FPC_HAS_FEATURE_EXITCODE}
+  haltproc(0);
+{$endif FPC_HAS_FEATURE_EXITCODE}
+End;
 
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}

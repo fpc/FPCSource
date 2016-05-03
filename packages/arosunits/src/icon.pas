@@ -15,15 +15,17 @@
 
 unit icon;
 
+{$mode delphi}
+
 interface
 
 uses
-  exec, workbench, utility, amigados, agraphics, intuition;
+  exec, workbench,utility,amigados, agraphics, intuition;
 //,datatypes;
 
 const
-  ICONNAME    : PChar = 'icon.library';
-
+  ICONNAME    : PChar = 'icon.library';  
+  
   ICONA_Dummy = TAG_USER + $9000;  // Start of icon.library tags
   ICONA_ErrorCode = ICONA_Dummy + 1; // Errorcode (PLongInt)
   ICONA_ErrorTagItem = ICONA_Dummy + 75; //Points to the tag item that caused the error (^PTagItem).
@@ -197,7 +199,7 @@ const
                                                   screen, turn the duplicate into that palette mapped icon.}
 
 { Tags for use with DrawIconStateA() and GetIconRectangleA().  }
-  ICONDRAWA_DrawInfo = ICONA_Dummy + 66; // Drawing information to use (PDrawInfo).
+  ICONDRAWA_DrawInfo = ICONA_Dummy + 66; // Drawing information to use (PDrawInfo). 
   ICONDRAWA_Frameless = ICONA_Dummy + 70; // Draw the icon without the surrounding frame (BOOL).
   ICONDRAWA_EraseBackground = ICONA_Dummy + 71; // Erase the background before drawing a frameless icon (BOOL).
   ICONDRAWA_Borderless = ICONA_Dummy + 83; // Draw the icon without the surrounding border and frame (BOOL).
@@ -211,7 +213,7 @@ const
   ICONA_Reserved6 = ICONA_Dummy + 86;
   ICONA_Reserved7 = ICONA_Dummy + 87;
   ICONA_Reserved8 = ICONA_Dummy + 88;
-{ The last Tag}
+{ The last Tag}  
   ICONA_LAST_TAG = ICONA_Dummy + 88;
 
 
@@ -246,43 +248,43 @@ procedure ChangeToSelectedIconColor(Cr: Pointer); syscall IconBase 33; //TODO: p
 
 {macros}
 function PACK_ICON_ASPECT_RATIO(Num, Den: LongInt): LongInt;
-procedure UNPACK_ICON_ASPECT_RATIO(Aspect: LongInt; var Num, Den: LongInt);
+procedure UNPACK_ICON_ASPECT_RATIO(Aspect: LongInt; out Num, Den: LongInt);
 
 type
-  TToolTypeArray= array of AnsiString;
-
-function GetToolTypes(Filename: AnsiString): TToolTypeArray;
+  TToolTypeArray= array of string;
+  
+function GetToolTypes(Filename: string): TToolTypeArray;
 
 
 implementation
 
-function GetToolTypes(Filename: AnsiString): TToolTypeArray;
+function GetToolTypes(Filename: string): TToolTypeArray;
 var
   DObj: PDiskObject;
   Tooltype: PPChar;
   Idx: Integer;
 begin
-  SetLength(GetToolTypes, 0);
+  SetLength(Result, 0);
   DObj := GetDiskObject(PChar(FileName));
   if not Assigned(Dobj) then
     Exit;
   Tooltype := DObj^.do_Tooltypes;
   while Assigned(ToolType^) do
   begin
-    Idx := Length(GetToolTypes);
-    SetLength(GetToolTypes, Idx + 1);
-    GetToolTypes[Idx] := ToolType^;
+    Idx := Length(Result);
+    SetLength(Result, Idx + 1);
+    Result[Idx] := ToolType^;
     Inc(ToolType);
   end;
   FreeDiskObject(DObj);
 end;
 
-function PACK_ICON_ASPECT_RATIO(Num, Den: LongInt): LongInt; inline;
+function PACK_ICON_ASPECT_RATIO(Num, Den: LongInt): LongInt;
 begin
   PACK_ICON_ASPECT_RATIO := (Num shl 4) or Den;
 end;
 
-procedure UNPACK_ICON_ASPECT_RATIO(Aspect: LongInt; var Num, Den: LongInt); inline;
+procedure UNPACK_ICON_ASPECT_RATIO(Aspect: LongInt; out Num, Den: LongInt);
 begin
   Num := (Aspect shr 4) and $F;
   Den := Aspect and $15;

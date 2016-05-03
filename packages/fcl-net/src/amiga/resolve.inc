@@ -46,8 +46,8 @@ Type
   end;
   PServEntry = ^TServEnt;
 
-{ remember, classic style calls are also used on MorphOS, so don't test for AMIGA68K }
-{$ifndef AMIGAOS4}
+{ C style calls, linked in from Libc }
+
 function gethostbyname(Name: PChar location 'a0'): PHostEntry; syscall SocketBase 210;
 function getnetbyname(Name: PChar location 'a0'): PNetEntry; syscall SocketBase 222;
 function getnetbyaddr(Net: Longint location 'd0'; NetType: Longint location 'd1'): PNetEntry; syscall SocketBase 228;
@@ -60,22 +60,6 @@ function getnetent: PNetEntry; syscall SocketBase 528;
 procedure setservent(StayOpen: longint location 'd0'); syscall SocketBase 552;
 procedure endservent; syscall SocketBase 558;
 function getservent: PServEntry; syscall SocketBase 564;
-
-{$else AMIGAOS4}
-
-function gethostbyname(const Name: PChar): PHostEntry; syscall ISocket 196;
-function getnetbyname(Name: PChar): PNetEntry; syscall ISocket 204;
-function getnetbyaddr(Net: Longint; NetType: Longint): PNetEntry; syscall ISocket 208;
-function getservbyname(Name: PChar; Protocol: PChar): PServEntry; syscall ISocket 212;
-function getservbyport(Port: LongInt; Protocol: PChar): PServEntry; syscall ISocket 216;
-
-procedure setnetent(Stayopen: Longint);  syscall ISocket 456;
-procedure endnetent; syscall ISocket 460;
-function getnetent: PNetEntry; syscall ISocket 464;
-procedure setservent(StayOpen: longint); syscall ISocket 480;
-procedure endservent; syscall ISocket 484;
-function getservent: PServEntry; syscall ISocket 488;
-{$endif AMIGAOS4}
 
 function gethostbyaddr(Addr: PChar; Len: Longint; HType: Longint): PHostentry;
 var
@@ -94,7 +78,7 @@ begin
       repeat
         ip^^ := ntohl(ip^^);
         Inc(IP);
-      until ip^ = nil;
+      until ip^ = nil; 
     end;
   end;
 end;

@@ -14,7 +14,7 @@
  **********************************************************************}
 
 unit cybergraphics;
-
+{$mode objfpc}
 interface
 
 uses
@@ -23,8 +23,8 @@ uses
 const
   CYBERGFXNAME = 'cybergraphics.library';
   CYBERGFX_INCLUDE_VERSION = 41;
-
-
+ 
+ 
   // ProcessPixelArray Operations (v50)
 
   POP_BRIGHTEN                = 0;
@@ -62,9 +62,9 @@ const
   PPAOPTAG_GRADSYMCENTER      = $85231026;
 
   PPAOPTAG_RGBMASK            = $85231025;
-
+  
   //  Definition of CyberModeNode (Returned in AllocModeList)
-
+  
 type
    PCyberModeNode = ^TCyberModeNode;
    TCyberModeNode = record
@@ -83,9 +83,9 @@ const
   CYBRMATTR_XMOD         = $80000001; // function returns BytesPerRow if its called with this parameter
   CYBRMATTR_BPPIX        = $80000002; // BytesPerPixel shall be returned
   CYBRMATTR_DISPADR      = $80000003; // do not use this ! private tag
-  CYBRMATTR_PIXFMT       = $80000004; // the pixel format is returned
+  CYBRMATTR_PIXFMT       = $80000004; // the pixel format is returned 
   CYBRMATTR_WIDTH        = $80000005; // returns width in pixels
-  CYBRMATTR_HEIGHT       = $80000006; // returns height in lines
+  CYBRMATTR_HEIGHT       = $80000006; // returns height in lines  
   CYBRMATTR_DEPTH        = $80000007; // returns bits per pixel
   CYBRMATTR_ISCYBERGFX   = $80000008; // returns -1 if supplied bitmap is a cybergfx one
   CYBRMATTR_ISLINEARMEM  = $80000009; // returns -1 if supplied bitmap is linear accessable
@@ -109,7 +109,7 @@ const
   CYBRMREQ_WinTitle    = CYBRMREQ_TB + 20;
   CYBRMREQ_OKText      = CYBRMREQ_TB + 21;
   CYBRMREQ_CancelText  = CYBRMREQ_TB + 22;
-  CYBRMREQ_Screen      = CYBRMREQ_TB + 30; // Screen you wish the Requester to open on
+  CYBRMREQ_Screen      = CYBRMREQ_TB + 30; // Screen you wish the Requester to open on 
 // Tags for BestCyberModeID()
   CYBRBIDTG_TB = TAG_USER + $50000;
   // FilterTags
@@ -148,26 +148,26 @@ const
   PIXFMT_RGB032 = 103;
   PIXFMT_0BGR32 = 104;
 
-  RECTFMT_RGB15   = 100;
-  RECTFMT_BGR15   = 101;
+  RECTFMT_RGB15	  = 100;
+  RECTFMT_BGR15	  = 101;
   RECTFMT_RGB15PC = 102;
   RECTFMT_BGR15PC = 103;
-  RECTFMT_RGB16   = 104;
-  RECTFMT_BGR16   = 105;
+  RECTFMT_RGB16	  = 104;
+  RECTFMT_BGR16	  = 105;
   RECTFMT_RGB16PC = 106;
   RECTFMT_BGR16PC = 107;
-  RECTFMT_RGB24   = RECTFMT_RGB;
-  RECTFMT_BGR24   = 109;
-  RECTFMT_ARGB32  = RECTFMT_ARGB;
-  RECTFMT_BGRA32  = 111;
-  RECTFMT_RGBA32  = RECTFMT_RGBA;
-  RECTFMT_ABGR32  = 113;
+  RECTFMT_RGB24	  = RECTFMT_RGB;
+  RECTFMT_BGR24	  = 109;
+  RECTFMT_ARGB32	= RECTFMT_ARGB;
+  RECTFMT_BGRA32	= 111;
+  RECTFMT_RGBA32	= RECTFMT_RGBA;
+  RECTFMT_ABGR32	= 113;
   RECTFMT_0RGB32  = 114;
   RECTFMT_BGR032  = 115;
   RECTFMT_RGB032  = 116;
   RECTFMT_0BGR32  = 117;
 {$endif}
-
+  
 // Parameters for CVideoCtrlTagList()
   SETVC_DPMSLevel = $88002001;
   DPMS_ON         = 0; // Full operation
@@ -185,7 +185,7 @@ const
 // Tags for UnLockBitMapTagList()
   UBMI_UPDATERECTS  = $85001001;
   UBMI_REALLYUNLOCK = $85001002;
-
+  
 type
 // Message passed to the DoCDrawMethodTagList() hook function
   PCDrawMsg = ^TCDrawMsg;
@@ -236,47 +236,68 @@ procedure BltTemplateAlpha(src: APTR; srcx: LongInt; srcmod: LongInt; rp: PRastP
 procedure ProcessPixelArray(rp: PRastPort; destX: LongWord; destY: LongWord; sizeX: LongWord; sizeY: LongWord; operation: LongWord; value: LongInt; taglist: PTagItem); syscall CyberGfxBase 38;
 
 // Functions and procedures with array of const go here
-function AllocCModeListTags(const ModeListTags: array of PtrUInt): PList;
-function BestCModeIDTags(const BestModeIDTags: array of PtrUInt): LongWord;
-procedure CVideoCtrlTags(ViewPort: PViewPort; const TagList: array of PtrUInt);
-procedure DoCDrawMethodTags(Hook: PHook; a1arg: PRastPort; const TagList: array of PtrUInt);
-function LockBitMapTags(BitMap: APTR; const TagList: array of PtrUInt): APTR;
-procedure UnLockBitMapTags(Handle: APTR; const TagList: array of PtrUInt);
+function AllocCModeListTags(const ModeListTags: array of const): PList;
+function BestCModeIDTags(const BestModeIDTags: array of const): LongWord;
+procedure CVideoCtrlTags(ViewPort: PViewPort; const TagList: array of const);
+procedure DoCDrawMethodTags(Hook: PHook; a1arg: PRastPort; const TagList: array of const);
+function LockBitMapTags(BitMap: APTR; const TagList: array of const): APTR;
+procedure UnLockBitMapTags(Handle: APTR; const TagList: array of const);
 
 function SHIFT_PIXFMT(fmt: LongInt): LongInt;
 function DOWNSHIFT_PIXFMT(fmt: LongInt): LongInt;
 
 implementation
 
+uses
+  tagsarray;
+
 // Functions and procedures with array of const go here
-function AllocCModeListTags(const ModeListTags: array of PtrUInt): PList; inline;
+function AllocCModeListTags(const ModeListTags: array of const): PList;
+var
+  TagList: TTagsList;
 begin
-  AllocCModeListTags := AllocCModeListTagList(@ModeListTags);
+  AddTags(TagList, ModeListTags);
+  AllocCModeListTags := AllocCModeListTagList(GetTagPtr(TagList));
 end;
 
-function BestCModeIDTags(const BestModeIDTags: array of PtrUInt): LongWord; inline;
+function BestCModeIDTags(const BestModeIDTags: array of const): LongWord;
+var
+  TagList: TTagsList;
 begin
-  BestCModeIDTags := BestCModeIDTagList(@BestModeIDTags);
+  AddTags(TagList, BestModeIDTags);
+  BestCModeIDTags := BestCModeIDTagList(GetTagPtr(TagList));
 end;
 
-procedure CVideoCtrlTags(ViewPort: PViewPort; const TagList: array of PtrUInt); inline;
+procedure CVideoCtrlTags(ViewPort: PViewPort; const TagList: array of const);
+var
+  TagsList: TTagsList;
 begin
-  CVideoCtrlTagList(ViewPort, @TagList);
+  AddTags(TagsList, TagList);
+  CVideoCtrlTagList(ViewPort, GetTagPtr(TagsList));
 end;
 
-procedure DoCDrawMethodTags(Hook: PHook; a1arg: PRastPort; const TagList: array of PtrUInt); inline;
+procedure DoCDrawMethodTags(Hook: PHook; a1arg: PRastPort; const TagList: array of const);
+var
+  TagsList: TTagsList;
 begin
-  DoCDrawMethodTagList(Hook, a1arg, @TagList);
+  AddTags(TagsList, TagList);
+  DoCDrawMethodTagList(Hook, a1arg, GetTagPtr(TagsList));
 end;
 
-function LockBitMapTags(BitMap: APTR; const TagList: array of PtrUInt): APTR; inline;
+function LockBitMapTags(BitMap: APTR; const TagList: array of const): APTR;
+var
+  TagsList: TTagsList;
 begin
-  LockBitMapTags := LockBitMapTagList(BitMap, @TagList);
+  AddTags(TagsList, TagList);
+  LockBitMapTags := LockBitMapTagList(BitMap, GetTagPtr(TagsList));
 end;
 
-procedure UnLockBitMapTags(Handle: APTR; const TagList: array of PtrUInt); inline;
+procedure UnLockBitMapTags(Handle: APTR; const TagList: array of const);
+var
+  TagsList: TTagsList;
 begin
-  UnLockBitMapTagList(Handle, @TagList);
+  AddTags(TagsList, TagList);
+  UnLockBitMapTagList(Handle, GetTagPtr(TagsList));
 end;
 
 function SHIFT_PIXFMT(fmt: LongInt): LongInt;
@@ -290,7 +311,7 @@ begin
 end;
 
 initialization
-  CyberGfxBase := OpenLibrary(CYBERGFXNAME, 0);
+  CyberGfxBase := OpenLibrary(CYBERGFXNAME, 0); 
 finalization
   CloseLibrary(CyberGfxBase);
 end.

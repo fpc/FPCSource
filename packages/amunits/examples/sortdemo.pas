@@ -38,7 +38,7 @@ PROGRAM SortDemo;
     so you have to wait until it's finished.
 }
 
-uses Exec, Intuition, AGraphics, Utility, GadTools, amsgbox;
+uses Exec, Intuition, AGraphics, Utility, GadTools, amsgbox,systemvartags;
 
 
 CONST
@@ -192,16 +192,16 @@ PROCEDURE setpixel(i: Integer);
 BEGIN
   SetAPen(Rast,1);
   IF needles THEN BEGIN
-    GfxMove(Rast,i,range); Draw(Rast,i,Round((1-sort[i])*range));
+    Move(Rast,i,range); Draw(Rast,i,Round((1-sort[i])*range));
   END ELSE
-    WritePixel(Rast,i,Round((1-sort[i])*range))
+    IF WritePixel(Rast,i,Round((1-sort[i])*range))=0 THEN;
 END;
 
 PROCEDURE clearpixel(i: Integer);
 BEGIN
   SetAPen(Rast,0);
   IF needles THEN BEGIN
-    GfxMove(Rast,i,range); Draw(Rast,i,Round((1-sort[i])*range));
+    Move(Rast,i,range); Draw(Rast,i,Round((1-sort[i])*range));
   END ELSE
     IF WritePixel(Rast,i,Round((1-sort[i])*range))=0 THEN;
 END;
@@ -262,8 +262,7 @@ BEGIN
   range := w^.GZZHeight;
   settitles(-1);
   SetRast(Rast,0);    { clear screen }
-  FOR i := 1 TO num DO
-  BEGIN
+  FOR i := 1 TO num DO BEGIN
     IF rndom THEN sort[i] := Random  { produces 0..1 }
       ELSE sort[i] := (num-i)/num;
     setpixel(i);
@@ -500,7 +499,8 @@ begin
     if vi = nil then CleanUp('No visual info',10);
 
     w := OpenWindowTags(NIL, [
-                WA_IDCMP,         IDCMP_CLOSEWINDOW or IDCMP_MENUPICK or IDCMP_NEWSIZE,
+                WA_IDCMP,         IDCMP_CLOSEWINDOW or IDCMP_MENUPICK or
+IDCMP_NEWSIZE,
                 WA_Left,          0,
                 WA_Top,           s^.BarHeight+1,
                 WA_Width,         224,
@@ -516,14 +516,16 @@ begin
                 WA_Activate,      ltrue,
                 WA_SizeBRight,    ltrue,
                 WA_GimmeZeroZero, ltrue,
-                WA_PubScreen,     AsTag(s),
+                WA_PubScreen,     s,
                 TAG_END]);
+
     IF w=NIL THEN CleanUp('Could not open window',20);
 
     Rast := w^.RPort;
 
     { Here we set the barlabel }
     nm[3].nm_Label := PChar(NM_BARLABEL);
+
     if pExecBase(_ExecBase)^.LibNode.Lib_Version >= 39 then begin
         MenuStrip := CreateMenus(@nm,[
                      GTMN_FrontPen, 1, TAG_END]);
@@ -532,6 +534,7 @@ begin
     if MenuStrip = nil then CleanUp('Could not open Menus',10);
     if LayoutMenusA(MenuStrip,vi,NIL)=false then
         CleanUp('Could not layout Menus',10);
+
     if SetMenuStrip(w, MenuStrip) = false then
         CleanUp('Could not set the Menus',10);
 
@@ -620,16 +623,16 @@ end;
 
 
 begin
-  OpenEverything;
+   OpenEverything;
    QuitStopDie := False;
    modus := 0;
    needles := true;
    rndom := true;
    refresh;
    repeat
-     Msg := WaitPort(w^.UserPort);
-     Msg := GetMsg(w^.UserPort);
-     ProcessIDCMP;
+   Msg := WaitPort(w^.UserPort);
+   Msg := GetMsg(w^.UserPort);
+       ProcessIDCMP;
    until QuitStopDie;
    CleanUp('',0);
 end.

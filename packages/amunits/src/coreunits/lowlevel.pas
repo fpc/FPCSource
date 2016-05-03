@@ -261,7 +261,7 @@ Const
 
 { --- functions in V40 or higher (Release 3.1) --- }
 
-VAR LowLevelBase : pLibrary = nil;
+VAR LowLevelBase : pLibrary;
 
 FUNCTION AddKBInt(const intRoutine : POINTER location 'a0'; const intData : POINTER location 'a1') : POINTER; syscall LowLevelBase 060;
 FUNCTION AddTimerInt(const intRoutine : POINTER location 'a0'; const  intData : POINTER location 'a1') : POINTER; syscall LowLevelBase 078;
@@ -279,31 +279,104 @@ PROCEDURE StartTimerInt(intHandle : POINTER location 'a1'; timeInterval : ULONG 
 PROCEDURE StopTimerInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 090;
 FUNCTION SystemControlA(const tagList : pTagItem location 'a1') : ULONG; syscall LowLevelBase 072;
 
-function SetJoyPortAttrs(portNumber : ULONG; Const argv : array of PtrUInt) : BOOLEAN;
-function SystemControl(Const argv : array of PtrUInt) : ULONG;
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitLOWLEVELLibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    LOWLEVELIsCompiledHow : longint;
 
 IMPLEMENTATION
 
-function SetJoyPortAttrs(portNumber : ULONG; Const argv : array of PtrUInt) : BOOLEAN;
-begin
-    SetJoyPortAttrs := SetJoyPortAttrsA(portNumber,@argv);
-end;
-
-function SystemControl(Const argv : array of PtrUInt) : ULONG;
-begin
-    SystemControl := SystemControlA(@argv);
-end;
+{$ifndef dont_use_openlib}
+uses amsgbox;
+{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
-finalization
-  if Assigned(LowLevelBase) then
-    CloseLibrary(LowLevelBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of lowlevel.library}
+  {$Info don't forget to use InitLOWLEVELLibrary in the beginning of your program}
+
+var
+    lowlevel_exit : Pointer;
+
+procedure CloselowlevelLibrary;
+begin
+    ExitProc := lowlevel_exit;
+    if LowLevelBase <> nil then begin
+        CloseLibrary(LowLevelBase);
+        LowLevelBase := nil;
+    end;
+end;
+
+procedure InitLOWLEVELLibrary;
+begin
+    LowLevelBase := nil;
+    LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
+    if LowLevelBase <> nil then begin
+        lowlevel_exit := ExitProc;
+        ExitProc := @CloselowlevelLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open lowlevel.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    LOWLEVELIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of lowlevel.library}
+
+var
+    lowlevel_exit : Pointer;
+
+procedure CloselowlevelLibrary;
+begin
+    ExitProc := lowlevel_exit;
+    if LowLevelBase <> nil then begin
+        CloseLibrary(LowLevelBase);
+        LowLevelBase := nil;
+    end;
+end;
+
+begin
+    LowLevelBase := nil;
+    LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
+    if LowLevelBase <> nil then begin
+        lowlevel_exit := ExitProc;
+        ExitProc := @CloselowlevelLibrary;
+        LOWLEVELIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open lowlevel.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    LOWLEVELIsCompiledHow := 3;
+   {$Warning No autoopening of lowlevel.library compiled}
+   {$Warning Make sure you open lowlevel.library yourself}
+{$endif dont_use_openlib}
+
 END. (* UNIT LOWLEVEL *)
 
 

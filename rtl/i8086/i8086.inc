@@ -20,11 +20,12 @@ procedure fpc_cpuinit;
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-procedure FillChar(var x;count:SizeUInt;value:byte);assembler;nostackframe;
+procedure FillChar(var x;count:SizeInt;value:byte);assembler;nostackframe;
 asm
   mov bx, sp
   mov cx, ss:[bx + 4 + extra_param_offset]  // count
-  jcxz @@Done
+  or cx, cx
+  jle @@Done
 {$ifdef FPC_X86_DATA_NEAR}
   mov di, ss:[bx + 6 + extra_param_offset]  // @x
   mov ax, ds
@@ -111,11 +112,12 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 {$define FPC_SYSTEM_HAS_MOVE}
-procedure Move(const source;var dest;count:SizeUInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
+procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 asm
   mov bx, sp
   mov cx, ss:[bx + 2 + extra_param_offset]  // count
-  jcxz @@Done
+  or cx, cx
+  jle @@Done
 
   mov ax, ds  // for far data models, backup ds; for near data models, use to initialize es
 {$ifdef FPC_X86_DATA_NEAR}

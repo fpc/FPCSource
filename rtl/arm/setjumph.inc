@@ -16,7 +16,7 @@
 
 type
    jmp_buf = packed record
-{$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV4) or defined(FPUVFPV3_D16)}
+{$if defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_D16)}
       d8,d9,d10,d11,d12,d13,d14,d15: double;
 {$endif}
       v1,v2,v3,v4,v5,v6,sl,fp,sp,pc : dword;

@@ -31,21 +31,11 @@ unit aoptx86;
       globtype,
       cpubase,
       aasmtai,
-      cgbase,cgutils,
-      aopt;
-
-    type
-      TX86AsmOptimizer = class(TAsmOptimizer)
-        function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
-      protected
-        procedure PostPeepholeOptMov(const p : tai);
-        function OptPass1VMOVAP(var p : tai) : boolean;
-      end;
+      cgbase,cgutils;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
     function MatchInstruction(const instr: tai; const op1,op2: TAsmOp; const opsize: topsizes): boolean;
     function MatchInstruction(const instr: tai; const op1,op2,op3: TAsmOp; const opsize: topsizes): boolean;
-    function MatchInstruction(const instr: tai; const ops: array of TAsmOp; const opsize: topsizes): boolean;
 
     function MatchOperand(const oper: TOper; const reg: TRegister): boolean; inline;
     function MatchOperand(const oper: TOper; const a: tcgint): boolean; inline;
@@ -61,8 +51,7 @@ unit aoptx86;
 
     uses
       verbose,
-      aasmcpu,
-      aoptobj;
+      aasmcpu;
 
     function MatchInstruction(const instr: tai; const op: TAsmOp; const opsize: topsizes): boolean;
       begin
@@ -93,25 +82,6 @@ unit aoptx86;
            (taicpu(instr).opcode = op3)
           ) and
           ((opsize = []) or (taicpu(instr).opsize in opsize));
-      end;
-
-
-    function MatchInstruction(const instr : tai;const ops : array of TAsmOp;
-     const opsize : topsizes) : boolean;
-      var
-        op : TAsmOp;
-      begin
-        result:=false;
-        for op in ops do
-          begin
-            if (instr.typ = ait_instruction) and
-               (taicpu(instr).opcode = op) and
-               ((opsize = []) or (taicpu(instr).opsize in opsize)) then
-               begin
-                 result:=true;
-                 exit;
-               end;
-          end;
       end;
 
 
@@ -175,135 +145,6 @@ unit aoptx86;
         Result:=(taicpu(instr).ops=2) and
           (taicpu(instr).oper[0]^.typ=ot0) and
           (taicpu(instr).oper[1]^.typ=ot1);
-      end;
-
-
-    function TX86AsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
-      var
-        p: taicpu;
-      begin
-        if not assigned(hp) or
-           (hp.typ <> ait_instruction) then
-         begin
-           Result := false;
-           exit;
-         end;
-        p := taicpu(hp);
-        Result :=
-          (((p.opcode = A_MOV) or
-            (p.opcode = A_MOVZX) or
-            (p.opcode = A_MOVSX) or
-            (p.opcode = A_LEA) or
-            (p.opcode = A_VMOVSS) or
-            (p.opcode = A_VMOVSD) or
-            (p.opcode = A_VMOVAPD) or
-            (p.opcode = A_VMOVAPS) or
-            (p.opcode = A_VMOVQ) or
-            (p.opcode = A_MOVSS) or
-            (p.opcode = A_MOVSD) or
-            (p.opcode = A_MOVQ) or
-            (p.opcode = A_MOVAPD) or
-            (p.opcode = A_MOVAPS)) and
-           (p.oper[1]^.typ = top_reg) and
-           (getsupreg(p.oper[1]^.reg) = getsupreg(reg)) and
-           ((p.oper[0]^.typ = top_const) or
-            ((p.oper[0]^.typ = top_reg) and
-             (getsupreg(p.oper[0]^.reg) <> getsupreg(reg))) or
-            ((p.oper[0]^.typ = top_ref) and
-             not RegInRef(reg,p.oper[0]^.ref^)))) or
-          ((p.opcode = A_POP) and
-           (getsupreg(p.oper[0]^.reg) = getsupreg(reg)));
-      end;
-
-
-    function TX86AsmOptimizer.OptPass1VMOVAP(var p : tai) : boolean;
-      var
-        TmpUsedRegs : TAllUsedRegs;
-        hp1,hp2 : tai;
-      begin
-        result:=false;
-        if MatchOpType(taicpu(p),top_reg,top_reg) then
-          begin
-            { vmova* reg1,reg1
-              =>
-              <nop> }
-            if MatchOperand(taicpu(p).oper[0]^,taicpu(p).oper[1]^) then
-              begin
-                GetNextInstruction(p,hp1);
-                asml.Remove(p);
-                p.Free;
-                p:=hp1;
-                result:=true;
-              end
-            else if GetNextInstruction(p,hp1) then
-              begin
-                if MatchInstruction(hp1,[taicpu(p).opcode],[S_NO]) and
-                  MatchOpType(taicpu(hp1),top_reg,top_reg) and
-                  MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[0]^) then
-                  begin
-                    { vmova* reg1,reg2
-                      vmova* reg2,reg3
-                      dealloc reg2
-                      =>
-                      vmova* reg1,reg3 }
-                    CopyUsedRegs(TmpUsedRegs);
-                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-                    if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp1,TmpUsedRegs)) then
-                      begin
-                        taicpu(p).loadoper(1,taicpu(hp1).oper[1]^);
-                        asml.Remove(hp1);
-                        hp1.Free;
-                        result:=true;
-                      end
-                    { special case:
-                      vmova* reg1,reg2
-                      vmova* reg2,reg1
-                      =>
-                      vmova* reg1,reg2 }
-                    else if MatchOperand(taicpu(p).oper[0]^,taicpu(hp1).oper[1]^) then
-                      begin
-                        asml.Remove(hp1);
-                        hp1.Free;
-                        result:=true;
-                      end
-                  end
-                else if MatchInstruction(hp1,[A_VFMADD132PD,A_VFNMADD231SD,A_VFMADD231SD],[S_NO]) and
-                  { we mix single and double opperations here because we assume that the compiler
-                    generates vmovapd only after double operations and vmovaps only after single operations }
-                  MatchOperand(taicpu(p).oper[1]^,taicpu(hp1).oper[2]^) and
-                  GetNextInstruction(hp1,hp2) and
-                  MatchInstruction(hp2,A_VMOVAPD,A_VMOVAPS,[S_NO]) and
-                  MatchOperand(taicpu(p).oper[0]^,taicpu(hp2).oper[1]^) then
-                  begin
-                    CopyUsedRegs(TmpUsedRegs);
-                    UpdateUsedRegs(TmpUsedRegs, tai(p.next));
-                    UpdateUsedRegs(TmpUsedRegs, tai(hp1.next));
-                    if not(RegUsedAfterInstruction(taicpu(p).oper[1]^.reg,hp2,TmpUsedRegs))
-                     then
-                      begin
-                        taicpu(hp1).loadoper(2,taicpu(p).oper[0]^);
-                        asml.Remove(p);
-                        p.Free;
-                        asml.Remove(hp2);
-                        hp2.Free;
-                        p:=hp1;
-                      end;
-                  end;
-              end;
-          end;
-      end;
-
-
-    procedure TX86AsmOptimizer.PostPeepholeOptMov(const p : tai);
-      begin
-       if MatchOperand(taicpu(p).oper[0]^,0) and
-          (taicpu(p).oper[1]^.typ = Top_Reg) and
-          not(RegInUsedRegs(NR_DEFAULTFLAGS,UsedRegs)) then
-         { change "mov $0, %reg" into "xor %reg, %reg" }
-         begin
-           taicpu(p).opcode := A_XOR;
-           taicpu(p).loadReg(0,taicpu(p).oper[1]^.reg);
-         end;
       end;
 
 end.

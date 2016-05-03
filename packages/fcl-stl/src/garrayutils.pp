@@ -85,7 +85,7 @@ begin
 end;
 
 class procedure TOrderingArrayUtils.Sortrange(var Arr:TArr; Start,Fin,d:SizeUInt);
-var pivot,temp:Tvalue; i,j,k,l:SizeInt;
+var pivot,temp:Tvalue; i,j,k,l:SizeUInt;
 begin
   if (Fin-Start) <= InsertSortThreshold then
   begin

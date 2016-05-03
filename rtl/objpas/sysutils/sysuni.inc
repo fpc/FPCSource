@@ -468,14 +468,14 @@ function strnew(p : pwidechar) : pwidechar; overload;
 function WideStrAlloc(Size: cardinal): PWideChar;
   begin
     getmem(result,size*2+sizeof(cardinal));
-    PCardinal(result)^:=size*2+sizeof(cardinal);
-    result:=PWideChar(PByte(result)+sizeof(cardinal));
+    cardinal(pointer(result)^):=size*2+sizeof(cardinal);
+    inc(result,sizeof(cardinal));
   end;
 
 function StrBufSize(str: pwidechar): cardinal;
   begin
     if assigned(str) then
-      result:=(PCardinal(PByte(str)-sizeof(cardinal))^)-sizeof(cardinal)
+      result:=cardinal(pointer(str-sizeof(cardinal))^)-sizeof(cardinal)
     else
       result := 0;
   end;
@@ -484,8 +484,8 @@ procedure StrDispose(str: pwidechar);
 begin
   if assigned(str) then
    begin
-     str:=PWideChar(PByte(str)-sizeof(cardinal));
-     freemem(str,PCardinal(str)^);
+     dec(str,sizeof(cardinal));
+     freemem(str,cardinal(pointer(str)^));
    end;
 end;
 
@@ -532,19 +532,3 @@ function ByteLength(const S: UnicodeString): Integer;
 begin
   Result:=Length(S)*SizeOf(UnicodeChar);
 end;
-
-{$macro on}
-{$define INUNICODESTRINGREPLACE}
-{$define SRString:=UnicodeString}
-{$define SRUpperCase:=WideUppercase}
-{$define SRPCHAR:=PChar}
-{$define SRCHAR:=Char}
-
-function UnicodeStringReplace(const S, OldPattern, NewPattern: UnicodeString;  Flags: TReplaceFlags): UnicodeString;
-{$i syssr.inc}
-
-{$undef INUNICODESTRINGREPLACE}
-{$undef SRString}
-{$undef SRUpperCase}
-{$undef SRPCHAR}
-{$undef SRCHAR}

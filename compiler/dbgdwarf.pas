@@ -1557,24 +1557,6 @@ implementation
                 ]);
               finish_entry;
             end;
-          u128bit:
-            begin
-              append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,'Int128'#0,
-                DW_AT_encoding,DW_FORM_data1,DW_ATE_unsigned,
-                DW_AT_byte_size,DW_FORM_data1,16
-                ]);
-              finish_entry;
-            end;
-          s128bit:
-            begin
-              append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,'Int128'#0,
-                DW_AT_encoding,DW_FORM_data1,DW_ATE_signed,
-                DW_AT_byte_size,DW_FORM_data1,16
-                ]);
-              finish_entry;
-            end;
           else
             internalerror(200601287);
         end;
@@ -2231,14 +2213,6 @@ implementation
 
             append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
             append_labelentry(DW_AT_high_pc,procendlabel);
-
-            if not(target_info.system in systems_darwin) then
-              begin
-                current_asmdata.asmlists[al_dwarf_aranges].Concat(
-                  tai_const.create_type_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry)));
-                current_asmdata.asmlists[al_dwarf_aranges].Concat(
-                  tai_const.Create_rel_sym(aitconst_ptr_unaligned,current_asmdata.RefAsmSymbol(procentry),procendlabel));
-              end;
           end;
 
         { Don't write the funcretsym explicitly, it's also in the
@@ -3160,7 +3134,7 @@ implementation
 
       var
         storefilepos  : tfileposinfo;
-        lenstartlabel,arangestartlabel: tasmlabel;
+        lenstartlabel : tasmlabel;
         i : longint;
         def: tdef;
         dbgname: string;
@@ -3199,39 +3173,6 @@ implementation
 
         { start abbrev section }
         new_section(current_asmdata.asmlists[al_dwarf_abbrev],sec_debug_abbrev,'',0);
-
-        if not(target_info.system in systems_darwin) then
-          begin
-            { start aranges section }
-            new_section(current_asmdata.asmlists[al_dwarf_aranges],sec_debug_aranges,'',0);
-
-            current_asmdata.getlabel(arangestartlabel,alt_dbgfile);
-
-            if use_64bit_headers then
-              current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_32bit_unaligned(longint($FFFFFFFF)));
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_rel_sym(offsetreltype,
-              arangestartlabel,current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'earanges0',AB_LOCAL,AT_DATA)));
-
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_label.create(arangestartlabel));
-
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_16bit_unaligned(2));
-
-            if not(tf_dwarf_relative_addresses in target_info.flags) then
-              current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_type_sym(offsetabstype,
-                current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_DATA)))
-            else
-              current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_rel_sym(offsetreltype,
-                current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_infosection0',AB_LOCAL,AT_DATA),
-                current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'debug_info0',AB_LOCAL,AT_DATA)));
-
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(sizeof(pint)));
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_8bit(0));
-            { alignment }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.create_32bit_unaligned(0));
-
-            { start ranges section }
-            new_section(current_asmdata.asmlists[al_dwarf_ranges],sec_debug_ranges,'',0);
-          end;
 
         { debug info header }
         current_asmdata.getlabel(lenstartlabel,alt_dbgfile);
@@ -3326,14 +3267,6 @@ implementation
 
         { end of abbrev table }
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
-
-        if not(target_info.system in systems_darwin) then
-          begin
-            { end of aranges table }
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_const.Create_aint(0));
-            current_asmdata.asmlists[al_dwarf_aranges].concat(tai_symbol.createname(target_asm.labelprefix+'earanges0',AT_DATA,0));
-          end;
 
         { reset all def debug states }
         for i:=0 to defnumberlist.count-1 do

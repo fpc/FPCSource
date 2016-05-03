@@ -20,7 +20,7 @@ unit fpddsqldb;
 interface
 
 uses
-  Classes, SysUtils, DB, sqltypes, sqldb, fpdatadict;
+  Classes, SysUtils, DB, sqldb, fpdatadict;
 
 Type
 
@@ -30,7 +30,6 @@ Type
   Private
     FConn: TSQLConnection;
   Protected
-    Function SQLDataTypeToFieldType(const SQLDataType: string) : TFieldType; virtual;
     Function CreateConnection(AConnectString  : String) : TSQLConnection; virtual; abstract;
     Function CreateSQLQuery(ADatasetOwner: TComponent) : TSQLQuery;
     Property Connection : TSQLConnection Read FConn;
@@ -39,7 +38,6 @@ Type
     Function HostSupported: Boolean; virtual;
     Function Connect(const AConnectString : String) : Boolean; override;
     Function GetTableList(List : TStrings) : Integer; override;
-    Function GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer; override;
     Function ImportFields(Table : TDDTableDef) : Integer; override;
     Function ImportIndexes(Table : TDDTableDef) : Integer; override;
     Function ViewTable(Const TableName: String; DatasetOwner : TComponent) : TDataset; override;
@@ -74,25 +72,6 @@ Resourcestring
 function TSQLDBDDEngine.HostSupported: Boolean;
 begin
   Result:=True;
-end;
-
-function TSQLDBDDEngine.SQLDataTypeToFieldType(const SQLDataType: string
-  ): TFieldType;
-begin
-  // ANSI standard types
-  case SQLDataType of
-    'char'    : Result := ftFixedChar;
-    'varchar' : Result := ftString;
-    'smallint': Result := ftSmallint;
-    'int',
-    'integer' : Result := ftInteger;
-    'bigint'  : Result := ftLargeInt;
-    'float'   : Result := ftFloat;
-    'date'    : Result := ftDate;
-    'time'    : Result := ftTime;
-    'datetime': Result := ftDateTime;
-    else        Result := ftUnknown;
-  end;
 end;
 
 function TSQLDBDDEngine.CreateSQLQuery(ADatasetOwner: TComponent): TSQLQuery;
@@ -142,16 +121,10 @@ begin
   result := list.count;
 end;
 
-Function TSQLDBDDEngine.GetObjectList(ASchemaType: TSchemaType; AList : TSqlObjectIdentifierList): Integer;
-begin
-  Result := FConn.GetObjectNames(ASchemaType, AList); 
-end;
-
-
 function TSQLDBDDEngine.ImportFields(Table: TDDTableDef): Integer;
 
 Const
-  SQL = 'SELECT * FROM %s WHERE (1=0)';
+  SQL = 'SELECT * from %s where (1=0)';
 
 Var
   Q : TSQLQuery;
@@ -172,7 +145,7 @@ begin
 end;
 
 
-function TSQLDBDDEngine.ImportIndexes(Table: TDDTableDef): Integer;
+Function TSQLDBDDEngine.ImportIndexes(Table : TDDTableDef) : Integer;
 begin
 end;
 
@@ -236,11 +209,11 @@ begin
   Try
     Q.Database:=FConn;
     Q.Transaction:=FConn.Transaction;
-    Q.SQL.text:=Format('SELECT * FROM %s WHERE (1=2)',[ATableName]);
+    Q.SQL.text:=Format('SELECT * FROM %s WHERE (1=2)',[ATAbleName]);
     Q.ReadOnly:=False;
     Q.Prepare;
-    Q.ServerIndexDefs.Update;
-    IndexDefsToDDIndexDefs(Q.ServerIndexDefs,Defs);
+    Q.IndexDefs.Update;
+    IndexDefsToDDIndexDefs(Q.IndexDefs,Defs);
     Result:=Defs.Count;
   finally
     Q.Free;
@@ -249,7 +222,7 @@ end;
 
 class function TSQLDBDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
 begin
-  Result:=[ecImport, ecViewTable, ecRunQuery, ecTableIndexes];
+  Result:=[ecimport,ecViewTable, ecRunQuery, ecTableIndexes];
 end;
 
 end.

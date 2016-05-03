@@ -104,7 +104,7 @@ interface
 
     { checks whether sym is a static field and if so, translates the access
       to the appropriate node tree }
-    function handle_staticfield_access(sym: tsym; var p1: tnode): boolean;
+    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
 
     { returns true if n is an array element access of a bitpacked array with
       elements of the which the vitsize mod 8 <> 0, or if is a field access
@@ -742,8 +742,7 @@ implementation
               callparan:
                 begin
                   { call to decr? }
-                  if is_managed_type(tunarynode(p).left.resultdef) and
-                     assigned(tcallparanode(p).parasym) and (tcallparanode(p).parasym.varspez=vs_out) then
+                  if is_managed_type(tunarynode(p).left.resultdef) and (tcallparanode(p).parasym.varspez=vs_out) then
                     begin
                       result:=NODE_COMPLEXITY_INF;
                       exit;
@@ -814,7 +813,7 @@ implementation
               ordconstn:
                 begin
 {$ifdef ARM}
-                  if not(is_shifter_const(aint(tordconstnode(p).value.svalue),dummy)) then
+                  if not(is_shifter_const(tordconstnode(p).value.svalue,dummy)) then
                     result:=2;
 {$endif ARM}
                   exit;
@@ -1182,7 +1181,7 @@ implementation
       end;
 
 
-    function handle_staticfield_access(sym: tsym; var p1: tnode): boolean;
+    function handle_staticfield_access(sym: tsym; nested: boolean; var p1: tnode): boolean;
 
       function handle_generic_staticfield_access:boolean;
         var
@@ -1229,7 +1228,10 @@ implementation
             result:=true;
             if handle_generic_staticfield_access then
               exit;
-            static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
+            if not nested then
+              static_name:=lower(sym.owner.name^)+'_'+sym.name
+            else
+             static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
             if sym.owner.defowner.typ=objectdef then
               searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable,[ssf_search_helper])
             else

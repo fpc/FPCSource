@@ -78,9 +78,7 @@ begin
    else
      begin
         exitcode:=0;
-{$ifndef CPUJVM}
         erroraddr:=nil;
-{$endif ndef CPUJVM}
      end;
 end;
 
@@ -101,12 +99,9 @@ function DoMem (Var StartMem : sizeint): sizeint;
       end;
   end;
 
-{$ifndef CPUJVM}
 var
   hstatus : TFPCHeapstatus;
-{$endif ndef CPUJVM}
 begin
-{$ifndef CPUJVM}
   hstatus:=GetFPCHeapStatus;
   if StartMem=0 then
     begin
@@ -120,7 +115,6 @@ begin
       DoMem:=hstatus.CurrHeapUsed-StartMem;
     end;
   StartMem:=hstatus.CurrHeapUsed;
-{$endif ndef CPUJVM}
 end;
 
 

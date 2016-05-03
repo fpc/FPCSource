@@ -75,7 +75,7 @@ const
 
 {--- functions in V39 or higher (Release 3) ---}
 
-VAR ColorWheelBase : pLibrary = nil;
+VAR ColorWheelBase : pLibrary;
 
 const
     COLORWHEELNAME : Pchar = 'colorwheel.library';
@@ -85,16 +85,50 @@ PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB location 'a0'; hsb : pColorWheelH
 
 IMPLEMENTATION
 
+uses amsgbox;
+
+
+{$I useautoopenlib.inc}
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of colorwheel.library}
+
+var
+    colorwheel_exit : Pointer;
+
+procedure ClosecolorwheelLibrary;
+begin
+    ExitProc := colorwheel_exit;
+    if ColorWheelBase <> nil then begin
+        CloseLibrary(ColorWheelBase);
+        ColorWheelBase := nil;
+    end;
+end;
+
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  ColorWheelBase := OpenLibrary(COLORWHEELNAME,LIBVERSION);
-finalization
-  if Assigned(ColorWheelBase) then
-    CloseLibrary(ColorWheelBase);
+begin
+    ColorWheelBase := nil;
+    ColorWheelBase := OpenLibrary(COLORWHEELNAME,LIBVERSION);
+    if ColorWheelBase <> nil then begin
+        colorwheel_exit := ExitProc;
+        ExitProc := @ClosecolorwheelLibrary
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open colorwheel.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$else}
+   {$Warning No autoopening of colorwheel.library compiled}
+   {$Info Make sure you open colorwheel.library yourself}
+{$endif use_auto_openlib}
+
 END. (* UNIT COLORWHEEL *)
 
 

@@ -38,7 +38,6 @@ interface
           procedure generate_nested_access(vs: tsym);virtual;
           procedure generate_absaddr_access(vs: tabsolutevarsym); virtual;
           procedure generate_threadvar_access(gvs: tstaticvarsym); virtual;
-          function use_indirect_symbol(gvs: tstaticvarsym): boolean;
          public
           procedure pass_generate_code;override;
           procedure changereflocation(const ref: treference);
@@ -69,7 +68,7 @@ implementation
     uses
       cutils,
       systems,
-      verbose,globals,constexp,fmodule,
+      verbose,globals,constexp,
       nutils,
       symtable,symconst,symdef,defutil,paramgr,ncon,nbas,ncgrtti,
       aasmbase,
@@ -250,7 +249,7 @@ implementation
 
     procedure tcgloadnode.generate_absaddr_access(vs: tabsolutevarsym);
       begin
-        location.reference.offset:=asizeint(vs.addroffset);
+        location.reference.offset:=aint(vs.addroffset);
       end;
 
 
@@ -274,9 +273,9 @@ implementation
            begin
              if gvs.localloc.loc=LOC_INVALID then
                if not(vo_is_weak_external in gvs.varoptions) then
-                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment)
+                 reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
                else
-                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment)
+                 reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
              else
                location:=gvs.localloc;
            end
@@ -306,9 +305,9 @@ implementation
              hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,pvd,OC_EQ,0,hregister,norelocatelab);
              { no, call it with the index of the threadvar as parameter }
              if not(vo_is_weak_external in gvs.varoptions) then
-               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,sizeof(pint))
+               reference_reset_symbol(tvref,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
              else
-               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,sizeof(pint));
+               reference_reset_symbol(tvref,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
              href:=tvref;
              hlcg.g_set_addr_nonbitpacked_field_ref(current_asmdata.CurrAsmList,
                tv_rec,
@@ -348,26 +347,6 @@ implementation
        end;
 
 
-    function tcgloadnode.use_indirect_symbol(gvs:tstaticvarsym):boolean;
-      begin
-        { we are using a direct reference if any of the following is true:
-          - the target does not support packages
-          - the target does not use indirect references
-          - the variable is declared as (weak) external
-          - G- is set
-          - the variable is located inside the same unit }
-        result:=(tf_supports_packages in target_info.flags) and
-                (target_info.system in systems_indirect_var_imports) and
-                (gvs.varoptions*[vo_is_external,vo_is_weak_external]=[]) and
-                (gvs.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                (cs_imported_data in current_settings.localswitches) and
-                not sym_is_owned_by(gvs,current_module.globalsymtable) and
-                (
-                  (current_module.globalsymtable=current_module.localsymtable) or
-                  not sym_is_owned_by(gvs,current_module.localsymtable)
-                );
-      end;
-
     procedure tcgloadnode.pass_generate_code;
       var
         hregister : tregister;
@@ -392,7 +371,7 @@ implementation
                    toaddr :
                      generate_absaddr_access(tabsolutevarsym(symtableentry));
                    toasm :
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname,AT_DATA);
+                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname);
                    else
                      internalerror(200310283);
                  end;
@@ -422,9 +401,9 @@ implementation
                  begin
                    hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                    if not(vo_is_weak_external in gvs.varoptions) then
-                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA)
+                     location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname)
                    else
-                     location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname,AT_DATA);
+                     location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
                    reference_reset_base(location.reference,hregister,0,location.reference.alignment);
                  end
@@ -435,12 +414,10 @@ implementation
                else
                  begin
                    if gvs.localloc.loc=LOC_INVALID then
-                     begin
-                       if not(vo_is_weak_external in gvs.varoptions) then
-                         reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname,AT_DATA,use_indirect_symbol(gvs)),0,location.reference.alignment)
-                       else
-                         reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname,AT_DATA),0,location.reference.alignment)
-                     end
+                     if not(vo_is_weak_external in gvs.varoptions) then
+                       reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
+                     else
+                       reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
                    else
                      location:=gvs.localloc;
                  end;
@@ -552,8 +529,10 @@ implementation
                              current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
                            end;
             {$endif vtentry}
-                         if (left.resultdef.typ=objectdef) and
-                            assigned(tobjectdef(left.resultdef).vmt_field) then
+                         { a classrefdef already points to the VMT, and
+                           so do interfaces }
+                         if (left.resultdef.typ<>classrefdef) and
+                            not is_any_interface_kind(left.resultdef) then
                            begin
                              { vmt pointer is a pointer to the vmt record }
                              hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
@@ -562,23 +541,15 @@ implementation
                              hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
                              hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,tfieldvarsym(tobjectdef(left.resultdef).vmt_field).vardef,vmtdef,href,hregister);
                            end
-                         else if left.resultdef.typ=classrefdef then
-                           begin
-                             { classrefdef is a pointer to the vmt already }
-                             hregister:=location.registerhi;
-                             vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def);
-                             hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,vmtdef,hregister);
-                           end
-                         else if is_any_interface_kind(left.resultdef) then
-                           begin
-                             { an interface is a pointer to a pointer to a vmt }
-                             hlcg.reference_reset_base(href,vd,location.registerhi,0,vd.alignment);
-                             vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
-                             hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,vmtdef);
-                             hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,vmtdef,vmtdef,href,hregister);
-                           end
                          else
-                           internalerror(2015112501);
+                           begin
+                             hregister:=location.registerhi;
+                             if left.resultdef.typ=classrefdef then
+                               vmtdef:=cpointerdef.getreusable(tobjectdef(tclassrefdef(left.resultdef).pointeddef).vmt_def)
+                             else
+                               vmtdef:=cpointerdef.getreusable(tobjectdef(left.resultdef).vmt_def);
+                             hlcg.g_ptrtypecast_reg(current_asmdata.CurrAsmList,left.resultdef,vmtdef,hregister);
+                           end;
                          { load method address }
                          vmtentry:=tabstractrecordsymtable(trecorddef(vmtdef.pointeddef).symtable).findfieldbyoffset(
                            tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber));
@@ -590,7 +561,7 @@ implementation
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION),0,procdef.address_type.alignment);
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,procdef.address_type.alignment);
                          location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,cprocvardef.getreusableprocaddr(procdef));
                          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,procdef,cprocvardef.getreusableprocaddr(procdef),href,location.register);
                        end;
@@ -610,9 +581,9 @@ implementation
                       { def_cgsize does not work for tprocdef, so we use pd.address_type }
                       location.size:=def_cgsize(pd.address_type);
                       if not(po_weakexternal in pd.procoptions) then
-                        location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname,AT_FUNCTION)
+                        location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
                       else
-                        location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname,AT_FUNCTION);
+                        location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname);
                    end;
               end;
            labelsym :
@@ -861,7 +832,7 @@ implementation
                     LOC_MMREGISTER,
                     LOC_CMMREGISTER:
                       begin
-{$if defined(x86) and not defined(llvm)}
+{$ifdef x86}
                         if (right.resultdef.typ=floatdef) and
                            not use_vectorfpu(right.resultdef) then
                           begin
@@ -964,7 +935,7 @@ implementation
                   { we can't do direct moves between fpu and mm registers }
                   if left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
                     begin
-{$if defined(x86) and not defined(llvm)}
+{$ifdef x86}
                       if not use_vectorfpu(right.resultdef) then
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }

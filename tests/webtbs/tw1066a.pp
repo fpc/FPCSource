@@ -1,4 +1,3 @@
-{ %skiptarget=android }
 { %CPU=i386 }
 { %OPT=-Cg- }
 { Source provided for Free Pascal Bug Report 1066 }

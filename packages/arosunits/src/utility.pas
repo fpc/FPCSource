@@ -14,6 +14,7 @@
  **********************************************************************}
 unit utility;
 
+{$mode objfpc}{$H+}
 {$PACKRECORDS C}
 
 interface
@@ -252,88 +253,41 @@ function UnpackStructureTags(Pack: APTR; PackTable: PLongWord; TagList: PTagItem
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR; inline;
 
 // VarArgs Versions
-function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject;
-function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR;
-
-function TAG_(Value: Pointer): PtrUInt; overload; inline;
-function TAG_(Value: PChar): PtrUInt; overload; inline;
-function TAG_(Value: boolean): PtrUInt; overload; inline;
-function TAG_(Value: LongInt): PtrUInt; overload; inline;
-
-function AsTag(Value: Pointer): PtrUInt; overload; inline;
-function AsTag(Value: PChar): PtrUInt; overload; inline;
-function AsTag(Value: boolean): PtrUInt; overload; inline;
-function AsTag(Value: LongInt): PtrUInt; overload; inline;
+function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
+function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
 
 implementation
 
-function AllocNamedObject(const Name: STRPTR; const Tags: array of PtrUInt): PNamedObject; inline;
+uses
+  tagsarray,longarray;
+
+function AllocNamedObject(const Name: STRPTR; const Tags: array of const): PNamedObject;
+var
+  TagList: TTagsList;
 begin
-  AllocNamedObject := AllocNamedObjectA(Name, @Tags);
+  AddTags(TagList, Tags);
+  Result := AllocNamedObjectA(Name, GetTagPtr(TagList));
 end;
 
-function CallHook(Hook: PHook; Object_: APTR; const Params: array of PtrUInt): IPTR; inline;
+function CallHook(Hook: PHook; Object_: APTR; const Params: array of const): IPTR;
+var
+  Args: TArgList;
 begin
-  CallHook := CallHookPkt(Hook, Object_ , @Params);
+  AddArguments(Args, params);
+  CallHook := CallHookPkt(Hook, Object_ , GetArgPtr(Args));
 end;
 
 function CALLHOOKPKT_(Hook: PHook; Object_: APTR; Message: APTR): IPTR;
 var
   FuncPtr: THookFunctionProc;
 begin
-  CALLHOOKPKT_ := 0;
+  Result := 0;
   if (Hook = nil) or (Object_ = nil) or (Message = nil) then
     Exit;
   if (Hook^.h_Entry = 0) then
     Exit;
   FuncPtr := THookFunctionProc(Hook^.h_Entry);
-  CALLHOOKPKT_ := FuncPtr(Hook, Object_, Message);
-end;
-
-function TAG_(Value: pointer): PtrUInt; inline;
-begin
-  TAG_ := PtrUInt(Value);
-end;
-
-function TAG_(value: pchar): PtrUInt; inline;
-begin
-  TAG_ := PtrUInt(Value);
-end;
-
-function TAG_(value: boolean): PtrUInt; inline;
-begin
-  if Value then
-    TAG_ := LTrue
-  else
-    TAG_ := LFalse;
-end;
-
-function TAG_(Value: LongInt): PtrUInt; inline;
-begin
-  TAG_ := PtrUInt(Value);
-end;
-
-function AsTag(Value: pointer): PtrUInt; inline;
-begin
-  AsTag := PtrUInt(Value);
-end;
-
-function AsTag(value: pchar): PtrUInt; inline;
-begin
-  AsTag := PtrUInt(Value);
-end;
-
-function AsTag(value: boolean): PtrUInt; inline;
-begin
-  if Value then
-    AsTag := LTrue
-  else
-    AsTag := LFalse;
-end;
-
-function AsTag(Value: LongInt): PtrUInt; inline;
-begin
-  AsTag := PtrUInt(Value);
+  Result := FuncPtr(Hook, Object_, Message);
 end;
 
 end.

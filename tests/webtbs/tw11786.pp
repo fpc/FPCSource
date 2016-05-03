@@ -1,4 +1,4 @@
-{ %skiptarget=darwin,android }
+{ %skiptarget=darwin}
 { %cpu=i386 }
 { %OPT=-Cg- }
 var

@@ -126,14 +126,11 @@ unit cgx86;
         procedure g_overflowcheck(list: TAsmList; const l:tlocation;def:tdef);override;
 
         procedure make_simple_ref(list:TAsmList;var ref: treference);
-        procedure make_direct_ref(list:TAsmList;var ref: treference);
 
         function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
 
         procedure generate_leave(list : TAsmList);
       protected
-        in_make_direct_ref : boolean;
-
         procedure a_jmp_cond(list : TAsmList;cond : TOpCmp;l: tasmlabel);
         procedure check_register_size(size:tcgsize;reg:tregister);
 
@@ -427,9 +424,6 @@ unit cgx86;
         if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
           exit;
 
-        { handle indirect symbols first }
-        make_direct_ref(list,ref);
-
 {$if defined(x86_64)}
         { Only 32bit is allowed }
         { Note that this isn't entirely correct: for RIP-relative targets/memory models,
@@ -651,28 +645,6 @@ unit cgx86;
               ref.segment:=NR_NO;
           end;
 {$endif}
-      end;
-
-
-    procedure tcgx86.make_direct_ref(list:tasmlist;var ref:treference);
-      var
-        href : treference;
-        hreg : tregister;
-      begin
-        if in_make_direct_ref then
-          exit;
-        in_make_direct_ref:=true;
-        if assigned(ref.symbol) and (ref.symbol.bind in asmsymbindindirect) then
-          begin
-            hreg:=getaddressregister(list);
-            reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
-            a_op_ref_reg(list,OP_MOVE,OS_ADDR,href,hreg);
-            if ref.base<>NR_NO then
-              a_op_reg_reg(list,OP_ADD,OS_ADDR,ref.base,hreg);
-            ref.symbol:=nil;
-            ref.base:=hreg;
-          end;
-        in_make_direct_ref:=false;
       end;
 
 
@@ -1040,37 +1012,31 @@ unit cgx86;
 
     procedure tcgx86.a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);
       var
-        dirref,tmpref : treference;
+        tmpref  : treference;
       begin
-        dirref:=ref;
-
-        { this could probably done in a more optimized way, but for now this
-          is sufficent }
-        make_direct_ref(list,dirref);
-
-        with dirref do
+        with ref do
           begin
             if (base=NR_NO) and (index=NR_NO) then
               begin
-                if assigned(dirref.symbol) then
+                if assigned(ref.symbol) then
                   begin
                     if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                       ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                       ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                         (cs_create_pic in current_settings.moduleswitches)) then
                       begin
-                        if (dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                        if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                            ((cs_create_pic in current_settings.moduleswitches) and
-                            (dirref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
+                            (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
                           begin
                              reference_reset_base(tmpref,
-                               g_indirect_sym_load(list,dirref.symbol.name,asmsym2indsymflags(dirref.symbol)),
+                               g_indirect_sym_load(list,ref.symbol.name,asmsym2indsymflags(ref.symbol)),
                                offset,sizeof(pint));
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end
                        else
                          begin
                            include(current_procinfo.flags,pi_needs_got);
-                           reference_reset_base(tmpref,current_procinfo.got,offset,dirref.alignment);
+                           reference_reset_base(tmpref,current_procinfo.got,offset,ref.alignment);
                            tmpref.symbol:=symbol;
                            tmpref.relsymbol:=current_procinfo.CurrGOTLabel;
                            list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
@@ -1078,17 +1044,17 @@ unit cgx86;
                       end
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
-                             and not(dirref.symbol.bind=AB_LOCAL)
+                             and not(ref.symbol.bind=AB_LOCAL)
 {$endif x86_64}
                             then
                       begin
 {$ifdef x86_64}
-                        reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
+                        reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=NR_RIP;
                         list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                        reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
+                        reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=current_procinfo.got;
                         include(current_procinfo.flags,pi_needs_got);
@@ -1103,7 +1069,7 @@ unit cgx86;
 			 then
                       begin
                         { Win64 and Darwin/x86_64 always require RIP-relative addressing }
-                        tmpref:=dirref;
+                        tmpref:=ref;
                         tmpref.base:=NR_RIP;
                         tmpref.refaddr:=addr_pic_no_got;
                         list.concat(Taicpu.op_ref_reg(A_LEA,S_Q,tmpref,r));
@@ -1111,7 +1077,7 @@ unit cgx86;
 {$endif x86_64}
                     else
                       begin
-                        tmpref:=dirref;
+                        tmpref:=ref;
                         tmpref.refaddr:=ADDR_FULL;
                         list.concat(Taicpu.op_ref_reg(A_MOV,tcgsize2opsize[OS_ADDR],tmpref,r));
                       end
@@ -1127,7 +1093,7 @@ unit cgx86;
                 a_load_reg_reg(list,OS_ADDR,OS_ADDR,base,r)
             else
               begin
-                tmpref:=dirref;
+                tmpref:=ref;
                 make_simple_ref(list,tmpref);
                 list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
               end;
@@ -1147,7 +1113,7 @@ unit cgx86;
                       system_i386_linux,system_i386_android:
                         if segment=NR_GS then
                           begin
-                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,dirref.alignment);
+                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,ref.alignment);
                             tmpref.segment:=NR_GS;
                             list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
                           end
@@ -1202,22 +1168,14 @@ unit cgx86;
 
 
     procedure tcgx86.a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister);
-       var
-         tmpref : treference;
        begin
-         tmpref:=ref;
-         make_simple_ref(list,tmpref);
-         floatload(list,fromsize,tmpref);
+         floatload(list,fromsize,ref);
          a_loadfpu_reg_reg(list,fromsize,tosize,NR_ST,reg);
        end;
 
 
     procedure tcgx86.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
-       var
-         tmpref : treference;
        begin
-         tmpref:=ref;
-         make_simple_ref(list,tmpref);
          { in case a record returned in a floating point register
            (LOC_FPUREGISTER with OS_F32/OS_F64) is stored in memory
            (LOC_REFERENCE with OS_32/OS_64), we have to adjust the
@@ -1232,7 +1190,7 @@ unit cgx86;
           end;
          if reg<>NR_ST then
            a_loadfpu_reg_reg(list,fromsize,tosize,reg,NR_ST);
-         floatstore(list,tosize,tmpref);
+         floatstore(list,tosize,ref);
        end;
 
 
@@ -1297,20 +1255,11 @@ unit cgx86;
               { needs correct size in case of spilling }
               case fromsize of
                 OS_F32:
-                  if UseAVX then
-                    instr:=taicpu.op_reg_reg(A_VMOVAPS,S_NO,reg1,reg2)
-                  else
-                    instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
+                  instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
                 OS_F64:
-                  if UseAVX then
-                    instr:=taicpu.op_reg_reg(A_VMOVAPD,S_NO,reg1,reg2)
-                  else
-                    instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
+                  instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
                 OS_M64:
-                  if UseAVX then
-                    instr:=taicpu.op_reg_reg(A_VMOVQ,S_NO,reg1,reg2)
-                  else
-                    instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
+                  instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
                 else
                   internalerror(2006091201);
               end
@@ -2350,7 +2299,7 @@ unit cgx86;
 
     type  copymode=(copy_move,copy_mmx,copy_string,copy_mm,copy_avx);
 
-    var srcref,dstref:Treference;
+    var srcref,dstref,tmpref:Treference;
         r,r0,r1,r2,r3:Tregister;
         helpsize:tcgint;
         copysize:byte;
@@ -2359,12 +2308,6 @@ unit cgx86;
         saved_ds,saved_es: Boolean;
 
     begin
-      srcref:=source;
-      dstref:=dest;
-{$ifndef i8086}
-      make_simple_ref(list,srcref);
-      make_simple_ref(list,dstref);
-{$endif not i8086}
       cm:=copy_move;
       helpsize:=3*sizeof(aword);
       if cs_opt_size in current_settings.optimizerswitches then
@@ -2402,13 +2345,15 @@ unit cgx86;
          not(len in copy_len_sizes) then
         cm:=copy_string;
 {$ifndef i8086}
-      if (srcref.segment<>NR_NO) or
-         (dstref.segment<>NR_NO) then
+      if (source.segment<>NR_NO) or
+         (dest.segment<>NR_NO) then
         cm:=copy_string;
 {$endif not i8086}
       case cm of
         copy_move:
           begin
+            dstref:=dest;
+            srcref:=source;
             copysize:=sizeof(aint);
             cgsize:=int_cgsize(copysize);
             while len<>0 do
@@ -2449,6 +2394,8 @@ unit cgx86;
 
         copy_mmx:
           begin
+            dstref:=dest;
+            srcref:=source;
             r0:=getmmxregister(list);
             r1:=NR_NO;
             r2:=NR_NO;
@@ -2492,6 +2439,8 @@ unit cgx86;
 
         copy_mm:
           begin
+            dstref:=dest;
+            srcref:=source;
             r0:=NR_NO;
             r1:=NR_NO;
             r2:=NR_NO;
@@ -2543,6 +2492,8 @@ unit cgx86;
 
         copy_avx:
           begin
+            dstref:=dest;
+            srcref:=source;
             r0:=NR_NO;
             r1:=NR_NO;
             r2:=NR_NO;
@@ -2551,45 +2502,61 @@ unit cgx86;
               begin
                 r0:=getmmregister(list,OS_M128);
                 { we want to force the use of vmovups, so do not use a_loadmm_ref_reg }
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r0));
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r0));
                 inc(srcref.offset,16);
               end;
             if len>=32 then
               begin
                 r1:=getmmregister(list,OS_M128);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r1));
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r1));
                 inc(srcref.offset,16);
               end;
             if len>=48 then
               begin
                 r2:=getmmregister(list,OS_M128);
-                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,srcref,r2));
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVUPS,S_NO,tmpref,r2));
                 inc(srcref.offset,16);
               end;
             if (len=8) or (len=24) or (len=40) then
               begin
                 r3:=getmmregister(list,OS_M64);
-                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,srcref,r3));
+                tmpref:=srcref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_ref_reg(A_VMOVSD,S_NO,tmpref,r3));
               end;
 
             if len>=16 then
               begin
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,dstref));
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r0,tmpref));
                 inc(dstref.offset,16);
               end;
             if len>=32 then
               begin
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,dstref));
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r1,tmpref));
                 inc(dstref.offset,16);
               end;
             if len>=48 then
               begin
-                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,dstref));
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVUPS,S_NO,r2,tmpref));
                 inc(dstref.offset,16);
               end;
             if (len=8) or (len=24) or (len=40) then
               begin
-                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,dstref));
+                tmpref:=dstref;
+                make_simple_ref(list,tmpref);
+                list.concat(taicpu.op_reg_ref(A_VMOVSD,S_NO,r3,tmpref));
               end;
           end
         else {copy_string, should be a good fallback in case of unhandled}
@@ -2598,7 +2565,7 @@ unit cgx86;
             if (dest.segment=NR_NO) and
                (segment_regs_equal(NR_SS,NR_DS) or ((dest.base<>NR_BP) and (dest.base<>NR_SP))) then
               begin
-                a_loadaddr_ref_reg(list,dstref,REGDI);
+                a_loadaddr_ref_reg(list,dest,REGDI);
                 saved_es:=false;
 {$ifdef volatile_es}
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
@@ -2607,6 +2574,7 @@ unit cgx86;
               end
             else
               begin
+                dstref:=dest;
                 dstref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,dstref,REGDI);
 {$ifdef volatile_es}
@@ -2627,12 +2595,14 @@ unit cgx86;
             if ((source.segment=NR_NO) and (segment_regs_equal(NR_SS,NR_DS) or ((source.base<>NR_BP) and (source.base<>NR_SP)))) or
                (is_segment_reg(source.segment) and segment_regs_equal(source.segment,NR_DS)) then
               begin
+                srcref:=source;
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
                 saved_ds:=false;
               end
             else
               begin
+                srcref:=source;
                 srcref.segment:=NR_NO;
                 a_loadaddr_ref_reg(list,srcref,REGSI);
                 list.concat(taicpu.op_reg(A_PUSH,push_segment_size,NR_DS));
@@ -2877,12 +2847,10 @@ unit cgx86;
       procedure push_regs;
         var
           r: longint;
-          usedregs: tcpuregisterset;
         begin
           regsize:=0;
-          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
           for r := low(saved_standard_registers) to high(saved_standard_registers) do
-            if saved_standard_registers[r] in usedregs then
+            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
               begin
                 inc(regsize,sizeof(aint));
                 list.concat(Taicpu.Op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE)));
@@ -3138,12 +3106,10 @@ unit cgx86;
         r: longint;
         hreg: tregister;
         href: treference;
-        usedregs: tcpuregisterset;
       begin
         href:=current_procinfo.save_regs_ref;
-        usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
         for r:=high(saved_standard_registers) downto low(saved_standard_registers) do
-          if saved_standard_registers[r] in usedregs then
+          if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
             begin
               hreg:=newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE);
               { Allocate register so the optimizer does not remove the load }

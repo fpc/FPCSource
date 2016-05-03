@@ -1194,7 +1194,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,p1) then
+                         if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
@@ -1224,7 +1224,7 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         if not handle_staticfield_access(sym,p1) then
+                         if not handle_staticfield_access(sym,false,p1) then
                            propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          { catch expressions like "(propx):=1;" }
@@ -1331,7 +1331,7 @@ implementation
                    end;
                  fieldvarsym:
                    begin
-                      if not handle_staticfield_access(sym,p1) then
+                      if not handle_staticfield_access(sym,true,p1) then
                         begin
                           if isclassref then
                             if assigned(p1) and
@@ -2369,13 +2369,12 @@ implementation
                            end;
                        end
                      else
-                       if (token<>_ID) or not try_type_helper(p1,nil) then
-                         begin
-                           Message(parser_e_invalid_qualifier);
-                           p1.destroy;
-                           p1:=cerrornode.create;
-                           consume(_ID);
-                         end;
+                       begin
+                         Message(parser_e_invalid_qualifier);
+                         p1.destroy;
+                         p1:=cerrornode.create;
+                         consume(_ID);
+                       end;
                    end;
                   variantdef:
                     begin
@@ -2721,9 +2720,6 @@ implementation
            tokenpos:=current_filepos;
            p1:=nil;
            spezcontext:=nil;
-
-           { avoid warning }
-           fillchar(dummypos,sizeof(dummypos),0);
 
            allowspecialize:=not (m_delphi in current_settings.modeswitches) and
                             not (ef_had_specialize in flags) and
@@ -3093,11 +3089,7 @@ implementation
                           { it as a class member                                }
                           if (assigned(current_structdef) and (current_structdef<>hdef) and is_owned_by(current_structdef,hdef)) or
                              (assigned(current_procinfo) and current_procinfo.get_normal_proc.procdef.no_self_node) then
-                            begin
-                              p1:=ctypenode.create(hdef);
-                              if not is_record(hdef) then
-                                p1:=cloadvmtaddrnode.create(p1);
-                            end
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else
                             p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }
@@ -3231,7 +3223,6 @@ implementation
              exit;
            result:=not current_procinfo.get_normal_proc.procdef.no_self_node;
          end;
-
 
       {---------------------------------------------
                       Factor (Main)
@@ -3755,21 +3746,21 @@ implementation
                     postfixoperators(p1,again,getaddr);
                   end;
                end;
-             _OBJCPROTOCOL:
-               begin
-                 { The @protocol keyword is used in two ways in Objective-C:
-                     1) to declare protocols (~ Object Pascal interfaces)
-                     2) to obtain the metaclass (~ Object Pascal) "class of")
-                        of a declared protocol
-                   This code is for handling the second case. Because of 1),
-                   we cannot simply use a system unit symbol.
-                 }
-                 consume(_OBJCPROTOCOL);
-                 consume(_LKLAMMER);
-                 p1:=factor(false,[]);
-                 consume(_RKLAMMER);
-                 p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
-               end;
+           _OBJCPROTOCOL:
+             begin
+               { The @protocol keyword is used in two ways in Objective-C:
+                   1) to declare protocols (~ Object Pascal interfaces)
+                   2) to obtain the metaclass (~ Object Pascal) "class of")
+                      of a declared protocol
+                 This code is for handling the second case. Because of 1),
+                 we cannot simply use a system unit symbol.
+               }
+               consume(_OBJCPROTOCOL);
+               consume(_LKLAMMER);
+               p1:=factor(false,[]);
+               consume(_RKLAMMER);
+               p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
+             end;
 
              else
                begin
@@ -3971,29 +3962,26 @@ implementation
             end
           else
             begin
-              if gensym.typ=procsym then
+              result:=nil;
+              { check if it's a method/class method }
+              if is_member_read(gensym,gensym.owner,result,parseddef) then
                 begin
-                  result:=nil;
-                  { check if it's a method/class method }
-                  if is_member_read(gensym,gensym.owner,result,parseddef) then
+                  { if we are accessing a owner procsym from the nested }
+                  { class we need to call it as a class member }
+                  if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
+                      assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
                     begin
-                      { if we are accessing a owner procsym from the nested }
-                      { class we need to call it as a class member }
-                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) and
-                          assigned(current_structdef) and (current_structdef<>parseddef) and is_owned_by(current_structdef,parseddef) then
+                      result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
+                      { not srsymtable.symtabletype since that can be }
+                      { withsymtable as well                          }
+                      if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
                         begin
-                          result:=cloadvmtaddrnode.create(ctypenode.create(parseddef));
-                          { not srsymtable.symtabletype since that can be }
-                          { withsymtable as well                          }
-                          if (gensym.owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                            begin
-                              do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
-                              spezcontext:=nil;
-                            end
-                          else
-                            { no procsyms in records (yet) }
-                            internalerror(2015092704);
-                        end;
+                          do_member_read(tabstractrecorddef(parseddef),getaddr,gensym,result,again,[],spezcontext);
+                          spezcontext:=nil;
+                        end
+                      else
+                        { no procsyms in records (yet) }
+                        internalerror(2015092704);
                     end
                   else
                     begin

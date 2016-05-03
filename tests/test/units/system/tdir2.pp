@@ -30,7 +30,7 @@ end;
 
 procedure testansi;
 const
-  dirname: utf8string = 'œ≈†®';
+  dirname: utf8string = 'éż†®';
 var
   orgdir, newdir: rawbytestring;
 Begin
@@ -79,7 +79,7 @@ end;
 
 procedure testuni;
 const
-  dirname: unicodestring = 'œ≈†®';
+  dirname: unicodestring = 'éż†®';
 var
   orgdir, newdir: unicodestring;
 Begin

@@ -22,7 +22,7 @@
   in here. If you find any bugs please let me know.
   25 Aug 2000.
 
-  Added functions and procedures with array of PtrUInt.
+  Added functions and procedures with array of const.
   For use with fpc 1.0.7
   30 Nov 2002.
 
@@ -37,6 +37,7 @@
 
 }
 
+{$mode objfpc}
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
     {$smartlink on}
@@ -201,64 +202,64 @@ uses exec, utility;
   { (struct QSharedMessagePort  mp) A shared message port created with QCreateSharedMessagePort()  }
      QSESSION_SHAREDMSGPORT = $b0000002;
 
-VAR AMarqueeBase : pLibrary = nil;
+VAR AMarqueeBase : pLibrary;
 
-FUNCTION QFreeSession(session : pQSession location 'a0') : LONGINT; syscall AMarqueeBase 36;
-FUNCTION QDebugOp(session : pQSession location 'a0'; string_ : pCHar location 'a1') : LONGINT; syscall AMarqueeBase 42;
-FUNCTION QGetOp(session : pQSession location 'a0'; path : pCHar location 'a1'; maxBytes : LONGINT location 'd0') : LONGINT; syscall AMarqueeBase 48;
-FUNCTION QDeleteOp(session : pQSession location 'a0'; path : pCHar location 'a1') : LONGINT; syscall AMarqueeBase 54;
-FUNCTION QRenameOp(session : pQSession location 'a0'; path : pCHar location 'a1'; label_ : pCHar location 'd0') : LONGINT; syscall AMarqueeBase 60;
-FUNCTION QSubscribeOp(session : pQSession location 'a0'; path : pCHar location 'a1'; maxBytes : LONGINT location 'd0') : LONGINT; syscall AMarqueeBase 66;
-FUNCTION QSetOp(session : pQSession location 'a0'; path : pCHar location 'a1'; buf : POINTER location 'd0'; len : ULONG location 'd1') : LONGINT; syscall AMarqueeBase 72;
-FUNCTION QClearSubscriptionsOp(session : pQSession location 'a0'; which : LONGINT location 'd0') : LONGINT; syscall AMarqueeBase 78;
-FUNCTION QPingOp(session : pQSession location 'a0') : LONGINT; syscall AMarqueeBase 84;
-FUNCTION QInfoOp(session : pQSession location 'a0') : LONGINT; syscall AMarqueeBase 90;
-FUNCTION QSetAccessOp(session : pQSession location 'a0'; hosts : pCHar location 'a1') : LONGINT; syscall AMarqueeBase 96;
-PROCEDURE FreeQMessage(session : pQSession location 'a0'; qmsg : pQMessage location 'a1'); syscall AMarqueeBase 102;
-FUNCTION QGo(session : pQSession location 'a0'; sync : ULONG location 'd0') : LONGINT; syscall AMarqueeBase 108;
-FUNCTION QStreamOp(session : pQSession location 'a0'; path : pCHar location 'a1'; buf : POINTER location 'd0'; len : ULONG location 'd1') : LONGINT; syscall AMarqueeBase 120;
-FUNCTION QSetMessageAccessOp(session : pQSession location 'a0'; access : pCHar location 'a1'; maxbytes : LONGINT location 'd0') : LONGINT; syscall AMarqueeBase 132;
-FUNCTION QMessageOp(session : pQSession location 'a0'; hosts : pCHar location 'a1'; buffer : POINTER location 'd0'; len : ULONG location 'd1') : LONGINT; syscall AMarqueeBase 138;
-FUNCTION QNumQueuedPackets(session : pQSession location 'a0') : ULONG; syscall AMarqueeBase 150;
-FUNCTION QNumQueuedBytes(session : pQSession location 'a0') : ULONG; syscall AMarqueeBase 156;
-FUNCTION QErrorName(session : LONGINT location 'd0') : pCHar; syscall AMarqueeBase 162;
-FUNCTION QRequestPrivilegesOp(session : pQSession location 'a0'; privBits : ULONG location 'd0') : LONGINT; syscall AMarqueeBase 168;
-FUNCTION QReleasePrivilegesOp(session : pQSession location 'a0'; privBits : ULONG location 'd0') : LONGINT; syscall AMarqueeBase 174;
-FUNCTION QKillClientsOp(session : pQSession location 'a0'; hosts : pCHar location 'a1') : LONGINT; syscall AMarqueeBase 180;
-FUNCTION QSetParameterOp(session : pQSession location 'a0'; paramName : pCHar location 'a1'; newValue : pCHar location 'd0') : LONGINT; syscall AMarqueeBase 186;
-FUNCTION QGetParameterOp(session : pQSession location 'a0'; paramName : pCHar location 'a1') : LONGINT; syscall AMarqueeBase 192;
-FUNCTION QSysMessageOp(session : pQSession location 'a0'; hosts : pCHar location 'a1'; message : pCHar location 'd0') : LONGINT; syscall AMarqueeBase 198;
-FUNCTION QGetAndSubscribeOp(session : pQSession location 'a0'; path : pCHar location 'a1'; maxBytes : LONGINT location 'd0') : LONGINT; syscall AMarqueeBase 210;
-FUNCTION QDetachSession(session : pQSession location 'a0'; flags : ULONG location 'd0') : BOOLEAN; syscall AMarqueeBase 216;
-FUNCTION QReattachSession(session : pQSession location 'a0'; flags : ULONG location 'd0') : BOOLEAN; syscall AMarqueeBase 222;
-FUNCTION QNewSocketSession(host : pCHar location 'a0'; port : LONGINT location 'd0'; tags : pTagItem location 'a1') : pQSession; syscall AMarqueeBase 228;
-FUNCTION QSendRawOp(session : pQSession location 'a0'; buf : POINTER location 'a1'; len : ULONG location 'd0') : LONGINT; syscall AMarqueeBase 234;
-FUNCTION QNewSocketSessionAsync(host : pCHar location 'a0'; port : LONGINT location 'd0'; tags : pTagItem location 'a1') : pQSession; syscall AMarqueeBase 240;
-FUNCTION QNewSocketServerSession( port : pLONGINT location 'a0'; tags : pTagItem location 'a1') : pQSession; syscall AMarqueeBase 246;
-FUNCTION QSetKeyAccessOp(session : pQSession location 'a0'; path : pCHar location 'a1'; hosts : pCHar location 'd0') : LONGINT; syscall AMarqueeBase 252;
-FUNCTION QGetHostName(session : pQSession location 'a0') : pCHar; syscall AMarqueeBase 258;
-FUNCTION QGetProgName(session : pQSession location 'a0') : pCHar; syscall AMarqueeBase 264;
-PROCEDURE QSetMaxRawBufSize(session : pQSession location 'a0'; maxBufSize : ULONG location 'd0'); syscall AMarqueeBase 270;
-FUNCTION QNewSession(host : pCHar location 'a0'; port : LONGINT location 'd0'; name : pCHar location 'a1'; taglist : pTagItem location 'd1') : pQSession; syscall AMarqueeBase 276;
-FUNCTION QNewSessionAsync(host : pCHar location 'a0'; port : LONGINT location 'd0'; name : pCHar location 'a1'; taglist : pTagItem location 'd1') : pQSession; syscall AMarqueeBase 282;
-FUNCTION QNewHostSession(hostnames : pCHar location 'a0'; port : pLONGINT location 'a1'; names : pCHar location 'd0'; taglist : pTagItem location 'd1') : pQSession; syscall AMarqueeBase 288;
-FUNCTION QNewServerSession(hostNames : pCHar location 'a0'; progNames : pCHar location 'a1'; taglist : pTagItem location 'd0') : pQSession; syscall AMarqueeBase 294;
-FUNCTION QCreateSharedMessagePort : pQSharedMessagePort; syscall AMarqueeBase 300;
-PROCEDURE QDeleteSharedMessagePort(mp : pQSharedMessagePort location 'a0'); syscall AMarqueeBase 306;
-FUNCTION QGetLocalIP(session : pQSession location 'a0') : pCHAR; syscall AMarqueeBase 312;
+FUNCTION QFreeSession(session : pQSession) : LONGINT;
+FUNCTION QDebugOp(session : pQSession; string_ : pCHar) : LONGINT;
+FUNCTION QGetOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
+FUNCTION QDeleteOp(session : pQSession; path : pCHar) : LONGINT;
+FUNCTION QRenameOp(session : pQSession; path : pCHar; label_ : pCHar) : LONGINT;
+FUNCTION QSubscribeOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
+FUNCTION QSetOp(session : pQSession; path : pCHar; buf : POINTER; len : ULONG) : LONGINT;
+FUNCTION QClearSubscriptionsOp(session : pQSession; which : LONGINT) : LONGINT;
+FUNCTION QPingOp(session : pQSession) : LONGINT;
+FUNCTION QInfoOp(session : pQSession) : LONGINT;
+FUNCTION QSetAccessOp(session : pQSession; hosts : pCHar) : LONGINT;
+PROCEDURE FreeQMessage(session : pQSession; qmsg : pQMessage);
+FUNCTION QGo(session : pQSession; sync : ULONG) : LONGINT;
+FUNCTION QStreamOp(session : pQSession; path : pCHar; buf : POINTER; len : ULONG) : LONGINT;
+FUNCTION QSetMessageAccessOp(session : pQSession; access : pCHar; maxbytes : LONGINT) : LONGINT;
+FUNCTION QMessageOp(session : pQSession; hosts : pCHar; buffer : POINTER; len : ULONG) : LONGINT;
+FUNCTION QNumQueuedPackets(session : pQSession) : ULONG;
+FUNCTION QNumQueuedBytes(session : pQSession) : ULONG;
+FUNCTION QErrorName(session : LONGINT) : pCHar;
+FUNCTION QRequestPrivilegesOp(session : pQSession; privBits : ULONG) : LONGINT;
+FUNCTION QReleasePrivilegesOp(session : pQSession; privBits : ULONG) : LONGINT;
+FUNCTION QKillClientsOp(session : pQSession; hosts : pCHar) : LONGINT;
+FUNCTION QSetParameterOp(session : pQSession; paramName : pCHar; newValue : pCHar) : LONGINT;
+FUNCTION QGetParameterOp(session : pQSession; paramName : pCHar) : LONGINT;
+FUNCTION QSysMessageOp(session : pQSession; hosts : pCHar; message : pCHar) : LONGINT;
+FUNCTION QGetAndSubscribeOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
+FUNCTION QDetachSession(session : pQSession; flags : ULONG) : BOOLEAN;
+FUNCTION QReattachSession(session : pQSession; flags : ULONG) : BOOLEAN;
+FUNCTION QNewSocketSession(host : pCHar; port : LONGINT; tags : pTagItem) : pQSession;
+FUNCTION QSendRawOp(session : pQSession; buf : POINTER; len : ULONG) : LONGINT;
+FUNCTION QNewSocketSessionAsync(host : pCHar; port : LONGINT; tags : pTagItem) : pQSession;
+FUNCTION QNewSocketServerSession( port : pLONGINT; tags : pTagItem) : pQSession;
+FUNCTION QSetKeyAccessOp(session : pQSession; path : pCHar; hosts : pCHar) : LONGINT;
+FUNCTION QGetHostName(session : pQSession) : pCHar;
+FUNCTION QGetProgName(session : pQSession) : pCHar;
+PROCEDURE QSetMaxRawBufSize(session : pQSession; maxBufSize : ULONG);
+FUNCTION QNewSession(host : pCHar; port : LONGINT; name : pCHar; taglist : pTagItem) : pQSession;
+FUNCTION QNewSessionAsync(host : pCHar; port : LONGINT; name : pCHar; taglist : pTagItem) : pQSession;
+FUNCTION QNewHostSession(hostnames : pCHar; port : pLONGINT; names : pCHar; taglist : pTagItem) : pQSession;
+FUNCTION QNewServerSession(hostNames : pCHar; progNames : pCHar; taglist : pTagItem) : pQSession;
+FUNCTION QCreateSharedMessagePort : pQSharedMessagePort;
+PROCEDURE QDeleteSharedMessagePort(mp : pQSharedMessagePort);
+FUNCTION QGetLocalIP(session : pQSession) : pCHAR;
 
 {
-     This is functions and procedures with array of PtrUInt.
+     This is functions and procedures with array of const.
      For use with fpc 1.0 and above.
 
 }
-FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : Array Of Const) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : Array Of Const) : pQSession;
 
 
 FUNCTION QDebugOp(session : pQSession; string_ : string) : LONGINT;
@@ -285,21 +286,611 @@ FUNCTION QNewHostSession(hostnames : string; port : pLONGINT; names : string; ta
 FUNCTION QNewServerSession(hostNames : string; progNames : string; taglist : pTagItem) : pQSession;
 
 {
-     This is functions and procedures with array of PtrUInt.
+     This is functions and procedures with array of const.
      For use with fpc 1.0 and above.
 }
 
-FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : array of PtrUInt) : pQSession;
-FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : Array Of Const) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : Array Of Const) : pQSession;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitAMARQUEELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    AMARQUEEIsCompiledHow : longint;
 
 IMPLEMENTATION
 
 uses
-  pastoc;
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+pastoc,tagsarray;
+
+
+FUNCTION QFreeSession(session : pQSession) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QDebugOp(session : pQSession; string_ : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L string_,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QGetOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  maxBytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QDeleteOp(session : pQSession; path : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QRenameOp(session : pQSession; path : pCHar; label_ : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  label_,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSubscribeOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  maxBytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSetOp(session : pQSession; path : pCHar; buf : POINTER; len : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  buf,D0
+        MOVE.L  len,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QClearSubscriptionsOp(session : pQSession; which : LONGINT) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  which,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QPingOp(session : pQSession) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QInfoOp(session : pQSession) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSetAccessOp(session : pQSession; hosts : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE FreeQMessage(session : pQSession; qmsg : pQMessage);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L qmsg,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION QGo(session : pQSession; sync : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  sync,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QStreamOp(session : pQSession; path : pCHar; buf : POINTER; len : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  buf,D0
+        MOVE.L  len,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSetMessageAccessOp(session : pQSession; access : pCHar; maxbytes : LONGINT) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L access,A1
+        MOVE.L  maxbytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QMessageOp(session : pQSession; hosts : pCHar; buffer : POINTER; len : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVE.L  buffer,D0
+        MOVE.L  len,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNumQueuedPackets(session : pQSession) : ULONG;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNumQueuedBytes(session : pQSession) : ULONG;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QErrorName(session : LONGINT) : pCHar;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVE.L  session,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QRequestPrivilegesOp(session : pQSession; privBits : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  privBits,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QReleasePrivilegesOp(session : pQSession; privBits : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  privBits,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QKillClientsOp(session : pQSession; hosts : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSetParameterOp(session : pQSession; paramName : pCHar; newValue : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L paramName,A1
+        MOVE.L  newValue,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QGetParameterOp(session : pQSession; paramName : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L paramName,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSysMessageOp(session : pQSession; hosts : pCHar; message : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVE.L  message,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QGetAndSubscribeOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  maxBytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -210(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QDetachSession(session : pQSession; flags : ULONG) : BOOLEAN;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  flags,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -216(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
+  END;
+END;
+
+FUNCTION QReattachSession(session : pQSession; flags : ULONG) : BOOLEAN;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  flags,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -222(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNewSocketSession(host : pCHar; port : LONGINT; tags : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L tags,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -228(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSendRawOp(session : pQSession; buf : POINTER; len : ULONG) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L buf,A1
+        MOVE.L  len,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -234(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNewSocketSessionAsync(host : pCHar; port : LONGINT; tags : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L tags,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -240(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNewSocketServerSession(port : pLONGINT; tags : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L port,A0
+        MOVEA.L tags,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -246(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QSetKeyAccessOp(session : pQSession; path : pCHar; hosts : pCHar) : LONGINT;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  hosts,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -252(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QGetHostName(session : pQSession) : pCHar;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -258(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QGetProgName(session : pQSession) : pCHar;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -264(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE QSetMaxRawBufSize(session : pQSession; maxBufSize : ULONG);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  maxBufSize,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -270(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION QNewSession(host : pCHar; port : LONGINT; name : pCHar; taglist : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L name,A1
+        MOVE.L  taglist,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -276(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNewSessionAsync(host : pCHar; port : LONGINT; name : pCHar; taglist : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L name,A1
+        MOVE.L  taglist,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -282(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNewHostSession(hostnames : pCHar; port : pLONGINT; names : pCHar; taglist : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L hostnames,A0
+        MOVEA.L port,A1
+        MOVE.L  names,D0
+        MOVE.L  taglist,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -288(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QNewServerSession(hostNames : pCHar; progNames : pCHar; taglist : pTagItem) : pQSession;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L hostNames,A0
+        MOVEA.L progNames,A1
+        MOVE.L  taglist,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -294(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION QCreateSharedMessagePort : pQSharedMessagePort;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L AMarqueeBase,A6
+        JSR     -300(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE QDeleteSharedMessagePort(mp : pQSharedMessagePort);
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L mp,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -306(A6)
+        MOVEA.L (A7)+,A6
+  END;
+END;
+
+
+FUNCTION QGetLocalIP(session : pQSession) : pCHAR;
+BEGIN
+  ASM
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -312(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
+  END;
+END;
+
 
 FUNCTION QDebugOp(session : pQSession; string_ : string) : LONGINT;
 begin
@@ -411,82 +1002,153 @@ begin
     QNewServerSession := QNewServerSession(pas2c(hostnames),pas2c(prognames),taglist);
 end;
 
-FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessiontags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
 begin
-    QNewSocketSessiontags := QNewSocketSession(host,port,@argv);
+    QNewSocketSessiontags := QNewSocketSession(host,port,readintags(argv));
 end;
 
-FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : pCHar; port : LONGINT; const argv : Array Of Const) : pQSession;
 begin
-    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,@argv);
+    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,readintags(argv));
 end;
 
-FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketServerSessionTags( port : pLONGINT; const argv : Array Of Const) : pQSession;
 begin
-    QNewSocketServerSessionTags := QNewSocketServerSession(port,@argv);
+    QNewSocketServerSessionTags := QNewSocketServerSession(port,readintags(argv));
 end;
 
-FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
 begin
-    QNewSessionTags := QNewSession(host,port,name,@argv);
+    QNewSessionTags := QNewSession(host,port,name,readintags(argv));
 end;
 
-FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : pCHar; port : LONGINT; name : pCHar; const argv : Array Of Const) : pQSession;
 begin
-    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,@argv);
+    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,readintags(argv));
 end;
 
-FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : pCHar; port : pLONGINT; names : pCHar; const argv : Array Of Const) : pQSession;
 begin
-    QNewHostSessionTags := QNewHostSession(hostnames,port,names,@argv);
+    QNewHostSessionTags := QNewHostSession(hostnames,port,names,readintags(argv));
 end;
 
-FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : pCHar; progNames : pCHar; const argv : Array Of Const) : pQSession;
 begin
-    QNewServerSessionTags := QNewServerSession(hostnames,prognames,@argv);
+    QNewServerSessionTags := QNewServerSession(hostnames,prognames,readintags(argv));
 end;
 
 
-FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessionTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
 begin
-    QNewSocketSessionTags := QNewSocketSession(host,port,@argv);
+    QNewSocketSessionTags := QNewSocketSession(host,port,readintags(argv));
 end;
 
-FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSocketSessionAsyncTags(host : string; port : LONGINT; const argv : Array Of Const) : pQSession;
 begin
-    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,@argv);
+    QNewSocketSessionAsyncTags := QNewSocketSessionAsync(host,port,readintags(argv));
 end;
 
-FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
 begin
-    QNewSessionTags := QNewSession(host,port,name,@argv);
+    QNewSessionTags := QNewSession(host,port,name,readintags(argv));
 end;
 
-FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewSessionAsyncTags(host : string; port : LONGINT; name : string; const argv : Array Of Const) : pQSession;
 begin
-    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,@argv);
+    QNewSessionAsyncTags := QNewSessionAsync(host,port,name,readintags(argv));
 end;
 
-FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewHostSessionTags(hostnames : string; port : pLONGINT; names : string; const argv : Array Of Const) : pQSession;
 begin
-    QNewHostSessionTags := QNewHostSession(hostnames,port,names,@argv);
+    QNewHostSessionTags := QNewHostSession(hostnames,port,names,readintags(argv));
 end;
 
-FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : array of PtrUInt) : pQSession;
+FUNCTION QNewServerSessionTags(hostNames : string; progNames : string; const argv : Array Of Const) : pQSession;
 begin
-    QNewServerSessionTags := QNewServerSession(hostnames,prognames,@argv);
+    QNewServerSessionTags := QNewServerSession(hostnames,prognames,readintags(argv));
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  AMarqueeBase := OpenLibrary(AMARQUEENAME,LIBVERSION);
-finalization
-  if Assigned(AMarqueeBase) then
-    CloseLibrary(AMarqueeBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of amarquee.library}
+  {$Info don't forget to use InitAMARQUEELibrary in the beginning of your program}
+
+var
+    amarquee_exit : Pointer;
+
+procedure CloseamarqueeLibrary;
+begin
+    ExitProc := amarquee_exit;
+    if AMarqueeBase <> nil then begin
+        CloseLibrary(AMarqueeBase);
+        AMarqueeBase := nil;
+    end;
+end;
+
+procedure InitAMARQUEELibrary;
+begin
+    AMarqueeBase := nil;
+    AMarqueeBase := OpenLibrary(AMARQUEENAME,LIBVERSION);
+    if AMarqueeBase <> nil then begin
+        amarquee_exit := ExitProc;
+        ExitProc := @CloseamarqueeLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open amarquee.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    AMARQUEEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of amarquee.library}
+
+var
+    amarquee_exit : Pointer;
+
+procedure CloseamarqueeLibrary;
+begin
+    ExitProc := amarquee_exit;
+    if AMarqueeBase <> nil then begin
+        CloseLibrary(AMarqueeBase);
+        AMarqueeBase := nil;
+    end;
+end;
+
+begin
+    AMarqueeBase := nil;
+    AMarqueeBase := OpenLibrary(AMARQUEENAME,LIBVERSION);
+    if AMarqueeBase <> nil then begin
+        amarquee_exit := ExitProc;
+        ExitProc := @CloseamarqueeLibrary;
+        AMARQUEEIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open amarquee.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    AMARQUEEIsCompiledHow := 3;
+   {$Warning No autoopening of amarquee.library compiled}
+   {$Warning Make sure you open amarquee.library yourself}
+{$endif dont_use_openlib}
+
 END. (* UNIT AMARQUEE *)
 
 

@@ -153,9 +153,6 @@ Type
     ValReal = Extended;
   {$endif}
 
-  {$define MOVE_HAS_SIZEUINT_COUNT}
-  {$define FILLCHAR_HAS_SIZEUINT_COUNT}
-
   {$if defined(FPC_MM_TINY)}
     {$define FPC_X86_CODE_NEAR}
     {$define FPC_X86_DATA_NEAR}
@@ -210,12 +207,12 @@ Type
 {$ifdef CPUM68K}
   {$define DEFAULT_DOUBLE}
 
-  {$if defined(CPUCOLDFIRE) or defined(CPU68000)}
+  {$ifdef FPUSOFT}
     {$define FPC_INCLUDE_SOFTWARE_MOD_DIV}
     {$define FPC_INCLUDE_SOFTWARE_MUL}
   {$endif}
 
-  { m68k int64 shl/shr uses soft helper for non constant values }
+  { m68k int64 shl/shr uses soft helper for non constaznt values }
   {$define FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
   {$define SUPPORT_SINGLE}
@@ -433,8 +430,8 @@ Type
     used in the FPC RTL. Note that on i8086 their size changes between 16-bit
     and 32-bit according to the memory model, so they're not really a 'native
     int' type there at all. }
-  NativeInt  = Type PtrInt;
-  NativeUInt = Type PtrUInt;
+  NativeInt  = PtrInt;
+  NativeUInt = PtrUInt;
 
   Int8    = ShortInt;
   Int16   = SmallInt;
@@ -604,14 +601,9 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
-    ResourceStringTables : Pointer;
-    ResStrInitTables : Pointer;
-    ResLocation : Pointer;
-    PascalMain : Procedure;
+    asm_exit : Procedure;stdcall;
+    PascalMain : Procedure;stdcall;
     valgrind_used : boolean;
-    {$ifdef HAS_ENTRYINFORMATION_OS}
-    OS : TEntryInformationOS;
-    {$endif HAS_ENTRYINFORMATION_OS}
   end;
 
 
@@ -782,11 +774,11 @@ function StackTop: Pointer;
   {$endif}
 {$endif}
 
-Procedure Move(const source;var dest;count:{$ifdef MOVE_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif});
-Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Byte);
-Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Boolean);
-Procedure FillChar(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};Value:Char);
-procedure FillByte(var x;count:{$ifdef FILLCHAR_HAS_SIZEUINT_COUNT}SizeUInt{$else}SizeInt{$endif};value:byte);
+Procedure Move(const source;var dest;count:SizeInt);
+Procedure FillChar(var x;count:SizeInt;Value:Byte);
+Procedure FillChar(var x;count:SizeInt;Value:Boolean);
+Procedure FillChar(var x;count:SizeInt;Value:Char);
+procedure FillByte(var x;count:SizeInt;value:byte);
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
 procedure FillQWord(var x;count:SizeInt;value:QWord);

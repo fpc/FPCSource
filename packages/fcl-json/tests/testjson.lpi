@@ -4,7 +4,6 @@
     <Version Value="9"/>
     <General>
       <Flags>
-        <SaveOnlyProjectUnits Value="True"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
@@ -25,7 +24,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestJSONDeStreamer.TestDateTimeFormat"/>
+        <CommandLineParams Value="--suite=TTestParser.TestComment"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -67,12 +66,6 @@
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
-    <Linking>
-      <Debugging>
-        <UseHeaptrc Value="True"/>
-        <TrashVariables Value="True"/>
-      </Debugging>
-    </Linking>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="2">

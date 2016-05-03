@@ -15,7 +15,7 @@ PROGRAM EasyGadtools;
 
 }
 
-USES Intuition, Exec, AGraphics, GadTools, Utility;
+USES Intuition, Exec, AGraphics, GadTools, Utility, pastoc,systemvartags;
 
 CONST
 
@@ -90,16 +90,16 @@ begin
    ButtonGadget := gad;
 end;
 
-function ButtonGadget(id,left,top,width,height:word; txt: AnsiString): pGadget;
+function ButtonGadget(id,left,top,width,height:word; txt: string): pGadget;
 begin
-   ButtonGadget := ButtonGadget(id,left,top,width,height,PChar(txt));
+   ButtonGadget := ButtonGadget(id,left,top,width,height,pas2c(txt));
 end;
 
 function CycleGadget(id,left,top,width,height:word; txt:pchar ; thearr : Pointer): pGadget;
 begin
    ng := NewGadget(left,top,width,height,txt,attr,id,PLACETEXT_LEFT,vi,nil);
    gad := CreateGadget(CYCLE_KIND,gad,@ng,[
-                                         AsTag(GTCY_Labels), AsTag(thearr),
+                                         GTCY_Labels,thearr,
                                          TAG_END]);
    CycleGadget := gad;
 end;
@@ -118,8 +118,8 @@ BEGIN
   gad := ButtonGadget(2,10,HG,200,HGadget,'Screen Requester');
   HG := HG + DistGad + 3;
 
-  //gad := CycleGadget(3,100,HG,100,HGadget,'Cycle me',@strarray);
-  //HG := HG + DistGad+4;
+  gad := CycleGadget(3,100,HG,100,HGadget,'Cycle me',@strarray);
+  HG := HG + DistGad+4;
 
   gad := ButtonGadget(4,10,HG,96,HGadget,'OK');
   gad := ButtonGadget(5,115,HG,96,HGadget,'Cancel');
@@ -129,10 +129,10 @@ BEGIN
   if gad = nil then CleanUp('Can''t create gadgets',20);
 
   wp := OpenWindowTags(NIL,[
-                WA_Gadgets, AsTag(glist),
-                WA_Title,   AsTag('Test of EasyGadtools'),
-                WA_Left,    AsTag(100),
-                WA_Top,     AsTag(100),
+                WA_Gadgets, glist,
+                WA_Title, 'Test of EasyGadtools',
+                WA_Left,100,
+                WA_Top,100,
                 WA_Flags, WFLG_SMART_REFRESH OR WFLG_NOCAREREFRESH OR
                                 WFLG_DEPTHGADGET OR WFLG_DRAGBAR OR WFLG_CLOSEGADGET OR
                                 WFLG_ACTIVATE,

@@ -56,7 +56,7 @@ Begin
   If ParamCount = 0 Then AsdaLaVista(' DiskInfo V1.0, © 1992 T.Schmid - Usage : DiskInfo Dfx:',0);
   MyFile := ParamStr(1) + #0;
 
-  Inf:=pInfoData(ExecAllocMem( SizeOf(tInfoData), MEMF_PUBLIC ) );
+  Inf:=pInfoData( AllocMem( SizeOf(tInfoData), MEMF_PUBLIC ) );
   If Inf=Nil Then AsdaLaVista('No memory',5);
 
   s:= 'Writeenabled';

@@ -263,7 +263,6 @@ Unit Rax86int;
         srsym : tsym;
         srsymtable : TSymtable;
       begin
-        c:=scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
         actasmtoken:=AS_NONE;
@@ -274,10 +273,10 @@ Unit Rax86int;
         while (c in [' ',#9]) do
           c:=current_scanner.asmgetchar;
         { get token pos }
-        if not (c in [#10,#13,'{',';','(','/']) then
+        if not (c in [#10,#13,'{',';']) then
           current_scanner.gettokenpos;
       { Local Label, Label, Directive, Prefix or Opcode }
-        if firsttoken and not (c in [#10,#13,'{',';','(','/']) then
+        if firsttoken and not (c in [#10,#13,'{',';']) then
          begin
            firsttoken:=FALSE;
            len:=0;
@@ -425,6 +424,7 @@ Unit Rax86int;
              '''' : { string or character }
                begin
                  actasmpattern:='';
+                 current_scanner.in_asm_string:=true;
                  repeat
                    if c = '''' then
                     begin
@@ -466,12 +466,14 @@ Unit Rax86int;
                    else
                     break; { end if }
                  until false;
+                 current_scanner.in_asm_string:=false;
                  actasmtoken:=AS_STRING;
                  exit;
                end;
 
              '"' : { string or character }
                begin
+                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    if c = '"' then
@@ -514,6 +516,7 @@ Unit Rax86int;
                    else
                     break; { end if }
                  until false;
+                 current_scanner.in_asm_string:=false;
                  actasmtoken:=AS_STRING;
                  exit;
                end;
@@ -568,14 +571,8 @@ Unit Rax86int;
 
              '(' :
                begin
+                 actasmtoken:=AS_LPAREN;
                  c:=current_scanner.asmgetchar;
-                 if c='*' then
-                   begin
-                     current_scanner.skipoldtpcomment(true);
-                     GetToken;
-                   end
-                 else
-                   actasmtoken:=AS_LPAREN;
                  exit;
                end;
 
@@ -641,14 +638,8 @@ Unit Rax86int;
 
              '/' :
                begin
+                 actasmtoken:=AS_SLASH;
                  c:=current_scanner.asmgetchar;
-                 if c='/' then
-                   begin
-                     current_scanner.skipdelphicomment;
-                     GetToken;
-                   end
-                 else
-                   actasmtoken:=AS_SLASH;
                  exit;
                end;
 
@@ -700,28 +691,12 @@ Unit Rax86int;
                     end;
                   end;
                end;
-
-             #13,#10:
-               begin
-                 current_scanner.linebreak;
-                 c:=current_scanner.asmgetchar;
-                 firsttoken:=TRUE;
-                 actasmtoken:=AS_SEPARATOR;
-                 exit;
-               end;
-
-             ';':
+             ';','{',#13,#10 :
                begin
                  c:=current_scanner.asmgetchar;
                  firsttoken:=TRUE;
                  actasmtoken:=AS_SEPARATOR;
                  exit;
-               end;
-
-             '{':
-               begin
-                 current_scanner.skipcomment(true);
-                 GetToken;
                end;
 
               else
@@ -2464,6 +2439,7 @@ Unit Rax86int;
       if not parse_generic then
         current_procinfo.generate_parameter_info;
       { start tokenizer }
+      c:=current_scanner.asmgetcharstart;
       gettoken;
       { main loop }
       repeat

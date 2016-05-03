@@ -116,7 +116,7 @@ Type
 const
     DISKFONTNAME : PChar = 'diskfont.library';
 
-VAR DiskfontBase : pLibrary = nil;
+VAR DiskfontBase : pLibrary;
 
 FUNCTION AvailFonts(buffer : pCHAR location 'a0'; bufBytes : LONGINT location 'd0'; flags : LONGINT location 'd1') : LONGINT; syscall DiskfontBase 036;
 PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader location 'a1'); syscall DiskfontBase 048;
@@ -133,17 +133,33 @@ IMPLEMENTATION
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-function InitDiskFontLibrary: boolean;
+var
+    diskfont_exit : Pointer;
+
+procedure CloseDiskFontLibrary;
 begin
-  InitDiskFontLibrary := Assigned(DiskFontBase);
+    ExitProc := diskfont_exit;
+    if DiskFontBase <> nil then begin
+        CloseLibrary(DiskFontBase);
+        DiskFontBase := nil;
+    end;
 end;
 
-initialization
-  DiskFontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
-finalization
-  if Assigned(DiskFontBase) then
-    CloseLibrary(DiskFontBase);
+function InitDiskFontLibrary: boolean;
+begin
+    DiskFontBase := nil;
+    DiskFontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
+    if DiskFontBase <> nil then begin
+        diskfont_exit := ExitProc;
+        ExitProc := @CloseDiskFontLibrary;
+        InitDiskFontLibrary := true;
+    end else begin
+        InitDiskFontLibrary := false;
+    end;
+end;
+
 END.

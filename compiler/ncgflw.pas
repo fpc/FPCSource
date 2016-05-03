@@ -111,7 +111,6 @@ implementation
              if checkusedregvars then
                begin
                  usedregvars.intregvars.init;
-                 usedregvars.addrregvars.init;
                  usedregvars.fpuregvars.init;
                  usedregvars.mmregvars.init;
 
@@ -124,7 +123,6 @@ implementation
                begin
                  gen_sync_regvars(current_asmdata.CurrAsmList,usedregvars);
                  usedregvars.intregvars.done;
-                 usedregvars.addrregvars.done;
                  usedregvars.fpuregvars.done;
                  usedregvars.mmregvars.done;
                end;
@@ -386,7 +384,6 @@ implementation
              if checkusedregvars then
                begin
                  usedregvars.intregvars.init;
-                 usedregvars.addrregvars.init;
                  usedregvars.fpuregvars.init;
                  usedregvars.mmregvars.init;
 
@@ -407,7 +404,6 @@ implementation
                begin
                  gen_sync_regvars(current_asmdata.CurrAsmList,usedregvars);
                  usedregvars.intregvars.done;
-                 usedregvars.addrregvars.done;
                  usedregvars.fpuregvars.done;
                  usedregvars.mmregvars.done;
                end;

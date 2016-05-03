@@ -62,8 +62,6 @@ type
     public
       constructor Create; override;
       destructor Destroy; override;
-      property XPelsPerMeter : integer read BFI.XPelsPerMeter;
-      property YPelsPerMeter : integer read BFI.YPelsPerMeter;
   end;
 
 implementation

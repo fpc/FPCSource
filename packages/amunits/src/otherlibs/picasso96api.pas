@@ -34,6 +34,7 @@
     nils.sjoholm@mailbox.swipnet.se
 
 }
+{$mode objfpc}
 
 UNIT PICASSO96API;
 
@@ -400,7 +401,7 @@ USES Exec, utility, agraphics, intuition;
      {                                                                       }
 
 
-VAR P96Base : pLibrary = nil;
+VAR P96Base : pLibrary;
 
 FUNCTION p96AllocBitMap(SizeX : Ulong location 'd0'; SizeY : Ulong location 'd1'; Depth : Ulong location 'd2'; Flags : Ulong location 'd3'; Friend : pBitMap location 'a0'; RGBFormat : RGBFTYPE location 'd7') : pBitMap; syscall P96Base 030;
 PROCEDURE p96FreeBitMap(BitMap : pBitMap location 'a0'); syscall P96Base 036;
@@ -429,78 +430,169 @@ FUNCTION p96GetRTGDataTagList(Tags : pTagItem location 'a0') : LONGINT; syscall 
 FUNCTION p96GetBoardDataTagList(Board : Ulong location 'd0'; Tags : pTagItem location 'a0') : LONGINT; syscall P96Base 186;
 FUNCTION p96EncodeColor(RGBFormat : RGBFTYPE location 'd0'; Color : Ulong location 'd1') : Ulong; syscall P96Base 192;
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION p96BestModeIDTags(const Tags : array of PtrUInt) : longword;
-FUNCTION p96RequestModeIDTags(const Tags : array of PtrUInt) : longword;
-FUNCTION p96AllocModeListTags(const Tags : array of PtrUInt) : pList;
-FUNCTION p96OpenScreenTags(const Tags : array of PtrUInt) : pScreen;
-FUNCTION p96PIP_OpenTags(const Tags : array of PtrUInt) : pWindow;
-FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
-FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
-FUNCTION p96GetRTGDataTags(const Tags : array of PtrUInt) : LONGINT;
-FUNCTION p96GetBoardDataTags(Board : longword; const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : longword;
+FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : longword;
+FUNCTION p96AllocModeListTags(const Tags : Array Of Const) : pList;
+FUNCTION p96OpenScreenTags(const Tags : Array Of Const) : pScreen;
+FUNCTION p96PIP_OpenTags(const Tags : Array Of Const) : pWindow;
+FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
+FUNCTION p96GetRTGDataTags(const Tags : Array Of Const) : LONGINT;
+FUNCTION p96GetBoardDataTags(Board : longword; const Tags : Array Of Const) : LONGINT;
+
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitPICASSO96APILibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    PICASSO96APIIsCompiledHow : longint;
 
 IMPLEMENTATION
 
+uses
+{$ifndef dont_use_openlib}
+amsgbox,
+{$endif dont_use_openlib}
+tagsarray;
+
+
+
+
 {
- Functions and procedures with array of PtrUInt go here
+ Functions and procedures with array of const go here
 }
-FUNCTION p96BestModeIDTags(const Tags : array of PtrUInt) : longword;
+FUNCTION p96BestModeIDTags(const Tags : Array Of Const) : longword;
 begin
-    p96BestModeIDTags := p96BestModeIDTagList(@Tags);
+    p96BestModeIDTags := p96BestModeIDTagList(readintags(Tags));
 end;
 
-FUNCTION p96RequestModeIDTags(const Tags : array of PtrUInt) : longword;
+FUNCTION p96RequestModeIDTags(const Tags : Array Of Const) : longword;
 begin
-    p96RequestModeIDTags := p96RequestModeIDTagList(@Tags);
+    p96RequestModeIDTags := p96RequestModeIDTagList(readintags(Tags));
 end;
 
-FUNCTION p96AllocModeListTags(const Tags : array of PtrUInt) : pList;
+FUNCTION p96AllocModeListTags(const Tags : Array Of Const) : pList;
 begin
-    p96AllocModeListTags := p96AllocModeListTagList(@Tags);
+    p96AllocModeListTags := p96AllocModeListTagList(readintags(Tags));
 end;
 
-FUNCTION p96OpenScreenTags(const Tags : array of PtrUInt) : pScreen;
+FUNCTION p96OpenScreenTags(const Tags : Array Of Const) : pScreen;
 begin
-    p96OpenScreenTags := p96OpenScreenTagList(@Tags);
+    p96OpenScreenTags := p96OpenScreenTagList(readintags(Tags));
 end;
 
-FUNCTION p96PIP_OpenTags(const Tags : array of PtrUInt) : pWindow;
+FUNCTION p96PIP_OpenTags(const Tags : Array Of Const) : pWindow;
 begin
-    p96PIP_OpenTags := p96PIP_OpenTagList(@Tags);
+    p96PIP_OpenTags := p96PIP_OpenTagList(readintags(Tags));
 end;
 
-FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96PIP_SetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
 begin
-    p96PIP_SetTags := p96PIP_SetTagList(Window , @Tags);
+    p96PIP_SetTags := p96PIP_SetTagList(Window , readintags(Tags));
 end;
 
-FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96PIP_GetTags(Window : pWindow; const Tags : Array Of Const) : LONGINT;
 begin
-    p96PIP_GetTags := p96PIP_GetTagList(Window , @Tags);
+    p96PIP_GetTags := p96PIP_GetTagList(Window , readintags(Tags));
 end;
 
-FUNCTION p96GetRTGDataTags(const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96GetRTGDataTags(const Tags : Array Of Const) : LONGINT;
 begin
-    p96GetRTGDataTags := p96GetRTGDataTagList(@Tags);
+    p96GetRTGDataTags := p96GetRTGDataTagList(readintags(Tags));
 end;
 
-FUNCTION p96GetBoardDataTags(Board : longword; const Tags : array of PtrUInt) : LONGINT;
+FUNCTION p96GetBoardDataTags(Board : longword; const Tags : Array Of Const) : LONGINT;
 begin
-    p96GetBoardDataTags := p96GetBoardDataTagList(Board , @Tags);
+    p96GetBoardDataTags := p96GetBoardDataTagList(Board , readintags(Tags));
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  P96Base := OpenLibrary(PICASSO96APINAME,LIBVERSION);
-finalization
-  if Assigned(P96Base) then
-    CloseLibrary(P96Base);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of picasso96api.library}
+  {$Info don't forget to use InitPICASSO96APILibrary in the beginning of your program}
+
+var
+    picasso96api_exit : Pointer;
+
+procedure Closepicasso96apiLibrary;
+begin
+    ExitProc := picasso96api_exit;
+    if P96Base <> nil then begin
+        CloseLibrary(P96Base);
+        P96Base := nil;
+    end;
+end;
+
+procedure InitPICASSO96APILibrary;
+begin
+    P96Base := nil;
+    P96Base := OpenLibrary(PICASSO96APINAME,LIBVERSION);
+    if P96Base <> nil then begin
+        picasso96api_exit := ExitProc;
+        ExitProc := @Closepicasso96apiLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open picasso96api.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    PICASSO96APIIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of picasso96api.library}
+
+var
+    picasso96api_exit : Pointer;
+
+procedure Closepicasso96apiLibrary;
+begin
+    ExitProc := picasso96api_exit;
+    if P96Base <> nil then begin
+        CloseLibrary(P96Base);
+        P96Base := nil;
+    end;
+end;
+
+begin
+    P96Base := nil;
+    P96Base := OpenLibrary(PICASSO96APINAME,LIBVERSION);
+    if P96Base <> nil then begin
+        picasso96api_exit := ExitProc;
+        ExitProc := @Closepicasso96apiLibrary;
+        PICASSO96APIIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open picasso96api.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    PICASSO96APIIsCompiledHow := 3;
+   {$Warning No autoopening of picasso96api.library compiled}
+   {$Warning Make sure you open picasso96api.library yourself}
+{$endif dont_use_openlib}
+
+
 END. (* UNIT PICASSO96API *)
 
 

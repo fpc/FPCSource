@@ -15,10 +15,12 @@
 
 unit asl;
 
+{$mode objfpc}
+
 interface
 
 uses
-  exec, utility, workbench, agraphics;
+  exec, utility, workbench, agraphics, tagsarray;
 
 const
   ASLNAME: PChar = 'asl.library';
@@ -506,25 +508,34 @@ function RequestFile(FileReq: PFileRequester): LongBool; syscall ASLBase 7;
 procedure AbortAslRequest(Requester: Pointer); syscall ASLBase 13;
 procedure ActivateAslRequest(Requester: Pointer); syscall ASLBase 14;
 
-function AllocAslRequest(ReqType: LongWord; const Tags: array of PtrUInt): Pointer;
-function AslRequest(Requester: Pointer; const Tags: array of PtrUInt): LongBool;
-function AslRequestTags(Requester: Pointer; const Tags: array of PtrUInt): LongBool;
+function AllocAslRequest(ReqType: LongWord; const Tags: array of const): Pointer;
+function AslRequest(Requester: Pointer; const Tags: array of const): LongBool;
+function AslRequestTags(Requester: Pointer; const Tags: array of const): LongBool;
 
 implementation
 
-function AllocAslRequest(ReqType: LongWord; const Tags: array of PtrUInt): Pointer; inline;
+function AllocAslRequest(ReqType: LongWord; const Tags: array of const): Pointer;
+var
+  TagList: TTagsList;
 begin
-  AllocAslRequest := AllocAslRequestA(reqType, @Tags);
+  AddTags(TagList, Tags);
+  AllocAslRequest := AllocAslRequestA(reqType , GetTagPtr(TagList));
 end;
 
-function AslRequest(Requester: Pointer; const Tags: array of PtrUInt): LongBool; inline;
+function AslRequest(Requester: Pointer; const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  AslRequest := AslRequestA(Requester, @Tags);
+  AddTags(TagList, Tags);
+  AslRequest := AslRequestA(Requester , GetTagPtr(TagList));
 end;
 
-function AslRequestTags(Requester: Pointer; const Tags: array of PtrUInt): LongBool; inline;
+function AslRequestTags(Requester: Pointer; const Tags: array of const): LongBool;
+var
+  TagList: TTagsList;
 begin
-  AslRequestTags := AslRequestA(Requester, @Tags);
+  AddTags(TagList, Tags);
+  AslRequestTags := AslRequestA(Requester , GetTagPtr(TagList));
 end;
 
 initialization

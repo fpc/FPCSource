@@ -42,10 +42,7 @@ type
     scWhitespace,       // within whitespace
     scText,             // within text
     scEntityReference,  // within entity reference ("&...;")
-    scTag,              // within a start tag or end tag
-    scComment,
-    scScript
-  );
+    scTag);             // within a start tag or end tag
 
   THTMLReader = class(TSAXReader)
   private
@@ -54,8 +51,6 @@ type
     FScannerContext: THTMLScannerContext;
     FTokenText: SAXString;
     FRawTokenText: string;
-    FScriptEndTag: string;
-    FScriptEndMatchPos: Integer;
     FCurStringValueDelimiter: Char;
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
@@ -124,6 +119,10 @@ procedure ReadHTMLFragment(AParentNode: TDOMNode; f: TStream);
 implementation
 
 
+const
+  WhitespaceChars = [#9, #10, #13, ' '];
+
+
 constructor THTMLReader.Create;
 begin
   inherited Create;
@@ -160,8 +159,6 @@ const
 var
   Buffer: array[0..MaxBufferSize - 1] of Char;
   BufferSize, BufferPos: Integer;
-  len: Integer;
-  ch: Char;
 begin
   if not FStarted then
   begin
@@ -302,61 +299,7 @@ begin
               end;
           else
             FRawTokenText := FRawTokenText + Buffer[BufferPos];
-            if FRawTokenText='!--' then
-            begin
-              FScannerContext := scComment;
-              FRawTokenText := '';
-            end;
             Inc(BufferPos);
-          end;
-        scComment:
-          begin
-            FRawTokenText := FRawTokenText + Buffer[BufferPos];
-            Inc(BufferPos);
-
-            if (Buffer[BufferPos-1]='>') then
-            begin
-              len:=length(FRawTokenText);
-              if (len>2) and (FRawTokenText[len-1]='-') and (FRawTokenText[len-2]='-') then
-              begin
-                Delete(FRawTokenText, Length(FRawTokenText)-2, MaxInt);
-                EnterNewScannerContext(scUnknown);
-              end;
-            end;
-          end;
-        scScript:
-          begin
-            ch := Buffer[BufferPos];
-            if FScriptEndMatchPos <= Length(FScriptEndTag) then
-            begin
-              if lowercase(ch) = FScriptEndTag[FScriptEndMatchPos] then
-                Inc(FScriptEndMatchPos)
-              else
-                FScriptEndMatchPos := 1;
-              FRawTokenText := FRawTokenText + ch;
-              Inc(BufferPos);
-            end
-            else
-            begin
-              case ch of
-                #9,#10,#13,' ':
-                  begin
-                    FRawTokenText := FRawTokenText + ch;
-                    Inc(BufferPos);
-                    Inc(FScriptEndMatchPos);
-                  end;
-                '>':
-                  begin
-                    Inc(BufferPos);
-                    Delete(FRawTokenText, Length(FRawTokenText)-FScriptEndMatchPos+2, MaxInt);
-                    EnterNewScannerContext(scUnknown);
-                  end;
-              else
-                FRawTokenText := FRawTokenText + ch;
-                Inc(BufferPos);
-                FScriptEndMatchPos := 1;
-              end;
-            end;
           end;
         end;    // case ScannerContext of
     end;        // while not endOfBuffer
@@ -411,83 +354,92 @@ end;
 
 function SplitTagString(const s: SAXString; var Attr: TSAXAttributes): SAXString;
 var
-  i, j, len: Integer;
+  i, j: Integer;
   AttrName: SAXString;
   ValueDelimiter: WideChar;
-  haseq, hasname: Boolean;
+  DoIncJ: Boolean;
 begin
   Attr := nil;
   i := 0;
-  len := Length(s);
   repeat
     Inc(i)
-  until (i > len) or IsXMLWhitespace(s[i]);
+  until (i > Length(s)) or IsXMLWhitespace(s[i]);
 
-  Result := Copy(s, 1, i - 1);
-  WStrLower(Result);
-  if i > len then
-    exit;
-  Attr := TSAXAttributes.Create;
-  Inc(i);
+  if i > Length(s) then
+    Result := s
+  else
+  begin
+    Result := Copy(s, 1, i - 1);
+    Attr := TSAXAttributes.Create;
+    Inc(i);
 
-  repeat
-    while (i <= len) and IsXMLWhitespace(s[i]) do
+    while (i <= Length(s)) and IsXMLWhitespace(s[i]) do
       Inc(i);
-    if (i > len) then
-      break;
+
+    SetLength(AttrName, 0);
     j := i;
-    haseq := false;
-    hasname := false;
-    ValueDelimiter := #0;
-    // Attr Name
-    while (j <= len) and not (IsXMLWhitespace(s[j]) or (s[j] = '='))  do
-      Inc(j);
-    // j points on =, whitespace or after s
-    AttrName := Copy(s, i, j - i);
-    WStrLower(AttrName);
-    hasname := IsXMLName(AttrName);
-    // Look for = and following whitespaces (maybe j already points on =)
-    while (j <= len) and (IsXMLWhitespace(s[j]) or (s[j] = '=')) do
-    begin
-      if (s[j] = '=') then
-        haseq := true;
-      Inc(j);
-    end;
-    // Value (j points on first nonblank or after end)
-    if haseq then
-    begin
-      if (j > len) then  { terminal case <tag attr=> }
+
+    while j <= Length(s) do
+      if s[j] = '=' then
       begin
-        if hasname then
-          Attr.AddAttribute('', AttrName, '', '', '');
-        break;
-      end
-      else
-      begin
-        if (s[j]='''') or (s[j]='"') then
+        AttrName := Copy(s, i, j - i);
+        WStrLower(AttrName);
+        Inc(j);
+        if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
         begin
           ValueDelimiter := s[j];
           Inc(j);
-        end;
+        end else
+          ValueDelimiter := #0;
         i := j;
-        while (j <= len) do
-        begin
-          if (s[j]=ValueDelimiter) then
-            break;
-          if (ValueDelimiter=#0) and IsXMLWhitespace(s[j]) then
-            break;
-          Inc(j);
-        end;
-        if hasname then
-          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i))
-      end;
-    end
-    else if hasname then   { html boolean-style attribute }
-      Attr.AddAttribute('', AttrName, '', '', AttrName);
+        DoIncJ := False;
+        while j <= Length(s) do
+          if ValueDelimiter = #0 then
+            if IsXMLWhitespace(s[j]) then
+              break
+            else
+              Inc(j)
+          else if s[j] = ValueDelimiter then
+          begin
+            DoIncJ := True;
+            break
+          end else
+            Inc(j);
 
-    { skip closing quote if one is present }
-    i := j + ord(ValueDelimiter<>#0);
-  until false;
+        if IsXMLName(AttrName) then
+          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
+
+        if DoIncJ then
+          Inc(j);
+
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
+          Inc(j);
+        i := j;
+      end
+      else if IsXMLWhitespace(s[j]) then
+      begin
+        if IsXMLName(@s[i], j-i) then
+          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
+        Inc(j);
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
+          Inc(j);
+        i := j;
+      end else
+        Inc(j);
+  end;
+  WStrLower(result);
+end;
+
+function RightTrimmedLength(const s: SAXString): Integer;
+begin
+  result := Length(s);
+  while IsXmlWhitespace(s[result]) do Dec(result);
+end;
+
+function TagPos(elTag: THTMLElementTag; s: SAXString): Integer;
+begin
+  WStrLower(s);
+  Result := Pos(HTMLElementProps[elTag].Name, s);
 end;
 
 procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
@@ -517,62 +469,60 @@ begin
     scTag:
       if Length(TokenText) > 0 then
       begin
-        Attr := nil;
-        if TokenText[Length(fTokenText)]='/' then  // handle xml/xhtml style empty tag
+        { ignore possibly unescaped markup in SCRIPT and STYLE }
+        if (FNesting > 0) and (FStack[FNesting-1] in [etScript,etStyle]) and
+          not (
+           (TokenText[1] = '/') and
+           (RightTrimmedLength(TokenText)=Length(HTMLElementProps[FStack[FNesting-1]].Name)+1) and
+           (TagPos(FStack[FNesting-1], TokenText) = 2)
+          )
+          and (TokenText[1] <> '!') then
         begin
-          setlength(fTokenText,length(fTokenText)-1);
-          // Do NOT combine to a single line, as Attr is an output value!
-          TagName := SplitTagString(TokenText, Attr);
-          AutoClose(TagName);
-          DoStartElement('', TagName, '', Attr);
-          DoEndElement('', TagName, '');
+          FTokenText := '<'+FTokenText+'>';
+          DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
         end
-        else if TokenText[1] = '/' then
+        else
         begin
-          Delete(FTokenText, 1, 1);
-          TagName := SplitTagString(TokenText, Attr);
-          elTag := LookupTag(TagName);
-          i := FNesting-1;
-          while (i >= 0) and (FStack[i] <> elTag) and
-            (efEndTagOptional in HTMLElementProps[FStack[i]].Flags) do
-            Dec(i);
-          if (i>=0) and (FStack[i] = elTag) then
-            while FStack[FNesting-1] <> elTag do
-            begin
-              DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
-              namePop;
-            end;
-
-          DoEndElement('', TagName, '');
-          namePop;
-        end
-        else if TokenText[1] <> '!' then
-        begin
-          // Do NOT combine to a single line, as Attr is an output value!
-          TagName := SplitTagString(TokenText, Attr);
-          AutoClose(TagName);
-          namePush(TagName);
-          DoStartElement('', TagName, '', Attr);
-          if FStack[FNesting-1] in [etScript,etStyle] then
+          Attr := nil;
+          if TokenText[Length(fTokenText)]='/' then  // handle xml/xhtml style empty tag
           begin
-            NewContext := scScript;
-            FScriptEndTag := '</' + HTMLElementProps[FStack[FNesting-1]].Name;
-            FScriptEndMatchPos := 1;
+            setlength(fTokenText,length(fTokenText)-1);
+            // Do NOT combine to a single line, as Attr is an output value!
+            TagName := SplitTagString(TokenText, Attr);
+            AutoClose(TagName);
+            DoStartElement('', TagName, '', Attr);
+            DoEndElement('', TagName, '');
+          end
+          else if TokenText[1] = '/' then
+          begin
+            Delete(FTokenText, 1, 1);
+            TagName := SplitTagString(TokenText, Attr);
+            elTag := LookupTag(TagName);
+            i := FNesting-1;
+            while (i >= 0) and (FStack[i] <> elTag) and
+              (efEndTagOptional in HTMLElementProps[FStack[i]].Flags) do
+              Dec(i);
+            if (i>=0) and (FStack[i] = elTag) then
+              while FStack[FNesting-1] <> elTag do
+              begin
+                DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
+                namePop;
+              end;
+
+            DoEndElement('', TagName, '');
+            namePop;
+          end
+          else if TokenText[1] <> '!' then
+          begin
+            // Do NOT combine to a single line, as Attr is an output value!
+            TagName := SplitTagString(TokenText, Attr);
+            AutoClose(TagName);
+            namePush(TagName);
+            DoStartElement('', TagName, '', Attr);
           end;
+          if Assigned(Attr) then
+            Attr.Free;
         end;
-        if Assigned(Attr) then
-          Attr.Free;
-      end;
-    scComment:
-      begin
-        DoComment(PSAXChar(TokenText), 0, Length(TokenText));
-      end;
-    scScript:
-      begin
-        DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
-        DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
-        namePop;
-        FScriptEndTag := '';
       end;
   end;
   FScannerContext := NewContext;

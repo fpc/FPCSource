@@ -62,7 +62,7 @@ Unit raarmgas;
       { helpers }
       cutils,
       { global }
-      globtype,globals,verbose,
+      globtype,verbose,
       systems,aasmbase,aasmtai,aasmdata,aasmcpu,
       { symtable }
       symconst,symsym,
@@ -149,14 +149,12 @@ Unit raarmgas;
 
     function tarmattreader.is_targetdirective(const s: string): boolean;
       begin
-        case s of
-          '.thumb_func',
-          '.code',
-          '.thumb_set':
-            result:=true
-          else
-            Result:=inherited is_targetdirective(s);
-        end;
+        if s = '.thumb_func' then
+          result:=true
+        else if s='.thumb_set' then
+          result:=true
+        else
+          Result:=inherited is_targetdirective(s);
       end;
 
 
@@ -1006,7 +1004,7 @@ Unit raarmgas;
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
-              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM,A_VLDM,A_VSTM,A_SRS,A_RFE]) then
+              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM,A_VLDM,A_VSTM]) then
                 begin
                   consume(AS_NOT);
                   oper.opr.typ:=OPR_REFERENCE;
@@ -1428,7 +1426,6 @@ Unit raarmgas;
           end;
       end;
 
-
     procedure tarmattreader.HandleTargetDirective;
       var
         symname,
@@ -1436,34 +1433,23 @@ Unit raarmgas;
         val     : aint;
         symtyp  : TAsmsymtype;
       begin
-        case actasmpattern of
-          '.thumb_set':
-            begin
-              consume(AS_TARGET_DIRECTIVE);
-              BuildConstSymbolExpression(true,false,false, val,symname,symtyp);
-              Consume(AS_COMMA);
-              BuildConstSymbolExpression(true,false,false, val,symval,symtyp);
+        if actasmpattern='.thumb_set' then
+          begin
+            consume(AS_TARGET_DIRECTIVE);
+            BuildConstSymbolExpression(true,false,false, val,symname,symtyp);
+            Consume(AS_COMMA);
+            BuildConstSymbolExpression(true,false,false, val,symval,symtyp);
 
-              curList.concat(tai_symbolpair.create(spk_thumb_set,symname,symval));
-            end;
-          '.code':
-            begin
-              consume(AS_TARGET_DIRECTIVE);
-              val:=BuildConstExpression(false,false);
-              if not(val in [16,32]) then
-                Message(asmr_e_invalid_code_value);
-              curList.concat(tai_directive.create(asd_code,tostr(val)));
-            end;
-          '.thumb_func':
-            begin
-              consume(AS_TARGET_DIRECTIVE);
-              curList.concat(tai_directive.create(asd_thumb_func,''));
-            end
-          else
-            inherited HandleTargetDirective;
-        end;
+            curList.concat(tai_symbolpair.create(spk_thumb_set,symname,symval));
+          end
+        else if actasmpattern='.thumb_func' then
+          begin
+            consume(AS_TARGET_DIRECTIVE);
+            curList.concat(tai_directive.create(asd_thumb_func,''));
+          end
+        else
+          inherited HandleTargetDirective;
       end;
-
 
     function tarmattreader.is_unified: boolean;
       begin

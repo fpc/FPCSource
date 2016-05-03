@@ -9,11 +9,11 @@ function SysLockResource(hResData:TFPResourceHGLOBAL):Pointer; stdcall; external
 function SysFreeResource(hResData:TFPResourceHGLOBAL):Longbool; stdcall; external 'kernel32' name 'FreeResource';
 
 var
-  SysInstance : PPtrUInt;external name '_FPC_SysInstance';
+  SysInstance : PtrUInt;external name {$ifdef win64} 'SysInstance' {$else} '_FPC_SysInstance' {$endif} ;
 
 Function IntHINSTANCE : TFPResourceHMODULE;
 begin
-  IntHINSTANCE:=sysinstance^;
+  IntHINSTANCE:=sysinstance;
 end;
 
 Function IntEnumResourceTypes(ModuleHandle : TFPResourceHMODULE; EnumFunc : EnumResTypeProc; lParam : PtrInt) : LongBool;

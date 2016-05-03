@@ -50,7 +50,7 @@ type
 
   EScannerError       = class(EParserError);
 
-  TJSONOption = (joUTF8,joStrict,joComments,joIgnoreTrailingComma);
+  TJSONOption = (joUTF8,joStrict,joComments);
   TJSONOptions = set of TJSONOption;
 
 Const
@@ -247,7 +247,7 @@ begin
     '"','''':
       begin
         C:=TokenStr[0];
-        If (C='''') and (joStrict in Options) then
+        If (C='''') and Strict then
           Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
         Inc(TokenStr);
         TokenStart := TokenStr;
@@ -284,7 +284,7 @@ begin
                       end;
                       end;
                     // WideChar takes care of conversion...  
-                    if (joUTF8 in Options) then
+                    if UseUTF8 then
                       S:=Utf8Encode(WideString(WideChar(StrToInt('$'+S))))
                     else
                       S:=WideChar(StrToInt('$'+S));  
@@ -353,7 +353,6 @@ begin
           end;
         end;
         SectionLength := TokenStr - TokenStart;
-        FCurTokenString:='';
         SetString(FCurTokenString, TokenStart, SectionLength);
         If (FCurTokenString[1]='.') then
           FCurTokenString:='0'+FCurTokenString;
@@ -388,14 +387,11 @@ begin
       begin
       if Not (joComments in Options) then
         Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
-      TokenStart:=TokenStr;
       Inc(TokenStr);
       Case Tokenstr[0] of
         '/' : begin
               SectionLength := Length(FCurLine)- (TokenStr - PChar(FCurLine));
-              Inc(TokenStr);
-              FCurTokenString:='';
-              SetString(FCurTokenString, TokenStr, SectionLength);
+              SetString(FCurTokenString, TokenStart, SectionLength);
               Fetchline;
               end;
         '*' :
@@ -407,8 +403,8 @@ begin
             if (TokenStr[0]=#0) then
               begin
               SectionLength := (TokenStr - TokenStart);
-              S:='';
               SetString(S, TokenStart, SectionLength);
+
               FCurtokenString:=FCurtokenString+S;
               if not fetchLine then
                 Error(SUnterminatedComment, [CurRow,CurCOlumn,TokenStr[0]]);
@@ -421,7 +417,6 @@ begin
           if EOC then
             begin
             SectionLength := (TokenStr - TokenStart-1);
-            S:='';
             SetString(S, TokenStart, SectionLength);
             FCurtokenString:=FCurtokenString+S;
             Inc(TokenStr);
@@ -439,7 +434,6 @@ begin
           Inc(TokenStr);
         until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
         SectionLength := TokenStr - TokenStart;
-        FCurTokenString:='';
         SetString(FCurTokenString, TokenStart, SectionLength);
         for it := tkTrue to tkNull do
           if CompareText(CurTokenString, TokenInfos[it]) = 0 then
@@ -448,7 +442,7 @@ begin
             FCurToken := Result;
             exit;
             end;
-        if (joStrict in Options) then
+        if Strict then
           Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]])
         else
           Result:=tkIdentifier;

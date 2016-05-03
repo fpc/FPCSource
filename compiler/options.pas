@@ -26,7 +26,7 @@ unit options;
 interface
 
 uses
-  cfileutl,cclasses,
+  cfileutl,
   globtype,globals,verbose,systems,cpuinfo,comprsrc;
 
 Type
@@ -48,10 +48,8 @@ Type
     ParaUnitPath,
     ParaObjectPath,
     ParaLibraryPath,
-    ParaFrameworkPath,
-    parapackagepath : TSearchPathList;
+    ParaFrameworkPath : TSearchPathList;
     ParaAlignment   : TAlignmentInfo;
-    parapackages : tfphashobjectlist;
     paratarget        : tsystem;
     paratargetasm     : tasm;
     paratargetdbg     : tdbg;
@@ -103,7 +101,6 @@ uses
   llvminfo,
 {$endif llvm}
   dirparse,
-  pkgutil,
   i_bsd;
 
 const
@@ -1010,7 +1007,7 @@ begin
           ((length(opt)>1) and (opt[2] in ['i','d','v','T','u','n','X','l'])) or
           ((length(opt)>3) and (opt[2]='F') and (opt[3]='e')) or
           ((length(opt)>3) and (opt[2]='C') and (opt[3]='p')) or
-          ((length(opt)>3) and (opt[2]='W') and (opt[3] in ['m','p']))
+          ((length(opt)>3) and (opt[2]='W') and (opt[3]='m'))
          )
         ) then
     exit;
@@ -1181,13 +1178,7 @@ begin
                     'h' :
                       begin
                          val(copy(more,j+1,length(more)-j),heapsize,code);
-                         if (code<>0)
-{$ifdef AVR}
-                         or (heapsize<32)
-{$else AVR}
-                         or (heapsize<1024)
-{$endif AVR}
-                         then
+                         if (code<>0) or (heapsize<1024) then
                            IllegalPara(opt);
                          break;
                       end;
@@ -1549,20 +1540,6 @@ begin
                        ParaObjectPath.AddPath(More,false)
                      else
                        ObjectSearchPath.AddPath(More,true);
-                   end;
-                 'P' :
-                   begin
-                     if ispara then
-                       parapackages.add(more,nil)
-                     else
-                       add_package(more,true,true);
-                   end;
-                 'p' :
-                   begin
-                     if ispara then
-                       parapackagepath.AddPath(More,false)
-                     else
-                       packagesearchpath.AddPath(More,true);
                    end;
                  'r' :
                    Msgfilename:=More;
@@ -2511,7 +2488,7 @@ begin
                       end;
                     'V' :
                       begin
-                        if UnsetBool(More, j, opt, false) then
+                        If UnsetBool(More, j, opt, false) then
                           exclude(init_settings.globalswitches,cs_link_vlink)
                         else
                           begin
@@ -3066,12 +3043,6 @@ begin
     features:=features-target_unsup_features
   else
     features:=features+target_unsup_features;
-
-{$ifdef hasamiga}
-   { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
-   if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
-     include(init_settings.globalswitches,cs_link_vlink);
-{$endif}
 end;
 
 procedure TOption.checkoptionscompatibility;
@@ -3146,8 +3117,6 @@ begin
   ParaUnitPath:=TSearchPathList.Create;
   ParaLibraryPath:=TSearchPathList.Create;
   ParaFrameworkPath:=TSearchPathList.Create;
-  parapackagepath:=TSearchPathList.Create;
-  parapackages:=TFPHashObjectList.Create;
   FillChar(ParaAlignment,sizeof(ParaAlignment),0);
   MacVersionSet:=false;
   paratarget:=system_none;
@@ -3165,8 +3134,6 @@ begin
   ParaUnitPath.Free;
   ParaLibraryPath.Free;
   ParaFrameworkPath.Free;
-  parapackagepath.Free;
-  ParaPackages.Free;
 end;
 
 
@@ -3174,7 +3141,7 @@ end;
                               Callable Routines
 ****************************************************************************}
 
-function check_configfile(fn:string; var foundfn:string):boolean;
+function check_configfile(const fn:string;var foundfn:string):boolean;
 
   function CfgFileExists(const fn:string):boolean;
   begin
@@ -3240,7 +3207,6 @@ procedure read_arguments(cmd:TCmdStr);
 var
   env: ansistring;
   i : tfeature;
-  j : longint;
   abi : tabi;
 {$if defined(cpucapabilities)}
   cpuflag : tcpuflags;
@@ -3464,6 +3430,7 @@ begin
 {$ifdef i8086}
   def_system_macro('CPU86');  { Borland compatibility }
   def_system_macro('CPU87');  { Borland compatibility }
+  def_system_macro('CPU8086');
   def_system_macro('CPUI8086');
   def_system_macro('CPU16');
   def_system_macro('FPC_HAS_TYPE_EXTENDED');
@@ -3518,13 +3485,8 @@ begin
   if target_info.system in systems_embedded then
     begin
       case target_info.system of
-{$ifdef AVR}
         system_avr_embedded:
-          if init_settings.controllertype=ct_avrsim then
-            heapsize:=8192
-          else
           heapsize:=128;
-{$endif AVR}
         system_arm_embedded:
           heapsize:=256;
         system_mipsel_embedded:
@@ -3636,9 +3598,6 @@ begin
   IncludeSearchPath.AddList(option.ParaIncludePath,true);
   LibrarySearchPath.AddList(option.ParaLibraryPath,true);
   FrameworkSearchPath.AddList(option.ParaFrameworkPath,true);
-  packagesearchpath.addlist(option.parapackagepath,true);
-  for j:=0 to option.parapackages.count-1 do
-    add_package(option.parapackages.NameOfIndex(j),true,true);
 
   { add unit environment and exepath to the unit search path }
   if inputfilepath<>'' then
@@ -3740,6 +3699,11 @@ begin
       (cs_link_nolink in init_settings.globalswitches)) then
     begin
       include(init_settings.globalswitches,cs_link_extern);
+{$ifdef hasamiga}
+      { enable vlink as default linker on Amiga/MorphOS, but not for cross compilers (for now) }
+      if target_info.system in [system_m68k_amiga,system_powerpc_amiga,system_powerpc_morphos] then
+        include(init_settings.globalswitches,cs_link_vlink);
+{$endif}
     end;
 
   { turn off stripping if compiling with debuginfo or profile }
@@ -3775,21 +3739,23 @@ begin
 {$endif cpufpemu}
     end;
 
-{$ifdef i386}
-  case target_info.system of
-    system_i386_android:
+{$ifdef arm}
+  if target_info.abi = abi_eabihf then
     begin
-        { set default cpu type to PentiumM for Android unless specified otherwise }
-        if not option.CPUSetExplicitly then
-          init_settings.cputype:=cpu_PentiumM;
-        if not option.OptCPUSetExplicitly then
-          init_settings.optimizecputype:=cpu_PentiumM;
-        { set default fpu type to SSSE3 for Android unless specified otherwise }
-        if not option.FPUSetExplicitly then
-          init_settings.fputype:=fpu_ssse3;
+      if not(option.FPUSetExplicitly) then
+        begin
+          init_settings.fputype:=fpu_vfpv3_d16
+        end
+      else
+        begin
+          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16]) then
+            begin
+              Message(option_illegal_fpu_eabihf);
+              StopOptions(1);
             end;
         end;
-{$endif i386}
+    end;
+{$endif arm}
 
 {$ifdef arm}
   case target_info.system of
@@ -3815,11 +3781,10 @@ begin
       end;
   end;
 
-  { ARMHF defaults }
-  if (target_info.abi = abi_eabihf) then
-    { set default cpu type to ARMv7a for ARMHF unless specified otherwise }
+{ set default cpu type to ARMv7a for ARMHF unless specified otherwise }
+if (target_info.abi = abi_eabihf) then
   begin
-    {$ifdef CPUARMV6}
+{$ifdef CPUARMV6}
     { if the compiler is built for armv6, then
       inherit this setting, e.g. Raspian is armhf but
       only armv6, this makes rebuilds of the compiler
@@ -3828,27 +3793,13 @@ begin
       init_settings.cputype:=cpu_armv6;
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv6;
-    {$else CPUARMV6}
+{$else CPUARMV6}
     if not option.CPUSetExplicitly then
       init_settings.cputype:=cpu_armv7a;
     if not option.OptCPUSetExplicitly then
       init_settings.optimizecputype:=cpu_armv7a;
-    {$endif CPUARMV6}
-
-      { Set FPU type }
-      if not(option.FPUSetExplicitly) then
-        begin
-          init_settings.fputype:=fpu_vfpv3_d16
-        end
-      else
-        begin
-          if not (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_vfpv4]) then
-            begin
-              Message(option_illegal_fpu_eabihf);
-              StopOptions(1);
+{$endif CPUARMV6}
   end;
-        end;
-    end;
 
   if (init_settings.instructionset=is_thumb) and not(CPUARM_HAS_THUMB2 in cpu_capabilities[init_settings.cputype]) then
     begin
@@ -3906,20 +3857,9 @@ begin
       end;
   end;
 {$endif mipsel}
-{$ifdef m68k}
-  if init_settings.cputype in cpu_coldfire then
-    def_system_macro('CPUCOLDFIRE');
-{$endif m68k}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);
-
-  { Use init_settings cpu type for asm cpu type,
-    if asmcputype is cpu_none,
-    at least as long as there is no explicit 
-    option to set it on command line PM }
-  if init_settings.asmcputype = cpu_none then
-    init_settings.asmcputype:=init_settings.cputype;
 
   def_system_macro('FPU'+fputypestr[init_settings.fputype]);
 
@@ -4078,23 +4018,6 @@ begin
   for i:=low(tfeature) to high(tfeature) do
     if i in features then
       def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
-
-   if ControllerSupport and (target_info.system in systems_embedded) and
-     (init_settings.controllertype<>ct_none) then
-     begin
-       with embedded_controllers[init_settings.controllertype] do
-         begin
-           set_system_macro('FPC_FLASHBASE',tostr(flashbase));
-           set_system_macro('FPC_FLASHSIZE',tostr(flashsize));
-           set_system_macro('FPC_SRAMBASE',tostr(srambase));
-           set_system_macro('FPC_SRAMSIZE',tostr(sramsize));
-           set_system_macro('FPC_EEPROMBASE',tostr(eeprombase));
-           set_system_macro('FPC_EEPROMSIZE',tostr(eepromsize));
-           set_system_macro('FPC_BOOTBASE',tostr(bootbase));
-           set_system_macro('FPC_BOOTSIZE',tostr(bootsize));
-         end;
-     end;
-
   option.free;
   Option:=nil;
 

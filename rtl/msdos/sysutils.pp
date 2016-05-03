@@ -48,8 +48,6 @@ implementation
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
-{$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
-
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -844,10 +842,10 @@ end;
 {$endif}
 
 
-function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   e : EOSError;
-  CommandLine: RawByteString;
+  CommandLine: AnsiString;
 
 begin
   dos.exec_ansistring(path,comline);
@@ -866,11 +864,11 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: RawByteString;
-                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: AnsiString;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 
 var
-  CommandLine: RawByteString;
+  CommandLine: AnsiString;
   I: integer;
 
 begin

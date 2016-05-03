@@ -437,10 +437,6 @@ implementation
              (lt in [pointerconstn,niln]) and
              (rt in [pointerconstn,niln]) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])
-            ) or
-            (
-             (lt = ordconstn) and (ld.typ = orddef) and is_currency(ld) and
-             (rt = ordconstn) and (rd.typ = orddef) and is_currency(rd)
             ) then
           begin
              t:=nil;
@@ -824,11 +820,7 @@ implementation
                   begin
                     t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2,nil);
                     typecheckpass(t);
-                    if not is_ansistring(resultdef) or
-                       (tstringdef(resultdef).encoding<>globals.CP_NONE) then
-                      tstringconstnode(t).changestringtype(resultdef)
-                    else
-                      tstringconstnode(t).changestringtype(getansistringdef)
+                    tstringconstnode(t).changestringtype(resultdef);
                   end;
                 ltn :
                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),pasbool8type,true);
@@ -1863,7 +1855,7 @@ implementation
                     begin
                       { use same code page if possible (don't force same code
                         page in case both are ansistrings with code page <>
-                        CP_NONE, since then data loss can occur: the ansistring
+                        CP_NONE, since then data loss can occur (the ansistring
                         helpers will convert them at run time to an encoding
                         that can represent both encodings) }
                       if is_ansistring(ld) and
@@ -2003,10 +1995,6 @@ implementation
           begin
             if not(nodetype in [equaln,unequaln]) then
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-            if lt=niln then
-              inserttypeconv_explicit(left,right.resultdef)
-            else
-              inserttypeconv_explicit(right,left.resultdef)
           end
 
 {$ifdef SUPPORT_MMX}

@@ -17,7 +17,6 @@
 
 procedure fpc_tcon_shortint_array_from_string(const s: unicodestring; var arr: array of shortint; startindex, len: longint); compilerproc;
 procedure fpc_tcon_byte_array_from_string(const s: unicodestring; var arr: array of byte; startindex, len: longint); compilerproc;
-procedure fpc_tcon_ansichar_array_from_string(const s: unicodestring; var arr: array of ansichar; startindex, len: longint); compilerproc;
 
 procedure fpc_tcon_smallint_array_from_string(const s: unicodestring; var arr: array of smallint; startindex, len: longint); compilerproc;
 procedure fpc_tcon_word_array_from_string(const s: unicodestring; var arr: array of word; startindex, len: longint); compilerproc;

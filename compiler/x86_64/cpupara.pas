@@ -289,7 +289,7 @@ unit cpupara;
         else
           result:=class2;
         result.typ:=X86_64_SSE_CLASS;
-        result.def:=s64floattype;
+        result.def:=carraydef.getreusable_no_free(s32floattype,2)
       end;
 
 
@@ -426,7 +426,6 @@ unit cpupara;
               exit(0);
           end;
 
-{$ifndef llvm}
           { FIXME: in case a record contains empty padding space, e.g. a
             "single" field followed by a "double", then we have a problem
             because the cgpara helpers cannot figure out that they should
@@ -462,7 +461,7 @@ unit cpupara;
                   classes[1].def:=carraydef.getreusable_no_free(s32floattype,2);
                 end;
             end;
-{$endif not llvm}
+
           result:=words;
       end;
 
@@ -1232,10 +1231,10 @@ unit cpupara;
                   end;
 
                 locidx:=1;
-                while (paralen>0) and
-                      (locidx<=2) and
-                      (loc[locidx].typ<>X86_64_NO_CLASS) do
+                while (paralen>0) do
                   begin
+                    if locidx>2 then
+                      internalerror(200501283);
                     { Allocate }
                     case loc[locidx].typ of
                       X86_64_INTEGER_CLASS,
@@ -1356,6 +1355,8 @@ unit cpupara;
                       else
                         internalerror(2010053113);
                     end;
+                    if (locidx<2) and
+                       (loc[locidx+1].typ<>X86_64_NO_CLASS) then
                       inc(locidx);
                   end;
               end

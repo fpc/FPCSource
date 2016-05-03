@@ -193,8 +193,8 @@ implementation
       const
         basedeftbl:array[tordtype] of tbasedef =
           (bvoid,
-           bint,bint,bint,bint,bint,
-           bint,bint,bint,bint,bint,
+           bint,bint,bint,bint,
+           bint,bint,bint,bint,
            bbool,bbool,bbool,bbool,
            bbool,bbool,bbool,bbool,
            bchar,bchar,bint);
@@ -990,16 +990,11 @@ implementation
                                       eq:=te_convert_l1;
                                     end
                                   else
-                                    { an array constructor is not an open array, so
-                                      use a lower level of compatibility than that one of
-                                      of the elements }
-                                    if subeq>te_convert_l6 then
-                                     begin
-                                       doconv:=hct;
-                                       eq:=pred(subeq);
-                                     end
-                                   else
-                                     eq:=subeq;
+                                   if (subeq>te_incompatible) then
+                                    begin
+                                      doconv:=hct;
+                                      eq:=te_convert_l2;
+                                    end;
                                 end;
                              end
                             else

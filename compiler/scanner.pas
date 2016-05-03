@@ -136,9 +136,11 @@ interface
 
           comment_level,
           yylexcount     : longint;
+          lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           replaystack    : treplaystack;
+          in_asm_string  : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
@@ -211,15 +213,15 @@ interface
           function  readcomment:string;
           function  readquotedstring:string;
           function  readstate:char;
-          function  readoptionalstate(fallback:char):char;
           function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
-          procedure skipcomment(read_first_char:boolean);
+          procedure skipcomment;
           procedure skipdelphicomment;
-          procedure skipoldtpcomment(read_first_char:boolean);
+          procedure skipoldtpcomment;
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
+          function  asmgetcharstart : char;
           function  asmgetchar:char;
        end;
 
@@ -2648,7 +2650,9 @@ type
         nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
+        lastasmgetchar:=#0;
         ignoredirectives:=TFPHashList.Create;
+        in_asm_string:=false;
       end;
 
 
@@ -4223,37 +4227,6 @@ type
       end;
 
 
-    function tscannerfile.readoptionalstate(fallback:char):char;
-      var
-        state : char;
-      begin
-        state:=' ';
-        if c=' ' then
-         begin
-           current_scanner.skipspace;
-           if c in ['*','}'] then
-             state:=fallback
-           else
-             begin
-               current_scanner.readid;
-               if pattern='ON' then
-                state:='+'
-               else
-                if pattern='OFF' then
-                 state:='-';
-             end;
-         end
-        else
-          if c in ['*','}'] then
-            state:=fallback
-          else
-            state:=c;
-        if not (state in ['+','-']) then
-         Message(scan_e_wrong_switch_toggle);
-        readoptionalstate:=state;
-      end;
-
-
     function tscannerfile.readstatedefault:char;
       var
         state : char;
@@ -4403,7 +4376,7 @@ type
                         end
                        else
                         begin
-                          skipoldtpcomment(false);
+                          skipoldtpcomment;
                           next_char_loaded:=true;
                         end;
                      end
@@ -4440,11 +4413,10 @@ type
                              Comment Handling
 ****************************************************************************}
 
-    procedure tscannerfile.skipcomment(read_first_char:boolean);
+    procedure tscannerfile.skipcomment;
       begin
         current_commentstyle:=comment_tp;
-        if read_first_char then
-          readchar;
+        readchar;
         inc_comment_level;
       { handle compiler switches }
         if (c='$') then
@@ -4489,7 +4461,7 @@ type
       end;
 
 
-    procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
+    procedure tscannerfile.skipoldtpcomment;
       var
         found : longint;
       begin
@@ -4497,7 +4469,7 @@ type
         inc_comment_level;
         { only load a char if last already processed,
           was cause of bug1634 PM }
-        if read_first_char then
+        if c=#0 then
           readchar;
       { this is now supported }
         if (c='$') then
@@ -4605,7 +4577,7 @@ type
         repeat
           case c of
             '{' :
-              skipcomment(true);
+              skipcomment;
             #26 :
               begin
                 reload;
@@ -4844,7 +4816,8 @@ type
                  case c of
                    '*' :
                      begin
-                       skipoldtpcomment(true);
+                       c:=#0;{Signal skipoldtpcomment to reload a char }
+                       skipoldtpcomment;
                        readtoken(false);
                        exit;
                      end;
@@ -5525,17 +5498,87 @@ exit_label:
       end;
 
 
+    function tscannerfile.asmgetcharstart : char;
+      begin
+        { return first the character already
+          available in c }
+        lastasmgetchar:=c;
+        result:=asmgetchar;
+      end;
+
+
     function tscannerfile.asmgetchar : char;
       begin
-         readchar;
+         if lastasmgetchar<>#0 then
+          begin
+            c:=lastasmgetchar;
+            lastasmgetchar:=#0;
+          end
+         else
+          readchar;
+         if in_asm_string then
+           begin
+             asmgetchar:=c;
+             exit;
+           end;
          repeat
            case c of
+             // the { ... } is used in ARM assembler to define register sets,  so we can't used
+             // it as comment, either (* ... *), /* ... */ or // ... should be used instead.
+             // But compiler directives {$...} are allowed in ARM assembler.
+             '{' :
+               begin
+{$ifdef arm}
+                 readchar;
+                 dec(inputpointer);
+                 if c<>'$' then
+                   begin
+                     asmgetchar:='{';
+                     exit;
+                   end
+                 else
+{$endif arm}
+                   skipcomment;
+               end;
+             #10,#13 :
+               begin
+                 linebreak;
+                 asmgetchar:=c;
+                 exit;
+               end;
              #26 :
                begin
                  reload;
                  if (c=#26) and not assigned(inputfile.next) then
                    end_of_file;
                  continue;
+               end;
+             '/' :
+               begin
+                  readchar;
+                  if c='/' then
+                   skipdelphicomment
+                  else
+                   begin
+                     asmgetchar:='/';
+                     lastasmgetchar:=c;
+                     exit;
+                   end;
+               end;
+             '(' :
+               begin
+                  readchar;
+                  if c='*' then
+                   begin
+                     c:=#0;{Signal skipoldtpcomment to reload a char }
+                     skipoldtpcomment;
+                   end
+                  else
+                   begin
+                     asmgetchar:='(';
+                     lastasmgetchar:=c;
+                     exit;
+                   end;
                end;
              else
                begin

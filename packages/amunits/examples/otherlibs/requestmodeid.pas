@@ -34,11 +34,6 @@ Var
 
 
 Begin
-  if not Assigned(P96Base) then
-  begin
-    writeln('Cannot open ', PICASSO96APINAME);
-    Halt(5);
-  end;
     width:=640;
     height:=480;
     depth:=15;
@@ -54,7 +49,7 @@ Begin
     DisplayID := p96RequestModeIDTags([P96MA_MinWidth, width,
                                        P96MA_MinHeight, height,
                                        P96MA_MinDepth, depth,
-                                       P96MA_WindowTitle, AsTag('RequestModeID Test'),
+                                       P96MA_WindowTitle, 'RequestModeID Test',
                                        P96MA_FormatsAllowed, (RGBFF_CLUT or RGBFF_R5G6B5 or RGBFF_R8G8B8 or RGBFF_A8R8G8B8),
                                        TAG_DONE]);
 

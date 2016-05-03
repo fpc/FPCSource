@@ -19,13 +19,9 @@ function CreatePool(memFlags: longword; puddleSize: longword; threshSize: longwo
 
 procedure DeletePool(poolHeader: Pointer); syscall IExec 140;
 
-procedure Forbid; syscall IExec 156;
-
 procedure execFreeMem(memoryBlock: Pointer; byteSize: longword); syscall IExec 164;
 procedure FreePooled(poolHeader: Pointer;memory: Pointer;memSize: longword); syscall IExec 168;
-
-procedure Permit; syscall IExec 200;
-
+  
 function FindTask(name: PChar): PTask; syscall IExec 260;
 
 function AllocSignal(signalNum: shortint): shortint; syscall IExec 276;
@@ -41,24 +37,14 @@ procedure RemPort(port: PMsgPort); syscall IExec 332;
 procedure ReplyMsg(message: PMessage); syscall IExec 336;
 function WaitPort(port: PMsgPort): PMessage; syscall IExec 340;
 
-function AttemptSemaphore(sigSem: PSignalSemaphore): Cardinal; syscall IExec 352;
-
-procedure InitSemaphore(sigSem: PSignalSemaphore); syscall IExec 364;
-procedure ObtainSemaphore(sigSem: PSignalSemaphore); syscall IExec 368;
-procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore); syscall IExec 376;
-
-procedure ReleaseSemaphore(sigSem: PSignalSemaphore); syscall IExec 384;
-
 function OpenLibrary(name: PChar; version: longword): PLibrary; syscall IExec 424;
 function CloseLibrary(_library: PLibrary): Pointer; syscall IExec 428;
 
-function GetInterface(_library: PLibrary;name: PChar;version: longword;taglist: PTagItem): POS4Interface; syscall IExec 448;
-function GetInterfaceTags(_library: PLibrary;name: PChar;version: longword): POS4Interface; {varargs;} syscall IExec 452; {$WARNING varargs should be possible with syscalls too on OS4}
-procedure DropInterface(_interface: POS4Interface); syscall IExec 456;
+function GetInterface(_library: PLibrary;name: PChar;version: longword;taglist: PTagItem): PInterface; syscall IExec 448;
+function GetInterfaceTags(_library: PLibrary;name: PChar;version: longword): PInterface; {varargs;} syscall IExec 452; {$WARNING varargs should be possible with syscalls too on OS4}
+procedure DropInterface(_interface: PInterface); syscall IExec 456;
 
 function OpenDevice(devName: PChar; unitNumber: longword;ioRequest: PIORequest; flags: longword): longint; syscall IExec 504;
 function CloseDevice(ioRequest: PIORequest): Pointer; syscall IExec 508;
 
 function DoIO(ioRequest: PIORequest): shortint; syscall IExec 528;
-
-procedure RawPutChar(c: Char); syscall IExec 760;

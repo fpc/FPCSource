@@ -24,12 +24,12 @@
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
   AnsiString is defined as a 'silent' pchar :
-  a pchar that points to (S= SizeOf(SizeInt)):
+  a pchar that points to :
 
-  @-3*S   : Code page indicator.
-  @-3*S+2 : Character size (2 bytes)
-  @-2*S   : SizeInt for reference count;
-  @-S  : SizeInt for size;
+  @-16 : Code page indicator.
+  @-12 : Character size (2 bytes)
+  @-8  : SizeInt for reference count;
+  @-4  : SizeInt for size;
   @    : String + Terminating #0;
   Pchar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.

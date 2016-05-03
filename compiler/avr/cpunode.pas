@@ -36,8 +36,7 @@ unit cpunode;
        }
        ,navradd
        ,navrmat
-       ,navrcnv
-       ,navrutil,
+       ,navrcnv,
        { symtable }
        symcpu
        ;

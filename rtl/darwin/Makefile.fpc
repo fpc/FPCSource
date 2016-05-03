@@ -130,7 +130,6 @@ fpintres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
 fpextres$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 
 iso7185$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT)
-        $(COMPILER) $(INC)/iso7185.pp
 
 extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/extpas.pp
@@ -233,7 +232,7 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other system-independent RTL Units
 #
 
-ifneq ($(findstring $(ARCH),x86_64 i386),)
+ifeq ($(ARCH),x86_64)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -246,9 +245,9 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp
 
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp sysutils$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp
 
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT) sysutils$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT)
 
 lnfogdb$(PPUEXT) : $(UNIXINC)/lnfogdb.pp $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) baseunix$(PPUEXT) unix$(PPUEXT)
 

@@ -72,7 +72,7 @@ procedure _exit;cdecl;external 'c' name '_exit';
 //procedure __fpstart;cdecl;external 'c' name '__fpstart'{ @plt };
 //procedure __fsr;cdecl;external 'c' name '__fsr';
 //procedure _init;cdecl;external 'c' name '_init';
-procedure PascalMain;external name 'PASCALMAIN';
+procedure PascalMain;cdecl;external name 'PASCALMAIN';
 
 
 {vars are not correctly transformed :(
@@ -168,14 +168,6 @@ asm
  * there was a genuine call to _start.
  */
 *)
-   movq   %rsp,%rax
-  // Save %rsp to StackTopPtr
-{$ifdef FPC_PIC}
-   movq   StackTopPtr@GOTPCREL(%rip),%rcx
-{$else FPC_PIC}
-   movq   $StackTopPtr,%rcx
-{$endif FPC_PIC}
-   movq   %rax,(%rcx)
    pushq  $0x0
    pushq  $0x0
    movq   %rsp,%rbp

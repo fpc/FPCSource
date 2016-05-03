@@ -180,16 +180,16 @@ const
              if target_info.system<>system_powerpc_aix then
                begin
                  if not(weak) then
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
                  else
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
                end
              else
                begin
                  if not(weak) then
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s,AT_FUNCTION)))
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s)))
                  else
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s)));
                end;
 
              if target_info.system in [system_powerpc_macos,system_powerpc_aix] then

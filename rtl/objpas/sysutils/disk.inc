@@ -13,14 +13,6 @@
 
  **********************************************************************}
 
-function GetDriveIDFromLetter(Const ADrive : PathStr) : Byte;
-
-begin
-  if length(ADrive)=0 then
-    Result:=0
-  else
-    Result := (Ord(ADrive[1]))-64;
-end;
 
 {$push}
 {$i-}

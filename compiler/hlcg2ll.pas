@@ -1026,6 +1026,7 @@ implementation
 {$else}
                hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
 {$endif}
+               cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
              end
             else
              hregister:=cg.getintregister(list,OS_32);
@@ -1121,7 +1122,7 @@ implementation
              ((l.size = dst_cgsize) or
               (TCGSize2Size[l.size] = sizeof(aint)));
           if not const_location then
-            hregister:=hlcg.getregisterfordef(list,dst_size)
+            hregister:=cg.getintregister(list,dst_cgsize)
           else
             hregister := l.register;
           { load value in new register }

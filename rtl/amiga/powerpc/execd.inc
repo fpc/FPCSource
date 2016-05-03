@@ -19,9 +19,9 @@
 {include emuld.inc}
 {$include utild1.inc}
 
-{.$WARNING Ugly hack, remove this ASAP!}
+{$WARNING Ugly hack, remove this ASAP!}
 type
-  POS4Interface = Pointer;
+  PInterface = Pointer;
 
 
 { * exec node definitions (V50)

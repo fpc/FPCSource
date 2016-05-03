@@ -17,7 +17,7 @@ Program WriteTrueColorData;
     nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, amigados, intuition, agraphics, picasso96api, utility;
+uses exec, amigados, intuition, agraphics, picasso96api, utility,systemvartags;
 
 
 Const
@@ -65,11 +65,7 @@ begin
 end;
 
 Begin
-  if not Assigned(P96Base) then
-  begin
-    writeln('Cannot open ', PICASSO96APINAME);
-    Halt(5);
-  end;
+
  width:=640;
  height:=480;
  depth:=24;
@@ -95,8 +91,8 @@ Begin
                           P96SA_Height, height,
                           P96SA_Depth, depth,
                           P96SA_AutoScroll, lTRUE,
-                          P96SA_Pens, AsTag(@Pens),
-                          P96SA_Title, AsTag('WriteTrueColorData Test'),
+                          P96SA_Pens, @Pens,
+                          P96SA_Title, 'WriteTrueColorData Test',
                           TAG_DONE]);
 
 if sc = nil then CleanUp('Can''t open screen');
@@ -104,7 +100,7 @@ if sc = nil then CleanUp('Can''t open screen');
 
 
 
- win := OpenWindowTags(Nil,[WA_CustomScreen, AsTag(sc),
+ win := OpenWindowTags(Nil,[WA_CustomScreen, sc,
                             WA_Backdrop, lTRUE,
                             WA_Borderless, lTRUE,
                             WA_SimpleRefresh, lTRUE,

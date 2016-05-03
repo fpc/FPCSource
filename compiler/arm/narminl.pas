@@ -33,7 +33,6 @@ interface
         function first_abs_real: tnode; override;
         function first_sqr_real: tnode; override;
         function first_sqrt_real: tnode; override;
-        function first_fma : tnode; override;
         { atn,sin,cos,lgn isn't supported by the linux fpe
         function first_arctan_real: tnode; override;
         function first_ln_real: tnode; override;
@@ -51,7 +50,6 @@ interface
         }
         procedure second_prefetch; override;
         procedure second_abs_long; override;
-        procedure second_fma; override;
       private
         procedure load_fpu_location(out singleprec: boolean);
       end;
@@ -63,8 +61,7 @@ implementation
       globtype,verbose,globals,
       cpuinfo, defutil,symdef,aasmdata,aasmcpu,
       cgbase,cgutils,pass_1,pass_2,
-      cpubase,ncgutil,cgobj,cgcpu, hlcgobj,
-      ncal;
+      cpubase,ncgutil,cgobj,cgcpu, hlcgobj;
 
 {*****************************************************************************
                               tarminlinenode
@@ -88,7 +85,6 @@ implementation
             end;
           fpu_vfpv2,
           fpu_vfpv3,
-          fpu_vfpv4,
           fpu_vfpv3_d16,
           fpu_fpv4_s16:
             begin
@@ -129,7 +125,6 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
-              fpu_vfpv4,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               fpu_fpv4_s16:
@@ -160,7 +155,6 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
-              fpu_vfpv4,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               fpu_fpv4_s16:
@@ -191,7 +185,6 @@ implementation
                 expectloc:=LOC_FPUREGISTER;
               fpu_vfpv2,
               fpu_vfpv3,
-              fpu_vfpv4,
               fpu_vfpv3_d16:
                 expectloc:=LOC_MMREGISTER;
               fpu_fpv4_s16:
@@ -207,19 +200,6 @@ implementation
             first_sqrt_real := nil;
           end;
       end;
-
-
-     function tarminlinenode.first_fma : tnode;
-       begin
-         if (true) and
-           ((is_double(resultdef)) or (is_single(resultdef))) then
-           begin
-             expectloc:=LOC_MMREGISTER;
-             Result:=nil;
-           end
-         else
-           Result:=inherited first_fma;
-       end;
 
 
     { atn,sin,cos,lgn isn't supported by the linux fpe
@@ -264,7 +244,6 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
-          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               if singleprec then
@@ -301,7 +280,6 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
-          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               if singleprec then
@@ -331,7 +309,6 @@ implementation
             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
           fpu_vfpv2,
           fpu_vfpv3,
-          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               if singleprec then
@@ -426,93 +403,6 @@ implementation
 
         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
       end;
-
-
-    procedure tarminlinenode.second_fma;
-      const
-        op : array[false..true,false..true] of TAsmOp =
-          { positive product }
-          (
-           { positive third operand }
-           (A_VFMA,
-           { negative third operand }
-            A_VFNMS),
-           { negative product }
-            { positive third operand }
-            (A_VFMS,
-             A_VFNMA)
-           );
-
-      var
-        paraarray : array[1..3] of tnode;
-        i : integer;
-        negop3,
-        negproduct : boolean;
-        oppostfix : TOpPostfix;
-      begin
-         if current_settings.fputype in [fpu_vfpv4] then
-           begin
-             negop3:=false;
-             negproduct:=false;
-             paraarray[1]:=tcallparanode(tcallparanode(tcallparanode(parameters).nextpara).nextpara).paravalue;
-             paraarray[2]:=tcallparanode(tcallparanode(parameters).nextpara).paravalue;
-             paraarray[3]:=tcallparanode(parameters).paravalue;
-
-             { check if a neg. node can be removed
-               this is possible because changing the sign of
-               a floating point number does not affect its absolute
-               value in any way
-             }
-             if paraarray[1].nodetype=unaryminusn then
-               begin
-                 paraarray[1]:=tunarynode(paraarray[1]).left;
-                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
-                   only no code is generated for it }
-                 negproduct:=not(negproduct);
-               end;
-
-             if paraarray[2].nodetype=unaryminusn then
-               begin
-                 paraarray[2]:=tunarynode(paraarray[2]).left;
-                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
-                   only no code is generated for it }
-                 negproduct:=not(negproduct);
-               end;
-
-             if paraarray[3].nodetype=unaryminusn then
-               begin
-                 paraarray[3]:=tunarynode(paraarray[3]).left;
-                 { do not release the unused unary minus node, it is kept and release together with the other nodes,
-                   only no code is generated for it }
-                 negop3:=true;
-               end;
-
-              for i:=1 to 3 do
-               secondpass(paraarray[i]);
-
-             { no memory operand is allowed }
-             for i:=1 to 3 do
-               begin
-                 if not(paraarray[i].location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
-                   hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,paraarray[i].location,paraarray[i].resultdef,true);
-               end;
-
-             location_reset(location,LOC_MMREGISTER,paraarray[1].location.size);
-             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-
-             hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,paraarray[3].resultdef,resultdef,
-               paraarray[3].location.register,location.register,mms_movescalar);
-             if is_double(resultdef) then
-               oppostfix:=PF_F64
-             else
-               oppostfix:=PF_F32;
-             current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(op[negproduct,negop3],
-               location.register,paraarray[1].location.register,paraarray[2].location.register),oppostfix));
-           end
-         else
-           internalerror(2014032301);
-      end;
-
 
 begin
   cinlinenode:=tarminlinenode;

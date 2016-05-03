@@ -1,4 +1,3 @@
-{ %skiptarget=android }
 { %cpu=i386,x86_64 }
 { %opt=-Cg- }
 {$mode objfpc}

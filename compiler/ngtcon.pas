@@ -461,6 +461,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
       var
         strlength : aint;
         strval    : pchar;
+        strch     : char;
         ll        : tasmlabofs;
         ca        : pchar;
         winlike   : boolean;
@@ -469,8 +470,7 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
         strval:='';
         { load strval and strlength of the constant tree }
         if (node.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(node) or
-          ((node.nodetype=typen) and is_interfacecorba(ttypenode(node).typedef)) or
-          is_constcharnode(node) then
+          ((node.nodetype=typen) and is_interfacecorba(ttypenode(node).typedef)) then
           begin
             { convert to the expected string type so that
               for widestrings strval is a pcompilerwidestring }
@@ -496,6 +496,14 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
                 if not codegenerror then
                   CGMessage(parser_e_widestring_to_ansi_compile_time);
               end;
+          end
+        else if is_constcharnode(node) then
+          begin
+            { strval:=pchar(@tordconstnode(node).value);
+              THIS FAIL on BIG_ENDIAN MACHINES PM }
+            strch:=chr(tordconstnode(node).value.svalue and $ff);
+            strval:=@strch;
+            strlength:=1
           end
         else if is_constresourcestringnode(node) then
           begin
@@ -736,10 +744,11 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
             begin
               if not def_is_related(tobjectdef(tclassrefdef(node.resultdef).pointeddef),tobjectdef(def.pointeddef)) then
                 IncompatibleTypes(node.resultdef, def);
-              ftcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)),def);
+              { TODO for correct type? }
+              ftcb.emit_tai(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(node.resultdef).pointeddef).vmt_mangledname,AT_DATA)),voidpointertype);
             end;
            niln:
-             ftcb.emit_tai(Tai_const.Create_sym(nil),def);
+             ftcb.emit_tai(Tai_const.Create_sym(nil),voidpointertype);
            else if is_constnode(node) then
              IncompatibleTypes(node.resultdef, def)
            else
@@ -801,14 +810,8 @@ function get_next_varsym(def: tabstractrecorddef; const SymList:TFPHashObjectLis
               {$if sizeof(TConstPtrUInt)=4}
                 ftcb.queue_emit_ordconst(longint(tpointerconstnode(node).value),ptrsinttype);
               {$else}
-                {$if sizeof(TConstPtrUInt)=2}
-                  ftcb.queue_emit_ordconst(smallint(tpointerconstnode(node).value),ptrsinttype);
-                {$else}
-                  {$if sizeof(TConstPtrUInt)=1}
-                    ftcb.queue_emit_ordconst(shortint(tpointerconstnode(node).value),ptrsinttype);
-                  {$else}
-                    internalerror(200404122);
-            {$endif} {$endif} {$endif} {$endif}
+                internalerror(200404122);
+            {$endif} {$endif}
           end
         { nil pointer ? }
         else if node.nodetype=niln then

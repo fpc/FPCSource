@@ -27,7 +27,7 @@ interface
 uses exec, utility;
 
 var
-  AHIBase: PLibrary = nil;
+  AHIBase: PLibrary;
 
   type
 
@@ -594,20 +594,37 @@ begin
     AHI_PlayA(Audioctrl,@taglist);
 end;
 
+
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-function InitAHILibrary : boolean;
+var
+  ahi_exit : Pointer;
+
+procedure CloseAHILibrary;
 begin
-  InitAhiLibrary:=Assigned(AHIBase);
+  ExitProc := ahi_exit;
+  if AHIBase <> nil then begin
+    CloseLibrary(PLibrary(AHIBase));
+    AHIBase := nil;
+  end;
 end;
 
-initialization
+function InitAHILibrary : boolean;
+begin
+  AHIBase := nil;
   AHIBase := OpenLibrary(AHINAME,LIBVERSION);
-finalization
-  if Assigned(AHIBase) then
-    CloseLibrary(PLibrary(AHIBase));
+  if AHIBase <> nil then begin
+    ahi_exit := ExitProc;
+    ExitProc := @CloseAhiLibrary;
+    InitAhiLibrary:=True;
+  end else begin
+    InitAhiLibrary:=False;
+  end;
+end;
+
 end. (* UNIT AHI *)
 

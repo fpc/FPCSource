@@ -106,8 +106,7 @@ implementation
 {$asmmode att}
 
 var
-  SysInstance : qword;
-  FPCSysInstance: PQWord = @SysInstance; public name '_FPC_SysInstance';
+  SysInstance : qword;public;
 
 {$ifdef FPC_USE_WIN64_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
@@ -138,7 +137,7 @@ end;
 {$ifndef FPC_USE_WIN64_SEH}
 procedure install_exception_handlers;forward;
 {$endif FPC_USE_WIN64_SEH}
-procedure PascalMain;external name 'PASCALMAIN';
+procedure PascalMain;stdcall;external name 'PASCALMAIN';
 
 { include code common with win32 }
 {$I syswin.inc}

@@ -53,9 +53,7 @@
 {$ifdef read_interface}
 
   type
-    {$calling default}
     {$i typshrdh.inc}
-    {$calling cdecl}
     { WARNING
       the variable argument list
       is not implemented for FPC
@@ -8213,8 +8211,6 @@ type
        a.flag0:=a.flag0 or ((__fAckReq shl bp_DDEUP_fAckReq) and bm_DDEUP_fAckReq);
     end;
 
- {$calling default}
  {$i typshrd.inc}
- {$calling cdecl}
 {$endif read_implementation}
 

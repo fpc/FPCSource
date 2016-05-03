@@ -88,30 +88,6 @@ type
     Func     : Pointer;
   end;
 
-type
-  TEmulRegs = (regD0,regD1,regD2,regD3,regD4,regD5,regD6,regD7,regA0,regA1,regA2,regA3,regA4,regA5,regA6,regA7,regPC,regSR);
-
-type
-  PEmulHandle = ^TEmulHandle;
-  TEmulHandle = packed record
-    reg: array[TEmulRegs] of LongWord;  {* 0x00-0x44 68k emulation registers *}
-    SuperHandle: Pointer;               {* 0x48      pointer to SuperHandle  *}
-    _Type: ULONG;                       {* 0x4c      EmulHandle type *}
-    Flags: ULONG;                       {* 0x50      Flags *}
-
-    EmulFunc: procedure; cdecl;                                  {* 0x54 *}
-    EmulCallOS: function(EmulCaos: pointer): ULONG; cdecl;       {* 0x58 *}
-    EmulCall68k: function(EmulCaos: pointer): ULONG; cdecl;      {* 0x5c *}
-    EmulCallQuick68k: function(EmulCaos: pointer): ULONG; cdecl; {* 0x60 *}
-    EmulCallDirectOS: function(arg: LONG): ULONG; cdecl;         {* 0x64 *}
-    EmulCallDirect68k: function(arg: Pointer): ULONG; cdecl;     {* 0x68 *}
-
-    OldEmulHandle: PEmulHandle;         {* 0x6c     Here we record the previous EmulHandle *}
-    { * TODO: but wait, there's more... * }
-  end;
-
-function GetEmulHandle: PEmulHandle;
-
 function REG_D0: DWord;
 function REG_D1: DWord;
 function REG_D2: DWord;
@@ -590,8 +566,8 @@ const
 type
   PMemChunk = ^TMemChunk;
   TMemChunk = packed record
-    mc_Next : PMemChunk;
-    mc_Bytes: DWord;
+    nc_Next : PMemChunk;
+    nc_Bytes: DWord;
   end;
 
 type
@@ -982,7 +958,7 @@ type
   PStackSwapStruct = ^TStackSwapStruct;
   TStackSwapStruct = packed record
     stk_Lower  : Pointer; { * Lowest byte of stack * }
-    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
+    stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
     stk_Pointer: Pointer; { * Stack pointer at switch point * }
   end;
 
@@ -2437,10 +2413,6 @@ begin
   NewGetTaskAttrs:=NewGetTaskAttrsA(Task,Data,DataSize,TType,@Tags);
 end;
 
-function GetEmulHandle: PEmulHandle; assembler; nostackframe;
-asm
-  mr r3,r2
-end;
 
 function REG_D0: DWord; assembler; nostackframe;
 asm
@@ -2485,42 +2457,41 @@ end;
 
 function REG_A0: Pointer; assembler; nostackframe;
 asm
-  lwz r3,32(r2)
+  lwz r3,32(r2) 
 end;
 
 function REG_A1: Pointer; assembler; nostackframe;
 asm
-  lwz r3,36(r2)
+  lwz r3,36(r2) 
 end;
-
 function REG_A2: Pointer; assembler; nostackframe;
 asm
-  lwz r3,40(r2)
+  lwz r3,40(r2) 
 end;
 
 function REG_A3: Pointer; assembler; nostackframe;
 asm
-  lwz r3,44(r2)
+  lwz r3,44(r2) 
 end;
 
 function REG_A4: Pointer; assembler; nostackframe;
 asm
-  lwz r3,48(r2)
+  lwz r3,48(r2) 
 end;
 
 function REG_A5: Pointer; assembler; nostackframe;
 asm
-  lwz r3,52(r2)
+  lwz r3,52(r2) 
 end;
 
 function REG_A6: Pointer; assembler; nostackframe;
 asm
-  lwz r3,56(r2)
+  lwz r3,56(r2) 
 end;
 
 function REG_A7: Pointer; assembler; nostackframe;
 asm
-  lwz r3,60(r2)
+  lwz r3,60(r2) 
 end;
 
 

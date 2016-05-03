@@ -812,7 +812,7 @@ implementation
         if fromsize in [OS_64,OS_S64] then
           begin
             { split into two 32 bit loads }
-            hreg1:=getintregister(list,OS_32);
+            hreg1:=makeregsize(register,OS_32);
             hreg2:=getintregister(list,OS_32);
             if target_info.endian=endian_big then
               begin
@@ -831,7 +831,6 @@ implementation
                 inc(href.offset,4);
                 a_load_ref_reg(list,OS_32,OS_32,href,hreg2);
               end;
-            a_load_reg_reg(list,OS_32,OS_64,hreg1,register);
             list.concat(taicpu.op_reg_reg_const_const(A_BFI,register,makeregsize(hreg2,OS_64),32,32));
           end
        else
@@ -1116,9 +1115,8 @@ implementation
         if fromsize in [OS_64,OS_S64] then
           begin
             { split into two 32 bit stores }
-            hreg1:=getintregister(list,OS_32);
+            hreg1:=makeregsize(register,OS_32);
             hreg2:=getintregister(list,OS_32);
-            a_load_reg_reg(list,OS_32,OS_32,makeregsize(register,OS_32),hreg1);
             a_op_const_reg_reg(list,OP_SHR,OS_64,32,register,makeregsize(hreg2,OS_64));
             if target_info.endian=endian_big then
               begin
@@ -1342,7 +1340,7 @@ implementation
 
     procedure tcgaarch64.a_op_reg_reg_reg_checkoverflow(list: TAsmList; op: topcg; size: tcgsize; src1, src2, dst: tregister; setflags : boolean; var ovloc : tlocation);
       var
-        tmpreg1, tmpreg2: tregister;
+        tmpreg1: tregister;
       begin
         ovloc.loc:=LOC_VOID;
         { overflow can only occur with 64 bit calculations on 64 bit cpus }
@@ -1362,7 +1360,9 @@ implementation
                       ovloc.resflags:=F_CC
                   else
                     ovloc.resflags:=F_VS;
-                  { finished }
+                  { finished; since we won't call through to a_op_reg_reg_reg,
+                    adjust the result here if necessary }
+                  maybeadjustresult(list,op,size,dst);
                   exit;
                 end;
               OP_MUL:
@@ -1377,22 +1377,17 @@ implementation
                 end;
               OP_IMUL:
                 begin
-                  { check whether the upper 64 bits of the 128 bit multiplication
-                    result have the same value as the replicated sign bit of the
-                    lower 64 bits }
+                  { check whether the sign bit of the (128 bit) result is the
+                    same as "sign bit of src1" xor "signbit of src2" (if so, no
+                    overflow and the xor-product of all sign bits is 0) }
                   tmpreg1:=getintregister(list,OS_64);
                   list.concat(taicpu.op_reg_reg_reg(A_SMULH,tmpreg1,src2,src1));
-                  { calculate lower 64 bits (afterwards, because dst may be
-                    equal to src1 or src2) }
-                  a_op_reg_reg_reg(list,op,size,src1,src2,dst);
-                  { replicate sign bit }
-                  tmpreg2:=getintregister(list,OS_64);
-                  a_op_const_reg_reg(list,OP_SAR,OS_S64,63,dst,tmpreg2);
-                  list.concat(taicpu.op_reg_reg(A_CMP,tmpreg1,tmpreg2));
+                  list.concat(taicpu.op_reg_reg_reg(A_EOR,tmpreg1,tmpreg1,src1));
+                  list.concat(taicpu.op_reg_reg_reg(A_EOR,tmpreg1,tmpreg1,src2));
+                  list.concat(taicpu.op_reg_const(A_TST,tmpreg1,$80000000));
                   ovloc.loc:=LOC_FLAGS;
                   ovloc.resflags:=F_NE;
-                  { finished }
-                  exit;
+                  { still have to perform the actual multiplication }
                 end;
               OP_IDIV,
               OP_DIV:

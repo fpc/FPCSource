@@ -22,7 +22,7 @@ Program ppufiles;
 
 uses
   dos,
-  ppu,entfile;
+  ppu;
 
 const
   Version   = 'Version 1.00';
@@ -150,7 +150,7 @@ begin
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  if inppu.getversion<CurrentPPUVersion then
+  if inppu.GetPPUVersion<CurrentPPUVersion then
    begin
      inppu.free;
      Error('Error: Wrong PPU Version : '+PPUFn,false);

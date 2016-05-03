@@ -437,7 +437,6 @@ type
     Procedure InitContent(Var AContent : String);
     Property ContentRead : Boolean Read FContentRead Write FContentRead;
   public
-    Class Var DefaultRequestUploadDir : String;
     constructor Create; override;
     destructor destroy; override;
     Function GetNextPathInfo : String;
@@ -1663,7 +1662,7 @@ end;
 function TRequest.RequestUploadDir: String;
 
 begin
-  Result:=DefaultRequestUploadDir;
+  Result:='';
 end;
 
 function TRequest.GetTempUploadFileName(const AName, AFileName: String;

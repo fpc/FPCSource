@@ -159,17 +159,14 @@ implementation
                { this situation only happens if a intrinsic is parsed that has a
                  generic type as its argument. As we don't know certain
                  information about the final type yet, we need to use safe
-                 values (mostly 0, except for (Bit)SizeOf()) }
+                 values (mostly 0) }
                if not parse_generic then
                  Message(parser_e_illegal_expression);
                case tinlinenode(p).inlinenumber of
-                 in_sizeof_x:
-                   begin
-                     hp:=cconstsym.create_ord(orgname,constord,1,p.resultdef);
-                   end;
+                 in_sizeof_x,
                  in_bitsizeof_x:
                    begin
-                     hp:=cconstsym.create_ord(orgname,constord,8,p.resultdef);
+                     hp:=cconstsym.create_ord(orgname,constord,0,p.resultdef);
                    end;
                  { add other cases here if necessary }
                  else
@@ -474,7 +471,6 @@ implementation
          block_type:=bt_type;
          hdef:=nil;
          first:=true;
-         had_generic:=false;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;

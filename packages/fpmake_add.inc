@@ -60,6 +60,7 @@
   add_ldap(ADirectory+IncludeTrailingPathDelimiter('ldap'));
   add_libc(ADirectory+IncludeTrailingPathDelimiter('libc'));
   add_libcurl(ADirectory+IncludeTrailingPathDelimiter('libcurl'));
+  add_libmicrohttpd(ADirectory+IncludeTrailingPathDelimiter('libmicrohttpd'));
   add_libgbafpc(ADirectory+IncludeTrailingPathDelimiter('libgbafpc'));
   add_libgd(ADirectory+IncludeTrailingPathDelimiter('libgd'));
   add_libndsfpc(ADirectory+IncludeTrailingPathDelimiter('libndsfpc'));
@@ -89,7 +90,6 @@
   add_openssl(ADirectory+IncludeTrailingPathDelimiter('openssl'));
   add_oracle(ADirectory+IncludeTrailingPathDelimiter('oracle'));
   add_os2units(ADirectory+IncludeTrailingPathDelimiter('os2units'));
-  add_os4units(ADirectory+IncludeTrailingPathDelimiter('os4units'));
   add_palmunits(ADirectory+IncludeTrailingPathDelimiter('palmunits'));
   add_pasjpeg(ADirectory+IncludeTrailingPathDelimiter('pasjpeg'));
   add_paszlib(ADirectory+IncludeTrailingPathDelimiter('paszlib'));
@@ -126,4 +126,3 @@
   add_libenet(ADirectory+IncludeTrailingPathDelimiter('libenet'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
   add_Google(ADirectory+IncludeTrailingPathDelimiter('googleapi'));
-  add_fcl_pdf(ADirectory+IncludeTrailingPathDelimiter('fcl-pdf'));

@@ -1166,16 +1166,13 @@ implementation
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
       pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
-      if not(po_assembler in pd.procoptions) then
-        begin
-          nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
-          pd.localst.insert(nestedvars);
-          pd.parentfpstruct:=nestedvars;
-          pd.parentfpinitblock:=cblocknode.create(nil);
-        end;
-      symtablestack.free;
+      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
+      pd.localst.insert(nestedvars);
+      pd.parentfpstruct:=nestedvars;
       pd.parentfpstructptrtype:=pnestedvarsdef;
 
+      pd.parentfpinitblock:=cblocknode.create(nil);
+      symtablestack.free;
       symtablestack:=old_symtablestack;
     end;
 
@@ -1187,23 +1184,9 @@ implementation
       nestedvarsst: tsymtable;
       initcode: tnode;
       old_filepos: tfileposinfo;
-      symname,
-      symrealname: TSymStr;
     begin
       nestedvarsdef:=tlocalvarsym(pd.parentfpstruct).vardef;
-      { redirect all aliases for the function result also to the function
-        result }
-      if vo_is_funcret in tabstractvarsym(sym).varoptions then
-        begin
-          symname:='result';
-          symrealname:='$result'
-        end
-      else
-        begin
-          symname:=sym.name;
-          symrealname:=sym.realname;
-        end;
-      result:=search_struct_member(trecorddef(nestedvarsdef),symname);
+      result:=search_struct_member(trecorddef(nestedvarsdef),sym.name);
       if not assigned(result) then
         begin
           { mark that this symbol is mirrored in the parentfpstruct }
@@ -1216,7 +1199,7 @@ implementation
             fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[],true);
+          result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[],true);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
@@ -1396,7 +1379,7 @@ implementation
       newpd.import_name:=orgpd.import_name;
       orgpd.import_name:=nil;
       newpd.import_dll:=orgpd.import_dll;
-      orgpd.import_dll:=nil;
+      newpd.import_dll:=nil;
       newpd.import_nr:=orgpd.import_nr;
       orgpd.import_nr:=0;
       newpd.setmangledname(newname);

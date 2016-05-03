@@ -42,7 +42,7 @@ begin
   CreateShellArgV:=InternalCreateShellArgV(@prog[1],length(prog));
 end;
 
-function CreateShellArgV(const prog:RawByteString):ppchar;
+function CreateShellArgV(const prog:Ansistring):ppchar;
 {
   Create an argv which executes a command in a shell using /bin/sh -c
   using a AnsiString;

@@ -167,7 +167,6 @@
 'smuad',
 'smusd',
 'srs',
-'rfe',
 'ssat',
 'ssat16',
 'ssax',

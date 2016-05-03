@@ -77,7 +77,7 @@ const
 
 { --- functions in V40 or higher (Release 3.1) --- }
 
-VAR NVBase : pLibrary = nil;
+VAR NVBase : pLibrary;
 
 const
     NONVOLATILENAME : PChar = 'nonvolatile.library';
@@ -90,16 +90,104 @@ FUNCTION GetNVList(const appName : pCHAR location 'a0'; killRequesters : LONGINT
 FUNCTION SetNVProtection(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; mask : LONGINT location 'd2'; killRequesters : LONGINT location 'd1') : LongBool; syscall NVBase 066;
 FUNCTION StoreNV(const appName : pCHAR location 'a0'; const itemName : pCHAR location 'a1'; const data : POINTER location 'a2'; length : ULONG location 'd0'; killRequesters : LONGINT location 'd1') : WORD; syscall NVBase 042;
 
+{Here we read how to compile this unit}
+{You can remove this include and use a define instead}
+{$I useautoopenlib.inc}
+{$ifdef use_init_openlib}
+procedure InitNONVOLATILELibrary;
+{$endif use_init_openlib}
+
+{This is a variable that knows how the unit is compiled}
+var
+    NONVOLATILEIsCompiledHow : longint;
+
 IMPLEMENTATION
+
+{$ifndef dont_use_openlib}
+uses amsgbox;
+{$endif dont_use_openlib}
 
 const
     { Change VERSION and LIBVERSION to proper values }
+
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-initialization
-  NVBase := OpenLibrary(NONVOLATILENAME,LIBVERSION);
-finalization
-  if Assigned(NVBase) then
-    CloseLibrary(NVBase);
+{$ifdef use_init_openlib}
+  {$Info Compiling initopening of nonvolatile.library}
+  {$Info don't forget to use InitNONVOLATILELibrary in the beginning of your program}
+
+var
+    nonvolatile_exit : Pointer;
+
+procedure ClosenonvolatileLibrary;
+begin
+    ExitProc := nonvolatile_exit;
+    if NVBase <> nil then begin
+        CloseLibrary(NVBase);
+        NVBase := nil;
+    end;
+end;
+
+procedure InitNONVOLATILELibrary;
+begin
+    NVBase := nil;
+    NVBase := OpenLibrary(NONVOLATILENAME,LIBVERSION);
+    if NVBase <> nil then begin
+        nonvolatile_exit := ExitProc;
+        ExitProc := @ClosenonvolatileLibrary;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open nonvolatile.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+end;
+
+begin
+    NONVOLATILEIsCompiledHow := 2;
+{$endif use_init_openlib}
+
+{$ifdef use_auto_openlib}
+  {$Info Compiling autoopening of nonvolatile.library}
+
+var
+    nonvolatile_exit : Pointer;
+
+procedure ClosenonvolatileLibrary;
+begin
+    ExitProc := nonvolatile_exit;
+    if NVBase <> nil then begin
+        CloseLibrary(NVBase);
+        NVBase := nil;
+    end;
+end;
+
+begin
+    NVBase := nil;
+    NVBase := OpenLibrary(NONVOLATILENAME,LIBVERSION);
+    if NVBase <> nil then begin
+        nonvolatile_exit := ExitProc;
+        ExitProc := @ClosenonvolatileLibrary;
+        NONVOLATILEIsCompiledHow := 1;
+    end else begin
+        MessageBox('FPC Pascal Error',
+        'Can''t open nonvolatile.library version ' + VERSION + #10 +
+        'Deallocating resources and closing down',
+        'Oops');
+        halt(20);
+    end;
+
+{$endif use_auto_openlib}
+
+{$ifdef dont_use_openlib}
+begin
+    NONVOLATILEIsCompiledHow := 3;
+   {$Warning No autoopening of nonvolatile.library compiled}
+   {$Warning Make sure you open nonvolatile.library yourself}
+{$endif dont_use_openlib}
+
+
+
 END. (* UNIT NONVOLATILE *)

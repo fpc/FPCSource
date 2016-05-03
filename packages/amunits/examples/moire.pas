@@ -21,7 +21,7 @@ Program Moire;
       nils.sjoholm@mailbox.swipnet.se
 }
 
-uses Exec, Intuition, AGraphics, Utility;
+uses Exec, Intuition, AGraphics, Utility, systemvartags;
 
 
 const
@@ -81,10 +81,10 @@ begin
 
 
     s := OpenScreenTags(NIL, [
-    SA_Pens,      AsTag(@pens),
+    SA_Pens,      @pens,
     SA_Depth,     2,
     SA_DisplayID, HIRES_KEY,
-    SA_Title,     AsTag('Close the Window to End This Demonstration'),
+    SA_Title,     'Close the Window to End This Demonstration',
     TAG_END]);
 
     if s <> NIL then begin
@@ -105,8 +105,8 @@ begin
     WA_SizeGadget,   -1,
     WA_SmartRefresh, -1,
     WA_Activate,     -1,
-    WA_Title,        AsTag('Feel Free to Re-Size the Window'),
-    WA_CustomScreen, AsTag(s),
+    WA_Title,        'Feel Free to Re-Size the Window',
+    WA_CustomScreen, s,
     TAG_END]);
 
     IF w <> NIL THEN begin

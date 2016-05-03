@@ -26,7 +26,7 @@ procedure _exit;cdecl;external 'c' name '_exit';
 //procedure __fpstart;cdecl;external 'c' name '__fpstart'{ @plt };
 //procedure __fsr;cdecl;external 'c' name '__fsr';
 //procedure _init;cdecl;external 'c' name '_init';
-procedure PascalMain;external name 'PASCALMAIN';
+procedure PascalMain;cdecl;external name 'PASCALMAIN';
 
 
 {vars are not correctly transformed :(
@@ -53,8 +53,6 @@ procedure __Argv;cdecl;external 'c' name '__Argv';
 Dump of assembler code for function _start:   }
 procedure _start;assembler;nostackframe;public name '_start';
 asm
-   mov    %esp,%eax
-   mov    %eax,StackTopPtr
    pushl  $0x0
    pushl  $0x0
    mov    %esp,%ebp

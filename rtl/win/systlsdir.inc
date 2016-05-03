@@ -21,11 +21,6 @@
 { This is only useful for executables
   for DLLs, DLL_Entry gets called. PM }
 {$ifdef FPC_INSSIDE_SYSINIT}
-
-{$ifdef win32}
-{$define FPC_HAS_INDIRECT_MAIN_INFORMATION}
-{$endif win32}
-
 Const
   DLL_PROCESS_ATTACH = 1;
   DLL_THREAD_ATTACH = 2;
@@ -33,7 +28,7 @@ Const
   DLL_THREAD_DETACH = 3;
 
 var
-   TlsKey : PDWord = @TlsKeyVar;
+   TlsKey : dword; external name '_FPC_TlsKey';
 
 type
   TTlsDirectory=packed record
@@ -50,11 +45,6 @@ function TlsGetValue(dwTlsIndex : DWord) : pointer; stdcall;
 procedure InitSystemThreads; external name '_FPC_InitSystemThreads';
 procedure SysAllocateThreadVars; external name '_FPC_SysAllocateThreadVars';
 procedure InitHeap; external name '_FPC_InitHeap';
-
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-procedure SetupEntryInformation(const info: TEntryInformation); external name '_FPC_SetupEntryInformation';
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-
 {$endif FPC_INSSIDE_SYSINIT}
 
 procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer);
@@ -77,12 +67,6 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          and the EntryInformation is a constant which sholud prevent troubles }
        DLL_PROCESS_ATTACH:
          begin
-           {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-           { since this procedure is called before SetupEntryInformation and thus
-             before EXE_Entry we need to setup the entry information here so that
-             the threadvar handling can be correctly initialized }
-           SetupEntryInformation(SysInitEntryInformation);
-           {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
            InitHeap;
            InitSystemThreads;
          end;
@@ -107,7 +91,7 @@ procedure Exec_Tls_callback(Handle : pointer; reason : Dword; Reserved : pointer
          end;
        DLL_THREAD_DETACH :
          begin
-           if TlsGetValue(TLSKey^)<>nil then
+           if TlsGetValue(TLSKey)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
      end;

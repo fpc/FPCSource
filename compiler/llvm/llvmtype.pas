@@ -116,7 +116,6 @@ implementation
       var
         res: PHashSetItem;
       begin
-        record_def(def);
         res:=asmsymtypes.FindOrAdd(@sym,sizeof(sym));
         { due to internal aliases with different signatures, we may end up with
           multiple defs for the same symbol -> use the one from the declaration,
@@ -143,14 +142,10 @@ implementation
     function TLLVMTypeInfo.record_def(def:tdef): tdef;
       begin
         result:=def;
-        if def.stab_number<>0 then
+        if def.dbg_state<>dbg_state_unused then
           exit;
-        def.stab_number:=1;
-        if def.dbg_state=dbg_state_unused then
-          begin
-            def.dbg_state:=dbg_state_used;
-            deftowritelist.Add(def);
-          end;
+        def.dbg_state:=dbg_state_used;
+        deftowritelist.Add(def);
         defnumberlist.Add(def);
       end;
 
@@ -214,32 +209,25 @@ implementation
 
 
     procedure TLLVMTypeInfo.collect_tai_info(deftypelist: tasmlist; p: tai);
-      var
-        value: tai_abstracttypedconst;
       begin
         case p.typ of
           ait_llvmalias:
             begin
+              record_def(taillvmalias(p).def);
               record_asmsym_def(taillvmalias(p).newsym,taillvmalias(p).def,true);
             end;
           ait_llvmdecl:
             begin
+              if taillvmdecl(p).namesym.Name='\01_U_$OBJPAS_$$_EXCEPTIONCLASS' then
+                writeln('here');
+              record_def(taillvmdecl(p).def);
               record_asmsym_def(taillvmdecl(p).namesym,taillvmdecl(p).def,true);
               collect_asmlist_info(deftypelist,taillvmdecl(p).initdata);
             end;
           ait_llvmins:
             collect_llvmins_info(deftypelist,taillvm(p));
           ait_typedconst:
-            begin
-              record_def(tai_abstracttypedconst(p).def);
-              case tai_abstracttypedconst(p).adetyp of
-                tck_simple:
-                  collect_tai_info(deftypelist,tai_simpletypedconst(p).val);
-                tck_array,tck_record:
-                  for value in tai_aggregatetypedconst(p) do
-                    collect_tai_info(deftypelist,value);
-              end;
-            end;
+            record_def(tai_abstracttypedconst(p).def);
         end;
       end;
 
@@ -476,7 +464,6 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_array(list:TAsmList;def:tarraydef);
       begin
-        record_def(def);
         appenddef(list,def.elementdef);
       end;
 
@@ -486,7 +473,6 @@ implementation
         symdeflist: tfpobjectlist;
         i: longint;
       begin
-        record_def(def);
         symdeflist:=tabstractrecordsymtable(def.symtable).llvmst.symdeflist;
         for i:=0 to symdeflist.Count-1 do
           record_def(tllvmshadowsymtableentry(symdeflist[i]).def);
@@ -503,7 +489,6 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_pointer(list:TAsmList;def:tpointerdef);
       begin
-        record_def(def);
         appenddef(list,def.pointeddef);
       end;
 
@@ -512,15 +497,13 @@ implementation
       var
         i: longint;
       begin
-        record_def(def);
         { todo: handle mantis #25551; there is no way to create a symbolic
           la_type for a procvardef (unless it's a procedure of object/record),
           which means that recursive references should become plain "procedure"
           types that are then casted to the real type when they are used }
-        def.init_paraloc_info(callerside);
         for i:=0 to def.paras.count-1 do
-          appenddef(list,llvmgetcgparadef(tparavarsym(def.paras[i]).paraloc[callerside],true));
-        appenddef(list,llvmgetcgparadef(def.funcretloc[callerside],true));
+          appenddef(list,tparavarsym(def.paras[i]).vardef);
+        appenddef(list,def.returndef);
         if assigned(def.typesym) and
            not def.is_addressonly then
           list.concat(taillvm.op_size(LA_TYPE,record_def(def)));
@@ -668,9 +651,11 @@ implementation
         { reset all def labels }
         for i:=0 to defnumberlist.count-1 do
           begin
-            def:=tdef(defnumberlist[i]);
-            def.dbg_state:=dbg_state_unused;
-            def.stab_number:=0;
+            def := tdef(defnumberlist[i]);
+            if assigned(def) then
+              begin
+                def.dbg_state:=dbg_state_unused;
+              end;
           end;
 
         defnumberlist.free;
@@ -684,11 +669,8 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_object(list:TAsmList;def: tobjectdef);
       begin
-        if is_interface(def) then
-          begin
-            record_def(def);
-            record_def(def.vmt_def);
-          end
+        if is_any_interface_kind(def) then
+          record_def(def.vmt_def)
         else
           appenddef_abstractrecord(list,def);
       end;
@@ -696,23 +678,18 @@ implementation
 
     procedure TLLVMTypeInfo.appenddef_classref(list: TAsmList; def: tclassrefdef);
       begin
-        record_def(def);
-        { can also be an objcclass, which doesn't have a vmt }
-        if is_class(tclassrefdef(def).pointeddef) then
-          record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
+        record_def(tobjectdef(tclassrefdef(def).pointeddef).vmt_def);
       end;
 
 
     procedure TLLVMTypeInfo.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
-        record_def(def);
         appenddef(list,tabstractrecorddef(search_system_type('TVARDATA').typedef));
       end;
 
 
     procedure TLLVMTypeInfo.appenddef_file(list:TAsmList;def:tfiledef);
       begin
-        record_def(def);
         case tfiledef(def).filetyp of
           ft_text    :
             appenddef(list,tabstractrecorddef(search_system_type('TEXTREC').typedef));

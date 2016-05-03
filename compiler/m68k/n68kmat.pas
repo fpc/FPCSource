@@ -89,7 +89,7 @@ implementation
               LOC_REFERENCE,
               LOC_CREFERENCE:
                 begin
-                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,left.location.reference,false);
+                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,left.location.reference);
                   if is_64bit(resultdef) then
                    begin
                      hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
@@ -194,18 +194,18 @@ implementation
             begin
               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
               href:=left.location.reference;
-              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href);
               current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
             end;
           LOC_FPUREGISTER:
             begin
               location.register:=left.location.register;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregopsize,location.register));
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,S_FX,location.register));
             end;
           LOC_CFPUREGISTER:
             begin
                location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,S_FX,left.location.register,location.register));
             end;
           else
             internalerror(200306021);

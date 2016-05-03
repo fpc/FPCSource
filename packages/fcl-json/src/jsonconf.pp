@@ -28,10 +28,8 @@ unit jsonConf;
 interface
 
 uses
-  SysUtils, Classes, fpjson, jsonscanner, jsonparser;
+  SysUtils, Classes, fpjson, jsonscanner,jsonparser;
 
-Const
-  DefaultJSONOptions = [joUTF8,joComments];
 
 type
   EJSONConfigError = class(Exception);
@@ -59,11 +57,9 @@ type
     FFormatIndentSize: Integer;
     FFormatoptions: TFormatOptions;
     FFormatted: Boolean;
-    FJSONOptions: TJSONOptions;
     FKey: TJSONObject;
     procedure DoSetFilename(const AFilename: String; ForceReload: Boolean);
     procedure SetFilename(const AFilename: String);
-    procedure SetJSONOptions(AValue: TJSONOptions);
     Function StripSlash(Const P : UnicodeString) : UnicodeString;
   protected
     FJSON: TJSONObject;
@@ -113,7 +109,6 @@ type
     Property Formatted : Boolean Read FFormatted Write FFormatted;
     Property FormatOptions : TFormatOptions Read FFormatoptions Write FFormatOptions Default DefaultFormat;
     Property FormatIndentsize : Integer Read FFormatIndentSize Write FFormatIndentSize Default DefaultIndentSize;
-    Property JSONOptions : TJSONOptions Read FJSONOptions Write SetJSONOptions Default DefaultJSONOptions;
   end;
 
 
@@ -132,7 +127,6 @@ begin
   FKey:=FJSON;
   FFormatOptions:=DefaultFormat;
   FFormatIndentsize:=DefaultIndentSize;
-  FJSONOptions:=DefaultJSONOptions;
 end;
 
 destructor TJSONConfig.Destroy;
@@ -154,22 +148,22 @@ end;
 procedure TJSONConfig.Flush;
 
 Var
-  F : TFileStream;
+  F : Text;
   S : TJSONStringType;
   
 begin
   if Modified then
     begin
-    F:=TFileStream.Create(FileName,fmCreate);
+    AssignFile(F,FileName);
+    Rewrite(F);
     Try
       if Formatted then
         S:=FJSON.FormatJSON(Formatoptions,FormatIndentSize)
       else
         S:=FJSON.AsJSON;
-      if S>'' then
-        F.WriteBuffer(S[1],Length(S));  
+      Writeln(F,S);  
     Finally
-      F.Free;
+      CloseFile(F);
     end;
     FModified := False;
     end;
@@ -212,7 +206,7 @@ begin
         If (Result.Count=0) then
           I:=-1
         else
-          I:=Result.IndexOfName(UTF8Encode(El));
+          I:=Result.IndexOfName(El);
         If (I=-1) then
           // No element with this name.
           begin
@@ -221,7 +215,7 @@ begin
             // Create new node.
             T:=Result;
             Result:=TJSonObject.Create;
-            T.Add(UTF8Encode(El),Result);
+            T.Add(El,Result);
             end
           else
             Result:=Nil
@@ -230,7 +224,7 @@ begin
           // Node found, check if it is an object
           begin
           if (Result.Items[i].JSONtype=jtObject) then
-            Result:=Result.Objects[UTF8Encode(el)]
+            Result:=Result.Objects[el]
           else
             begin
 //            Writeln(el,' type wrong');
@@ -240,7 +234,7 @@ begin
               Result.Delete(I);
               T:=Result;
               Result:=TJSonObject.Create;
-              T.Add(UTF8Encode(El),Result);
+              T.Add(El,Result);
               end
             else
               Result:=Nil
@@ -276,7 +270,7 @@ begin
   If Assigned(Aparent) then
     begin
 //    Writeln('Found parent, looking for element:',elName);
-    I:=AParent.IndexOfName(UTF8Encode(ElName));
+    I:=AParent.IndexOfName(ElName);
 //    Writeln('Element index is',I);
     If (I<>-1) And ((AParent.items[I].JSONType<>jtObject) or AllowObject) then
       Result:=AParent.Items[i];
@@ -293,7 +287,7 @@ var
 begin
   El:=FindElement(StripSlash(APath),False);
   If Assigned(El) then
-    Result:=El.AsUnicodeString
+    Result:=UTF8Decode(El.AsString)
   else
     Result:=ADefault;
 end;
@@ -407,17 +401,17 @@ begin
   El:=FindElement(StripSlash(APath),True,O,ElName);
   if Assigned(El) and (El.JSONType<>jtString) then
     begin
-    I:=O.IndexOfName(UTF8Encode(elName));
+    I:=O.IndexOfName(elName);
     O.Delete(i);
     El:=Nil;
     end;
   If Not Assigned(el) then
     begin
-    El:=TJSONString.Create(AValue);
-    O.Add(UTF8Encode(ElName),El);
+    El:=TJSONString.Create(UTF8encode(AValue));
+    O.Add(ElName,El);
     end
   else
-    El.AsUnicodeString:=AValue;
+    El.AsString:=UTF8Encode(AValue);
   FModified:=True;
 end;
 
@@ -441,7 +435,7 @@ begin
   El:=FindElement(StripSlash(APath),True,O,ElName);
   if Assigned(El) and (Not (El is TJSONIntegerNumber)) then
     begin
-    I:=O.IndexOfName(UTF8Encode(elName));
+    I:=O.IndexOfName(elName);
     If (I<>-1) then // Normally not needed...
       O.Delete(i);
     El:=Nil;
@@ -449,7 +443,7 @@ begin
   If Not Assigned(el) then
     begin
     El:=TJSONIntegerNumber.Create(AValue);
-    O.Add(UTF8Encode(ElName),El);
+    O.Add(ElName,El);
     end
   else
     El.AsInteger:=AValue;
@@ -468,7 +462,7 @@ begin
   El:=FindElement(StripSlash(APath),True,O,ElName);
   if Assigned(El) and (Not (El is TJSONInt64Number)) then
     begin
-    I:=O.IndexOfName(UTF8Encode(elName));
+    I:=O.IndexOfName(elName);
     If (I<>-1) then // Normally not needed...
       O.Delete(i);
     El:=Nil;
@@ -476,7 +470,7 @@ begin
   If Not Assigned(el) then
     begin
     El:=TJSONInt64Number.Create(AValue);
-    O.Add(UTF8Encode(ElName),El);
+    O.Add(ElName,El);
     end
   else
     El.AsInt64:=AValue;
@@ -513,14 +507,14 @@ begin
   El:=FindElement(StripSlash(APath),True,O,ElName);
   if Assigned(El) and (el.JSONType<>jtBoolean) then
     begin
-    I:=O.IndexOfName(UTF8Encode(elName));
+    I:=O.IndexOfName(elName);
     O.Delete(i);
     El:=Nil;
     end;
   If Not Assigned(el) then
     begin
     El:=TJSONBoolean.Create(AValue);
-    O.Add(UTF8Encode(ElName),El);
+    O.Add(ElName,El);
     end
   else
     El.AsBoolean:=AValue;
@@ -539,14 +533,14 @@ begin
   El:=FindElement(StripSlash(APath),True,O,ElName);
   if Assigned(El) and (Not (El is TJSONFloatNumber)) then
     begin
-    I:=O.IndexOfName(UTF8Encode(elName));
+    I:=O.IndexOfName(elName);
     O.Delete(i);
     El:=Nil;
     end;
   If Not Assigned(el) then
     begin
     El:=TJSONFloatNumber.Create(AValue);
-    O.Add(UTF8Encode(ElName),El);
+    O.Add(ElName,El);
     end
   else
     El.AsFloat:=AValue;
@@ -573,7 +567,7 @@ begin
       DoDelete:=(Not (El is TJSONArray));
     if DoDelete then
       begin
-      I:=O.IndexOfName(UTF8Encode(elName));
+      I:=O.IndexOfName(elName);
       O.Delete(i);
       El:=Nil;
       end;
@@ -584,7 +578,7 @@ begin
       El:=TJSONObject.Create
     else
       El:=TJSONArray.Create;
-    O.Add(UTF8Encode(ElName),El);
+    O.Add(ElName,El);
     end;
   if Not AsObject then
     begin
@@ -617,7 +611,7 @@ end;
 procedure TJSONConfig.DeletePath(const APath: UnicodeString);
 
 Var
-  P : UnicodeString;
+  P : String;
   L : integer;
   Node : TJSONObject;
   ElName : UnicodeString;
@@ -630,7 +624,7 @@ begin
     Node := FindObject(P,False,ElName);
     If Assigned(Node) then
       begin
-      L:=Node.IndexOfName(UTF8Encode(ElName));
+      L:=Node.IndexOfName(ElName);
       If (L<>-1) then
         Node.Delete(L);
       end;
@@ -649,7 +643,6 @@ begin
   if Length(Filename) > 0 then
     DoSetFilename(Filename,True);
 end;
-
 procedure TJSONConfig.Loaded;
 begin
   inherited Loaded;
@@ -693,7 +686,7 @@ begin
     begin
     F:=TFileStream.Create(AFileName,fmopenRead);
     try
-      P:=TJSONParser.Create(F,FJSONOptions);
+      P:=TJSONParser.Create(F,[joUTF8,joComments]);
       try
         J:=P.Parse;
         If (J is TJSONObject) then
@@ -718,16 +711,6 @@ begin
   DoSetFilename(AFilename, False);
 end;
 
-procedure TJSONConfig.SetJSONOptions(AValue: TJSONOptions);
-begin
-  if FJSONOptions=AValue then Exit;
-  FJSONOptions:=AValue;
-  if csLoading in ComponentState then
-    exit;
-  if (FFileName<>'') then
-    Reload;
-end;
-
 function TJSONConfig.StripSlash(const P: UnicodeString): UnicodeString;
 
 Var
@@ -750,9 +733,8 @@ end;
 procedure TJSONConfig.OpenKey(const aPath: UnicodeString; AllowCreate: Boolean);
 
 Var
-  P : UnicodeString;
+  P : String;
   L : Integer;
-  
 begin
   P:=APath;
   L:=Length(P);

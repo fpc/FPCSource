@@ -4,7 +4,7 @@ procedure ClearComments(nesting:longbool;__buf:pointer;size:longint);
 implementation
 procedure ClearComments(nesting:longbool;__buf:pointer;size:longint);
  type
-  tat=array[1..2]of char;
+  tat=array[1..1]of char;
   pat=^tat;
   pblock=^tblock;
   tblock=record
