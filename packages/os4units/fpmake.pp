@@ -46,6 +46,7 @@ begin
     T:=P.Targets.AddUnit('diskfont.pas');
     T:=P.Targets.AddUnit('workbench.pas');
     T:=P.Targets.AddUnit('asl.pas');
+    T:=P.Targets.AddUnit('icon.pas');
 
 {$ifndef ALLPACKAGES}
     Run;
