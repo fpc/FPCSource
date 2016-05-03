@@ -1382,7 +1382,7 @@ begin
   p := PDF.Pages.AddPage;
   p.UnitOfMeasure := uomMillimeters;
   AssertEquals('Failed on 1', 0, p.ObjectCount);
-  p.DrawImage(10, 20, 200, 100, 1);
+  p.DrawImageRawSize(10, 20, 200, 100, 1);
   AssertEquals('Failed on 2', 1, p.ObjectCount);
   img := TMockPDFImage(p.Objects[0]);
   AssertTrue('Failed on 3', img <> nil);
@@ -1402,7 +1402,7 @@ begin
   p := PDF.Pages.AddPage;
   p.UnitOfMeasure := uomCentimeters;
   AssertEquals('Failed on 6', 0, p.ObjectCount);
-  p.DrawImage(10, 20, 200, 100, 1);
+  p.DrawImageRawSize(10, 20, 200, 100, 1);
   AssertEquals('Failed on 7', 1, p.ObjectCount);
   img := TMockPDFImage(p.Objects[0]);
   AssertTrue('Failed on 8', img <> nil);

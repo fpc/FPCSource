@@ -274,11 +274,11 @@ begin
   W := D.Images[IDX].Width;
   H := D.Images[IDX].Height;
   { full size image }
-  P.DrawImage(25, 130, W, H, IDX);  // left-bottom coordinate of image
+  P.DrawImageRawSize(25, 130, W, H, IDX);  // left-bottom coordinate of image
   P.WriteText(145, 90, '[Full size (defined in pixels)]');
 
   { half size image }
-  P.DrawImage(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
+  P.DrawImageRawSize(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
   P.WriteText(90, 165, '[Quarter size (defined in pixels)]');
 
   { scalled image to 2x2 centimeters }

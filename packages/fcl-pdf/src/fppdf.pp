@@ -53,6 +53,9 @@ type
   TARGBColor = Cardinal;
   TPDFFloat = Single;
 
+  {$IF FPC_FULLVERSION < 30000}
+  RawByteString = type AnsiString;
+  {$ENDIF}
 
   TPDFDimensions = record
     T,L,R,B: TPDFFloat;
@@ -99,7 +102,7 @@ type
   Protected
     Class Function FloatStr(F: TPDFFloat) : String;
     procedure Write(const AStream: TStream); virtual;
-    Class procedure WriteString(const AValue: string; AStream: TStream);
+    Class procedure WriteString(const AValue: RawByteString; AStream: TStream);
   public
     Constructor Create(Const ADocument : TPDFDocument); virtual; overload;
   end;
@@ -530,8 +533,8 @@ type
     Procedure DrawRect(const X, Y, W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean); overload;
     Procedure DrawRect(const APos: TPDFCoord; const W, H, ALineWidth: TPDFFloat; const AFill, AStroke : Boolean); overload;
     { X, Y coordinates are the bottom-left coordinate of the image. AWidth and AHeight are in image pixels. }
-    Procedure DrawImage(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer); overload;
-    Procedure DrawImage(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer); overload;
+    Procedure DrawImageRawSize(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer); overload;
+    Procedure DrawImageRawSize(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer); overload;
     { X, Y coordinates are the bottom-left coordinate of the image. AWidth and AHeight are in UnitOfMeasure units. }
     Procedure DrawImage(const X, Y: TPDFFloat; const AWidth, AHeight: TPDFFloat; const ANumber: integer); overload;
     Procedure DrawImage(const APos: TPDFCoord; const AWidth, AHeight: TPDFFloat; const ANumber: integer); overload;
@@ -1785,7 +1788,7 @@ begin
   DrawRect(APos.X, APos.Y, W, H, ALineWidth, AFill, AStroke);
 end;
 
-procedure TPDFPage.DrawImage(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer);
+procedure TPDFPage.DrawImageRawSize(const X, Y: TPDFFloat; const APixelWidth, APixelHeight, ANumber: integer);
 var
   p1: TPDFCoord;
 begin
@@ -1794,7 +1797,7 @@ begin
   AddObject(Document.CreateImage(p1.X, p1.Y, APixelWidth, APixelHeight, ANumber));
 end;
 
-procedure TPDFPage.DrawImage(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer);
+procedure TPDFPage.DrawImageRawSize(const APos: TPDFCoord; const APixelWidth, APixelHeight, ANumber: integer);
 begin
   DrawImage(APos.X, APos.Y, APixelWidth, APixelHeight, ANumber);
 end;
@@ -1949,7 +1952,7 @@ begin
     end;
 end;
 
-class procedure TPDFObject.WriteString(const AValue: string; AStream: TStream);
+class procedure TPDFObject.WriteString(const AValue: RawByteString; AStream: TStream);
 
 Var
   L : Integer;
