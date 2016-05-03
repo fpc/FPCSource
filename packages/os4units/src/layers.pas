@@ -169,7 +169,7 @@ procedure LockLayers(Li: PLayer_Info); syscall ILayers 128;
 procedure UnlockLayers(Li: PLayer_Info); syscall ILayers 132;
 procedure LockLayerInfo(Li: PLayer_Info); syscall ILayers 136;
 procedure SwapBitsRastPortClipRect(Rp: PRastPort; Cr: PClipRect); syscall ILayers 140;
-function WhichLayer(Li: PLayer_Info; X, Y: SmallInt): PLayer; syscall ILayers 144;
+function WhichLayer(Li: PLayer_Info; X, Y: LongInt): PLayer; syscall ILayers 144;
 procedure UnlockLayerInfo(Li: PLayer_Info); syscall ILayers 148;
 function NewLayerInfo: PLayer_Info; syscall ILayers 152;
 procedure DisposeLayerInfo(Li: PLayer_Info); syscall ILayers 156;
@@ -182,7 +182,7 @@ function CreateUpfrontHookLayer(Li: PLayer_Info; Bm: PBitMap; X0, Y0, X1, Y1, Fl
 function CreateBehindHookLayer(Li: PLayer_Info; Bm: PBitMap; X0, Y0, X1, Y1, Flags: LongInt; Hook: PHook; Bm2: PBitMap): PLayer; syscall ILayers 184;
 function InstallLayerHook(Layer: PLayer; Hook: PHook): PHook; syscall ILayers 188;
 function InstallLayerInfoHook(Li: PLayer_Info; const Hook: PHook): PHook; syscall ILayers 192;
-procedure SortLayerCR(Layer: PLayer; Dx, Dy: SmallInt); syscall ILayers 196;
+procedure SortLayerCR(Layer: PLayer; Dx, Dy: LongInt); syscall ILayers 196;
 procedure DoHookClipRects(Hook: PHook; RPort: PRastPort; const Rect: PRectangle); syscall ILayers 200;
 function LayerOccluded(Layer: PLayer): LongInt; syscall ILayers 204;
 function HideLayer(Layer: PLayer): LongInt; syscall ILayers 208;
