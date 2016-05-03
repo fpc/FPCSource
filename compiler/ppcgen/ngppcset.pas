@@ -75,7 +75,6 @@ implementation
         last : TConstExprInt;
         indexreg : tregister;
         href : treference;
-        mulfactor: longint;
 
         procedure genitem(list:TAsmList;t : pcaselabel);
           var
@@ -108,30 +107,28 @@ implementation
         indexreg:= cg.makeregsize(current_asmdata.CurrAsmList, hregister, OS_INT);
         { indexreg := hregister; }
         cg.a_load_reg_reg(current_asmdata.CurrAsmList, def_cgsize(opsize), OS_INT, hregister, indexreg);
+        { a <= x <= b <-> unsigned(x-a) <= (b-a) }
+        cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
         if not(jumptable_no_range) then
           begin
-             { use aword(value-min)<aword(max-min) instead of two comparisons }
-             { case expr outside min_ .. max_ => goto elselabel               }
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,aint(min_),indexreg);
-             { this trick requires an unsigned comparison in all cases }
+             { case expr greater than max_ => goto elselabel }
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_A,aint(max_)-aint(min_),indexreg,elselabel);
-             { already taken into account now }
-             min_:=0;
           end;
         current_asmdata.getjumplabel(table);
         { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
-        mulfactor:=4;
-        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, mulfactor, indexreg);
-        reference_reset_symbol(href, table, (-aint(min_)) * mulfactor, 4);
+        cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, 4, indexreg);
+        reference_reset_symbol(href, table, 0, 4);
 
         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
         reference_reset_base(href,hregister,0,4);
         href.index:=indexreg;
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+        { load table entry }
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);
+        { add table base }
         cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,hregister,indexreg);
-
+        { jump }
         current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR, indexreg));
         current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTR));
 
