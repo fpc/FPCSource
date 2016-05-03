@@ -863,6 +863,19 @@ function XGrabDevice(
     time: TTime
 ): cint; cdecl; external libXi;
 
+{ boolean overload for the TBool parameter }
+function XGrabDevice(
+    display: PDisplay;
+    device: PXDevice;
+    grab_window: TWindow;
+    ownerEvents: Boolean;
+    event_count: cint;
+    event_list: PXEventClass;
+    this_device_mode: cint;
+    other_devices_mode: cint;
+    time: TTime
+): cint; inline;
+
 function XUngrabDevice(
     display: PDisplay;
     device: PXDevice;
@@ -882,6 +895,21 @@ function XGrabDeviceKey(
     this_device_mode: cint;
     other_devices_mode: cint
 ): cint; cdecl; external libXi;
+
+{ boolean overload for the TBool parameter }
+function XGrabDeviceKey(
+    display: PDisplay;
+    device: PXDevice;
+    key: cuint;
+    modifiers: cuint;
+    modifier_device: PXDevice;
+    grab_window: TWindow;
+    owner_events: Boolean;
+    event_count: cuint;
+    event_list: PXEventClass;
+    this_device_mode: cint;
+    other_devices_mode: cint
+): cint; inline;
 
 function XUngrabDeviceKey(
     display: PDisplay;
@@ -905,6 +933,21 @@ function XGrabDeviceButton(
     this_device_mode: cint;
     other_devices_mode: cint
 ): cint; cdecl; external libXi;
+
+{ boolean overload for the TBool parameter }
+function XGrabDeviceButton(
+    display: PDisplay;
+    device: PXDevice;
+    button: cuint;
+    modifiers: cuint;
+    modifier_device: PXDevice;
+    grab_window: TWindow;
+    owner_events: Boolean;
+    event_count: cuint;
+    event_list: PXEventClass;
+    this_device_mode: cint;
+    other_devices_mode: cint
+): cint; inline;
 
 function XUngrabDeviceButton(
     display: PDisplay;
@@ -1109,6 +1152,17 @@ function XSendExtensionEvent(
     event: PXEvent
 ): TStatus; cdecl; external libXi;
 
+{ boolean overload for the TBool parameter }
+function XSendExtensionEvent(
+    display: PDisplay;
+    device: PXDevice;
+    dest: TWindow;
+    prop: Boolean;
+    count: cint;
+    list: PXEventClass;
+    event: PXEvent
+): TStatus; inline;
+
 function XGetDeviceMotionEvents(
     display: PDisplay;
     device: PXDevice;
@@ -1164,6 +1218,22 @@ function XGetDeviceProperty(
      bytes_after: Pculong;
      prop: PPcuchar
 ): TStatus; cdecl; external libXi;
+
+{ boolean overload for the TBool parameter }
+function XGetDeviceProperty(
+     dpy: PDisplay;
+     dev: PXDevice;
+     _property: TAtom;
+     offset: clong;
+     length: clong;
+     delete: Boolean;
+     req_type: TAtom;
+     actual_type: PAtom;
+     actual_format: Pcint;
+     nitems: Pculong;
+     bytes_after: Pculong;
+     prop: PPcuchar
+): TStatus; inline;
 
 //_XFUNCPROTOEND
 
@@ -1333,6 +1403,48 @@ end;
 procedure NoExtensionEvent(d: PXDevice; event_type: cint; out event_class: TXEventClass); inline;
 begin
   event_class := (d^.device_id shl 8) or _noExtensionEvent;
+end;
+
+function XGrabDevice(display: PDisplay; device: PXDevice; grab_window: TWindow;
+  ownerEvents: Boolean; event_count: cint; event_list: PXEventClass;
+  this_device_mode: cint; other_devices_mode: cint; time: TTime): cint; inline;
+begin
+  XGrabDevice := XGrabDevice(display, device, grab_window, Ord(ownerEvents), event_count, event_list, this_device_mode,
+    other_devices_mode, time);
+end;
+
+function XGrabDeviceKey(display: PDisplay; device: PXDevice; key: cuint;
+  modifiers: cuint; modifier_device: PXDevice; grab_window: TWindow;
+  owner_events: Boolean; event_count: cuint; event_list: PXEventClass;
+  this_device_mode: cint; other_devices_mode: cint): cint; inline;
+begin
+  XGrabDeviceKey := XGrabDeviceKey(display, device, key, modifiers, modifier_device, grab_window,
+    Ord(owner_events), event_count, event_list, this_device_mode, other_devices_mode);
+end;
+
+function XGrabDeviceButton(display: PDisplay; device: PXDevice; button: cuint;
+  modifiers: cuint; modifier_device: PXDevice; grab_window: TWindow;
+  owner_events: Boolean; event_count: cuint; event_list: PXEventClass;
+  this_device_mode: cint; other_devices_mode: cint): cint; inline;
+begin
+  XGrabDeviceButton := XGrabDeviceButton(display, device, button, modifiers, modifier_device, grab_window, Ord(owner_events),
+    event_count, event_list, this_device_mode, other_devices_mode);
+end;
+
+function XSendExtensionEvent(display: PDisplay; device: PXDevice;
+  dest: TWindow; prop: Boolean; count: cint; list: PXEventClass; event: PXEvent
+  ): TStatus; inline;
+begin
+  XSendExtensionEvent := XSendExtensionEvent(display, device, dest, Ord(prop), count, list, event);
+end;
+
+function XGetDeviceProperty(dpy: PDisplay; dev: PXDevice; _property: TAtom;
+  offset: clong; length: clong; delete: Boolean; req_type: TAtom;
+  actual_type: PAtom; actual_format: Pcint; nitems: Pculong;
+  bytes_after: Pculong; prop: PPcuchar): TStatus; inline;
+begin
+  XGetDeviceProperty := XGetDeviceProperty(dpy, dev, _property, offset, length, Ord(delete), req_type, actual_type,
+    actual_format, nitems, bytes_after, prop);
 end;
 
 end.
