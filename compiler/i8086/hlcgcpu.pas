@@ -245,7 +245,8 @@ implementation
     begin
       { implicit pointer types on i8086 follow the default data pointer size for
         the current memory model }
-      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
+      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) or
+         (size.typ=classrefdef) then
         size:=voidpointertype;
 
       { procvars follow the default code pointer size for the current memory model }
