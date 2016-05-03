@@ -715,7 +715,7 @@ function XIGrabDevice(dpy: PDisplay; deviceid: cint; grab_window: TWindow;
   time: TTime; cursor: TCursor; grab_mode: cint; paired_device_mode: cint;
   owner_events: Boolean; mask: PXIEventMask): TStatus; inline;
 begin
-  XIGrabDevice(dpy, deviceid, grab_window, time, cursor, grab_mode, paired_device_mode, Ord(owner_events), mask);
+  XIGrabDevice := XIGrabDevice(dpy, deviceid, grab_window, time, cursor, grab_mode, paired_device_mode, Ord(owner_events), mask);
 end;
 
 function XIGetProperty(display: PDisplay; deviceid: cint; _property: TAtom;
@@ -723,7 +723,7 @@ function XIGetProperty(display: PDisplay; deviceid: cint; _property: TAtom;
   type_return: PAtom; format_return: Pcint; num_items_return: Pculong;
   bytes_after_return: Pculong; data: PPcuchar): TStatus;
 begin
-  XIGetProperty(display, deviceid, _property, offset, length, Ord(delete_property), _type, type_return, format_return,
+  XIGetProperty := XIGetProperty(display, deviceid, _property, offset, length, Ord(delete_property), _type, type_return, format_return,
     num_items_return, bytes_after_return, data);
 end;
 
