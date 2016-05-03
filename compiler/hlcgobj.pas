@@ -4241,7 +4241,7 @@ implementation
             else
 {$endif cpu64bitalu}
               if getregtype(rr.old)=R_ADDRESSREGISTER then
-                rr.new := cg.getaddressregister(current_asmdata.CurrAsmList)
+                rr.new := hlcg.getaddressregister(current_asmdata.CurrAsmList,n.resultdef)
               else
                 rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
           end;
