@@ -234,6 +234,12 @@ type
       FExtension, FTypeName, FDefaultExt : string;
       FReader : TFPCustomImageReaderClass;
       FWriter : TFPCustomImageWriterClass;
+    public
+      property Extension: string read FExtension;
+      property TypeName: string read FTypeName;
+      property DefaultExt: string read FDefaultExt;
+      property Reader : TFPCustomImageReaderClass read FReader;
+      property Writer : TFPCustomImageWriterClass read FWriter;
   end;
 
   TImageHandlersManager = class
