@@ -80,8 +80,8 @@ type
   Protected
     //Property setters
     Procedure SetfilterIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetfilterType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfilterType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -103,7 +103,7 @@ type
     FlineItems : String;
   Protected
     //Property setters
-    Procedure SetlineItems(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlineItems(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property lineItems : String Index 0 Read FlineItems Write SetlineItems;
@@ -121,8 +121,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _type : String Index 0 Read F_type Write Set_type;
@@ -140,7 +140,7 @@ type
     Fqueries : TListQueriesResponseTypequeriesArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setqueries(AIndex : Integer; AValue : TListQueriesResponseTypequeriesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -163,7 +163,7 @@ type
     Freports : TListReportsResponseTypereportsArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setreports(AIndex : Integer; AValue : TListReportsResponseTypereportsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -194,7 +194,7 @@ type
     Procedure SetgroupBys(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetincludeInviteData(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setmetrics(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -225,14 +225,14 @@ type
     FtimezoneCode : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmetadata(AIndex : Integer; AValue : TQueryMetadata); virtual;
     Procedure Setparams(AIndex : Integer; AValue : TParameters); virtual;
-    Procedure SetqueryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetqueryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Setschedule(AIndex : Integer; AValue : TQuerySchedule); virtual;
-    Procedure SettimezoneCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimezoneCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -265,17 +265,17 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetdataRange(AIndex : Integer; AValue : String); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgoogleDrivePathForLatestReport(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlatestReportRunTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocale(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataRange(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgoogleDrivePathForLatestReport(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlatestReportRunTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreportCount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setrunning(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetsendNotification(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetshareEmailAddress(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -308,10 +308,10 @@ type
     FnextRunTimezoneCode : String;
   Protected
     //Property setters
-    Procedure SetendTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfrequency(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfrequency(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextRunMinuteOfDay(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnextRunTimezoneCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextRunTimezoneCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property endTimeMs : String Index 0 Read FendTimeMs Write SetendTimeMs;
@@ -352,7 +352,7 @@ type
     FerrorCode : String;
   Protected
     //Property setters
-    Procedure SeterrorCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SeterrorCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property errorCode : String Index 0 Read FerrorCode Write SeterrorCode;
@@ -369,8 +369,8 @@ type
     FreportId : String;
   Protected
     //Property setters
-    Procedure SetqueryId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetqueryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property queryId : String Index 0 Read FqueryId Write SetqueryId;
@@ -390,9 +390,9 @@ type
     Fstatus : TReportStatus;
   Protected
     //Property setters
-    Procedure SetgoogleCloudStoragePath(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : String); virtual;
+    Procedure SetgoogleCloudStoragePath(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; AValue : TReportStatus); virtual;
   Public
   Published
@@ -416,9 +416,9 @@ type
   Protected
     //Property setters
     Procedure Setfailure(AIndex : Integer; AValue : TReportFailure); virtual;
-    Procedure SetfinishTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfinishTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property failure : TReportFailure Index 0 Read Ffailure Write Setfailure;
@@ -443,8 +443,8 @@ type
   Protected
     //Property setters
     Procedure Setchanged(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetentityId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetentityName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetentityId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetentityName(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterrors(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setpersisted(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetrowNumber(AIndex : Integer; AValue : integer); virtual;
@@ -475,10 +475,10 @@ type
     FtimezoneCode : String;
   Protected
     //Property setters
-    Procedure SetdataRange(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportDataEndTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreportDataStartTimeMs(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimezoneCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdataRange(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimezoneCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dataRange : String Index 0 Read FdataRange Write SetdataRange;
@@ -500,8 +500,8 @@ type
   Protected
     //Property setters
     Procedure SetdryRun(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlineItems(AIndex : Integer; AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlineItems(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property dryRun : boolean Index 0 Read FdryRun Write SetdryRun;
@@ -655,7 +655,7 @@ end;
 
 
 
-Procedure TDownloadLineItemsRequest.SetfilterType(AIndex : Integer; AValue : String); 
+Procedure TDownloadLineItemsRequest.SetfilterType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfilterType=AValue) then exit;
@@ -665,7 +665,7 @@ end;
 
 
 
-Procedure TDownloadLineItemsRequest.Setformat(AIndex : Integer; AValue : String); 
+Procedure TDownloadLineItemsRequest.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -695,7 +695,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDownloadLineItemsResponse.SetlineItems(AIndex : Integer; AValue : String); 
+Procedure TDownloadLineItemsResponse.SetlineItems(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlineItems=AValue) then exit;
@@ -712,7 +712,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilterPair.Set_type(AIndex : Integer; AValue : String); 
+Procedure TFilterPair.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -722,7 +722,7 @@ end;
 
 
 
-Procedure TFilterPair.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TFilterPair.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -750,7 +750,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListQueriesResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListQueriesResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -790,7 +790,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListReportsResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TListReportsResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -870,7 +870,7 @@ end;
 
 
 
-Procedure TParameters.Set_type(AIndex : Integer; AValue : String); 
+Procedure TParameters.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -913,7 +913,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuery.Setkind(AIndex : Integer; AValue : String); 
+Procedure TQuery.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -943,7 +943,7 @@ end;
 
 
 
-Procedure TQuery.SetqueryId(AIndex : Integer; AValue : String); 
+Procedure TQuery.SetqueryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FqueryId=AValue) then exit;
@@ -953,7 +953,7 @@ end;
 
 
 
-Procedure TQuery.SetreportDataEndTimeMs(AIndex : Integer; AValue : String); 
+Procedure TQuery.SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportDataEndTimeMs=AValue) then exit;
@@ -963,7 +963,7 @@ end;
 
 
 
-Procedure TQuery.SetreportDataStartTimeMs(AIndex : Integer; AValue : String); 
+Procedure TQuery.SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportDataStartTimeMs=AValue) then exit;
@@ -983,7 +983,7 @@ end;
 
 
 
-Procedure TQuery.SettimezoneCode(AIndex : Integer; AValue : String); 
+Procedure TQuery.SettimezoneCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimezoneCode=AValue) then exit;
@@ -1000,7 +1000,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQueryMetadata.SetdataRange(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.SetdataRange(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataRange=AValue) then exit;
@@ -1010,7 +1010,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Setformat(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1020,7 +1020,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.SetgoogleCloudStoragePathForLatestReport(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgoogleCloudStoragePathForLatestReport=AValue) then exit;
@@ -1030,7 +1030,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetgoogleDrivePathForLatestReport(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.SetgoogleDrivePathForLatestReport(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgoogleDrivePathForLatestReport=AValue) then exit;
@@ -1040,7 +1040,7 @@ end;
 
 
 
-Procedure TQueryMetadata.SetlatestReportRunTimeMs(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.SetlatestReportRunTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlatestReportRunTimeMs=AValue) then exit;
@@ -1050,7 +1050,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Setlocale(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.Setlocale(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -1100,7 +1100,7 @@ end;
 
 
 
-Procedure TQueryMetadata.Settitle(AIndex : Integer; AValue : String); 
+Procedure TQueryMetadata.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1130,7 +1130,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuerySchedule.SetendTimeMs(AIndex : Integer; AValue : String); 
+Procedure TQuerySchedule.SetendTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTimeMs=AValue) then exit;
@@ -1140,7 +1140,7 @@ end;
 
 
 
-Procedure TQuerySchedule.Setfrequency(AIndex : Integer; AValue : String); 
+Procedure TQuerySchedule.Setfrequency(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffrequency=AValue) then exit;
@@ -1160,7 +1160,7 @@ end;
 
 
 
-Procedure TQuerySchedule.SetnextRunTimezoneCode(AIndex : Integer; AValue : String); 
+Procedure TQuerySchedule.SetnextRunTimezoneCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextRunTimezoneCode=AValue) then exit;
@@ -1214,7 +1214,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportFailure.SeterrorCode(AIndex : Integer; AValue : String); 
+Procedure TReportFailure.SeterrorCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FerrorCode=AValue) then exit;
@@ -1231,7 +1231,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportKey.SetqueryId(AIndex : Integer; AValue : String); 
+Procedure TReportKey.SetqueryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FqueryId=AValue) then exit;
@@ -1241,7 +1241,7 @@ end;
 
 
 
-Procedure TReportKey.SetreportId(AIndex : Integer; AValue : String); 
+Procedure TReportKey.SetreportId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportId=AValue) then exit;
@@ -1258,7 +1258,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportMetadata.SetgoogleCloudStoragePath(AIndex : Integer; AValue : String); 
+Procedure TReportMetadata.SetgoogleCloudStoragePath(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgoogleCloudStoragePath=AValue) then exit;
@@ -1268,7 +1268,7 @@ end;
 
 
 
-Procedure TReportMetadata.SetreportDataEndTimeMs(AIndex : Integer; AValue : String); 
+Procedure TReportMetadata.SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportDataEndTimeMs=AValue) then exit;
@@ -1278,7 +1278,7 @@ end;
 
 
 
-Procedure TReportMetadata.SetreportDataStartTimeMs(AIndex : Integer; AValue : String); 
+Procedure TReportMetadata.SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportDataStartTimeMs=AValue) then exit;
@@ -1315,7 +1315,7 @@ end;
 
 
 
-Procedure TReportStatus.SetfinishTimeMs(AIndex : Integer; AValue : String); 
+Procedure TReportStatus.SetfinishTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfinishTimeMs=AValue) then exit;
@@ -1325,7 +1325,7 @@ end;
 
 
 
-Procedure TReportStatus.Setformat(AIndex : Integer; AValue : String); 
+Procedure TReportStatus.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1335,7 +1335,7 @@ end;
 
 
 
-Procedure TReportStatus.Setstate(AIndex : Integer; AValue : String); 
+Procedure TReportStatus.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -1362,7 +1362,7 @@ end;
 
 
 
-Procedure TRowStatus.SetentityId(AIndex : Integer; AValue : String); 
+Procedure TRowStatus.SetentityId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FentityId=AValue) then exit;
@@ -1372,7 +1372,7 @@ end;
 
 
 
-Procedure TRowStatus.SetentityName(AIndex : Integer; AValue : String); 
+Procedure TRowStatus.SetentityName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FentityName=AValue) then exit;
@@ -1432,7 +1432,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRunQueryRequest.SetdataRange(AIndex : Integer; AValue : String); 
+Procedure TRunQueryRequest.SetdataRange(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataRange=AValue) then exit;
@@ -1442,7 +1442,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SetreportDataEndTimeMs(AIndex : Integer; AValue : String); 
+Procedure TRunQueryRequest.SetreportDataEndTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportDataEndTimeMs=AValue) then exit;
@@ -1452,7 +1452,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SetreportDataStartTimeMs(AIndex : Integer; AValue : String); 
+Procedure TRunQueryRequest.SetreportDataStartTimeMs(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportDataStartTimeMs=AValue) then exit;
@@ -1462,7 +1462,7 @@ end;
 
 
 
-Procedure TRunQueryRequest.SettimezoneCode(AIndex : Integer; AValue : String); 
+Procedure TRunQueryRequest.SettimezoneCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimezoneCode=AValue) then exit;
@@ -1489,7 +1489,7 @@ end;
 
 
 
-Procedure TUploadLineItemsRequest.Setformat(AIndex : Integer; AValue : String); 
+Procedure TUploadLineItemsRequest.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -1499,7 +1499,7 @@ end;
 
 
 
-Procedure TUploadLineItemsRequest.SetlineItems(AIndex : Integer; AValue : String); 
+Procedure TUploadLineItemsRequest.SetlineItems(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlineItems=AValue) then exit;

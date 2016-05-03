@@ -7,7 +7,7 @@ name=hash
 version=3.1.1
 
 [require]
-packages=rtl
+packages=rtl 
 
 [install]
 fpcpackage=y

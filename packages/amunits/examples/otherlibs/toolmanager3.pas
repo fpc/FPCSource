@@ -67,6 +67,11 @@ begin
 end;
 
 begin
+  if not Assigned(TritonBase) then
+  begin
+    writeln('cannot open ' + TRITONNAME);
+    Halt(5);
+  end;
     CreateList(LVList);
     FOR i := 0 TO 8 DO BEGIN
         MyNode := AddNewNode(LVList,liststrings[i]);
@@ -74,9 +79,9 @@ begin
 
 
     Triton_App := TR_CreateAppTags([
-                               TRCA_Name,'ToolManagerGUIDemo3',
-                               TRCA_LongName,'ToolManager GUI demo 3',
-                               TRCA_Info,'My own creation for a ToolManager GUI',
+                               TRCA_Name, AsTag('ToolManagerGUIDemo3'),
+                               TRCA_LongName, AsTag('ToolManager GUI demo 3'),
+                               TRCA_Info, AsTag('My own creation for a ToolManager GUI'),
                                TAG_END]);
 
     if Triton_App = nil then CleanUp('Can''t create application',20);

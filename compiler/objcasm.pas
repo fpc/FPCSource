@@ -29,7 +29,14 @@ unit objcasm;
   uses
     aasmbase;
 
+{ Workaround for mantis #29906: bug in PPC jump table generation if a jump
+  table is created for a case-statement that handles at least the lowest
+  and highest possible value of the case expression type }
+{$ifndef VER3_0_0}
   function objc_section_name(sec: TObjCAsmSectionType): string;
+{$else}
+  function objc_section_name(sec: TAsmSectionType): string;
+{$endif}
 
 implementation
 
@@ -37,7 +44,11 @@ implementation
     verbose,
     systems;
 
+{$ifndef VER3_0_0}
   function objc_section_name(sec: TObjCAsmSectionType): string;
+{$else}
+  function objc_section_name(sec: TAsmSectionType): string;
+{$endif}
     begin
       result:='';
       if target_info.system in systems_darwin then

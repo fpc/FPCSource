@@ -107,7 +107,7 @@ type
     Fsubscriptions : TListSubscriptionsResponseTypesubscriptionsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsubscriptions(AIndex : Integer; AValue : TListSubscriptionsResponseTypesubscriptionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -130,7 +130,7 @@ type
     Fsubscriptions : TStringArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsubscriptions(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -153,7 +153,7 @@ type
     Ftopics : TListTopicsResponseTypetopicsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Settopics(AIndex : Integer; AValue : TListTopicsResponseTypetopicsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -177,7 +177,7 @@ type
   Protected
     //Property setters
     Procedure SetackDeadlineSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetackId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetackId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ackDeadlineSeconds : integer Index 0 Read FackDeadlineSeconds Write SetackDeadlineSeconds;
@@ -267,8 +267,8 @@ type
   Protected
     //Property setters
     Procedure Setattributes(AIndex : Integer; AValue : TPubsubMessageTypeattributes); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmessageId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmessageId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attributes : TPubsubMessageTypeattributes Index 0 Read Fattributes Write Setattributes;
@@ -341,7 +341,7 @@ type
   Protected
     //Property setters
     Procedure Setattributes(AIndex : Integer; AValue : TPushConfigTypeattributes); virtual;
-    Procedure SetpushEndpoint(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpushEndpoint(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attributes : TPushConfigTypeattributes Index 0 Read Fattributes Write Setattributes;
@@ -359,7 +359,7 @@ type
     Fmessage : TPubsubMessage;
   Protected
     //Property setters
-    Procedure SetackId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetackId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmessage(AIndex : Integer; AValue : TPubsubMessage); virtual;
   Public
   Published
@@ -381,9 +381,9 @@ type
   Protected
     //Property setters
     Procedure SetackDeadlineSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpushConfig(AIndex : Integer; AValue : TPushConfig); virtual;
-    Procedure Settopic(AIndex : Integer; AValue : String); virtual;
+    Procedure Settopic(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property ackDeadlineSeconds : integer Index 0 Read FackDeadlineSeconds Write SetackDeadlineSeconds;
@@ -402,7 +402,7 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -613,7 +613,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListSubscriptionsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListSubscriptionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -653,7 +653,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTopicSubscriptionsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListTopicSubscriptionsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -693,7 +693,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTopicsResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TListTopicsResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -743,7 +743,7 @@ end;
 
 
 
-Procedure TModifyAckDeadlineRequest.SetackId(AIndex : Integer; AValue : String); 
+Procedure TModifyAckDeadlineRequest.SetackId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FackId=AValue) then exit;
@@ -860,7 +860,7 @@ end;
 
 
 
-Procedure TPubsubMessage.Setdata(AIndex : Integer; AValue : String); 
+Procedure TPubsubMessage.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -870,7 +870,7 @@ end;
 
 
 
-Procedure TPubsubMessage.SetmessageId(AIndex : Integer; AValue : String); 
+Procedure TPubsubMessage.SetmessageId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmessageId=AValue) then exit;
@@ -967,7 +967,7 @@ end;
 
 
 
-Procedure TPushConfig.SetpushEndpoint(AIndex : Integer; AValue : String); 
+Procedure TPushConfig.SetpushEndpoint(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpushEndpoint=AValue) then exit;
@@ -984,7 +984,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReceivedMessage.SetackId(AIndex : Integer; AValue : String); 
+Procedure TReceivedMessage.SetackId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FackId=AValue) then exit;
@@ -1021,7 +1021,7 @@ end;
 
 
 
-Procedure TSubscription.Setname(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1041,7 +1041,7 @@ end;
 
 
 
-Procedure TSubscription.Settopic(AIndex : Integer; AValue : String); 
+Procedure TSubscription.Settopic(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftopic=AValue) then exit;
@@ -1058,7 +1058,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTopic.Setname(AIndex : Integer; AValue : String); 
+Procedure TTopic.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;

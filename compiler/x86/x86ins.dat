@@ -3522,22 +3522,22 @@ xmmreg,xmmrm                         \361\362\371\1\xDB\110               AVX,SA
 xmmreg,xmmrm,imm8                    \361\362\372\1\xDF\110\26            AVX,SANDYBRIDGE
 
 [VANDNPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x55\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x55\75\120        AVX,SANDYBRIDGE
 
 [VANDNPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x55\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x55\75\120            AVX,SANDYBRIDGE
 
 [VANDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x54\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x54\75\120        AVX,SANDYBRIDGE
 
 [VANDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x54\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x54\75\120            AVX,SANDYBRIDGE
 

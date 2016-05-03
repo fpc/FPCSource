@@ -62,14 +62,14 @@ type
     Fversion : String;
   Protected
     //Property setters
-    Procedure Setcategory(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfamily(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfamily(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfiles(AIndex : Integer; AValue : TWebfontTypefiles); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModified(AIndex : Integer; AValue : TDate); virtual;
     Procedure Setsubsets(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setvariants(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -98,7 +98,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TWebfontListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -188,7 +188,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebfont.Setcategory(AIndex : Integer; AValue : String); 
+Procedure TWebfont.Setcategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -198,7 +198,7 @@ end;
 
 
 
-Procedure TWebfont.Setfamily(AIndex : Integer; AValue : String); 
+Procedure TWebfont.Setfamily(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffamily=AValue) then exit;
@@ -218,7 +218,7 @@ end;
 
 
 
-Procedure TWebfont.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWebfont.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -258,7 +258,7 @@ end;
 
 
 
-Procedure TWebfont.Setversion(AIndex : Integer; AValue : String); 
+Procedure TWebfont.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -299,7 +299,7 @@ end;
 
 
 
-Procedure TWebfontList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TWebfontList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

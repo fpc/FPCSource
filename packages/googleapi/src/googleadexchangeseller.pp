@@ -83,9 +83,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -106,10 +106,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TAccountsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -137,9 +137,9 @@ type
   Protected
     //Property setters
     Procedure SetarcOptIn(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsupportsReporting(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -163,10 +163,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TAdClientsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -194,11 +194,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setseverity(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setseverity(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -220,7 +220,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAlertsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -244,10 +244,10 @@ type
     FsiteLanguage : String;
   Protected
     //Property setters
-    Procedure SetadsAppearOn(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsiteLanguage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadsAppearOn(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsiteLanguage(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property adsAppearOn : String Index 0 Read FadsAppearOn Write SetadsAppearOn;
@@ -270,10 +270,10 @@ type
     FtargetingInfo : TCustomChannelTypetargetingInfo;
   Protected
     //Property setters
-    Procedure Setcode(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetingInfo(AIndex : Integer; AValue : TCustomChannelTypetargetingInfo); virtual;
   Public
   Published
@@ -297,10 +297,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TCustomChannelsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -325,7 +325,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -353,14 +353,14 @@ type
     FstartTime : String;
   Protected
     //Property setters
-    Procedure SetadvertiserName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbuyerNetworkName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendTime(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfixedCpm(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : String); virtual;
+    Procedure SetadvertiserName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbuyerNetworkName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfixedCpm(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property advertiserName : String Index 0 Read FadvertiserName Write SetadvertiserName;
@@ -385,7 +385,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TPreferredDealsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -409,9 +409,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcurrency(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcurrency(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property currency : String Index 0 Read Fcurrency Write Setcurrency;
@@ -437,9 +437,9 @@ type
     //Property setters
     Procedure Setaverages(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setheaders(AIndex : Integer; AValue : TReportTypeheadersArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TReportTyperowsArray); virtual;
-    Procedure SettotalMatchedRows(AIndex : Integer; AValue : String); virtual;
+    Procedure SettotalMatchedRows(AIndex : Integer; const AValue : String); virtual;
     Procedure Settotals(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure Setwarnings(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
@@ -475,8 +475,8 @@ type
     //Property setters
     Procedure SetcompatibleDimensions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetcompatibleMetrics(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequiredDimensions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetrequiredMetrics(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetsupportedProducts(AIndex : Integer; AValue : TStringArray); virtual;
@@ -507,9 +507,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -530,10 +530,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TSavedReportsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -558,9 +558,9 @@ type
     FurlPattern : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SeturlPattern(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeturlPattern(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -581,10 +581,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TUrlChannelsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -975,7 +975,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAccount.Setid(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -985,7 +985,7 @@ end;
 
 
 
-Procedure TAccount.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -995,7 +995,7 @@ end;
 
 
 
-Procedure TAccount.Setname(AIndex : Integer; AValue : String); 
+Procedure TAccount.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1012,7 +1012,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccounts.Setetag(AIndex : Integer; AValue : String); 
+Procedure TAccounts.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1032,7 +1032,7 @@ end;
 
 
 
-Procedure TAccounts.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAccounts.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1042,7 +1042,7 @@ end;
 
 
 
-Procedure TAccounts.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAccounts.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1082,7 +1082,7 @@ end;
 
 
 
-Procedure TAdClient.Setid(AIndex : Integer; AValue : String); 
+Procedure TAdClient.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1092,7 +1092,7 @@ end;
 
 
 
-Procedure TAdClient.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAdClient.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1102,7 +1102,7 @@ end;
 
 
 
-Procedure TAdClient.SetproductCode(AIndex : Integer; AValue : String); 
+Procedure TAdClient.SetproductCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductCode=AValue) then exit;
@@ -1129,7 +1129,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAdClients.Setetag(AIndex : Integer; AValue : String); 
+Procedure TAdClients.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1149,7 +1149,7 @@ end;
 
 
 
-Procedure TAdClients.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAdClients.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1159,7 +1159,7 @@ end;
 
 
 
-Procedure TAdClients.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAdClients.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1189,7 +1189,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAlert.Setid(AIndex : Integer; AValue : String); 
+Procedure TAlert.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1199,7 +1199,7 @@ end;
 
 
 
-Procedure TAlert.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAlert.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1209,7 +1209,7 @@ end;
 
 
 
-Procedure TAlert.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TAlert.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -1219,7 +1219,7 @@ end;
 
 
 
-Procedure TAlert.Setseverity(AIndex : Integer; AValue : String); 
+Procedure TAlert.Setseverity(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fseverity=AValue) then exit;
@@ -1229,7 +1229,7 @@ end;
 
 
 
-Procedure TAlert.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAlert.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
 
 
 
-Procedure TAlerts.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAlerts.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1297,7 +1297,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannelTypetargetingInfo.SetadsAppearOn(AIndex : Integer; AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.SetadsAppearOn(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadsAppearOn=AValue) then exit;
@@ -1307,7 +1307,7 @@ end;
 
 
 
-Procedure TCustomChannelTypetargetingInfo.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1317,7 +1317,7 @@ end;
 
 
 
-Procedure TCustomChannelTypetargetingInfo.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1327,7 +1327,7 @@ end;
 
 
 
-Procedure TCustomChannelTypetargetingInfo.SetsiteLanguage(AIndex : Integer; AValue : String); 
+Procedure TCustomChannelTypetargetingInfo.SetsiteLanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsiteLanguage=AValue) then exit;
@@ -1344,7 +1344,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannel.Setcode(AIndex : Integer; AValue : String); 
+Procedure TCustomChannel.Setcode(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcode=AValue) then exit;
@@ -1354,7 +1354,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setid(AIndex : Integer; AValue : String); 
+Procedure TCustomChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1364,7 +1364,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomChannel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1374,7 +1374,7 @@ end;
 
 
 
-Procedure TCustomChannel.Setname(AIndex : Integer; AValue : String); 
+Procedure TCustomChannel.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1401,7 +1401,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomChannels.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCustomChannels.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1421,7 +1421,7 @@ end;
 
 
 
-Procedure TCustomChannels.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCustomChannels.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1431,7 +1431,7 @@ end;
 
 
 
-Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TCustomChannels.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1471,7 +1471,7 @@ end;
 
 
 
-Procedure TMetadata.Setkind(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1501,7 +1501,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPreferredDeal.SetadvertiserName(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.SetadvertiserName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FadvertiserName=AValue) then exit;
@@ -1511,7 +1511,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetbuyerNetworkName(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.SetbuyerNetworkName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbuyerNetworkName=AValue) then exit;
@@ -1521,7 +1521,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -1531,7 +1531,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetendTime(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.SetendTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -1541,7 +1541,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetfixedCpm(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.SetfixedCpm(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfixedCpm=AValue) then exit;
@@ -1551,7 +1551,7 @@ end;
 
 
 
-Procedure TPreferredDeal.Setid(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1561,7 +1561,7 @@ end;
 
 
 
-Procedure TPreferredDeal.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1571,7 +1571,7 @@ end;
 
 
 
-Procedure TPreferredDeal.SetstartTime(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeal.SetstartTime(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1598,7 +1598,7 @@ end;
 
 
 
-Procedure TPreferredDeals.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPreferredDeals.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1628,7 +1628,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReportTypeheadersItem.Setcurrency(AIndex : Integer; AValue : String); 
+Procedure TReportTypeheadersItem.Setcurrency(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcurrency=AValue) then exit;
@@ -1638,7 +1638,7 @@ end;
 
 
 
-Procedure TReportTypeheadersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TReportTypeheadersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1648,7 +1648,7 @@ end;
 
 
 
-Procedure TReportTypeheadersItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TReportTypeheadersItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1696,7 +1696,7 @@ end;
 
 
 
-Procedure TReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1716,7 +1716,7 @@ end;
 
 
 
-Procedure TReport.SettotalMatchedRows(AIndex : Integer; AValue : String); 
+Procedure TReport.SettotalMatchedRows(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtotalMatchedRows=AValue) then exit;
@@ -1790,7 +1790,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.Setid(AIndex : Integer; AValue : String); 
+Procedure TReportingMetadataEntry.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1800,7 +1800,7 @@ end;
 
 
 
-Procedure TReportingMetadataEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReportingMetadataEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1864,7 +1864,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedReport.Setid(AIndex : Integer; AValue : String); 
+Procedure TSavedReport.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1874,7 +1874,7 @@ end;
 
 
 
-Procedure TSavedReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSavedReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1884,7 +1884,7 @@ end;
 
 
 
-Procedure TSavedReport.Setname(AIndex : Integer; AValue : String); 
+Procedure TSavedReport.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1901,7 +1901,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSavedReports.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSavedReports.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1921,7 +1921,7 @@ end;
 
 
 
-Procedure TSavedReports.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSavedReports.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1931,7 +1931,7 @@ end;
 
 
 
-Procedure TSavedReports.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSavedReports.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1961,7 +1961,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannel.Setid(AIndex : Integer; AValue : String); 
+Procedure TUrlChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1971,7 +1971,7 @@ end;
 
 
 
-Procedure TUrlChannel.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUrlChannel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1981,7 +1981,7 @@ end;
 
 
 
-Procedure TUrlChannel.SeturlPattern(AIndex : Integer; AValue : String); 
+Procedure TUrlChannel.SeturlPattern(AIndex : Integer; const AValue : String); 
 
 begin
   If (FurlPattern=AValue) then exit;
@@ -1998,7 +1998,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlChannels.Setetag(AIndex : Integer; AValue : String); 
+Procedure TUrlChannels.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2018,7 +2018,7 @@ end;
 
 
 
-Procedure TUrlChannels.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUrlChannels.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2028,7 +2028,7 @@ end;
 
 
 
-Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TUrlChannels.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

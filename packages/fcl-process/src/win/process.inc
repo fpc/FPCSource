@@ -36,10 +36,8 @@ begin
 end;
 
 Function TProcess.PeekExitStatus : Boolean;
-
 begin
-  GetExitCodeProcess(ProcessHandle,FExitCode);
-  Result:=(FExitCode<>Still_Active);
+  Result:=GetExitCodeProcess(ProcessHandle,FExitCode) and (FExitCode<>Still_Active);
 end;
 
 Function GetStartupFlags (P : TProcess): Cardinal;
@@ -48,17 +46,17 @@ begin
   With P do
     begin
     Result:=0;
-    if poUsePipes in FProcessOptions then
+    if poUsePipes in Options then
        Result:=Result or Startf_UseStdHandles;
-    if suoUseShowWindow in FStartupOptions then
+    if suoUseShowWindow in StartupOptions then
       Result:=Result or startf_USESHOWWINDOW;
-    if suoUSESIZE in FStartupOptions then
+    if suoUSESIZE in StartupOptions then
       Result:=Result or startf_usesize;
-    if suoUsePosition in FStartupOptions then
+    if suoUsePosition in StartupOptions then
       Result:=Result or startf_USEPOSITION;
-    if suoUSECOUNTCHARS in FStartupoptions then
+    if suoUSECOUNTCHARS in Startupoptions then
       Result:=Result or startf_usecountchars;
-    if suoUsefIllAttribute in FStartupOptions then
+    if suoUsefIllAttribute in StartupOptions then
       Result:=Result or startf_USEFILLATTRIBUTE;
     end;
 end;
@@ -68,29 +66,38 @@ Function GetCreationFlags(P : TProcess) : Cardinal;
 begin
   With P do
     begin
-    Result:=0;
-    if poNoConsole in FProcessOptions then
+    Result:=CREATE_UNICODE_ENVIRONMENT;
+    if poNoConsole in Options then
       Result:=Result or Detached_Process;
-    if poNewConsole in FProcessOptions then
+    if poNewConsole in Options then
       Result:=Result or Create_new_console;
-    if poNewProcessGroup in FProcessOptions then
+    if poNewProcessGroup in Options then
       Result:=Result or CREATE_NEW_PROCESS_GROUP;
-    If poRunSuspended in FProcessOptions Then
+    If poRunSuspended in Options Then
       Result:=Result or Create_Suspended;
-    if poDebugProcess in FProcessOptions Then
+    if poDebugProcess in Options Then
       Result:=Result or DEBUG_PROCESS;
-    if poDebugOnlyThisProcess in FProcessOptions Then
+    if poDebugOnlyThisProcess in Options Then
       Result:=Result or DEBUG_ONLY_THIS_PROCESS;
-    if poDefaultErrorMode in FProcessOptions Then
+    if poDefaultErrorMode in Options Then
       Result:=Result or CREATE_DEFAULT_ERROR_MODE;
     result:=result or PriorityConstants[FProcessPriority];
     end;
 end;
 
-Function StringsToPChars(List : TStrings): pointer;
+function WStrAsUniquePWideChar(var s: UnicodeString): PWideChar;
+begin
+  UniqueString(s);
+  if s<>'' then
+    Result:=PWideChar(s)
+  else
+    Result:=nil;
+end;
+
+Function StringsToWChars(List : TStrings): pointer;
 
 var
-  EnvBlock: string;
+  EnvBlock: UnicodeString;
   I: Integer;
 
 begin
@@ -98,8 +105,8 @@ begin
   For I:=0 to List.Count-1 do
     EnvBlock := EnvBlock + List[i] + #0;
   EnvBlock := EnvBlock + #0;
-  GetMem(Result, Length(EnvBlock));
-  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock));
+  GetMem(Result, Length(EnvBlock)*2);
+  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock)*2);
 end;
 
 Procedure InitProcessAttributes(P : TProcess; Var PA : TSecurityAttributes);
@@ -116,7 +123,7 @@ begin
   TA.nLength := SizeOf(TA);
 end;
 
-Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOA);
+Procedure InitStartupInfo(P : TProcess; Var SI : STARTUPINFOW);
 
 Const
   SWC : Array [TShowWindowOptions] of Cardinal =
@@ -128,6 +135,7 @@ begin
   FillChar(SI,SizeOf(SI),0);
   With SI do
     begin
+    cb:=SizeOf(SI);
     dwFlags:=GetStartupFlags(P);
     if P.FShowWindow<>swoNone then
      dwFlags:=dwFlags or Startf_UseShowWindow
@@ -179,11 +187,18 @@ begin
 end;
 
 
-Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoA; CE : Boolean; APipeBufferSize : Cardinal);
+Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfoW; CI, CE : Boolean; APipeBufferSize : Cardinal);
 
 begin
-  CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
-  DuplicateHandleFP(SI.hStdInput);
+  if CI then
+    begin
+      CreatePipeHandles(SI.hStdInput,HI, APipeBufferSize);
+      DuplicateHandleFP(SI.hStdInput);
+    end
+  else
+    begin
+      SI.hStdInput:=StdInputHandle;
+    end;
   CreatePipeHandles(HO,Si.hStdOutput, APipeBufferSize);
   DuplicateHandleFP(   Si.hStdOutput);
   if CE then begin
@@ -215,44 +230,45 @@ begin
      Result:=S;
 end;
 
+
 Procedure TProcess.Execute;
 Var
   i : Integer;
-  PName,PDir,PCommandLine : PChar;
+  WName,WDir,WCommandLine : UnicodeString;
+  PWName,PWDir,PWCommandLine : PWideChar;
   FEnv: pointer;
   FCreationFlags : Cardinal;
   FProcessAttributes : TSecurityAttributes;
   FThreadAttributes : TSecurityAttributes;
   FProcessInformation : TProcessInformation;
-  FStartupInfo : STARTUPINFOA;
+  FStartupInfo : STARTUPINFOW;
   HI,HO,HE : THandle;
   Cmd : String;
-  
-begin
-  PName:=Nil;
-  PCommandLine:=Nil;
-  PDir:=Nil;
-    
+
+ begin
+  WName:='';
+  WCommandLine:='';
+  WDir:='';
   if (FApplicationName='') and (FCommandLine='') and (FExecutable='') then
     Raise EProcess.Create(SNoCommandline);
   if (FApplicationName<>'') then
     begin
-    PName:=Pchar(FApplicationName);
-    PCommandLine:=Pchar(FCommandLine);
+    WName:=FApplicationName;
+    WCommandLine:=FCommandLine;
     end
   else If (FCommandLine<>'') then
-    PCommandLine:=Pchar(FCommandLine)
-  else if (Fexecutable<>'') then
+    WCommandLine:=FCommandLine
+  else if (FExecutable<>'') then
     begin
     Cmd:=MaybeQuoteIfNotQuoted(Executable);
     For I:=0 to Parameters.Count-1 do
       Cmd:=Cmd+' '+MaybeQuoteIfNotQuoted(Parameters[i]);
-    PCommandLine:=PChar(Cmd);
+    WCommandLine:=Cmd;
     end;
   If FCurrentDirectory<>'' then
-    PDir:=Pchar(FCurrentDirectory);
+    WDir:=FCurrentDirectory;
   if FEnvironment.Count<>0 then
-    FEnv:=StringsToPChars(FEnvironment)
+    FEnv:=StringsToWChars(FEnvironment)
   else
     FEnv:=Nil;
   Try
@@ -260,22 +276,28 @@ begin
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
-    If poUsePipes in FProcessOptions then
-      CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions), FPipeBufferSize);
+    If poUsePipes in Options then
+      CreatePipes(HI,HO,HE,FStartupInfo,Not(poPassInput in Options), Not(poStdErrToOutPut in Options), FPipeBufferSize);
     Try
-      If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
-                   FInheritHandles,FCreationFlags,FEnv,PDir,FStartupInfo,
+      // Beware: CreateProcess can alter the strings
+      // Beware: nil is not the same as a pointer to a #0
+      PWName:=WStrAsUniquePWideChar(WName);
+      PWCommandLine:=WStrAsUniquePWideChar(WCommandLine);
+      PWDir:=WStrAsUniquePWideChar(WDir);
+      If Not CreateProcessW (PWName,PWCommandLine,@FProcessAttributes,@FThreadAttributes,
+                   FInheritHandles,FCreationFlags,FEnv,PWDir,FStartupInfo,
                    fProcessInformation) then
         Raise EProcess.CreateFmt(SErrCannotExecute,[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
       FProcessID:=FProcessINformation.dwProcessID;
     Finally
-      if POUsePipes in FProcessOptions then
+      if POUsePipes in Options then
         begin
-        FileClose(FStartupInfo.hStdInput);
+        if not (poPassInput in Options) then
+          FileClose(FStartupInfo.hStdInput);
         FileClose(FStartupInfo.hStdOutput);
-        if Not (poStdErrToOutPut in FProcessOptions) then
+        if Not (poStdErrToOutPut in Options) then
           FileClose(FStartupInfo.hStdError);
         CreateStreams(HI,HO,HE);
         end;
@@ -286,22 +308,33 @@ begin
       FreeMem(FEnv);
   end;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
-     (poWaitOnExit in FProcessOptions) and
-      not (poRunSuspended in FProcessOptions) then
+     (poWaitOnExit in Options) and
+      not (poRunSuspended in Options) then
     WaitOnExit;
 end;
 
 Function TProcess.WaitOnExit : Boolean;
-
 Var
   R : DWord;
-
 begin
   R:=WaitForSingleObject (FProcessHandle,Infinite);
   Result:=(R<>Wait_Failed);
   If Result then
     GetExitStatus;
   FRunning:=False;
+end;
+
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
+Var
+  R : DWord;
+begin
+  R:=WaitForSingleObject (FProcessHandle,Timeout);
+  Result:=R=0;
+  If Result then
+    begin
+      GetExitStatus;
+      FRunning:=False;
+    end;
 end;
 
 Function TProcess.Suspend : Longint;

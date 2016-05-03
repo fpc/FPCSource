@@ -362,7 +362,8 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
     function isintregister(reg : tregister) : boolean;
-    function fpuregsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function isregoverlap(reg1: tregister; reg2: tregister): boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -538,9 +539,16 @@ implementation
         result:=getregtype(reg)=R_INTREGISTER;
       end;
 
-    function fpuregsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
-        fpu_regsize: array[boolean] of TOpSize = ( S_FX, S_FD );
+        fpu_regopsize: array[boolean] of TOpSize = ( S_FX, S_FD );
+      begin
+        result:=fpu_regopsize[current_settings.fputype = fpu_coldfire];
+      end;
+
+    function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        fpu_regsize: array[boolean] of aint = ( 12, 8 ); { S_FX is 12 bytes on '881 }
       begin
         result:=fpu_regsize[current_settings.fputype = fpu_coldfire];
       end;

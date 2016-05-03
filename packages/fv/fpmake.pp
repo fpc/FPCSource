@@ -31,7 +31,10 @@ begin
     P.Dependencies.add('rtl-extra');
     P.Dependencies.add('morphunits',[morphos]);
     P.Dependencies.add('arosunits',[aros]);
-    P.Dependencies.add('amunits',[amiga]);
+    if Defaults.CPU=m68k then
+      P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=powerpc then
+      P.Dependencies.Add('os4units',[amiga]);
 
     T:=P.Targets.AddUnit('app.pas');
       with T.Dependencies do

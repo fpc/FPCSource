@@ -40,7 +40,7 @@ begin
     WriteLn('Sending response to client.');
     xStringStream := TStringStream.Create('my response');
     try
-      Sender.ServerPostCustomResponse(MsgID, MsgType_Response, xStringStream);
+      (Sender as TAdvancedSingleInstance).ServerPostCustomResponse(MsgID, MsgType_Response, xStringStream);
     finally
       xStringStream.Free;
     end;
@@ -66,9 +66,9 @@ var
 begin
   xApp := TMyCustomApplication.Create(nil);
   try
-    xApp.SingleInstance.Enabled := True;
+    xApp.SingleInstanceEnabled := True;
     xApp.SingleInstance.OnServerReceivedParams := @xApp.ServerReceivedParams;
-    xApp.SingleInstance.OnServerReceivedCustomRequest := @xApp.ServerReceivedCustomRequest;
+    (xApp.SingleInstance as TAdvancedSingleInstance).OnServerReceivedCustomRequest := @xApp.ServerReceivedCustomRequest;
     xApp.Initialize;
     Writeln(xApp.SingleInstance.StartResult);
     xApp.Run;
@@ -79,15 +79,15 @@ begin
       begin
         xStream := TStringStream.Create('hello');
         try
-          xApp.SingleInstance.ClientSendCustomRequest(MsgType_Request_No_Response, xStream);
+          (xApp.SingleInstance as TAdvancedSingleInstance).ClientSendCustomRequest(MsgType_Request_No_Response, xStream);
         finally
           xStream.Free;
         end;
         xStream := TStringStream.Create('I want a response');
         try
-          xApp.SingleInstance.ClientSendCustomRequest(MsgType_Request_With_Response, xStream);
+          (xApp.SingleInstance as TAdvancedSingleInstance).ClientSendCustomRequest(MsgType_Request_With_Response, xStream);
           xStream.Size := 0;
-          if xApp.SingleInstance.ClientPeekCustomResponse(xStream, xMsgType) then
+          if (xApp.SingleInstance as TAdvancedSingleInstance).ClientPeekCustomResponse(xStream, xMsgType) then
             WriteLn('Response: ', xStream.DataString)
           else
             WriteLn('Error: no response');

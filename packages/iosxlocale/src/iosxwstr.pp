@@ -357,17 +357,30 @@ implementation
     end;
 
 
-  function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
+  function CompareWideString(const s1, s2 : WideString) : PtrInt;
     var
       cfstr1, cfstr2: CFStringRef;
       temp1, temp2: RawByteString;
     begin
       cfstr1:=CFStringCreateFromWideDataOptionallyViaUUTF8String(pwidechar(s1),length(s1),temp1);
       cfstr2:=CFStringCreateFromWideDataOptionallyViaUUTF8String(pwidechar(s2),length(s2),temp2);
-      result:=CompareCFStrings(cfstr1,cfstr2,coIgnoreCase in Options);
+      result:=CompareCFStrings(cfstr1,cfstr2,false);
       CFRelease(cfstr1);
       CFRelease(cfstr2);
     end;
+
+  function CompareTextWideString(const s1, s2 : WideString): PtrInt;
+    var
+      cfstr1, cfstr2: CFStringRef;
+      temp1, temp2: RawByteString;
+    begin
+      cfstr1:=CFStringCreateFromWideDataOptionallyViaUUTF8String(pwidechar(s1),length(s1),temp1);
+      cfstr2:=CFStringCreateFromWideDataOptionallyViaUUTF8String(pwidechar(s2),length(s2),temp2);
+      result:=CompareCFStrings(cfstr1,cfstr2,true);
+      CFRelease(cfstr1);
+      CFRelease(cfstr2);
+    end;
+
 
   function InternalCodePointLength(const Str: PChar; cfcp: CFStringEncoding; maxlookahead: ptrint): PtrInt;
     var
@@ -597,6 +610,7 @@ implementation
           LowerWideStringProc:=@LowerWideString;
 
           CompareWideStringProc:=@CompareWideString;
+          CompareTextWideStringProc:=@CompareTextWideString;
 
           CharLengthPCharProc:=@CharLengthPChar;
           CodePointLengthProc:=@CodePointLength;
@@ -619,6 +633,7 @@ implementation
           UpperUnicodeStringProc:=@UpperWideString;
           LowerUnicodeStringProc:=@LowerWideString;
           CompareUnicodeStringProc:=@CompareWideString;
+          CompareTextUnicodeStringProc:=@CompareTextWideString;
           { CodePage }
           GetStandardCodePageProc:=@GetStandardCodePage;
         end;

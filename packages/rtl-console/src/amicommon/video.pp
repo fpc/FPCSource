@@ -131,14 +131,14 @@ end;
 
 (*
   GetWindow: pWindow;
-  
+
   Tries to create and open a window. Returns the pointer to
   the window or nil in case of failure.
 
-  The routine keeps the global FPC_FULL_SCREEM option into 
+  The routine keeps the global FPC_FULL_SCREEM option into
   account and act accordingly.
-  
-  In windowed mode it returns a window with another kind of 
+
+  In windowed mode it returns a window with another kind of
   settings then when it has to reside on it's own customscreen.
 *)
 function _OpenWindowTags(a: Pointer; tags: array of PtrUInt): pWindow;
@@ -181,8 +181,8 @@ begin
       WA_BackDrop   , 1,
       WA_FLAGS      , VIDEO_WFLG_DEFAULTS,
       WA_IDCMP      , VIDEO_IDCMP_DEFAULTS
-    ]); 
-  end else  
+    ]);
+  end else
   begin      // Windowed Mode
     GetWindow:=_OpenWindowTags(nil, [
       WA_Left       , LastL,
@@ -251,13 +251,13 @@ begin
   // the screen in both directions. Try to be as accurate as possible.
   if FPC_VIDEO_FULLSCREEN then
   begin
-    // just to make sure that we are going to use the window width 
-    // and height instead of the screen dimensions. 
+    // just to make sure that we are going to use the window width
+    // and height instead of the screen dimensions.
     // This is to circumvent that the window (or virtual window from
-    // vision based on characters pixels * characters in both 
+    // vision based on characters pixels * characters in both
     // dimensions) is actually smaller then the window it resides on.
     //
-    // Can happen for instance when the window does not hide its 
+    // Can happen for instance when the window does not hide its
     // borders or titlebar as intended.
     ScreenWidth := VideoWindow^.GZZWidth div 8;
     ScreenHeight := VideoWindow^.GZZHeight div 16;
@@ -280,7 +280,7 @@ begin
    { viewpostcolormap info }
    videoColorMap := pScreen(videoWindow^.WScreen)^.ViewPort.ColorMap;
 
-   for Counter := 0 to 15 do 
+   for Counter := 0 to 15 do
    begin
      VideoPens[Counter] := ObtainBestPenA(VideoColorMap,
          vgacolors[counter, 0] shl 24, vgacolors[counter, 1] shl 24, vgacolors[counter, 2] shl 24, nil);
@@ -709,7 +709,7 @@ begin
       winT:=PChar(PtrInt(-1))
     else
       winT:=PChar(globWinT);
-    if globScreenT = '' then 
+    if globScreenT = '' then
       screenT:=PChar(PtrInt(-1))
     else
       screenT:=PChar(globScreenT);

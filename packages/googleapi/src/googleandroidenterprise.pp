@@ -125,12 +125,12 @@ type
   Protected
     //Property setters
     Procedure SetdefaultValue(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionRestrictionValue); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setentry(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetentryValue(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrestrictionType(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrestrictionType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -161,11 +161,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure SetvalueBool(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetvalueInteger(AIndex : Integer; AValue : integer); virtual;
     Procedure SetvalueMultiselect(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetvalueString(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvalueString(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -193,11 +193,11 @@ type
     Fvisibility : String;
   Protected
     //Property setters
-    Procedure SetcollectionId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcollectionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -222,7 +222,7 @@ type
     Fuser : TCollectionViewersListResponseTypeuserArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseTypeuserArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -246,7 +246,7 @@ type
   Protected
     //Property setters
     Procedure Setcollection(AIndex : Integer; AValue : TCollectionsListResponseTypecollectionArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -269,9 +269,9 @@ type
     FmanagementType : String;
   Protected
     //Property setters
-    Procedure SetandroidId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmanagementType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetandroidId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmanagementType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property androidId : String Index 0 Read FandroidId Write SetandroidId;
@@ -290,8 +290,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountState(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountState(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountState : String Index 0 Read FaccountState Write SetaccountState;
@@ -310,7 +310,7 @@ type
   Protected
     //Property setters
     Procedure Setdevice(AIndex : Integer; AValue : TDevicesListResponseTypedeviceArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -334,10 +334,10 @@ type
     FprimaryDomain : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprimaryDomain(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprimaryDomain(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -357,8 +357,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetaccountEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccountEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accountEmail : String Index 0 Read FaccountEmail Write SetaccountEmail;
@@ -377,7 +377,7 @@ type
   Protected
     //Property setters
     Procedure Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseTypeenterpriseArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -400,9 +400,9 @@ type
     Freason : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -422,7 +422,7 @@ type
   Protected
     //Property setters
     Procedure Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseTypeentitlementArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -448,12 +448,12 @@ type
     FproductId : String;
   Protected
     //Property setters
-    Procedure SetacquisitionKind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setapproval(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure SetacquisitionKind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setapproval(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumProvisioned(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumPurchased(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property acquisitionKind : String Index 0 Read FacquisitionKind Write SetacquisitionKind;
@@ -475,7 +475,7 @@ type
     Fuser : TGroupLicenseUsersListResponseTypeuserArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseTypeuserArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -499,7 +499,7 @@ type
   Protected
     //Property setters
     Procedure SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponseTypegroupLicenseArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -523,9 +523,9 @@ type
     FversionCode : integer;
   Protected
     //Property setters
-    Procedure SetinstallState(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinstallState(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -547,7 +547,7 @@ type
   Protected
     //Property setters
     Procedure Setinstall(AIndex : Integer; AValue : TInstallsListResponseTypeinstallArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -571,10 +571,10 @@ type
     FpermissionId : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -600,14 +600,14 @@ type
     FworkDetailsUrl : String;
   Protected
     //Property setters
-    Procedure SetauthorName(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdetailsUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SeticonUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetauthorName(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdetailsUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequiresContainerApp(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetworkDetailsUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetworkDetailsUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property authorName : String Index 0 Read FauthorName Write SetauthorName;
@@ -631,8 +631,8 @@ type
     Fstate : String;
   Protected
     //Property setters
-    Procedure SetpermissionId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property permissionId : String Index 0 Read FpermissionId Write SetpermissionId;
@@ -651,9 +651,9 @@ type
     FproductId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpermission(AIndex : Integer; AValue : TProductPermissionsTypepermissionArray); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -677,9 +677,9 @@ type
     FprimaryEmail : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprimaryEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprimaryEmail(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -699,9 +699,9 @@ type
     FuserId : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuserId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuserId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -720,7 +720,7 @@ type
     Fuser : TUsersListResponseTypeuserArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; AValue : TUsersListResponseTypeuserArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1105,7 +1105,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TAppRestrictionsSchemaRestriction.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1135,7 +1135,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Setkey(AIndex : Integer; AValue : String); 
+Procedure TAppRestrictionsSchemaRestriction.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -1145,7 +1145,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.SetrestrictionType(AIndex : Integer; AValue : String); 
+Procedure TAppRestrictionsSchemaRestriction.SetrestrictionType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrestrictionType=AValue) then exit;
@@ -1155,7 +1155,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Settitle(AIndex : Integer; AValue : String); 
+Procedure TAppRestrictionsSchemaRestriction.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1186,7 +1186,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1226,7 +1226,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueString(AIndex : Integer; AValue : String); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueString(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvalueString=AValue) then exit;
@@ -1267,7 +1267,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCollection.SetcollectionId(AIndex : Integer; AValue : String); 
+Procedure TCollection.SetcollectionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcollectionId=AValue) then exit;
@@ -1277,7 +1277,7 @@ end;
 
 
 
-Procedure TCollection.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCollection.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1287,7 +1287,7 @@ end;
 
 
 
-Procedure TCollection.Setname(AIndex : Integer; AValue : String); 
+Procedure TCollection.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1307,7 +1307,7 @@ end;
 
 
 
-Procedure TCollection.Setvisibility(AIndex : Integer; AValue : String); 
+Procedure TCollection.Setvisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -1337,7 +1337,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCollectionViewersListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCollectionViewersListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1387,7 +1387,7 @@ end;
 
 
 
-Procedure TCollectionsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCollectionsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1417,7 +1417,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDevice.SetandroidId(AIndex : Integer; AValue : String); 
+Procedure TDevice.SetandroidId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FandroidId=AValue) then exit;
@@ -1427,7 +1427,7 @@ end;
 
 
 
-Procedure TDevice.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDevice.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1437,7 +1437,7 @@ end;
 
 
 
-Procedure TDevice.SetmanagementType(AIndex : Integer; AValue : String); 
+Procedure TDevice.SetmanagementType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmanagementType=AValue) then exit;
@@ -1454,7 +1454,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeviceState.SetaccountState(AIndex : Integer; AValue : String); 
+Procedure TDeviceState.SetaccountState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountState=AValue) then exit;
@@ -1464,7 +1464,7 @@ end;
 
 
 
-Procedure TDeviceState.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDeviceState.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1491,7 +1491,7 @@ end;
 
 
 
-Procedure TDevicesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDevicesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1521,7 +1521,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnterprise.Setid(AIndex : Integer; AValue : String); 
+Procedure TEnterprise.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1531,7 +1531,7 @@ end;
 
 
 
-Procedure TEnterprise.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEnterprise.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1541,7 +1541,7 @@ end;
 
 
 
-Procedure TEnterprise.Setname(AIndex : Integer; AValue : String); 
+Procedure TEnterprise.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1551,7 +1551,7 @@ end;
 
 
 
-Procedure TEnterprise.SetprimaryDomain(AIndex : Integer; AValue : String); 
+Procedure TEnterprise.SetprimaryDomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryDomain=AValue) then exit;
@@ -1568,7 +1568,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnterpriseAccount.SetaccountEmail(AIndex : Integer; AValue : String); 
+Procedure TEnterpriseAccount.SetaccountEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccountEmail=AValue) then exit;
@@ -1578,7 +1578,7 @@ end;
 
 
 
-Procedure TEnterpriseAccount.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEnterpriseAccount.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1605,7 +1605,7 @@ end;
 
 
 
-Procedure TEnterprisesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEnterprisesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1635,7 +1635,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntitlement.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1645,7 +1645,7 @@ end;
 
 
 
-Procedure TEntitlement.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1655,7 +1655,7 @@ end;
 
 
 
-Procedure TEntitlement.Setreason(AIndex : Integer; AValue : String); 
+Procedure TEntitlement.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -1682,7 +1682,7 @@ end;
 
 
 
-Procedure TEntitlementsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEntitlementsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1712,7 +1712,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupLicense.SetacquisitionKind(AIndex : Integer; AValue : String); 
+Procedure TGroupLicense.SetacquisitionKind(AIndex : Integer; const AValue : String); 
 
 begin
   If (FacquisitionKind=AValue) then exit;
@@ -1722,7 +1722,7 @@ end;
 
 
 
-Procedure TGroupLicense.Setapproval(AIndex : Integer; AValue : String); 
+Procedure TGroupLicense.Setapproval(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fapproval=AValue) then exit;
@@ -1732,7 +1732,7 @@ end;
 
 
 
-Procedure TGroupLicense.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupLicense.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1762,7 +1762,7 @@ end;
 
 
 
-Procedure TGroupLicense.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TGroupLicense.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1779,7 +1779,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupLicenseUsersListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupLicenseUsersListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1829,7 +1829,7 @@ end;
 
 
 
-Procedure TGroupLicensesListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupLicensesListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1859,7 +1859,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstall.SetinstallState(AIndex : Integer; AValue : String); 
+Procedure TInstall.SetinstallState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinstallState=AValue) then exit;
@@ -1869,7 +1869,7 @@ end;
 
 
 
-Procedure TInstall.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstall.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1879,7 +1879,7 @@ end;
 
 
 
-Procedure TInstall.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TInstall.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1916,7 +1916,7 @@ end;
 
 
 
-Procedure TInstallsListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TInstallsListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1946,7 +1946,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermission.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1956,7 +1956,7 @@ end;
 
 
 
-Procedure TPermission.Setkind(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1966,7 +1966,7 @@ end;
 
 
 
-Procedure TPermission.Setname(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1976,7 +1976,7 @@ end;
 
 
 
-Procedure TPermission.SetpermissionId(AIndex : Integer; AValue : String); 
+Procedure TPermission.SetpermissionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -1993,7 +1993,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProduct.SetauthorName(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetauthorName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FauthorName=AValue) then exit;
@@ -2003,7 +2003,7 @@ end;
 
 
 
-Procedure TProduct.SetdetailsUrl(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetdetailsUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdetailsUrl=AValue) then exit;
@@ -2013,7 +2013,7 @@ end;
 
 
 
-Procedure TProduct.SeticonUrl(AIndex : Integer; AValue : String); 
+Procedure TProduct.SeticonUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconUrl=AValue) then exit;
@@ -2023,7 +2023,7 @@ end;
 
 
 
-Procedure TProduct.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProduct.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2033,7 +2033,7 @@ end;
 
 
 
-Procedure TProduct.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -2053,7 +2053,7 @@ end;
 
 
 
-Procedure TProduct.Settitle(AIndex : Integer; AValue : String); 
+Procedure TProduct.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2063,7 +2063,7 @@ end;
 
 
 
-Procedure TProduct.SetworkDetailsUrl(AIndex : Integer; AValue : String); 
+Procedure TProduct.SetworkDetailsUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FworkDetailsUrl=AValue) then exit;
@@ -2080,7 +2080,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductPermission.SetpermissionId(AIndex : Integer; AValue : String); 
+Procedure TProductPermission.SetpermissionId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpermissionId=AValue) then exit;
@@ -2090,7 +2090,7 @@ end;
 
 
 
-Procedure TProductPermission.Setstate(AIndex : Integer; AValue : String); 
+Procedure TProductPermission.Setstate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -2107,7 +2107,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductPermissions.Setkind(AIndex : Integer; AValue : String); 
+Procedure TProductPermissions.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2127,7 +2127,7 @@ end;
 
 
 
-Procedure TProductPermissions.SetproductId(AIndex : Integer; AValue : String); 
+Procedure TProductPermissions.SetproductId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -2157,7 +2157,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUser.Setid(AIndex : Integer; AValue : String); 
+Procedure TUser.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2167,7 +2167,7 @@ end;
 
 
 
-Procedure TUser.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUser.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2177,7 +2177,7 @@ end;
 
 
 
-Procedure TUser.SetprimaryEmail(AIndex : Integer; AValue : String); 
+Procedure TUser.SetprimaryEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryEmail=AValue) then exit;
@@ -2194,7 +2194,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserToken.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUserToken.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2204,7 +2204,7 @@ end;
 
 
 
-Procedure TUserToken.Settoken(AIndex : Integer; AValue : String); 
+Procedure TUserToken.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2214,7 +2214,7 @@ end;
 
 
 
-Procedure TUserToken.SetuserId(AIndex : Integer; AValue : String); 
+Procedure TUserToken.SetuserId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuserId=AValue) then exit;
@@ -2231,7 +2231,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsersListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUsersListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

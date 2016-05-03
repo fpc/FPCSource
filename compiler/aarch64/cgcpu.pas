@@ -1116,8 +1116,9 @@ implementation
         if fromsize in [OS_64,OS_S64] then
           begin
             { split into two 32 bit stores }
-            hreg1:=makeregsize(register,OS_32);
+            hreg1:=getintregister(list,OS_32);
             hreg2:=getintregister(list,OS_32);
+            a_load_reg_reg(list,OS_32,OS_32,makeregsize(register,OS_32),hreg1);
             a_op_const_reg_reg(list,OP_SHR,OS_64,32,register,makeregsize(hreg2,OS_64));
             if target_info.endian=endian_big then
               begin

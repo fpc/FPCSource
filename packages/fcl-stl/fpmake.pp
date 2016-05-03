@@ -48,6 +48,7 @@ begin
           AddUnit('gdeque');
         end;
     T:=P.Targets.AddUnit('gset.pp');
+    T:=P.Targets.AddUnit('glinkedlist.pp');
     T:=P.Targets.AddUnit('gtree.pp');
     T:=P.Targets.AddUnit('gstack.pp');
       with T.Dependencies do

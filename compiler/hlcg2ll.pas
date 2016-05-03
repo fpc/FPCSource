@@ -1121,7 +1121,7 @@ implementation
              ((l.size = dst_cgsize) or
               (TCGSize2Size[l.size] = sizeof(aint)));
           if not const_location then
-            hregister:=cg.getintregister(list,dst_cgsize)
+            hregister:=hlcg.getregisterfordef(list,dst_size)
           else
             hregister := l.register;
           { load value in new register }

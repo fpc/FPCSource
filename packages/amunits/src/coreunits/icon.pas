@@ -346,7 +346,7 @@ Const
 
     ICONNAME    : PChar = 'icon.library';
 
-VAR IconBase : pLibrary;
+VAR IconBase : pLibrary = nil;
 
 FUNCTION AddFreeList(freelist : pFreeList location 'a0'; const mem : POINTER location 'a1'; size : ULONG location 'a2') : LongBool; syscall IconBase 072;
 FUNCTION BumpRevision(newname : pCHAR location 'a0'; const oldname : pCHAR location 'a1') : pCHAR; syscall IconBase 108;
@@ -373,44 +373,24 @@ FUNCTION LayoutIconA(icon : pDiskObject location 'a0'; screen : pScreen location
 PROCEDURE ChangeToSelectedIconColor(cr : pColorRegister location 'a0'); syscall IconBase 198;
 
 { overlay }
-FUNCTION BumpRevision(newname : string;const oldname : pCHAR) : pCHAR;
-FUNCTION BumpRevision(newname : pCHar;const oldname : string) : pCHAR;
-FUNCTION BumpRevision(newname : string;const oldname : string) : pCHAR;
-FUNCTION DeleteDiskObject(const name : string) : BOOLEAN;
-FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : string) : pCHAR;
-FUNCTION GetDiskObject(const name : string) : pDiskObject;
-FUNCTION GetDiskObjectNew(const name : string) : pDiskObject;
-FUNCTION MatchToolValue(const typeString :string;const value : pCHAR) : BOOLEAN;
-FUNCTION MatchToolValue(const typeString : pCHAR;const value : string) : BOOLEAN;
-FUNCTION MatchToolValue(const typeString : string;const value : string) : BOOLEAN;
-FUNCTION PutDiskObject(const name : string;const diskobj : pDiskObject) : BOOLEAN;
+FUNCTION BumpRevision(newname : pCHar; const oldname : RawByteString) : pCHAR;
+FUNCTION DeleteDiskObject(const name : RawByteString) : BOOLEAN;
+FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : RawByteString) : pCHAR;
+FUNCTION GetDiskObject(const name : RawByteString) : pDiskObject;
+FUNCTION GetDiskObjectNew(const name : RawByteString) : pDiskObject;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : pCHAR) : BOOLEAN;
+FUNCTION MatchToolValue(const typeString : pCHAR;const value : RawByteString) : BOOLEAN;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : RawByteString) : BOOLEAN;
+FUNCTION PutDiskObject(const name : RawByteString;const diskobj : pDiskObject) : BOOLEAN;
 
 { version 44 overlay}
-FUNCTION GetIconTagList(CONST name : string; CONST tags : pTagItem) : pDiskObject;
-FUNCTION PutIconTagList(CONST name : string; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
+FUNCTION GetIconTagList(CONST name : RawByteString; CONST tags : pTagItem) : pDiskObject;
+FUNCTION PutIconTagList(CONST name : RawByteString; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
 
 {macros}
 function PACK_ICON_ASPECT_RATIO(num,den : longint) : longint;
 
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitICONLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    ICONIsCompiledHow : longint;
-
 IMPLEMENTATION
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-pastoc;
 
 function PACK_ICON_ASPECT_RATIO(num,den : longint) : longint;
 begin
@@ -418,153 +398,71 @@ begin
 end;
 
 
-FUNCTION BumpRevision(newname : string;const oldname : pCHAR) : pCHAR;
+FUNCTION BumpRevision(newname : pCHar;const oldname : RawByteString) : pCHAR;
 begin
-      BumpRevision := BumpRevision(pas2c(newname),oldname);
+      BumpRevision := BumpRevision(newname,PChar(oldname));
 end;
 
-FUNCTION BumpRevision(newname : pCHar;const oldname : string) : pCHAR;
+FUNCTION DeleteDiskObject(const name : RawByteString) : BOOLEAN;
 begin
-      BumpRevision := BumpRevision(newname,pas2c(oldname));
+      DeleteDiskObject := DeleteDiskObject(PChar(name));
 end;
 
-FUNCTION BumpRevision(newname : string;const oldname : string) : pCHAR;
+FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : RawByteString) : pCHAR;
 begin
-      BumpRevision := BumpRevision(pas2c(newname),pas2c(oldname));
+      FindToolType := FindToolType(toolTypeArray,PChar(typeName));
 end;
 
-FUNCTION DeleteDiskObject(const name : string) : BOOLEAN;
+FUNCTION GetDiskObject(const name : RawByteString) : pDiskObject;
 begin
-      DeleteDiskObject := DeleteDiskObject(pas2c(name));
+      GetDiskObject := GetDiskObject(PChar(name));
 end;
 
-FUNCTION FindToolType(const toolTypeArray : POINTER;const typeName : string) : pCHAR;
+FUNCTION GetDiskObjectNew(const name : RawByteString) : pDiskObject;
 begin
-      FindToolType := FindToolType(toolTypeArray,pas2c(typeName));
+      GetDiskObjectNew := GetDiskObjectNew(PChar(name));
 end;
 
-FUNCTION GetDiskObject(const name : string) : pDiskObject;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : pCHAR) : BOOLEAN;
 begin
-      GetDiskObject := GetDiskObject(pas2c(name));
+       MatchToolValue := MatchToolValue(PChar(typeString),value);
 end;
 
-FUNCTION GetDiskObjectNew(const name : string) : pDiskObject;
+FUNCTION MatchToolValue(const typeString : pCHAR;const value : RawByteString) : BOOLEAN;
 begin
-      GetDiskObjectNew := GetDiskObjectNew(pas2c(name));
+       MatchToolValue := MatchToolValue(typeString,PChar(value));
 end;
 
-FUNCTION MatchToolValue(const typeString : string;const value : pCHAR) : BOOLEAN;
+FUNCTION MatchToolValue(const typeString : RawByteString;const value : RawByteString) : BOOLEAN;
 begin
-       MatchToolValue := MatchToolValue(pas2c(typeString),value);
+       MatchToolValue := MatchToolValue(PChar(typeString),PChar(value));
 end;
 
-FUNCTION MatchToolValue(const typeString : pCHAR;const value : string) : BOOLEAN;
+FUNCTION PutDiskObject(const name : RawByteString;const diskobj : pDiskObject) : BOOLEAN;
 begin
-       MatchToolValue := MatchToolValue(typeString,pas2c(value));
+       PutDiskObject := PutDiskObject(PChar(name),diskobj);
 end;
 
-FUNCTION MatchToolValue(const typeString : string;const value : string) : BOOLEAN;
+FUNCTION GetIconTagList(CONST name : RawByteString; CONST tags : pTagItem) : pDiskObject;
 begin
-       MatchToolValue := MatchToolValue(pas2c(typeString),pas2c(value));
+       GetIconTagList := GetIconTagList(PChar(name),tags);
 end;
 
-FUNCTION PutDiskObject(const name : string;const diskobj : pDiskObject) : BOOLEAN;
+FUNCTION PutIconTagList(CONST name : RawByteString; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
 begin
-       PutDiskObject := PutDiskObject(pas2c(name),diskobj);
-end;
-
-FUNCTION GetIconTagList(CONST name : string; CONST tags : pTagItem) : pDiskObject;
-begin
-       GetIconTagList := GetIconTagList(pas2c(name),tags);
-end;
-
-FUNCTION PutIconTagList(CONST name : string; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
-begin
-       PutIconTagList := PutIconTagList(pas2c(name),icon,tags);
+       PutIconTagList := PutIconTagList(PChar(name),icon,tags);
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of icon.library}
-  {$Info don't forget to use InitICONLibrary in the beginning of your program}
-
-var
-    icon_exit : Pointer;
-
-procedure CloseiconLibrary;
-begin
-    ExitProc := icon_exit;
-    if IconBase <> nil then begin
-        CloseLibrary(IconBase);
-        IconBase := nil;
-    end;
-end;
-
-procedure InitICONLibrary;
-begin
-    IconBase := nil;
-    IconBase := OpenLibrary(ICONNAME,LIBVERSION);
-    if IconBase <> nil then begin
-        icon_exit := ExitProc;
-        ExitProc := @CloseiconLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open icon.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    ICONIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of icon.library}
-
-var
-    icon_exit : Pointer;
-
-procedure CloseiconLibrary;
-begin
-    ExitProc := icon_exit;
-    if IconBase <> nil then begin
-        CloseLibrary(IconBase);
-        IconBase := nil;
-    end;
-end;
-
-begin
-    IconBase := nil;
-    IconBase := OpenLibrary(ICONNAME,LIBVERSION);
-    if IconBase <> nil then begin
-        icon_exit := ExitProc;
-        ExitProc := @CloseiconLibrary;
-        ICONIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open icon.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    ICONIsCompiledHow := 3;
-   {$Warning No autoopening of icon.library compiled}
-   {$Warning Make sure you open icon.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  IconBase := OpenLibrary(ICONNAME,LIBVERSION);
+finalization
+  if Assigned(IconBase) then
+    CloseLibrary(IconBase);
 END. (* UNIT ICON *)
 
 

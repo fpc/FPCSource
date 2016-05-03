@@ -25,25 +25,28 @@ Type
   TExceptionEvent = Procedure (Sender : TObject; E : Exception) Of Object;
   TEventLogTypes = Set of TEventType;
 
-  TCustomApplication = Class;
-  TCustomSingleInstance = Class;
-
   { TCustomApplication }
 
   TCustomApplication = Class(TComponent)
   Private
     FEventLogFilter: TEventLogTypes;
     FOnException: TExceptionEvent;
-    FSingleInstance: TCustomSingleInstance;
+    FSingleInstance: TBaseSingleInstance;
+    FSingleInstanceClass: TBaseSingleInstanceClass; // set before FSingleInstance is created
+    FSingleInstanceEnabled: Boolean; // set before Initialize is called
     FTerminated : Boolean;
     FHelpFile,
     FTitle : String;
     FOptionChar : Char;
     FCaseSensitiveOptions : Boolean;
     FStopOnException : Boolean;
+    FExceptionExitCode : Integer;
     function GetEnvironmentVar(VarName : String): String;
     function GetExeName: string;
     Function GetLocation : String;
+    function GetSingleInstance: TBaseSingleInstance;
+    procedure SetSingleInstanceClass(
+      const ASingleInstanceClass: TBaseSingleInstanceClass);
     function GetTitle: string;
   Protected
     function GetOptionAtIndex(AIndex: Integer; IsLong: Boolean): String;
@@ -62,6 +65,7 @@ Type
     procedure Run;
     procedure ShowException(E: Exception);virtual;
     procedure Terminate; virtual;
+    procedure Terminate(AExitCode : Integer) ; virtual;
     // Extra methods.
     function FindOptionIndex(Const S : String; Var Longopt : Boolean; StartAt : Integer = -1) : Integer;
     Function GetOptionValue(Const S : String) : String;
@@ -79,6 +83,7 @@ Type
     Procedure GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
     Procedure GetEnvironmentList(List : TStrings);
     Procedure Log(EventType : TEventType; const Msg : String);
+    Procedure Log(EventType : TEventType; const Fmt : String; const Args : array of const);
     // Delphi properties
     property ExeName: string read GetExeName;
     property HelpFile: string read FHelpFile write FHelpFile;
@@ -94,16 +99,11 @@ Type
     Property OptionChar : Char Read FoptionChar Write FOptionChar;
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
+    Property ExceptionExitCode : Longint Read FExceptionExitCode Write FExceptionExitCode;
     Property EventLogFilter : TEventLogTypes Read FEventLogFilter Write FEventLogFilter;
-    Property SingleInstance: TCustomSingleInstance read FSingleInstance;
-  end;
-
-  TCustomSingleInstance = class(TBaseSingleInstance)
-  private
-    FEnabled: Boolean;
-  public
-    //you must set Enabled before CustomApplication.Initialize
-    property Enabled: Boolean read FEnabled write FEnabled;
+    Property SingleInstance: TBaseSingleInstance read GetSingleInstance;
+    Property SingleInstanceClass: TBaseSingleInstanceClass read FSingleInstanceClass write SetSingleInstanceClass;
+    Property SingleInstanceEnabled: Boolean read FSingleInstanceEnabled write FSingleInstanceEnabled;
   end;
 
 var CustomApplication : TCustomApplication = nil;
@@ -234,6 +234,17 @@ begin
   Result:=ParamStr(Index);
 end;
 
+function TCustomApplication.GetSingleInstance: TBaseSingleInstance;
+begin
+  if FSingleInstance = nil then
+    begin
+    if FSingleInstanceClass=Nil then
+      Raise ESingleInstance.Create('No single instance provider class set! Include a single-instance class unit such as advsingleinstance');
+    FSingleInstance := FSingleInstanceClass.Create(Self);
+    end;
+  Result := FSingleInstance;
+end;
+
 procedure TCustomApplication.SetTitle(const AValue: string);
 begin
   FTitle:=AValue;
@@ -246,8 +257,9 @@ end;
 
 procedure TCustomApplication.DoRun;
 begin
-  if FSingleInstance.IsServer then
-    FSingleInstance.ServerCheckMessages;
+  if Assigned(FSingleInstance) then
+    if FSingleInstance.IsServer then
+      FSingleInstance.ServerCheckMessages;
 
   // Override in descendent classes.
 end;
@@ -265,13 +277,24 @@ begin
     DoLog(EventType,Msg);
 end;
 
+procedure TCustomApplication.Log(EventType: TEventType; const Fmt: String;
+  const Args: array of const);
+begin
+  try
+    Log(EventType, Format(Fmt, Args));
+  except
+    On E : Exception do
+      Log(etError,Format('Error formatting message "%s" with %d arguments: %s',[Fmt,Length(Args),E.Message]));
+  end  
+end;
+
 constructor TCustomApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FOptionChar:='-';
   FCaseSensitiveOptions:=True;
   FStopOnException:=False;
-  FSingleInstance := TCustomSingleInstance.Create(Self);
+  FSingleInstanceClass := DefaultSingleInstanceClass;
 end;
 
 destructor TCustomApplication.Destroy;
@@ -291,19 +314,19 @@ begin
       FOnException(Sender,Exception(ExceptObject));
     end;
   If FStopOnException then
-    FTerminated:=True;
+    Terminate(ExceptionExitCode);
 end;
 
 
 procedure TCustomApplication.Initialize;
 begin
   FTerminated:=False;
-  if FSingleInstance.Enabled then
+  if FSingleInstanceEnabled then
   begin
-    case FSingleInstance.Start of
+    case SingleInstance.Start of
       siClient:
       begin
-        FSingleInstance.ClientPostParams;
+        SingleInstance.ClientPostParams;
         FTerminated:=True;
       end;
       siNotResponding:
@@ -324,6 +347,13 @@ begin
   Until FTerminated;
 end;
 
+procedure TCustomApplication.SetSingleInstanceClass(
+  const ASingleInstanceClass: TBaseSingleInstanceClass);
+begin
+  Assert((FSingleInstance = nil) and (ASingleInstanceClass <> nil));
+  FSingleInstanceClass := ASingleInstanceClass;
+end;
+
 procedure TCustomApplication.ShowException(E: Exception);
 
 begin
@@ -332,7 +362,15 @@ end;
 
 procedure TCustomApplication.Terminate;
 begin
+  Terminate(0);
+end;
+
+procedure TCustomApplication.Terminate(AExitCode : Integer) ;
+
+begin
   FTerminated:=True;
+  If (AExitCode<>0) then
+    ExitCode:=AExitCode;
 end;
 
 function TCustomApplication.GetOptionAtIndex(AIndex : Integer; IsLong: Boolean): String;

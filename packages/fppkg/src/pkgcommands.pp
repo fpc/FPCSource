@@ -125,57 +125,8 @@ type
     Procedure Execute;override;
   end;
 
-  { TCommandInfo }
-
-  TCommandInfo = Class(TPackagehandler)
-  Public
-    Procedure Execute;override;
-  end;
-
 var
   DependenciesDepth: integer;
-
-{ TCommandInfo }
-
-procedure TCommandInfo.Execute;
-var
-  P : TFPPackage;
-  S : string;
-  I : Integer;
-begin
-  if PackageName='' then
-    Error(SErrNoPackageSpecified);
-  P:=AvailableRepository.PackageByName(PackageName);
-
-  log(llProgres,SLogPackageInfoName,[P.Name]);
-  S := P.Email;
-  if S <> '' then
-    S := '<' + S +'>';
-  log(llProgres,SLogPackageInfoAuthor,[P.Author, S]);
-  log(llProgres,SLogPackageInfoVersion,[P.Version.AsString]);
-  log(llProgres,SLogPackageInfoCategory,[P.Category]);
-  log(llProgres,SLogPackageInfoWebsite,[P.HomepageURL]);
-  log(llProgres,SLogPackageInfoLicense,[P.License]);
-
-  log(llProgres,SLogPackageInfoOSes,[OSesToString(P.OSes)]);
-  log(llProgres,SLogPackageInfoCPUs,[CPUSToString(P.CPUs)]);
-
-  log(llProgres,SLogPackageInfoDescription1);
-  log(llProgres,SLogPackageInfoDescription2,[P.Description]);
-
-  if P.Dependencies.Count>0 then
-    begin
-      log(llProgres,SLogPackageInfoDependencies1,[]);
-      for I := 0 to P.Dependencies.Count-1 do
-        begin
-          if not P.Dependencies[I].MinVersion.Empty then
-            S := '('+P.Dependencies[I].MinVersion.AsString+')'
-          else
-            S := '';
-          log(llProgres,SLogPackageInfoDependencies2,[P.Dependencies[I].PackageName,S]);
-        end;
-    end;
-end;
 
 { TCommandUnInstall }
 
@@ -319,7 +270,7 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if (PackageName=CmdLinePackageName) then
+      if (PackageName=CmdLinePackageName) or (PackageName=URLPackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
@@ -347,7 +298,7 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if (PackageName=CmdLinePackageName) then
+      if (PackageName=CmdLinePackageName) or (PackageName=URLPackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
@@ -436,7 +387,8 @@ begin
     begin
       ExecuteAction(PackageName,'build');
       ExecuteAction(PackageName,'fpmakeinstall');
-      if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
+      if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) or
+         (PackageName=URLPackageName) then
         begin
           // Load package name from manifest
           if not FileExists(ManifestFileName) then
@@ -496,7 +448,8 @@ begin
     Error(SErrNoPackageSpecified);
   ManifestPackages:=nil;
   // Load dependencies for local packages
-  if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
+  if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) or
+     (PackageName=URLPackageName) then
     begin
       ExecuteAction(PackageName,'fpmakemanifest');
       ManifestPackages:=TFPPackages.Create(TFPPackage);
@@ -634,5 +587,4 @@ initialization
   RegisterPkgHandler('installdependencies',TCommandInstallDependencies);
   RegisterPkgHandler('fixbroken',TCommandFixBroken);
   RegisterPkgHandler('listsettings',TCommandListSettings);
-  RegisterPkgHandler('info',TCommandInfo);
 end.

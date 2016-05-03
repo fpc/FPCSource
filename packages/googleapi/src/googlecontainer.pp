@@ -76,23 +76,23 @@ type
     Fzone : String;
   Protected
     //Property setters
-    Procedure SetclusterApiVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontainerIpv4Cidr(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcreationTimestamp(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetclusterApiVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerIpv4Cidr(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetenableCloudLogging(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setendpoint(AIndex : Integer; AValue : String); virtual;
+    Procedure Setendpoint(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmasterAuth(AIndex : Integer; AValue : TMasterAuth); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnetwork(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnodeConfig(AIndex : Integer; AValue : TNodeConfig); virtual;
     Procedure SetnodeRoutingPrefixSize(AIndex : Integer; AValue : integer); virtual;
     Procedure SetnumNodes(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetservicesIpv4Cidr(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstatusMessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstatusMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property clusterApiVersion : String Index 0 Read FclusterApiVersion Write SetclusterApiVersion;
@@ -222,9 +222,9 @@ type
     Fuser : String;
   Protected
     //Property setters
-    Procedure SetbearerToken(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpassword(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbearerToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property bearerToken : String Index 0 Read FbearerToken Write SetbearerToken;
@@ -244,9 +244,9 @@ type
     FsourceImage : String;
   Protected
     //Property setters
-    Procedure SetmachineType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmachineType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetserviceAccounts(AIndex : Integer; AValue : TNodeConfigTypeserviceAccountsArray); virtual;
-    Procedure SetsourceImage(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceImage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -275,14 +275,14 @@ type
     Fzone : String;
   Protected
     //Property setters
-    Procedure SeterrorMessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetoperationType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Settarget(AIndex : Integer; AValue : String); virtual;
-    Procedure SettargetLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setzone(AIndex : Integer; AValue : String); virtual;
+    Procedure SeterrorMessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settarget(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property errorMessage : String Index 0 Read FerrorMessage Write SeterrorMessage;
@@ -306,7 +306,7 @@ type
     Fscopes : TStringArray;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
     Procedure Setscopes(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -500,7 +500,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TCluster.SetclusterApiVersion(AIndex : Integer; AValue : String); 
+Procedure TCluster.SetclusterApiVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FclusterApiVersion=AValue) then exit;
@@ -510,7 +510,7 @@ end;
 
 
 
-Procedure TCluster.SetcontainerIpv4Cidr(AIndex : Integer; AValue : String); 
+Procedure TCluster.SetcontainerIpv4Cidr(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontainerIpv4Cidr=AValue) then exit;
@@ -520,7 +520,7 @@ end;
 
 
 
-Procedure TCluster.SetcreationTimestamp(AIndex : Integer; AValue : String); 
+Procedure TCluster.SetcreationTimestamp(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreationTimestamp=AValue) then exit;
@@ -530,7 +530,7 @@ end;
 
 
 
-Procedure TCluster.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TCluster.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -550,7 +550,7 @@ end;
 
 
 
-Procedure TCluster.Setendpoint(AIndex : Integer; AValue : String); 
+Procedure TCluster.Setendpoint(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fendpoint=AValue) then exit;
@@ -570,7 +570,7 @@ end;
 
 
 
-Procedure TCluster.Setname(AIndex : Integer; AValue : String); 
+Procedure TCluster.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -580,7 +580,7 @@ end;
 
 
 
-Procedure TCluster.Setnetwork(AIndex : Integer; AValue : String); 
+Procedure TCluster.Setnetwork(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnetwork=AValue) then exit;
@@ -620,7 +620,7 @@ end;
 
 
 
-Procedure TCluster.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TCluster.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -630,7 +630,7 @@ end;
 
 
 
-Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; AValue : String); 
+Procedure TCluster.SetservicesIpv4Cidr(AIndex : Integer; const AValue : String); 
 
 begin
   If (FservicesIpv4Cidr=AValue) then exit;
@@ -640,7 +640,7 @@ end;
 
 
 
-Procedure TCluster.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TCluster.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -650,7 +650,7 @@ end;
 
 
 
-Procedure TCluster.SetstatusMessage(AIndex : Integer; AValue : String); 
+Procedure TCluster.SetstatusMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstatusMessage=AValue) then exit;
@@ -660,7 +660,7 @@ end;
 
 
 
-Procedure TCluster.Setzone(AIndex : Integer; AValue : String); 
+Procedure TCluster.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -814,7 +814,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMasterAuth.SetbearerToken(AIndex : Integer; AValue : String); 
+Procedure TMasterAuth.SetbearerToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbearerToken=AValue) then exit;
@@ -824,7 +824,7 @@ end;
 
 
 
-Procedure TMasterAuth.Setpassword(AIndex : Integer; AValue : String); 
+Procedure TMasterAuth.Setpassword(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpassword=AValue) then exit;
@@ -834,7 +834,7 @@ end;
 
 
 
-Procedure TMasterAuth.Setuser(AIndex : Integer; AValue : String); 
+Procedure TMasterAuth.Setuser(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -851,7 +851,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNodeConfig.SetmachineType(AIndex : Integer; AValue : String); 
+Procedure TNodeConfig.SetmachineType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmachineType=AValue) then exit;
@@ -871,7 +871,7 @@ end;
 
 
 
-Procedure TNodeConfig.SetsourceImage(AIndex : Integer; AValue : String); 
+Procedure TNodeConfig.SetsourceImage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceImage=AValue) then exit;
@@ -901,7 +901,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SeterrorMessage(AIndex : Integer; AValue : String); 
+Procedure TOperation.SeterrorMessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (FerrorMessage=AValue) then exit;
@@ -911,7 +911,7 @@ end;
 
 
 
-Procedure TOperation.Setname(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -921,7 +921,7 @@ end;
 
 
 
-Procedure TOperation.SetoperationType(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetoperationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FoperationType=AValue) then exit;
@@ -931,7 +931,7 @@ end;
 
 
 
-Procedure TOperation.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TOperation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -941,7 +941,7 @@ end;
 
 
 
-Procedure TOperation.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -951,7 +951,7 @@ end;
 
 
 
-Procedure TOperation.Settarget(AIndex : Integer; AValue : String); 
+Procedure TOperation.Settarget(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftarget=AValue) then exit;
@@ -961,7 +961,7 @@ end;
 
 
 
-Procedure TOperation.SettargetLink(AIndex : Integer; AValue : String); 
+Procedure TOperation.SettargetLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtargetLink=AValue) then exit;
@@ -971,7 +971,7 @@ end;
 
 
 
-Procedure TOperation.Setzone(AIndex : Integer; AValue : String); 
+Procedure TOperation.Setzone(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fzone=AValue) then exit;
@@ -988,7 +988,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TServiceAccount.Setemail(AIndex : Integer; AValue : String); 
+Procedure TServiceAccount.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;

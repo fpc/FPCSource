@@ -876,7 +876,10 @@ end;
 
 function TFPGList.GetFirst: T;
 begin
-  Result := T(inherited GetFirst^);
+  if FCount<>0 then
+    Result := T(inherited GetFirst^)
+  else
+    Result:=Default(T);
 end;
 
 procedure TFPGList.SetFirst(const Value: T);
@@ -906,7 +909,10 @@ end;
 
 function TFPGList.GetLast: T;
 begin
-  Result := T(inherited GetLast^);
+  if FCount<>0 then
+    Result := T(inherited GetLast^)
+  else
+    result:=Default(T);
 end;
 
 procedure TFPGList.SetLast(const Value: T);

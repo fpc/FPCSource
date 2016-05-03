@@ -3,7 +3,8 @@ program fclbase_unittests;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, tests_fptemplate, tchashlist;
+  Classes, consoletestrunner, tests_fptemplate, tchashlist,
+  testexprpars;
 
 var
   Application: TTestRunner;

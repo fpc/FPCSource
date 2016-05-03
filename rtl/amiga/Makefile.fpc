@@ -7,8 +7,8 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) uuchar objpas macpas iso7185 extpas strings \
-      fpextres dos heaptrc lineinfo ctypes \
+units=$(SYSTEMUNIT) $(RESUNIT) uuchar objpas macpas iso7185 extpas strings \
+      dos heaptrc lineinfo ctypes \
       sysutils fgl classes math typinfo \
       charset cpall getopts \
       types rtlconsts sysconst character \
@@ -58,6 +58,14 @@ endif
 
 # Paths
 OBJPASDIR=$(RTL)/objpas
+
+ifeq ($(ARCH),m68k)
+RESUNIT=fpextres
+endif
+
+ifeq ($(ARCH),powerpc)
+RESUNIT=fpintres
+endif
 
 [rules]
 .NOTPARALLEL:

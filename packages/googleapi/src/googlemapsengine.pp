@@ -228,7 +228,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Set_end(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setprecision(AIndex : Integer; AValue : String); virtual;
+    Procedure Setprecision(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstart(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -263,17 +263,17 @@ type
     //Property setters
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setresource(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setresource(AIndex : Integer; const AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -309,7 +309,7 @@ type
   Protected
     //Property setters
     Procedure Setassets(AIndex : Integer; AValue : TAssetsListResponseTypeassetsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -332,7 +332,7 @@ type
     Fwidth : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : double); virtual;
   Public
@@ -353,7 +353,7 @@ type
     Fopacity : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
   Public
   Published
@@ -371,7 +371,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -394,7 +394,7 @@ type
     //Property setters
     Procedure Setfilters(AIndex : Integer; AValue : TDisplayRuleTypefiltersArray); virtual;
     Procedure SetlineOptions(AIndex : Integer; AValue : TLineStyle); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpointOptions(AIndex : Integer; AValue : TPointStyle); virtual;
     Procedure SetpolygonOptions(AIndex : Integer; AValue : TPolygonStyle); virtual;
     Procedure SetzoomLevels(AIndex : Integer; AValue : TZoomLevels); virtual;
@@ -427,7 +427,7 @@ type
     //Property setters
     Procedure Setgeometry(AIndex : Integer; AValue : TGeoJsonGeometry); virtual;
     Procedure Setproperties(AIndex : Integer; AValue : TGeoJsonProperties); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property geometry : TGeoJsonGeometry Index 0 Read Fgeometry Write Setgeometry;
@@ -445,7 +445,7 @@ type
     Fcontent : String;
   Protected
     //Property setters
-    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property content : String Index 0 Read Fcontent Write Setcontent;
@@ -537,9 +537,9 @@ type
     //Property setters
     Procedure SetallowedQueriesPerSecond(AIndex : Integer; AValue : double); virtual;
     Procedure Setfeatures(AIndex : Integer; AValue : TFeaturesListResponseTypefeaturesArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TSchema); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -565,9 +565,9 @@ type
     FuploadStatus : String;
   Protected
     //Property setters
-    Procedure Setfilename(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
-    Procedure SetuploadStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure Setfilename(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetuploadStatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property filename : String Index 0 Read Ffilename Write Setfilename;
@@ -588,8 +588,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcolumn(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_operator(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolumn(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_operator(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; AValue : TJSONSchema); virtual;
   Public
   Published
@@ -624,7 +624,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setgeometries(AIndex : Integer; AValue : TGeoJsonGeometryCollectionTypegeometriesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -648,7 +648,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonLineStringTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -672,7 +672,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiLineStringTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -696,7 +696,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPointTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -720,7 +720,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonMultiPolygonTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -744,7 +744,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonPosition); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property coordinates : TGeoJsonPosition Index 0 Read Fcoordinates Write Setcoordinates;
@@ -764,7 +764,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcoordinates(AIndex : Integer; AValue : TGeoJsonPolygonTypecoordinatesArray); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -801,9 +801,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -824,8 +824,8 @@ type
     FscalingFunction : TScalingFunction;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscaledShape(AIndex : Integer; AValue : TScaledShape); virtual;
     Procedure SetscalingFunction(AIndex : Integer; AValue : TScalingFunction); virtual;
   Public
@@ -848,7 +848,7 @@ type
   Protected
     //Property setters
     Procedure Seticons(AIndex : Integer; AValue : TIconsListResponseTypeiconsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -875,10 +875,10 @@ type
     Fsize : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcolumn(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfontStyle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfontWeight(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcolumn(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfontStyle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfontWeight(AIndex : Integer; const AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
     Procedure Setoutline(AIndex : Integer; AValue : TColor); virtual;
     Procedure Setsize(AIndex : Integer; AValue : double); virtual;
@@ -924,21 +924,21 @@ type
     //Property setters
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdatasourceType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdatasourceType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdatasources(AIndex : Integer; AValue : TDatasources); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlayerType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublishedAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublishingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlayerType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublishedAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublishingStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstyle(AIndex : Integer; AValue : TVectorStyle); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
@@ -982,7 +982,7 @@ type
   Protected
     //Property setters
     Procedure Setlayers(AIndex : Integer; AValue : TLayersListResponseTypelayersArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1005,7 +1005,7 @@ type
     Fwidth : double;
   Protected
     //Property setters
-    Procedure Setcolor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolor(AIndex : Integer; const AValue : String); virtual;
     Procedure Setopacity(AIndex : Integer; AValue : double); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : double); virtual;
   Public
@@ -1076,19 +1076,19 @@ type
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Setcontents(AIndex : Integer; AValue : TMapContents); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublishedAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublishingStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublishedAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublishingStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure Setversions(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
@@ -1139,10 +1139,10 @@ type
     Procedure Setcontents(AIndex : Integer; AValue : TMapFolderTypecontentsArray); virtual;
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure Setexpandable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1187,10 +1187,10 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); virtual;
-    Procedure SetkmlUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure SetkmlUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1221,11 +1221,11 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TdoubleArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1252,7 +1252,7 @@ type
   Protected
     //Property setters
     Procedure Setmaps(AIndex : Integer; AValue : TMapsListResponseTypemapsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1273,7 +1273,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1290,7 +1290,7 @@ type
     Fparents : TParentsListResponseTypeparentsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparents(AIndex : Integer; AValue : TParentsListResponseTypeparentsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1317,9 +1317,9 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setdiscoverable(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property discoverable : boolean Index 0 Read Fdiscoverable Write Setdiscoverable;
@@ -1481,8 +1481,8 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1536,11 +1536,11 @@ type
     FprojectId : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlayerType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlayerType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -1562,7 +1562,7 @@ type
   Protected
     //Property setters
     Procedure Setlayers(AIndex : Integer; AValue : TPublishedLayersListResponseTypelayersArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1590,10 +1590,10 @@ type
     //Property setters
     Procedure Setcontents(AIndex : Integer; AValue : TMapContents); virtual;
     Procedure SetdefaultViewport(AIndex : Integer; AValue : TLatLngBox); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property contents : TMapContents Index 0 Read Fcontents Write Setcontents;
@@ -1616,7 +1616,7 @@ type
   Protected
     //Property setters
     Procedure Setmaps(AIndex : Integer; AValue : TPublishedMapsListResponseTypemapsArray); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1656,22 +1656,22 @@ type
   Protected
     //Property setters
     Procedure SetacquisitionTime(AIndex : Integer; AValue : TAcquisitionTime); virtual;
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfiles(AIndex : Integer; AValue : TRasterTypefilesArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmaskType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaskType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrasterType(AIndex : Integer; const AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -1727,21 +1727,21 @@ type
     FwritersCanEditPermissions : boolean;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmosaic(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrasterType(AIndex : Integer; const AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -1780,7 +1780,7 @@ type
     FrasterCollections : TRasterCollectionsListResponseTyperasterCollectionsArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrasterCollections(AIndex : Integer; AValue : TRasterCollectionsListResponseTyperasterCollectionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1812,12 +1812,12 @@ type
     //Property setters
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetrasterType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrasterType(AIndex : Integer; const AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1913,7 +1913,7 @@ type
     Frasters : TRasterCollectionsRastersListResponseTyperastersArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrasters(AIndex : Integer; AValue : TRasterCollectionsRastersListResponseTyperastersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1936,7 +1936,7 @@ type
     Frasters : TRastersListResponseTyperastersArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrasters(AIndex : Integer; AValue : TRastersListResponseTyperastersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1962,7 +1962,7 @@ type
     //Property setters
     Procedure Setborder(AIndex : Integer; AValue : TBorder); virtual;
     Procedure Setfill(AIndex : Integer; AValue : TColor); virtual;
-    Procedure Setshape(AIndex : Integer; AValue : String); virtual;
+    Procedure Setshape(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property border : TBorder Index 0 Read Fborder Write Setborder;
@@ -1983,8 +1983,8 @@ type
     FvalueRange : TValueRange;
   Protected
     //Property setters
-    Procedure Setcolumn(AIndex : Integer; AValue : String); virtual;
-    Procedure SetscalingType(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcolumn(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetscalingType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsizeRange(AIndex : Integer; AValue : TSizeRange); virtual;
     Procedure SetvalueRange(AIndex : Integer; AValue : TValueRange); virtual;
   Public
@@ -2008,8 +2008,8 @@ type
   Protected
     //Property setters
     Procedure Setcolumns(AIndex : Integer; AValue : TSchemaTypecolumnsArray); virtual;
-    Procedure SetprimaryGeometry(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprimaryKey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprimaryGeometry(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprimaryKey(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2069,20 +2069,20 @@ type
     //Property setters
     Procedure Setbbox(AIndex : Integer; AValue : TdoubleArray); virtual;
     Procedure SetcreationTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetcreatorEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdraftAccessList(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcreatorEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdraftAccessList(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfiles(AIndex : Integer; AValue : TTableTypefilesArray); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastModifiedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastModifierEmail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprojectId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpublishedAccessList(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlastModifierEmail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprojectId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpublishedAccessList(AIndex : Integer; const AValue : String); virtual;
     Procedure Setschema(AIndex : Integer; AValue : TSchema); virtual;
-    Procedure SetsourceEncoding(AIndex : Integer; AValue : String); virtual;
+    Procedure SetsourceEncoding(AIndex : Integer; const AValue : String); virtual;
     Procedure Settags(AIndex : Integer; AValue : TTags); virtual;
     Procedure SetwritersCanEditPermissions(AIndex : Integer; AValue : boolean); virtual;
     //2.6.4. bug workaround
@@ -2123,8 +2123,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -2142,7 +2142,7 @@ type
     Ftables : TTablesListResponseTypetablesArray;
   Protected
     //Property setters
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure Settables(AIndex : Integer; AValue : TTablesListResponseTypetablesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2188,7 +2188,7 @@ type
     //Property setters
     Procedure SetdisplayRules(AIndex : Integer; AValue : TVectorStyleTypedisplayRulesArray); virtual;
     Procedure SetfeatureInfo(AIndex : Integer; AValue : TFeatureInfo); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3103,7 +3103,7 @@ end;
 
 
 
-Procedure TAcquisitionTime.Setprecision(AIndex : Integer; AValue : String); 
+Procedure TAcquisitionTime.Setprecision(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fprecision=AValue) then exit;
@@ -3161,7 +3161,7 @@ end;
 
 
 
-Procedure TAsset.SetcreatorEmail(AIndex : Integer; AValue : String); 
+Procedure TAsset.SetcreatorEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -3171,7 +3171,7 @@ end;
 
 
 
-Procedure TAsset.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TAsset.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3181,7 +3181,7 @@ end;
 
 
 
-Procedure TAsset.Setetag(AIndex : Integer; AValue : String); 
+Procedure TAsset.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3191,7 +3191,7 @@ end;
 
 
 
-Procedure TAsset.Setid(AIndex : Integer; AValue : String); 
+Procedure TAsset.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3211,7 +3211,7 @@ end;
 
 
 
-Procedure TAsset.SetlastModifierEmail(AIndex : Integer; AValue : String); 
+Procedure TAsset.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -3221,7 +3221,7 @@ end;
 
 
 
-Procedure TAsset.Setname(AIndex : Integer; AValue : String); 
+Procedure TAsset.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3231,7 +3231,7 @@ end;
 
 
 
-Procedure TAsset.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TAsset.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -3241,7 +3241,7 @@ end;
 
 
 
-Procedure TAsset.Setresource(AIndex : Integer; AValue : String); 
+Procedure TAsset.Setresource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fresource=AValue) then exit;
@@ -3261,7 +3261,7 @@ end;
 
 
 
-Procedure TAsset.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAsset.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3323,7 +3323,7 @@ end;
 
 
 
-Procedure TAssetsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAssetsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3353,7 +3353,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBorder.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TBorder.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -3390,7 +3390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColor.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TColor.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -3417,7 +3417,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatasource.Setid(AIndex : Integer; AValue : String); 
+Procedure TDatasource.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3454,7 +3454,7 @@ end;
 
 
 
-Procedure TDisplayRule.Setname(AIndex : Integer; AValue : String); 
+Procedure TDisplayRule.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -3534,7 +3534,7 @@ end;
 
 
 
-Procedure TFeature.Set_type(AIndex : Integer; AValue : String); 
+Procedure TFeature.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3562,7 +3562,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFeatureInfo.Setcontent(AIndex : Integer; AValue : String); 
+Procedure TFeatureInfo.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -3720,7 +3720,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TFeaturesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3740,7 +3740,7 @@ end;
 
 
 
-Procedure TFeaturesListResponse.Set_type(AIndex : Integer; AValue : String); 
+Procedure TFeaturesListResponse.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3781,7 +3781,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFile.Setfilename(AIndex : Integer; AValue : String); 
+Procedure TFile.Setfilename(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffilename=AValue) then exit;
@@ -3791,7 +3791,7 @@ end;
 
 
 
-Procedure TFile.Setsize(AIndex : Integer; AValue : String); 
+Procedure TFile.Setsize(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsize=AValue) then exit;
@@ -3801,7 +3801,7 @@ end;
 
 
 
-Procedure TFile.SetuploadStatus(AIndex : Integer; AValue : String); 
+Procedure TFile.SetuploadStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuploadStatus=AValue) then exit;
@@ -3818,7 +3818,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFilter.Setcolumn(AIndex : Integer; AValue : String); 
+Procedure TFilter.Setcolumn(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -3828,7 +3828,7 @@ end;
 
 
 
-Procedure TFilter.Set_operator(AIndex : Integer; AValue : String); 
+Procedure TFilter.Set_operator(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -3883,7 +3883,7 @@ end;
 
 
 
-Procedure TGeoJsonGeometryCollection.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonGeometryCollection.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3934,7 +3934,7 @@ end;
 
 
 
-Procedure TGeoJsonLineString.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonLineString.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -3985,7 +3985,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiLineString.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonMultiLineString.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4036,7 +4036,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiPoint.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonMultiPoint.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4087,7 +4087,7 @@ end;
 
 
 
-Procedure TGeoJsonMultiPolygon.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonMultiPolygon.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4138,7 +4138,7 @@ end;
 
 
 
-Procedure TGeoJsonPoint.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonPoint.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4176,7 +4176,7 @@ end;
 
 
 
-Procedure TGeoJsonPolygon.Set_type(AIndex : Integer; AValue : String); 
+Procedure TGeoJsonPolygon.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4230,7 +4230,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIcon.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TIcon.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4240,7 +4240,7 @@ end;
 
 
 
-Procedure TIcon.Setid(AIndex : Integer; AValue : String); 
+Procedure TIcon.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4250,7 +4250,7 @@ end;
 
 
 
-Procedure TIcon.Setname(AIndex : Integer; AValue : String); 
+Procedure TIcon.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4267,7 +4267,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIconStyle.Setid(AIndex : Integer; AValue : String); 
+Procedure TIconStyle.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4277,7 +4277,7 @@ end;
 
 
 
-Procedure TIconStyle.Setname(AIndex : Integer; AValue : String); 
+Procedure TIconStyle.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4324,7 +4324,7 @@ end;
 
 
 
-Procedure TIconsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TIconsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4354,7 +4354,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLabelStyle.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TLabelStyle.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -4364,7 +4364,7 @@ end;
 
 
 
-Procedure TLabelStyle.Setcolumn(AIndex : Integer; AValue : String); 
+Procedure TLabelStyle.Setcolumn(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -4374,7 +4374,7 @@ end;
 
 
 
-Procedure TLabelStyle.SetfontStyle(AIndex : Integer; AValue : String); 
+Procedure TLabelStyle.SetfontStyle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfontStyle=AValue) then exit;
@@ -4384,7 +4384,7 @@ end;
 
 
 
-Procedure TLabelStyle.SetfontWeight(AIndex : Integer; AValue : String); 
+Procedure TLabelStyle.SetfontWeight(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfontWeight=AValue) then exit;
@@ -4451,7 +4451,7 @@ end;
 
 
 
-Procedure TLayer.SetcreatorEmail(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetcreatorEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -4461,7 +4461,7 @@ end;
 
 
 
-Procedure TLayer.SetdatasourceType(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetdatasourceType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdatasourceType=AValue) then exit;
@@ -4481,7 +4481,7 @@ end;
 
 
 
-Procedure TLayer.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TLayer.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4491,7 +4491,7 @@ end;
 
 
 
-Procedure TLayer.SetdraftAccessList(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetdraftAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -4501,7 +4501,7 @@ end;
 
 
 
-Procedure TLayer.Setetag(AIndex : Integer; AValue : String); 
+Procedure TLayer.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -4511,7 +4511,7 @@ end;
 
 
 
-Procedure TLayer.Setid(AIndex : Integer; AValue : String); 
+Procedure TLayer.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4531,7 +4531,7 @@ end;
 
 
 
-Procedure TLayer.SetlastModifierEmail(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -4541,7 +4541,7 @@ end;
 
 
 
-Procedure TLayer.SetlayerType(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetlayerType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerType=AValue) then exit;
@@ -4551,7 +4551,7 @@ end;
 
 
 
-Procedure TLayer.Setname(AIndex : Integer; AValue : String); 
+Procedure TLayer.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4561,7 +4561,7 @@ end;
 
 
 
-Procedure TLayer.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -4571,7 +4571,7 @@ end;
 
 
 
-Procedure TLayer.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4581,7 +4581,7 @@ end;
 
 
 
-Procedure TLayer.SetpublishedAccessList(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetpublishedAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -4591,7 +4591,7 @@ end;
 
 
 
-Procedure TLayer.SetpublishingStatus(AIndex : Integer; AValue : String); 
+Procedure TLayer.SetpublishingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublishingStatus=AValue) then exit;
@@ -4661,7 +4661,7 @@ end;
 
 
 
-Procedure TLayersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TLayersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4691,7 +4691,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLineStyleTypestroke.Setcolor(AIndex : Integer; AValue : String); 
+Procedure TLineStyleTypestroke.Setcolor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolor=AValue) then exit;
@@ -4829,7 +4829,7 @@ end;
 
 
 
-Procedure TMap.SetcreatorEmail(AIndex : Integer; AValue : String); 
+Procedure TMap.SetcreatorEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -4849,7 +4849,7 @@ end;
 
 
 
-Procedure TMap.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TMap.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4859,7 +4859,7 @@ end;
 
 
 
-Procedure TMap.SetdraftAccessList(AIndex : Integer; AValue : String); 
+Procedure TMap.SetdraftAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -4869,7 +4869,7 @@ end;
 
 
 
-Procedure TMap.Setetag(AIndex : Integer; AValue : String); 
+Procedure TMap.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -4879,7 +4879,7 @@ end;
 
 
 
-Procedure TMap.Setid(AIndex : Integer; AValue : String); 
+Procedure TMap.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -4899,7 +4899,7 @@ end;
 
 
 
-Procedure TMap.SetlastModifierEmail(AIndex : Integer; AValue : String); 
+Procedure TMap.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -4909,7 +4909,7 @@ end;
 
 
 
-Procedure TMap.Setname(AIndex : Integer; AValue : String); 
+Procedure TMap.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4919,7 +4919,7 @@ end;
 
 
 
-Procedure TMap.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TMap.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -4929,7 +4929,7 @@ end;
 
 
 
-Procedure TMap.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TMap.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -4939,7 +4939,7 @@ end;
 
 
 
-Procedure TMap.SetpublishedAccessList(AIndex : Integer; AValue : String); 
+Procedure TMap.SetpublishedAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -4949,7 +4949,7 @@ end;
 
 
 
-Procedure TMap.SetpublishingStatus(AIndex : Integer; AValue : String); 
+Procedure TMap.SetpublishingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublishingStatus=AValue) then exit;
@@ -5040,7 +5040,7 @@ end;
 
 
 
-Procedure TMapFolder.Setkey(AIndex : Integer; AValue : String); 
+Procedure TMapFolder.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -5050,7 +5050,7 @@ end;
 
 
 
-Procedure TMapFolder.Setname(AIndex : Integer; AValue : String); 
+Procedure TMapFolder.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5060,7 +5060,7 @@ end;
 
 
 
-Procedure TMapFolder.Set_type(AIndex : Integer; AValue : String); 
+Procedure TMapFolder.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5070,7 +5070,7 @@ end;
 
 
 
-Procedure TMapFolder.Setvisibility(AIndex : Integer; AValue : String); 
+Procedure TMapFolder.Setvisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5129,7 +5129,7 @@ end;
 
 
 
-Procedure TMapKmlLink.SetkmlUrl(AIndex : Integer; AValue : String); 
+Procedure TMapKmlLink.SetkmlUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FkmlUrl=AValue) then exit;
@@ -5139,7 +5139,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Setname(AIndex : Integer; AValue : String); 
+Procedure TMapKmlLink.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5149,7 +5149,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Set_type(AIndex : Integer; AValue : String); 
+Procedure TMapKmlLink.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5159,7 +5159,7 @@ end;
 
 
 
-Procedure TMapKmlLink.Setvisibility(AIndex : Integer; AValue : String); 
+Procedure TMapKmlLink.Setvisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5210,7 +5210,7 @@ end;
 
 
 
-Procedure TMapLayer.Setid(AIndex : Integer; AValue : String); 
+Procedure TMapLayer.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5220,7 +5220,7 @@ end;
 
 
 
-Procedure TMapLayer.Setkey(AIndex : Integer; AValue : String); 
+Procedure TMapLayer.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -5230,7 +5230,7 @@ end;
 
 
 
-Procedure TMapLayer.Setname(AIndex : Integer; AValue : String); 
+Procedure TMapLayer.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5240,7 +5240,7 @@ end;
 
 
 
-Procedure TMapLayer.Set_type(AIndex : Integer; AValue : String); 
+Procedure TMapLayer.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5250,7 +5250,7 @@ end;
 
 
 
-Procedure TMapLayer.Setvisibility(AIndex : Integer; AValue : String); 
+Procedure TMapLayer.Setvisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -5301,7 +5301,7 @@ end;
 
 
 
-Procedure TMapsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TMapsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5331,7 +5331,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParent.Setid(AIndex : Integer; AValue : String); 
+Procedure TParent.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5348,7 +5348,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TParentsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TParentsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5398,7 +5398,7 @@ end;
 
 
 
-Procedure TPermission.Setid(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5408,7 +5408,7 @@ end;
 
 
 
-Procedure TPermission.Setrole(AIndex : Integer; AValue : String); 
+Procedure TPermission.Setrole(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -5418,7 +5418,7 @@ end;
 
 
 
-Procedure TPermission.Set_type(AIndex : Integer; AValue : String); 
+Procedure TPermission.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -5643,7 +5643,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProject.Setid(AIndex : Integer; AValue : String); 
+Procedure TProject.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5653,7 +5653,7 @@ end;
 
 
 
-Procedure TProject.Setname(AIndex : Integer; AValue : String); 
+Procedure TProject.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5707,7 +5707,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishedLayer.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPublishedLayer.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5717,7 +5717,7 @@ end;
 
 
 
-Procedure TPublishedLayer.Setid(AIndex : Integer; AValue : String); 
+Procedure TPublishedLayer.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5727,7 +5727,7 @@ end;
 
 
 
-Procedure TPublishedLayer.SetlayerType(AIndex : Integer; AValue : String); 
+Procedure TPublishedLayer.SetlayerType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerType=AValue) then exit;
@@ -5737,7 +5737,7 @@ end;
 
 
 
-Procedure TPublishedLayer.Setname(AIndex : Integer; AValue : String); 
+Procedure TPublishedLayer.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5747,7 +5747,7 @@ end;
 
 
 
-Procedure TPublishedLayer.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TPublishedLayer.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5774,7 +5774,7 @@ end;
 
 
 
-Procedure TPublishedLayersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPublishedLayersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5824,7 +5824,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TPublishedMap.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5834,7 +5834,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setid(AIndex : Integer; AValue : String); 
+Procedure TPublishedMap.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5844,7 +5844,7 @@ end;
 
 
 
-Procedure TPublishedMap.Setname(AIndex : Integer; AValue : String); 
+Procedure TPublishedMap.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -5854,7 +5854,7 @@ end;
 
 
 
-Procedure TPublishedMap.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TPublishedMap.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -5881,7 +5881,7 @@ end;
 
 
 
-Procedure TPublishedMapsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TPublishedMapsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -5921,7 +5921,7 @@ end;
 
 
 
-Procedure TRaster.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TRaster.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -5951,7 +5951,7 @@ end;
 
 
 
-Procedure TRaster.SetcreatorEmail(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetcreatorEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -5961,7 +5961,7 @@ end;
 
 
 
-Procedure TRaster.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TRaster.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5971,7 +5971,7 @@ end;
 
 
 
-Procedure TRaster.SetdraftAccessList(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetdraftAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -5981,7 +5981,7 @@ end;
 
 
 
-Procedure TRaster.Setetag(AIndex : Integer; AValue : String); 
+Procedure TRaster.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6001,7 +6001,7 @@ end;
 
 
 
-Procedure TRaster.Setid(AIndex : Integer; AValue : String); 
+Procedure TRaster.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6021,7 +6021,7 @@ end;
 
 
 
-Procedure TRaster.SetlastModifierEmail(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6031,7 +6031,7 @@ end;
 
 
 
-Procedure TRaster.SetmaskType(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetmaskType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaskType=AValue) then exit;
@@ -6041,7 +6041,7 @@ end;
 
 
 
-Procedure TRaster.Setname(AIndex : Integer; AValue : String); 
+Procedure TRaster.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6051,7 +6051,7 @@ end;
 
 
 
-Procedure TRaster.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6061,7 +6061,7 @@ end;
 
 
 
-Procedure TRaster.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6071,7 +6071,7 @@ end;
 
 
 
-Procedure TRaster.SetrasterType(AIndex : Integer; AValue : String); 
+Procedure TRaster.SetrasterType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6122,7 +6122,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollection.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -6152,7 +6152,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetcreatorEmail(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.SetcreatorEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -6162,7 +6162,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6172,7 +6172,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetdraftAccessList(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.SetdraftAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -6182,7 +6182,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setetag(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6192,7 +6192,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setid(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6212,7 +6212,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetlastModifierEmail(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6232,7 +6232,7 @@ end;
 
 
 
-Procedure TRasterCollection.Setname(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6242,7 +6242,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6252,7 +6252,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6262,7 +6262,7 @@ end;
 
 
 
-Procedure TRasterCollection.SetrasterType(AIndex : Integer; AValue : String); 
+Procedure TRasterCollection.SetrasterType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6312,7 +6312,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6372,7 +6372,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsRaster.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6382,7 +6382,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setid(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsRaster.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6402,7 +6402,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.Setname(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsRaster.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6412,7 +6412,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsRaster.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6422,7 +6422,7 @@ end;
 
 
 
-Procedure TRasterCollectionsRaster.SetrasterType(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsRaster.SetrasterType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrasterType=AValue) then exit;
@@ -6537,7 +6537,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRasterCollectionsRastersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TRasterCollectionsRastersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6577,7 +6577,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRastersListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TRastersListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -6637,7 +6637,7 @@ end;
 
 
 
-Procedure TScaledShape.Setshape(AIndex : Integer; AValue : String); 
+Procedure TScaledShape.Setshape(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fshape=AValue) then exit;
@@ -6654,7 +6654,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TScalingFunction.Setcolumn(AIndex : Integer; AValue : String); 
+Procedure TScalingFunction.Setcolumn(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcolumn=AValue) then exit;
@@ -6664,7 +6664,7 @@ end;
 
 
 
-Procedure TScalingFunction.SetscalingType(AIndex : Integer; AValue : String); 
+Procedure TScalingFunction.SetscalingType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FscalingType=AValue) then exit;
@@ -6711,7 +6711,7 @@ end;
 
 
 
-Procedure TSchema.SetprimaryGeometry(AIndex : Integer; AValue : String); 
+Procedure TSchema.SetprimaryGeometry(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryGeometry=AValue) then exit;
@@ -6721,7 +6721,7 @@ end;
 
 
 
-Procedure TSchema.SetprimaryKey(AIndex : Integer; AValue : String); 
+Procedure TSchema.SetprimaryKey(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprimaryKey=AValue) then exit;
@@ -6798,7 +6798,7 @@ end;
 
 
 
-Procedure TTable.SetcreatorEmail(AIndex : Integer; AValue : String); 
+Procedure TTable.SetcreatorEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcreatorEmail=AValue) then exit;
@@ -6808,7 +6808,7 @@ end;
 
 
 
-Procedure TTable.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TTable.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6818,7 +6818,7 @@ end;
 
 
 
-Procedure TTable.SetdraftAccessList(AIndex : Integer; AValue : String); 
+Procedure TTable.SetdraftAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdraftAccessList=AValue) then exit;
@@ -6828,7 +6828,7 @@ end;
 
 
 
-Procedure TTable.Setetag(AIndex : Integer; AValue : String); 
+Procedure TTable.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -6848,7 +6848,7 @@ end;
 
 
 
-Procedure TTable.Setid(AIndex : Integer; AValue : String); 
+Procedure TTable.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6868,7 +6868,7 @@ end;
 
 
 
-Procedure TTable.SetlastModifierEmail(AIndex : Integer; AValue : String); 
+Procedure TTable.SetlastModifierEmail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlastModifierEmail=AValue) then exit;
@@ -6878,7 +6878,7 @@ end;
 
 
 
-Procedure TTable.Setname(AIndex : Integer; AValue : String); 
+Procedure TTable.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6888,7 +6888,7 @@ end;
 
 
 
-Procedure TTable.SetprocessingStatus(AIndex : Integer; AValue : String); 
+Procedure TTable.SetprocessingStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingStatus=AValue) then exit;
@@ -6898,7 +6898,7 @@ end;
 
 
 
-Procedure TTable.SetprojectId(AIndex : Integer; AValue : String); 
+Procedure TTable.SetprojectId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprojectId=AValue) then exit;
@@ -6908,7 +6908,7 @@ end;
 
 
 
-Procedure TTable.SetpublishedAccessList(AIndex : Integer; AValue : String); 
+Procedure TTable.SetpublishedAccessList(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublishedAccessList=AValue) then exit;
@@ -6928,7 +6928,7 @@ end;
 
 
 
-Procedure TTable.SetsourceEncoding(AIndex : Integer; AValue : String); 
+Procedure TTable.SetsourceEncoding(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsourceEncoding=AValue) then exit;
@@ -6979,7 +6979,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTableColumn.Setname(AIndex : Integer; AValue : String); 
+Procedure TTableColumn.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -6989,7 +6989,7 @@ end;
 
 
 
-Procedure TTableColumn.Set_type(AIndex : Integer; AValue : String); 
+Procedure TTableColumn.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7017,7 +7017,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTablesListResponse.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTablesListResponse.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7104,7 +7104,7 @@ end;
 
 
 
-Procedure TVectorStyle.Set_type(AIndex : Integer; AValue : String); 
+Procedure TVectorStyle.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;

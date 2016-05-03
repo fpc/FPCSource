@@ -376,6 +376,11 @@ ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
+ifneq ($(findstring $(OS_SOURCE),dragonfly freebsd openbsd netbsd linux solaris),)
+ifneq ($(findstring $(CPU_SOURCE),x86_64 mips mipsel),)
+override FPCMAKEOPT+=-Cg
+endif
+endif
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR
 override UNITSDIR+=$(REQUIRE_UNITSDIR)

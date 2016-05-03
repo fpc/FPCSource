@@ -828,8 +828,10 @@ implementation
             else
               result:=R_FPUREGISTER;
           filedef,
-          variantdef:
-            internalerror(2010120507);
+          variantdef,
+          forwarddef,
+          undefineddef:
+            result:=R_INVALIDREGISTER;
         else
           internalerror(2010120506);
         end;
@@ -4238,7 +4240,10 @@ implementation
               end
             else
 {$endif cpu64bitalu}
-              rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
+              if getregtype(rr.old)=R_ADDRESSREGISTER then
+                rr.new := cg.getaddressregister(current_asmdata.CurrAsmList)
+              else
+                rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
           end;
         LOC_CFPUREGISTER:
           rr.new := cg.getfpuregister(current_asmdata.CurrAsmList,n.location.size);

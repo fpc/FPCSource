@@ -12,7 +12,7 @@ Const
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX];
 
-  CollationOSes = [aix,android,darwin,emx,freebsd,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly,haiku];
+  CollationOSes = [aix,darwin,emx,freebsd,linux,netbsd,openbsd,os2,solaris,win32,win64,dragonfly,haiku];
   CPUnits       = [aix,amiga,aros,android,beos,darwin,iphonesim,emx,gba,nds,freebsd,go32v2,haiku,linux,morphos,netbsd,netware,netwlibc,openbsd,os2,solaris,watcom,wii,win32,win64,wince,dragonfly];
   utf8bidiOSes  = [netware,netwlibc];
   freebidiOSes  = [netware,netwlibc];  
@@ -49,12 +49,6 @@ begin
     P.IncludePath.Add('src/collations');
 
     T:=P.Targets.AddUnit('unicodeducet.pas',CollationOSes);
-    with T.Dependencies do
-      begin
-        AddInclude('ucadata.inc');
-        AddInclude('ucadata_le.inc');
-        AddInclude('ucadata_be.inc');
-      end;
     T:=P.Targets.AddUnit('buildcollations.pas',CollationOSes);
     T.Install:=False;
     with T.Dependencies do

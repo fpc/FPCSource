@@ -2277,17 +2277,13 @@ var
 
 function findimatch(const mnts:array of string;p:pchar):integer;
 var i : integer;
-    plen, findlen: integer;
 begin
   result:=-1;
   i:=0;
-  plen := strlen(p);
   while (i<=high(mnts)) and (result=-1) do
     begin
-      findlen := length(mnts[i]);
-      if (findlen > 0) and (findlen <= plen) then // protect against buffer over-read
-        if AnsiStrLIComp(p,@(mnts[i][1]),findlen)=0 then
-          result:=i;
+      if AnsiStrLIComp(p,@mnts[i][1],length(mnts[i]))=0 then
+        result:=i;
       inc(i);
     end;
 end;
@@ -2298,17 +2294,18 @@ begin
   raiseexception(format(SNoArrayMatch,[pind+1,ind]))
 end;
 
-function scanmatch(const mnts : array of string;p:pchar; patlen: integer):integer;
+function findmatch(const mnts : array of string;const s:string):integer;
+
 begin
-  result:=findimatch(mnts,p);
+  result:=findimatch(mnts,@s[ind]);
   if result=-1 then
     arraymatcherror
   else
-  begin
-    inc(ind,length(mnts[result]));
-    inc(pind,patlen);
-    inc(result); // was 0 based.
-  end;
+    begin
+      inc(ind,length(mnts[result])+1);
+      inc(pind,length(mnts[result])+1);
+      inc(result); // was 0 based.
+    end;
 end;
 
 var
@@ -2387,18 +2384,10 @@ begin
                        i:=scanpatlen;
                        case i of
                           1,2 : dd:=scanfixedint(2);
-                          3   : dd:=scanmatch(fmt.shortDayNames,@s[ind],i);
-                          4   : dd:=scanmatch(fmt.longDayNames,@s[ind],i);
-                          5   :
-                            begin
-                              matchpattern(fmt.shortdateformat);
-                              inc(pind, i);
-                            end;
-                          6   :
-                            begin
-                              matchpattern(fmt.longdateformat);
-                              inc(pind, i);
-                            end;
+                          3   : dd:=findmatch(fmt.shortDayNames,s);
+                          4   : dd:=findmatch(fmt.longDayNames,s);
+                          5   : matchpattern(fmt.shortdateformat);
+                          6   : matchpattern(fmt.longdateformat);
                          end;
                      end;
                'N':  timeval:=timeval+scanfixedint(2)* minfactor;
@@ -2406,10 +2395,7 @@ begin
                'Z':  timeval:=timeval+scanfixedint(3)* mssecfactor;
                'Y':  begin
                        i:=scanpatlen;
-                       case i of
-                          1,2 : yy:=scanfixedint(2);
-                          else  yy:=scanfixedint(i);
-                       end;
+                       yy:=scanfixedint(i);
                        if i<=2 then
                          begin
                            pivot:=YearOf(now)-fmt.TwoDigitYearCenturyWindow;
@@ -2422,23 +2408,15 @@ begin
                        i:=scanpatlen;
                        case i of
                           1,2: mm:=scanfixedint(2);
-                          3:   mm:=scanmatch(fmt.ShortMonthNames,@s[ind],i);
-                          4:   mm:=scanmatch(fmt.LongMonthNames,@s[ind],i);
+                          3:   mm:=findmatch(fmt.ShortMonthNames,s);
+                          4:   mm:=findmatch(fmt.LongMonthNames,s);
                           end;
                     end;
                'T' : begin
                        i:=scanpatlen;
                        case i of
-                       1:
-                         begin
-                           matchpattern(fmt.shorttimeformat);
-                           inc(pind, i);
-                         end;
-                       2:
-                         begin
-                           matchpattern(fmt.longtimeformat);
-                           inc(pind, i);
-                         end;
+                       1: matchpattern(fmt.shortdateformat);
+                       2: matchpattern(fmt.longtimeformat);
                        end;
                      end;
                'A' : begin
@@ -2477,6 +2455,8 @@ begin
                                      arraymatcherror
                                      end;
                                    inc(pind,length(AMPMformatting[2]));
+                                   inc(pind,2);
+                                   inc(ind,2);
                                  end;
                             else  // no AM/PM match. Assume 'a' is simply a char
                                 matchchar(ptrn[pind]);

@@ -62,6 +62,13 @@ ifdef CPU_TARGET
 FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
 endif
 LOCALFPMAKE=./fpmake$(SRCEXEEXT)
+# Force -Cg for bootstrap depending on XX_SOURCE for the same targets as 
+# as those XX_SOURCE (avoid linker warnings about mixing abi and non-abi files of mips-linux)
+ifneq ($(findstring $(OS_SOURCE),dragonfly freebsd openbsd netbsd linux solaris),)
+ifneq ($(findstring $(CPU_SOURCE),x86_64 mips mipsel),)
+override FPCMAKEOPT+=-Cg
+endif
+endif
 
 [rules]
 .NOTPARALLEL:

@@ -50,9 +50,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -87,17 +87,17 @@ type
     Procedure Setcompleted(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setdue(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlinks(AIndex : Integer; AValue : TTaskTypelinksArray); virtual;
-    Procedure Setnotes(AIndex : Integer; AValue : String); virtual;
-    Procedure Setparent(AIndex : Integer; AValue : String); virtual;
-    Procedure Setposition(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setparent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setposition(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -137,11 +137,11 @@ type
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -166,10 +166,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TTaskListsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -195,10 +195,10 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -342,7 +342,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TTaskTypelinksItem.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TTaskTypelinksItem.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -352,7 +352,7 @@ end;
 
 
 
-Procedure TTaskTypelinksItem.Setlink(AIndex : Integer; AValue : String); 
+Procedure TTaskTypelinksItem.Setlink(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -362,7 +362,7 @@ end;
 
 
 
-Procedure TTaskTypelinksItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TTaskTypelinksItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -420,7 +420,7 @@ end;
 
 
 
-Procedure TTask.Setetag(AIndex : Integer; AValue : String); 
+Procedure TTask.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -440,7 +440,7 @@ end;
 
 
 
-Procedure TTask.Setid(AIndex : Integer; AValue : String); 
+Procedure TTask.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -450,7 +450,7 @@ end;
 
 
 
-Procedure TTask.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTask.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -470,7 +470,7 @@ end;
 
 
 
-Procedure TTask.Setnotes(AIndex : Integer; AValue : String); 
+Procedure TTask.Setnotes(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnotes=AValue) then exit;
@@ -480,7 +480,7 @@ end;
 
 
 
-Procedure TTask.Setparent(AIndex : Integer; AValue : String); 
+Procedure TTask.Setparent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fparent=AValue) then exit;
@@ -490,7 +490,7 @@ end;
 
 
 
-Procedure TTask.Setposition(AIndex : Integer; AValue : String); 
+Procedure TTask.Setposition(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fposition=AValue) then exit;
@@ -500,7 +500,7 @@ end;
 
 
 
-Procedure TTask.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TTask.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -510,7 +510,7 @@ end;
 
 
 
-Procedure TTask.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TTask.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -520,7 +520,7 @@ end;
 
 
 
-Procedure TTask.Settitle(AIndex : Integer; AValue : String); 
+Procedure TTask.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -560,7 +560,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskList.Setetag(AIndex : Integer; AValue : String); 
+Procedure TTaskList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -570,7 +570,7 @@ end;
 
 
 
-Procedure TTaskList.Setid(AIndex : Integer; AValue : String); 
+Procedure TTaskList.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -580,7 +580,7 @@ end;
 
 
 
-Procedure TTaskList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTaskList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -590,7 +590,7 @@ end;
 
 
 
-Procedure TTaskList.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TTaskList.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -600,7 +600,7 @@ end;
 
 
 
-Procedure TTaskList.Settitle(AIndex : Integer; AValue : String); 
+Procedure TTaskList.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -627,7 +627,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskLists.Setetag(AIndex : Integer; AValue : String); 
+Procedure TTaskLists.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -647,7 +647,7 @@ end;
 
 
 
-Procedure TTaskLists.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTaskLists.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -657,7 +657,7 @@ end;
 
 
 
-Procedure TTaskLists.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTaskLists.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -687,7 +687,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks.Setetag(AIndex : Integer; AValue : String); 
+Procedure TTasks.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -707,7 +707,7 @@ end;
 
 
 
-Procedure TTasks.Setkind(AIndex : Integer; AValue : String); 
+Procedure TTasks.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -717,7 +717,7 @@ end;
 
 
 
-Procedure TTasks.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TTasks.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;

@@ -37,7 +37,7 @@ const
   UPDATED_FIELDS = [  ];
   COLLATION_NAME = 'ru';
   BASE_COLLATION = '';
-  VERSION_STRING = '$Revision: 7611 $';
+  VERSION_STRING = '$Revision: 9614 $';
   VARIABLE_LOW_LIMIT = 65535;
   VARIABLE_HIGH_LIMIT = 0;
   VARIABLE_WEIGHT = 0;
@@ -45,7 +45,7 @@ const
   BACKWARDS_1 = False;
   BACKWARDS_2 = False;
   BACKWARDS_3 = False;
-  PROP_COUNT  = 885;
+  PROP_COUNT  = 150;
 
 const
   UCA_TABLE_1 : array[0..255] of Byte = (
@@ -59,7 +59,7 @@ const
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
