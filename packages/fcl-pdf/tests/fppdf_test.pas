@@ -1364,7 +1364,7 @@ begin
     AssertEquals('Failed on 2',
       // save graphics state
       'q'+CRLF+
-      '150 0 0 75  100  200 cm'+CRLF+
+      ' 150 0 0   75  100  200 cm'+CRLF+
       '/I1 Do'+CRLF+
       // restore graphics state
       'Q'+CRLF,
@@ -1391,7 +1391,7 @@ begin
   AssertEquals('Failed on 5',
     // save graphics state
     'q'+CRLF+
-    '200 0 0 100 28.35 785.31 cm'+CRLF+
+    ' 200 0 0  100 28.35 785.31 cm'+CRLF+
     '/I1 Do'+CRLF+
     // restore graphics state
     'Q'+CRLF,
@@ -1411,7 +1411,7 @@ begin
   AssertEquals('Failed on 10',
     // save graphics state
     'q'+CRLF+
-    '200 0 0 100 283.46 275.07 cm'+CRLF+
+    ' 200 0 0  100 283.46 275.07 cm'+CRLF+
     '/I1 Do'+CRLF+
     // restore graphics state
     'Q'+CRLF,
@@ -1435,7 +1435,7 @@ begin
   AssertEquals('Failed on 5',
     // save graphics state
     'q'+CRLF+
-    '57 0 0 28 28.35 785.31 cm'+CRLF+
+    '56.69 0 0 28.35 28.35 785.31 cm'+CRLF+
     '/I1 Do'+CRLF+
     // restore graphics state
     'Q'+CRLF,
@@ -1455,7 +1455,7 @@ begin
   AssertEquals('Failed on 10',
     // save graphics state
     'q'+CRLF+
-    '567 0 0 283 283.46 275.07 cm'+CRLF+
+    '566.93 0 0 283.46 283.46 275.07 cm'+CRLF+
     '/I1 Do'+CRLF+
     // restore graphics state
     'Q'+CRLF,
