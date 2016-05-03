@@ -320,6 +320,7 @@ Type
        TableEnd   : PResourceStringRecord;
      end;
    end;
+   PResourceStringTableList = ^TResourceStringTableList;
 
 { Support for string constants initialized with resourcestrings }
 {$ifdef FPC_HAS_RESSTRINITS}
@@ -333,18 +334,19 @@ Type
      Count: {$ifdef VER2_6}longint{$else}sizeint{$endif};
      Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
+   PResStrInitTable = ^TResStrInitTable;
 
 var
-  ResStrInitTable : TResStrInitTable; external name 'FPC_RESSTRINITTABLES';
+  ResStrInitTable : PResStrInitTable; external name '_FPC_ResStrInitTables';
 
 procedure UpdateResourceStringRefs;
 var
   i: integer;
   ptable: PResStrInitEntry;
 begin
-  for i:=1 to ResStrInitTable.Count do
+  for i:=1 to ResStrInitTable^.Count do
     begin
-      ptable:=ResStrInitTable.Tables[i];
+      ptable:=ResStrInitTable^.Tables[i];
       while Assigned(ptable^.Addr) do
         begin
           AnsiString(ptable^.Addr^):=ptable^.Data^.CurrentValue;
@@ -355,7 +357,7 @@ end;
 {$endif FPC_HAS_RESSTRINITS}
 
 Var
-  ResourceStringTable : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
+  ResourceStringTable : PResourceStringTableList; External Name '_FPC_ResourceStringTables';
 
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
@@ -363,7 +365,7 @@ Var
   i      : integer;
   s      : AnsiString;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -392,7 +394,7 @@ Var
   s,
   UpUnitName : AnsiString;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       UpUnitName:=UpCase(UnitName);
       For i:=0 to Count-1 do
@@ -424,7 +426,7 @@ Var
   ResStr : PResourceStringRecord;
   i      : integer;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -446,7 +448,7 @@ Var
   ResStr : PResourceStringRecord;
   i      : integer;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin

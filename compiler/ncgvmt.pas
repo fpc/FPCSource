@@ -38,7 +38,7 @@ interface
       end;
 
       TVMTWriter=class
-      private
+      protected
         _Class : tobjectdef;
         { message tables }
         root : pprocdeftree;
@@ -83,7 +83,7 @@ interface
         procedure genintmsgtab(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out msginttabledef: trecorddef);
         procedure genpublishedmethodstable(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out pubmethodsdef: trecorddef);
         procedure generate_field_table(tcb: ttai_typedconstbuilder; out lab: tasmlabel; out fieldtabledef: trecorddef);
-        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef);
+        procedure generate_abstract_stub(list:TAsmList;pd:tprocdef); virtual;
 {$ifdef WITHDMT}
         { generates a DMT for _class }
         function  gendmt : tasmlabel;
@@ -905,7 +905,7 @@ implementation
           list.concatlist(tcb.get_final_asmlist(
             current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
             rec_tguid,
-            sec_rodata_norel,
+            sec_rodata,
             s,
             const_align(sizeof(pint))));
           tcb.free;
@@ -916,7 +916,7 @@ implementation
       list.concatlist(tcb.get_final_asmlist(
         current_asmdata.DefineAsmSymbol(s,AB_GLOBAL,AT_DATA),
         def,
-        sec_rodata_norel,
+        sec_rodata,
         s,
         sizeof(pint)));
       tcb.free;
@@ -1032,9 +1032,7 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
-{$ifdef vtentry}
          hs: string;
-{$endif vtentry}
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
@@ -1228,6 +1226,16 @@ implementation
          current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
 {$endif vtentry}
         symtablestack.pop(current_module.localsymtable);
+
+        { write indirect symbol }
+        tcb:=ctai_typedconstbuilder.create([tcalo_make_dead_strippable]);
+        hs:=_class.vmt_mangledname;
+        tcb.emit_tai(Tai_const.Createname(hs,AT_DATA,0),voidpointertype);
+        current_asmdata.AsmLists[al_globals].concatList(
+          tcb.get_final_asmlist(
+            current_asmdata.DefineAsmSymbol(hs,AB_INDIRECT,AT_DATA),
+            voidpointertype,sec_rodata,hs,const_align(sizeof(pint))));
+        tcb.free;
       end;
 
 

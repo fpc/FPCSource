@@ -463,12 +463,18 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
 {$if defined(generic_linux_syscalls)}
 
 var ts : timespec;
+    pts : PTimeSpec;
 begin
-  ts.tv_sec := timeout^.tv_sec;
-  ts.tv_nsec := timeout^.tv_usec * 1000;
+  pts:=nil;
+  if assigned(timeout) then
+    begin
+      pts:=@ts;
+      ts.tv_sec := timeout^.tv_sec;
+      ts.tv_nsec := timeout^.tv_usec * 1000;
+    end;
   fpSelect:=do_syscall(syscall_nr_pselect6,n,
                        tsysparam(readfds),tsysparam(writefds),
-                       tsysparam(exceptfds),tsysparam(@ts),0);
+                       tsysparam(exceptfds),tsysparam(pts),0);
 end;
 
 {$else}

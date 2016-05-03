@@ -21,6 +21,26 @@ interface
 implementation
 
 {$i sysnr.inc}
-{$i si_c21g.inc}
+{$i si_c21.inc}
+
+var
+  gmon_started: boolean;
+  gmon_start : record end;external name 'PASCALMAIN';
+  gmon_etext : record end;external name '_etext';
+
+
+procedure atexit(p: pointer); cdecl; external;
+procedure monstartup (main,etext : pointer); cdecl; external;
+procedure _mcleanup; cdecl; external;
+
+procedure __gmon_start__; cdecl; public;
+  begin
+    if not gmon_started then
+      begin
+        gmon_started:=true;
+        monstartup(@gmon_start,@gmon_etext);
+        atexit(@_mcleanup);
+      end;
+  end;
 
 end.

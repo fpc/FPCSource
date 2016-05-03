@@ -1287,6 +1287,8 @@ implementation
          sc:=TFPObjectList.create(false);
          first:=true;
          had_generic:=false;
+         vs:=nil;
+         fillchar(tmp_filepos,sizeof(tmp_filepos),0);
          while (token=_ID) do
            begin
              semicoloneaten:=false;

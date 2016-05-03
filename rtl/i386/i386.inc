@@ -989,40 +989,6 @@ end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
 
-{$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-{$define FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-function fpc_pchar_length(p:pchar):sizeint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
-
-var
-  saveedi : longint;
-asm
-{$ifdef FPC_PROFILE}
-        push  %eax
-        push  %edx
-        push  %ecx
-        call  mcount
-        pop   %ecx
-        pop   %edx
-        pop   %eax
-{$endif FPC_PROFILE}
-        test    %eax,%eax
-        jz      .LStrLenDone
-        movl    %edi,saveedi
-        movl    %eax,%edi
-        movl    $0xffffffff,%ecx
-        xorl    %eax,%eax
-{$ifdef FPC_ENABLED_CLD}
-        cld
-{$endif FPC_ENABLED_CLD}
-        repne
-        scasb
-        movl    $0xfffffffe,%eax
-        subl    %ecx,%eax
-        movl    saveedi,%edi
-.LStrLenDone:
-end;
-{$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
-
 {$IFNDEF INTERNAL_BACKTRACE}
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}

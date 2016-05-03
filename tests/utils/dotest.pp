@@ -563,6 +563,17 @@ begin
   assign(t,'out.'+UniqueSuffix);
   {$I-}
    reset(t);
+  {$ifdef windows}
+    { try to cope with Windows problems related to AntiVirus scanner
+      that generate lag time during which access to a given if is forbidden }
+   if (inoutres=5) then
+     begin
+       Sleep(5000);
+       ioresult;
+       Verbose(V_Warning,'Windows file not accessible out.'+UniqueSuffix);
+       reset(t);
+     end;
+   {$endif windows}
    readln(t,hs);
    close(t);
    erase(t);

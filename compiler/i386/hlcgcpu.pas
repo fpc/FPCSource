@@ -192,7 +192,6 @@ implementation
     need_got_load:=not (target_info.system in systems_darwin) and
                    (cs_create_pic in current_settings.moduleswitches) and
                    (tf_pic_uses_got in target_info.flags) and
-                   (pi_needs_got in current_procinfo.flags) and
                    (po_external in pd.procoptions);
     if need_got_load then
       begin

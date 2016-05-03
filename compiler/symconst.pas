@@ -218,7 +218,10 @@ type
       it was used to set the type of a paraloc, since paralocs are reused
       across units) -- never stored to ppu, because in that case the def would
       be registered }
-    df_not_registered_no_free
+    df_not_registered_no_free,
+    { don't pack this record at the llvm level -- can't do this via symllvm
+      because we have to access this information in the symtable unit }
+    df_llvm_no_struct_packing
   );
   tdefoptions=set of tdefoption;
 
@@ -254,8 +257,8 @@ type
   { base types for orddef }
   tordtype = (
     uvoid,
-    u8bit,u16bit,u32bit,u64bit,
-    s8bit,s16bit,s32bit,s64bit,
+    u8bit,u16bit,u32bit,u64bit,u128bit,
+    s8bit,s16bit,s32bit,s64bit,s128bit,
     pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
@@ -687,7 +690,20 @@ type
     itp_rtti_normal_array,
     itp_rtti_dyn_array,
     itp_rtti_proc_param,
-    itp_threadvar_record
+    itp_threadvar_record,
+    itp_objc_method_list,
+    itp_objc_proto_list,
+    itp_objc_cat_methods,
+    itb_objc_nf_ivars,
+    itb_objc_nf_category,
+    itb_obcj_nf_class_ro_part,
+    itb_objc_nf_meta_class,
+    itb_objc_nf_class,
+    itb_objc_fr_protocol_ext,
+    itb_objc_fr_protocol,
+    itb_objc_fr_category,
+    itb_objc_fr_meta_class,
+    itb_objc_fr_class
   );
 
   { The order is from low priority to high priority,
@@ -810,7 +826,20 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
        '$rtti_normal_array$',
        '$rtti_dyn_array$',
        '$rtti_proc_param$',
-       '$threadvar_record$'
+       '$threadvar_record$',
+       '$objc_method_list$',
+       '$objc_proto_list$',
+       '$objc_cat_methods$',
+       '$objc_nf_ivars$',
+       '$objc_nf_category$',
+       '$obcj_nf_class_ro_part$',
+       '$objc_nf_meta_class$',
+       '$objc_nf_class$',
+       '$objc_fr_protocol_ext$',
+       '$objc_fr_protocol$',
+       '$objc_fr_category$',
+       '$objc_fr_meta_class$',
+       '$objc_fr_class$'
      );
 
 
@@ -857,6 +886,9 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
 
       { blocks-related constants }
       blocks_procvar_invoke_type_name = '__FPC_invoke_pvtype';
+
+      { suffix for indirect symbols (AB_INDIRECT) }
+      suffix_indirect = '$indirect';
 
 implementation
 

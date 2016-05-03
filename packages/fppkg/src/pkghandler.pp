@@ -58,6 +58,7 @@ function PackageBuildPath(APackage:TFPPackage):String;
 function PackageRemoteArchive(APackage:TFPPackage): String;
 function PackageLocalArchive(APackage:TFPPackage): String;
 function PackageManifestFile(APackage:TFPPackage): String;
+procedure ClearExecutedAction;
 
 
 Implementation
@@ -136,7 +137,7 @@ begin
       else
         Result:=CurrentDir;
     end
-  else if APackage.Name=CmdLinePackageName then
+  else if (APackage.Name=CmdLinePackageName) or (APackage.Name=URLPackageName) then
     Result:=GlobalOptions.BuildDir+ChangeFileExt(ExtractFileName(APackage.LocalFileName),'')
   else if (APackage.RecompileBroken) and (APackage.SourcePath<>'') then
     Result:=APackage.SourcePath
@@ -174,7 +175,10 @@ begin
   Result:=ManifestFileName;
 end;
 
-
+procedure ClearExecutedAction;
+begin
+  ExecutedActions.Clear;
+end;
 
 { TPackageHandler }
 

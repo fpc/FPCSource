@@ -181,7 +181,7 @@ type
   Protected
     //Property setters
     Procedure SetcfiRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
-    Procedure SetcontentVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetgbImageRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
     Procedure SetgbTextRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
     Procedure SetimageCfiRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
@@ -209,7 +209,7 @@ type
   Protected
     //Property setters
     Procedure SetcfiRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
-    Procedure SetcontentVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetgbImageRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
     Procedure SetgbTextRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
     Procedure SetimageCfiRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
@@ -235,7 +235,7 @@ type
   Protected
     //Property setters
     Procedure SetallowedCharacterCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetlimitType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlimitType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetremainingCharacterCount(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -270,23 +270,23 @@ type
     FvolumeId : String;
   Protected
     //Property setters
-    Procedure SetafterSelectedText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbeforeSelectedText(AIndex : Integer; AValue : String); virtual;
+    Procedure SetafterSelectedText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbeforeSelectedText(AIndex : Integer; const AValue : String); virtual;
     Procedure SetclientVersionRanges(AIndex : Integer; AValue : TAnnotationTypeclientVersionRanges); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetcurrentVersionRanges(AIndex : Integer; AValue : TAnnotationTypecurrentVersionRanges); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SethighlightStyle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlayerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SethighlightStyle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlayerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlayerSummary(AIndex : Integer; AValue : TAnnotationTypelayerSummary); virtual;
     Procedure SetpageIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetselectedText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselectedText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -330,15 +330,15 @@ type
     FvolumeId : String;
   Protected
     //Property setters
-    Procedure SetannotationType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetannotationType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; AValue : TJSONSchema); virtual;
-    Procedure Setencoded_data(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlayerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setencoded_data(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property annotationType : String Index 0 Read FannotationType Write SetannotationType;
@@ -366,8 +366,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAnnotationsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -396,8 +396,8 @@ type
   Protected
     //Property setters
     Procedure SetallowedCharacterCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetlayerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlimitType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlimitType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetremainingCharacterCount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
@@ -420,7 +420,7 @@ type
     Flayers : TAnnotationsSummaryTypelayersArray;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlayers(AIndex : Integer; AValue : TAnnotationsSummaryTypelayersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -446,8 +446,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TAnnotationsdataTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -474,10 +474,10 @@ type
     FstartPosition : String;
   Protected
     //Property setters
-    Procedure SetendOffset(AIndex : Integer; AValue : String); virtual;
-    Procedure SetendPosition(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartOffset(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartPosition(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendOffset(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetendPosition(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartOffset(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartPosition(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property endOffset : String Index 0 Read FendOffset Write SetendOffset;
@@ -499,10 +499,10 @@ type
     FvolumeId : String;
   Protected
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprocessingState(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setauthor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprocessingState(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property author : String Index 0 Read Fauthor Write Setauthor;
@@ -521,7 +521,7 @@ type
     Fconsistency_token : String;
   Protected
     //Property setters
-    Procedure Setconsistency_token(AIndex : Integer; AValue : String); virtual;
+    Procedure Setconsistency_token(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property consistency_token : String Index 0 Read Fconsistency_token Write Setconsistency_token;
@@ -546,13 +546,13 @@ type
     FvolumesLastUpdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setaccess(AIndex : Integer; AValue : String); virtual;
+    Procedure Setaccess(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetvolumeCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetvolumesLastUpdated(AIndex : Integer; AValue : TDatetime); virtual;
@@ -582,7 +582,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBookshelvesTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -605,9 +605,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetbadgeUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcategoryId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbadgeUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcategoryId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property badgeUrl : String Index 0 Read FbadgeUrl Write SetbadgeUrl;
@@ -627,7 +627,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TCategoryTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -659,16 +659,16 @@ type
   Protected
     //Property setters
     Procedure SetdeviceAllowed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxConcurrentDevices(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnonce(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreasonCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnonce(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreasonCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrestricted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setsignature(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsignature(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeWindowSeconds(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property deviceAllowed : boolean Index 0 Read FdeviceAllowed Write SetdeviceAllowed;
@@ -694,7 +694,7 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property title : String Index 0 Read Ftitle Write Settitle;
@@ -711,8 +711,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -730,8 +730,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -750,7 +750,7 @@ type
   Protected
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource); virtual;
-    Procedure Settext(AIndex : Integer; AValue : String); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property source : TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource Index 0 Read Fsource Write Setsource;
@@ -768,8 +768,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -788,7 +788,7 @@ type
   Protected
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource); virtual;
-    Procedure Settext(AIndex : Integer; AValue : String); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property source : TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource Index 0 Read Fsource Write Setsource;
@@ -807,8 +807,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _type : String Index 0 Read F_type Write Set_type;
@@ -826,8 +826,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -846,7 +846,7 @@ type
   Protected
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource); virtual;
-    Procedure Settext(AIndex : Integer; AValue : String); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property source : TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource Index 0 Read Fsource Write Setsource;
@@ -864,7 +864,7 @@ type
     Fexamples : TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesArray;
   Protected
     //Property setters
-    Procedure Setdefinition(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdefinition(AIndex : Integer; const AValue : String); virtual;
     Procedure Setexamples(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -887,8 +887,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -906,8 +906,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -926,7 +926,7 @@ type
   Protected
     //Property setters
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource); virtual;
-    Procedure Settext(AIndex : Integer; AValue : String); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property source : TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource Index 0 Read Fsource Write Setsource;
@@ -952,11 +952,11 @@ type
     //Property setters
     Procedure Setconjugations(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsArray); virtual;
     Procedure Setdefinitions(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsArray); virtual;
-    Procedure SetpartOfSpeech(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpronunciation(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpronunciationUrl(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpartOfSpeech(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpronunciation(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpronunciationUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource); virtual;
-    Procedure Setsyllabification(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsyllabification(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsynonyms(AIndex : Integer; AValue : TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -985,8 +985,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setattribution(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setattribution(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property attribution : String Index 0 Read Fattribution Write Setattribution;
@@ -1059,7 +1059,7 @@ type
     //Property setters
     Procedure Setcommon(AIndex : Integer; AValue : TDictlayerdataTypecommon); virtual;
     Procedure Setdict(AIndex : Integer; AValue : TDictlayerdataTypedict); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property common : TDictlayerdataTypecommon Index 0 Read Fcommon Write Setcommon;
@@ -1091,15 +1091,15 @@ type
     Procedure SetdeviceAllowed(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetdownloadsAcquired(AIndex : Integer; AValue : integer); virtual;
     Procedure SetjustAcquired(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxDownloadDevices(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmessage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnonce(AIndex : Integer; AValue : String); virtual;
-    Procedure SetreasonCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnonce(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetreasonCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrestricted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setsignature(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsource(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsignature(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsource(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property deviceAllowed : boolean Index 0 Read FdeviceAllowed Write SetdeviceAllowed;
@@ -1128,7 +1128,7 @@ type
   Protected
     //Property setters
     Procedure SetdownloadAccessList(AIndex : Integer; AValue : TDownloadAccessesTypedownloadAccessListArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1153,11 +1153,11 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure Setlang(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpreviewImageUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsnippet(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsnippetUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setlang(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviewImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsnippet(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsnippetUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property lang : String Index 0 Read Flang Write Setlang;
@@ -1261,11 +1261,11 @@ type
   Protected
     //Property setters
     Procedure Setboundary(AIndex : Integer; AValue : TGeolayerdataTypegeoTypeboundaryArray); virtual;
-    Procedure SetcachePolicy(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcountryCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcachePolicy(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcountryCode(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
     Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
-    Procedure SetmapType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetmapType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setviewport(AIndex : Integer; AValue : TGeolayerdataTypegeoTypeviewport); virtual;
     Procedure Setzoom(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
@@ -1298,7 +1298,7 @@ type
     //Property setters
     Procedure Setcommon(AIndex : Integer; AValue : TGeolayerdataTypecommon); virtual;
     Procedure Setgeo(AIndex : Integer; AValue : TGeolayerdataTypegeo); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property common : TGeolayerdataTypecommon Index 0 Read Fcommon Write Setcommon;
@@ -1319,7 +1319,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TLayersummariesTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1356,17 +1356,17 @@ type
     //Property setters
     Procedure SetannotationCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetannotationTypes(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetannotationsDataLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetannotationsLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcontentVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetannotationsDataLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetannotationsLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontentVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdataCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlayerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvolumeAnnotationsVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvolumeAnnotationsVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1402,11 +1402,11 @@ type
     Fversion : String;
   Protected
     //Property setters
-    Procedure Setdownload_url(AIndex : Integer; AValue : String); virtual;
-    Procedure Setencrypted_key(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdownload_url(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setencrypted_key(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property download_url : String Index 0 Read Fdownload_url Write Setdownload_url;
@@ -1428,7 +1428,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TMetadataTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1454,12 +1454,12 @@ type
     FvolumeId : String;
   Protected
     //Property setters
-    Procedure Setauthor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcanonicalVolumeLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcoverUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setauthor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcanonicalVolumeLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcoverUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property author : String Index 0 Read Fauthor Write Setauthor;
@@ -1483,9 +1483,9 @@ type
     Fitems : TOffersTypeitemsItemTypeitemsArray;
   Protected
     //Property setters
-    Procedure SetartUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgservicesKey(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetartUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgservicesKey(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TOffersTypeitemsItemTypeitemsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1511,7 +1511,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TOffersTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1538,13 +1538,13 @@ type
     FvolumeId : String;
   Protected
     //Property setters
-    Procedure SetepubCfiPosition(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgbImagePosition(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgbTextPosition(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetpdfPosition(AIndex : Integer; AValue : String); virtual;
+    Procedure SetepubCfiPosition(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgbImagePosition(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgbTextPosition(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpdfPosition(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property epubCfiPosition : String Index 0 Read FepubCfiPosition Write SetepubCfiPosition;
@@ -1570,7 +1570,7 @@ type
     //Property setters
     Procedure SetconcurrentAccess(AIndex : Integer; AValue : TConcurrentAccessRestriction); virtual;
     Procedure SetdownloadAccess(AIndex : Integer; AValue : TDownloadAccessRestriction); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property concurrentAccess : TConcurrentAccessRestriction Index 0 Read FconcurrentAccess Write SetconcurrentAccess;
@@ -1588,7 +1588,7 @@ type
     FdisplayName : String;
   Protected
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property displayName : String Index 0 Read FdisplayName Write SetdisplayName;
@@ -1606,9 +1606,9 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure SetextraDescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetextraDescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -1637,15 +1637,15 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setauthor(AIndex : Integer; AValue : TReviewTypeauthor); virtual;
-    Procedure Setcontent(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdate(AIndex : Integer; AValue : String); virtual;
-    Procedure SetfullTextUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setrating(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcontent(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfullTextUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrating(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TReviewTypesource); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property author : TReviewTypeauthor Index 0 Read Fauthor Write Setauthor;
@@ -1671,7 +1671,7 @@ type
     FisEnabled : boolean;
   Protected
     //Property setters
-    Procedure SetfolderName(AIndex : Integer; AValue : String); virtual;
+    Procedure SetfolderName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisEnabled(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -1690,7 +1690,7 @@ type
     FnotesExport : TUsersettingsTypenotesExport;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnotesExport(AIndex : Integer; AValue : TUsersettingsTypenotesExport); virtual;
   Public
   Published
@@ -1710,8 +1710,8 @@ type
     FisAvailable : boolean;
   Protected
     //Property setters
-    Procedure SetacsTokenLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdownloadLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetacsTokenLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdownloadLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisAvailable(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -1732,8 +1732,8 @@ type
     FisAvailable : boolean;
   Protected
     //Property setters
-    Procedure SetacsTokenLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdownloadLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetacsTokenLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdownloadLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisAvailable(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -1765,20 +1765,20 @@ type
     FwebReaderLink : String;
   Protected
     //Property setters
-    Procedure SetaccessViewStatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccessViewStatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdownloadAccess(AIndex : Integer; AValue : TDownloadAccessRestriction); virtual;
-    Procedure SetdriveImportedContentLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdriveImportedContentLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setembeddable(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setepub(AIndex : Integer; AValue : TVolumeTypeaccessInfoTypeepub); virtual;
     Procedure SetexplicitOfflineLicenseManagement(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setpdf(AIndex : Integer; AValue : TVolumeTypeaccessInfoTypepdf); virtual;
     Procedure SetpublicDomain(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetquoteSharingAllowed(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SettextToSpeechPermission(AIndex : Integer; AValue : String); virtual;
-    Procedure SetviewOrderUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setviewability(AIndex : Integer; AValue : String); virtual;
-    Procedure SetwebReaderLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextToSpeechPermission(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetviewOrderUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setviewability(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetwebReaderLink(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property accessViewStatus : String Index 0 Read FaccessViewStatus Write SetaccessViewStatus;
@@ -1808,8 +1808,8 @@ type
     FvolumeAnnotationsVersion : String;
   Protected
     //Property setters
-    Procedure SetlayerId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetvolumeAnnotationsVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetvolumeAnnotationsVersion(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property layerId : String Index 0 Read FlayerId Write SetlayerId;
@@ -1846,7 +1846,7 @@ type
     Fexplanation : String;
   Protected
     //Property setters
-    Procedure Setexplanation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setexplanation(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property explanation : String Index 0 Read Fexplanation Write Setexplanation;
@@ -1864,7 +1864,7 @@ type
   Protected
     //Property setters
     Procedure Setamount(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amount : double Index 0 Read Famount Write Setamount;
@@ -1883,7 +1883,7 @@ type
   Protected
     //Property setters
     Procedure SetamountInMicros(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amountInMicros : double Index 0 Read FamountInMicros Write SetamountInMicros;
@@ -1903,7 +1903,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setcount(AIndex : Integer; AValue : double); virtual;
-    Procedure Set_unit(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_unit(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property count : double Index 0 Read Fcount Write Setcount;
@@ -1922,7 +1922,7 @@ type
   Protected
     //Property setters
     Procedure SetamountInMicros(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amountInMicros : double Index 0 Read FamountInMicros Write SetamountInMicros;
@@ -1966,7 +1966,7 @@ type
   Protected
     //Property setters
     Procedure Setamount(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcurrencyCode(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property amount : double Index 0 Read Famount Write Setamount;
@@ -1990,14 +1990,14 @@ type
     Fsaleability : String;
   Protected
     //Property setters
-    Procedure SetbuyLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setcountry(AIndex : Integer; AValue : String); virtual;
+    Procedure SetbuyLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcountry(AIndex : Integer; const AValue : String); virtual;
     Procedure SetisEbook(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetlistPrice(AIndex : Integer; AValue : TVolumeTypesaleInfoTypelistPrice); virtual;
     Procedure Setoffers(AIndex : Integer; AValue : TVolumeTypesaleInfoTypeoffersArray); virtual;
     Procedure SetonSaleDate(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetretailPrice(AIndex : Integer; AValue : TVolumeTypesaleInfoTyperetailPrice); virtual;
-    Procedure Setsaleability(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsaleability(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2024,7 +2024,7 @@ type
     FtextSnippet : String;
   Protected
     //Property setters
-    Procedure SettextSnippet(AIndex : Integer; AValue : String); virtual;
+    Procedure SettextSnippet(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property textSnippet : String Index 0 Read FtextSnippet Write SettextSnippet;
@@ -2044,7 +2044,7 @@ type
   Protected
     //Property setters
     Procedure SetallowedCharacterCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetlimitType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetlimitType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetremainingCharacterCount(AIndex : Integer; AValue : integer); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
@@ -2066,8 +2066,8 @@ type
     FstartUtcSec : String;
   Protected
     //Property setters
-    Procedure SetendUtcSec(AIndex : Integer; AValue : String); virtual;
-    Procedure SetstartUtcSec(AIndex : Integer; AValue : String); virtual;
+    Procedure SetendUtcSec(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartUtcSec(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property endUtcSec : String Index 0 Read FendUtcSec Write SetendUtcSec;
@@ -2084,7 +2084,7 @@ type
     FprocessingState : String;
   Protected
     //Property setters
-    Procedure SetprocessingState(AIndex : Integer; AValue : String); virtual;
+    Procedure SetprocessingState(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property processingState : String Index 0 Read FprocessingState Write SetprocessingState;
@@ -2117,7 +2117,7 @@ type
     Procedure SetisUploaded(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetreadingPosition(AIndex : Integer; AValue : TReadingPosition); virtual;
     Procedure SetrentalPeriod(AIndex : Integer; AValue : TVolumeTypeuserInfoTyperentalPeriod); virtual;
-    Procedure SetrentalState(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrentalState(AIndex : Integer; const AValue : String); virtual;
     Procedure Setreview(AIndex : Integer; AValue : TReview); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SetuserUploadedVolumeInfo(AIndex : Integer; AValue : TVolumeTypeuserInfoTypeuserUploadedVolumeInfo); virtual;
@@ -2148,9 +2148,9 @@ type
     Fwidth : String;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : String); virtual;
-    Procedure Setthickness(AIndex : Integer; AValue : String); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : String); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setthickness(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property height : String Index 0 Read Fheight Write Setheight;
@@ -2173,12 +2173,12 @@ type
     Fthumbnail : String;
   Protected
     //Property setters
-    Procedure SetextraLarge(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlarge(AIndex : Integer; AValue : String); virtual;
-    Procedure Setmedium(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsmall(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsmallThumbnail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setthumbnail(AIndex : Integer; AValue : String); virtual;
+    Procedure SetextraLarge(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlarge(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setmedium(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsmall(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsmallThumbnail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setthumbnail(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property extraLarge : String Index 0 Read FextraLarge Write SetextraLarge;
@@ -2201,8 +2201,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setidentifier(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setidentifier(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property identifier : String Index 0 Read Fidentifier Write Setidentifier;
@@ -2246,28 +2246,28 @@ type
     Procedure SetallowAnonLogging(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setauthors(AIndex : Integer; AValue : TStringArray); virtual;
     Procedure SetaverageRating(AIndex : Integer; AValue : double); virtual;
-    Procedure SetcanonicalVolumeLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcanonicalVolumeLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcategories(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetcontentVersion(AIndex : Integer; AValue : String); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdimensions(AIndex : Integer; AValue : TVolumeTypevolumeInfoTypedimensions); virtual;
     Procedure SetimageLinks(AIndex : Integer; AValue : TVolumeTypevolumeInfoTypeimageLinks); virtual;
     Procedure SetindustryIdentifiers(AIndex : Integer; AValue : TVolumeTypevolumeInfoTypeindustryIdentifiersArray); virtual;
-    Procedure SetinfoLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlanguage(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmainCategory(AIndex : Integer; AValue : String); virtual;
-    Procedure SetmaturityRating(AIndex : Integer; AValue : String); virtual;
+    Procedure SetinfoLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmainCategory(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetmaturityRating(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpreviewLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetprintType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpreviewLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprintType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetprintedPageCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetpublishedDate(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpublisher(AIndex : Integer; AValue : String); virtual;
+    Procedure SetpublishedDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpublisher(AIndex : Integer; const AValue : String); virtual;
     Procedure SetratingsCount(AIndex : Integer; AValue : integer); virtual;
     Procedure SetreadingModes(AIndex : Integer; AValue : TJSONSchema); virtual;
     Procedure SetsamplePageCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setsubtitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsubtitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2322,14 +2322,14 @@ type
   Protected
     //Property setters
     Procedure SetaccessInfo(AIndex : Integer; AValue : TVolumeTypeaccessInfo); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlayerInfo(AIndex : Integer; AValue : TVolumeTypelayerInfo); virtual;
     Procedure SetrecommendedInfo(AIndex : Integer; AValue : TVolumeTyperecommendedInfo); virtual;
     Procedure SetsaleInfo(AIndex : Integer; AValue : TVolumeTypesaleInfo); virtual;
     Procedure SetsearchInfo(AIndex : Integer; AValue : TVolumeTypesearchInfo); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserInfo(AIndex : Integer; AValue : TVolumeTypeuserInfo); virtual;
     Procedure SetvolumeInfo(AIndex : Integer; AValue : TVolumeTypevolumeInfo); virtual;
   Public
@@ -2360,8 +2360,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TVolume2TypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2387,7 +2387,7 @@ type
   Protected
     //Property setters
     Procedure SetcfiRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
-    Procedure SetcontentVersion(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcontentVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetgbImageRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
     Procedure SetgbTextRange(AIndex : Integer; AValue : TBooksAnnotationsRange); virtual;
   Public
@@ -2421,20 +2421,20 @@ type
     FvolumeId : String;
   Protected
     //Property setters
-    Procedure SetannotationDataId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetannotationDataLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetannotationType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetannotationDataId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetannotationDataLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetannotationType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontentRanges(AIndex : Integer; AValue : TVolumeannotationTypecontentRanges); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetlayerId(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlayerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpageIds(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetselectedText(AIndex : Integer; AValue : String); virtual;
-    Procedure SetselfLink(AIndex : Integer; AValue : String); virtual;
+    Procedure SetselectedText(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetvolumeId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetvolumeId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2472,10 +2472,10 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TVolumeannotationsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : String); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2502,7 +2502,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TVolumesTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalItems(AIndex : Integer; AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -3462,7 +3462,7 @@ end;
 
 
 
-Procedure TAnnotationTypeclientVersionRanges.SetcontentVersion(AIndex : Integer; AValue : String); 
+Procedure TAnnotationTypeclientVersionRanges.SetcontentVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentVersion=AValue) then exit;
@@ -3519,7 +3519,7 @@ end;
 
 
 
-Procedure TAnnotationTypecurrentVersionRanges.SetcontentVersion(AIndex : Integer; AValue : String); 
+Procedure TAnnotationTypecurrentVersionRanges.SetcontentVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentVersion=AValue) then exit;
@@ -3576,7 +3576,7 @@ end;
 
 
 
-Procedure TAnnotationTypelayerSummary.SetlimitType(AIndex : Integer; AValue : String); 
+Procedure TAnnotationTypelayerSummary.SetlimitType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlimitType=AValue) then exit;
@@ -3603,7 +3603,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotation.SetafterSelectedText(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetafterSelectedText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FafterSelectedText=AValue) then exit;
@@ -3613,7 +3613,7 @@ end;
 
 
 
-Procedure TAnnotation.SetbeforeSelectedText(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetbeforeSelectedText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbeforeSelectedText=AValue) then exit;
@@ -3653,7 +3653,7 @@ end;
 
 
 
-Procedure TAnnotation.Setdata(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -3673,7 +3673,7 @@ end;
 
 
 
-Procedure TAnnotation.SethighlightStyle(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SethighlightStyle(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhighlightStyle=AValue) then exit;
@@ -3683,7 +3683,7 @@ end;
 
 
 
-Procedure TAnnotation.Setid(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3693,7 +3693,7 @@ end;
 
 
 
-Procedure TAnnotation.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3703,7 +3703,7 @@ end;
 
 
 
-Procedure TAnnotation.SetlayerId(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetlayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerId=AValue) then exit;
@@ -3733,7 +3733,7 @@ end;
 
 
 
-Procedure TAnnotation.SetselectedText(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetselectedText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselectedText=AValue) then exit;
@@ -3743,7 +3743,7 @@ end;
 
 
 
-Procedure TAnnotation.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3763,7 +3763,7 @@ end;
 
 
 
-Procedure TAnnotation.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TAnnotation.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -3793,7 +3793,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotationdata.SetannotationType(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.SetannotationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationType=AValue) then exit;
@@ -3813,7 +3813,7 @@ end;
 
 
 
-Procedure TAnnotationdata.Setencoded_data(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.Setencoded_data(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fencoded_data=AValue) then exit;
@@ -3823,7 +3823,7 @@ end;
 
 
 
-Procedure TAnnotationdata.Setid(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3833,7 +3833,7 @@ end;
 
 
 
-Procedure TAnnotationdata.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3843,7 +3843,7 @@ end;
 
 
 
-Procedure TAnnotationdata.SetlayerId(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.SetlayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerId=AValue) then exit;
@@ -3853,7 +3853,7 @@ end;
 
 
 
-Procedure TAnnotationdata.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -3873,7 +3873,7 @@ end;
 
 
 
-Procedure TAnnotationdata.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TAnnotationdata.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -3900,7 +3900,7 @@ end;
 
 
 
-Procedure TAnnotations.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnnotations.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3910,7 +3910,7 @@ end;
 
 
 
-Procedure TAnnotations.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAnnotations.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3960,7 +3960,7 @@ end;
 
 
 
-Procedure TAnnotationsSummaryTypelayersItem.SetlayerId(AIndex : Integer; AValue : String); 
+Procedure TAnnotationsSummaryTypelayersItem.SetlayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerId=AValue) then exit;
@@ -3970,7 +3970,7 @@ end;
 
 
 
-Procedure TAnnotationsSummaryTypelayersItem.SetlimitType(AIndex : Integer; AValue : String); 
+Procedure TAnnotationsSummaryTypelayersItem.SetlimitType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlimitType=AValue) then exit;
@@ -4007,7 +4007,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAnnotationsSummary.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnnotationsSummary.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4057,7 +4057,7 @@ end;
 
 
 
-Procedure TAnnotationsdata.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAnnotationsdata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4067,7 +4067,7 @@ end;
 
 
 
-Procedure TAnnotationsdata.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAnnotationsdata.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -4107,7 +4107,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBooksAnnotationsRange.SetendOffset(AIndex : Integer; AValue : String); 
+Procedure TBooksAnnotationsRange.SetendOffset(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendOffset=AValue) then exit;
@@ -4117,7 +4117,7 @@ end;
 
 
 
-Procedure TBooksAnnotationsRange.SetendPosition(AIndex : Integer; AValue : String); 
+Procedure TBooksAnnotationsRange.SetendPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendPosition=AValue) then exit;
@@ -4127,7 +4127,7 @@ end;
 
 
 
-Procedure TBooksAnnotationsRange.SetstartOffset(AIndex : Integer; AValue : String); 
+Procedure TBooksAnnotationsRange.SetstartOffset(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartOffset=AValue) then exit;
@@ -4137,7 +4137,7 @@ end;
 
 
 
-Procedure TBooksAnnotationsRange.SetstartPosition(AIndex : Integer; AValue : String); 
+Procedure TBooksAnnotationsRange.SetstartPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartPosition=AValue) then exit;
@@ -4154,7 +4154,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBooksCloudloadingResource.Setauthor(AIndex : Integer; AValue : String); 
+Procedure TBooksCloudloadingResource.Setauthor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fauthor=AValue) then exit;
@@ -4164,7 +4164,7 @@ end;
 
 
 
-Procedure TBooksCloudloadingResource.SetprocessingState(AIndex : Integer; AValue : String); 
+Procedure TBooksCloudloadingResource.SetprocessingState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingState=AValue) then exit;
@@ -4174,7 +4174,7 @@ end;
 
 
 
-Procedure TBooksCloudloadingResource.Settitle(AIndex : Integer; AValue : String); 
+Procedure TBooksCloudloadingResource.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4184,7 +4184,7 @@ end;
 
 
 
-Procedure TBooksCloudloadingResource.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TBooksCloudloadingResource.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -4201,7 +4201,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBooksVolumesRecommendedRateResponse.Setconsistency_token(AIndex : Integer; AValue : String); 
+Procedure TBooksVolumesRecommendedRateResponse.Setconsistency_token(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fconsistency_token=AValue) then exit;
@@ -4218,7 +4218,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBookshelf.Setaccess(AIndex : Integer; AValue : String); 
+Procedure TBookshelf.Setaccess(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faccess=AValue) then exit;
@@ -4238,7 +4238,7 @@ end;
 
 
 
-Procedure TBookshelf.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TBookshelf.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -4258,7 +4258,7 @@ end;
 
 
 
-Procedure TBookshelf.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBookshelf.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4268,7 +4268,7 @@ end;
 
 
 
-Procedure TBookshelf.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TBookshelf.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -4278,7 +4278,7 @@ end;
 
 
 
-Procedure TBookshelf.Settitle(AIndex : Integer; AValue : String); 
+Procedure TBookshelf.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4335,7 +4335,7 @@ end;
 
 
 
-Procedure TBookshelves.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBookshelves.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4365,7 +4365,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCategoryTypeitemsItem.SetbadgeUrl(AIndex : Integer; AValue : String); 
+Procedure TCategoryTypeitemsItem.SetbadgeUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbadgeUrl=AValue) then exit;
@@ -4375,7 +4375,7 @@ end;
 
 
 
-Procedure TCategoryTypeitemsItem.SetcategoryId(AIndex : Integer; AValue : String); 
+Procedure TCategoryTypeitemsItem.SetcategoryId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcategoryId=AValue) then exit;
@@ -4385,7 +4385,7 @@ end;
 
 
 
-Procedure TCategoryTypeitemsItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TCategoryTypeitemsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -4412,7 +4412,7 @@ end;
 
 
 
-Procedure TCategory.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCategory.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4452,7 +4452,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.Setkind(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -4472,7 +4472,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -4482,7 +4482,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.Setnonce(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.Setnonce(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnonce=AValue) then exit;
@@ -4492,7 +4492,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.SetreasonCode(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.SetreasonCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreasonCode=AValue) then exit;
@@ -4512,7 +4512,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.Setsignature(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.Setsignature(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsignature=AValue) then exit;
@@ -4522,7 +4522,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.Setsource(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.Setsource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -4542,7 +4542,7 @@ end;
 
 
 
-Procedure TConcurrentAccessRestriction.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TConcurrentAccessRestriction.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -4559,7 +4559,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypecommon.Settitle(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypecommon.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -4576,7 +4576,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -4586,7 +4586,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4603,7 +4603,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -4613,7 +4613,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypederivativesItemTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4640,7 +4640,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypederivativesItem.Settext(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypederivativesItem.Settext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -4657,7 +4657,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -4667,7 +4667,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypeexamplesItemTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4694,7 +4694,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypeexamplesItem.Settext(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypeexamplesItem.Settext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -4711,7 +4711,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -4721,7 +4721,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypeconjugationsItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -4749,7 +4749,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -4759,7 +4759,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItemTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4786,7 +4786,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItem.Settext(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItemTypeexamplesItem.Settext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -4803,7 +4803,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItem.Setdefinition(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypedefinitionsItem.Setdefinition(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdefinition=AValue) then exit;
@@ -4843,7 +4843,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -4853,7 +4853,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4870,7 +4870,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -4880,7 +4880,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItemTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -4907,7 +4907,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItem.Settext(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItemTypesynonymsItem.Settext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftext=AValue) then exit;
@@ -4944,7 +4944,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.SetpartOfSpeech(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.SetpartOfSpeech(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpartOfSpeech=AValue) then exit;
@@ -4954,7 +4954,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.Setpronunciation(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.Setpronunciation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpronunciation=AValue) then exit;
@@ -4964,7 +4964,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.SetpronunciationUrl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.SetpronunciationUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpronunciationUrl=AValue) then exit;
@@ -4984,7 +4984,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.Setsyllabification(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesensesItem.Setsyllabification(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsyllabification=AValue) then exit;
@@ -5026,7 +5026,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesource.Setattribution(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesource.Setattribution(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fattribution=AValue) then exit;
@@ -5036,7 +5036,7 @@ end;
 
 
 
-Procedure TDictlayerdataTypedictTypewordsItemTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdataTypedictTypewordsItemTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -5175,7 +5175,7 @@ end;
 
 
 
-Procedure TDictlayerdata.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDictlayerdata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5222,7 +5222,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5242,7 +5242,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.Setmessage(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.Setmessage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmessage=AValue) then exit;
@@ -5252,7 +5252,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.Setnonce(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.Setnonce(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnonce=AValue) then exit;
@@ -5262,7 +5262,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.SetreasonCode(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.SetreasonCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreasonCode=AValue) then exit;
@@ -5282,7 +5282,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.Setsignature(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.Setsignature(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsignature=AValue) then exit;
@@ -5292,7 +5292,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.Setsource(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.Setsource(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsource=AValue) then exit;
@@ -5302,7 +5302,7 @@ end;
 
 
 
-Procedure TDownloadAccessRestriction.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccessRestriction.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -5329,7 +5329,7 @@ end;
 
 
 
-Procedure TDownloadAccesses.Setkind(AIndex : Integer; AValue : String); 
+Procedure TDownloadAccesses.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5359,7 +5359,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeolayerdataTypecommon.Setlang(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypecommon.Setlang(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flang=AValue) then exit;
@@ -5369,7 +5369,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypecommon.SetpreviewImageUrl(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypecommon.SetpreviewImageUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviewImageUrl=AValue) then exit;
@@ -5379,7 +5379,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypecommon.Setsnippet(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypecommon.Setsnippet(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsnippet=AValue) then exit;
@@ -5389,7 +5389,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypecommon.SetsnippetUrl(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypecommon.SetsnippetUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsnippetUrl=AValue) then exit;
@@ -5399,7 +5399,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypecommon.Settitle(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypecommon.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -5534,7 +5534,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypegeo.SetcachePolicy(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypegeo.SetcachePolicy(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcachePolicy=AValue) then exit;
@@ -5544,7 +5544,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypegeo.SetcountryCode(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypegeo.SetcountryCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcountryCode=AValue) then exit;
@@ -5574,7 +5574,7 @@ end;
 
 
 
-Procedure TGeolayerdataTypegeo.SetmapType(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdataTypegeo.SetmapType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmapType=AValue) then exit;
@@ -5644,7 +5644,7 @@ end;
 
 
 
-Procedure TGeolayerdata.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGeolayerdata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5671,7 +5671,7 @@ end;
 
 
 
-Procedure TLayersummaries.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLayersummaries.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5731,7 +5731,7 @@ end;
 
 
 
-Procedure TLayersummary.SetannotationsDataLink(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetannotationsDataLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationsDataLink=AValue) then exit;
@@ -5741,7 +5741,7 @@ end;
 
 
 
-Procedure TLayersummary.SetannotationsLink(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetannotationsLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationsLink=AValue) then exit;
@@ -5751,7 +5751,7 @@ end;
 
 
 
-Procedure TLayersummary.SetcontentVersion(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetcontentVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentVersion=AValue) then exit;
@@ -5771,7 +5771,7 @@ end;
 
 
 
-Procedure TLayersummary.Setid(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -5781,7 +5781,7 @@ end;
 
 
 
-Procedure TLayersummary.Setkind(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5791,7 +5791,7 @@ end;
 
 
 
-Procedure TLayersummary.SetlayerId(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetlayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerId=AValue) then exit;
@@ -5801,7 +5801,7 @@ end;
 
 
 
-Procedure TLayersummary.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -5821,7 +5821,7 @@ end;
 
 
 
-Procedure TLayersummary.SetvolumeAnnotationsVersion(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetvolumeAnnotationsVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeAnnotationsVersion=AValue) then exit;
@@ -5831,7 +5831,7 @@ end;
 
 
 
-Procedure TLayersummary.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TLayersummary.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -5861,7 +5861,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetadataTypeitemsItem.Setdownload_url(AIndex : Integer; AValue : String); 
+Procedure TMetadataTypeitemsItem.Setdownload_url(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdownload_url=AValue) then exit;
@@ -5871,7 +5871,7 @@ end;
 
 
 
-Procedure TMetadataTypeitemsItem.Setencrypted_key(AIndex : Integer; AValue : String); 
+Procedure TMetadataTypeitemsItem.Setencrypted_key(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fencrypted_key=AValue) then exit;
@@ -5881,7 +5881,7 @@ end;
 
 
 
-Procedure TMetadataTypeitemsItem.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TMetadataTypeitemsItem.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -5891,7 +5891,7 @@ end;
 
 
 
-Procedure TMetadataTypeitemsItem.Setsize(AIndex : Integer; AValue : String); 
+Procedure TMetadataTypeitemsItem.Setsize(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsize=AValue) then exit;
@@ -5901,7 +5901,7 @@ end;
 
 
 
-Procedure TMetadataTypeitemsItem.Setversion(AIndex : Integer; AValue : String); 
+Procedure TMetadataTypeitemsItem.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -5928,7 +5928,7 @@ end;
 
 
 
-Procedure TMetadata.Setkind(AIndex : Integer; AValue : String); 
+Procedure TMetadata.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -5958,7 +5958,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOffersTypeitemsItemTypeitemsItem.Setauthor(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItemTypeitemsItem.Setauthor(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fauthor=AValue) then exit;
@@ -5968,7 +5968,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItemTypeitemsItem.SetcanonicalVolumeLink(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItemTypeitemsItem.SetcanonicalVolumeLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcanonicalVolumeLink=AValue) then exit;
@@ -5978,7 +5978,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItemTypeitemsItem.SetcoverUrl(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItemTypeitemsItem.SetcoverUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcoverUrl=AValue) then exit;
@@ -5988,7 +5988,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItemTypeitemsItem.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItemTypeitemsItem.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -5998,7 +5998,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItemTypeitemsItem.Settitle(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItemTypeitemsItem.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -6008,7 +6008,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItemTypeitemsItem.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItemTypeitemsItem.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -6025,7 +6025,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOffersTypeitemsItem.SetartUrl(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItem.SetartUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FartUrl=AValue) then exit;
@@ -6035,7 +6035,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItem.SetgservicesKey(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItem.SetgservicesKey(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgservicesKey=AValue) then exit;
@@ -6045,7 +6045,7 @@ end;
 
 
 
-Procedure TOffersTypeitemsItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TOffersTypeitemsItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -6095,7 +6095,7 @@ end;
 
 
 
-Procedure TOffers.Setkind(AIndex : Integer; AValue : String); 
+Procedure TOffers.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6125,7 +6125,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReadingPosition.SetepubCfiPosition(AIndex : Integer; AValue : String); 
+Procedure TReadingPosition.SetepubCfiPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FepubCfiPosition=AValue) then exit;
@@ -6135,7 +6135,7 @@ end;
 
 
 
-Procedure TReadingPosition.SetgbImagePosition(AIndex : Integer; AValue : String); 
+Procedure TReadingPosition.SetgbImagePosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgbImagePosition=AValue) then exit;
@@ -6145,7 +6145,7 @@ end;
 
 
 
-Procedure TReadingPosition.SetgbTextPosition(AIndex : Integer; AValue : String); 
+Procedure TReadingPosition.SetgbTextPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgbTextPosition=AValue) then exit;
@@ -6155,7 +6155,7 @@ end;
 
 
 
-Procedure TReadingPosition.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReadingPosition.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6165,7 +6165,7 @@ end;
 
 
 
-Procedure TReadingPosition.SetpdfPosition(AIndex : Integer; AValue : String); 
+Procedure TReadingPosition.SetpdfPosition(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpdfPosition=AValue) then exit;
@@ -6185,7 +6185,7 @@ end;
 
 
 
-Procedure TReadingPosition.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TReadingPosition.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -6222,7 +6222,7 @@ end;
 
 
 
-Procedure TRequestAccess.Setkind(AIndex : Integer; AValue : String); 
+Procedure TRequestAccess.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6239,7 +6239,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReviewTypeauthor.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TReviewTypeauthor.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -6256,7 +6256,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TReviewTypesource.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TReviewTypesource.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -6266,7 +6266,7 @@ end;
 
 
 
-Procedure TReviewTypesource.SetextraDescription(AIndex : Integer; AValue : String); 
+Procedure TReviewTypesource.SetextraDescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (FextraDescription=AValue) then exit;
@@ -6276,7 +6276,7 @@ end;
 
 
 
-Procedure TReviewTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TReviewTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -6303,7 +6303,7 @@ end;
 
 
 
-Procedure TReview.Setcontent(AIndex : Integer; AValue : String); 
+Procedure TReview.Setcontent(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcontent=AValue) then exit;
@@ -6313,7 +6313,7 @@ end;
 
 
 
-Procedure TReview.Setdate(AIndex : Integer; AValue : String); 
+Procedure TReview.Setdate(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdate=AValue) then exit;
@@ -6323,7 +6323,7 @@ end;
 
 
 
-Procedure TReview.SetfullTextUrl(AIndex : Integer; AValue : String); 
+Procedure TReview.SetfullTextUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfullTextUrl=AValue) then exit;
@@ -6333,7 +6333,7 @@ end;
 
 
 
-Procedure TReview.Setkind(AIndex : Integer; AValue : String); 
+Procedure TReview.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6343,7 +6343,7 @@ end;
 
 
 
-Procedure TReview.Setrating(AIndex : Integer; AValue : String); 
+Procedure TReview.Setrating(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frating=AValue) then exit;
@@ -6363,7 +6363,7 @@ end;
 
 
 
-Procedure TReview.Settitle(AIndex : Integer; AValue : String); 
+Procedure TReview.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -6373,7 +6373,7 @@ end;
 
 
 
-Procedure TReview.Set_type(AIndex : Integer; AValue : String); 
+Procedure TReview.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -6383,7 +6383,7 @@ end;
 
 
 
-Procedure TReview.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TReview.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -6411,7 +6411,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsersettingsTypenotesExport.SetfolderName(AIndex : Integer; AValue : String); 
+Procedure TUsersettingsTypenotesExport.SetfolderName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FfolderName=AValue) then exit;
@@ -6438,7 +6438,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsersettings.Setkind(AIndex : Integer; AValue : String); 
+Procedure TUsersettings.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -6465,7 +6465,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypeaccessInfoTypeepub.SetacsTokenLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfoTypeepub.SetacsTokenLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FacsTokenLink=AValue) then exit;
@@ -6475,7 +6475,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfoTypeepub.SetdownloadLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfoTypeepub.SetdownloadLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdownloadLink=AValue) then exit;
@@ -6502,7 +6502,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypeaccessInfoTypepdf.SetacsTokenLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfoTypepdf.SetacsTokenLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FacsTokenLink=AValue) then exit;
@@ -6512,7 +6512,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfoTypepdf.SetdownloadLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfoTypepdf.SetdownloadLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdownloadLink=AValue) then exit;
@@ -6539,7 +6539,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypeaccessInfo.SetaccessViewStatus(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.SetaccessViewStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccessViewStatus=AValue) then exit;
@@ -6549,7 +6549,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfo.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -6569,7 +6569,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfo.SetdriveImportedContentLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.SetdriveImportedContentLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdriveImportedContentLink=AValue) then exit;
@@ -6639,7 +6639,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfo.SettextToSpeechPermission(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.SettextToSpeechPermission(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextToSpeechPermission=AValue) then exit;
@@ -6649,7 +6649,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfo.SetviewOrderUrl(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.SetviewOrderUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FviewOrderUrl=AValue) then exit;
@@ -6659,7 +6659,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfo.Setviewability(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.Setviewability(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fviewability=AValue) then exit;
@@ -6669,7 +6669,7 @@ end;
 
 
 
-Procedure TVolumeTypeaccessInfo.SetwebReaderLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeaccessInfo.SetwebReaderLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FwebReaderLink=AValue) then exit;
@@ -6686,7 +6686,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypelayerInfoTypelayersItem.SetlayerId(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypelayerInfoTypelayersItem.SetlayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerId=AValue) then exit;
@@ -6696,7 +6696,7 @@ end;
 
 
 
-Procedure TVolumeTypelayerInfoTypelayersItem.SetvolumeAnnotationsVersion(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypelayerInfoTypelayersItem.SetvolumeAnnotationsVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeAnnotationsVersion=AValue) then exit;
@@ -6743,7 +6743,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTyperecommendedInfo.Setexplanation(AIndex : Integer; AValue : String); 
+Procedure TVolumeTyperecommendedInfo.Setexplanation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fexplanation=AValue) then exit;
@@ -6770,7 +6770,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfoTypelistPrice.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfoTypelistPrice.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -6797,7 +6797,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfoTypeoffersItemTypelistPrice.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfoTypeoffersItemTypelistPrice.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -6824,7 +6824,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfoTypeoffersItemTyperentalDuration.Set_unit(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfoTypeoffersItemTyperentalDuration.Set_unit(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_unit=AValue) then exit;
@@ -6862,7 +6862,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfoTypeoffersItemTyperetailPrice.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfoTypeoffersItemTyperetailPrice.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -6936,7 +6936,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfoTyperetailPrice.SetcurrencyCode(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfoTyperetailPrice.SetcurrencyCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcurrencyCode=AValue) then exit;
@@ -6953,7 +6953,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypesaleInfo.SetbuyLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfo.SetbuyLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbuyLink=AValue) then exit;
@@ -6963,7 +6963,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfo.Setcountry(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfo.Setcountry(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcountry=AValue) then exit;
@@ -7023,7 +7023,7 @@ end;
 
 
 
-Procedure TVolumeTypesaleInfo.Setsaleability(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesaleInfo.Setsaleability(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsaleability=AValue) then exit;
@@ -7053,7 +7053,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypesearchInfo.SettextSnippet(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypesearchInfo.SettextSnippet(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtextSnippet=AValue) then exit;
@@ -7080,7 +7080,7 @@ end;
 
 
 
-Procedure TVolumeTypeuserInfoTypecopy.SetlimitType(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeuserInfoTypecopy.SetlimitType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlimitType=AValue) then exit;
@@ -7117,7 +7117,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypeuserInfoTyperentalPeriod.SetendUtcSec(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeuserInfoTyperentalPeriod.SetendUtcSec(AIndex : Integer; const AValue : String); 
 
 begin
   If (FendUtcSec=AValue) then exit;
@@ -7127,7 +7127,7 @@ end;
 
 
 
-Procedure TVolumeTypeuserInfoTyperentalPeriod.SetstartUtcSec(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeuserInfoTyperentalPeriod.SetstartUtcSec(AIndex : Integer; const AValue : String); 
 
 begin
   If (FstartUtcSec=AValue) then exit;
@@ -7144,7 +7144,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypeuserInfoTypeuserUploadedVolumeInfo.SetprocessingState(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeuserInfoTypeuserUploadedVolumeInfo.SetprocessingState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprocessingState=AValue) then exit;
@@ -7231,7 +7231,7 @@ end;
 
 
 
-Procedure TVolumeTypeuserInfo.SetrentalState(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypeuserInfo.SetrentalState(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrentalState=AValue) then exit;
@@ -7278,7 +7278,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypevolumeInfoTypedimensions.Setheight(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypedimensions.Setheight(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -7288,7 +7288,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypedimensions.Setthickness(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypedimensions.Setthickness(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fthickness=AValue) then exit;
@@ -7298,7 +7298,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypedimensions.Setwidth(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypedimensions.Setwidth(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -7315,7 +7315,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypevolumeInfoTypeimageLinks.SetextraLarge(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeimageLinks.SetextraLarge(AIndex : Integer; const AValue : String); 
 
 begin
   If (FextraLarge=AValue) then exit;
@@ -7325,7 +7325,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypeimageLinks.Setlarge(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeimageLinks.Setlarge(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flarge=AValue) then exit;
@@ -7335,7 +7335,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypeimageLinks.Setmedium(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeimageLinks.Setmedium(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmedium=AValue) then exit;
@@ -7345,7 +7345,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypeimageLinks.Setsmall(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeimageLinks.Setsmall(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsmall=AValue) then exit;
@@ -7355,7 +7355,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypeimageLinks.SetsmallThumbnail(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeimageLinks.SetsmallThumbnail(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsmallThumbnail=AValue) then exit;
@@ -7365,7 +7365,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypeimageLinks.Setthumbnail(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeimageLinks.Setthumbnail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fthumbnail=AValue) then exit;
@@ -7382,7 +7382,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeTypevolumeInfoTypeindustryIdentifiersItem.Setidentifier(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeindustryIdentifiersItem.Setidentifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fidentifier=AValue) then exit;
@@ -7392,7 +7392,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfoTypeindustryIdentifiersItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfoTypeindustryIdentifiersItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -7450,7 +7450,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetcanonicalVolumeLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetcanonicalVolumeLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcanonicalVolumeLink=AValue) then exit;
@@ -7470,7 +7470,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetcontentVersion(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetcontentVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentVersion=AValue) then exit;
@@ -7480,7 +7480,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -7520,7 +7520,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetinfoLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetinfoLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FinfoLink=AValue) then exit;
@@ -7530,7 +7530,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.Setlanguage(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.Setlanguage(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flanguage=AValue) then exit;
@@ -7540,7 +7540,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetmainCategory(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetmainCategory(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmainCategory=AValue) then exit;
@@ -7550,7 +7550,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetmaturityRating(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetmaturityRating(AIndex : Integer; const AValue : String); 
 
 begin
   If (FmaturityRating=AValue) then exit;
@@ -7570,7 +7570,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetpreviewLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetpreviewLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpreviewLink=AValue) then exit;
@@ -7580,7 +7580,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetprintType(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetprintType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FprintType=AValue) then exit;
@@ -7600,7 +7600,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.SetpublishedDate(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.SetpublishedDate(AIndex : Integer; const AValue : String); 
 
 begin
   If (FpublishedDate=AValue) then exit;
@@ -7610,7 +7610,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.Setpublisher(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.Setpublisher(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpublisher=AValue) then exit;
@@ -7650,7 +7650,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.Setsubtitle(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.Setsubtitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsubtitle=AValue) then exit;
@@ -7660,7 +7660,7 @@ end;
 
 
 
-Procedure TVolumeTypevolumeInfo.Settitle(AIndex : Integer; AValue : String); 
+Procedure TVolumeTypevolumeInfo.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -7702,7 +7702,7 @@ end;
 
 
 
-Procedure TVolume.Setetag(AIndex : Integer; AValue : String); 
+Procedure TVolume.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -7712,7 +7712,7 @@ end;
 
 
 
-Procedure TVolume.Setid(AIndex : Integer; AValue : String); 
+Procedure TVolume.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7722,7 +7722,7 @@ end;
 
 
 
-Procedure TVolume.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVolume.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7772,7 +7772,7 @@ end;
 
 
 
-Procedure TVolume.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TVolume.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -7819,7 +7819,7 @@ end;
 
 
 
-Procedure TVolume2.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVolume2.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7829,7 +7829,7 @@ end;
 
 
 
-Procedure TVolume2.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TVolume2.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -7869,7 +7869,7 @@ end;
 
 
 
-Procedure TVolumeannotationTypecontentRanges.SetcontentVersion(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotationTypecontentRanges.SetcontentVersion(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcontentVersion=AValue) then exit;
@@ -7906,7 +7906,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVolumeannotation.SetannotationDataId(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetannotationDataId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationDataId=AValue) then exit;
@@ -7916,7 +7916,7 @@ end;
 
 
 
-Procedure TVolumeannotation.SetannotationDataLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetannotationDataLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationDataLink=AValue) then exit;
@@ -7926,7 +7926,7 @@ end;
 
 
 
-Procedure TVolumeannotation.SetannotationType(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetannotationType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FannotationType=AValue) then exit;
@@ -7946,7 +7946,7 @@ end;
 
 
 
-Procedure TVolumeannotation.Setdata(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.Setdata(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -7966,7 +7966,7 @@ end;
 
 
 
-Procedure TVolumeannotation.Setid(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7976,7 +7976,7 @@ end;
 
 
 
-Procedure TVolumeannotation.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -7986,7 +7986,7 @@ end;
 
 
 
-Procedure TVolumeannotation.SetlayerId(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetlayerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FlayerId=AValue) then exit;
@@ -8006,7 +8006,7 @@ end;
 
 
 
-Procedure TVolumeannotation.SetselectedText(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetselectedText(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselectedText=AValue) then exit;
@@ -8016,7 +8016,7 @@ end;
 
 
 
-Procedure TVolumeannotation.SetselfLink(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetselfLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FselfLink=AValue) then exit;
@@ -8036,7 +8036,7 @@ end;
 
 
 
-Procedure TVolumeannotation.SetvolumeId(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotation.SetvolumeId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FvolumeId=AValue) then exit;
@@ -8076,7 +8076,7 @@ end;
 
 
 
-Procedure TVolumeannotations.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotations.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -8086,7 +8086,7 @@ end;
 
 
 
-Procedure TVolumeannotations.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotations.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -8106,7 +8106,7 @@ end;
 
 
 
-Procedure TVolumeannotations.Setversion(AIndex : Integer; AValue : String); 
+Procedure TVolumeannotations.Setversion(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -8146,7 +8146,7 @@ end;
 
 
 
-Procedure TVolumes.Setkind(AIndex : Integer; AValue : String); 
+Procedure TVolumes.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;

@@ -373,7 +373,7 @@ FUNCTION_PROLOG _start
     /* PPC64 ABI uses R13 for thread local, so we leave it alone */
     LOAD_64BIT_VAL 8, start_addresses
 
-    b   .__libc_start_main
+    b       __libc_start_main
     nop                      /* a NOP for the linker */
 
 /*
@@ -404,17 +404,17 @@ FUNCTION_PROLOG main_stub
     LOAD_64BIT_VAL 3, _start
     ld      3, 0(3)
     LOAD_64BIT_VAL 4, etext
-    bl  .__monstartup
+    bl      __monstartup
     nop
 
     LOAD_64BIT_VAL 3, _mcleanup
-    bl .atexit
+    bl      atexit
     nop
 
-    bl  .PASCALMAIN
+    bl      PASCALMAIN
     nop
 
-    b   ._haltproc
+    b       ._haltproc
 
 FUNCTION_PROLOG _haltproc
     LOAD_64BIT_VAL 8, ___fpc_ret

@@ -215,54 +215,61 @@
     function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
         sub sp, 2
-        fnstcw [bp-2]
+        mov bx, sp
+        fnstcw ss:[bx]
         fwait
-        mov cl, [bp-1]
-        or byte [bp-1], $0f
-        fldcw [bp-2]
+        mov cl, ss:[bx+1]
+        or byte ss:[bx+1], $0f
+        fldcw ss:[bx]
         fld tbyte [d]
         frndint
         fld tbyte [d]
         fsub st, st(1)
         fstp st(1)
-        mov [bp-1], cl
-        fldcw [bp-2]
+        mov ss:[bx+1], cl
+        fldcw ss:[bx]
+        add sp, 2
       end;
 
     {$define FPC_SYSTEM_HAS_INT}
     function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
       asm
         sub sp, 2
-        fnstcw [bp-2]
+        mov bx, sp
+        fnstcw ss:[bx]
         fwait
-        mov cl, byte [bp-1]
-        or byte [bp-1], $0f
-        fldcw [bp-2]
+        mov cl, byte ss:[bx+1]
+        or byte ss:[bx+1], $0f
+        fldcw ss:[bx]
         fwait
         fld tbyte [d]
         frndint
         fwait
-        mov byte [bp-1], cl
-        fldcw [bp-2]
+        mov byte ss:[bx+1], cl
+        fldcw ss:[bx]
+        add sp, 2
       end;
 
     {$define FPC_SYSTEM_HAS_TRUNC}
     function fpc_trunc_real(d : ValReal) : int64;assembler;compilerproc;
       asm
         sub sp, 10
+        mov bx, sp
         fld tbyte [d]
-        fnstcw [bp-10]
-        mov cl, [bp-9]
-        or byte [bp-9], $0f
-        fldcw [bp-10]
-        mov [bp-9], cl
-        fistp qword [bp-8]
-        fldcw [bp-10]
+        fnstcw ss:[bx]
+        mov cl, ss:[bx+1]
+        or byte ss:[bx+1], $0f
+        fldcw ss:[bx]
+        mov ss:[bx+1], cl
+        fistp qword ss:[bx+2]
+        fldcw ss:[bx]
         fwait
-        mov dx, [bp-8]
-        mov cx, [bp-6]
-        mov bx, [bp-4]
-        mov ax, [bp-2]
+        mov dx, ss:[bx+2]
+        mov cx, ss:[bx+4]
+        mov ax, ss:[bx+8]
+        { store bx as last }
+        mov bx, ss:[bx+6]
+        add sp, 10
       end;
 
     {$define FPC_SYSTEM_HAS_ROUND}

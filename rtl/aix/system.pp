@@ -39,7 +39,7 @@ implementation
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-procedure pascalmain;cdecl;external name 'PASCALMAIN';
+procedure pascalmain;external name 'PASCALMAIN';
 
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
 

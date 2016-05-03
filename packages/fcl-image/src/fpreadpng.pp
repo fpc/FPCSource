@@ -87,6 +87,7 @@ Type
       function DecideSetPixel : TSetPixelProc; virtual;
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Str:TStream) : boolean; override;
+      class function InternalSize(Str:TStream): TPoint; override;
       //property ColorFormat : TColorformat read CFmt;
       property ConvertColor : TConvertColorProc read FConvertColor;
       property CurrentPass : byte read FCurrentPass;
@@ -836,6 +837,41 @@ begin
   end;
 end;
 
+class function TFPReaderPNG.InternalSize(Str: TStream): TPoint;
+var
+  SigCheck: array[0..7] of byte;
+  r: Integer;
+  Width, Height: Word;
+  StartPos: Int64;
+begin
+  Result.X := 0;
+  Result.Y := 0;
+
+  StartPos := Str.Position;
+  // Check Signature
+  Str.Read(SigCheck, SizeOf(SigCheck));
+  for r := Low(SigCheck) to High(SigCheck) do
+  begin
+    If SigCheck[r] <> Signature[r] then
+      Exit;
+  end;
+  if not(
+        (Str.Seek(10, soFromCurrent)=StartPos+18)
+    and (Str.Read(Width, 2)=2)
+    and (Str.Seek(2, soFromCurrent)=StartPos+22)
+    and (Str.Read(Height, 2)=2))
+  then
+    Exit;
+
+  {$IFDEF ENDIAN_LITTLE}
+  Width := Swap(Width);
+  Height := Swap(Height);
+  {$ENDIF}
+
+  Result.X := Width;
+  Result.Y := Height;
+end;
+
 function  TFPReaderPNG.InternalCheck (Str:TStream) : boolean;
 var SigCheck : array[0..7] of byte;
     r : integer;
@@ -846,7 +882,7 @@ begin
     for r := 0 to 7 do
     begin
       If SigCheck[r] <> Signature[r] then
-        raise PNGImageException.Create('This is not PNG-data');
+        Exit(false);
     end;
     // Check IHDR
     ReadChunk;

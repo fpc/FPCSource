@@ -87,7 +87,8 @@ implementation
         end
       { pointer +/- integer -> make defs the same since a_op_* only gets a
         single type as argument }
-      else if (left.resultdef.typ=pointerdef)<>(right.resultdef.typ=pointerdef) then
+      else if (nodetype in [addn,subn]) and
+              ((left.resultdef.typ=pointerdef)<>(right.resultdef.typ=pointerdef)) then
         begin
           { the result is a pointerdef -> typecast both arguments to pointer;
             a_op_*_reg will convert them back to integer as needed }

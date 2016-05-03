@@ -38,8 +38,8 @@ type
     FresponseCode : String;
   Protected
     //Property setters
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetresponseCode(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresponseCode(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -104,7 +104,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TGroups.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroups.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -114,7 +114,7 @@ end;
 
 
 
-Procedure TGroups.SetresponseCode(AIndex : Integer; AValue : String); 
+Procedure TGroups.SetresponseCode(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresponseCode=AValue) then exit;

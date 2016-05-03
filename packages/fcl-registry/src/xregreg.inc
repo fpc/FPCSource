@@ -5,25 +5,99 @@
 
 uses xmlreg;
 
+type
+
+  { TXMLRegistryInstance }
+
+  TXMLRegistryInstance = class(TXMLRegistry)
+  private
+    FRefCount: integer;
+    Class Var XMLRegistryCache: Tlist;
+    Class procedure FreeXMLRegistryCache;
+  public
+    constructor Create(AFileName : String);
+    Class Function GetXMLRegistry(aFileName: string): TXMLRegistry;
+    Class Procedure FreeXMLRegistry(XMLRegistry: TXMLRegistry);
+    procedure IncRefCount;
+    procedure DecRefCount;
+    property RefCount: integer read FRefCount;
+  end;
+
+Class function TXMLRegistryInstance.GetXMLRegistry(aFileName: string): TXMLRegistry;
+var i: integer;
+begin
+  if not assigned(XMLRegistryCache) then
+    XMLRegistryCache := TList.Create;
+
+  for i := 0 to XMLRegistryCache.Count - 1 do
+    if TXMLRegistryInstance(XMLRegistryCache[i]).FileName = aFileName then
+    begin
+      TXMLRegistryInstance(XMLRegistryCache[i]).IncRefCount;
+      Result :=  TXMLRegistry(XMLRegistryCache[i]);
+      Exit;
+    end;
+
+  Result := TXMLRegistryInstance.Create(aFileName);
+  XMLRegistryCache.Add(Result);
+end;
+
+Class procedure TXMLRegistryInstance.FreeXMLRegistry(XMLRegistry: TXMLRegistry);
+begin
+  TXMLRegistryInstance(XMLRegistry).DecRefCount;
+  if TXMLRegistryInstance(XMLRegistry).RefCount = 0 then
+  begin
+    XMLRegistryCache.Remove(XMLRegistry);
+    XMLRegistry.Free;
+  end;
+end;
+
+class procedure TXMLRegistryInstance.FreeXMLRegistryCache;
+
+var i: integer;
+begin
+  if not Assigned(XMLRegistryCache) then
+    exit;
+  for i := 0 to XMLRegistryCache.Count - 1 do
+    TXMLRegistryInstance(XMLRegistryCache[i]).Free;
+  FreeAndNil(XMLRegistryCache);
+end;
 
 Const
   XFileName = 'reg.xml';
 
-Procedure TRegistry.SysRegCreate;
+{ TXMLRegistryInstance }
+
+constructor TXMLRegistryInstance.Create(AFileName: String);
+begin
+  inherited;
+  FRefCount := 1;
+end;
+
+procedure TXMLRegistryInstance.IncRefCount;
+begin
+  Inc(FRefCount);
+end;
+
+procedure TXMLRegistryInstance.DecRefCount;
+begin
+  Dec(FRefCount);
+end;
+
+procedure TRegistry.SysRegCreate;
 var s : string;
 begin
   s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
   ForceDirectories(s);
-  FSysData:=TXMLRegistry.Create(s+XFileName);
+  FSysData:=TXMLRegistryInstance.GetXMLRegistry(s+XFileName);
   TXmlRegistry(FSysData).AutoFlush:=False;
 end;
 
-Procedure TRegistry.SysRegFree;
+procedure TRegistry.SysRegFree;
 
 begin
   if Assigned(FSysData) then
     TXMLRegistry(FSysData).Flush;
-  TXMLRegistry(FSysData).Free;
+  TXMLRegistryInstance.	FreeXMLRegistry(TXMLRegistry(FSysData));
 end;
 
 function TRegistry.SysCreateKey(const Key: String): Boolean;
@@ -32,13 +106,13 @@ begin
   Result:=TXmlRegistry(FSysData).CreateKey(Key);
 end;
 
-function TRegistry.DeleteKey(const Key: String): Boolean;
+function TRegistry.DeleteKey(const Key: string): Boolean;
 
 begin
   Result:=TXMLRegistry(FSysData).DeleteKey(Key);
 end;
 
-function TRegistry.DeleteValue(const Name: String): Boolean;
+function TRegistry.DeleteValue(const Name: string): Boolean;
 begin
   Result:=TXmlRegistry(FSysData).DeleteValue(Name);
 end;
@@ -64,7 +138,8 @@ begin
 end;
 
 
-function TRegistry.GetDataInfo(const ValueName: String; var Value: TRegDataInfo): Boolean;
+function TRegistry.GetDataInfo(const ValueName: string; var Value: TRegDataInfo
+  ): Boolean;
 
 Var
   Info : TDataInfo;
@@ -90,7 +165,7 @@ begin
       end;
 end;
 
-function TRegistry.GetKey(const Key: String): HKEY;
+function TRegistry.GetKey(const Key: string): HKEY;
 begin
   Result := 0;
 end;
@@ -167,7 +242,7 @@ begin
   Result := TXmlRegistry(FSysData).ValueExists(Name);
 end;
 
-procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
+procedure TRegistry.ChangeKey(Value: HKey; const Path: string);
 begin
 
 end;
@@ -183,8 +258,8 @@ begin
 end;
 
 
-Function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
-  BufSize: Integer; RegData: TRegDataType) : Boolean;
+function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
+  BufSize: Integer; RegData: TRegDataType): Boolean;
 
 Var
   DataType : TDataType;
@@ -233,6 +308,11 @@ begin
     S:=Format('Key%d',[Value]);
   TXmlRegistry(FSysData).SetRootKey(S);
   fRootKey := Value;
+end;
+
+function TRegistry.GetLastErrorMsg: string;
+begin
+  Result:='';
 end;
 
 procedure TRegistry.CloseKey;

@@ -86,10 +86,10 @@ interface
 
     procedure insert_record_hidden_paras(astruct: trecorddef);
 
-    { helper functions - they insert nested objects hierarcy to the symtablestack
+    { helper functions - they insert nested objects hierarchy to the symtablestack
       with object hierarchy
     }
-    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function push_child_hierarchy(obj:tabstractrecorddef):integer;
     function pop_child_hierarchy(obj:tabstractrecorddef):integer;
     function push_nested_hierarchy(obj:tabstractrecorddef):integer;
     function pop_nested_hierarchy(obj:tabstractrecorddef):integer;
@@ -125,7 +125,7 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
-    function push_child_hierarcy(obj:tabstractrecorddef):integer;
+    function push_child_hierarchy(obj:tabstractrecorddef):integer;
       var
         _class,hp : tobjectdef;
       begin
@@ -153,7 +153,7 @@ implementation
         result:=0;
         if obj.owner.symtabletype in [ObjectSymtable,recordsymtable] then
           inc(result,push_nested_hierarchy(tabstractrecorddef(obj.owner.defowner)));
-        inc(result,push_child_hierarcy(obj));
+        inc(result,push_child_hierarchy(obj));
       end;
 
     function pop_child_hierarchy(obj:tabstractrecorddef):integer;
@@ -261,7 +261,7 @@ implementation
                vs:=tparavarsym(sc[0]);
                if sc.count>1 then
                  Message(parser_e_default_value_only_one_para);
-               if not(vs.varspez in [vs_value,vs_const]) then
+               if not(vs.varspez in [vs_value,vs_const,vs_constref]) then
                  Message(parser_e_default_value_val_const);
                bt:=block_type;
                block_type:=bt_const;
@@ -1078,6 +1078,12 @@ implementation
             { push the parameter symtable so that constraint definitions are added
               there and not in the owner symtable }
             symtablestack.push(pd.parast);
+            { register the parameters }
+            for i:=0 to genericparams.count-1 do
+              begin
+                 ttypesym(genericparams[i]).register_sym;
+                 tstoreddef(ttypesym(genericparams[i]).typedef).register_def;
+              end;
             insert_generic_parameter_types(pd,nil,genericparams);
             symtablestack.pop(pd.parast);
             freegenericparams:=false;
@@ -1594,7 +1600,7 @@ implementation
             parse_record_proc_directives(result);
 
             { since records have no inheritance, don't allow non-static
-              class methods. Selphi does the same. }
+              class methods. Delphi does the same. }
             if (result.proctypeoption<>potype_operator) and
                is_classdef and
                not (po_staticmethod in result.procoptions) then
@@ -2309,12 +2315,24 @@ begin
     pd_external(pd);
 end;
 
+
 procedure pd_winapi(pd:tabstractprocdef);
 begin
   if not(target_info.system in systems_wince) then
     pd.proccalloption:=pocall_cdecl
   else
     pd.proccalloption:=pocall_stdcall;
+end;
+
+
+procedure pd_hardfloat(pd:tabstractprocdef);
+begin
+  if
+{$if defined(arm)}
+    (current_settings.fputype=fpu_soft) or
+{$endif defined(arm)}
+    (cs_fp_emulation in current_settings.moduleswitches) then
+    message(parser_e_cannot_use_hardfloat_in_a_softfloat_environment);
 end;
 
 type
@@ -2331,7 +2349,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=45;
+  num_proc_directives=46;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2751,6 +2769,17 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_HARDFLOAT;
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : @pd_hardfloat;
+      pocall   : pocall_hardfloat;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      { it's available with po_external because the libgcc floating point routines on the arm
+        uses this calling convention }
+      mutexclpo     : []
     )
    );
 

@@ -346,6 +346,11 @@ unit rgcpu;
               supreg:=getsupreg(reg);
               for i:=RS_D16 to RS_D31 do
                 add_edge(supreg,i);
+              { further, we cannot use the odd single registers as the register
+                allocator cannot handle overlapping registers so far }
+              for i in [RS_S1,RS_S3,RS_S5,RS_S7,RS_S9,RS_S11,RS_S13,RS_S15,RS_S17,RS_S19,
+                RS_S21,RS_S23,RS_S25,RS_S27,RS_S29,RS_S31] do
+                add_edge(supreg,i);
             end;
         end;
       end;

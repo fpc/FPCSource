@@ -190,11 +190,13 @@ interface
             begin
               r:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               cg64.a_load64low_loc_reg(current_asmdata.CurrAsmList,right.location,r);
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               emit_reg_reg(op1,opsize,left.location.register64.reglo,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register64.reglo);
               cg64.a_load64high_loc_reg(current_asmdata.CurrAsmList,right.location,r);
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.register64.reghi,r);
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
               emit_reg_reg(A_MOV,opsize,r,left.location.register64.reghi);
             end
            else

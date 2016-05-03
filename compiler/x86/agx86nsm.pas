@@ -82,6 +82,39 @@ interface
         {$i r8086nasm.inc}
 {$endif}
       );
+      nasm_cpu_name : array[tcputype] of string = (
+{$if defined(x86_64)}
+        'IA64',        // cpu_none,
+        'X64',         // cpu_athlon64,
+        'IA64',        // cpu_core_i,
+        'IA64',        // cpu_core_avx,
+        'IA64'         // cpu_core_avx2
+{$elseif defined(i386)}
+        'IA64',     // cpu_none,
+        '386',      // cpu_386,
+        '486',      // cpu_486,
+        'PENTIUM',  // cpu_Pentium,
+        'P2',       // cpu_Pentium2,
+        'P3',       // cpu_Pentium3,
+        'P4',       // cpu_Pentium4,
+        'P4',       // cpu_PentiumM,
+        'IA64',     // cpu_core_i,
+        'IA64',     // cpu_core_avx,
+        'IA64'      // cpu_core_avx2
+{$elseif defined(i8086)}
+        'IA64',    // cpu_none
+        '8086',    // cpu_8086
+        '186',     // cpu_186
+        '286',     // cpu_286
+        '386',     // cpu_386
+        '486',     // cpu_486
+        'PENTIUM', // cpu_Pentium
+        'P2',      // cpu_Pentium2
+        'P3',      // cpu_Pentium3
+        'P4',      // cpu_Pentium4
+        'P4'       // cpu_PentiumM
+{$endif}
+      );
 
     function nasm_regname(r:Tregister):string;
       var
@@ -490,7 +523,7 @@ interface
           '.stabstr',
           '.idata2','.idata4','.idata5','.idata6','.idata7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
           '.fpc',
           '',
           '.init',
@@ -563,7 +596,7 @@ interface
                 { yes -> write the section attributes as well }
                 if atype=sec_stack then
                   writer.AsmWrite(' stack');
-                if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev] then
+                if atype in [sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges] then
                   writer.AsmWrite(' use32')
                 else
                   writer.AsmWrite(' use16');
@@ -641,6 +674,7 @@ interface
       fixed_opcode: TAsmOp;
       prefix, LastSecName  : string;
       LastAlign : Byte;
+      cpu: tcputype;
     begin
       if not assigned(p) then
        exit;
@@ -1074,21 +1108,41 @@ interface
            ait_directive :
              begin
                case tai_directive(hp).directive of
-                 asd_nasm_import :
-                   writer.AsmWrite('import ');
+                 asd_nasm_import,
                  asd_extern :
-                   writer.AsmWrite('EXTERN ');
+                   begin
+                     case tai_directive(hp).directive of
+                       asd_nasm_import :
+                         writer.AsmWrite('import ');
+                       asd_extern :
+                         writer.AsmWrite('EXTERN ');
+                       else
+                         internalerror(200509191);
+                     end;
+                     if tai_directive(hp).name<>'' then
+                       begin
+
+                         if SmartAsm then
+                           AddSymbol(tai_directive(hp).name,false);
+
+                         writer.AsmWrite(tai_directive(hp).name);
+                       end;
+                   end;
+                 asd_cpu :
+                   begin
+                     writer.AsmWrite('CPU ');
+                     for cpu:=low(tcputype) to high(tcputype) do
+                       begin
+                         if tai_directive(hp).name=CPUTypeStr[CPU] then
+                           begin
+                             writer.AsmWriteLn(nasm_cpu_name[cpu]);
+                             break;
+                           end;
+                       end;
+                   end;
                  else
                    internalerror(200509191);
                end;
-               if tai_directive(hp).name<>'' then
-                 begin
-
-                   if SmartAsm then
-                     AddSymbol(tai_directive(hp).name,false);
-
-                   writer.AsmWrite(tai_directive(hp).name);
-                 end;
                writer.AsmLn;
              end;
            ait_seh_directive :
@@ -1139,28 +1193,16 @@ interface
     procedure TX86NasmAssembler.WriteHeader;
       begin
 {$if defined(i8086)}
-      writer.AsmWriteLn('BITS 16');
-      case current_settings.cputype of
-        cpu_8086: writer.AsmWriteLn('CPU 8086');
-        cpu_186: writer.AsmWriteLn('CPU 186');
-        cpu_286: writer.AsmWriteLn('CPU 286');
-        cpu_386: writer.AsmWriteLn('CPU 386');
-        cpu_Pentium: writer.AsmWriteLn('CPU PENTIUM');
-        cpu_Pentium2: writer.AsmWriteLn('CPU P2');
-        cpu_Pentium3: writer.AsmWriteLn('CPU P3');
-        cpu_Pentium4: writer.AsmWriteLn('CPU P4');
-        cpu_PentiumM: writer.AsmWriteLn('CPU P4');
-        else
-          internalerror(2013050101);
-      end;
+        writer.AsmWriteLn('BITS 16');
 {$elseif defined(i386)}
-      writer.AsmWriteLn('BITS 32');
-      using_relative:=false;
+        writer.AsmWriteLn('BITS 32');
+        using_relative:=false;
 {$elseif defined(x86_64)}
-      writer.AsmWriteLn('BITS 64');
-      writer.AsmWriteLn('default rel');
-      using_relative:=true;
+        writer.AsmWriteLn('BITS 64');
+        writer.AsmWriteLn('default rel');
+        using_relative:=true;
 {$endif}
+        writer.AsmWriteLn('CPU '+nasm_cpu_name[current_settings.cputype]);
       end;
 
 
@@ -1239,6 +1281,8 @@ interface
             FormatName:='win64';
           system_x86_64_darwin:
             FormatName:='macho64';
+          system_x86_64_embedded:
+            FormatName:='obj';
           system_x86_64_linux:
             FormatName:='elf64';
         else

@@ -69,7 +69,7 @@ interface
        tasminfo = record
           id          : tasm;
           idtxt       : string[12];
-          asmbin      : string[8];
+          asmbin      : string[16];
           asmcmd      : string[70];
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
@@ -148,7 +148,10 @@ interface
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
             tf_cld,
             { indicates that the default value of the ts_x86_far_procs_push_odd_bp target switch is 'on' for this target }
-            tf_x86_far_procs_push_odd_bp
+            tf_x86_far_procs_push_odd_bp,
+            { indicates that this target can use dynamic packages otherwise an
+              error will be generated if a package file is compiled }
+            tf_supports_packages
        );
 
        psysteminfo = ^tsysteminfo;
@@ -310,6 +313,9 @@ interface
                                          system_arm_wince,
                                          system_x86_64_win64,
                                          system_i8086_win16]+systems_linux+systems_android;
+
+       { all systems that reference symbols in other binaries using indirect imports }
+       systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
@@ -779,6 +785,10 @@ begin
     {$define default_target_set}
     default_target(system_i386_android);
    {$endif}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_i386_solaris);
+   {$endif}
   {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
@@ -839,7 +849,7 @@ begin
 {$endif m68k}
 
 {$ifdef powerpc}
-  {$ifdef cpupowerpc}
+  {$ifdef cpupowerpc32}
     default_target(source_info.system);
     {$define default_target_set}
   {$else cpupowerpc}
@@ -889,7 +899,13 @@ begin
   {$ifdef cpusparc}
     default_target(source_info.system);
   {$else cpusparc}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_sparc_solaris);
+   {$endif}
+    {$ifndef default_target_set}
     default_target(system_sparc_linux);
+    {$endif ndef default_target_set}
   {$endif cpusparc}
 {$endif sparc}
 

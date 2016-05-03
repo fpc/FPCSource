@@ -179,9 +179,12 @@ implementation
                   if not assigned(left) then
                     internalerror(2011060104);
                   firstpass(left);
+                  if left.resultdef.typ<>pointerdef then
+                    internalerror(2015122801);
                   { subscript it to get the variable }
                   left:=csubscriptnode.create(thissym,cderefnode.create(left));
                   firstpass(left);
+                  include(flags,nf_internal);
                  end;
             end;
         end;

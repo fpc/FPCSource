@@ -288,11 +288,11 @@ type
   z_stream = record
     next_in : Pbyte;     { next input byte }
     avail_in : cardinal;      { number of bytes available at next_in }
-    total_in : cardinal;     { total nb of input bytes read so far }
+    total_in : qword;     { total nb of input bytes read so far }
 
     next_out : Pbyte;    { next output byte should be put there }
     avail_out : cardinal;     { remaining free space at next_out }
-    total_out : cardinal;    { total nb of bytes output so far }
+    total_out : qword;    { total nb of bytes output so far }
 
     msg : string[255];         { last error message, '' if no error }
     state : pInternal_state; { not visible by applications }

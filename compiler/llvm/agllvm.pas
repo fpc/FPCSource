@@ -85,9 +85,10 @@ implementation
       SysUtils,
       cutils,cfileutl,
       fmodule,verbose,
+      objcasm,
       aasmcnst,symconst,symdef,symtable,
       llvmbase,aasmllvm,itllvm,llvmdef,
-      cgbase,cgutils,cpubase;
+      cgbase,cgutils,cpubase,llvminfo;
 
     const
       line_length = 70;
@@ -199,7 +200,7 @@ implementation
       begin
         result:='';
         if assigned(ref.relsymbol) or
-           (assigned(ref.symbol) =
+           (assigned(ref.symbol) and
             (ref.base<>NR_NO)) or
            (ref.index<>NR_NO) or
            (ref.offset<>0) then
@@ -215,13 +216,15 @@ implementation
               result:=result+'index<>NR_NO, ';
             if ref.offset<>0 then
               result:=result+'offset='+tostr(ref.offset);
-            result:=result+')**'
-//            internalerror(2013060225);
+            result:=result+')**';
+            internalerror(2013060225);
           end;
          if ref.base<>NR_NO then
            result:=result+getregisterstring(ref.base)
+         else if assigned(ref.symbol) then
+           result:=result+LlvmAsmSymName(ref.symbol)
          else
-           result:=result+LlvmAsmSymName(ref.symbol);
+           result:=result+'null';
          if withalign then
            result:=result+getreferencealignstring(ref);
       end;
@@ -246,6 +249,8 @@ implementation
              LOC_FPUREGISTER,
              LOC_MMREGISTER:
                result:=result+' '+getregisterstring(para^.reg);
+             LOC_CONSTANT:
+               result:=result+' '+tostr(int64(para^.value));
              else
                internalerror(2014010801);
            end;
@@ -723,6 +728,32 @@ implementation
 
     procedure TLLVMAssember.WriteTai(const replaceforbidden: boolean; const do_line: boolean; var InlineLevel: cardinal; var asmblock: boolean; var hp: tai);
 
+      procedure WriteLinkageVibilityFlags(bind: TAsmSymBind);
+        begin
+          case bind of
+             AB_EXTERNAL:
+               writer.AsmWrite(' external');
+             AB_COMMON:
+               writer.AsmWrite(' common');
+             AB_LOCAL:
+               writer.AsmWrite(' internal');
+             AB_GLOBAL:
+               writer.AsmWrite('');
+             AB_WEAK_EXTERNAL:
+               writer.AsmWrite(' extern_weak');
+             AB_PRIVATE_EXTERN:
+               begin
+                 if not(llvmflag_linker_private in llvmversion_properties[current_settings.llvmversion]) then
+                   writer.AsmWrite(' hidden')
+                 else
+                   writer.AsmWrite(' linker_private');
+               end
+             else
+               internalerror(2014020104);
+           end;
+        end;
+
+
       procedure WriteFunctionFlags(pd: tprocdef);
         begin
           if (pos('FPC_SETJMP',upper(pd.mangledname))<>0) or
@@ -754,12 +785,7 @@ implementation
             tck_record:
               begin
                 writer.AsmWrite(defstr);
-                writer.AsmWrite(' ');
-                if (hp.def.typ in [objectdef,recorddef]) and
-                   (tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment) then
-                  writer.AsmWrite('<{')
-                else
-                  writer.AsmWrite('{');
+                writer.AsmWrite(' <{');
                 first:=true;
                 for p in tai_aggregatetypedconst(hp) do
                   begin
@@ -769,11 +795,7 @@ implementation
                       first:=false;
                     WriteTypedConstData(p);
                   end;
-                if (hp.def.typ in [recorddef,objectdef]) and
-                   (tabstractrecordsymtable(tabstractrecorddef(hp.def).symtable).usefieldalignment<>C_alignment) then
-                  writer.AsmWrite('}>')
-                else
-                  writer.AsmWrite('}');
+                writer.AsmWrite('}>');
               end;
             tck_array:
               begin
@@ -955,7 +977,10 @@ implementation
                   else
                     begin
                       writer.AsmWrite('define');
-                      writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_decl));
+                      if ldf_weak in taillvmdecl(hp).flags then
+                        writer.AsmWrite(' weak');
+                      WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
+                      writer.AsmWrite(llvmencodeproctype(tprocdef(taillvmdecl(hp).def), '', lpd_def));
                       WriteFunctionFlags(tprocdef(taillvmdecl(hp).def));
                       writer.AsmWriteln(' {');
                     end;
@@ -963,28 +988,15 @@ implementation
               else
                 begin
                   writer.AsmWrite(LlvmAsmSymName(taillvmdecl(hp).namesym));
-                  case taillvmdecl(hp).namesym.bind of
-                    AB_EXTERNAL:
-                      writer.AsmWrite(' = external ');
-                    AB_COMMON:
-                      writer.AsmWrite(' = common ');
-                    AB_LOCAL:
-                      writer.AsmWrite(' = internal ');
-                    AB_GLOBAL:
-                      writer.AsmWrite(' = ');
-                    AB_WEAK_EXTERNAL:
-                      writer.AsmWrite(' = extern_weak ');
-                    AB_PRIVATE_EXTERN:
-                      writer.AsmWrite('= linker_private ');
-                    else
-                      internalerror(2014020104);
-                  end;
+                  writer.AsmWrite(' =');
+                  if ldf_weak in taillvmdecl(hp).flags then
+                    writer.AsmWrite(' weak');
+                  WriteLinkageVibilityFlags(taillvmdecl(hp).namesym.bind);
+                  writer.AsmWrite(' ');
                   if (ldf_tls in taillvmdecl(hp).flags) then
                     writer.AsmWrite('thread_local ');
                   if ldf_unnamed_addr in taillvmdecl(hp).flags then
                     writer.AsmWrite('unnamed_addr ');
-                  { todo: handle more different section types (mainly
-                      Objective-C }
                   if taillvmdecl(hp).sec in [sec_rodata,sec_rodata_norel] then
                     writer.AsmWrite('constant ')
                   else
@@ -1012,12 +1024,20 @@ implementation
                       dec(fdecllevel);
                     end;
                   { custom section name? }
-                  if taillvmdecl(hp).sec=sec_user then
-                    begin
-                      writer.AsmWrite(', section "');
-                      writer.AsmWrite(taillvmdecl(hp).secname);
-                      writer.AsmWrite('"');
-                    end;
+                  case taillvmdecl(hp).sec of
+                    sec_user:
+                      begin
+                        writer.AsmWrite(', section "');
+                        writer.AsmWrite(taillvmdecl(hp).secname);
+                        writer.AsmWrite('"');
+                      end;
+                    low(TObjCAsmSectionType)..high(TObjCAsmSectionType):
+                      begin
+                        writer.AsmWrite(', section "');
+                        writer.AsmWrite(objc_section_name(taillvmdecl(hp).sec));
+                        writer.AsmWrite('"');
+                      end;
+                  end;
                   { alignment }
                   writer.AsmWrite(', align ');
                   writer.AsmWriteln(tostr(taillvmdecl(hp).alignment));
@@ -1050,12 +1070,6 @@ implementation
             begin
               { should be emitted as part of the symbol def }
               internalerror(2013010708);
-            end;
-
-          ait_weak:
-            begin
-              { should be emitted as part of the symbol def }
-              internalerror(2013010709);
             end;
 
           ait_symbol_end :
@@ -1106,6 +1120,9 @@ implementation
 
           ait_directive :
             begin
+              { CPU directive is commented out for the LLVM }
+              if tai_directive(hp).directive=asd_cpu then
+                writer.AsmWrite(asminfo^.comment);
               WriteDirectiveName(tai_directive(hp).directive);
               if tai_directive(hp).name <>'' then
                 writer.AsmWrite(tai_directive(hp).name);

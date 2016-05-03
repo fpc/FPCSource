@@ -377,9 +377,9 @@ implementation
                           move(value_str^,pc[1],l);
                           pc[0]:=chr(l);
                           pc[l+1]:=#0;
-                          datadef:=carraydef.getreusable(cansichartype,l+1);
+                          datadef:=carraydef.getreusable(cansichartype,l+2);
                           datatcb.maybe_begin_aggregate(datadef);
-                          datatcb.emit_tai(Tai_string.Create_pchar(pc,l+1),datadef);
+                          datatcb.emit_tai(Tai_string.Create_pchar(pc,l+2),datadef);
                           datatcb.maybe_end_aggregate(datadef);
                           current_asmdata.asmlists[al_typedconsts].concatList(
                             datatcb.get_final_asmlist(lastlabel.lab,datadef,sec_rodata_norel,lastlabel.lab.name,const_align(sizeof(pint)))

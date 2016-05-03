@@ -118,6 +118,21 @@ unit scandir;
       end;
 
 
+    procedure do_moduleflagswitch(flag:cardinal;optional:boolean);
+      var
+        state : char;
+      begin
+        if optional then
+          state:=current_scanner.readoptionalstate('+')
+        else
+          state:=current_scanner.readstate;
+        if state='-' then
+          current_module.flags:=current_module.flags and not flag
+        else
+          current_module.flags:=current_module.flags or flag;
+      end;
+
+
     procedure do_message(w:integer);
       begin
         current_scanner.skipspace;
@@ -193,6 +208,35 @@ unit scandir;
     procedure dir_a8;
       begin
         current_settings.packrecords:=8;
+      end;
+
+    procedure dir_asmcpu;
+      var
+        s : string;
+        cpu: tcputype;
+        found: Boolean;
+      begin
+        current_scanner.skipspace;
+        s:=current_scanner.readid;
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
+        if s='ANY' then
+          current_settings.asmcputype:=cpu_none
+        else if s='CURRENT' then
+          current_settings.asmcputype:=current_settings.cputype
+        else
+          begin
+            found:=false;
+            for cpu:=succ(low(tcputype)) to high(tcputype) do
+              if s=cputypestr[cpu] then
+                begin
+                  found:=true;
+                  current_settings.asmcputype:=cpu;
+                  break;
+                end;
+            if not found then
+              Message1(scan_e_illegal_asmcpu_specifier,s);
+          end;
       end;
 
     procedure dir_asmmode;
@@ -338,6 +382,11 @@ unit scandir;
         do_delphiswitch('D');
       end;
 
+    procedure dir_denypackageunit;
+      begin
+        do_moduleflagswitch(uf_package_deny,true);
+      end;
+
     procedure dir_description;
       begin
         if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
@@ -459,6 +508,11 @@ unit scandir;
     procedure dir_implicitexceptions;
       begin
         do_moduleswitch(cs_implicit_exceptions);
+      end;
+
+    procedure dir_importeddata;
+      begin
+        do_delphiswitch('G');
       end;
 
     procedure dir_includepath;
@@ -1531,6 +1585,13 @@ unit scandir;
         do_setverbose('W');
       end;
 
+    procedure dir_weakpackageunit;
+      begin
+        { old Delphi versions seem to use merely $WEAKPACKAGEUNIT while newer
+          Delphis have $WEAPACKAGEUNIT ON... :/ }
+        do_moduleflagswitch(uf_package_weak, true);
+      end;
+
     procedure dir_writeableconst;
       begin
         do_delphiswitch('J');
@@ -1629,10 +1690,6 @@ unit scandir;
         do_localswitch(cs_hugeptr_comparison_normalization);
       end;
 
-    procedure dir_weakpackageunit;
-      begin
-      end;
-
     procedure dir_codealign;
       var
         s : string;
@@ -1707,6 +1764,7 @@ unit scandir;
         AddDirective('APPNAME',directive_all, @dir_appname);
 {$endif m68k}
         AddDirective('APPTYPE',directive_all, @dir_apptype);
+        AddDirective('ASMCPU',directive_all, @dir_asmcpu);
         AddDirective('ASMMODE',directive_all, @dir_asmmode);
         AddDirective('ASSERTIONS',directive_all, @dir_assertions);
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
@@ -1720,6 +1778,7 @@ unit scandir;
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
+        AddDirective('DENYPACKAGEUNIT',directive_all,@dir_denypackageunit);
         AddDirective('DESCRIPTION',directive_all, @dir_description);
         AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
@@ -1742,6 +1801,7 @@ unit scandir;
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
+        AddDirective('IMPORTEDDATA',directive_all, @dir_importeddata);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
         AddDirective('INFO',directive_all, @dir_info);
         AddDirective('INLINE',directive_all, @dir_inline);

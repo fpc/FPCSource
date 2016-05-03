@@ -34,7 +34,8 @@ interface
       { outputwriters }
       owbase,
       { assembler }
-      aasmbase;
+      aasmbase,
+      cpuinfo;
 
     type
       TObjSection = class;
@@ -71,6 +72,8 @@ interface
          RELOC_RELATIVE32,
          RELOC_FARPTR,
          RELOC_FARPTR_RELATIVEOFFSET,
+         RELOC_FARPTR48,
+         RELOC_FARPTR48_RELATIVEOFFSET,
          RELOC_SEG,
          RELOC_SEGREL,
          RELOC_DGROUP,
@@ -80,6 +83,7 @@ interface
 {$endif i8086}
 {$ifdef arm}
          RELOC_RELATIVE_24,
+         RELOC_RELATIVE_CALL,
          RELOC_RELATIVE_24_THUMB,
          RELOC_RELATIVE_CALL_THUMB,
          RELOC_GOT32,
@@ -105,10 +109,16 @@ interface
          RELOC_RAW
       );
 
-{$if not defined(x86_64) and not defined(i8086)}
+{$if defined(x86_64)}
+    { no special aliases for x86_64 }
+{$elseif defined(i8086)}
+    const
+      RELOC_ABSOLUTE16 = RELOC_ABSOLUTE;
+      RELOC_RELATIVE16 = RELOC_RELATIVE;
+{$else}
     const
       RELOC_ABSOLUTE32 = RELOC_ABSOLUTE;
-{$endif x86_64}
+{$endif}
 
     const
       { stab types }
@@ -298,6 +308,14 @@ interface
        Owner: TObjData;
      end;
 
+{$ifdef i8086}
+     { on i8086 we use a longint, to support 32-bit relocations as well (e.g.
+       for allowing 386+ instructions with 32-bit addresses in inline asm code) }
+     TRelocDataInt = longint;
+{$else i8086}
+     TRelocDataInt = aint;
+{$endif i8086}
+
      TObjData = class(TLinkedListItem)
      private
        FCurrObjSec : TObjSection;
@@ -312,6 +330,7 @@ interface
        FStabsObjSec,
        FStabStrObjSec : TObjSection;
        FGroupsList : TFPHashObjectList;
+       FCPUType : tcputype;
        procedure section_reset(p:TObject;arg:pointer);
        procedure section_afteralloc(p:TObject;arg:pointer);
        procedure section_afterwrite(p:TObject;arg:pointer);
@@ -348,7 +367,7 @@ interface
        procedure alloc(len:aword);
        procedure allocalign(len:shortint);
        procedure writebytes(const Data;len:aword);
-       procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
+       procedure writeReloc(Data:TRelocDataInt;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
        procedure afteralloc;virtual;
@@ -363,6 +382,10 @@ interface
        property StabsSec:TObjSection read FStabsObjSec write FStabsObjSec;
        property StabStrSec:TObjSection read FStabStrObjSec write FStabStrObjSec;
        property CObjSymbol: TObjSymbolClass read FCObjSymbol write FCObjSymbol;
+       { Current CPU type for the internal asm writer.
+         Instructions, not supported by the given CPU should produce an error.
+         A value of 'cpu_none' means no restrictions (all instructions should be accepted) }
+       property CPUType : tcputype read FCPUType write FCPUType;
      end;
      TObjDataClass = class of TObjData;
 
@@ -1146,6 +1169,8 @@ implementation
           {debug_info} [oso_Data,oso_debug],
           {debug_line} [oso_Data,oso_debug],
           {debug_abbrev} [oso_Data,oso_debug],
+          {debug_aranges} [oso_Data,oso_debug],
+          {debug_ranges} [oso_Data,oso_debug],
           {fpc} [oso_Data,oso_load,oso_write],
           {toc} [oso_Data,oso_load],
           {init} [oso_Data,oso_load,oso_executable],
@@ -1195,7 +1220,7 @@ implementation
     function TObjData.sectiontype2align(atype:TAsmSectiontype):shortint;
       begin
         case atype of
-          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+          sec_stabstr,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
             result:=1;
           sec_code,
           sec_bss,
@@ -1410,6 +1435,7 @@ implementation
 
     procedure TObjData.beforealloc;
       begin
+        FCPUType:=current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
           begin
@@ -1421,6 +1447,7 @@ implementation
 
     procedure TObjData.beforewrite;
       begin
+        FCPUType:=current_settings.cputype;
         { create stabs sections if debugging }
         if assigned(StabsSec) then
          begin

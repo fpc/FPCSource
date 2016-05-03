@@ -252,6 +252,23 @@ begin
   end;
 end;
 
+class function TFPCustomImageReader.InternalSize(Str: TStream): TPoint;
+
+begin
+  Result.X:=-1;
+  Result.Y:=-1;
+end;
+
+class function TFPCustomImageReader.ImageSize(Str: TStream): TPoint;
+var
+  P: Int64;
+begin
+  P:=Str.Position;
+  result := InternalSize (Str);
+  Str.Position:=P;
+end;
+
+
 { TFPCustomImageWriter }
 
 procedure TFPCustomImageWriter.ImageWrite (Str:TStream; Img:TFPCustomImage);

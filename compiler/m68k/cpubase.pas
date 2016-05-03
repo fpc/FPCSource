@@ -28,7 +28,7 @@ unit cpubase;
   interface
 
   uses
-    globtype,
+    globtype,globals,
     strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 {*****************************************************************************
@@ -115,7 +115,6 @@ unit cpubase;
       {$i r68ksup.inc}
       RS_SP = RS_A7;
 
-      { ? whatever... }
       R_SUBWHOLE = R_SUBNONE;
 
       { Available Registers }
@@ -137,8 +136,8 @@ unit cpubase;
 
       maxfpuregs = 8;
 
-{ TODO: FIX BSSTART}
-      regnumber_count_bsstart = 16;
+      { include regnumber_count_bsstart }
+      {$i r68kbss.inc}
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i r68knum.inc}
@@ -186,7 +185,13 @@ unit cpubase;
     type
       TResFlags = (
           F_E,F_NE,
-          F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE);
+          F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE,
+          F_FE,F_FNE,
+          F_FG,F_FL,F_FGE,F_FLE
+      );
+
+    const
+      FloatResFlags = [F_FE..F_FLE];
 
 {*****************************************************************************
                                 Reference
@@ -357,6 +362,9 @@ unit cpubase;
 
     function isaddressregister(reg : tregister) : boolean;
     function isintregister(reg : tregister) : boolean;
+    function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function isregoverlap(reg1: tregister; reg2: tregister): boolean;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
@@ -393,21 +401,23 @@ implementation
 
     function is_calljmp(o:tasmop):boolean;
       begin
-        is_calljmp := false;
-        if o in [A_BXX,A_FBXX,A_DBXX,A_BCC..A_BVS,A_DBCC..A_DBVS,A_FBEQ..A_FSNGLE,
-          A_JSR,A_BSR,A_JMP] then
-           is_calljmp := true;
+        is_calljmp :=
+          o in [A_BXX,A_FBXX,A_DBXX,A_BCC..A_BVS,A_DBCC..A_DBVS,A_FBEQ..A_FSNGLE,
+                A_JSR,A_BSR,A_JMP];
       end;
 
 
     procedure inverse_flags(var r: TResFlags);
-      const flagsinvers : array[F_E..F_BE] of tresflags =
+      const flagsinvers : array[F_E..F_FLE] of tresflags =
             (F_NE,F_E,
              F_LE,F_GE,
              F_L,F_G,
              F_NC,F_C,
              F_BE,F_B,
-             F_AE,F_A);
+             F_AE,F_A,
+             F_FNE,F_FE,
+             F_FLE,F_FGE,
+             F_FL,F_G);
       begin
          r:=flagsinvers[r];
       end;
@@ -427,7 +437,13 @@ implementation
           C_HI,{F_A     gt unsigned}
           C_CC,{F_AE    ge unsigned}
           C_CS,{F_B     lt unsigned}
-          C_LS);{F_BE    le unsigned}
+          C_LS,{F_BE    le unsigned}
+          C_EQ,{F_FEQ }
+          C_NE,{F_FNE }
+          C_GT,{F_FG  }
+          C_LT,{F_FL  }
+          C_GE,{F_FGE }
+          C_LE);{F_FLE }
       begin
         flags_to_cond := flags2cond[f];
       end;
@@ -472,15 +488,17 @@ implementation
 
 
     function reg_cgsize(const reg: tregister): tcgsize;
+      { 68881 & compatibles -> 80 bit }
+      { CF FPU -> 64 bit }
+      const
+        fpureg_cgsize: array[boolean] of tcgsize = ( OS_F80, OS_F64 );
       begin
         case getregtype(reg) of
           R_ADDRESSREGISTER,
           R_INTREGISTER :
             result:=OS_32;
           R_FPUREGISTER :
-            { 68881 & compatibles -> 80 bit }
-            { CF FPU -> 64 bit, but that's unsupported for now }
-            result:=OS_F80;
+            result:=fpureg_cgsize[current_settings.fputype = fpu_coldfire];
           else
             internalerror(200303181);
         end;
@@ -511,16 +529,37 @@ implementation
       end;
 
 
-    function isaddressregister(reg : tregister) : boolean;
+    function isaddressregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=getregtype(reg)=R_ADDRESSREGISTER;
       end;
 
-    function isintregister(reg : tregister) : boolean;
+    function isintregister(reg : tregister) : boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       begin
         result:=getregtype(reg)=R_INTREGISTER;
       end;
 
+    function fpuregopsize: TOpSize; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        fpu_regopsize: array[boolean] of TOpSize = ( S_FX, S_FD );
+      begin
+        result:=fpu_regopsize[current_settings.fputype = fpu_coldfire];
+      end;
+
+    function fpuregsize: aint; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      const
+        fpu_regsize: array[boolean] of aint = ( 12, 8 ); { S_FX is 12 bytes on '881 }
+      begin
+        result:=fpu_regsize[current_settings.fputype = fpu_coldfire];
+      end;
+
+    // the function returns true, if the registers overlap (subreg of the same superregister and same type)
+    function isregoverlap(reg1: tregister; reg2: tregister): boolean;
+      begin
+        tregisterrec(reg1).subreg:=R_SUBNONE;
+        tregisterrec(reg2).subreg:=R_SUBNONE;
+        result:=reg1=reg2;
+      end;
 
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const

@@ -31,6 +31,7 @@ uses
   constexp,
   symconst,
   ppu,
+  entfile,
   systems,
   globals,
   globtype,
@@ -860,7 +861,8 @@ begin
   derefdatalen:=ppufile.entrysize;
   if derefdatalen=0 then
     begin
-      WriteError('!! Error: derefdatalen=0');
+      Writeln(['No Derefdata length=0']);
+      derefdata:=nil;
       exit;
     end;
   Writeln(['Derefdata length: ',derefdatalen]);
@@ -1087,6 +1089,18 @@ begin
 end;
 
 
+Procedure ReadUnitImportSyms;
+var
+  c,i : longint;
+begin
+  write([space,'Imported Symbols']);
+  write([space,'----------------']);
+  c:=ppufile.getlongint;
+  for i:=0 to c-1 do
+    readderef(space);
+end;
+
+
 procedure readpropaccesslist(const s:string; Ref: TPpuRef = nil);
 { type tsltype is in symconst unit }
 const
@@ -1280,7 +1294,9 @@ const
          (mask:pi_estimatestacksize;
          str:' stack size is estimated before subroutine is compiled '),
          (mask:pi_calls_c_varargs;
-         str:' calls function with C-style varargs ')
+         str:' calls function with C-style varargs '),
+         (mask:pi_has_open_array_parameter;
+         str:' has open array parameter ')
   );
 var
   procinfooptions : tprocinfoflags;
@@ -1422,7 +1438,8 @@ const
      (mask:df_copied_def;     str:'Copied Typedef'),
      (mask:df_genconstraint;  str:'Generic Constraint'),
      { this should never happen for defs stored to a ppu file }
-     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)')
+     (mask:df_not_registered_no_free;  str:'Unregistered/No free (invalid)'),
+     (mask:df_llvm_no_struct_packing;  str:'LLVM unpacked struct')
   );
   defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
      (mask:ds_vmt_written;           str:'VMT Written'),
@@ -2394,7 +2411,9 @@ begin
                  end;
                conststring,
                constresourcestring :
-                 begin
+               begin
+                   write ([space,'   StringType : ']);
+                   readderef('',constdef.TypeRef);
                    len:=getlongint;
                    getmem(pc,len+1);
                    getdata(pc^,len);
@@ -2464,7 +2483,8 @@ begin
                  end;
                constnil:
                  begin
-                   writeln([space,' NIL pointer.']);
+                   write([space,'   NIL pointer :']);
+                   readderef('',constdef.TypeRef);
                    constdef.ConstType:=ctPtr;
                    constdef.VInt:=0;
                  end;
@@ -2518,8 +2538,10 @@ begin
                  end;
                constguid:
                  begin
+                    write ([space,'     IntfType : ']);
+                    readderef('',constdef.TypeRef);
                     getdata(guid,sizeof(guid));
-                    write ([space,'     IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-']);
+                    write ([space,'    IID String: {',hexstr(guid.d1,8),'-',hexstr(guid.d2,4),'-',hexstr(guid.d3,4),'-']);
                     for i:=0 to 7 do
                       begin
                          write(hexstr(guid.d4[i],2));
@@ -2546,9 +2568,9 @@ begin
                toaddr :
                  begin
                    Write(['Address : ',getaword]);
-                   if tsystemcpu(ppufile.header.cpu)=cpu_i386 then
+                   if tsystemcpu(ppufile.header.common.cpu)=cpu_i386 then
                      Write([' (Far: ',getbyte<>0,')']);
-                   if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+                   if tsystemcpu(ppufile.header.common.cpu)=cpu_i8086 then
                      if getbyte<>0 then
                        Write([' (Far: TRUE, Segment=',getaword,')'])
                      else
@@ -2576,7 +2598,7 @@ begin
              write  ([space,' DefaultConst : ']);
              readderef('');
              if (vo_has_mangledname in varoptions) then
-               if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
                  writeln([space,'AMangledname : ',getansistring])
                else
                  writeln([space,'SMangledname : ',getstring]);
@@ -2711,8 +2733,8 @@ procedure readdefinitions(const s:string; ParentDef: TPpuContainerDef);
 { type tordtype is in symconst unit }
 {
     uvoid,
-    u8bit,u16bit,u32bit,u64bit,
-    s8bit,s16bit,s32bit,s64bit,
+    u8bit,u16bit,u32bit,u64bit,u128bit,
+    s8bit,s16bit,s32bit,s64bit,s128bit,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
   ); }
@@ -2756,7 +2778,7 @@ begin
              write  ([space,'     Pointed Type : ']);
              readderef('',TPpuPointerDef(def).Ptr);
              writeln([space,' Has Pointer Math : ',(getbyte<>0)]);
-             if tsystemcpu(ppufile.header.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
+             if tsystemcpu(ppufile.header.common.cpu) in [cpu_i8086,cpu_i386,cpu_x86_64] then
                begin
                  write([space,' X86 Pointer Type : ']);
                  b:=getbyte;
@@ -2812,6 +2834,12 @@ begin
                    orddef.OrdType:=otUInt;
                    orddef.Size:=8;
                  end;
+               u128bit:
+                 begin
+                   writeln('u128bit');
+                   orddef.OrdType:=otUInt;
+                   orddef.Size:=16;
+                 end;
                s8bit:
                  begin
                    writeln('s8bit');
@@ -2835,6 +2863,12 @@ begin
                    writeln('s64bit');
                    orddef.OrdType:=otSInt;
                    orddef.Size:=8;
+                 end;
+               s128bit:
+                 begin
+                   writeln('s128bit');
+                   orddef.OrdType:=otSInt;
+                   orddef.Size:=16;
                  end;
                pasbool8:
                  begin
@@ -2968,7 +3002,7 @@ begin
              writeln([space,'            Range : ',arrdef.RangeLow,' to ',arrdef.RangeHigh]);
              write  ([space,'          Options : ']);
              readarraydefoptions(arrdef);
-             if tsystemcpu(ppufile.header.cpu)=cpu_i8086 then
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_i8086 then
                writeln([space,'             Huge : ',(getbyte<>0)]);
              readsymtable('symbols', arrdef);
            end;
@@ -2979,7 +3013,7 @@ begin
              readcommondef('Procedure definition',defoptions,def);
              read_abstract_proc_def(calloption,procoptions,TPpuProcDef(def));
              if (po_has_mangledname in procoptions) then
-               if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+               if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
                  writeln([space,'     Mangled name : ',getansistring])
                else
                  writeln([space,'     Mangled name : ',getstring]);
@@ -2996,7 +3030,7 @@ begin
              write  ([space,'       SymOptions : ']);
              readsymoptions(space+'       ');
              writeln  ([space,'   Synthetic kind : ',Synthetic2Str(ppufile.getbyte)]);
-             if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }
                  write  ([space,'   Library symbol : ']);
@@ -3065,7 +3099,7 @@ begin
              { parast }
              readsymtable('parast',TPpuProcDef(def));
              delete(space,1,4);
-             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
                readderef('');
            end;
 
@@ -3321,7 +3355,7 @@ begin
                  readsymtable('elements',enumdef);
                  delete(space,1,4);
                end;
-             if tsystemcpu(ppufile.header.cpu)=cpu_jvm then
+             if tsystemcpu(ppufile.header.common.cpu)=cpu_jvm then
                begin
                  write([space,'        Class def : ']);
                  readderef('');
@@ -3597,6 +3631,9 @@ begin
          ibloadunit :
            ReadLoadUnit;
 
+         ibunitimportsyms :
+           ReadUnitImportSyms;
+
          iberror :
            begin
              WriteError('Error in PPU');
@@ -3634,7 +3671,7 @@ begin
      exit;
    end;
 { Check PPU Version }
-  ppuversion:=ppufile.GetPPUVersion;
+  ppuversion:=ppufile.getversion;
 
   Writeln(['Analyzing ',filename,' (v',PPUVersion,')']);
   if PPUVersion<16 then
@@ -3660,13 +3697,13 @@ begin
      Writeln('-------');
      with ppufile.header do
       begin
-        Writeln(['Compiler version        : ',ppufile.header.compiler shr 14,'.',
-                                             (ppufile.header.compiler shr 7) and $7f,'.',
-                                             ppufile.header.compiler and $7f]);
-        WriteLn(['Target processor        : ',Cpu2Str(cpu)]);
-        WriteLn(['Target operating system : ',Target2Str(target)]);
-        Writeln(['Unit flags              : ',PPUFlags2Str(flags)]);
-        Writeln(['FileSize (w/o header)   : ',size]);
+        Writeln(['Compiler version        : ',ppufile.header.common.compiler shr 14,'.',
+                                             (ppufile.header.common.compiler shr 7) and $7f,'.',
+                                             ppufile.header.common.compiler and $7f]);
+        WriteLn(['Target processor        : ',Cpu2Str(common.cpu)]);
+        WriteLn(['Target operating system : ',Target2Str(common.target)]);
+        Writeln(['Unit flags              : ',PPUFlags2Str(common.flags)]);
+        Writeln(['FileSize (w/o header)   : ',common.size]);
         Writeln(['Checksum                : ',hexstr(checksum,8)]);
         Writeln(['Interface Checksum      : ',hexstr(interface_checksum,8)]);
         Writeln(['Indirect Checksum       : ',hexstr(indirect_checksum,8)]);
@@ -3679,8 +3716,8 @@ begin
     begin
       CurUnit.Crc:=checksum;
       CurUnit.IntfCrc:=interface_checksum;
-      CurUnit.TargetCPU:=Cpu2Str(cpu);
-      CurUnit.TargetOS:=Target2Str(target);
+      CurUnit.TargetCPU:=Cpu2Str(common.cpu);
+      CurUnit.TargetOS:=Target2Str(common.target);
     end;
 
 {read the general stuff}
@@ -3762,7 +3799,7 @@ begin
   Writeln('Implementation symtable');
   Writeln('----------------------');
   readsymtableoptions('implementation');
-  if (ppufile.header.flags and uf_local_symtable)<>0 then
+  if (ppufile.header.common.flags and uf_local_symtable)<>0 then
    begin
      if (verbose and v_defs)<>0 then
       begin

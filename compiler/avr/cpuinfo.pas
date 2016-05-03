@@ -277,8 +277,8 @@ Const
         fputype: fpu_soft;
         flashbase:0;
         flashsize:$20000;
-        srambase:0;
-        sramsize:4096;
+        srambase:256;
+        sramsize:32*1024;
         eeprombase:0;
         eepromsize:4096;
         )

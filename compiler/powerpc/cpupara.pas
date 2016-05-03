@@ -502,9 +502,9 @@ unit cpupara;
                         registers is left-aligned }
                       if (target_info.system in systems_aix) and
                          (paradef.typ = recorddef) and
-                         (tcgsize2size[paraloc^.size] <> sizeof(aint)) then
+                         (paralen < sizeof(aint)) then
                         begin
-                          paraloc^.shiftval := (sizeof(aint)-tcgsize2size[paraloc^.size])*(-8);
+                          paraloc^.shiftval := (sizeof(aint)-paralen)*(-8);
                           paraloc^.size := OS_INT;
                           paraloc^.def := u32inttype;
                         end;

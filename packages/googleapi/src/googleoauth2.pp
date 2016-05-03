@@ -48,12 +48,12 @@ type
     Fuse : String;
   Protected
     //Property setters
-    Procedure Setalg(AIndex : Integer; AValue : String); virtual;
-    Procedure Sete(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkty(AIndex : Integer; AValue : String); virtual;
-    Procedure Setn(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuse(AIndex : Integer; AValue : String); virtual;
+    Procedure Setalg(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sete(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkty(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setn(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuse(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property alg : String Index 0 Read Falg Write Setalg;
@@ -102,14 +102,14 @@ type
     Fverified_email : boolean;
   Protected
     //Property setters
-    Procedure Setaccess_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setaudience(AIndex : Integer; AValue : String); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
+    Procedure Setaccess_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setaudience(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
     Procedure Setexpires_in(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setissued_to(AIndex : Integer; AValue : String); virtual;
-    Procedure Setscope(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken_handle(AIndex : Integer; AValue : String); virtual;
-    Procedure Setuser_id(AIndex : Integer; AValue : String); virtual;
+    Procedure Setissued_to(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setscope(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken_handle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setuser_id(AIndex : Integer; const AValue : String); virtual;
     Procedure Setverified_email(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -144,16 +144,16 @@ type
     Fverified_email : boolean;
   Protected
     //Property setters
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setfamily_name(AIndex : Integer; AValue : String); virtual;
-    Procedure Setgender(AIndex : Integer; AValue : String); virtual;
-    Procedure Setgiven_name(AIndex : Integer; AValue : String); virtual;
-    Procedure Sethd(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocale(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setpicture(AIndex : Integer; AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfamily_name(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgender(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setgiven_name(AIndex : Integer; const AValue : String); virtual;
+    Procedure Sethd(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpicture(AIndex : Integer; const AValue : String); virtual;
     Procedure Setverified_email(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -278,7 +278,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TJwkTypekeysItem.Setalg(AIndex : Integer; AValue : String); 
+Procedure TJwkTypekeysItem.Setalg(AIndex : Integer; const AValue : String); 
 
 begin
   If (Falg=AValue) then exit;
@@ -288,7 +288,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Sete(AIndex : Integer; AValue : String); 
+Procedure TJwkTypekeysItem.Sete(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fe=AValue) then exit;
@@ -298,7 +298,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setkid(AIndex : Integer; AValue : String); 
+Procedure TJwkTypekeysItem.Setkid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkid=AValue) then exit;
@@ -308,7 +308,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setkty(AIndex : Integer; AValue : String); 
+Procedure TJwkTypekeysItem.Setkty(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkty=AValue) then exit;
@@ -318,7 +318,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setn(AIndex : Integer; AValue : String); 
+Procedure TJwkTypekeysItem.Setn(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fn=AValue) then exit;
@@ -328,7 +328,7 @@ end;
 
 
 
-Procedure TJwkTypekeysItem.Setuse(AIndex : Integer; AValue : String); 
+Procedure TJwkTypekeysItem.Setuse(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuse=AValue) then exit;
@@ -375,7 +375,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTokeninfo.Setaccess_type(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Setaccess_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faccess_type=AValue) then exit;
@@ -385,7 +385,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setaudience(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Setaudience(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faudience=AValue) then exit;
@@ -395,7 +395,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setemail(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -415,7 +415,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setissued_to(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Setissued_to(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fissued_to=AValue) then exit;
@@ -425,7 +425,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setscope(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Setscope(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fscope=AValue) then exit;
@@ -435,7 +435,7 @@ end;
 
 
 
-Procedure TTokeninfo.Settoken_handle(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Settoken_handle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken_handle=AValue) then exit;
@@ -445,7 +445,7 @@ end;
 
 
 
-Procedure TTokeninfo.Setuser_id(AIndex : Integer; AValue : String); 
+Procedure TTokeninfo.Setuser_id(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fuser_id=AValue) then exit;
@@ -472,7 +472,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserinfoplus.Setemail(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -482,7 +482,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setfamily_name(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setfamily_name(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ffamily_name=AValue) then exit;
@@ -492,7 +492,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setgender(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setgender(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgender=AValue) then exit;
@@ -502,7 +502,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setgiven_name(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setgiven_name(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fgiven_name=AValue) then exit;
@@ -512,7 +512,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Sethd(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Sethd(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fhd=AValue) then exit;
@@ -522,7 +522,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setid(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -532,7 +532,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setlink(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setlink(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -542,7 +542,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setlocale(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setlocale(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocale=AValue) then exit;
@@ -552,7 +552,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setname(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -562,7 +562,7 @@ end;
 
 
 
-Procedure TUserinfoplus.Setpicture(AIndex : Integer; AValue : String); 
+Procedure TUserinfoplus.Setpicture(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fpicture=AValue) then exit;

@@ -542,7 +542,7 @@ unit hlcgobj;
             reference if necessary. fromdef needs to be a pointerdef because
             it may have to be passed as fromdef to a_loadaddr_ref_reg, which
             needs the "pointeddef" of fromdef }
-          procedure g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference); virtual;
+          procedure g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tdef; var ref: treference); virtual;
 
           { update a reference pointing to the start address of a record/object/
             class (contents) so it refers to the indicated field }
@@ -552,7 +552,12 @@ unit hlcgobj;
           procedure g_setup_load_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out fref: treference; out fielddef: tdef);
          public
           procedure g_load_reg_field_by_name(list: TAsmList; regsize: tdef; recdef: trecorddef; reg: tregister; const name: TIDString; const recref: treference);
-          procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
+          procedure g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; a: tcgint; const name: TIDString; const recref: treference);
+          { laod a named field into a register }
+          procedure g_load_field_reg_by_name(list: TAsmList; recdef: trecorddef; regsize: tdef; const name: TIDString; const recref: treference; reg: tregister);
+          { same as above, but allocates the register and determines the def
+            based on the type of the field }
+          procedure g_force_field_reg_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out regdef: tdef; out reg: tregister);
 
           { routines migrated from ncgutil }
 
@@ -823,8 +828,10 @@ implementation
             else
               result:=R_FPUREGISTER;
           filedef,
-          variantdef:
-            internalerror(2010120507);
+          variantdef,
+          forwarddef,
+          undefineddef:
+            result:=R_INVALIDREGISTER;
         else
           internalerror(2010120506);
         end;
@@ -1768,7 +1775,7 @@ implementation
     begin
       href:=ref;
       g_ptrtypecast_ref(list,cpointerdef.getreusable(tosize),cpointerdef.getreusable(u8inttype),href);
-      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,ref));
+      a_load_const_subsetref(list,u8inttype,ord(doset),get_bit_reg_ref_sref(list,fromsize,tosize,bitnumber,href));
     end;
 
   procedure thlcgobj.a_bit_set_reg_loc(list: TAsmList; doset: boolean; regsize, tosize: tdef; bitnumber: tregister; const loc: tlocation);
@@ -3680,6 +3687,7 @@ implementation
       { because some abis don't support dynamic stack allocation properly
         open array value parameters are copied onto the heap
       }
+      include(current_procinfo.flags, pi_has_open_array_parameter);
 
       { calculate necessary memory }
 
@@ -3844,7 +3852,7 @@ implementation
       { nothing to do }
     end;
 
-  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef: tpointerdef; todef: tdef; var ref: treference);
+  procedure thlcgobj.g_ptrtypecast_ref(list: TAsmList; fromdef, todef: tdef; var ref: treference);
     begin
       { nothing to do }
     end;
@@ -3882,13 +3890,33 @@ implementation
     end;
 
 
-  procedure thlcgobj.g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; a: tcgint; const recref: treference);
+  procedure thlcgobj.g_load_const_field_by_name(list: TAsmList; recdef: trecorddef; a: tcgint; const name: TIDString; const recref: treference);
     var
       fref: treference;
       fielddef: tdef;
     begin
       g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
       a_load_const_ref(list,fielddef,a,fref);
+    end;
+
+
+  procedure thlcgobj.g_load_field_reg_by_name(list: TAsmList; recdef: trecorddef; regsize: tdef; const name: TIDString; const recref: treference; reg: tregister);
+    var
+      fref: treference;
+      fielddef: tdef;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,fielddef);
+      a_load_ref_reg(list,fielddef,regsize,fref,reg);
+    end;
+
+
+  procedure thlcgobj.g_force_field_reg_by_name(list: TAsmList; recdef: trecorddef; const name: TIDString; const recref: treference; out regdef: tdef; out reg: tregister);
+    var
+      fref: treference;
+    begin
+      g_setup_load_field_by_name(list,recdef,name,recref,fref,regdef);
+      reg:=getregisterfordef(list,regdef);
+      a_load_ref_reg(list,regdef,regdef,fref,reg);
     end;
 
 
@@ -4212,7 +4240,10 @@ implementation
               end
             else
 {$endif cpu64bitalu}
-              rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
+              if getregtype(rr.old)=R_ADDRESSREGISTER then
+                rr.new := hlcg.getaddressregister(current_asmdata.CurrAsmList,n.resultdef)
+              else
+                rr.new := cg.getintregister(current_asmdata.CurrAsmList,n.location.size);
           end;
         LOC_CFPUREGISTER:
           rr.new := cg.getfpuregister(current_asmdata.CurrAsmList,n.location.size);
@@ -4605,7 +4636,11 @@ implementation
        begin
          { initialize units }
          if not(current_module.islibrary) then
+{$ifdef AVR}
+           cg.a_call_name(list,'FPC_INIT_FUNC_TABLE',false)
+{$else AVR}
            g_call_system_proc(list,'fpc_initializeunits',[],nil)
+{$endif AVR}
          else
            g_call_system_proc(list,'fpc_libinitializeunits',[],nil);
        end;
@@ -4623,7 +4658,7 @@ implementation
           look up procdef, use hlcgobj.a_call_name()) }
 
       { call __EXIT for main program }
-      if (not DLLsource) and
+      if (not current_module.islibrary) and
          (current_procinfo.procdef.proctypeoption=potype_proginit) then
         g_call_system_proc(list,'fpc_do_exit',[],nil);
     end;
@@ -4849,6 +4884,7 @@ implementation
                 else
                   highloc.loc:=LOC_INVALID;
                 eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                g_ptrtypecast_ref(list,cpointerdef.getreusable(tparavarsym(p).vardef),cpointerdef.getreusable(eldef),href);
                 g_array_rtti_helper(list,eldef,href,highloc,'fpc_finalize_array');
               end
             else
@@ -4914,6 +4950,7 @@ implementation
                          { open arrays do not contain correct element count in their rtti,
                            the actual count must be passed separately. }
                          eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                         g_ptrtypecast_ref(list,cpointerdef.getreusable(tparavarsym(p).vardef),cpointerdef.getreusable(eldef),href);
                          g_array_rtti_helper(list,eldef,href,highloc,'fpc_addref_array');
                        end
                      else

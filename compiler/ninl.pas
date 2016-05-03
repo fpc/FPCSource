@@ -3296,6 +3296,7 @@ implementation
       var
          hp: tnode;
          shiftconst: longint;
+         objdef: tobjectdef;
 
       begin
          result:=nil;
@@ -3341,10 +3342,34 @@ implementation
           in_typeof_x:
             begin
               expectloc:=LOC_REGISTER;
-              if (left.nodetype=typen) and
-                 (cs_create_pic in current_settings.moduleswitches) and
-                 (tf_pic_uses_got in target_info.flags) then
-                include(current_procinfo.flags,pi_needs_got);
+              case left.resultdef.typ of
+                objectdef,classrefdef:
+                  begin
+                    if left.resultdef.typ=objectdef then
+                      begin
+                        result:=cloadvmtaddrnode.create(left);
+                        objdef:=tobjectdef(left.resultdef);
+                      end
+                    else
+                      begin
+                        result:=left;
+                        objdef:=tobjectdef(tclassrefdef(left.resultdef).pointeddef);
+                      end;
+                    left:=nil;
+                    if inlinenumber=in_sizeof_x then
+                      begin
+                        inserttypeconv_explicit(result,cpointerdef.getreusable(objdef.vmt_def));
+                        result:=cderefnode.create(result);
+                        result:=genloadfield(result,'VINSTANCESIZE');
+                      end
+                    else
+                      inserttypeconv_explicit(result,voidpointertype);
+                  end;
+                undefineddef:
+                  ;
+                else
+                  internalerror(2015122702);
+              end;
             end;
 
           in_length_x:

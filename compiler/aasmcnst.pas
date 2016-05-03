@@ -93,6 +93,9 @@ type
      function valuecount: longint;
      procedure insertvaluebeforepos(val: tai_abstracttypedconst; pos: longint);
      function replacevalueatpos(val: tai_abstracttypedconst; pos: longint): tai_abstracttypedconst;
+     { change the type to a record, regardless of how the aggregate was created;
+       the size of the original type and the record must match }
+     procedure changetorecord(_def: trecorddef);
      procedure finish;
      destructor destroy; override;
    end;
@@ -123,7 +126,9 @@ type
      { item in the above list }
      tcalo_vectorized_dead_strip_item,
      { end of the above list }
-     tcalo_vectorized_dead_strip_end
+     tcalo_vectorized_dead_strip_end,
+     { symbol should be weakle defined }
+     tcalo_weak
    );
    ttcasmlistoptions = set of ttcasmlistoption;
 
@@ -133,7 +138,6 @@ type
     private
      fnextfieldname: TIDString;
      function getcuroffset: asizeint;
-     function getfieldoffset(l: longint): asizeint;
      procedure setnextfieldname(AValue: TIDString);
     protected
      { type of the aggregate }
@@ -173,7 +177,6 @@ type
      property curfield: tfieldvarsym read fcurfield write fcurfield;
      property nextfield: tfieldvarsym read fnextfield write fnextfield;
      property nextfieldname: TIDString write setnextfieldname;
-     property fieldoffset[l: longint]: asizeint read getfieldoffset;
      property curoffset: asizeint read getcuroffset;
      property anonrecord: boolean read fanonrecord write fanonrecord;
    end;
@@ -184,6 +187,7 @@ type
    ttypedconstplaceholder = class abstract
      def: tdef;
      constructor create(d: tdef);
+     { same usage as ttai_typedconstbuilder.emit_tai }
      procedure replace(ai: tai; d: tdef); virtual; abstract;
    end;
 
@@ -300,6 +304,7 @@ type
     protected
      procedure maybe_emit_tail_padding(def: tdef); virtual;
      function emit_string_const_common(stringtype: tstringtype; len: asizeint; encoding: tstringencoding; var startlab: tasmlabel):tasmlabofs;
+     function get_dynstring_def_for_type(stringtype: tstringtype; winlikewidestring: boolean): tstringdef;
      procedure begin_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      procedure end_aggregate_internal(def: tdef; anonymous: boolean); virtual;
      { when building an anonymous record, we cannot immediately insert the
@@ -326,6 +331,8 @@ type
 
      { emit a shortstring constant, and return its def }
      function emit_shortstring_const(const str: shortstring): tdef;
+     { emit a pchar string constant (the characters, not a pointer to them), and return its def }
+     function emit_pchar_const(str: pchar; len: pint): tdef;
      { emit a guid constant }
      procedure emit_guid_const(const guid: tguid);
      { emit a procdef constant }
@@ -364,10 +371,11 @@ type
        useful in case you have table preceded by the number of elements, and
        you cound the elements while building the table }
      function emit_placeholder(def: tdef): ttypedconstplaceholder; virtual; abstract;
+    protected
      { common code to check whether a placeholder can be added at the current
        position }
      procedure check_add_placeholder(def: tdef);
-
+    public
      { The next group of routines are for constructing complex expressions.
        While parsing a typed constant these operators are encountered from
        outer to inner, so that is also the order in which they should be
@@ -423,7 +431,7 @@ type
        over the symtables of the entire inheritance tree }
      property next_field: tfieldvarsym write set_next_field;
      { set the name of the next field that will be emitted for an anonymous
-       record (or the next of the next started anonymous record) }
+       record (also if that field is a nested anonymous record) }
      property next_field_name: TIDString write set_next_field_name;
     protected
      { this one always return the actual offset, called by the above (and
@@ -487,15 +495,6 @@ implementation
       end;
 
 
-    function taggregateinformation.getfieldoffset(l: longint): asizeint;
-      var
-        field: tfieldvarsym;
-      begin
-        field:=tfieldvarsym(tabstractrecorddef(def).symtable.symlist[l]);
-        result:=field.fieldoffset;
-      end;
-
-
     procedure taggregateinformation.setnextfieldname(AValue: TIDString);
       begin
         if (fnextfieldname<>'') or
@@ -516,6 +515,7 @@ implementation
 
     function taggregateinformation.prepare_next_field(nextfielddef: tdef): asizeint;
       var
+        sym: tsym;
         currentoffset,nextoffset: asizeint;
         i: longint;
       begin
@@ -544,14 +544,16 @@ implementation
               end
             else if fnextfieldname<>'' then
               internalerror(2015071501);
+            currentoffset:=curoffset;
             { find next field }
             i:=curindex;
             repeat
               inc(i);
-            until (tsym(tabstractrecorddef(def).symtable.symlist[i]).typ=fieldvarsym) and
-              not(sp_static in tsym(tabstractrecorddef(def).symtable.symlist[i]).symoptions);
-            nextoffset:=fieldoffset[i];
-            currentoffset:=curoffset;
+              sym:=tsym(tabstractrecorddef(def).symtable.symlist[i]);
+            until (sym.typ=fieldvarsym) and
+              not(sp_static in sym.symoptions);
+            curfield:=tfieldvarsym(sym);
+            nextoffset:=curfield.fieldoffset;
             curindex:=i;
           end;
         { need padding? }
@@ -752,6 +754,17 @@ implementation
      end;
 
 
+   procedure tai_aggregatetypedconst.changetorecord(_def: trecorddef);
+     begin
+       { must be a record of the same size as the current data }
+       if assigned(fdef) and
+          (fdef.size<>_def.size) then
+         internalerror(2015122402);
+       fdef:=_def;
+       fadetyp:=tck_record;
+     end;
+
+
    procedure tai_aggregatetypedconst.finish;
      begin
        if fisstring then
@@ -926,12 +939,15 @@ implementation
          end;
 
        if not(tcalo_is_lab in options) then
-         if sym.bind=AB_GLOBAL then
-           prelist.concat(tai_symbol.Create_Global(sym,0))
-         else
+         if sym.bind=AB_LOCAL then
            prelist.concat(tai_symbol.Create(sym,0))
+         else
+           prelist.concat(tai_symbol.Create_Global(sym,0))
        else
          prelist.concat(tai_label.Create(tasmlabel(sym)));
+
+       if tcalo_weak in options then
+         prelist.concat(tai_directive.Create(asd_weak_definition,sym.name));
        { insert the symbol information before the data }
        fasmlist.insertlist(prelist);
        { end of the symbol }
@@ -949,6 +965,7 @@ implementation
        customsecname: boolean;
      begin
        fvectorized_finalize_called:=true;
+       sym:=nil;
        customsecname:=get_vectorized_dead_strip_custom_section_name(basename,st,secname);
        if customsecname then
          sectype:=sec_user
@@ -970,7 +987,7 @@ implementation
              internalerror(2015110802);
            sym:=get_vectorized_dead_strip_section_symbol_end(basename,st,true);
            if not customsecname then
-             make_mangledname(basename,st,'3_END');
+             secname:=make_mangledname(basename,st,'3_END');
          end
        else if tcalo_vectorized_dead_strip_item in options then
          begin
@@ -1285,6 +1302,21 @@ implementation
      end;
 
 
+   function ttai_typedconstbuilder.get_dynstring_def_for_type(stringtype: tstringtype; winlikewidestring: boolean): tstringdef;
+     begin
+       if stringtype=st_ansistring then
+         result:=tstringdef(cansistringtype)
+       else if (stringtype=st_unicodestring) or
+               ((stringtype=st_widestring) and
+                not winlikewidestring) then
+         result:=tstringdef(cunicodestringtype)
+       else if stringtype=st_widestring then
+         result:=tstringdef(cwidestringtype)
+       else
+         internalerror(2015122101);
+     end;
+
+
    procedure ttai_typedconstbuilder.begin_aggregate_internal(def: tdef; anonymous: boolean);
      var
        info: taggregateinformation;
@@ -1340,11 +1372,17 @@ implementation
 
 
    class function ttai_typedconstbuilder.get_vectorized_dead_strip_section_symbol(const basename: string; st: tsymtable; define, start: boolean): tasmsymbol;
+     var
+       name: TSymStr;
      begin
        if start then
-         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'START'),AB_GLOBAL,AT_DATA)
+         name:=make_mangledname(basename,st,'START')
        else
-         result:=current_asmdata.DefineAsmSymbol(make_mangledname(basename,st,'END'),AB_GLOBAL,AT_DATA);
+         name:=make_mangledname(basename,st,'END');
+       if define then
+         result:=current_asmdata.DefineAsmSymbol(name,AB_GLOBAL,AT_DATA)
+       else
+         result:=current_asmdata.RefAsmSymbol(name,AT_DATA)
      end;
 
 
@@ -1416,6 +1454,7 @@ implementation
        startlab: tasmlabel;
        datadef: tdef;
        datatcb: ttai_typedconstbuilder;
+       unicodestrrecdef: trecorddef;
      begin
        start_internal_data_builder(datalist,sec_rodata_norel,'',datatcb,startlab);
        strlength:=getlengthwidestring(pcompilerwidestring(data));
@@ -1455,18 +1494,18 @@ implementation
            { ending #0 }
            datatcb.emit_tai(Tai_const.Create_16bit(0),cwidechartype);
            datatcb.maybe_end_aggregate(datadef);
-           datatcb.end_anonymous_record;
+           unicodestrrecdef:=datatcb.end_anonymous_record;
          end
        else
          { code generation for other sizes must be written }
          internalerror(200904271);
-       finish_internal_data_builder(datatcb,startlab,datadef,const_align(sizeof(pint)));
+       finish_internal_data_builder(datatcb,startlab,unicodestrrecdef,const_align(sizeof(pint)));
      end;
 
 
    procedure ttai_typedconstbuilder.emit_string_offset(const ll: tasmlabofs; const strlength: longint; const st: tstringtype; const winlikewidestring: boolean; const charptrdef: tdef);
      begin
-       emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),charptrdef);
+       emit_tai(Tai_const.Create_sym_offset(ll.lab,ll.ofs),get_dynstring_def_for_type(st,winlikewidestring));
      end;
 
 
@@ -1481,6 +1520,18 @@ implementation
        emit_tai(Tai_const.Create_8bit(length(str)),u8inttype);
        if str<>'' then
          emit_tai(Tai_string.Create(str),carraydef.getreusable(cansichartype,length(str)));
+       maybe_end_aggregate(result);
+     end;
+
+
+   function ttai_typedconstbuilder.emit_pchar_const(str: pchar; len: pint): tdef;
+     begin
+       result:=carraydef.getreusable(cansichartype,len+1);
+       maybe_begin_aggregate(result);
+       if len=0 then
+         emit_tai(Tai_const.Create_8bit(0),cansichartype)
+       else
+         emit_tai(Tai_string.Create_pchar(str,len+1),result);
        maybe_end_aggregate(result);
      end;
 
@@ -1763,7 +1814,7 @@ implementation
              resourcestrrec:=trecorddef(search_system_type('TRESOURCESTRINGRECORD').typedef);
              queue_subscriptn_multiple_by_name(resourcestrrec,['CURRENTVALUE']);
              queue_emit_asmsym(current_asmdata.RefAsmSymbol(
-               make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),cansistringtype
+               make_mangledname('RESSTR',cs.owner,cs.name),AT_DATA),resourcestrrec
              );
            end;
          { can these occur? }

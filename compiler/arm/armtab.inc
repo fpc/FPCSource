@@ -6101,28 +6101,28 @@
     opcode  : A_VFNMA;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
-    code    : #146#238#144#10#0;
+    code    : #146#238#144#10#64;
     flags   : if_thumb32 or if_vfpv4
   ),
   (
     opcode  : A_VFNMA;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
-    code    : #66#14#144#10#0;
+    code    : #66#14#144#10#64;
     flags   : if_arm32 or if_vfpv4
   ),
   (
     opcode  : A_VFNMS;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
-    code    : #146#238#144#10#64;
+    code    : #146#238#144#10#0;
     flags   : if_thumb32 or if_vfpv4
   ),
   (
     opcode  : A_VFNMS;
     ops     : 3;
     optypes : (ot_vreg,ot_vreg,ot_vreg,ot_none,ot_none,ot_none);
-    code    : #66#14#144#10#64;
+    code    : #66#14#144#10#0;
     flags   : if_arm32 or if_vfpv4
   ),
   (

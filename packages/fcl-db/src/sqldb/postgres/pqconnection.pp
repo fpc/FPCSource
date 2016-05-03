@@ -1006,9 +1006,9 @@ begin
           begin
           case AParams[i].DataType of
             ftDateTime:
-              s := FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AParams[i].AsDateTime);
+              s := FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss.zzz', AParams[i].AsDateTime);
             ftDate:
-              s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
+              s := FormatDateTime('yyyy"-"mm"-"dd', AParams[i].AsDateTime);
             ftTime:
               s := FormatTimeInterval(AParams[i].AsDateTime);
             ftFloat, ftBCD:

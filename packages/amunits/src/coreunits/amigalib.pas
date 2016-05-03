@@ -100,6 +100,8 @@ function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
 function CoerceMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;
 function SetSuperAttrsA(cl : pIClass; obj: pObject_; msg : APTR): ulong;
 
+function DoMethod(obj: PObject_; Params: array of DWord): LongWord; inline;
+
 procedure HookEntry;
 
 {
@@ -360,13 +362,15 @@ begin
 end;
 
 function DoMethodA(obj : pObject_; msg : APTR): ulong;
-var
-    o : p_Object;
 begin
     if assigned(obj) then begin
-       o := p_Object(obj);
-       DoMethodA := CallHookPkt(@o^.o_Class^.cl_Dispatcher, obj,msg);
+       DoMethodA := CallHookPkt(@THook(OCLASS(obj)^.cl_Dispatcher), obj, msg);
     end else DoMethodA := 0;
+end;
+
+function DoMethod(obj: PObject_; Params: array of DWord): LongWord;
+begin
+  DoMethod := DoMethodA(obj, @Params);
 end;
 
 function DoSuperMethodA(cl : pIClass; obj : pObject_; msg : APTR): ulong;

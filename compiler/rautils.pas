@@ -739,15 +739,60 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
   end;
 
 
+  procedure setvarsize(sym: tabstractvarsym);
+  var
+    harrdef: tarraydef;
+    l: asizeint;
+  begin
+    case sym.vardef.typ of
+      orddef,
+      enumdef,
+      pointerdef,
+      procvardef,
+      floatdef :
+        SetSize(sym.getsize,false);
+      arraydef :
+        begin
+          { for arrays try to get the element size, take care of
+            multiple indexes }
+          harrdef:=tarraydef(sym.vardef);
+
+          { calc array size }
+          if is_special_array(harrdef) then
+             l := -1
+           else
+             l := harrdef.size;
+
+          case opr.typ of
+            OPR_REFERENCE: opr.varsize := l;
+                OPR_LOCAL: opr.localvarsize := l;
+          end;
+
+
+          while assigned(harrdef.elementdef) and
+                (harrdef.elementdef.typ=arraydef) do
+           harrdef:=tarraydef(harrdef.elementdef);
+          if not is_packed_array(harrdef) then
+            SetSize(harrdef.elesize,false)
+           else
+               if (harrdef.elepackedbitsize mod 8) = 0 then
+                 SetSize(harrdef.elepackedbitsize div 8,false);
+        end;
+      recorddef:
+        case opr.typ of
+          OPR_REFERENCE: opr.varsize := sym.getsize;
+              OPR_LOCAL: opr.localvarsize := sym.getsize;
+        end;
+    end;
+  end;
+
 { search and sets up the correct fields in the Instr record }
 { for the NON-constant identifier passed to the routine.    }
 { if not found returns FALSE.                               }
 var
   sym : tsym;
   srsymtable : TSymtable;
-  harrdef : tarraydef;
   indexreg : tregister;
-  l : aint;
   plist : ppropaccesslistitem;
 Begin
   SetupVar:=false;
@@ -784,6 +829,7 @@ Begin
           setconst(tfieldvarsym(sym).fieldoffset div 8)
         else
           Message(asmr_e_packed_element);
+        setvarsize(tabstractvarsym(sym));
         hasvar:=true;
         SetupVar:=true;
       end;
@@ -838,46 +884,7 @@ Begin
                 SetSize(sizeof(pint),false);
             end;
         end;
-        case tabstractvarsym(sym).vardef.typ of
-          orddef,
-          enumdef,
-          pointerdef,
-          procvardef,
-          floatdef :
-            SetSize(tabstractvarsym(sym).getsize,false);
-          arraydef :
-            begin
-              { for arrays try to get the element size, take care of
-                multiple indexes }
-              harrdef:=tarraydef(tabstractvarsym(sym).vardef);
-
-              { calc array size }
-              if is_special_array(harrdef) then
-                 l := -1
-               else
-                 l := harrdef.size;
-
-              case opr.typ of
-                OPR_REFERENCE: opr.varsize := l;
-                    OPR_LOCAL: opr.localvarsize := l;
-              end;
-
-
-              while assigned(harrdef.elementdef) and
-                    (harrdef.elementdef.typ=arraydef) do
-               harrdef:=tarraydef(harrdef.elementdef);
-              if not is_packed_array(harrdef) then
-                SetSize(harrdef.elesize,false)
-               else
-                   if (harrdef.elepackedbitsize mod 8) = 0 then
-                     SetSize(harrdef.elepackedbitsize div 8,false);
-            end;
-          recorddef:
-            case opr.typ of
-              OPR_REFERENCE: opr.varsize := tabstractvarsym(sym).getsize;
-                  OPR_LOCAL: opr.localvarsize := tabstractvarsym(sym).getsize;
-            end;
-        end;
+        setvarsize(tabstractvarsym(sym));
         hasvar:=true;
         SetupVar:=true;
         Exit;

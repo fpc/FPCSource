@@ -69,6 +69,7 @@ var
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
+  AOS_wbMsg: Pointer absolute MOS_ambMsg;  { common Amiga code compatibility kludge }
 
   argc: LongInt;
   argv: PPChar;
@@ -88,6 +89,26 @@ implementation
 {$WARNING Compiling with memory debug enabled!}
 {$ENDIF}
 
+
+type
+  pWBArg = ^tWBArg;
+  tWBArg = record
+    wa_Lock: longint;
+    wa_Name: PChar;
+  end;
+
+  WBArgList = array[1..MaxInt] of TWBArg; { Only 1..smNumArgs are valid }
+  PWBArgList = ^WBArgList;
+
+  pWBStartup = ^tWBStartup;
+  tWBStartup = packed record
+    sm_Message   : tMessage;
+    sm_Process   : pMsgPort;
+    sm_Segment   : longint;
+    sm_NumArgs   : longint;
+    sm_ToolWindow: PChar;
+    sm_ArgList   : PWBArgList;
+  end;
 
 {*****************************************************************************
                        Misc. System Dependent Functions
@@ -138,211 +159,16 @@ begin
   haltproc(ExitCode);
 end;
 
-{ Generates correct argument array on startup }
-procedure GenerateArgs;
-var
-  argvlen : longint;
-
-  procedure allocarg(idx,len:longint);
-    var
-      i,oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-        begin
-          oldargvlen:=argvlen;
-          argvlen:=(idx+8) and (not 7);
-          sysreallocmem(argv,argvlen*sizeof(pointer));
-          for i:=oldargvlen to argvlen-1 do
-            argv[i]:=nil;
-        end;
-      ArgV [Idx] := SysAllocMem (Succ (Len));
-    end;
-
-var
-  count: word;
-  start: word;
-  localindex: word;
-  p : pchar;
-  temp : string;
-
-begin
-  p:=GetArgStr;
-  argvlen:=0;
-
-  { Set argv[0] }
-  temp:=paramstr(0);
-  allocarg(0,length(temp));
-  move(temp[1],argv[0]^,length(temp));
-  argv[0][length(temp)]:=#0;
-
-  { check if we're started from Ambient }
-  if MOS_ambMsg<>nil then begin
-    argc:=0;
-    exit;
-  end;
-
-  { Handle the other args }
-  count:=0;
-  { first index is one }
-  localindex:=1;
-  while (p[count]<>#0) do
-    begin
-      while (p[count]=' ') or (p[count]=#9) or (p[count]=LineEnding) do inc(count);
-      start:=count;
-      while (p[count]<>#0) and (p[count]<>' ') and (p[count]<>#9) and (p[count]<>LineEnding) do inc(count);
-      if (count-start>0) then
-        begin
-          allocarg(localindex,count-start);
-          move(p[start],argv[localindex]^,count-start);
-          argv[localindex][count-start]:=#0;
-          inc(localindex);
-        end;
-    end;
-  argc:=localindex;
-end;
-
-function GetProgDir: String;
-var
-  s1     : String;
-  alock  : LongInt;
-  counter: Byte;
-begin
-  GetProgDir:='';
-  FillChar(s1,255,#0);
-  { GetLock of program directory }
-  alock:=GetProgramDir;
-  if alock<>0 then begin
-    if NameFromLock(alock,@s1[1],255) then begin
-      counter:=1;
-      while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-      s1[0]:=Char(counter-1);
-      GetProgDir:=s1;
-    end;
-  end;
-end;
-
-function GetProgramName: String;
-{ Returns ONLY the program name }
-var
-  s1     : String;
-  counter: Byte;
-begin
-  GetProgramName:='';
-  FillChar(s1,255,#0);
-  if GetProgramName(@s1[1],255) then begin
-    { now check out and assign the length of the string }
-    counter := 1;
-    while (s1[counter]<>#0) and (counter<>0) do Inc(counter);
-    s1[0]:=Char(counter-1);
-
-    { now remove any component path which should not be there }
-    for counter:=length(s1) downto 1 do
-      if (s1[counter] = '/') or (s1[counter] = ':') then break;
-    { readjust counterv to point to character }
-    if counter<>1 then Inc(counter);
-
-    GetProgramName:=copy(s1,counter,length(s1));
-  end;
-end;
-
-function GetArgv0Ambient: String;
-{ Returns program full path+name, when in Ambient mode }
-{ Required for paramstr(0) support in Ambient mode }
-type
-  pWBArg = ^tWBArg;
-  tWBArg = record
-    wa_Lock: longint;
-    wa_Name: PChar;
-  end;
-
-  pWBStartup = ^tWBStartup;
-  tWBStartup = packed record
-    sm_Message   : tMessage;
-    sm_Process   : pMsgPort;
-    sm_Segment   : longint;
-    sm_NumArgs   : longint;
-    sm_ToolWindow: PChar;
-    sm_ArgList   : pWBArg;
-  end;
-
-var
-  tmpbuf  : String;
-  counter : longint;
-  progname: PChar;
-  dlock   : longint;
-
-begin
-  GetArgv0Ambient:='';
-
-  if MOS_ambMsg<>nil then begin
-    dlock:=pWBStartup(MOS_ambMsg)^.sm_argList^.wa_Lock;
-    if dlock<>0 then begin
-      FillDWord(tmpbuf,256 div 4,0);
-      if NameFromLock(dlock,@tmpbuf[1],255) then begin
-        counter:=1;
-        while tmpbuf[counter]<>#0 do
-          inc(counter);
-        tmpbuf[0]:=Char(counter-1);
-        GetArgv0Ambient:=tmpbuf;
-        { Append slash,if we're not in root directory of a volume }
-        if tmpbuf[counter-1]<>':' then
-          GetArgv0Ambient:=GetArgv0Ambient+'/';
-      end;
-    end;
-
-    { Fetch the progname, and copy it to the buffer }
-    progname:=pWBStartup(MOS_ambMsg)^.sm_argList^.wa_Name;
-    if progname<>nil then begin
-      FillDWord(tmpbuf,256 div 4,0);
-      counter:=0;
-      while (progname[counter]<>#0) do begin
-        tmpbuf[counter+1]:=progname[counter];
-        inc(counter);
-      end;
-      tmpbuf[0]:=Char(counter);
-      GetArgv0Ambient:=GetArgv0Ambient+tmpbuf;
-    end;
-  end;
-end;
-
-
-
-
 {*****************************************************************************
-                             ParamStr/Randomize
+                          Parameterhandling
+                       as include in amicommon
 *****************************************************************************}
 
-{ number of args }
-function paramcount : longint;
-begin
-  if MOS_ambMsg<>nil then
-    paramcount:=0
-  else
-    paramcount:=argc-1;
-end;
+{$I paramhandling.inc}
 
-{ argument number l }
-function paramstr(l : longint) : string;
-var
-  s1: String;
-begin
-  paramstr:='';
-  if MOS_ambMsg<>nil then begin
-    if l=0 then begin
-      paramstr:=GetArgv0Ambient;
-      exit;
-    end else
-      exit;
-  end;
-
-  if l=0 then begin
-    s1:=GetProgDir;
-    if s1[length(s1)]=':' then paramstr:=s1+GetProgramName
-                          else paramstr:=s1+'/'+GetProgramName;
-  end else begin
-    if (l>0) and (l+1<=argc) then paramstr:=strpas(argv[l]);
-  end;
-end;
+{*****************************************************************************
+                             Randomize
+*****************************************************************************}
 
 { set randseed to a new pseudo random value }
 procedure randomize;
@@ -372,7 +198,7 @@ begin
  { Creating the memory pool for growing heap }
  ASYS_heapPool:=CreatePool(MEMF_FAST or MEMF_SEM_PROTECTED,growheapsize2,growheapsize1);
  if ASYS_heapPool=nil then Halt(1);
- 
+
  { Initialize semaphore for filelist access arbitration }
  ASYS_fileSemaphore:=AllocPooled(ASYS_heapPool,sizeof(TSignalSemaphore));
  if ASYS_fileSemaphore = nil then Halt(1);

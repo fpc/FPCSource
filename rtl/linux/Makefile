@@ -344,11 +344,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 LOADERS=prt0 dllprt0 cprt0 gprt0
 ifeq ($(ARCH),i386)
-ifeq ($(findstring 2.0.,$(FPC_VERSION)),)
 override LOADERS=
-else
-override LOADERS+=cprt21 gprt21
-endif
 CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
@@ -367,6 +363,7 @@ override FPCOPT+=-Ur
 endif
 ifeq ($(ARCH),arm)
 override LOADERS+=ucprt0
+CPU_UNITS=cpu
 endif
 SYSTEMUNIT=system
 ifdef RELEASE
@@ -3565,28 +3562,40 @@ SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+ifneq ($(findstring -Cg ,$(COMPILER)),)
+  PIC_OPT=1
+endif
+ifneq ($(findstring -fPIC ,$(COMPILER)),)
+  PIC_OPT=1
+endif
 ifeq ($(ARCH),i386)
   ASTARGET=--32
 endif
 ifeq ($(ARCH),x86_64)
   ASTARGET=--64
 endif
+ifeq ($(ARCH),powerpc)
+  ASTARGET=-a32
+endif
 ifeq ($(ARCH),powerpc64)
   ASTARGET=-a64
 endif
 ifeq ($(ARCH),mips)
-  ASTARGET=-32 -mips32 -EB
+  ASTARGET=-32 -mabi=32 -mips2 -EB
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+= -KPIC
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),mipsel)
-  ASTARGET=-32 -mips32 -EL
+  ASTARGET=-32 -mabi=32 -mips2 -EL
+  ifeq ($(PIC_OPT),1)
+    ASTARGET+= -KPIC
+  endif
   ASSHAREDOPT=-KPIC
 endif
 ifeq ($(ARCH),sparc)
-  ifneq ($(findstring -Cg ,$(COMPILER)),)
-    ASTARGET+=-K PIC --defsym PIC=1
-  endif
-  ifneq ($(findstring -fPIC ,$(COMPILER)),)
+  ifeq ($(PIC_OPT),1)
     ASTARGET+=-K PIC --defsym PIC=1
   endif
 endif
@@ -3626,7 +3635,7 @@ ifndef ARMTHUMB
 endif
 si_prc$(PPUEXT) : si_prc.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_prc.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_prc.pp
-si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21g.inc $(SYSTEMUNIT)$(PPUEXT)
+si_c21g$(PPUEXT) : si_c21g.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c21g.pp
 si_c21$(PPUEXT) : si_c21.pp si_intf.inc $(ARCH)/sysnr.inc $(ARCH)/si_c21.inc $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) si_c21.pp
@@ -3668,7 +3677,7 @@ ports$(PPUEXT) : $(UNIXINC)/ports.pp unix$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/ports.pp
 dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT) ctypes$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/dl.pp
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) sysutils$(PPUEXT) 
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/dynlibs.pas
 initc$(PPUEXT) : $(UNIXINC)/initc.pp ctypes$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(UNIXINC)/initc.pp
@@ -3688,11 +3697,11 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
 		    linux$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
-		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) types$(PPUEXT) unix$(PPUEXT) 
+		   sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT) types$(PPUEXT) unix$(PPUEXT)
 	$(COMPILER) -Fi$(OBJPASDIR)/classes $(UNIXINC)/classes.pp
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT) sysutils$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
-character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT) 
+character$(PPUEXT): sysutils$(PPUEXT) $(OBJPASDIR)/character.pas objpas$(PPUEXT) rtlconsts$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/character.pas
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp
@@ -3706,7 +3715,7 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
 	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
-ifeq ($(ARCH),x86_64)
+ifneq ($(findstring $(ARCH),x86_64 i386),)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(PROCINC)/cpu.pp
 else
@@ -3721,9 +3730,9 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(INC)/getopts.pp
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) -Sg $(INC)/heaptrc.pp
-lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/lineinfo.pp
-lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT)
+lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) $(INC)/exeinfo.pp lineinfo$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(INC)/lnfodwrf.pp
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
 	$(COMPILER) $(INC)/charset.pp

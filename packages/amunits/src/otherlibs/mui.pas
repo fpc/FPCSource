@@ -33,11 +33,6 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-{$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
 
 unit mui;
 
@@ -3473,7 +3468,7 @@ uses exec, intuition,utility,agraphics,iffparse;
          end;
        pMUI_CustomClass = ^tMUI_CustomClass;
 
-VAR MUIMasterBase : pLibrary;
+VAR MUIMasterBase : pLibrary = nil;
 
 FUNCTION MUI_NewObjectA(class_ : pCHar location 'a0'; tags : pTagItem location 'a1') : pObject_; syscall MUIMasterBase 030;
 PROCEDURE MUI_DisposeObject(obj : pObject_ location 'a0'); syscall MUIMasterBase 036;
@@ -3570,31 +3565,16 @@ function MUIV_Window_Width_Visible(p : longint) : longint;
 function MUIV_Window_Width_Screen(p : longint) : longint;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : POINTER;
-FUNCTION MUI_AslRequestTags(req : POINTER; const tags : Array Of Const) : BOOLEAN;
-FUNCTION MUI_MakeObject(_type : LONGINT; const params : Array Of Const) : pULONG;
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pULONG;
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LONGINT;
+FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
+FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
+FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
+FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitMUIMASTERLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    MUIMASTERIsCompiledHow : longint;
 
 implementation
-
-uses
-{$ifndef dont_use_openlib}
-amsgbox,
-{$endif dont_use_openlib}
-tagsarray,longarray;
 
 function MUINotifyData(obj : APTR) : pMUI_NotifyData;
 begin
@@ -3868,113 +3848,41 @@ begin
 end;
 
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : Array Of Const) : POINTER;
+FUNCTION MUI_AllocAslRequestTags(_type : longword; const tags : array of PtrUInt) : POINTER;
 begin
-    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , readintags(tags));
+    MUI_AllocAslRequestTags := MUI_AllocAslRequest(_type , @tags);
 end;
 
-FUNCTION MUI_AslRequestTags(req : POINTER; const tags : Array Of Const) : BOOLEAN;
+FUNCTION MUI_AslRequestTags(req : POINTER; const tags : array of PtrUInt) : BOOLEAN;
 begin
-    MUI_AslRequestTags := MUI_AslRequest(req , readintags(tags));
+    MUI_AslRequestTags := MUI_AslRequest(req , @tags);
 end;
 
-FUNCTION MUI_MakeObject(_type : LONGINT; const params : Array Of Const) : pULONG;
+FUNCTION MUI_MakeObject(_type : LONGINT; const params : array of PtrUInt) : pULONG;
 begin
-    MUI_MakeObject := MUI_MakeObjectA(_type , readinlongs(params));
+    MUI_MakeObject := MUI_MakeObjectA(_type , @params);
 end;
 
-FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : Array Of Const) : pULONG;
+FUNCTION MUI_NewObject(a0arg : pCHAR; const tags : array of PtrUInt) : pULONG;
 begin
-    MUI_NewObject := MUI_NewObjectA(a0arg , readintags(tags));
+    MUI_NewObject := MUI_NewObjectA(a0arg , @tags);
 end;
 
-FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : Array Of Const) : LONGINT;
+FUNCTION MUI_Request(app : POINTER; win : POINTER; flags : longword; title : pCHAR; gadgets : pCHAR; format : pCHAR; const params : array of PtrUInt) : LONGINT;
 begin
-    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , readintags(params));
+    MUI_Request := MUI_RequestA(app , win , flags , title , gadgets , format , @params);
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of muimaster.library}
-  {$Info don't forget to use InitMUIMASTERLibrary in the beginning of your program}
-
-var
-    muimaster_exit : Pointer;
-
-procedure ClosemuimasterLibrary;
-begin
-    ExitProc := muimaster_exit;
-    if MUIMasterBase <> nil then begin
-        CloseLibrary(MUIMasterBase);
-        MUIMasterBase := nil;
-    end;
-end;
-
-procedure InitMUIMASTERLibrary;
-begin
-    MUIMasterBase := nil;
-    MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-    if MUIMasterBase <> nil then begin
-        muimaster_exit := ExitProc;
-        ExitProc := @ClosemuimasterLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open muimaster.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    MUIMASTERIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of muimaster.library}
-
-var
-    muimaster_exit : Pointer;
-
-procedure ClosemuimasterLibrary;
-begin
-    ExitProc := muimaster_exit;
-    if MUIMasterBase <> nil then begin
-        CloseLibrary(MUIMasterBase);
-        MUIMasterBase := nil;
-    end;
-end;
-
-begin
-    MUIMasterBase := nil;
-    MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-    if MUIMasterBase <> nil then begin
-        muimaster_exit := ExitProc;
-        ExitProc := @ClosemuimasterLibrary;
-        MUIMASTERIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open muimaster.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    MUIMASTERIsCompiledHow := 3;
-   {$Warning No autoopening of muimaster.library compiled}
-   {$Warning Make sure you open muimaster.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
+finalization
+  if Assigned(MUIMasterBase) then
+    CloseLibrary(MUIMasterBase);
 end.

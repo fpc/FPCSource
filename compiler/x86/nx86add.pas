@@ -494,7 +494,7 @@ unit nx86add;
                  { bts requires both elements to be registers }
                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,opdef,false);
                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,opdef,true);
-                 register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
+                 register_maybe_adjust_setbase(current_asmdata.CurrAsmList,opdef,right.location,setbase);
                  op:=A_BTS;
                  noswap:=true;
                end

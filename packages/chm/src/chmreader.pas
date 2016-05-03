@@ -1198,6 +1198,7 @@ begin
       {$endif}
       inc(head,4); // zero based index (13 higher than last
     end;
+  ItemStack.Free;
 end;
 
 var TryTextual : boolean;

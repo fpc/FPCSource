@@ -124,7 +124,7 @@ unit aoptcpu;
                     result:=true;
                   end;
               { CMP #0,<ea> equals to TST <ea>, just shorter and TST is more flexible anyway }
-              A_CMP:
+              A_CMP,A_CMPI:
                 if (taicpu(p).oper[0]^.typ = top_const) and
                    (taicpu(p).oper[0]^.val = 0) then
                   begin

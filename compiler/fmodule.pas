@@ -43,7 +43,7 @@ interface
 
     uses
        cutils,cclasses,cfileutl,
-       globtype,finput,ogbase,
+       globtype,finput,ogbase,fpkg,
        symbase,symconst,symsym,
        wpobase,
        aasmbase,aasmtai,aasmdata;
@@ -158,6 +158,7 @@ interface
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
+        unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
         debuginfo     : TObject;
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
@@ -171,6 +172,7 @@ interface
         linkotherstaticlibs,
         linkotherframeworks  : tlinkcontainer;
         mainname      : pshortstring; { alternate name for "main" procedure }
+        package       : tpackage;
 
         used_units           : tlinkedlist;
         dependent_units      : tlinkedlist;
@@ -223,6 +225,7 @@ interface
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
         procedure flagdependent(callermodule:tmodule);
+        procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
@@ -610,6 +613,7 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);
+        unitimportsyms:=TFPObjectList.Create(false);
         InitDebugInfo(self,false);
       end;
 
@@ -669,6 +673,7 @@ implementation
         linkothersharedlibs.Free;
         linkotherframeworks.Free;
         stringdispose(mainname);
+        unitimportsyms.Free;
         FImportLibraryList.Free;
         extendeddefs.Free;
         genericdummysyms.free;
@@ -885,6 +890,12 @@ implementation
          end;
       end;
 
+
+    procedure tmodule.addimportedsym(sym:TSymEntry);
+      begin
+        if unitimportsyms.IndexOf(sym)<0 then
+          unitimportsyms.Add(sym);
+      end;
 
     function tmodule.addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
       var

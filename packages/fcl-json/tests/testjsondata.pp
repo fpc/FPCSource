@@ -146,6 +146,7 @@ type
     procedure DoTestFloat(F: TJSOnFloat; S: String; OK: Boolean);
   published
     procedure TestString;
+    procedure TestControlString;
     procedure TestInteger;
     procedure TestNegativeInteger;
     procedure TestFloat;
@@ -1487,6 +1488,35 @@ begin
     TestAsQWord(J,0,true);
     TestAsString(J,S);
     TestAsFloat(J,0.0,true);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestString.TestControlString;
+Var
+  J : TJSONString;
+  I : Integer;
+  T : String;
+
+begin
+
+  J:=TJSONString.Create('');
+  try
+    For I:=0 to 31 do
+      begin
+      J.AsString:='-->'+Char(I)+'<--';
+      Case I of
+       8  : T:='\b';
+       9  : T:='\t';
+       10 : T:='\n';
+       12 : T:='\f';
+       13 : T:='\r';
+      else
+        T:='\u'+HexStr(I,4);
+      end;
+      AssertEquals('Control char','"-->'+T+'<--"',J.AsJSON);
+      end;
   finally
     FreeAndNil(J);
   end;

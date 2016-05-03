@@ -23,6 +23,7 @@ uses DOM, dGlobals, PasTree;
 
 const
   LateXHighLight : Boolean = False;
+  MaxVerbatimLength : Integer = 65;
   TexExtension   : String = '.tex';
 
 Procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
@@ -130,8 +131,10 @@ Type
     // TFPDocWriter class methods
     Property ImageDir : String Read FImageDir Write FImageDir;
   public
+    Function SplitLine (ALine : String): String; virtual;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Class Function FileNameExtension : String; override;
+    class procedure Usage(List: TStrings); override;
   end;
 
 
@@ -153,15 +156,75 @@ begin
       Result[i] := ':';
 end;
 
+Function TLaTeXWriter.SplitLine (ALine : String): String;
+
+  Function FindLastSplit(S : String) : Integer;
+
+  Const
+    NonSplit = ['a'..'z','A'..'Z','0'..'9','_'];
+   
+   Var
+     L,I : integer;
+     C : PChar;
+     InString : Boolean;
+    
+  begin
+     Result:=0;
+     L:=Length(S);
+     if (L>MaxVerbatimLength) then
+       begin
+       InString:=False;
+       Result:=0;
+       I:=1;
+       C:=@S[1];
+       While (I<=L) and (Result<=MaxVerbatimLength) do
+         begin
+         If C^='''' then
+           InString:=Not Instring
+         else if Not InString then
+           begin
+           if Not (C^ in NonSplit) then
+             Result:=I;
+           end;
+         Inc(I);
+         Inc(C);
+         end;
+       end;
+     If (Result=0) or (Result=1) then
+       Result:=L+1;
+   end;
+   
+Var
+  SP : Integer;   
+  L : String;
+   
+begin
+  Result:='';
+  While (Aline<>'') do
+    begin
+    SP:=FindLastSplit(Aline);
+    L:=Copy(ALine,1,SP-1);
+    Delete(ALine,1,SP-1);
+    If (Result<>'') then
+      Result:=Result+sLineBreak+'  ';
+    Result:=Result+Trim(L);
+    end;
+end;
 
 function TLaTeXWriter.EscapeText(S: String): String;
+
 
 var
   i: Integer;
 
 begin
   if FInVerBatim=True then
-    Result:=S
+    begin
+    if (MaxVerbatimLength=0) or (length(S)<=MaxVerbatimLength) then
+      Result:=S
+    else 
+      Result:=SplitLine(S);
+    end
   else
     begin
     SetLength(Result, 0);
@@ -725,10 +788,32 @@ begin
     LatexHighLight:=True
   else if Cmd = '--latex-extension' then
      TexExtension:=Arg
+  else if Cmd = '--latex--verbatim-length' then
+     MaxVerbatimLength:=StrToInt(Arg)
   else if Cmd = '--image-dir' then
      ImageDir:=Arg
   else
     Result:=False;
+end;
+
+Resourcestring
+  SLatexHighlightDocs = 'Use the syntax highlighter for declarations.';
+  SLatexExtensionDocs = 'Specify the extension for the latex files.';
+  SLatexVerbatimLengthDocs = 'Specify maximum line length for verbatim environments (default 64).';
+  SLatexImageDirDocs = 'Specify the directory where the images are stored.';
+
+class procedure TLaTeXWriter.Usage(List: TStrings); 
+
+begin
+  Inherited;
+  List.Add('--latex-highlight');
+  List.Add(SLatexHighlightDocs);
+  List.Add('--latex-extension=ext');
+  List.Add(SLatexExtensionDocs);
+  List.Add('--latex-verbatim-length=len');
+  List.Add(SLatexVerbatimLengthDocs);
+  List.Add('--image-dir=dir');
+  List.Add(SLatexImageDirDocs);
 end;
 
 initialization

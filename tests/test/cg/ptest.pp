@@ -8,9 +8,15 @@ unit ptest;
 
 interface
 
+{$ifndef CPUJVM}
 uses
   ctypes;
-	
+{$else}
+{ CLONGDOUBLE type does not exist for java }
+type
+  clongdouble = double;
+{$endif ndef CPUJVM}
+
 { Use C alignment of records }
 {$PACKRECORDS C}
 const

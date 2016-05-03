@@ -353,7 +353,7 @@ const
 
 implementation
 
-{$define RELBRANCHES}
+{ $define RELBRANCHES}
 
 {$i avrcommon.inc}
 
@@ -392,34 +392,34 @@ label
    .init
    .globl _start
 
-   rjmp _start
-   rjmp INT0_ISR
-   rjmp PCINT0_ISR
-   rjmp PCINT1_ISR
-   rjmp PCINT2_ISR
-   rjmp WDT_ISR
-   rjmp TIMER1_CAPT_ISR
-   rjmp TIMER1_COMPA_ISR
-   rjmp TIMER1_COMPB_ISR
-   rjmp TIMER1_OVF_ISR
-   rjmp TIMER0_COMPA_ISR
-   rjmp TIMER0_COMPB_ISR
-   rjmp TIMER0_OVF_ISR
-   rjmp ANA_COMP_ISR
-   rjmp ADC_ISR
-   rjmp USART0__START_ISR
-   rjmp USART0__RX_ISR
-   rjmp USART0__UDRE_ISR
-   rjmp USART0__TX_ISR
-   rjmp USART1__START_ISR
-   rjmp USART1__RX_ISR
-   rjmp USART1__UDRE_ISR
-   rjmp USART1__TX_ISR
-   rjmp USI_START_ISR
-   rjmp USI_OVERFLOW_ISR
-   rjmp TWI_SLAVE_ISR
-   rjmp EE_RDY_ISR
-   rjmp QTRIP_ISR
+   jmp _start
+   jmp INT0_ISR
+   jmp PCINT0_ISR
+   jmp PCINT1_ISR
+   jmp PCINT2_ISR
+   jmp WDT_ISR
+   jmp TIMER1_CAPT_ISR
+   jmp TIMER1_COMPA_ISR
+   jmp TIMER1_COMPB_ISR
+   jmp TIMER1_OVF_ISR
+   jmp TIMER0_COMPA_ISR
+   jmp TIMER0_COMPB_ISR
+   jmp TIMER0_OVF_ISR
+   jmp ANA_COMP_ISR
+   jmp ADC_ISR
+   jmp USART0__START_ISR
+   jmp USART0__RX_ISR
+   jmp USART0__UDRE_ISR
+   jmp USART0__TX_ISR
+   jmp USART1__START_ISR
+   jmp USART1__RX_ISR
+   jmp USART1__UDRE_ISR
+   jmp USART1__TX_ISR
+   jmp USI_START_ISR
+   jmp USI_OVERFLOW_ISR
+   jmp TWI_SLAVE_ISR
+   jmp EE_RDY_ISR
+   jmp QTRIP_ISR
 
    {$i start.inc}
 

@@ -133,8 +133,24 @@ function LowerCase(const V: variant): string; overload;{$ifdef SYSUTILSINLINE}in
     S1 > S2  > 0
     S1 = S2  = 0     }
 
+{$IF SIZEOF(SIZEINT)>SIZEOF(INTEGER)}
+Function DoCapSizeInt(SI : SizeInt) : Integer; inline;
+
+begin
+  if (SI<0) then
+    result:=-1
+  else if (SI>0) then
+    result:=1
+  else
+    result:=0;
+end;    
+{$DEFINE CAPSIZEINT:=DoCapSizeInt}
+{$ELSE}
+{$DEFINE CAPSIZEINT:=}
+{$ENDIF}
+
 function CompareStr(const S1, S2: string): Integer;
-var count, count1, count2: integer;
+var res,count, count1, count2: SizeInt;
 begin
   result := 0;
   Count1 := Length(S1);
@@ -145,7 +161,8 @@ begin
     Count:=Count1;
   result := CompareMemRange(Pointer(S1),Pointer(S2), Count);
   if result=0 then
-    result:=Count1-Count2;
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(Count1-Count2);
 end;
 
 {   CompareMemRange returns the result of comparison of Length bytes at P1 and P2
@@ -173,10 +190,11 @@ end;
     S1 > S2  > 0
     S1 = S2  = 0     }
 
-function CompareText(const S1, S2: string): integer;
+function CompareText(const S1, S2: string): Integer;
 
 var
-  i, count, count1, count2: integer; Chr1, Chr2: byte;
+  i, count, count1, count2: sizeint; 
+  Chr1, Chr2: byte;
   P1, P2: PChar;
 begin
   Count1 := Length(S1);
@@ -209,13 +227,20 @@ begin
   if i < Count then
     result := Chr1-Chr2
   else
-    result := count1-count2;
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(Count1-Count2);
 end;
 
 function SameText(const s1,s2:String):Boolean;
 
 begin
  Result:=CompareText(S1,S2)=0;
+end;
+
+function SameStr(const s1,s2:String):Boolean;
+
+begin
+ Result:=CompareStr(S1,S2)=0;
 end;
 
 {$ifndef FPC_NOGENERICANSIROUTINES}
@@ -347,7 +372,7 @@ end;
 
 function GenericAnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 
-Var I : cardinal;
+Var I : PtrUInt;
 
 begin
   Result:=0;
@@ -375,7 +400,7 @@ end;
 
 function GenericAnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
 
-Var I : cardinal;
+Var I : PtrUInt;
 
 begin
   Result:=0;
@@ -467,37 +492,43 @@ function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$
 
 function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.CompareStrAnsiStringProc(s1,s2));
   end;
 
 
 function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.CompareTextAnsiStringProc(s1,s2));
   end;
 
 
 function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrCompAnsiStringProc(s1,s2));
   end;
 
 
 function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrICompAnsiStringProc(s1,s2);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrICompAnsiStringProc(s1,s2));
   end;
 
 
-function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLComp(S1, S2: PChar; MaxLen: SizeUInt): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen));
   end;
 
 
-function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
+function AnsiStrLIComp(S1, S2: PChar; MaxLen: SizeUint): Integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
+    // CAPSIZEINT is no-op if Sizeof(Sizeint)<=SizeOF(Integer)
+    result:=CAPSIZEINT(widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen));
   end;
 
 
@@ -706,20 +737,40 @@ end;
     'A' to 'Z', 'a' to 'z' or '_' and the following characters are
     on of: 'A' to 'Z', 'a' to 'z', '0'..'9' or '_'    }
 
-function IsValidIdent(const Ident: string): boolean;
-var i, len: integer;
+function IsValidIdent(const Ident: string; AllowDots: Boolean = False; StrictDots: Boolean = False): Boolean;
+const
+  Alpha = ['A'..'Z', 'a'..'z', '_'];
+  AlphaNum = Alpha + ['0'..'9'];
+  Dot = '.';
+var
+  First: Boolean;
+  I, Len: Integer;
 begin
-result := false;
-len := length(Ident);
-if len <> 0 then begin
-   result := Ident[1] in ['A'..'Z', 'a'..'z', '_'];
-   i := 1;
-   while (result) and (i < len) do begin
-      i := i + 1;
-      result := result and (Ident[i] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-      end ;
-   end ;
-end ;
+  Len := Length(Ident);
+  if Len < 1 then
+    Exit(False);
+  First := True;
+  for I := 1 to Len do
+  begin
+    if First then
+    begin
+      Result := Ident[I] in Alpha;
+      First := False;
+    end
+    else if AllowDots and (Ident[I] = Dot) then
+    begin
+      if StrictDots then
+      begin
+        Result := I < Len;
+        First := True;
+      end;
+    end
+    else
+      Result := Ident[I] in AlphaNum;
+    if not Result then
+      Break;
+  end;
+end;
 
 {   IntToStr returns a string representing the value of Value    }
 
@@ -825,6 +876,19 @@ begin
   if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
 end;
 
+function StrToDWord(const s: string): DWord;
+var Error: word;
+begin
+  Val(S, result, Error);
+  if Error <> 0 then raise EConvertError.createfmt(SInvalidInteger,[S]);
+end;
+
+function TryStrToDWord(const s: string; Out D: DWord): boolean;
+var Error : word;
+begin
+  Val(s, D, Error);
+  TryStrToDWord:=Error=0
+end;
 
 function TryStrToQWord(const s: string; Out Q: QWord): boolean;
 var Error : word;
@@ -842,6 +906,16 @@ begin
   Val(S, result, Error);
   if Error <> 0 then result := Default;
 end ;
+
+{   StrToDWordDef converts the string S to an DWord value,
+    Default is returned in case S does not represent a valid DWord value  }
+
+function StrToDWordDef(const S: string; Default: DWord): DWord;
+var Error: word;
+begin
+  Val(S, result, Error);
+  if Error <> 0 then result := Default;
+end;
 
 {   StrToInt64Def converts the string S to an int64 value,
     Default is returned in case S does not represent a valid int64 value  }
@@ -1409,7 +1483,7 @@ Begin
         if Negative then
           System.Delete(Result, 1, 1);
         P := Pos('.', Result);
-        If P <> 0 Then Result[P] := DS;
+        If P <> 0 Then Result[P] := DS else P := Length(Result)+1;
         Dec(P, 3);
         While (P > 1) Do
         Begin
@@ -2123,6 +2197,17 @@ Var
         End;
       If (J<>0) then
         Digits[1]:='-';
+      If (Digits[1]='-') then
+        Begin
+        I:=1;
+        While (I<=length(Digits)) And (Not (Digits[I] in ['1'..'9'])) Do
+          Inc(I);
+        If (I>length(Digits)) then
+          Begin
+          Digits:=Copy(Digits, 2, Length(Digits));
+          Dec(DecimalPoint);
+          End;
+        End;  
       Exp := 0;
       End
     Else
@@ -2591,10 +2676,11 @@ for i := 0 to SizeOf(Value) shl 1 - 1 do begin
    end ;
 end ;
 
-Function LastDelimiter(const Delimiters, S: string): Integer;
+Function LastDelimiter(const Delimiters, S: string): SizeInt;
 var
   chs: TSysCharSet;
-  I: LongInt;
+  I: SizeInt;
+  
 begin
   chs := [];
   for I := 1 to Length(Delimiters) do
@@ -2604,47 +2690,23 @@ begin
     Dec(Result);
 end;
 
+{$macro on}
+{$define INSTRINGREPLACE}
+{$define SRString:=String}
+{$define SRUpperCase:=AnsiUppercase}
+{$define SRPCHAR:=PChar}
+{$define SRCHAR:=Char}
 
 Function StringReplace(const S, OldPattern, NewPattern: string;  Flags: TReplaceFlags): string;
-var
-  Srch,OldP,RemS: string; // Srch and Oldp can contain uppercase versions of S,OldPattern
-  P : Integer;
-begin
-  Srch:=S;
-  OldP:=OldPattern;
-  if rfIgnoreCase in Flags then
-    begin
-    Srch:=AnsiUpperCase(Srch);
-    OldP:=AnsiUpperCase(OldP);
-    end;
-  RemS:=S;
-  Result:='';
-  while (Length(Srch)<>0) do
-    begin
-    P:=AnsiPos(OldP, Srch);
-    if P=0 then
-      begin
-      Result:=Result+RemS;
-      Srch:='';
-      end
-    else
-      begin
-      Result:=Result+Copy(RemS,1,P-1)+NewPattern;
-      P:=P+Length(OldP);
-      RemS:=Copy(RemS,P,Length(RemS)-P+1);
-      if not (rfReplaceAll in Flags) then
-        begin
-        Result:=Result+RemS;
-        Srch:='';
-        end
-      else
-         Srch:=Copy(Srch,P,Length(Srch)-P+1);
-      end;
-    end;
-end;
+{$i syssr.inc}
 
+{$undef INSTRINGREPLACE}
+{$undef SRString}
+{$undef SRUpperCase}
+{$undef SRPCHAR}
+{$undef SRCHAR}
 
-Function IsDelimiter(const Delimiters, S: string; Index: Integer): Boolean;
+Function IsDelimiter(const Delimiters, S: string; Index: SizeInt): Boolean;
 
 begin
   Result:=False;
@@ -2652,7 +2714,7 @@ begin
     Result:=Pos(S[Index],Delimiters)<>0; // Note we don't do MBCS yet
 end;
 
-Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
+Function ByteToCharLen(const S: string; MaxLen: SizeInt): SizeInt;
 
 begin
   Result:=Length(S);
@@ -2660,14 +2722,14 @@ begin
     Result:=MaxLen;
 end;
 
-Function ByteToCharIndex(const S: string; Index: Integer): Integer;
+Function ByteToCharIndex(const S: string; Index: SizeInt): SizeInt;
 
 begin
   Result:=Index;
 end;
 
 
-Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
+Function CharToByteLen(const S: string; MaxLen: SizeInt): SizeInt;
 
 begin
   Result:=Length(S);
@@ -2675,26 +2737,26 @@ begin
     Result:=MaxLen;
 end;
 
-Function CharToByteIndex(const S: string; Index: Integer): Integer;
+Function CharToByteIndex(const S: string; Index: SizeInt): SizeInt;
 
 begin
   Result:=Index;
 end;
 
-Function ByteType(const S: string; Index: Integer): TMbcsByteType;
+Function ByteType(const S: string; Index: SizeUInt): TMbcsByteType;
 
 begin
   Result:=mbSingleByte;
 end;
 
 
-Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
+Function StrByteType(Str: PChar; Index: SizeUInt): TMbcsByteType;
 begin
   Result:=mbSingleByte;
 end;
 
 
-Function StrCharLength(const Str: PChar): Integer;
+Function StrCharLength(const Str: PChar): SizeInt;
 begin
   result:=widestringmanager.CharLengthPCharProc(Str);
 end;
@@ -2786,7 +2848,7 @@ begin
           Inc(P,Blen)
         else
           begin
-          If (P>MaxCol) then
+          If (P>=MaxCol) then
             IBC:=C in BreakChars;
           Inc(P);
           end;
@@ -2794,10 +2856,10 @@ begin
 //      Writeln('"',C,'" : IBC : ',IBC,' HB  : ',HB,' LQ  : ',LQ,' P>MaxCol : ',P>MaxCol);
       end;
     Result:=Result+Copy(L,1,P-1);
-    If Not HB then
-      Result:=Result+BreakStr;
     Delete(L,1,P-1);
     Len:=Length(L);
+    If (Len>0) and Not HB then
+      Result:=Result+BreakStr;
     end;
 end;
 

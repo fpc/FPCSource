@@ -401,7 +401,7 @@ type
        { string container }
        TCmdStrList = class(TLinkedList)
        private
-          FDoubles : boolean;  { if this is set to true, doubles are allowed }
+          FDoubles : boolean;  { if this is set to true, doubles (case insensitive!) are allowed }
        public
           constructor Create;
           constructor Create_No_Double;
@@ -2407,7 +2407,7 @@ end;
     procedure TCmdStrList.insert(const s : TCmdStr);
       begin
          if (s='') or
-            ((not FDoubles) and (find(s)<>nil)) then
+            ((not FDoubles) and (findcase(s)<>nil)) then
           exit;
          inherited insert(TCmdStrListItem.create(s));
       end;
@@ -2416,7 +2416,7 @@ end;
     procedure TCmdStrList.concat(const s : TCmdStr);
       begin
          if (s='') or
-            ((not FDoubles) and (find(s)<>nil)) then
+            ((not FDoubles) and (findcase(s)<>nil)) then
           exit;
          inherited concat(TCmdStrListItem.create(s));
       end;
@@ -2428,7 +2428,7 @@ end;
       begin
         if s='' then
          exit;
-        p:=find(s);
+        p:=findcase(s);
         if assigned(p) then
          begin
            inherited Remove(p);

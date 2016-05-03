@@ -121,6 +121,7 @@ const
   scan_w_invalid_stacksize=02096;
   scan_w_heapmax_lessthan_heapmin=02097;
   scan_e_illegal_hugepointernormalization=02098;
+  scan_e_illegal_asmcpu_specifier=02099;
   parser_e_syntax_error=03000;
   parser_e_dont_nest_interrupt=03004;
   parser_w_proc_directive_ignored=03005;
@@ -446,6 +447,8 @@ const
   parser_e_explicit_method_implementation_for_specializations_not_allowed=03341;
   parser_e_no_genfuncs_in_interfaces=03342;
   parser_e_genfuncs_cannot_be_virtual=03343;
+  parser_e_packages_not_supported=03344;
+  parser_e_cannot_use_hardfloat_in_a_softfloat_environment=03345;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -801,6 +804,7 @@ const
   asmr_e_seg_without_identifier=07126;
   asmr_e_CODE_or_DATA_without_SEG=07127;
   asmr_e_const16bit_for_segment=07128;
+  asmr_e_invalid_code_value=07129;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -833,6 +837,7 @@ const
   asmw_e_32bit_not_supported=08029;
   asmw_f_code_segment_too_large=08030;
   asmw_f_data_segment_too_large=08031;
+  asmw_e_instruction_not_supported_by_cpu=08032;
   exec_w_source_os_redefined=09000;
   exec_i_assembling_pipe=09001;
   exec_d_cant_create_asmfile=09002;
@@ -946,6 +951,7 @@ const
   unit_e_different_wpo_file=10061;
   unit_u_indirect_crc_changed=10062;
   unit_u_ppu_invalid_memory_model=10063;
+  unit_u_loading_from_package=10064;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -1019,13 +1025,41 @@ const
   wpo_error_executing_symbol_prog=12017;
   wpo_symbol_live_info_needs_smart_linking=12018;
   wpo_cant_create_feedback_file=12019;
+  package_f_cant_find_pcp=13001;
+  package_u_pcp_found=13002;
+  package_e_duplicate_package=13003;
+  package_e_unit_deny_package=13004;
+  package_n_implicit_unit_import=13005;
+  package_f_cant_create_pcp=13006;
+  package_f_cant_read_pcp=13007;
+  package_t_pcp_loading=13008;
+  package_u_pcp_name=13009;
+  package_u_pcp_flags=13010;
+  package_u_pcp_crc=13011;
+  package_u_pcp_time=13012;
+  package_u_pcp_file_too_short=13013;
+  package_u_pcp_invalid_header=13014;
+  package_u_pcp_invalid_version=13015;
+  package_u_pcp_invalid_processor=13016;
+  package_u_pcp_invalid_target=13017;
+  package_u_pcp_write=13018;
+  package_f_pcp_cannot_write=13019;
+  package_f_pcp_read_error=13020;
+  package_f_pcp_read_unexpected_end=13021;
+  package_f_pcp_invalid_entry=13022;
+  package_u_pcp_invalid_fpumode=13023;
+  package_t_packagesearch=13024;
+  package_u_required_package=13025;
+  package_u_contained_unit=13026;
+  package_e_unit_already_contained_in_package=13027;
+  package_w_unit_from_indirect_package=13028;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 76521;
+  MsgTxtSize = 78039;
 
   MsgIdxMax : array[1..20] of longint=(
-    27,99,344,124,96,58,129,32,208,64,
-    58,20,1,1,1,1,1,1,1,1
+    27,100,346,124,96,58,130,33,208,65,
+    58,20,29,1,1,1,1,1,1,1
   );

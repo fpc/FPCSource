@@ -117,6 +117,8 @@ interface
         '',
         '',
         '',
+        '',
+        '',
         ''
       );
 
@@ -264,6 +266,20 @@ interface
         top_ref:
           if o.ref^.refaddr=addr_no then
             getopstr:=getreferencestring(o.ref^)
+          else if o.ref^.refaddr=addr_pic_no_got then
+            begin
+              if (o.ref^.base<>NR_RTOC) or
+                 (o.ref^.index<>NR_NO) or
+                 (o.ref^.offset<>0) or
+                 not assigned(o.ref^.symbol) then
+                internalerror(2011122701);
+              hs:=o.ref^.symbol.name;
+              ReplaceForbiddenChars(hs);
+              if o.ref^.symbol.bind=AB_EXTERNAL then
+                hs:=hs+'[TC]';
+              hs:=hs+'(RTOC)';
+              getopstr:=hs;
+            end
           else
             begin
               hs:=o.ref^.symbol.name;
@@ -904,47 +920,9 @@ interface
 
             ait_realconst:
               begin
-                { update for tai_realconst change, see aggas.pas and commented
-                  old code below }
-                internalerror(2014050607);
-              end;
-(*
-            ait_real_64bit :
-              begin
-                writer.AsmWriteLn(asminfo^.comment+'value: '+double2str(tai_real_64bit(hp).value));
-                d:=tai_real_64bit(hp).value;
-                { swap the values to correct endian if required }
-                if source_info.endian <> target_info.endian then
-                  swap64bitarray(t64bitarray(d));
-                writer.AsmWrite(#9'dc.b'#9);
-                  begin
-                    for i:=0 to 7 do
-                      begin
-                        if i<>0 then
-                          writer.AsmWrite(',');
-                        writer.AsmWrite(tostr(t64bitarray(d)[i]));
-                      end;
-                  end;
-                writer.AsmLn;
+                WriteRealConstAsBytes(tai_realconst(hp),#9'dc.b'#9,do_line);
               end;
 
-            ait_real_32bit :
-              begin
-                writer.AsmWriteLn(asminfo^.comment+'value: '+single2str(tai_real_32bit(hp).value));
-                sin:=tai_real_32bit(hp).value;
-                { swap the values to correct endian if required }
-                if source_info.endian <> target_info.endian then
-                  swap32bitarray(t32bitarray(sin));
-                writer.AsmWrite(#9'dc.b'#9);
-                for i:=0 to 3 do
-                  begin
-                    if i<>0 then
-                      writer.AsmWrite(',');
-                    writer.AsmWrite(tostr(t32bitarray(sin)[i]));
-                  end;
-                writer.AsmLn;
-              end;
-*)
             ait_string:
               begin
                 {NOTE When a single quote char is encountered, it is
@@ -1093,6 +1071,16 @@ interface
                    else if tai_marker(hp).kind=mark_NoLineInfoEnd then
                      dec(InlineLevel);
                  end;
+              ait_directive :
+                if tai_directive(hp).directive=asd_cpu then
+                  begin
+                    writer.AsmWrite(asminfo^.comment+' CPU ');
+                    if tai_directive(hp).name<>'' then
+                      writer.AsmWrite(tai_directive(hp).name);
+                    writer.AsmLn;
+                  end
+                else
+                  internalerror(2016022601);
          else
           internalerror(2002110303);
          end;

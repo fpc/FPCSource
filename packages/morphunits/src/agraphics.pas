@@ -2193,7 +2193,7 @@ const
 
 
 var
-  GfxBase : Pointer;
+  GfxBase : Pointer = nil;
 
 
 function BltBitMap(srcBitMap : pBitMap location 'a0'; xSrc : LongInt location 'd0'; ySrc : LongInt location 'd1'; destBitMap : pBitMap location 'a1'; xDest : LongInt location 'd2'; yDest : LongInt location 'd3'; xSize : LongInt location 'd4'; ySize : LongInt location 'd5'; minterm : CARDINAL location 'd6'; mask : CARDINAL location 'd7'; tempA : pCHAR location 'a2') : LongInt;
@@ -2274,7 +2274,7 @@ SysCall GfxBase 180;
 function AreaEllipse(rp : pRastPort location 'a1'; xCenter : LongInt location 'd0'; yCenter : LongInt location 'd1'; a : LongInt location 'd2'; b : LongInt location 'd3') : LongInt;
 SysCall GfxBase 186;
 
-procedure LoadRGB4(vp : pViewPort location 'a0'; VAR colors : Integer location 'a1'; count : LongInt location 'd0');
+procedure LoadRGB4(vp : pViewPort location 'a0'; Colors : PWord location 'a1'; count : LongInt location 'd0');
 SysCall GfxBase 192;
 
 procedure InitRastPort(rp : pRastPort location 'a1');
@@ -2328,7 +2328,7 @@ SysCall GfxBase 288;
 procedure QBSBlit(blit : pbltnode location 'a1');
 SysCall GfxBase 294;
 
-procedure BltClear(memBlock : pCHAR location 'a1'; byteCount : CARDINAL location 'd0'; flags : CARDINAL location 'd1');
+procedure BltClear(memBlock : Pointer location 'a1'; byteCount : CARDINAL location 'd0'; flags : CARDINAL location 'd1');
 SysCall GfxBase 300;
 
 procedure RectFill(rp : pRastPort location 'a1'; xMin : LongInt location 'd0'; yMin : LongInt location 'd1'; xMax : LongInt location 'd2'; yMax : LongInt location 'd3');
@@ -2388,7 +2388,7 @@ SysCall GfxBase 408;
 procedure FreeSprite(num : LongInt location 'd0');
 SysCall GfxBase 414;
 
-procedure ChangeSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; VAR newData : Integer location 'a2');
+procedure ChangeSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; newData : PWord location 'a2');
 SysCall GfxBase 420;
 
 procedure MoveSprite(vp : pViewPort location 'a0'; sprite : pSimpleSprite location 'a1'; x : LongInt location 'd0'; y : LongInt location 'd1');
@@ -2526,7 +2526,7 @@ SysCall GfxBase 696;
 function GfxLookUp(associateNode : POINTER location 'a0') : POINTER;
 SysCall GfxBase 702;
 
-function VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongBool;
+function VideoControl(colorMap : pColorMap location 'a0'; tagarray : pTagItem location 'a1') : LongWord;
 SysCall GfxBase 708;
 
 function OpenMonitor(monitorName : pSHORTINT location 'a1'; displayID : CARDINAL location 'd0') : pMonitorSpec;
@@ -2704,15 +2704,18 @@ procedure ON_SPRITE (cust: pCustom);
 procedure OFF_VBLANK (cust: pCustom);
 procedure ON_VBLANK (cust: pCustom);
 
+procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt); inline;
+function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
+
 function RasSize(w, h: Word): Integer;
+
+function ObtainBestPen(cm : pColorMap; r, g, b: CARDINAL; Tags: array of DWord) : LongInt; inline;
+function BestModeID(Tags: array of DWord) : CARDINAL; inline;
 
 { unit/library initialization }
 function InitGraphicsLibrary : boolean;
 
-
-
 implementation
-
 
 procedure BNDRYOFF (w: pRastPort);
 begin
@@ -2809,34 +2812,39 @@ begin
   RasSize := h * (((w + 15) shr 3) and $FFFE);
 end;
 
+procedure DrawCircle(Rp: PRastPort; xCenter, yCenter, r: LongInt); inline;
+begin
+  DrawEllipse(Rp, xCenter, yCenter, r, r);
+end;
+
+function AreaCircle(Rp: PRastPort; xCenter, yCenter, r: SmallInt): LongWord; inline;
+begin
+  AreaCircle := AreaEllipse(Rp, xCenter, yCenter, r, r);
+end;
+
+function ObtainBestPen(cm : pColorMap; r, g, b: CARDINAL; Tags: array of DWord) : LongInt;
+begin
+  ObtainBestPen := ObtainBestPenA(cm, r, g, b, @Tags);
+end;
+
+function BestModeID(Tags: array of DWord) : CARDINAL;
+begin
+  BestModeID := BestModeIDA(@Tags);
+end;
+
 const
   { Change VERSION and LIBVERSION to proper values }
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-var
-  graphics_exit : Pointer;
-
-procedure CloseGraphicsLibrary;
-begin
-  ExitProc := graphics_exit;
-  if GfxBase <> nil then begin
-    CloseLibrary(GfxBase);
-    GfxBase := nil;
-  end;
-end;
-
 function InitGraphicsLibrary : boolean;
 begin
-  GfxBase := nil;
-  GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
-  if GfxBase <> nil then begin
-    graphics_exit := ExitProc;
-    ExitProc := @CloseGraphicsLibrary;
-    InitGraphicsLibrary:=True;
-  end else begin
-    InitGraphicsLibrary:=False;
-  end;
+  InitGraphicsLibrary := Assigned(GfxBase);
 end;
 
+initialization
+  GfxBase := OpenLibrary(GRAPHICSNAME,LIBVERSION);
+finalization
+  if Assigned(GfxBase) then
+    CloseLibrary(GfxBase);
 end.

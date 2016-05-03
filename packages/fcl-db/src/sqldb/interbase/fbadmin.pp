@@ -50,7 +50,8 @@ type
      IBBkpNoGarbageCollect,IBBkpOldDescriptions,IBBkpNonTransportable,IBBkpConvert);
   TIBBackupOptions= set of TIBBackupOption;
   TIBRestoreOption=(IBResVerbose,IBResDeactivateIdx,IBResNoShadow,IBResNoValidity,
-     IBResOneAtaTime,IBResReplace,IBResCreate,IBResUseAllSpace,IBResAMReadOnly,IBResAMReadWrite);
+     IBResOneAtaTime,IBResReplace,IBResCreate,IBResUseAllSpace,IBResAMReadOnly,IBResAMReadWrite,
+     IBFixFssData, IBFixFssMeta);
   TIBRestoreOptions= set of TIBRestoreOption;
   TServiceProtocol=(IBSPLOCAL,IBSPTCPIP,IBSPNETBEUI,IBSPNAMEDPIPE);
   TIBOnOutput= procedure(Sender: TObject; msg: string; IBAdminAction: string) of object;
@@ -64,6 +65,7 @@ type
   private
     FErrorCode: longint;
     FErrorMsg: string;
+    FFixFssDataCharSet: String;
     FHost: string;
     FOnOutput: TIBOnOutput;
     FOutput: TStringList;
@@ -152,6 +154,8 @@ type
     property ServerMsgDir:string read FServerMsgDir;
     //Path to the security database in use by the server
     property ServerSecDBDir:string read FServerSecDBDir;
+    // FixFxxData/FixFxxMetaData code page
+    property FixFssDataCharSet: String read FFixFssDataCharSet write FFixFssDataCharSet;
   published
     //User name to connect to service manager
     property User: string read FUser write FUser;
@@ -373,6 +377,7 @@ begin
   inherited Create(AOwner);
   FPort:= 3050;
   FOutput:=TStringList.Create;
+  FFixFssDataCharSet:= '';
 end;
 
 destructor TFBAdmin.Destroy;
@@ -506,6 +511,10 @@ begin
     else
       spb:=spb+chr(isc_spb_res_access_mode)+chr(isc_spb_res_am_readwrite);
     end;
+  if (IBFixFssData in Options) and (FixFssDataCharSet > ' ') then
+    spb:=spb+IBSPBParamSerialize(isc_spb_res_fix_fss_data, FixFssDataCharSet);
+  if (IBFixFssMeta in Options) and (FixFssDataCharSet > ' ') then
+    spb:=spb+IBSPBParamSerialize(isc_spb_res_fix_fss_metadata, FixFssDataCharSet);
   spb:=spb+IBSPBParamSerialize(isc_spb_options,MakeRestoreOptions(Options));
   result:=isc_service_start(@FStatus[0], @FSvcHandle, nil, length(spb),
     @spb[1])=0;

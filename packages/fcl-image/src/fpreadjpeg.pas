@@ -64,6 +64,7 @@ type
   protected
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
     function  InternalCheck(Str: TStream): boolean; override;
+    class function InternalSize(Str:TStream): TPoint; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -450,12 +451,47 @@ begin
   end;
 end;
 
-function TFPReaderJPEG.InternalCheck(Str: TStream): boolean;
+class function TFPReaderJPEG.InternalSize(Str: TStream): TPoint;
+var
+  JInfo: jpeg_decompress_struct;
+  JError: jpeg_error_mgr;
+
+  procedure SetSource;
+  begin
+    jpeg_stdio_src(@JInfo, @Str);
+  end;
+
+  procedure ReadHeader;
+  begin
+    jpeg_read_header(@JInfo, TRUE);
+    Result.X := JInfo.image_width;
+    Result.Y := JInfo.image_height;
+  end;
+
 begin
-  // ToDo: read header and check
-  Result:=false;
-  if Str=nil then exit;
-  Result:=true;
+  FillChar(JInfo,SizeOf(JInfo),0);
+  if Str.Position < Str.Size then begin
+    JError:=jpeg_std_error;
+    JInfo.err := @JError;
+    jpeg_CreateDecompress(@JInfo, JPEG_LIB_VERSION, SizeOf(JInfo));
+    try
+      SetSource;
+      ReadHeader;
+    finally
+      jpeg_Destroy_Decompress(@JInfo);
+    end;
+  end;
+end;
+
+function TFPReaderJPEG.InternalCheck(Str: TStream): boolean;
+var
+  Buf: array[0..1] of Byte = (0, 0);
+  p: Int64;
+begin
+  if Str=nil then exit(false);
+  p:=Str.Position;
+  Result := (Str.Read(Buf, 2)=2) and (Buf[0]=$FF) and (Buf[1]=$D8); // byte sequence FFD8 = start of image
+  Str.Position:=p;
 end;
 
 constructor TFPReaderJPEG.Create;

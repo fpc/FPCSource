@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, typinfo, fpjson,
-  testcomps, testjsondata, fpjsonrtti;
+  dateutils, testcomps, testjsondata, fpjsonrtti;
 
 type
 
-  { TCJSONStreamer }
+  { TTestJSONStreamer }
 
-  TCJSONStreamer = class(TTestJSON)
+  TTestJSONStreamer = class(TTestJSON)
   private
     FRJ : TJSONStreamer;
     FSR : TJSONObject;
@@ -77,6 +77,8 @@ type
     procedure TestCollectionStream2;
     procedure TestOnStreamProperty;
     Procedure TestDateTimeProp;
+    Procedure TestDateTimePropDefaultString;
+    Procedure TestDateTimePropDefaultStringTime;
     Procedure TestDateTimeProp2;
     Procedure TestDateTimeProp3;
     procedure TestDateTimeProp4;
@@ -108,9 +110,9 @@ type
     Procedure TestChildren2;
   end;
 
-  { TCJSONDeStreamer }
+  { TTestJSONDeStreamer }
 
-  TCJSONDeStreamer = class(TTestJSON)
+  TTestJSONDeStreamer = class(TTestJSON)
   private
     FDS : TJSONDeStreamer;
     FJD : TJSONData;
@@ -118,6 +120,7 @@ type
     FCalled : Boolean;
     procedure DeStream(JSON: TJSONStringType; AObject: TObject);
     procedure DeStream(JSON: TJSONObject; AObject: TObject);
+    procedure DoDateTimeFormat;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -142,6 +145,8 @@ type
     procedure TestFloat3;
     procedure TestFloat4;
     procedure TestFloat5;
+    procedure TestDateTime;
+    procedure TestDateTimeFormat;
     procedure TestEnum1;
     procedure TestEnum2;
     Procedure TestSet1;
@@ -166,15 +171,15 @@ implementation
 
 uses variants;
 
-{ TCJSONDeStreamer }
+{ TTestJSONDeStreamer }
 
-procedure TCJSONDeStreamer.SetUp;
+procedure TTestJSONDeStreamer.SetUp;
 begin
   inherited SetUp;
   FDS:=TJSONDeStreamer.Create(Nil)
 end;
 
-procedure TCJSONDeStreamer.TearDown;
+procedure TTestJSONDeStreamer.TearDown;
 begin
   FreeAndNil(FDS);
   FreeAndNil(FJD);
@@ -182,13 +187,13 @@ begin
   inherited TearDown;
 end;
 
-procedure TCJSONDeStreamer.AssertVarType(Msg: String; AVarType: TVarType;
+procedure TTestJSONDeStreamer.AssertVarType(Msg: String; AVarType: TVarType;
   const Variant: Variant);
 begin
   AssertEquals(Msg,VarTypeAsText(AVarType),VarTypeAsText(VarType(Variant)));
 end;
 
-procedure TCJSONDeStreamer.TestVariantInteger;
+procedure TTestJSONDeStreamer.TestVariantInteger;
 
 Var
   V : Variant;
@@ -200,7 +205,7 @@ begin
   AssertEquals('Integer value',12,V);
 end;
 
-procedure TCJSONDeStreamer.TestVariantFloat;
+procedure TTestJSONDeStreamer.TestVariantFloat;
 Var
   V : Variant;
 
@@ -211,7 +216,7 @@ begin
   AssertEquals('Float value',1.2,V);
 end;
 
-procedure TCJSONDeStreamer.TestVariantInt64;
+procedure TTestJSONDeStreamer.TestVariantInt64;
 Var
   V : Variant;
 
@@ -222,7 +227,7 @@ begin
   AssertEquals('Int64 value',123,V);
 end;
 
-procedure TCJSONDeStreamer.TestVariantBoolean;
+procedure TTestJSONDeStreamer.TestVariantBoolean;
 Var
   V : Variant;
 
@@ -233,7 +238,7 @@ begin
   AssertEquals('Boolean value',True,V);
 end;
 
-procedure TCJSONDeStreamer.TestVariantNull;
+procedure TTestJSONDeStreamer.TestVariantNull;
 Var
   V : Variant;
 
@@ -243,18 +248,18 @@ begin
   AssertVarType('Null data',varNull,V);
 end;
 
-procedure TCJSONDeStreamer.TestVariantString;
+procedure TTestJSONDeStreamer.TestVariantString;
 Var
   V : Variant;
 
 begin
   JD:=TJSONString.Create('A string');
   V:=DS.JSONToVariant(JD);
-  AssertVarType('String data',varString,V);
+  AssertVarType('String data',varOleStr,V);
   AssertEquals('String data','A string',V);
 end;
 
-procedure TCJSONDeStreamer.TestVariantArray;
+procedure TTestJSONDeStreamer.TestVariantArray;
 Var
   V : Variant;
 begin
@@ -268,7 +273,7 @@ begin
   AssertEquals('Element 2 value correct ',3,V[2]);
 end;
 
-procedure TCJSONDeStreamer.TestEmpty;
+procedure TTestJSONDeStreamer.TestEmpty;
 begin
   FTofree:=TComponent.Create(Nil);
   DS.JSONToObject('{}',FTofree);
@@ -276,21 +281,21 @@ begin
   AssertEquals('Empty Tag',0,TComponent(FToFree).Tag);
 end;
 
-procedure TCJSONDeStreamer.DeStream(JSON : TJSONStringType; AObject : TObject);
+procedure TTestJSONDeStreamer.DeStream(JSON : TJSONStringType; AObject : TObject);
 
 begin
   FToFree:=AObject;
   DS.JSONToObject(JSON,FTofree);
 end;
 
-procedure TCJSONDeStreamer.DeStream(JSON: TJSONObject; AObject: TObject);
+procedure TTestJSONDeStreamer.DeStream(JSON: TJSONObject; AObject: TObject);
 begin
   FToFree:=AObject;
   JD:=JSON;
   DS.JSONToObject(JSON,FTofree);
 end;
 
-procedure TCJSONDeStreamer.TestBoolean;
+procedure TTestJSONDeStreamer.TestBoolean;
 
 Var
   B : TBooleanComponent;
@@ -301,7 +306,7 @@ begin
   AssertEquals('Correct boolean value',true,B.BooleanProp);
 end;
 
-procedure TCJSONDeStreamer.TestInteger;
+procedure TTestJSONDeStreamer.TestInteger;
 
 Var
   B : TIntegerComponent;
@@ -312,7 +317,7 @@ begin
   AssertEquals('Correct integer value',22,B.IntProp);
 end;
 
-procedure TCJSONDeStreamer.TestString;
+procedure TTestJSONDeStreamer.TestString;
 
 Var
   B : TStringComponent;
@@ -323,7 +328,7 @@ begin
   AssertEquals('Correct string value','A nice string',B.StringProp);
 end;
 
-procedure TCJSONDeStreamer.TestFloat;
+procedure TTestJSONDeStreamer.TestFloat;
 
 Var
   B : TSingleComponent;
@@ -334,7 +339,7 @@ begin
   AssertEquals('Correct single value',2.34,B.SingleProp);
 end;
 
-procedure TCJSONDeStreamer.TestFloat2;
+procedure TTestJSONDeStreamer.TestFloat2;
 
 Var
   B : TDoubleComponent;
@@ -345,7 +350,7 @@ begin
   AssertEquals('Correct Double value',3.45,B.DoubleProp);
 end;
 
-procedure TCJSONDeStreamer.TestFloat3;
+procedure TTestJSONDeStreamer.TestFloat3;
 Var
   B : TExtendedComponent;
 
@@ -355,7 +360,7 @@ begin
   AssertEquals('Correct extended value',4.56,B.ExtendedProp);
 end;
 
-procedure TCJSONDeStreamer.TestFloat4;
+procedure TTestJSONDeStreamer.TestFloat4;
 
 Var
   B : TCompComponent;
@@ -370,7 +375,7 @@ begin
 {$endif}
 end;
 
-procedure TCJSONDeStreamer.TestFloat5;
+procedure TTestJSONDeStreamer.TestFloat5;
 Var
   B : TCurrencyComponent;
 
@@ -380,7 +385,44 @@ begin
   AssertEquals('Correct string value',5.67,B.CurrencyProp);
 end;
 
-procedure TCJSONDeStreamer.TestEnum1;
+procedure TTestJSONDeStreamer.TestDateTime;
+
+Var
+  E : TDateTimeComponent;
+  D : TDateTime;
+
+begin
+  E:=TDateTimeComponent.Create(Nil);
+  D:= RecodeMillisecond(Now,0);
+  DeStream('{"DateTimeProp" : "'+FormatDateTime(RFC3339DateTimeFormat,D)+'"}',E);
+  AssertEquals('Correct value',D,E.DateTimeProp);
+end;
+
+procedure TTestJSONDeStreamer.DoDateTimeFormat;
+
+begin
+  DeStream('{"DateTimeProp" : "'+DateTimeToStr(RecodeMillisecond(Now,0))+'"}',FToFree);
+end;
+
+procedure TTestJSONDeStreamer.TestDateTimeFormat;
+
+Const
+  ISO8601 = 'yyyymmdd"T"hhnnss';
+
+Var
+  E : TDateTimeComponent;
+  D : TDateTime;
+
+begin
+  E:=TDateTimeComponent.Create(Nil);
+  D:=RecodeMillisecond(Now,0);
+  DS.DateTimeFormat:=ISO8601;
+  DeStream('{"DateTimeProp" : "'+FormatDateTime(Iso8601,D)+'"}',E);
+  AssertEquals('Correct value',D,E.DateTimeProp);
+  AssertException('Error if  string does not correspond to specified format',EConvertError,@DoDateTimeFormat);
+end;
+
+procedure TTestJSONDeStreamer.TestEnum1;
 
 Var
   E : TEnumcomponent;
@@ -391,7 +433,7 @@ begin
   AssertEquals('Correct value',2,Ord(E.Dice));
 end;
 
-procedure TCJSONDeStreamer.TestEnum2;
+procedure TTestJSONDeStreamer.TestEnum2;
 
 Var
   E : TEnumcomponent;
@@ -402,7 +444,7 @@ begin
   AssertEquals('Correct value',GetEnumName(TypeInfo(TDice),Ord(Three)),GetEnumName(TypeInfo(TDice),Ord(E.Dice)));
 end;
 
-procedure TCJSONDeStreamer.TestSet1;
+procedure TTestJSONDeStreamer.TestSet1;
 
 Var
   T : TSetComponent;
@@ -414,7 +456,7 @@ begin
     Fail('Correct value for throw');
 end;
 
-procedure TCJSONDeStreamer.TestSet2;
+procedure TTestJSONDeStreamer.TestSet2;
 
 Var
   T : TSetComponent;
@@ -426,7 +468,7 @@ begin
     Fail('Correct value for throw');
 end;
 
-procedure TCJSONDeStreamer.TestSet3;
+procedure TTestJSONDeStreamer.TestSet3;
 
 Var
   T : TSetComponent;
@@ -438,7 +480,7 @@ begin
     Fail('Correct value for throw');
 end;
 
-procedure TCJSONDeStreamer.TestSet4;
+procedure TTestJSONDeStreamer.TestSet4;
 
 Var
   T : TSetComponent;
@@ -450,7 +492,7 @@ begin
     Fail('Correct value for throw');
 end;
 
-procedure TCJSONDeStreamer.TestVariantProp;
+procedure TTestJSONDeStreamer.TestVariantProp;
 Var
   V : TVariantComponent;
 
@@ -460,7 +502,7 @@ begin
   AssertEquals('Variant property value','A string',V.VariantProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollection;
+procedure TTestJSONDeStreamer.TestCollection;
 
 Var
   C : TTestCollection;
@@ -475,7 +517,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollection2;
+procedure TTestJSONDeStreamer.TestCollection2;
 
 Var
   C : TTestCollection;
@@ -490,7 +532,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollection3;
+procedure TTestJSONDeStreamer.TestCollection3;
 
 Var
   C : TTestCollection;
@@ -506,7 +548,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollection4;
+procedure TTestJSONDeStreamer.TestCollection4;
 
 Var
   C : TTestCollection;
@@ -522,7 +564,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollection5;
+procedure TTestJSONDeStreamer.TestCollection5;
 
 Var
   C : TTestCollection;
@@ -539,7 +581,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollection6;
+procedure TTestJSONDeStreamer.TestCollection6;
 Var
   C : TTestCollection;
 
@@ -555,7 +597,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollectionProp;
+procedure TTestJSONDeStreamer.TestCollectionProp;
 
 Var
   C : TCollection;
@@ -571,7 +613,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestCollectionProp2;
+procedure TTestJSONDeStreamer.TestCollectionProp2;
 
 Var
   C : TCollection;
@@ -587,7 +629,7 @@ begin
   AssertEquals('Class item 1','two',TTestItem(C.Items[1]).StrProp);
 end;
 
-procedure TCJSONDeStreamer.TestStrings;
+procedure TTestJSONDeStreamer.TestStrings;
 
 Var
   S : TStrings;
@@ -601,7 +643,7 @@ begin
   AssertEquals('First item','two',S[1]);
 end;
 
-procedure TCJSONDeStreamer.TestStrings2;
+procedure TTestJSONDeStreamer.TestStrings2;
 
 Var
   S : TStrings;
@@ -615,7 +657,7 @@ begin
   AssertEquals('First item','two',S[1]);
 end;
 
-procedure TCJSONDeStreamer.TestStrings3;
+procedure TTestJSONDeStreamer.TestStrings3;
 Var
   S : TStrings;
 
@@ -628,16 +670,16 @@ begin
   AssertEquals('First item','two',S[1]);
 end;
 
-{ TCJSONStreamer }
+{ TTestJSONStreamer }
 
-function TCJSONStreamer.StreamObject(AObject: TObject): TJSONObject;
+function TTestJSONStreamer.StreamObject(AObject: TObject): TJSONObject;
 begin
   FToFree:=AObject;
   FSR:=FRJ.ObjectToJSON(AObject);
   Result:=FSR;
 end;
 
-procedure TCJSONStreamer.DoStreamProperty1(Sender: TObject; AObject: TObject;
+procedure TTestJSONStreamer.DoStreamProperty1(Sender: TObject; AObject: TObject;
   Info: PPropInfo; var Res: TJSONData);
 begin
   If (info^.name<>'IntProp') and (info^.name<>'Name') and (info^.name<>'Tag') then
@@ -647,13 +689,13 @@ begin
   FCalled:=true;
 end;
 
-procedure TCJSONStreamer.SetUp;
+procedure TTestJSONStreamer.SetUp;
 begin
   Inherited;
   FRJ:=TJSONStreamer.Create(Nil);
 end;
 
-procedure TCJSONStreamer.TearDown;
+procedure TTestJSONStreamer.TearDown;
 begin
   FreeAndNil(FSR);
   FreeAndNil(FRJ);
@@ -661,13 +703,13 @@ begin
   Inherited;
 end;
 
-procedure TCJSONStreamer.AssertEquals(AMessage: String; Expected, Actual: TJSONType);
+procedure TTestJSONStreamer.AssertEquals(AMessage: String; Expected, Actual: TJSONType);
 begin
   AssertEquals(AMessage,GetEnumName(TypeInfo(TJSONType),Ord(Expected)),
                         GetEnumName(TypeInfo(TJSONType),Ord(Actual)));
 end;
 
-procedure TCJSONStreamer.AssertPropCount(ACount: Integer);
+procedure TTestJSONStreamer.AssertPropCount(ACount: Integer);
 begin
   AssertNotNull('Result of streaming available',FSR);
   If FToFree is TComponent then
@@ -676,7 +718,7 @@ begin
   AssertEquals('Property count correct',ACount,FSR.Count);
 end;
 
-function TCJSONStreamer.AssertProperty(APropName: String; AType: TJSONType
+function TTestJSONStreamer.AssertProperty(APropName: String; AType: TJSONType
   ): TJSONData;
 
 Var
@@ -691,35 +733,35 @@ begin
                                                            GetEnumName(TypeInfo(TJSONType),Ord(Result.JSONType)));
 end;
 
-procedure TCJSONStreamer.AssertProp(APropName: String; AValue: Boolean);
+procedure TTestJSONStreamer.AssertProp(APropName: String; AValue: Boolean);
 begin
   AssertNotNull('Result of streaming available',FSR);
   AssertEquals('Result of streaming is TJSONObject',TJSONObject,FSR.ClassType);
   AssertEquals('Correct value',AValue,AssertProperty(APropName,jtBoolean).AsBoolean);
 end;
 
-procedure TCJSONStreamer.AssertProp(APropName: String; AValue: Integer);
+procedure TTestJSONStreamer.AssertProp(APropName: String; AValue: Integer);
 begin
   AssertNotNull('Result of streaming available',FSR);
   AssertEquals('Result of streaming is TJSONObject',TJSONObject,FSR.ClassType);
   AssertEquals('Correct value',AValue,AssertProperty(APropName,jtNumber).AsInteger);
 end;
 
-procedure TCJSONStreamer.AssertProp(APropName: String; AValue: String);
+procedure TTestJSONStreamer.AssertProp(APropName: String; AValue: String);
 begin
   AssertNotNull('Result of streaming available',FSR);
   AssertEquals('Result of streaming is TJSONObject',TJSONObject,FSR.ClassType);
   AssertEquals('Correct value',AValue,AssertProperty(APropName,jtString).AsString);
 end;
 
-procedure TCJSONStreamer.AssertProp(APropName: String; AValue: TJSONFloat);
+procedure TTestJSONStreamer.AssertProp(APropName: String; AValue: TJSONFloat);
 begin
   AssertNotNull('Result of streaming available',FSR);
   AssertEquals('Result of streaming is TJSONObject',TJSONObject,FSR.ClassType);
   AssertEquals('Correct value',AValue,AssertProperty(APropName,jtNumber).AsFloat);
 end;
 
-procedure TCJSONStreamer.AssertProp(APropName: String; AValue: array of String
+procedure TTestJSONStreamer.AssertProp(APropName: String; AValue: array of String
   );
 Var
   a : TJSONArray;
@@ -727,6 +769,7 @@ Var
 
 begin
   a:=AssertArrayProp(APropName);
+  AssertEquals('Correct count ',Length(AValue),A.Count);
   For I:=Low(AValue) to High(Avalue) do
     begin
     AssertEquals('Array element type',jtString,A.Types[i]);
@@ -734,7 +777,7 @@ begin
     end;
 end;
 
-procedure TCJSONStreamer.AssertProp(APropName: String; AValue: array of Integer
+procedure TTestJSONStreamer.AssertProp(APropName: String; AValue: array of Integer
   );
 Var
   a : TJSONArray;
@@ -749,45 +792,45 @@ begin
     end;
 end;
 
-function TCJSONStreamer.CreateVariantComp: TVariantComponent;
+function TTestJSONStreamer.CreateVariantComp: TVariantComponent;
 begin
   Result:=TVariantComponent.Create(Nil);
   FTofree:=Result;
 end;
 
-procedure TCJSONStreamer.AssertNullProp(APropName: String);
+procedure TTestJSONStreamer.AssertNullProp(APropName: String);
 begin
   AssertProperty(APropName,jtNull);
 end;
 
-function TCJSONStreamer.AssertObjectProp(APropName: String): TJSONObject;
+function TTestJSONStreamer.AssertObjectProp(APropName: String): TJSONObject;
 begin
   Result:=AssertProperty(APropName,jtObject) as TJSONObject;
 end;
 
-function TCJSONStreamer.AssertArrayProp(APropName: String): TJSONArray;
+function TTestJSONStreamer.AssertArrayProp(APropName: String): TJSONArray;
 begin
   Result:=AssertProperty(APropName,jtArray) as TJSONArray;
 end;
 
-procedure TCJSONStreamer.TestNil;
+procedure TTestJSONStreamer.TestNil;
 begin
   AssertNull('Nil returns nil',StreamObject(Nil));
 end;
 
-procedure TCJSONStreamer.TestEmpty;
+procedure TTestJSONStreamer.TestEmpty;
 begin
   StreamObject(TemptyPersistent.Create);
   AssertPropCount(0);
 end;
 
-procedure TCJSONStreamer.TestEmptyComponent;
+procedure TTestJSONStreamer.TestEmptyComponent;
 begin
   StreamObject(TComponent.Create(nil));
   AssertPropCount(0);
 end;
 
-procedure TCJSONStreamer.TestWriteBoolean;
+procedure TTestJSONStreamer.TestWriteBoolean;
 
 begin
   StreamObject(TBooleanComponent.Create(nil));
@@ -795,42 +838,42 @@ begin
   AssertProp('BooleanProp',False);
 end;
 
-procedure TCJSONStreamer.TestWriteInteger;
+procedure TTestJSONStreamer.TestWriteInteger;
 begin
   StreamObject(TIntegerComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('IntProp',3);
 end;
 
-procedure TCJSONStreamer.TestWriteString;
+procedure TTestJSONStreamer.TestWriteString;
 begin
   StreamObject(TStringComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('StringProp','A string');
 end;
 
-procedure TCJSONStreamer.TestWriteFloat;
+procedure TTestJSONStreamer.TestWriteFloat;
 begin
   StreamObject(TSingleComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('SingleProp',1.23);
 end;
 
-procedure TCJSONStreamer.TestWriteFloat2;
+procedure TTestJSONStreamer.TestWriteFloat2;
 begin
   StreamObject(TDoubleComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('DoubleProp',2.34);
 end;
 
-procedure TCJSONStreamer.TestWriteFloat3;
+procedure TTestJSONStreamer.TestWriteFloat3;
 begin
   StreamObject(TExtendedComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('ExtendedProp',3.45);
 end;
 
-procedure TCJSONStreamer.TestWriteFloat4;
+procedure TTestJSONStreamer.TestWriteFloat4;
 begin
   StreamObject(TCompComponent.Create(Nil));
   AssertPropCount(1);
@@ -842,35 +885,35 @@ begin
   {$endif}
 end;
 
-procedure TCJSONStreamer.TestWriteFloat5;
+procedure TTestJSONStreamer.TestWriteFloat5;
 begin
   StreamObject(TCurrencyComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('CurrencyProp',5.67);
 end;
 
-procedure TCJSONStreamer.TestEnum1;
+procedure TTestJSONStreamer.TestEnum1;
 begin
   StreamObject(TEnumComponent3.Create(Nil));
   AssertPropCount(1);
   AssertProp('Dice',GetEnumName(TypeInfo(TDice),Ord(three)));
 end;
 
-procedure TCJSONStreamer.TestEnum2;
+procedure TTestJSONStreamer.TestEnum2;
 begin
   RJ.Options:=[jsoEnumeratedAsInteger];
   StreamObject(TEnumComponent3.Create(Nil));
   AssertProp('Dice',Ord(three));
 end;
 
-procedure TCJSONStreamer.TestSet1;
+procedure TTestJSONStreamer.TestSet1;
 begin
   StreamObject(TSetComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('Throw',['two','five']);
 end;
 
-procedure TCJSONStreamer.TestSet2;
+procedure TTestJSONStreamer.TestSet2;
 begin
   RJ.Options:=[jsoSetAsString];
   StreamObject(TSetComponent.Create(Nil));
@@ -878,7 +921,7 @@ begin
   AssertProp('Throw','two,five');
 end;
 
-procedure TCJSONStreamer.TestSet3;
+procedure TTestJSONStreamer.TestSet3;
 begin
   RJ.Options:=[jsoSetAsString,jsoSetBrackets];
   StreamObject(TSetComponent.Create(Nil));
@@ -886,7 +929,7 @@ begin
   AssertProp('Throw','[two,five]');
 end;
 
-procedure TCJSONStreamer.TestSet4;
+procedure TTestJSONStreamer.TestSet4;
 begin
   RJ.Options:=[jsoSetEnumeratedAsInteger];
   StreamObject(TSetComponent.Create(Nil));
@@ -894,7 +937,7 @@ begin
   AssertProp('Throw',[Ord(two),Ord(five)]);
 end;
 
-procedure TCJSONStreamer.TestObjectNil;
+procedure TTestJSONStreamer.TestObjectNil;
 
 Var
   P : TOwnedComponent;
@@ -908,14 +951,14 @@ begin
   AssertNullProp('CompProp');
 end;
 
-procedure TCJSONStreamer.TestComponentProp1;
+procedure TTestJSONStreamer.TestComponentProp1;
 begin
   StreamObject(TOwnedComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('CompProp','SubComponent');
 end;
 
-procedure TCJSONStreamer.TestComponentProp2;
+procedure TTestJSONStreamer.TestComponentProp2;
 
 Var
   C : TOwnedComponent;
@@ -938,7 +981,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestCollectionProp1;
+procedure TTestJSONStreamer.TestCollectionProp1;
 
 Var
   C : TCollectionComponent;
@@ -974,7 +1017,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestCollectionProp2;
+procedure TTestJSONStreamer.TestCollectionProp2;
 
 Var
   C : TCollectionComponent;
@@ -989,7 +1032,7 @@ begin
   AssertEquals('Collection item count',0,A.Count);
 end;
 
-procedure TCJSONStreamer.TestPersistentProp1;
+procedure TTestJSONStreamer.TestPersistentProp1;
 
 var
   P : TPersistentComponent;
@@ -1012,7 +1055,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsProp1;
+procedure TTestJSONStreamer.TestStringsProp1;
 
 Var
   A : TJSONArray;
@@ -1023,7 +1066,7 @@ begin
   AssertProp('StringsProp',['One','Two','Three']);
 end;
 
-procedure TCJSONStreamer.TestStringsProp2;
+procedure TTestJSONStreamer.TestStringsProp2;
 
 Var
   A : TJSONArray;
@@ -1033,7 +1076,7 @@ begin
   AssertProp('StringsProp','One'+sLineBreak+'Two'+sLineBreak+'Three'+sLineBreak);
 end;
 
-procedure TCJSONStreamer.TestStringsProp3;
+procedure TTestJSONStreamer.TestStringsProp3;
 
 Var
   O : TJSONObject;
@@ -1057,7 +1100,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsProp4;
+procedure TTestJSONStreamer.TestStringsProp4;
 
 Var
   O,SP : TJSONObject;
@@ -1096,7 +1139,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsArray;
+procedure TTestJSONStreamer.TestStringsArray;
 
 Var
   O : TJSONArray;
@@ -1119,7 +1162,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsObject;
+procedure TTestJSONStreamer.TestStringsObject;
 
 Var
   O : TJSONObject;
@@ -1144,7 +1187,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsStream1;
+procedure TTestJSONStreamer.TestStringsStream1;
 
 Var
   D: TJSONData;
@@ -1171,7 +1214,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsStream2;
+procedure TTestJSONStreamer.TestStringsStream2;
 
 Var
   D : TJSONData;
@@ -1200,7 +1243,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsStream3;
+procedure TTestJSONStreamer.TestStringsStream3;
 Var
   O : TJSONObject;
   S : TStringList;
@@ -1222,7 +1265,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsStream4;
+procedure TTestJSONStreamer.TestStringsStream4;
 Var
   O : TJSONObject;
   S : TStringList;
@@ -1239,7 +1282,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestStringsStream5;
+procedure TTestJSONStreamer.TestStringsStream5;
 Var
   D : TJSONData;
   S : TStringList;
@@ -1261,7 +1304,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestCollectionStream;
+procedure TTestJSONStreamer.TestCollectionStream;
 
 Var
   C : TTestCollection;
@@ -1290,7 +1333,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestCollectionStream2;
+procedure TTestJSONStreamer.TestCollectionStream2;
 
 Var
   C : TTestCollection;
@@ -1322,14 +1365,14 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestOnStreamProperty;
+procedure TTestJSONStreamer.TestOnStreamProperty;
 begin
   RJ.OnStreamProperty:=@DoStreamProperty1;
   StreamObject(TIntegerComponent.Create(Nil));
   AssertPropCount(0);
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp;
+procedure TTestJSONStreamer.TestDateTimeProp;
 
 Var
   D : Double;
@@ -1340,7 +1383,30 @@ begin
   AssertProp('DateTimeProp',D);
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp2;
+procedure TTestJSONStreamer.TestDateTimePropDefaultString;
+
+Var
+  D : Double;
+begin
+  RJ.Options:=[jsoDateTimeAsString];
+  StreamObject(TDateTimeComponent.Create(Nil));
+  D:=EncodeDate(1996,8,1);
+  AssertPropCount(1);
+  AssertProp('DateTimeProp',FormatDateTime(RFC3339DateTimeFormat,D));
+end;
+
+procedure TTestJSONStreamer.TestDateTimePropDefaultStringTime;
+Var
+  D : Double;
+begin
+  RJ.Options:=[jsoDateTimeAsString];
+  StreamObject(TDateTimeComponent3.Create(Nil));
+  D:=EncodeDate(1996,8,1)+EncodeTime(23,20,0,0);
+  AssertPropCount(1);
+  AssertProp('DateTimeProp',FormatDateTime(RFC3339DateTimeFormat,D));
+end;
+
+procedure TTestJSONStreamer.TestDateTimeProp2;
 Var
   D : Double;
 begin
@@ -1350,7 +1416,7 @@ begin
   AssertProp('DateTimeProp',D);
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp3;
+procedure TTestJSONStreamer.TestDateTimeProp3;
 Var
   D : Double;
 begin
@@ -1360,34 +1426,34 @@ begin
   AssertProp('DateTimeProp',D);
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp4;
+procedure TTestJSONStreamer.TestDateTimeProp4;
 
 begin
-  RJ.Options:=[jsoDateTimeAsString];
+  RJ.Options:=[jsoDateTimeAsString,jsoLegacyDateTime];
   StreamObject(TDateTimeComponent.Create(Nil));
   AssertPropCount(1);
   AssertProp('DateTimeProp',DateToStr(EncodeDate(1996,8,1)));
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp5;
+procedure TTestJSONStreamer.TestDateTimeProp5;
 
 begin
-  RJ.Options:=[jsoDateTimeAsString];
+  RJ.Options:=[jsoDateTimeAsString,jsoLegacyDateTime];
   StreamObject(TDateTimeComponent2.Create(Nil));
   AssertPropCount(1);
   AssertProp('DateTimeProp',TimeToStr(EncodeTime(23,20,0,0)));
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp6;
+procedure TTestJSONStreamer.TestDateTimeProp6;
 
 begin
-  RJ.Options:=[jsoDateTimeAsString];
+  RJ.Options:=[jsoDateTimeAsString,jsoLegacyDateTime];
   StreamObject(TDateTimeComponent3.Create(Nil));
   AssertPropCount(1);
   AssertProp('DateTimeProp',DateTimeToStr(EncodeDate(1996,8,1)+EncodeTime(23,20,0,0)));
 end;
 
-procedure TCJSONStreamer.TestDateTimeProp7;
+procedure TTestJSONStreamer.TestDateTimeProp7;
 begin
   RJ.Options:=[jsoDateTimeAsString];
   RJ.DateTimeFormat:='hh:nn';
@@ -1396,7 +1462,7 @@ begin
   AssertProp('DateTimeProp',FormatDateTime('hh:nn',EncodeDate(1996,8,1)+EncodeTime(23,20,0,0)));
 end;
 
-procedure TCJSONStreamer.TestVariantShortint;
+procedure TTestJSONStreamer.TestVariantShortint;
 
 Var
   i : ShortInt;
@@ -1412,7 +1478,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantbyte;
+procedure TTestJSONStreamer.TestVariantbyte;
 Var
   i : Byte;
   C : TVariantComponent;
@@ -1427,7 +1493,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantword;
+procedure TTestJSONStreamer.TestVariantword;
 
 Var
   i : Word;
@@ -1443,7 +1509,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantsmallint;
+procedure TTestJSONStreamer.TestVariantsmallint;
 
 Var
   i : Smallint;
@@ -1459,7 +1525,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantinteger;
+procedure TTestJSONStreamer.TestVariantinteger;
 Var
   i : Integer;
   C : TVariantComponent;
@@ -1474,7 +1540,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantlongword;
+procedure TTestJSONStreamer.TestVariantlongword;
 
 Var
   i : Cardinal;
@@ -1490,7 +1556,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantint64;
+procedure TTestJSONStreamer.TestVariantint64;
 Var
   i : Int64;
   C : TVariantComponent;
@@ -1505,7 +1571,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantqword;
+procedure TTestJSONStreamer.TestVariantqword;
 Var
   i : QWord;
   C : TVariantComponent;
@@ -1520,7 +1586,7 @@ begin
   AssertProp('VariantProp',3);
 end;
 
-procedure TCJSONStreamer.TestVariantsingle;
+procedure TTestJSONStreamer.TestVariantsingle;
 Var
   i : Single;
   C : TVariantComponent;
@@ -1535,7 +1601,7 @@ begin
   AssertProp('VariantProp',3.14);
 end;
 
-procedure TCJSONStreamer.TestVariantdouble;
+procedure TTestJSONStreamer.TestVariantdouble;
 
 Var
   i : Double;
@@ -1551,7 +1617,7 @@ begin
   AssertProp('VariantProp',3.14);
 end;
 
-procedure TCJSONStreamer.TestVariantCurrency;
+procedure TTestJSONStreamer.TestVariantCurrency;
 Var
   i : Currency;
   C : TVariantComponent;
@@ -1566,7 +1632,7 @@ begin
   AssertProp('VariantProp',3.14);
 end;
 
-procedure TCJSONStreamer.TestVariantString;
+procedure TTestJSONStreamer.TestVariantString;
 
 Var
   i : String;
@@ -1582,7 +1648,7 @@ begin
   AssertProp('VariantProp','3.14');
 end;
 
-procedure TCJSONStreamer.TestVariantolestr;
+procedure TTestJSONStreamer.TestVariantolestr;
 
 Var
   i : String;
@@ -1598,7 +1664,7 @@ begin
   AssertProp('VariantProp','3.14');
 end;
 
-procedure TCJSONStreamer.TestVariantboolean;
+procedure TTestJSONStreamer.TestVariantboolean;
 Var
   i : Boolean;
   C : TVariantComponent;
@@ -1613,7 +1679,7 @@ begin
   AssertProp('VariantProp',True);
 end;
 
-procedure TCJSONStreamer.TestVariantDate;
+procedure TTestJSONStreamer.TestVariantDate;
 
 Var
   i : TDateTime;
@@ -1629,14 +1695,14 @@ begin
   AssertProp('VariantProp',EncodeDate(2010,12,23));
 end;
 
-procedure TCJSONStreamer.TestVariantDate2;
+procedure TTestJSONStreamer.TestVariantDate2;
 
 Var
   i : TDateTime;
   C : TVariantComponent;
 
 begin
-  RJ.Options:=[jsoDateTimeAsString];
+  RJ.Options:=[jsoDateTimeAsString,jsoLegacyDateTime];
   i:=EncodeDate(2010,12,23);
   C:=CreateVariantComp;
   C.VariantProp:=i;
@@ -1646,7 +1712,7 @@ begin
   AssertProp('VariantProp',DateToStr(EncodeDate(2010,12,23)));
 end;
 
-procedure TCJSONStreamer.TestVariantArray;
+procedure TTestJSONStreamer.TestVariantArray;
 Var
   i : Integer;
   V : Variant;
@@ -1670,7 +1736,7 @@ begin
     end;
 end;
 
-procedure TCJSONStreamer.TestMultipleProps;
+procedure TTestJSONStreamer.TestMultipleProps;
 begin
   StreamObject(TMultipleComponent.Create(Nil));
   AssertPropCount(5);
@@ -1681,13 +1747,13 @@ begin
   AssertProp('Dice','two');
 end;
 
-procedure TCJSONStreamer.TestObjectToJSONString;
+procedure TTestJSONStreamer.TestObjectToJSONString;
 begin
   StreamObject(TIntegerComponent.Create(Nil));
   AssertEquals('Correct stream',SR.AsJSON,RJ.ObjectToJSONString(FToFree));
 end;
 
-procedure TCJSONStreamer.TestStringsToJSONString;
+procedure TTestJSONStreamer.TestStringsToJSONString;
 Var
   S : TStrings;
 begin
@@ -1703,7 +1769,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestCollectionToJSONString;
+procedure TTestJSONStreamer.TestCollectionToJSONString;
 
 Var
   C : TTestCollection;
@@ -1720,7 +1786,7 @@ begin
   end;
 end;
 
-procedure TCJSONStreamer.TestChildren;
+procedure TTestJSONStreamer.TestChildren;
 
 Var
   C : TChildrenComponent;
@@ -1735,7 +1801,7 @@ begin
 
 end;
 
-procedure TCJSONStreamer.TestChildren2;
+procedure TTestJSONStreamer.TestChildren2;
 Var
   C : TChildrenComponent;
   A : TJSONArray;
@@ -1765,6 +1831,6 @@ end;
 
 initialization
 
-  RegisterTests([TCJSONStreamer,TCJSONDeStreamer]);
+  RegisterTests([TTestJSONStreamer,TTestJSONDeStreamer]);
 end.
 

@@ -2782,7 +2782,7 @@ begin
     If I=0 then
       T:='('+T;
     If I<Args.Count-1 then
-      List.Add(T+';')
+      List.Add(T+'; ')
     else
       List.Add(T+')');
     end;

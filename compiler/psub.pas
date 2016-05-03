@@ -85,6 +85,8 @@ interface
       true) }
     procedure read_proc(isclassmethod:boolean; usefwpd: tprocdef;isgeneric:boolean);
 
+    procedure import_external_proc(pd:tprocdef);
+
     procedure generate_specialization_procs;
 
 
@@ -131,11 +133,7 @@ implementation
        ,cpuinfo
 {$endif arm}
        {$ifndef NOOPT}
-         {$ifdef i386}
-           ,aopt386
-         {$else i386}
-           ,aopt
-         {$endif i386}
+       ,aopt
        {$endif}
        ;
 
@@ -1315,7 +1313,7 @@ implementation
           begin
             include(flags,pi_do_call);
             { the main program never returns due to the do_exit call }
-            if not(DLLsource) then
+            if not(current_module.islibrary) then
               include(procdef.procoptions,po_noreturn);
           end;
 
@@ -1797,7 +1795,14 @@ implementation
 
          current_procinfo:=self;
          current_structdef:=procdef.struct;
-         if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
+         { if the procdef is truly a generic (thus takes parameters itself) then
+           /that/ is our genericdef, not the - potentially - generic struct }
+         if procdef.is_generic then
+           begin
+             current_genericdef:=procdef;
+             parse_generic:=true;
+           end
+         else if assigned(current_structdef) and (df_generic in current_structdef.defoptions) then
            begin
              current_genericdef:=current_structdef;
              parse_generic:=true;
@@ -1862,14 +1867,21 @@ implementation
              entrypos:=code.fileinfo;
 
              { Finish type checking pass }
-             { type checking makes no sense in a generic definition }
-             if not(df_generic in current_procinfo.procdef.defoptions) then
-               do_typecheckpass(code);
+             do_typecheckpass(code);
 
              if assigned(procdef.parentfpinitblock) then
                begin
-                 tblocknode(code).left:=cstatementnode.create(procdef.parentfpinitblock,tblocknode(code).left);
-                 do_typecheckpass(tblocknode(code).left);
+                 if assigned(tblocknode(procdef.parentfpinitblock).left) then
+                   begin
+                     { could be an asmn in case of a pure assembler procedure,
+                       but those shouldn't access nested variables }
+                     if code.nodetype<>blockn then
+                       internalerror(2015122601);
+                     tblocknode(code).left:=cstatementnode.create(procdef.parentfpinitblock,tblocknode(code).left);
+                     do_typecheckpass(tblocknode(code).left);
+                   end
+                 else
+                   procdef.parentfpinitblock.free;
                  procdef.parentfpinitblock:=nil;
                end;
 
@@ -2071,7 +2083,7 @@ implementation
           begin
             pd.forwarddef:=true;
             { set also the interface flag, for better error message when the
-              implementation doesn't much this header }
+              implementation doesn't match this header }
             pd.interfacedef:=true;
             include(pd.procoptions,po_global);
             pdflags:=[pd_interface];
@@ -2082,7 +2094,7 @@ implementation
             if (not current_module.in_interface) then
               include(pdflags,pd_implemen);
             if (not current_module.is_unit) or
-               create_smartlink then
+               create_smartlink_library then
               include(pd.procoptions,po_global);
             pd.forwarddef:=false;
           end;
@@ -2146,24 +2158,7 @@ implementation
              { Handle imports }
              if (po_external in pd.procoptions) then
                begin
-                 { Import DLL specified? }
-                 if assigned(pd.import_dll) then
-                   begin
-                     if assigned (pd.import_name) then
-                       current_module.AddExternalImport(pd.import_dll^,
-                         pd.import_name^,proc_get_importname(pd),
-                         pd.import_nr,false,false)
-                     else
-                       current_module.AddExternalImport(pd.import_dll^,
-                         proc_get_importname(pd),proc_get_importname(pd),
-                         pd.import_nr,false,true);
-                   end
-                 else
-                   begin
-                     { add import name to external list for DLL scanning }
-                     if tf_has_dllscanner in target_info.flags then
-                       current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
-                   end;
+                 import_external_proc(pd);
 {$ifdef cpuhighleveltarget}
                  { it's hard to factor this out in a virtual method, because the
                    generic version (the one inside this ifdef) doesn't fit in
@@ -2193,7 +2188,7 @@ implementation
          { treated as references to external symbols, needed for darwin.   }
 
          { make sure we don't change the binding of real external symbols }
-         if ([po_external,po_weakexternal]*pd.procoptions)=[] then
+         if (([po_external,po_weakexternal]*pd.procoptions)=[]) and (pocall_internproc<>pd.proccalloption) then
            begin
              if (po_global in pd.procoptions) or
                 (cs_profile in current_settings.moduleswitches) then
@@ -2208,6 +2203,31 @@ implementation
          current_procinfo:=old_current_procinfo;
       end;
 
+
+    procedure import_external_proc(pd:tprocdef);
+      begin
+        if not (po_external in pd.procoptions) then
+          internalerror(2015121101);
+
+        { Import DLL specified? }
+        if assigned(pd.import_dll) then
+          begin
+            if assigned (pd.import_name) then
+              current_module.AddExternalImport(pd.import_dll^,
+                pd.import_name^,proc_get_importname(pd),
+                pd.import_nr,false,false)
+            else
+              current_module.AddExternalImport(pd.import_dll^,
+                proc_get_importname(pd),proc_get_importname(pd),
+                pd.import_nr,false,true);
+          end
+        else
+          begin
+            { add import name to external list for DLL scanning }
+            if tf_has_dllscanner in target_info.flags then
+              current_module.dllscannerinputlist.Add(proc_get_importname(pd),pd);
+          end;
+      end;
 
 {****************************************************************************
                              DECLARATION PARSING
@@ -2479,7 +2499,6 @@ implementation
 
     procedure specialize_objectdefs(p:TObject;arg:pointer);
       var
-        oldcurrent_filepos : tfileposinfo;
         specobj : tabstractrecorddef;
         state : tspecializationstate;
 

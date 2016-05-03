@@ -2071,6 +2071,7 @@ begin
   entrysize:=p-pbyte(@testblock[0]);
   {$ifdef binindex}
     writeln(curind, ' ',entrysize, ' ',defblocksize);
+    writeln('curstr ',str,' ',commaatposition);
   {$endif}
   if (curind+entrysize)>=Defblocksize then
     begin
@@ -2200,6 +2201,9 @@ begin
 end;
 {$endif}
 begin
+  {$ifdef binindex}
+    writeln('starting index');
+  {$endif}
   IndexStream:=TMemoryStream.Create;
   indexstream.size:=sizeof(TBTreeHeader);
   IndexStream.position:=Sizeof(TBTreeHeader);
@@ -2367,6 +2371,10 @@ begin
   MapStream.Free;
   DataStream.Free;
   FHasKLinks:=TotalEntries>0;
+  {$ifdef binindex}
+    writeln('end index');
+  {$endif}
+
 end;
 
 procedure TChmWriter.AppendBinaryTOCStream(AStream: TStream);

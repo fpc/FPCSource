@@ -295,7 +295,7 @@ interface
                 begin
                   { FPC_EMPTYCHAR is a widechar -> 2 bytes }
                   reference_reset(hr,2);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
                   location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                   hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
                 end
@@ -457,7 +457,7 @@ interface
                     begin
                       hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,false);
                       location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-                      cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,location.register,mms_movescalar);
+                      hlcg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.register,location.register,mms_movescalar);
                     end
                   else
                     internalerror(2003012262);
@@ -515,7 +515,10 @@ interface
 
     procedure tcgtypeconvnode.second_proc_to_procvar;
       var
+        href: treference;
         tmpreg: tregister;
+        procvarrectype: trecorddef;
+        procvarselfname: TIDString;
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
@@ -543,9 +546,10 @@ interface
                 case left.location.loc of
                   LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
+                      location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,resultdef);
                       { code field is the first one }
-                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidcodepointertype,voidcodepointertype,left.location.reference,location.register);
+                      hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,left.resultdef,resultdef,left.location.reference);
+                      hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,resultdef,resultdef,left.location.reference,location.register);
                     end;
                   LOC_REGISTER,LOC_CREGISTER:
                     begin
@@ -571,20 +575,25 @@ interface
                   internalerror(2013031503);
                 location_reset_ref(location,LOC_REFERENCE,int_cgsize(resultdef.size),sizeof(pint));
                 tg.gethltemp(current_asmdata.CurrAsmList,resultdef,resultdef.size,tt_normal,location.reference);
+                href:=location.reference;
+                if is_nested_pd(tabstractprocdef(resultdef)) then
+                  begin
+                    procvarrectype:=trecorddef(nestedprocpointertype);
+                    procvarselfname:='parentfp';
+                  end
+                else
+                  begin
+                    procvarrectype:=trecorddef(methodpointertype);
+                    procvarselfname:='self';
+                  end;
+                hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(procvarrectype),href);
                 tmpreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidcodepointertype);
-                hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidcodepointertype,left.location.reference,tmpreg);
-                hlcg.a_load_reg_ref(current_asmdata.CurrAsmList,voidcodepointertype,voidcodepointertype,tmpreg,location.reference);
+                hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,tprocdef(left.resultdef),voidcodepointertype,left.location.reference,tmpreg);
+                hlcg.g_load_reg_field_by_name(current_asmdata.CurrAsmList,voidcodepointertype,trecorddef(procvarrectype),tmpreg,'proc',href);
                 { setting the frame pointer to nil is not strictly necessary
                   since the global procedure won't use it, but it can help with
                   debugging }
-                inc(location.reference.offset,voidcodepointertype.size);
-                if (resultdef.typ=procvardef) and is_nested_pd(tprocvardef(resultdef)) then
-                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,parentfpvoidpointertype,0,location.reference)
-                else if tabstractprocdef(resultdef).is_methodpointer then
-                  hlcg.a_load_const_ref(current_asmdata.CurrAsmList,voidpointertype,0,location.reference)
-                else
-                  internalerror(2014052301);
-                dec(location.reference.offset,voidcodepointertype.size);
+                hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(procvarrectype),0,procvarselfname,href);
               end;
           end;
       end;
@@ -671,7 +680,7 @@ interface
          hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,resultdef,OC_NE,0,location.register,l1);
          { FPC_EMPTYCHAR is a widechar -> 2 bytes }
          reference_reset(hr,2);
-         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
+         hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR',AT_DATA);
          hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,cwidechartype,resultdef,hr,location.register);
          hlcg.a_label(current_asmdata.CurrAsmList,l1);
       end;

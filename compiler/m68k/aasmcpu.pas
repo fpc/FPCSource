@@ -448,14 +448,14 @@ type
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
                  (oper[1]^.typ=top_reg) and
-                 (oper[0]^.reg=oper[1]^.reg)
+                 (isregoverlap(oper[0]^.reg,oper[1]^.reg))
                 ) or
                 (((opcode=A_MOVE) or (opcode=A_EXG) or (opcode=A_MOVEA)) and
                  (regtype = R_ADDRESSREGISTER) and
                  (ops=2) and
                  (oper[0]^.typ=top_reg) and
                  (oper[1]^.typ=top_reg) and
-                 (oper[0]^.reg=oper[1]^.reg)
+                 (isregoverlap(oper[0]^.reg,oper[1]^.reg))
                 ) or
                 ((opcode=A_FMOVE) and
                  (regtype = R_FPUREGISTER) and
@@ -473,14 +473,14 @@ type
 
         case opcode of
           // CPU opcodes
-          A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA,
-          A_BSET, A_BCLR:
+          A_MOVE, A_MOVEQ, A_MOVEA, A_MVZ, A_MVS, A_MOV3Q, A_LEA:
             if opnr=1 then
               result:=operand_write;
           A_ADD, A_ADDQ, A_ADDX, A_SUB, A_SUBQ, A_SUBX,
           A_AND, A_LSR, A_LSL, A_ASR, A_ASL, A_EOR, A_EORI, A_OR,
           A_ROL, A_ROR, A_ROXL, A_ROXR,
-          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL:
+          A_MULS, A_MULU, A_DIVS, A_DIVU, A_DIVSL, A_DIVUL,
+          A_BSET, A_BCLR:
             if opnr=1 then
               result:=operand_readwrite;
           A_DBRA:

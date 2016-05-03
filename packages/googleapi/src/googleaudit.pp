@@ -49,8 +49,8 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TActivitiesTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setnext(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setnext(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -75,10 +75,10 @@ type
     Fkey : String;
   Protected
     //Property setters
-    Procedure SetapplicationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcallerType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkey(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcallerType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property applicationId : String Index 0 Read FapplicationId Write SetapplicationId;
@@ -98,8 +98,8 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -118,8 +118,8 @@ type
     Fparameters : TActivityTypeeventsItemTypeparametersArray;
   Protected
     //Property setters
-    Procedure SeteventType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SeteventType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparameters(AIndex : Integer; AValue : TActivityTypeeventsItemTypeparametersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -145,10 +145,10 @@ type
     FuniqQualifier : String;
   Protected
     //Property setters
-    Procedure SetapplicationId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcustomerId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcustomerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Settime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetuniqQualifier(AIndex : Integer; AValue : String); virtual;
+    Procedure SetuniqQualifier(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property applicationId : String Index 0 Read FapplicationId Write SetapplicationId;
@@ -175,9 +175,9 @@ type
     Procedure Setactor(AIndex : Integer; AValue : TActivityTypeactor); virtual;
     Procedure Setevents(AIndex : Integer; AValue : TActivityTypeeventsArray); virtual;
     Procedure Setid(AIndex : Integer; AValue : TActivityTypeid); virtual;
-    Procedure SetipAddress(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetownerDomain(AIndex : Integer; AValue : String); virtual;
+    Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetownerDomain(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -276,7 +276,7 @@ end;
 
 
 
-Procedure TActivities.Setkind(AIndex : Integer; AValue : String); 
+Procedure TActivities.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -286,7 +286,7 @@ end;
 
 
 
-Procedure TActivities.Setnext(AIndex : Integer; AValue : String); 
+Procedure TActivities.Setnext(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fnext=AValue) then exit;
@@ -316,7 +316,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeactor.SetapplicationId(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -326,7 +326,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.SetcallerType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcallerType=AValue) then exit;
@@ -336,7 +336,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.Setemail(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -346,7 +346,7 @@ end;
 
 
 
-Procedure TActivityTypeactor.Setkey(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeactor.Setkey(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkey=AValue) then exit;
@@ -363,7 +363,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -373,7 +373,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItemTypeparametersItem.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -390,7 +390,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeeventsItem.SeteventType(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItem.SeteventType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FeventType=AValue) then exit;
@@ -400,7 +400,7 @@ end;
 
 
 
-Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeeventsItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -440,7 +440,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TActivityTypeid.SetapplicationId(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeid.SetapplicationId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FapplicationId=AValue) then exit;
@@ -450,7 +450,7 @@ end;
 
 
 
-Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeid.SetcustomerId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcustomerId=AValue) then exit;
@@ -470,7 +470,7 @@ end;
 
 
 
-Procedure TActivityTypeid.SetuniqQualifier(AIndex : Integer; AValue : String); 
+Procedure TActivityTypeid.SetuniqQualifier(AIndex : Integer; const AValue : String); 
 
 begin
   If (FuniqQualifier=AValue) then exit;
@@ -517,7 +517,7 @@ end;
 
 
 
-Procedure TActivity.SetipAddress(AIndex : Integer; AValue : String); 
+Procedure TActivity.SetipAddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (FipAddress=AValue) then exit;
@@ -527,7 +527,7 @@ end;
 
 
 
-Procedure TActivity.Setkind(AIndex : Integer; AValue : String); 
+Procedure TActivity.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -537,7 +537,7 @@ end;
 
 
 
-Procedure TActivity.SetownerDomain(AIndex : Integer; AValue : String); 
+Procedure TActivity.SetownerDomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (FownerDomain=AValue) then exit;

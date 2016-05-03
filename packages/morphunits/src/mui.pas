@@ -133,7 +133,7 @@ uses exec, intuition,utility,agraphics{,iffparse};
 {$WARNING IffParse required, look for FIX ME!!!}
 
 var
-  MUIMasterBase : pLibrary;
+  MUIMasterBase : pLibrary = nil;
 
 const
   MUIMASTER_NAME  : PChar = 'muimaster.library';
@@ -3814,35 +3814,19 @@ begin
   MUIset:=SetAttrsA(obj,@args);
 end;
 
-
 const
   { Change VERSION and LIBVERSION to proper values }
   VERSION : string[2] = '19';
   LIBVERSION : longword = MUIMASTER_VMIN;
 
-var
-  muimaster_exit : Pointer;
-
-procedure CloseMUIMasterLibrary;
-begin
-  ExitProc := muimaster_exit;
-  if MUIMasterBase <> nil then begin
-    CloseLibrary(MUIMasterBase);
-    MUIMasterBase := nil;
-  end;
-end;
-
 function InitMUIMasterLibrary : boolean;
 begin
-  MUIMasterBase := nil;
-  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
-  if MUIMasterBase <> nil then begin
-    muimaster_exit := ExitProc;
-    ExitProc := @CloseMUIMasterLibrary;
-    InitMUIMasterLibrary:=True;
-  end else begin
-    InitMUIMasterLibrary:=False;
-  end;
+  InitMUIMasterLibrary := Assigned(MUIMasterBase);
 end;
 
+initialization
+  MUIMasterBase := OpenLibrary(MUIMASTER_NAME,LIBVERSION);
+finalization
+  if Assigned(MUIMasterBase) then
+    CloseLibrary(MUIMasterBase);
 end.

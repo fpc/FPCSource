@@ -354,7 +354,7 @@ const
 
 implementation
 
-{$define RELBRANCHES}
+{ $define RELBRANCHES}
 
 {$i avrcommon.inc}
 
@@ -385,26 +385,26 @@ label
    .init
    .globl _start
 
-   rjmp _start
-   rjmp INT0_ISR
-   rjmp INT1_ISR
-   rjmp PCINT0_ISR
-   rjmp PCINT1_ISR
-   rjmp WDT_ISR
-   rjmp TIMER1_CAPT_ISR
-   rjmp TIMER1_COMPA_ISR
-   rjmp TIMER1_COMPB_ISR
-   rjmp TIMER1_OVF_ISR
-   rjmp TIMER0_COMPA_ISR
-   rjmp TIMER0_OVF_ISR
-   rjmp LIN_TC_ISR
-   rjmp LIN_ERR_ISR
-   rjmp SPI_STC_ISR
-   rjmp ADC_ISR
-   rjmp EE_RDY_ISR
-   rjmp ANA_COMP_ISR
-   rjmp USI_START_ISR
-   rjmp USI_OVF_ISR
+   jmp _start
+   jmp INT0_ISR
+   jmp INT1_ISR
+   jmp PCINT0_ISR
+   jmp PCINT1_ISR
+   jmp WDT_ISR
+   jmp TIMER1_CAPT_ISR
+   jmp TIMER1_COMPA_ISR
+   jmp TIMER1_COMPB_ISR
+   jmp TIMER1_OVF_ISR
+   jmp TIMER0_COMPA_ISR
+   jmp TIMER0_OVF_ISR
+   jmp LIN_TC_ISR
+   jmp LIN_ERR_ISR
+   jmp SPI_STC_ISR
+   jmp ADC_ISR
+   jmp EE_RDY_ISR
+   jmp ANA_COMP_ISR
+   jmp USI_START_ISR
+   jmp USI_OVF_ISR
 
    {$i start.inc}
 

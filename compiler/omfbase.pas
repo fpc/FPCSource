@@ -46,7 +46,7 @@ interface
       'stabstr',
       'idata2','idata4','idata5','idata6','idata7','edata',
       'eh_frame',
-      'debug_frame','debug_info','debug_line','debug_abbrev',
+      'debug_frame','debug_info','debug_line','debug_abbrev','debug_aranges','debug_ranges',
       'fpc',
       '',
       'init',
@@ -2250,6 +2250,8 @@ implementation
         {debug_info} 'DWARF',
         {debug_line} 'DWARF',
         {debug_abbrev} 'DWARF',
+        {debug_aranges} 'DWARF',
+        {debug_ranges} 'DWARF',
         {fpc} 'DATA',
         {toc} 'DATA',
         {init} 'CODE',
@@ -2320,7 +2322,7 @@ implementation
           be packed without gaps. }
         sec_idata2,sec_idata4,sec_idata5,sec_idata6,sec_idata7,sec_pdata:
           result:=4;
-        sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev:
+        sec_debug_frame,sec_debug_info,sec_debug_line,sec_debug_abbrev,sec_debug_aranges,sec_debug_ranges:
           result:=4;
         sec_stack,
         sec_heap:

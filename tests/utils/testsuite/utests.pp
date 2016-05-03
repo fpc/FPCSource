@@ -2273,7 +2273,7 @@ begin
                 CellEnd;
                 if assigned(cpu_count) then
                   begin
-                    for i:=1 to cpu_last do
+                    for i:=0 to cpu_last do
                       if cpu_count^[i,TS]>0 then
                         begin
                           RowNext;
@@ -2297,7 +2297,7 @@ begin
                   end;
                 if assigned(os_count) then
                   begin
-                    for i:=1 to os_last do
+                    for i:=0 to os_last do
                       if os_count^[i,TS]>0 then
                         begin
                           RowNext;
@@ -2324,7 +2324,7 @@ begin
 
                 if assigned(version_count) then
                   begin
-                    for i:=1 to version_last do
+                    for i:=0 to version_last do
                       if version_count^[i,TS]>0 then
                         begin
                           RowNext;

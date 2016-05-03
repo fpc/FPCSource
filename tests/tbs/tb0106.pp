@@ -1,3 +1,4 @@
+{ %skiptarget=android }
 { %CPU=i386 }
 { %OPT=-Cg- }
 { Old file: tbs0124b.pp }

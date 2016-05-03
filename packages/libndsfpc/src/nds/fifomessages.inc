@@ -11,6 +11,8 @@ const
   SYS_INPUT_MESSAGE         : FifoMessageType = $1239;
 	SDMMC_SD_READ_SECTORS     : FifoMessageType = $123A;
 	SDMMC_SD_WRITE_SECTORS    : FifoMessageType = $123B;
+	SDMMC_NAND_READ_SECTORS   : FifoMessageType = $123C;
+	SDMMC_NAND_WRITE_SECTORS  : FifoMessageType = $123D;
 
 type
 {$PACKRECORDS 4} 

@@ -116,11 +116,11 @@ type
     FnextSyncToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TAclTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextSyncToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -146,8 +146,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property _type : String Index 0 Read F_type Write Set_type;
@@ -168,10 +168,10 @@ type
     Fscope : TAclRuleTypescope;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setrole(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
     Procedure Setscope(AIndex : Integer; AValue : TAclRuleTypescope); virtual;
   Public
   Published
@@ -198,13 +198,13 @@ type
     FtimeZone : String;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsummary(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsummary(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property description : String Index 0 Read Fdescription Write Setdescription;
@@ -230,11 +230,11 @@ type
     FnextSyncToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TCalendarListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextSyncToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -295,24 +295,24 @@ type
     FtimeZone : String;
   Protected
     //Property setters
-    Procedure SetaccessRole(AIndex : Integer; AValue : String); virtual;
-    Procedure SetbackgroundColor(AIndex : Integer; AValue : String); virtual;
-    Procedure SetcolorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccessRole(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbackgroundColor(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcolorId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdefaultReminders(AIndex : Integer; AValue : TCalendarListEntryTypedefaultRemindersArray); virtual;
     Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SetforegroundColor(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetforegroundColor(AIndex : Integer; const AValue : String); virtual;
     Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnotificationSettings(AIndex : Integer; AValue : TCalendarListEntryTypenotificationSettings); virtual;
     Procedure Setprimary(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setselected(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setsummary(AIndex : Integer; AValue : String); virtual;
-    Procedure SetsummaryOverride(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure Setsummary(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsummaryOverride(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -351,8 +351,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property method : String Index 0 Read Fmethod Write Setmethod;
@@ -393,16 +393,16 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setaddress(AIndex : Integer; AValue : String); virtual;
-    Procedure Setexpiration(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setaddress(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setexpiration(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparams(AIndex : Integer; AValue : TChannelTypeparams); virtual;
     Procedure Setpayload(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetresourceId(AIndex : Integer; AValue : String); virtual;
-    Procedure SetresourceUri(AIndex : Integer; AValue : String); virtual;
-    Procedure Settoken(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresourceId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetresourceUri(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property address : String Index 0 Read Faddress Write Setaddress;
@@ -428,8 +428,8 @@ type
     Fforeground : String;
   Protected
     //Property setters
-    Procedure Setbackground(AIndex : Integer; AValue : String); virtual;
-    Procedure Setforeground(AIndex : Integer; AValue : String); virtual;
+    Procedure Setbackground(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setforeground(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property background : String Index 0 Read Fbackground Write Setbackground;
@@ -479,7 +479,7 @@ type
     //Property setters
     Procedure Setcalendar(AIndex : Integer; AValue : TColorsTypecalendar); virtual;
     Procedure Setevent(AIndex : Integer; AValue : TColorsTypeevent); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
   Public
   Published
@@ -500,8 +500,8 @@ type
     Freason : String;
   Protected
     //Property setters
-    Procedure Setdomain(AIndex : Integer; AValue : String); virtual;
-    Procedure Setreason(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdomain(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property domain : String Index 0 Read Fdomain Write Setdomain;
@@ -522,9 +522,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_self(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -614,13 +614,13 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdisplay(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdisplay(AIndex : Integer; const AValue : String); virtual;
     Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure SeticonLink(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlink(AIndex : Integer; AValue : String); virtual;
+    Procedure SeticonLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpreferences(AIndex : Integer; AValue : TEventTypegadgetTypepreferences); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -648,9 +648,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_self(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -694,8 +694,8 @@ type
     Furl : String;
   Protected
     //Property setters
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
-    Procedure Seturl(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property title : String Index 0 Read Ftitle Write Settitle;
@@ -751,39 +751,39 @@ type
     Procedure SetanyoneCanAddSelf(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setattendees(AIndex : Integer; AValue : TEventTypeattendeesArray); virtual;
     Procedure SetattendeesOmitted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcolorId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolorId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setcreated(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure Setcreator(AIndex : Integer; AValue : TEventTypecreator); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_end(AIndex : Integer; AValue : TEventDateTime); virtual;
     Procedure SetendTimeUnspecified(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure SetextendedProperties(AIndex : Integer; AValue : TEventTypeextendedProperties); virtual;
     Procedure Setgadget(AIndex : Integer; AValue : TEventTypegadget); virtual;
     Procedure SetguestsCanInviteOthers(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetguestsCanModify(AIndex : Integer; AValue : boolean); virtual;
     Procedure SetguestsCanSeeOtherGuests(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SethangoutLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SethtmlLink(AIndex : Integer; AValue : String); virtual;
-    Procedure SetiCalUID(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : String); virtual;
+    Procedure SethangoutLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SethtmlLink(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetiCalUID(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlocked(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setorganizer(AIndex : Integer; AValue : TEventTypeorganizer); virtual;
     Procedure SetoriginalStartTime(AIndex : Integer; AValue : TEventDateTime); virtual;
     Procedure SetprivateCopy(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setrecurrence(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetrecurringEventId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetrecurringEventId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setreminders(AIndex : Integer; AValue : TEventTypereminders); virtual;
     Procedure Setsequence(AIndex : Integer; AValue : integer); virtual;
     Procedure Setsource(AIndex : Integer; AValue : TEventTypesource); virtual;
     Procedure Setstart(AIndex : Integer; AValue : TEventDateTime); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsummary(AIndex : Integer; AValue : String); virtual;
-    Procedure Settransparency(AIndex : Integer; AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsummary(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settransparency(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setvisibility(AIndex : Integer; AValue : String); virtual;
+    Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -862,14 +862,14 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetadditionalGuests(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setcomment(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdisplayName(AIndex : Integer; AValue : String); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setcomment(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoptional(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setorganizer(AIndex : Integer; AValue : boolean); virtual;
     Procedure Setresource(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetresponseStatus(AIndex : Integer; AValue : String); virtual;
+    Procedure SetresponseStatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_self(AIndex : Integer; AValue : boolean); virtual;
   Public
   Published
@@ -899,7 +899,7 @@ type
     //Property setters
     Procedure Setdate(AIndex : Integer; AValue : TDate); virtual;
     Procedure SetdateTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property date : TDate Index 0 Read Fdate Write Setdate;
@@ -918,7 +918,7 @@ type
     Fminutes : integer;
   Protected
     //Property setters
-    Procedure Setmethod(AIndex : Integer; AValue : String); virtual;
+    Procedure Setmethod(AIndex : Integer; const AValue : String); virtual;
     Procedure Setminutes(AIndex : Integer; AValue : integer); virtual;
   Public
   Published
@@ -946,16 +946,16 @@ type
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure SetaccessRole(AIndex : Integer; AValue : String); virtual;
+    Procedure SetaccessRole(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdefaultReminders(AIndex : Integer; AValue : TEventsTypedefaultRemindersArray); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : String); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TEventsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
-    Procedure Setsummary(AIndex : Integer; AValue : String); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextSyncToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setsummary(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; const AValue : String); virtual;
     Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1042,7 +1042,7 @@ type
     Procedure Setitems(AIndex : Integer; AValue : TFreeBusyRequestTypeitemsArray); virtual;
     Procedure SettimeMax(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SettimeMin(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SettimeZone(AIndex : Integer; AValue : String); virtual;
+    Procedure SettimeZone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1067,7 +1067,7 @@ type
     Fid : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -1117,7 +1117,7 @@ type
     //Property setters
     Procedure Setcalendars(AIndex : Integer; AValue : TFreeBusyResponseTypecalendars); virtual;
     Procedure Setgroups(AIndex : Integer; AValue : TFreeBusyResponseTypegroups); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeMax(AIndex : Integer; AValue : TDatetime); virtual;
     Procedure SettimeMin(AIndex : Integer; AValue : TDatetime); virtual;
   Public
@@ -1142,10 +1142,10 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -1168,11 +1168,11 @@ type
     FnextSyncToken : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TSettingsTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextPageToken(AIndex : Integer; AValue : String); virtual;
-    Procedure SetnextSyncToken(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetnextSyncToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1633,7 +1633,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAcl.Setetag(AIndex : Integer; AValue : String); 
+Procedure TAcl.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1653,7 +1653,7 @@ end;
 
 
 
-Procedure TAcl.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAcl.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1663,7 +1663,7 @@ end;
 
 
 
-Procedure TAcl.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TAcl.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1673,7 +1673,7 @@ end;
 
 
 
-Procedure TAcl.SetnextSyncToken(AIndex : Integer; AValue : String); 
+Procedure TAcl.SetnextSyncToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -1703,7 +1703,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAclRuleTypescope.Set_type(AIndex : Integer; AValue : String); 
+Procedure TAclRuleTypescope.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -1713,7 +1713,7 @@ end;
 
 
 
-Procedure TAclRuleTypescope.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TAclRuleTypescope.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -1741,7 +1741,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAclRule.Setetag(AIndex : Integer; AValue : String); 
+Procedure TAclRule.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1751,7 +1751,7 @@ end;
 
 
 
-Procedure TAclRule.Setid(AIndex : Integer; AValue : String); 
+Procedure TAclRule.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1761,7 +1761,7 @@ end;
 
 
 
-Procedure TAclRule.Setkind(AIndex : Integer; AValue : String); 
+Procedure TAclRule.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1771,7 +1771,7 @@ end;
 
 
 
-Procedure TAclRule.Setrole(AIndex : Integer; AValue : String); 
+Procedure TAclRule.Setrole(AIndex : Integer; const AValue : String); 
 
 begin
   If (Frole=AValue) then exit;
@@ -1798,7 +1798,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendar.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TCalendar.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1808,7 +1808,7 @@ end;
 
 
 
-Procedure TCalendar.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCalendar.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1818,7 +1818,7 @@ end;
 
 
 
-Procedure TCalendar.Setid(AIndex : Integer; AValue : String); 
+Procedure TCalendar.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1828,7 +1828,7 @@ end;
 
 
 
-Procedure TCalendar.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCalendar.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1838,7 +1838,7 @@ end;
 
 
 
-Procedure TCalendar.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TCalendar.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1848,7 +1848,7 @@ end;
 
 
 
-Procedure TCalendar.Setsummary(AIndex : Integer; AValue : String); 
+Procedure TCalendar.Setsummary(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsummary=AValue) then exit;
@@ -1858,7 +1858,7 @@ end;
 
 
 
-Procedure TCalendar.SettimeZone(AIndex : Integer; AValue : String); 
+Procedure TCalendar.SettimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -1875,7 +1875,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarList.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCalendarList.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1895,7 +1895,7 @@ end;
 
 
 
-Procedure TCalendarList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCalendarList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1905,7 +1905,7 @@ end;
 
 
 
-Procedure TCalendarList.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TCalendarList.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -1915,7 +1915,7 @@ end;
 
 
 
-Procedure TCalendarList.SetnextSyncToken(AIndex : Integer; AValue : String); 
+Procedure TCalendarList.SetnextSyncToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -1975,7 +1975,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarListEntry.SetaccessRole(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.SetaccessRole(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccessRole=AValue) then exit;
@@ -1985,7 +1985,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetbackgroundColor(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.SetbackgroundColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FbackgroundColor=AValue) then exit;
@@ -1995,7 +1995,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetcolorId(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.SetcolorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolorId=AValue) then exit;
@@ -2025,7 +2025,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2035,7 +2035,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setetag(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2045,7 +2045,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetforegroundColor(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.SetforegroundColor(AIndex : Integer; const AValue : String); 
 
 begin
   If (FforegroundColor=AValue) then exit;
@@ -2065,7 +2065,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setid(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2075,7 +2075,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setkind(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2085,7 +2085,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2125,7 +2125,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.Setsummary(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.Setsummary(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsummary=AValue) then exit;
@@ -2135,7 +2135,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SetsummaryOverride(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.SetsummaryOverride(AIndex : Integer; const AValue : String); 
 
 begin
   If (FsummaryOverride=AValue) then exit;
@@ -2145,7 +2145,7 @@ end;
 
 
 
-Procedure TCalendarListEntry.SettimeZone(AIndex : Integer; AValue : String); 
+Procedure TCalendarListEntry.SettimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -2175,7 +2175,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCalendarNotification.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TCalendarNotification.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -2185,7 +2185,7 @@ end;
 
 
 
-Procedure TCalendarNotification.Set_type(AIndex : Integer; AValue : String); 
+Procedure TCalendarNotification.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2226,7 +2226,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChannel.Setaddress(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setaddress(AIndex : Integer; const AValue : String); 
 
 begin
   If (Faddress=AValue) then exit;
@@ -2236,7 +2236,7 @@ end;
 
 
 
-Procedure TChannel.Setexpiration(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setexpiration(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fexpiration=AValue) then exit;
@@ -2246,7 +2246,7 @@ end;
 
 
 
-Procedure TChannel.Setid(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2256,7 +2256,7 @@ end;
 
 
 
-Procedure TChannel.Setkind(AIndex : Integer; AValue : String); 
+Procedure TChannel.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2286,7 +2286,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceId(AIndex : Integer; AValue : String); 
+Procedure TChannel.SetresourceId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceId=AValue) then exit;
@@ -2296,7 +2296,7 @@ end;
 
 
 
-Procedure TChannel.SetresourceUri(AIndex : Integer; AValue : String); 
+Procedure TChannel.SetresourceUri(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresourceUri=AValue) then exit;
@@ -2306,7 +2306,7 @@ end;
 
 
 
-Procedure TChannel.Settoken(AIndex : Integer; AValue : String); 
+Procedure TChannel.Settoken(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftoken=AValue) then exit;
@@ -2316,7 +2316,7 @@ end;
 
 
 
-Procedure TChannel.Set_type(AIndex : Integer; AValue : String); 
+Procedure TChannel.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2344,7 +2344,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TColorDefinition.Setbackground(AIndex : Integer; AValue : String); 
+Procedure TColorDefinition.Setbackground(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fbackground=AValue) then exit;
@@ -2354,7 +2354,7 @@ end;
 
 
 
-Procedure TColorDefinition.Setforeground(AIndex : Integer; AValue : String); 
+Procedure TColorDefinition.Setforeground(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fforeground=AValue) then exit;
@@ -2417,7 +2417,7 @@ end;
 
 
 
-Procedure TColors.Setkind(AIndex : Integer; AValue : String); 
+Procedure TColors.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -2444,7 +2444,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TError.Setdomain(AIndex : Integer; AValue : String); 
+Procedure TError.Setdomain(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdomain=AValue) then exit;
@@ -2454,7 +2454,7 @@ end;
 
 
 
-Procedure TError.Setreason(AIndex : Integer; AValue : String); 
+Procedure TError.Setreason(AIndex : Integer; const AValue : String); 
 
 begin
   If (Freason=AValue) then exit;
@@ -2471,7 +2471,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypecreator.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TEventTypecreator.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2481,7 +2481,7 @@ end;
 
 
 
-Procedure TEventTypecreator.Setemail(AIndex : Integer; AValue : String); 
+Procedure TEventTypecreator.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -2491,7 +2491,7 @@ end;
 
 
 
-Procedure TEventTypecreator.Setid(AIndex : Integer; AValue : String); 
+Procedure TEventTypecreator.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2606,7 +2606,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypegadget.Setdisplay(AIndex : Integer; AValue : String); 
+Procedure TEventTypegadget.Setdisplay(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdisplay=AValue) then exit;
@@ -2626,7 +2626,7 @@ end;
 
 
 
-Procedure TEventTypegadget.SeticonLink(AIndex : Integer; AValue : String); 
+Procedure TEventTypegadget.SeticonLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiconLink=AValue) then exit;
@@ -2636,7 +2636,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Setlink(AIndex : Integer; AValue : String); 
+Procedure TEventTypegadget.Setlink(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flink=AValue) then exit;
@@ -2656,7 +2656,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Settitle(AIndex : Integer; AValue : String); 
+Procedure TEventTypegadget.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2666,7 +2666,7 @@ end;
 
 
 
-Procedure TEventTypegadget.Set_type(AIndex : Integer; AValue : String); 
+Procedure TEventTypegadget.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -2704,7 +2704,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypeorganizer.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TEventTypeorganizer.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -2714,7 +2714,7 @@ end;
 
 
 
-Procedure TEventTypeorganizer.Setemail(AIndex : Integer; AValue : String); 
+Procedure TEventTypeorganizer.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -2724,7 +2724,7 @@ end;
 
 
 
-Procedure TEventTypeorganizer.Setid(AIndex : Integer; AValue : String); 
+Procedure TEventTypeorganizer.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -2802,7 +2802,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventTypesource.Settitle(AIndex : Integer; AValue : String); 
+Procedure TEventTypesource.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -2812,7 +2812,7 @@ end;
 
 
 
-Procedure TEventTypesource.Seturl(AIndex : Integer; AValue : String); 
+Procedure TEventTypesource.Seturl(AIndex : Integer; const AValue : String); 
 
 begin
   If (Furl=AValue) then exit;
@@ -2859,7 +2859,7 @@ end;
 
 
 
-Procedure TEvent.SetcolorId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetcolorId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolorId=AValue) then exit;
@@ -2889,7 +2889,7 @@ end;
 
 
 
-Procedure TEvent.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -2919,7 +2919,7 @@ end;
 
 
 
-Procedure TEvent.Setetag(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -2979,7 +2979,7 @@ end;
 
 
 
-Procedure TEvent.SethangoutLink(AIndex : Integer; AValue : String); 
+Procedure TEvent.SethangoutLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhangoutLink=AValue) then exit;
@@ -2989,7 +2989,7 @@ end;
 
 
 
-Procedure TEvent.SethtmlLink(AIndex : Integer; AValue : String); 
+Procedure TEvent.SethtmlLink(AIndex : Integer; const AValue : String); 
 
 begin
   If (FhtmlLink=AValue) then exit;
@@ -2999,7 +2999,7 @@ end;
 
 
 
-Procedure TEvent.SetiCalUID(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetiCalUID(AIndex : Integer; const AValue : String); 
 
 begin
   If (FiCalUID=AValue) then exit;
@@ -3009,7 +3009,7 @@ end;
 
 
 
-Procedure TEvent.Setid(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3019,7 +3019,7 @@ end;
 
 
 
-Procedure TEvent.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3029,7 +3029,7 @@ end;
 
 
 
-Procedure TEvent.Setlocation(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setlocation(AIndex : Integer; const AValue : String); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -3089,7 +3089,7 @@ end;
 
 
 
-Procedure TEvent.SetrecurringEventId(AIndex : Integer; AValue : String); 
+Procedure TEvent.SetrecurringEventId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FrecurringEventId=AValue) then exit;
@@ -3139,7 +3139,7 @@ end;
 
 
 
-Procedure TEvent.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -3149,7 +3149,7 @@ end;
 
 
 
-Procedure TEvent.Setsummary(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setsummary(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsummary=AValue) then exit;
@@ -3159,7 +3159,7 @@ end;
 
 
 
-Procedure TEvent.Settransparency(AIndex : Integer; AValue : String); 
+Procedure TEvent.Settransparency(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftransparency=AValue) then exit;
@@ -3179,7 +3179,7 @@ end;
 
 
 
-Procedure TEvent.Setvisibility(AIndex : Integer; AValue : String); 
+Procedure TEvent.Setvisibility(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvisibility=AValue) then exit;
@@ -3238,7 +3238,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setcomment(AIndex : Integer; AValue : String); 
+Procedure TEventAttendee.Setcomment(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fcomment=AValue) then exit;
@@ -3248,7 +3248,7 @@ end;
 
 
 
-Procedure TEventAttendee.SetdisplayName(AIndex : Integer; AValue : String); 
+Procedure TEventAttendee.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdisplayName=AValue) then exit;
@@ -3258,7 +3258,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setemail(AIndex : Integer; AValue : String); 
+Procedure TEventAttendee.Setemail(AIndex : Integer; const AValue : String); 
 
 begin
   If (Femail=AValue) then exit;
@@ -3268,7 +3268,7 @@ end;
 
 
 
-Procedure TEventAttendee.Setid(AIndex : Integer; AValue : String); 
+Procedure TEventAttendee.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3308,7 +3308,7 @@ end;
 
 
 
-Procedure TEventAttendee.SetresponseStatus(AIndex : Integer; AValue : String); 
+Procedure TEventAttendee.SetresponseStatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (FresponseStatus=AValue) then exit;
@@ -3366,7 +3366,7 @@ end;
 
 
 
-Procedure TEventDateTime.SettimeZone(AIndex : Integer; AValue : String); 
+Procedure TEventDateTime.SettimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3383,7 +3383,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventReminder.Setmethod(AIndex : Integer; AValue : String); 
+Procedure TEventReminder.Setmethod(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fmethod=AValue) then exit;
@@ -3410,7 +3410,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvents.SetaccessRole(AIndex : Integer; AValue : String); 
+Procedure TEvents.SetaccessRole(AIndex : Integer; const AValue : String); 
 
 begin
   If (FaccessRole=AValue) then exit;
@@ -3430,7 +3430,7 @@ end;
 
 
 
-Procedure TEvents.Setdescription(AIndex : Integer; AValue : String); 
+Procedure TEvents.Setdescription(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -3440,7 +3440,7 @@ end;
 
 
 
-Procedure TEvents.Setetag(AIndex : Integer; AValue : String); 
+Procedure TEvents.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3460,7 +3460,7 @@ end;
 
 
 
-Procedure TEvents.Setkind(AIndex : Integer; AValue : String); 
+Procedure TEvents.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3470,7 +3470,7 @@ end;
 
 
 
-Procedure TEvents.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TEvents.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3480,7 +3480,7 @@ end;
 
 
 
-Procedure TEvents.SetnextSyncToken(AIndex : Integer; AValue : String); 
+Procedure TEvents.SetnextSyncToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextSyncToken=AValue) then exit;
@@ -3490,7 +3490,7 @@ end;
 
 
 
-Procedure TEvents.Setsummary(AIndex : Integer; AValue : String); 
+Procedure TEvents.Setsummary(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fsummary=AValue) then exit;
@@ -3500,7 +3500,7 @@ end;
 
 
 
-Procedure TEvents.SettimeZone(AIndex : Integer; AValue : String); 
+Procedure TEvents.SettimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3673,7 +3673,7 @@ end;
 
 
 
-Procedure TFreeBusyRequest.SettimeZone(AIndex : Integer; AValue : String); 
+Procedure TFreeBusyRequest.SettimeZone(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtimeZone=AValue) then exit;
@@ -3703,7 +3703,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBusyRequestItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TFreeBusyRequestItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3766,7 +3766,7 @@ end;
 
 
 
-Procedure TFreeBusyResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TFreeBusyResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3803,7 +3803,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSetting.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSetting.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3813,7 +3813,7 @@ end;
 
 
 
-Procedure TSetting.Setid(AIndex : Integer; AValue : String); 
+Procedure TSetting.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -3823,7 +3823,7 @@ end;
 
 
 
-Procedure TSetting.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSetting.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3833,7 +3833,7 @@ end;
 
 
 
-Procedure TSetting.Setvalue(AIndex : Integer; AValue : String); 
+Procedure TSetting.Setvalue(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -3850,7 +3850,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSettings.Setetag(AIndex : Integer; AValue : String); 
+Procedure TSettings.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -3870,7 +3870,7 @@ end;
 
 
 
-Procedure TSettings.Setkind(AIndex : Integer; AValue : String); 
+Procedure TSettings.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -3880,7 +3880,7 @@ end;
 
 
 
-Procedure TSettings.SetnextPageToken(AIndex : Integer; AValue : String); 
+Procedure TSettings.SetnextPageToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextPageToken=AValue) then exit;
@@ -3890,7 +3890,7 @@ end;
 
 
 
-Procedure TSettings.SetnextSyncToken(AIndex : Integer; AValue : String); 
+Procedure TSettings.SetnextSyncToken(AIndex : Integer; const AValue : String); 
 
 begin
   If (FnextSyncToken=AValue) then exit;

@@ -131,6 +131,8 @@ begin
     T:=P.Targets.AddUnit('dbconst.pas');
     T.ResourceStrings:=true;
 
+    T:=P.Targets.AddUnit('sqltypes.pp');
+
     T:=P.Targets.AddUnit('sqlscript.pp');
     T.ResourceStrings:=true;
 
@@ -464,7 +466,15 @@ begin
           AddUnit('fpddsqldb');
           AddUnit('pqconnection');
         end;
-    T:=P.Targets.AddUnit('fpddregstd.pp', DatadictOSes-SqldbWithoutOracleOSes);
+    T:=P.Targets.AddUnit('fpddmssql.pp', DatadictOSes*MSSQLOSes);
+      with T.Dependencies do
+        begin
+          AddUnit('sqldb');
+          AddUnit('fpdatadict');
+          AddUnit('fpddsqldb');
+          AddUnit('mssqlconn');
+        end;
+    T:=P.Targets.AddUnit('fpddregstd.pp', (DatadictOSes*MSSQLOses)-SqldbWithoutOracleOSes);
       with T.Dependencies do
         begin
           AddUnit('fpdatadict');
@@ -476,6 +486,7 @@ begin
           AddUnit('fpddmysql40');
           AddUnit('fpddmysql41');
           AddUnit('fpddmysql50');
+          AddUnit('fpddmssql');
           AddUnit('fpddodbc');
         end;
     T:=P.Targets.AddUnit('customsqliteds.pas', SqliteOSes);
@@ -491,6 +502,7 @@ begin
         begin
           AddUnit('db');
           AddUnit('sqldb');
+          AddUnit('sqltypes');
           AddUnit('fpdatadict');
         end;
     T:=P.Targets.AddUnit('fpddsqlite3.pp', DatadictOSes);
@@ -734,6 +746,7 @@ begin
           AddUnit('bufdataset');
           AddUnit('dbconst');
           AddUnit('sqlscript');
+          AddUnit('sqltypes');
         end;
     T:=P.Targets.AddUnit('sqldblib.pp');
       with T.Dependencies do

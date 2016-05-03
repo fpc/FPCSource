@@ -333,8 +333,7 @@ endif
 endif
 override PACKAGE_NAME=fpc
 override PACKAGE_VERSION=3.1.1
-REQUIREDVERSION=2.6.4
-REQUIREDVERSION2=3.0.0
+REQUIREDVERSION=3.0.0
 ifndef inOS2
 override FPCDIR:=$(BASEDIR)
 export FPCDIR
@@ -2851,8 +2850,7 @@ override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 help:
 	@$(ECHO)
 	@$(ECHO) Targets
-	@$(ECHO)    all         Alias for build
-	@$(ECHO)    build       Build a new compiler and all packages
+	@$(ECHO)    all         Build a new compiler and all packages
 	@$(ECHO)    install     Install newly build files
 	@$(ECHO)    zipinstall  Create zip/tar of installed files
 	@$(ECHO)    singlezipinstall  Alias for zipinstall

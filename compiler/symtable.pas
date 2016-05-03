@@ -28,9 +28,7 @@ interface
        { common }
        cutils,cclasses,globtype,tokens,
        { symtable }
-       symconst,symbase,symtype,symdef,symsym,
-       { ppu }
-       ppu;
+       symconst,symbase,symtype,symdef,symsym;
 
 
 {****************************************************************************
@@ -157,11 +155,19 @@ interface
          curroffset: aint;
          recordalignmin: shortint;
          function get(f: tfieldvarsym): tllvmshadowsymtableentry;
+         function get_by_llvm_index(index: longint): tllvmshadowsymtableentry;
         public
          symdeflist: TFPObjectList;
 
          constructor create(st: tabstractrecordsymtable);
          destructor destroy; override;
+
+         property entries[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
+         { warning: do not call this with field.llvmfieldnr, as
+             field.llvmfieldnr will only be initialised when the llvm shadow
+             symtable is accessed for the first time. Use the default/entries
+             property instead in this case }
+         property entries_by_llvm_index[index: longint]: tllvmshadowsymtableentry read get_by_llvm_index;
         private
          // generate the table
          procedure generate;
@@ -171,7 +177,6 @@ interface
          procedure addalignmentpadding(finalsize: aint);
          procedure buildmapping(variantstarts: tfplist);
          procedure buildtable(variantstarts: tfplist);
-         property items[index: tfieldvarsym]: tllvmshadowsymtableentry read get; default;
        end;
 {$endif llvm}
 
@@ -431,7 +436,9 @@ implementation
       { module }
       fmodule,
       { codegen }
-      procinfo
+      procinfo,
+      { ppu }
+      entfile
       ;
 
 
@@ -1469,8 +1476,8 @@ implementation
           { record has one field? }
           for i:=0 to currentsymlist.Count-1 do
             begin
-              if (tsym(symlist[i]).typ=fieldvarsym) and
-                 not(sp_static in tsym(symlist[i]).symoptions) then
+              if (tsym(currentsymlist[i]).typ=fieldvarsym) and
+                 not(sp_static in tsym(currentsymlist[i]).symoptions) then
                 begin
                   if result then
                     begin
@@ -1478,7 +1485,7 @@ implementation
                       exit;
                     end;
                   result:=true;
-                  sym:=tfieldvarsym(symlist[i])
+                  sym:=tfieldvarsym(currentsymlist[i])
                 end;
             end;
           if assigned(sym) then
@@ -1794,8 +1801,14 @@ implementation
 
    function tllvmshadowsymtable.get(f: tfieldvarsym): tllvmshadowsymtableentry;
       begin
-        result:=tllvmshadowsymtableentry(symdeflist[f.llvmfieldnr])
+        result:=get_by_llvm_index(f.llvmfieldnr)
       end;
+
+
+   function tllvmshadowsymtable.get_by_llvm_index(index: longint): tllvmshadowsymtableentry;
+     begin
+       result:=tllvmshadowsymtableentry(symdeflist[index]);
+     end;
 
 
     constructor tllvmshadowsymtable.create(st: tabstractrecordsymtable);
@@ -1819,9 +1832,6 @@ implementation
         tmpsize: aint;
       begin
         case equivst.usefieldalignment of
-          C_alignment:
-            { default for llvm, don't add explicit padding }
-            symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
           bit_alignment:
             begin
               { curoffset: bit address after the previous field.      }
@@ -1835,16 +1845,18 @@ implementation
               { after the previous one, or at the next byte boundary. }
               if (curroffset<>fieldoffset) then
                 internalerror(2008051002);
-              if is_ordinal(vardef) and
-                 (vardef.packedbitsize mod 8 <> 0) then
+              if is_ordinal(vardef) then
                 begin
                   tmpsize:=vardef.packedbitsize;
-                  sizectr:=tmpsize+7;
-                  repeat
-                    symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,fieldoffset+(tmpsize+7)-sizectr));
-                    dec(sizectr,8);
-                  until (sizectr<=0);
+                  sizectr:=((curroffset+tmpsize+7) shr 3)-((curroffset+7) shr 3);
                   inc(curroffset,tmpsize);
+                  tmpsize:=0;
+                  while sizectr<>0 do
+                    begin
+                      symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,fieldoffset+tmpsize*8));
+                      dec(sizectr);
+                      inc(tmpsize);
+                    end;
                 end
               else
                 begin
@@ -1855,12 +1867,12 @@ implementation
                     inc(curroffset,tobjectsymtable(tobjectdef(vardef).symtable).datasize*8);
                end;
             end
-          else
+          else if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
             begin
               { curoffset: address right after the previous field }
               while (fieldoffset>curroffset) do
                 begin
-                  symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
+                  symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,curroffset));
                   inc(curroffset);
                 end;
               symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
@@ -1869,6 +1881,9 @@ implementation
               else
                 inc(curroffset,tobjectsymtable(tobjectdef(vardef).symtable).datasize);
             end
+          else
+            { default for llvm, don't add explicit padding }
+            symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
         end
       end;
 
@@ -1877,16 +1892,14 @@ implementation
       begin
         case equivst.usefieldalignment of
           { already correct in this case }
-          bit_alignment,
-          { handled by llvm }
-          C_alignment:
+          bit_alignment:
             ;
-          else
+          else if not(df_llvm_no_struct_packing in tdef(equivst.defowner).defoptions) then
             begin
               { add padding fields }
               while (finalsize>curroffset) do
                 begin
-                  symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
+                  symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,curroffset));
                   inc(curroffset);
                 end;
             end;
@@ -2724,7 +2737,6 @@ implementation
        begin
          { symbol uses count }
          sym.IncRefCount;
-         { unit uses count }
          owner:=sym.owner;
          while owner.symtabletype in [objectsymtable,recordsymtable,enumsymtable] do
            owner:=tdef(owner.defowner).owner;
@@ -2733,7 +2745,11 @@ implementation
              begin
                if tglobalsymtable(owner).moduleid>=current_module.unitmapsize then
                  internalerror(200501152);
+               { unit uses count }
                inc(current_module.unitmap[tglobalsymtable(owner).moduleid].refs);
+               { symbol is imported from another unit }
+               if current_module.globalsymtable<>owner then
+                 current_module.addimportedsym(sym);
              end;
        end;
 
@@ -2817,6 +2833,7 @@ implementation
       var
         symownerdef : tabstractrecorddef;
         nonlocalst : tsymtable;
+        isspezproc : boolean;
       begin
         result:=false;
 
@@ -2830,6 +2847,13 @@ implementation
         if tstoreddef(symst.defowner).is_specialization then
           while nonlocalst.symtabletype in [localsymtable,parasymtable] do
             nonlocalst:=nonlocalst.defowner.owner;
+        isspezproc:=false;
+        if assigned(current_procinfo) then
+          begin
+            if current_procinfo.procdef.is_specialization and
+                assigned(current_procinfo.procdef.struct) then
+              isspezproc:=true;
+          end;
         case symvisibility of
           vis_private :
             begin
@@ -2851,6 +2875,12 @@ implementation
                        (
                          not assigned(current_structdef) and
                          (symownerdef.owner.iscurrentunit)
+                       ) or
+                       { access from a generic method that belongs to the class
+                         but that is specialized elsewere }
+                       (
+                         isspezproc and
+                         (current_procinfo.procdef.struct=current_structdef)
                        )
                       );
             end;
@@ -2919,6 +2949,12 @@ implementation
                           is_objectpascal_helper(contextobjdef) and
                           def_is_related(tobjectdef(contextobjdef).extendeddef,symownerdef)
                         )
+                       ) or
+                       { access from a generic method that belongs to the class
+                         but that is specialized elsewere }
+                       (
+                         isspezproc and
+                         (current_procinfo.procdef.struct=current_structdef)
                        )
                       );
             end;
@@ -3911,7 +3947,7 @@ implementation
                        (for id.randommethod), so only check category methods here
                     }
                     defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
-                    if (oo_is_classhelper in defowner.objectoptions) and
+                    if is_objccategory(defowner) and
                        def_is_related(pd,defowner.childof) then
                       begin
                         { we need to know if a procedure references symbols

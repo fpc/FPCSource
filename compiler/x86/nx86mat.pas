@@ -471,6 +471,7 @@ interface
                     d:=tordconstnode(right).value.svalue;
                     if d>=aword(1) shl (left.resultdef.size*8-1) then
                       begin
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         if (cgsize in [OS_64,OS_S64]) then
                           begin
                             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
@@ -482,6 +483,7 @@ interface
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                         emit_const_reg(A_MOV,opsize,0,location.register);
                         emit_const_reg(A_SBB,opsize,-1,location.register);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
                       begin

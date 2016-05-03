@@ -82,14 +82,20 @@ Type
 
 Const
   { File attributes }
-  faReadOnly  = $00000001;
-  faHidden    = $00000002;
-  faSysFile   = $00000004;
-  faVolumeId  = $00000008;
-  faDirectory = $00000010;
-  faArchive   = $00000020;
-  faSymLink   = $00000040;
-  faAnyFile   = $0000003f;
+  faReadOnly   = $00000001;
+  faHidden     = $00000002 platform;
+  faSysFile    = $00000004 platform;
+  faVolumeId   = $00000008 platform deprecated;
+  faDirectory  = $00000010;
+  faArchive    = $00000020;
+  faNormal     = $00000080;
+  faTemporary  = $00000100 platform;
+  faSymLink    = $00000400 platform;
+  faCompressed = $00000800 platform;
+  faEncrypted  = $00004000 platform;
+  faVirtual    = $00010000 platform;
+  faAnyFile    = $000001FF;
+             
 
   { File open modes }
   fmOpenRead       = $0000;

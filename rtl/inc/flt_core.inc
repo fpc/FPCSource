@@ -755,7 +755,7 @@ type
  | to the sequence of byte-sized decimal digits.
  |
  *-------------------------------------------------------*)
-function gen_digits_32( out buf: TAsciiDigits; pos: integer; x: dword; pad_9zero: boolean = false ): integer;
+function gen_digits_32( var buf: TAsciiDigits; pos: integer; x: dword; pad_9zero: boolean = false ): integer;
 const
     digits: array [ 0 .. 9 ] of dword = (
               0,
@@ -803,7 +803,7 @@ begin
 end;
 
 {$ifndef VALREAL_32}
-function gen_digits_64( out buf: TAsciiDigits; pos: integer; const x: qword; pad_19zero: boolean = false ): integer;
+function gen_digits_64( var buf: TAsciiDigits; pos: integer; const x: qword; pad_19zero: boolean = false ): integer;
 var
     n_digits: integer;
     temp: qword;

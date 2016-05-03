@@ -153,7 +153,9 @@ interface
     (
       ldf_definition,   { definition as opposed to (an external) declaration }
       ldf_tls,          { tls definition }
-      ldf_unnamed_addr  { address doesn't matter, only content }
+      ldf_unnamed_addr, { address doesn't matter, only content }
+      ldf_vectorized,   { vectorized, dead-strippable data }
+      ldf_weak          { weak definition }
     );
     taillvmdeclflags = set of taillvmdeclflag;
 
@@ -185,6 +187,7 @@ interface
         LOC_REGISTER,
         LOC_FPUREGISTER,
         LOC_MMREGISTER: (reg: tregister);
+        LOC_CONSTANT: (value: tcgint);
     end;
 
 

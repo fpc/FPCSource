@@ -85,22 +85,22 @@ Const
     DP_2DINDEXMASK      = $0f;  { mask for index for 1st of two dead keys }
     DP_2DFACSHIFT       = 4;    { shift for factor for 1st of two dead keys }
 
-var 
-  KeymapBase : pLibrary;
+var
+  KeymapBase : pLibrary = nil;
 
 const
     KEYMAPNAME : PChar = 'keymap.library';
 
-procedure SetKeyMapDefault(CONST keyMap : pKeyMap location 'a0'); 
+procedure SetKeyMapDefault(CONST keyMap : pKeyMap location 'a0');
 SysCall KeymapBase 030;
 
 function AskKeyMapDefault : pKeyMap;
 SysCall KeymapBase 036;
 
-function MapRawKey(CONST event : pInputEvent location 'a0'; buffer : pSHORTINT location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : INTEGER;
+function MapRawKey(CONST event : pInputEvent location 'a0'; buffer : PChar location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : INTEGER;
 SysCall KeymapBase 042;
 
-function MapANSI(CONST strg : pSHORTINT location 'a0'; count : longint location 'd0'; buffer : pSHORTINT location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : longint;
+function MapANSI(CONST strg : PChar location 'a0'; count : longint location 'd0'; buffer : PChar location 'a1'; length : longint location 'd1'; CONST keyMap : pKeyMap location 'a2') : longint;
 SysCall KeymapBase 048;
 
 { Helper calls }
@@ -113,29 +113,14 @@ const
   VERSION : string[2] = '50';
   LIBVERSION : longword = 50;
 
-var
-  keymap_exit : Pointer;
-
-procedure CloseKeymapLibrary;
-begin
-  ExitProc := keymap_exit;
-  if KeymapBase <> nil then begin
-    CloseLibrary(PLibrary(KeymapBase));
-    KeymapBase := nil;
-  end;
-end;
-
 function InitKeymapLibrary : boolean;
 begin
-  KeymapBase := nil;
-  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
-  if KeymapBase <> nil then begin
-    keymap_exit := ExitProc;
-    ExitProc := @CloseKeymapLibrary;
-    InitKeymapLibrary:=True;
-  end else begin
-    InitKeymapLibrary:=False;
-  end;
+  InitKeymapLibrary := Assigned(KeymapBase);
 end;
 
+initialization
+  KeymapBase := OpenLibrary(KEYMAPNAME,LIBVERSION);
+finalization
+  if Assigned(KeymapBase) then
+    CloseLibrary(PLibrary(KeymapBase));
 end.

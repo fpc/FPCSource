@@ -69,9 +69,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdownloadUrl(AIndex : Integer; AValue : String); virtual;
-    Procedure Setformat(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure SetdownloadUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property downloadUrl : String Index 0 Read FdownloadUrl Write SetdownloadUrl;
@@ -113,10 +113,10 @@ type
     FtimeUpdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setoutputs(AIndex : Integer; AValue : TBatchReportTypeoutputsArray); virtual;
-    Procedure SetreportId(AIndex : Integer; AValue : String); virtual;
+    Procedure SetreportId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeSpan(AIndex : Integer; AValue : TBatchReportTypetimeSpan); virtual;
     Procedure SettimeUpdated(AIndex : Integer; AValue : TDatetime); virtual;
     //2.6.4. bug workaround
@@ -148,11 +148,11 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
-    Procedure Setstatus(AIndex : Integer; AValue : String); virtual;
-    Procedure Set_type(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -174,7 +174,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBatchReportDefinitionListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -197,7 +197,7 @@ type
   Protected
     //Property setters
     Procedure Setitems(AIndex : Integer; AValue : TBatchReportListTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -219,8 +219,8 @@ type
     FitemType : String;
   Protected
     //Property setters
-    Procedure SetitemCount(AIndex : Integer; AValue : String); virtual;
-    Procedure SetitemType(AIndex : Integer; AValue : String); virtual;
+    Procedure SetitemCount(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetitemType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property itemCount : String Index 0 Read FitemCount Write SetitemCount;
@@ -239,7 +239,7 @@ type
   Protected
     //Property setters
     Procedure SetpublishedAt(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Settitle(AIndex : Integer; AValue : String); virtual;
+    Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property publishedAt : TDatetime Index 0 Read FpublishedAt Write SetpublishedAt;
@@ -261,9 +261,9 @@ type
   Protected
     //Property setters
     Procedure SetcontentDetails(AIndex : Integer; AValue : TGroupTypecontentDetails); virtual;
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsnippet(AIndex : Integer; AValue : TGroupTypesnippet); virtual;
   Public
   Published
@@ -285,8 +285,8 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -307,10 +307,10 @@ type
     Fresource : TGroupItemTyperesource;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
-    Procedure SetgroupId(AIndex : Integer; AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : String); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetgroupId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setresource(AIndex : Integer; AValue : TGroupItemTyperesource); virtual;
   Public
   Published
@@ -333,9 +333,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TGroupItemListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -359,9 +359,9 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setetag(AIndex : Integer; AValue : String); virtual;
+    Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
     Procedure Setitems(AIndex : Integer; AValue : TGroupListResponseTypeitemsArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -385,9 +385,9 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetcolumnType(AIndex : Integer; AValue : String); virtual;
-    Procedure SetdataType(AIndex : Integer; AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : String); virtual;
+    Procedure SetcolumnType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property columnType : String Index 0 Read FcolumnType Write SetcolumnType;
@@ -408,7 +408,7 @@ type
   Protected
     //Property setters
     Procedure SetcolumnHeaders(AIndex : Integer; AValue : TResultTableTypecolumnHeadersArray); virtual;
-    Procedure Setkind(AIndex : Integer; AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrows(AIndex : Integer; AValue : TResultTableTyperowsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -647,7 +647,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportTypeoutputsItem.SetdownloadUrl(AIndex : Integer; AValue : String); 
+Procedure TBatchReportTypeoutputsItem.SetdownloadUrl(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdownloadUrl=AValue) then exit;
@@ -657,7 +657,7 @@ end;
 
 
 
-Procedure TBatchReportTypeoutputsItem.Setformat(AIndex : Integer; AValue : String); 
+Procedure TBatchReportTypeoutputsItem.Setformat(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fformat=AValue) then exit;
@@ -667,7 +667,7 @@ end;
 
 
 
-Procedure TBatchReportTypeoutputsItem.Set_type(AIndex : Integer; AValue : String); 
+Procedure TBatchReportTypeoutputsItem.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -722,7 +722,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReport.Setid(AIndex : Integer; AValue : String); 
+Procedure TBatchReport.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -732,7 +732,7 @@ end;
 
 
 
-Procedure TBatchReport.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBatchReport.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -752,7 +752,7 @@ end;
 
 
 
-Procedure TBatchReport.SetreportId(AIndex : Integer; AValue : String); 
+Procedure TBatchReport.SetreportId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FreportId=AValue) then exit;
@@ -802,7 +802,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBatchReportDefinition.Setid(AIndex : Integer; AValue : String); 
+Procedure TBatchReportDefinition.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -812,7 +812,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBatchReportDefinition.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -822,7 +822,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Setname(AIndex : Integer; AValue : String); 
+Procedure TBatchReportDefinition.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -832,7 +832,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Setstatus(AIndex : Integer; AValue : String); 
+Procedure TBatchReportDefinition.Setstatus(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fstatus=AValue) then exit;
@@ -842,7 +842,7 @@ end;
 
 
 
-Procedure TBatchReportDefinition.Set_type(AIndex : Integer; AValue : String); 
+Procedure TBatchReportDefinition.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
   If (F_type=AValue) then exit;
@@ -880,7 +880,7 @@ end;
 
 
 
-Procedure TBatchReportDefinitionList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBatchReportDefinitionList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -920,7 +920,7 @@ end;
 
 
 
-Procedure TBatchReportList.Setkind(AIndex : Integer; AValue : String); 
+Procedure TBatchReportList.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -950,7 +950,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupTypecontentDetails.SetitemCount(AIndex : Integer; AValue : String); 
+Procedure TGroupTypecontentDetails.SetitemCount(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemCount=AValue) then exit;
@@ -960,7 +960,7 @@ end;
 
 
 
-Procedure TGroupTypecontentDetails.SetitemType(AIndex : Integer; AValue : String); 
+Procedure TGroupTypecontentDetails.SetitemType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FitemType=AValue) then exit;
@@ -987,7 +987,7 @@ end;
 
 
 
-Procedure TGroupTypesnippet.Settitle(AIndex : Integer; AValue : String); 
+Procedure TGroupTypesnippet.Settitle(AIndex : Integer; const AValue : String); 
 
 begin
   If (Ftitle=AValue) then exit;
@@ -1014,7 +1014,7 @@ end;
 
 
 
-Procedure TGroup.Setetag(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1024,7 +1024,7 @@ end;
 
 
 
-Procedure TGroup.Setid(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1034,7 +1034,7 @@ end;
 
 
 
-Procedure TGroup.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroup.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1061,7 +1061,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupItemTyperesource.Setid(AIndex : Integer; AValue : String); 
+Procedure TGroupItemTyperesource.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1071,7 +1071,7 @@ end;
 
 
 
-Procedure TGroupItemTyperesource.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupItemTyperesource.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1088,7 +1088,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupItem.Setetag(AIndex : Integer; AValue : String); 
+Procedure TGroupItem.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1098,7 +1098,7 @@ end;
 
 
 
-Procedure TGroupItem.SetgroupId(AIndex : Integer; AValue : String); 
+Procedure TGroupItem.SetgroupId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FgroupId=AValue) then exit;
@@ -1108,7 +1108,7 @@ end;
 
 
 
-Procedure TGroupItem.Setid(AIndex : Integer; AValue : String); 
+Procedure TGroupItem.Setid(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fid=AValue) then exit;
@@ -1118,7 +1118,7 @@ end;
 
 
 
-Procedure TGroupItem.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupItem.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1145,7 +1145,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupItemListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TGroupItemListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1165,7 +1165,7 @@ end;
 
 
 
-Procedure TGroupItemListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupItemListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1195,7 +1195,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupListResponse.Setetag(AIndex : Integer; AValue : String); 
+Procedure TGroupListResponse.Setetag(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fetag=AValue) then exit;
@@ -1215,7 +1215,7 @@ end;
 
 
 
-Procedure TGroupListResponse.Setkind(AIndex : Integer; AValue : String); 
+Procedure TGroupListResponse.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
@@ -1245,7 +1245,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTableTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; AValue : String); 
+Procedure TResultTableTypecolumnHeadersItem.SetcolumnType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FcolumnType=AValue) then exit;
@@ -1255,7 +1255,7 @@ end;
 
 
 
-Procedure TResultTableTypecolumnHeadersItem.SetdataType(AIndex : Integer; AValue : String); 
+Procedure TResultTableTypecolumnHeadersItem.SetdataType(AIndex : Integer; const AValue : String); 
 
 begin
   If (FdataType=AValue) then exit;
@@ -1265,7 +1265,7 @@ end;
 
 
 
-Procedure TResultTableTypecolumnHeadersItem.Setname(AIndex : Integer; AValue : String); 
+Procedure TResultTableTypecolumnHeadersItem.Setname(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fname=AValue) then exit;
@@ -1292,7 +1292,7 @@ end;
 
 
 
-Procedure TResultTable.Setkind(AIndex : Integer; AValue : String); 
+Procedure TResultTable.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
   If (Fkind=AValue) then exit;
