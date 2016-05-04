@@ -822,7 +822,7 @@ unit cgcpu;
                 add_move_instruction(instr);
                 list.concat(instr);
               end;
-            sign_extend(list,fromsize,reg2);
+            sign_extend(list,fromsize,tosize,reg2);
           end;
       end;
 
