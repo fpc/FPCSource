@@ -828,27 +828,38 @@ unit cgcpu;
        hreg : tregister;
        size : tcgsize;
        opsize: topsize;
+       needsext: boolean;
       begin
          href:=ref;
          fixref(list,href,false);
-         if tcgsize2size[fromsize]<tcgsize2size[tosize] then
+         needsext:=tcgsize2size[fromsize]<tcgsize2size[tosize];
+         if needsext then
            size:=fromsize
          else
            size:=tosize;
          opsize:=TCGSize2OpSize[size];
          if isaddressregister(register) and not (opsize in [S_L]) then
+           hreg:=getintregister(list,OS_ADDR)
+         else
+           hreg:=register;
+
+         if needsext and (CPUM68K_HAS_MVSMVZ in cpu_capabilities[current_settings.cputype]) and not (opsize in [S_L]) then
            begin
-             hreg:=getintregister(list,OS_ADDR);
+             if fromsize in [OS_S8,OS_S16] then
+               list.concat(taicpu.op_ref_reg(A_MVS,opsize,href,hreg))
+             else if fromsize in [OS_8,OS_16] then
+               list.concat(taicpu.op_ref_reg(A_MVZ,opsize,href,hreg))
+             else
+               internalerror(2016050502);
+           end
+         else
+           begin
              list.concat(taicpu.op_ref_reg(A_MOVE,opsize,href,hreg));
              sign_extend(list,size,hreg);
-             a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,register);
-           end
-         else 
-           begin
-             list.concat(taicpu.op_ref_reg(A_MOVE,opsize,href,register));
-             { extend the value in the register }
-             sign_extend(list, size, register);
            end;
+
+         if hreg<>register then
+           a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,register);
       end;
 
 
