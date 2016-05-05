@@ -359,14 +359,7 @@ unit cgcpu;
           reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[pushsize]);
           ref.direction := dir_dec;
 
-          if tcgsize2size[paraloc^.size]<cgpara.alignment then
-            begin
-              tmpreg:=getintregister(list,pushsize);
-              a_load_ref_reg(list,paraloc^.size,pushsize,href,tmpreg);
-              list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],tmpreg,ref));
-            end
-          else
-              list.concat(taicpu.op_ref_ref(A_MOVE,tcgsize2opsize[pushsize],href,ref));
+          a_load_ref_ref(list,paraloc^.size,pushsize,href,ref);
         end;
 
       var
@@ -391,7 +384,7 @@ unit cgcpu;
                 if tcgsize2size[cgpara.size]<>tcgsize2size[size] then
                   internalerror(200501161);
                 { We need to push the data in reverse order,
-                  therefor we use a recursive algorithm }
+                  therefore we use a recursive algorithm }
                 pushdata(cgpara.location,0);
               end
           end
