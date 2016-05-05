@@ -361,7 +361,7 @@ unit cgcpu;
           reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[pushsize]);
           ref.direction := dir_dec;
 
-          a_load_ref_ref(list,paraloc^.size,pushsize,href,ref);
+          a_load_ref_ref(list,int_cgsize(tcgsize2size[paraloc^.size]),pushsize,href,ref);
         end;
 
       var
