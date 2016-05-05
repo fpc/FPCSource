@@ -101,6 +101,10 @@ unit aoptbase;
 
         { returns true if hp loads a value from reg }
         function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; Virtual;
+
+        { compares reg1 and reg2 having the same type and being the same super registers
+          so the register size is neglected }
+        function SuperRegistersEqual(reg1,reg2 : TRegister) : Boolean;
     end;
 
     function labelCanBeSkipped(p: tai_label): boolean;
@@ -304,6 +308,12 @@ unit aoptbase;
       Result:=true;
     end;
 
+
+  function TAOptBase.SuperRegistersEqual(reg1,reg2 : TRegister) : Boolean;
+  Begin
+    Result:=(getregtype(reg1) = getregtype(reg2)) and
+            (getsupreg(reg1) = getsupreg(Reg2));
+  end;
 
   { ******************* Processor dependent stuff *************************** }
 

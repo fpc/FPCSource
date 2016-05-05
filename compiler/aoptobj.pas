@@ -346,7 +346,9 @@ Unit AoptObj;
 
         { processor dependent methods }
         // if it returns true, perform a "continue"
+        function PrePeepHoleOptsCpu(var p: tai): boolean; virtual;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; virtual;
+        function PeepHoleOptPass2Cpu(var p: tai): boolean; virtual;
         function PostPeepHoleOptsCpu(var p: tai): boolean; virtual;
       End;
 
@@ -1080,8 +1082,7 @@ Unit AoptObj;
              (StartPai.typ = ait_regAlloc) Then
             Begin
               if (tai_regalloc(StartPai).ratype=ra_alloc) and
-                (getregtype(tai_regalloc(StartPai).Reg) = getregtype(Reg)) and
-                (getsupreg(tai_regalloc(StartPai).Reg) = getsupreg(Reg)) then
+                SuperRegistersEqual(tai_regalloc(StartPai).Reg,Reg) then
                begin
                  Result:=tai_regalloc(StartPai);
                  exit;
@@ -1178,7 +1179,7 @@ Unit AoptObj;
 
 {$push}
 {$r-}
-    function tAOptObj.getlabelwithsym(sym: tasmlabel): tai;
+    function TAOptObj.getlabelwithsym(sym: tasmlabel): tai;
       begin
         if (int64(sym.labelnr) >= int64(labelinfo^.lowlabel)) and
            (int64(sym.labelnr) <= int64(labelinfo^.highlabel)) then   { range check, a jump can go past an assembler block! }
@@ -1342,7 +1343,19 @@ Unit AoptObj;
 
 
     procedure TAOptObj.PrePeepHoleOpts;
+      var
+        p: tai;
       begin
+        p := BlockStart;
+        ClearUsedRegs;
+        while (p <> BlockEnd) Do
+          begin
+            UpdateUsedRegs(tai(p.next));
+            if PrePeepHoleOptsCpu(p) then
+              continue;
+            UpdateUsedRegs(p);
+            p:=tai(p.next);
+          end;
       end;
 
 
@@ -1400,10 +1413,10 @@ Unit AoptObj;
                                     no-line-info-start/end etc }
                                   if hp1.typ<>ait_marker then
                                     begin
-  {$if defined(SPARC) or defined(MIPS) }
+{$if defined(SPARC) or defined(MIPS) }
                                       if (hp1.typ=ait_instruction) and (taicpu(hp1).is_jmp) then
                                         RemoveDelaySlot(hp1);
-  {$endif SPARC or MIPS }
+{$endif SPARC or MIPS }
                                       asml.remove(hp1);
                                       hp1.free;
                                       stoploop:=false;
@@ -1423,9 +1436,9 @@ Unit AoptObj;
                                 (p<>blockstart) then
                               begin
                                 tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol).decrefs;
-  {$if defined(SPARC) or defined(MIPS)}
+{$if defined(SPARC) or defined(MIPS)}
                                 RemoveDelaySlot(p);
-  {$endif SPARC or MIPS}
+{$endif SPARC or MIPS}
                                 hp2:=tai(hp1.next);
                                 asml.remove(p);
                                 p.free;
@@ -1451,15 +1464,15 @@ Unit AoptObj;
                                   FindLabel(tasmlabel(JumpTargetOp(taicpu(p))^.ref^.symbol), hp2) then
                                   begin
                                     if (taicpu(p).opcode=aopt_condjmp)
-  {$if defined(arm) or defined(aarch64)}
+{$if defined(arm) or defined(aarch64)}
                                       and (taicpu(p).condition<>C_None)
-  {$endif arm or aarch64}
-  {$if defined(aarch64)}
+{$endif arm or aarch64}
+{$if defined(aarch64)}
                                       { can't have conditional branches to
                                         global labels on AArch64, because the
                                         offset may become too big }
                                       and (tasmlabel(JumpTargetOp(taicpu(hp1))^.ref^.symbol).bind=AB_LOCAL)
-  {$endif aarch64}
+{$endif aarch64}
                                     then
                                       begin
                                         taicpu(p).condition:=inverse_cond(taicpu(p).condition);
@@ -1470,9 +1483,9 @@ Unit AoptObj;
 
                                          taicpu(p).oper[0]^.ref^.symbol.increfs;
                                         }
-  {$if defined(SPARC) or defined(MIPS)}
+{$if defined(SPARC) or defined(MIPS)}
                                         RemoveDelaySlot(hp1);
-  {$endif SPARC or MIPS}
+{$endif SPARC or MIPS}
                                         asml.remove(hp1);
                                         hp1.free;
                                         stoploop:=false;
@@ -1504,7 +1517,19 @@ Unit AoptObj;
 
 
     procedure TAOptObj.PeepHoleOptPass2;
+      var
+        p: tai;
       begin
+        p := BlockStart;
+        ClearUsedRegs;
+        while (p <> BlockEnd) Do
+          begin
+            UpdateUsedRegs(tai(p.next));
+            if PeepHoleOptPass2Cpu(p) then
+              continue;
+            UpdateUsedRegs(p);
+            p:=tai(p.next);
+          end;
       end;
 
 
@@ -1525,7 +1550,19 @@ Unit AoptObj;
       end;
 
 
+    function TAOptObj.PrePeepHoleOptsCpu(var p : tai) : boolean;
+      begin
+        result := false;
+      end;
+
+
     function TAOptObj.PeepHoleOptPass1Cpu(var p: tai): boolean;
+      begin
+        result := false;
+      end;
+
+
+    function TAOptObj.PeepHoleOptPass2Cpu(var p : tai) : boolean;
       begin
         result := false;
       end;
