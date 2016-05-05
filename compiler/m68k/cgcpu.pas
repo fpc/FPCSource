@@ -108,6 +108,8 @@ unit cgcpu;
        procedure a_op64_reg_reg(list : TAsmList;op:TOpCG; size: tcgsize; regsrc,regdst : tregister64);override;
        procedure a_op64_const_reg(list : TAsmList;op:TOpCG; size: tcgsize; value : int64;regdst : tregister64);override;
        procedure a_op64_ref_reg(list : TAsmList;op:TOpCG;size : tcgsize;const ref : treference;reg : tregister64);override;
+       procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference); override;
+       procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64); override;
      end;
 
      { This function returns true if the reference+offset is valid.
@@ -2137,10 +2139,9 @@ unit cgcpu;
             begin
               tempref:=ref;
               tcg68k(cg).fixref(list,tempref,false);
+              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reghi));
               inc(tempref.offset,4);
               list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reglo));
-              dec(tempref.offset,4);
-              list.concat(taicpu.op_ref_reg(topcg2tasmop[op],S_L,tempref,reg.reghi));
             end;
         else
           { XOR does not allow reference for source; ADD/SUB do not allow reference for
@@ -2200,6 +2201,34 @@ unit cgcpu;
           OP_NOT,OP_NEG:
             internalerror(2012110403);
         end; { end case }
+      end;
+
+
+    procedure tcg64f68k.a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);
+      var
+        tmpref: treference;
+      begin
+        tmpref:=ref;
+        tcg68k(cg).fixref(list,tmpref,false);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reghi,tmpref);
+        inc(tmpref.offset,4);
+        cg.a_load_reg_ref(list,OS_32,OS_32,reg.reglo,tmpref);
+      end;
+
+    procedure tcg64f68k.a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);
+      var
+        tmpref: treference;
+      begin
+        { do not allow 64bit values to be loaded to address registers }
+        if isaddressregister(reg.reglo) or
+           isaddressregister(reg.reghi) then
+          internalerror(2016050501);
+
+        tmpref:=ref;
+        tcg68k(cg).fixref(list,tmpref,false);
+        cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reghi);
+        inc(tmpref.offset,4);
+        cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reglo);
       end;
 
 
