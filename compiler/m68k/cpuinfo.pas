@@ -142,7 +142,8 @@ type
       CPUM68K_HAS_TAS,       { CPU supports the TAS instruction                          }
       CPUM68K_HAS_BRAL,      { CPU supports the BRA.L/Bcc.L instructions                 }
       CPUM68K_HAS_ROLROR,    { CPU supports the ROL/ROR and ROXL/ROXR instructions       }
-      CPUM68K_HAS_BYTEREV    { CPU supports the BYTEREV instruction                      }
+      CPUM68K_HAS_BYTEREV,   { CPU supports the BYTEREV instruction                      }
+      CPUM68K_HAS_MVSMVZ     { CPU supports the MVZ and MVS instructions                 }
      );
 
 const
@@ -153,9 +154,9 @@ const
       { cpu_68040    } [CPUM68K_HAS_DBRA,CPUM68K_HAS_CAS,CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_ROLROR],
       { cpu_isaa     } [],
       { cpu_isaap    } [CPUM68K_HAS_BRAL,CPUM68K_HAS_BYTEREV],
-      { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL],
-      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV],
-      { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV]
+      { cpu_isab     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ],
+      { cpu_isac     } [CPUM68K_HAS_TAS,CPUM68K_HAS_BYTEREV,CPUM68K_HAS_MVSMVZ],
+      { cpu_cfv4e    } [CPUM68K_HAS_TAS,CPUM68K_HAS_BRAL,CPUM68K_HAS_MVSMVZ]
     );
 
   { all CPUs commonly called "coldfire" }
