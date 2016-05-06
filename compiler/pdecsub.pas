@@ -595,7 +595,7 @@ implementation
                     _DEC:optoken:=_OP_DEC;
                     _INITIALIZE:optoken:=_OP_INITIALIZE;
                     _FINALIZE:optoken:=_OP_FINALIZE;
-                    _ADDREF:optoken:=_OP_ADDREF;
+                    _CLONE:optoken:=_OP_CLONE;
                     _COPY:optoken:=_OP_COPY;
                     else
                     if (m_delphi in current_settings.modeswitches) then
@@ -1411,10 +1411,10 @@ implementation
                 end;
 
               { operators without result }
-              if optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF, _OP_COPY] then
+              if optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_COPY, _OP_CLONE] then
                 begin
                   { single var parameter to point the record }
-                  if (optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_ADDREF]) and
+                  if (optoken in [_OP_INITIALIZE, _OP_FINALIZE, _OP_COPY]) and
                      (
                       (pd.parast.SymList.Count <> 1) or
                       (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or
@@ -1422,7 +1422,7 @@ implementation
                      ) then
                     Message(parser_e_overload_impossible)
                   { constref (source) and var (dest) parameter to point the records }
-                  else if (optoken = _OP_COPY) and
+                  else if (optoken = _OP_CLONE) and
                      (
                       (pd.parast.SymList.Count <> 2) or
                       (tparavarsym(pd.parast.SymList[0]).vardef<>pd.struct) or

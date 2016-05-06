@@ -9,8 +9,8 @@ type
   private
     class operator Initialize(var aFoo: TFoo);
     class operator Finalize(var aFoo: TFoo);
-    class operator AddRef(var aFoo: TFoo);
-    class operator Copy(constref aSrc: TFoo; var aDst: TFoo);
+    class operator Copy(var aFoo: TFoo);
+    class operator Clone(constref aSrc: TFoo; var aDst: TFoo);
   public
     CopyState: TCopyState;
     Ref: Boolean;
@@ -52,19 +52,19 @@ begin
   aFoo.F := 4;
 end;
 
-class operator TFoo.AddRef(var aFoo: TFoo);
+class operator TFoo.Copy(var aFoo: TFoo);
 begin
-  WriteLn('TFoo.AddRef');
+  WriteLn('TFoo.Copy');
   aFoo.F := 3;
   aFoo.Test := aFoo.Test + 1;
   aFoo.Ref := True;
 end;
 
-class operator TFoo.Copy(constref aSrc: TFoo; var aDst: TFoo);
+class operator TFoo.Clone(constref aSrc: TFoo; var aDst: TFoo);
 var
   LSrc: PFoo;
 begin
-  WriteLn('TFoo.Copy');
+  WriteLn('TFoo.Clone');
   LSrc := @aSrc;
   LSrc.CopyState := csSource;
   aDst.CopyState := csDest;

@@ -431,8 +431,8 @@ interface
     { _OP_ENUMERATOR }  'enumerator',
     { _OP_INITIALIZE }  'initialize',
     { _OP_FINALIZE   }  'finalize',
-    { _OP_ADDREF     }  'addref',
     { _OP_COPY       }  'copy',
+    { _OP_CLONE      }  'clone',
     { _OP_INC        }  'inc',
     { _OP_DEC        }  'dec');
 
@@ -440,8 +440,8 @@ interface
     { mop_none       }  NOTOKEN,
     { mop_initialize }  _OP_INITIALIZE,
     { mop_finalize   }  _OP_FINALIZE,
-    { mop_addref     }  _OP_ADDREF,
-    { mop_copy       }  _OP_COPY
+    { mop_copy       }  _OP_COPY,
+    { mop_clone      }  _OP_CLONE
     );
 
 

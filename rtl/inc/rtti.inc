@@ -54,7 +54,7 @@ type
 
 {$if FPC_FULLVERSION>30100}
   TRTTIRecVarOp=procedure(ARec: Pointer);
-  TRTTIRecCopyOp=procedure(ASrc, ADest: Pointer);
+  TRTTIRecCloneOp=procedure(ASrc, ADest: Pointer);
 
   PRTTIRecordOpVMT=^TRTTIRecordOpVMT;
   TRTTIRecordOpVMT=
@@ -64,8 +64,8 @@ type
   record
     Initialize: TRTTIRecVarOp;
     Finalize: TRTTIRecVarOp;
-    AddRef: TRTTIRecVarOp;
-    Copy: TRTTIRecCopyOp;
+    Copy: TRTTIRecVarOp;
+    Clone: TRTTIRecCloneOp;
   end;
 
   PRecordInfoInit=^TRecordInfoInit;
@@ -314,8 +314,8 @@ begin
       begin
         recordrtti(data,typeinfo,@int_addref);
 {$if FPC_FULLVERSION>30100}
-        if Assigned(recordop) and Assigned(recordop^.AddRef) then
-          recordop^.AddRef(Data);
+        if Assigned(recordop) and Assigned(recordop^.Copy) then
+          recordop^.Copy(Data);
 {$endif FPC_FULLVERSION>30100}
       end;
 {$ifdef FPC_HAS_FEATURE_DYNARRAYS}
@@ -395,8 +395,8 @@ begin
       begin
         Temp:=aligntoptr(typeInfo+2+PByte(typeInfo)[1]);
 {$if FPC_FULLVERSION>30100}
-        if Assigned(recordop) and Assigned(recordop^.Copy) then
-          recordop^.Copy(Src,Dest)
+        if Assigned(recordop) and Assigned(recordop^.Clone) then
+          recordop^.Clone(Src,Dest)
         else
           begin
             Result:=Size;

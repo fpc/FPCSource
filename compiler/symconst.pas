@@ -575,8 +575,8 @@ type
   tmanagementoperator=(mop_none,
     mop_initialize,
     mop_finalize,
-    mop_addref,
-    mop_copy
+    mop_copy,
+    mop_clone
   );
   tmanagementoperators=set of tmanagementoperator;
 
