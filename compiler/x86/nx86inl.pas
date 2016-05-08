@@ -383,18 +383,18 @@ implementation
              if UseAVX then
                case left.location.size of
                  OS_F32:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSS2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSS2SI,S_NO,left.location.register,location.register));
                  OS_F64:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSD2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTSD2SI,S_NO,left.location.register,location.register));
                  else
                    internalerror(2007031402);
                end
              else
                case left.location.size of
                  OS_F32:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSS2SI,S_NO,left.location.register,location.register));
                  OS_F64:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTSD2SI,S_NO,left.location.register,location.register));
                  else
                    internalerror(2007031402);
                end;
@@ -427,18 +427,18 @@ implementation
              if UseAVX then
                case left.location.size of
                  OS_F32:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSS2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSS2SI,S_NO,left.location.register,location.register));
                  OS_F64:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSD2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_VCVTTSD2SI,S_NO,left.location.register,location.register));
                  else
                    internalerror(2007031401);
                end
              else
                case left.location.size of
                  OS_F32:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSS2SI,S_NO,left.location.register,location.register));
                  OS_F64:
-                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_Q,left.location.register,location.register));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CVTTSD2SI,S_NO,left.location.register,location.register));
                  else
                    internalerror(2007031401);
                end;
