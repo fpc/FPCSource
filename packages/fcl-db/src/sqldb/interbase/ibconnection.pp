@@ -118,13 +118,13 @@ type
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
-    //Segment size is not used in the code; property kept for backward compatibility
+    // Segment size is not used in the code; property kept for backward compatibility
     property BlobSegmentSize : word read FBlobSegmentSize write FBlobSegmentSize; deprecated;
     property ODSMajorVersion : integer read GetODSMajorVersion; //ODS major version number; influences database compatibility/feature level.
   published
     property DatabaseName;
     property Dialect : integer read GetDialect write FDialect stored IsDialectStored default DEFDIALECT;
-    // Set this to true to have starttransaction check transaction parameters. If False, unknown parameters are ignored.
+    // Set this to true to have StartTransaction check transaction parameters. If False, unknown parameters are ignored.
     Property CheckTransactionParams : Boolean Read FCheckTransactionParams write FCheckTransactionParams;
     property KeepConnection;
     property LoginPrompt;
@@ -193,7 +193,10 @@ end;
 
 function TIBConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
-  Result := (trans as TIBtrans).TransactionHandle;
+  if Assigned(trans) then
+    Result := (trans as TIBTrans).TransactionHandle
+  else
+    Result := nil;
 end;
 
 function TIBConnection.Commit(trans : TSQLHandle) : boolean;
@@ -1616,6 +1619,9 @@ var
   blobId : PISC_QUAD;
   ptr : Pointer;
 begin
+  // A Blob ID is a unique numeric value that references Blob data. Blob ID is stored in a field in the table
+  // The first 4 bytes of Blob ID represent the relation id for the blob, the second four bytes represent the id of the blob within the table.
+  // When new blob is written new Blob ID is assigned to field
   blobId := PISC_QUAD(@(ABlobBuf^.ConnBlobBuffer));
 
   TransactionHandle := Atransaction.Handle;
