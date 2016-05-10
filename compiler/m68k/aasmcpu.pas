@@ -125,26 +125,23 @@ type
          begin
            if typ<>top_regset then
              clearop(opidx);
-           new(dataregset);
-           new(addrregset);
-           new(fpuregset);
-           dataregset^:=dataregs;
-           addrregset^:=addrregs;
-           fpuregset^:=fpuregs;
+           dataregset:=dataregs;
+           addrregset:=addrregs;
+           fpuregset:=fpuregs;
            typ:=top_regset;
            for i:=RS_D0 to RS_D7 do
              begin
-               if assigned(add_reg_instruction_hook) and (i in dataregset^) then
+               if assigned(add_reg_instruction_hook) and (i in dataregset) then
                  add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
              end;
            for i:=RS_A0 to RS_SP do
              begin
-               if assigned(add_reg_instruction_hook) and (i in addrregset^) then
+               if assigned(add_reg_instruction_hook) and (i in addrregset) then
                  add_reg_instruction_hook(self,newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE));
              end;
            for i:=RS_FP0 to RS_FP7 do
              begin
-               if assigned(add_reg_instruction_hook) and (i in fpuregset^) then
+               if assigned(add_reg_instruction_hook) and (i in fpuregset) then
                  add_reg_instruction_hook(self,newreg(R_FPUREGISTER,i,R_SUBWHOLE));
              end;
          end;

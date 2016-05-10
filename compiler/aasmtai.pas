@@ -419,7 +419,7 @@ interface
             top_conditioncode : (cc : TAsmCond);
         {$endif defined(arm) or defined(aarch64)}
         {$ifdef m68k}
-            top_regset : (dataregset,addrregset,fpuregset:^tcpuregisterset);
+            top_regset : (dataregset,addrregset,fpuregset: tcpuregisterset);
         {$endif m68k}
         {$ifdef jvm}
             top_single : (sval:single);
@@ -2686,14 +2686,6 @@ implementation
               top_regset:
                 dispose(regset);
 {$endif ARM}
-{$ifdef m68k}
-              top_regset:
-                begin
-                  dispose(dataregset);
-                  dispose(addrregset);
-                  dispose(fpuregset);
-                end;
-{$endif m68k}
 {$ifdef jvm}
               top_string:
                 freemem(pcval);

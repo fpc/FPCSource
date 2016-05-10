@@ -163,17 +163,17 @@ interface
               getopstr:='';
               for i:=RS_D0 to RS_D7 do
                 begin
-                  if i in o.dataregset^ then
+                  if i in o.dataregset then
                    getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_A0 to RS_SP do
                 begin
-                  if i in o.addrregset^ then
+                  if i in o.addrregset then
                    getopstr:=getopstr+gas_regname(newreg(R_ADDRESSREGISTER,i,R_SUBWHOLE))+'/';
                 end;
               for i:=RS_FP0 to RS_FP7 do
                 begin
-                  if i in o.fpuregset^ then
+                  if i in o.fpuregset then
                    getopstr:=getopstr+gas_regname(newreg(R_FPUREGISTER,i,R_SUBNONE))+'/';
                 end;
               delete(getopstr,length(getopstr),1);
