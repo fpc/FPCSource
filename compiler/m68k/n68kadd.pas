@@ -214,17 +214,46 @@ implementation
           fpu_68881,fpu_coldfire:
             begin
               { force left fpureg as register, right can be reference }
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
 
               { emit compare }
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
+                    begin
+                      hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FCMP,fpuregopsize,right.location.register,left.location.register));
+                    end;
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
+                      { use FTST, if realconst is 0.0, it would be very had to do this in the
+                        optimized, because we would need to investigate the referenced value... }
+                      if (right.nodetype = realconstn) and
+                         (trealconstnode(right).value_real = 0.0) then
+                        begin
+                          if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+                            current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FTST,fpuregopsize,left.location.register))
+                          else
+                            if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                              begin
+                                href:=left.location.reference;
+                                tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,false);
+                                current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FTST,tcgsize2opsize[left.location.size],href))
+                              end
+                            else
+                              internalerror(2016051001);
+                        end
+                      else
+                        begin
+                          hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+                          if not (current_settings.fputype = fpu_coldfire) and
+                             (right.nodetype = realconstn) then
+                            current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FCMP,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,left.location.register))
+                          else
+                            begin
+                              href:=right.location.reference;
+                              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FCMP,tcgsize2opsize[right.location.size],href,left.location.register));
+                            end;
+                        end;
                     end
                 else
                   internalerror(2015021502);
