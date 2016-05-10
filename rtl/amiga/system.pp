@@ -25,11 +25,11 @@ interface
 {$I systemh.inc}
 {$I osdebugh.inc}
 
-{$ifdef cpum68k}
+{$if defined(cpum68k) and defined(fpu_soft)}
 {$define fpc_softfpu_interface}
 {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
-{$endif cpum68k}
+{$endif defined(cpum68k) and defined(fpu_soft)}
 
 const
   LineEnding = #10;
@@ -94,7 +94,8 @@ var
 
 implementation
 
-{$ifdef cpum68k}
+{$if defined(cpum68k) and defined(fpu_soft)}
+
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
 {$undef fpc_softfpu_implementation}
@@ -110,7 +111,7 @@ implementation
 {$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
 {$define FPC_SYSTEM_HAS_extractFloat32Exp}
 {$define FPC_SYSTEM_HAS_extractFloat32Sign}
-{$endif cpum68k}
+{$endif defined(cpum68k) and defined(fpu_soft)}
 
 {$I system.inc}
 {$I osdebug.inc}
