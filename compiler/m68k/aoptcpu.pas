@@ -161,6 +161,18 @@ unit aoptcpu;
                           end;
                       end;
                   end;
+              A_FMOVE,A_FMUL,A_FADD,A_FSUB,A_FDIV:
+                  if (taicpu(p).oper[0]^.typ = top_realconst) then
+                    begin
+                      tmpsingle:=taicpu(p).oper[0]^.val_real;
+                      if (taicpu(p).opsize = S_FD) and
+                         ((taicpu(p).oper[0]^.val_real - tmpsingle) = 0.0) then
+                        begin
+                          DebugMsg('Optimizer: FMOVE/FMUL/FADD/FSUB/FDIV const to lesser precision',p);
+                          taicpu(p).opsize:=S_FS;
+                          result:=true;
+                        end;
+                    end;
             end;
           end;
       end;

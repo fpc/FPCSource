@@ -171,23 +171,39 @@ implementation
         case current_settings.fputype of
           fpu_68881,fpu_coldfire:
             begin
-              { have left in the register, right can be a memory location }
-              hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
-
               { initialize the result }
               location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-              location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+
+              { have left in the register, right can be a memory location }
+              if not (current_settings.fputype = fpu_coldfire) and
+                 (left.nodetype = realconstn) then
+                begin
+                  location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                  current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(A_FMOVE,tcgsize2opsize[left.location.size],trealconstnode(left).value_real,location.register))
+                end
+              else
+                begin
+                  hlcg.location_force_fpureg(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
+
+                  location.register := cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                  cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
+                end;
 
               { emit the actual operation }
-              cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmlist,OS_NO,OS_NO,left.location.register,location.register);
               case right.location.loc of
                 LOC_FPUREGISTER,LOC_CFPUREGISTER:
                     current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,fpuregopsize,right.location.register,location.register));
                 LOC_REFERENCE,LOC_CREFERENCE:
                     begin
-                      href:=right.location.reference;
-                      tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
-                      current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
+                      if not (current_settings.fputype = fpu_coldfire) and
+                         (right.nodetype = realconstn) then
+                        current_asmdata.CurrAsmList.concat(taicpu.op_realconst_reg(op,tcgsize2opsize[right.location.size],trealconstnode(right).value_real,location.register))
+                      else
+                        begin
+                          href:=right.location.reference;
+                          tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+                          current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,tcgsize2opsize[right.location.size],href,location.register));
+                        end;
                     end
                 else
                   internalerror(2015021501);
