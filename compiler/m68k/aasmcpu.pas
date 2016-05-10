@@ -42,6 +42,7 @@ type
      opsize : topsize;
 
      procedure loadregset(opidx:longint; const dataregs,addrregs,fpuregs:tcpuregisterset);
+     procedure loadrealconst(opidx:longint; const value_real: bestreal);
 
      constructor op_none(op : tasmop);
      constructor op_none(op : tasmop;_size : topsize);
@@ -57,6 +58,7 @@ type
      constructor op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
      constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
      constructor op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : treference);
+     constructor op_realconst_reg(op : tasmop;_size : topsize;_op1: bestreal;_op2: tregister);
 
      constructor op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
      { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
@@ -145,6 +147,18 @@ type
                  add_reg_instruction_hook(self,newreg(R_FPUREGISTER,i,R_SUBWHOLE));
              end;
          end;
+      end;
+
+    procedure taicpu.loadrealconst(opidx:longint; const value_real: bestreal);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+          begin
+            if typ<>top_realconst then
+              clearop(opidx);
+            val_real:=value_real;
+            typ:=top_realconst;
+          end;
       end;
 
 
@@ -257,6 +271,14 @@ type
          loadref(1,_op2);
       end;
 
+    constructor taicpu.op_realconst_reg(op : tasmop;_size : topsize;_op1 : bestreal;_op2 : tregister);
+      begin
+         inherited create(op);
+         init(_size);
+         ops:=2;
+         loadrealconst(0,_op1);
+         loadreg(1,_op2);
+      end;
 
     constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : treference;_op2 : tregister);
       begin

@@ -180,6 +180,13 @@ interface
             end;
           top_const:
             getopstr:='#'+tostr(longint(o.val));
+          top_realconst:
+            begin
+              str(o.val_real,getopstr);
+              if getopstr[1]=' ' then
+                getopstr[1]:='+';
+              getopstr:='#0d'+getopstr;
+            end;
           else internalerror(200405021);
         end;
       end;
