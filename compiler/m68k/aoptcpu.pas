@@ -60,6 +60,7 @@ unit aoptcpu;
     var
       next: tai;
       tmpref: treference;
+      tmpsingle: single;
     begin
       result:=false;
       case p.typ of
@@ -134,6 +135,31 @@ unit aoptcpu;
                     taicpu(p).clearop(1);
                     taicpu(p).ops:=1;
                     result:=true;
+                  end;
+              A_FCMP:
+                if (taicpu(p).oper[0]^.typ = top_realconst) then
+                  begin
+                    if (taicpu(p).oper[0]^.val_real = 0.0) then
+                      begin 
+                        DebugMsg('Optimizer: FCMP #0.0 to FTST',p);
+                        taicpu(p).opcode:=A_FTST;
+                        taicpu(p).opsize:=S_FX;
+                        taicpu(p).loadoper(0,taicpu(p).oper[1]^);
+                        taicpu(p).clearop(1);
+                        taicpu(p).ops:=1;
+                        result:=true;
+                      end
+                    else
+                      begin
+                        tmpsingle:=taicpu(p).oper[0]^.val_real;
+                        if (taicpu(p).opsize = S_FD) and
+                           ((taicpu(p).oper[0]^.val_real - tmpsingle) = 0.0) then
+                          begin
+                            DebugMsg('Optimizer: FCMP const to lesser precision',p);
+                            taicpu(p).opsize:=S_FS;
+                            result:=true;
+                          end;
+                      end;
                   end;
             end;
           end;
