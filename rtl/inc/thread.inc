@@ -39,11 +39,14 @@ Var
         SysInitFPU;
 {$endif}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
         { initialize this thread's heap }
         InitHeapThread;
-{$endif HAS_MEMORYMANAGER}
+{$endif ndef FPC_NO_DEFAULT_HEAP}
+{$else HAS_MEMORYMANAGER}
         if MemoryManager.InitThread <> nil then
           MemoryManager.InitThread();
+{$endif HAS_MEMORYMANAGER}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
         if assigned(widestringmanager.ThreadInitProc) then
           widestringmanager.ThreadInitProc;
@@ -76,7 +79,9 @@ Var
           widestringmanager.ThreadFiniProc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
         FinalizeHeap;
+{$endif ndef FPC_NO_DEFAULT_HEAP}
 {$endif HAS_MEMORYMANAGER}
         if MemoryManager.DoneThread <> nil then
           MemoryManager.DoneThread();
