@@ -29,6 +29,18 @@ interface
   {$define windows}
 {$endif}
 
+{$ifdef msdos}
+  {$macro on}
+  { msdos target OS uses tinyheap code }
+  {$define SysGetMem:=SysTinyGetMem}
+  {$define SysAllocMem:=SysTinyGetMem}
+  {$define SysFreeMem:=SysTinyFreeMem}
+  {$define SysFreeMemSize:=SysTinyFreeMemSize}
+  {$define SysMemSize:=SysTinyMemSize}
+  {$define SysTryResizeMem:=SysTinyTryResizeMem}
+  {$define SysGetFPCHeapStatus:=SysTinyGetFPCHeapStatus}
+  {$define SysGetHeapStatus:=SysTinyGetHeapStatus}
+{$endif}
 Procedure DumpHeap;
 Procedure DumpHeap(SkipIfNoLeaks : Boolean);
 
