@@ -25,8 +25,16 @@
       HeapEnd: Pointer = nil;  { end of heap }
       FreeList: Pointer = nil; { pointer to the first free block }
       HeapPtr: Pointer = nil;  { pointer to the last free block }
+      HeapSize : {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
 
     function MemAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
     function MaxAvail: {$ifdef FPC_TINYHEAP_HUGE}LongInt{$else}PtrUInt{$endif};
     procedure Mark(var p: Pointer);
     procedure Release(var p: Pointer);
+    function SysTinyGetMem(Size: ptruint): pointer;
+    function SysTinyFreeMem(Addr: Pointer): ptruint;
+    function SysTinyFreeMemSize(Addr: Pointer; Size: Ptruint): ptruint;
+    function SysTinyMemSize(p: pointer): ptruint;
+    function SysTinyGetFPCHeapStatus : TFPCHeapStatus;
+    function SysTinyGetHeapStatus : THeapStatus;
+    function SysTinyTryResizeMem(var p: pointer; size: ptruint) : boolean;
