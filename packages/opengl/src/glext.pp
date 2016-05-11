@@ -5094,6 +5094,61 @@ function Load_GL_VERSION_3_3(): Boolean;
 
 function Load_GL_VERSION_4_0(): Boolean;
 
+//**** GL_VERSION_4_3 *****//
+
+const
+  GL_DEBUG_OUTPUT = $92E0;
+  GL_DONT_CARE = $1100;
+  GL_CONTEXT_FLAG_DEBUG_BIT = $00000002;
+  GL_STACK_OVERFLOW = $0503;
+  GL_STACK_UNDERFLOW = $0504;
+  GL_DEBUG_OUTPUT_SYNCHRONOUS = $8242;
+  GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH = $8243;
+  GL_DEBUG_CALLBACK_FUNCTION = $8244;
+  GL_DEBUG_CALLBACK_USER_PARAM = $8245;
+  GL_DEBUG_SOURCE_API = $8246;
+  GL_DEBUG_SOURCE_WINDOW_SYSTEM = $8247;
+  GL_DEBUG_SOURCE_SHADER_COMPILER = $8248;
+  GL_DEBUG_SOURCE_THIRD_PARTY = $8249;
+  GL_DEBUG_SOURCE_APPLICATION = $824A;
+  GL_DEBUG_SOURCE_OTHER = $824B;
+  GL_DEBUG_TYPE_ERROR = $824C;
+  GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR = $824D;
+  GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR = $824E;
+  GL_DEBUG_TYPE_PORTABILITY = $824F;
+  GL_DEBUG_TYPE_PERFORMANCE = $8250;
+  GL_DEBUG_TYPE_OTHER = $8251;
+  GL_DEBUG_TYPE_MARKER = $8268;
+  GL_DEBUG_TYPE_PUSH_GROUP = $8269;
+  GL_DEBUG_TYPE_POP_GROUP = $826A;
+  GL_DEBUG_SEVERITY_NOTIFICATION = $826B;
+  GL_MAX_DEBUG_GROUP_STACK_DEPTH = $826C;
+  GL_DEBUG_GROUP_STACK_DEPTH = $826D;
+  GL_BUFFER = $82E0;
+  GL_SHADER = $82E1;
+  GL_PROGRAM = $82E2;
+  GL_QUERY = $82E3;
+  GL_PROGRAM_PIPELINE = $82E4;
+  GL_SAMPLER = $82E6;
+  GL_DISPLAY_LIST = $82E7;
+  GL_MAX_LABEL_LENGTH = $82E8;
+  GL_MAX_DEBUG_MESSAGE_LENGTH = $9143;
+  GL_MAX_DEBUG_LOGGED_MESSAGES = $9144;
+  GL_DEBUG_LOGGED_MESSAGES = $9145;
+  GL_DEBUG_SEVERITY_HIGH = $9146;
+  GL_DEBUG_SEVERITY_MEDIUM = $9147;
+  GL_DEBUG_SEVERITY_LOW = $9148;
+
+type
+  GLDEBUGPROC = procedure (source:GLenum; _type:GLenum; id:GLuint; severity:GLenum; length:GLsizei; message:PGLchar; userParam:PGLvoid );extdecl;
+
+var
+  glDebugMessageCallback:procedure (callback:GLDEBUGPROC; userParam:PGLvoid);
+  glDebugMessageControl :procedure (source:GLenum; _type:GLenum; severity:GLenum; count:GLsizei; ids:PGLuint; enabled:GLboolean);
+
+function Load_GL_Debug_output(): Boolean;
+function Load_GL_VERSION_4_3(): Boolean;
+
 implementation
 
 {$IFNDEF Windows}
@@ -11129,6 +11184,34 @@ begin
   Result := Load_GL_VERSION_2_1();
 end;
 
+function Load_GL_Debug_output: Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_KHR_debug', extstring) then
+  begin
+    glDebugMessageCallback := wglGetProcAddress('glDebugMessageCallback');
+    if not Assigned(glDebugMessageCallback) then Exit;
+
+    glDebugMessageControl := wglGetProcAddress('glDebugMessageControl');
+    if not Assigned(glDebugMessageControl) then Exit;
+    Result := True;
+  end;
+
+  if not Result and glext_ExtensionSupported('GL_ARB_debug_output', extstring) then
+  begin
+    glDebugMessageCallback := wglGetProcAddress('glDebugMessageCallbackARB');
+    if not Assigned(glDebugMessageCallback) then Exit;
+
+    glDebugMessageControl := wglGetProcAddress('glDebugMessageControlARB');
+    if not Assigned(glDebugMessageControl) then Exit;
+    Result := True;
+  end;
+end;
+
 function Load_GL_VERSION_3_1(): Boolean;
 begin
   Result := False;
@@ -11181,6 +11264,13 @@ begin
   if not Load_GL_ARB_tessellation_shader(true) then Exit;
   if not Load_GL_ARB_transform_feedback2(true) then Exit;
   if not Load_GL_ARB_transform_feedback3(true) then Exit;
+  Result := Load_GL_VERSION_3_3();
+end;
+
+function Load_GL_VERSION_4_3(): Boolean;
+begin
+  Result := False;
+  if not Load_GL_Debug_output() then Exit;
   Result := Load_GL_VERSION_3_3();
 end;
 
