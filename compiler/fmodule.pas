@@ -774,6 +774,8 @@ implementation
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        unitimportsyms.free;
+        unitimportsyms:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then
