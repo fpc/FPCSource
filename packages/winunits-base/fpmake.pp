@@ -64,7 +64,6 @@ begin
           AddUnit('imm');
           AddUnit('imm_dyn');
           AddUnit('nb30');
-          AddUnit('win9xwsmanager', [win32]);
 		  AddUnit('stdole2');
 		  AddUnit('eventsink');
 		  AddUnit('typelib');
