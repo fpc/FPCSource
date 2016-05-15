@@ -433,11 +433,9 @@ type
       indication enough that you should not touch it }
     Name_do_not_touch : RawByteString;
     ExcludeAttr : Longint;
+    FindHandle : {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif};
   {$ifdef unix}
-    FindHandle : Pointer;
     Mode : TMode;
-  {$else unix}
-    FindHandle : THandle;
   {$endif unix}
   {$ifdef USEFINDDATA}
     FindData : TFindData;
@@ -455,7 +453,7 @@ Function InternalFindFirst (Const Path : UnicodeString; Attr : Longint; out Rslt
 Function InternalFindNext (var Rslt : TAbstractSearchRec; var Name : UnicodeString) : Longint; forward;
 {$endif SYSUTILS_HAS_UNICODESTR_FILEUTIL_IMPL}
 
-procedure InternalFindClose(var Handle: {$ifdef unix}Pointer{$else}THandle{$endif}{$ifdef USEFINDDATA};var FindData: TFindData{$endif}); forward;
+procedure InternalFindClose(var Handle: {$ifdef FINDHANDLE_IS_POINTER}Pointer{$else}THandle{$endif}{$ifdef USEFINDDATA};var FindData: TFindData{$endif}); forward;
 
 
 {$ifndef SYSUTILS_HAS_ANSISTR_FILEUTIL_IMPL}

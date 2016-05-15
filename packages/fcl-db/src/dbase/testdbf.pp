@@ -15,6 +15,7 @@ begin
   Assign(F,FN);
   Rewrite(F);
 //  SetTextBuf(F,Buf);
+  Count := 0;
   With TDBF.Create(Nil) do
     begin
     TableName:=TN;

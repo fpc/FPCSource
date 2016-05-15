@@ -36,6 +36,7 @@ unit i_sunos;
             shortname    : 'solaris';
             flags        : [tf_under_development,tf_needs_symbol_size,
                             tf_files_case_sensitive,tf_requires_proper_alignment,
+                            tf_pic_uses_got,tf_library_needs_pic,
                             tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'SOLARISUNITS';
@@ -91,6 +92,8 @@ unit i_sunos;
             stacksize    : 262144;
             stackalign   : 4;
             abi          : abi_default;
+            { note: default LLVM stack alignment is 16 bytes for this target }
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
           );
 
 
@@ -130,7 +133,7 @@ unit i_sunos;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_ggas{as_x86_64_elf64};
+            assem        : as_x86_64_elf64;
             assemextern  : as_ggas;
             link         : ld_none;
             linkextern   : ld_solaris;
@@ -157,7 +160,8 @@ unit i_sunos;
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;
             stackalign   : 16;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
           );
 
 
@@ -225,6 +229,7 @@ unit i_sunos;
             stacksize    : 262144;
             stackalign   : 8;
             abi          : abi_default;
+            llvmdatalayout : 'E-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
           );
 
   implementation

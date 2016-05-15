@@ -359,7 +359,7 @@ Var
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-     EntryInformation:=info;
+     SetupEntryInformation(info);
 {$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
      IsLibrary:=true;
      DllInitState:=DLLreason;
@@ -400,7 +400,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if TlsGetValue(TLSKey)<>nil then
+           if TlsGetValue(TLSKey^)<>nil then
              DoneThread; { Assume everything is idempotent there }
          end;
        DLL_PROCESS_DETACH :
@@ -498,9 +498,15 @@ procedure SysInitStdIO;
 begin
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in a messagebox }
-  StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
-  StdOutputHandle:=longint(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
-  StdErrorHandle:=longint(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
+  { WARNING: this should be done only once at startup,
+    not for DLL entry code, as the standard handles might
+    have been redirected }
+  if StdInputHandle=0 then
+    StdInputHandle:=THandle(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
+  if StdOutputHandle=0 then
+    StdOutputHandle:=THandle(GetStdHandle(cardinal(STD_OUTPUT_HANDLE)));
+  if StdErrorHandle=0 then
+    StdErrorHandle:=THandle(GetStdHandle(cardinal(STD_ERROR_HANDLE)));
   if not IsConsole then
    begin
      AssignError(stderr);
@@ -653,10 +659,13 @@ type
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 
-{$if not(defined(VER2_2) or defined(VER2_4))}
 var
-  WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
-{$endif}
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  WStrInitTablesTable: PWStrInitTablesTable;
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+  WStrInitTablesTableVar: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
+  WStrInitTablesTable: PWStrInitTablesTable = @WStrInitTablesTableVar;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
 
 function GetACP:UINT; stdcall; external 'kernel32' name 'GetACP';
 function GetConsoleCP:UINT; stdcall; external 'kernel32' name 'GetConsoleCP';
@@ -680,9 +689,9 @@ procedure InitWin32Widestrings;
   begin
 {$if not(defined(VER2_2) or defined(VER2_4))}
     { assign initial values to global Widestring typed consts }
-    for i:=1 to WStrInitTablesTable.count do
+    for i:=1 to WStrInitTablesTable^.count do
       begin
-        ptable:=WStrInitTablesTable.tables[i];
+        ptable:=WStrInitTablesTable^.tables[i];
         while Assigned(ptable^.addr) do
           begin
             fpc_widestr_assign(ptable^.addr^, ptable^.data);

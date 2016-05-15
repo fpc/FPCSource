@@ -144,6 +144,10 @@ type
   end;
   tcpuunitsymclass = class of tcpuunitsym;
 
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
+
   tcpunamespacesym = class(tnamespacesym)
   end;
   tcpunamespacesymclass = class of tcpunamespacesym;
@@ -375,15 +379,15 @@ implementation
         { create procdef }
         if not assigned(orgaccesspd) then
           begin
-            pd:=cprocdef.create(normal_function_level);
+            pd:=cprocdef.create(normal_function_level,true);
             if df_generic in obj.defoptions then
               include(pd.defoptions,df_generic);
             { method of this objectdef }
             pd.struct:=obj;
             { can only construct the artificial accessorname now, because it requires
-              pd.defid }
+              pd.unique_id_str }
             if not explicitwrapper then
-              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+tostr(pd.defid);
+              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+pd.unique_id_str;
           end
         else
           begin
@@ -393,9 +397,9 @@ implementation
             exclude(pd.procoptions,po_abstractmethod);
             exclude(pd.procoptions,po_overridingmethod);
             { can only construct the artificial accessorname now, because it requires
-              pd.defid }
+              pd.unique_id_str }
             if not explicitwrapper then
-              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+tostr(pd.defid);
+              accessorname:='$'+obj.symtable.realname^+'$'+realname+'$'+accessorname+'$'+pd.unique_id_str;
             finish_copied_procdef(pd,accessorname,obj.symtable,obj);
             sym:=pd.procsym;
           end;
@@ -673,7 +677,7 @@ implementation
             container:=owner;
             while container.symtabletype=localsymtable do
               begin
-                tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$'+tostr(tprocdef(owner.defowner).procsym.symid)+'$'+tmpresult;
+                tmpresult:='$'+tprocdef(owner.defowner).procsym.realname+'$$'+tprocdef(owner.defowner).unique_id_str+'$'+tmpresult;
                 container:=container.defowner.owner;
               end;
           end;
@@ -914,6 +918,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

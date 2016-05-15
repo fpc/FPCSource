@@ -125,7 +125,7 @@ implementation
 
         { c) create loadnode of the field }
         result:=nil;
-        if not handle_staticfield_access(classfield,false,result) then
+        if not handle_staticfield_access(classfield,result) then
           internalerror(2011062606);
       end;
 
@@ -391,7 +391,7 @@ implementation
                 begin
                   result:=buildbitset;
                 end;
-              inserttypeconv_explicit(result,getpointerdef(resultdef));
+              inserttypeconv_explicit(result,cpointerdef.getreusable(resultdef));
               result:=cderefnode.create(result);
             end;
           else

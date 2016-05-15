@@ -139,6 +139,7 @@ ResourceString
   SImageReadFail                = 'The ImageList data could not be read from stream';
   SImageWriteFail               = 'The ImageList data could not be written to stream';
   SIndexOutOfRange              = 'Grid index out of range';
+  SParamIsNil                   = 'Parameter %s cannot be nil';
   SIniFileWriteError            = 'Unable to write to "%s"';
   SInsertLineError              = 'Line could not be inserted';
   SInvalidActionCreation        = 'Invalid action creation';
@@ -300,6 +301,8 @@ ResourceString
   SInvalidHighSurrogate         = 'Invalid high surrogate at index %d. High surrogate must be followed by a low surrogate pair';
   SInvalidUnicodeCodePointSequence = 'Invalid unicode code point sequence';
   SClassCantBeConstructed       = 'Class %s can not be constructed';
+  SErrStatusCallBackRequired    = 'Thread status report handler cannot be empty.';
+  SErrFindNeedsSortedList       = 'Cannot use find on unsorted list';
 
 { ---------------------------------------------------------------------
     Keysim Names

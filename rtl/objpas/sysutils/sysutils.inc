@@ -39,7 +39,11 @@
 
   { variant error codes }
   {$i varerror.inc}
-
+  
+  { Type helpers}
+  {$IFNDEF VER2_6}
+  {$i syshelp.inc}
+  {$ENDIF}
 
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: RawByteString): Boolean;
@@ -158,7 +162,16 @@ end;
         temp.free;
       end;
 
-
+    procedure FreeMemAndNil(var p);
+    
+    var
+      temp:Pointer;
+    begin
+      temp := Pointer(p);
+      Pointer(P):=nil;
+      FreeMem(temp);
+    end;
+    
   { Interfaces support }
   {$i sysuintf.inc}
 
@@ -289,13 +302,24 @@ Procedure CatchUnhandledException (Obj : TObject; Addr: CodePointer; FrameCount:
 Var
   i : longint;
   hstdout : ^text;
+  
 begin
-  hstdout:=@stdout;
+  if WriteErrorsToStdErr then
+    hstdout:=@stderr
+  else
+    hstdout:=@stdout;
   Writeln(hstdout^,'An unhandled exception occurred at $',HexStr(Addr),':');
   if Obj is exception then
     Writeln(hstdout^,Obj.ClassName,': ',Exception(Obj).Message)
+  else if Obj is TObject then
+    Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.')
   else
-    Writeln(hstdout^,'Exception object ',Obj.ClassName,' is not of class Exception.');
+    Writeln(hstdout^,'Exception object is not a valid class.');
+{$IFDEF HAS_OSERROR}
+ {$IFDEF DEBUG_EXCEPTIONS_LASTOSERROR}
+  WriteLn (HStdOut^, 'Last OS error detected in the RTL: ', GetLastOSError);
+ {$ENDIF DEBUG_EXCEPTIONS_LASTOSERROR}
+{$ENDIF HAS_OSERROR}
   Writeln(hstdout^,BackTraceStrFunc(Addr));
   if (FrameCount>0) then
     begin
@@ -318,7 +342,7 @@ type
   end;
 
 const
-  exceptmap: array[0..28] of TExceptMapEntry = (
+  exceptmap: array[0..29] of TExceptMapEntry = (
     (code: 200; cls: EDivByZero;     msg: @SDivByZero),
     (code: 201; cls: ERangeError;    msg: @SRangeError),
     (code: 202; cls: EStackOverflow; msg: @SStackOverflow),
@@ -348,7 +372,8 @@ const
     (code: 231; cls: EConvertError;  msg: @SiconvError),
     (code: 232; cls: ENoThreadSupport; msg: @SNoThreadSupport),
     (code: 233; cls: ENoWideStringSupport; msg: @SSigQuit),
-    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager)
+    (code: 234; cls: ENoWideStringSupport; msg: @SMissingWStringManager),
+    (code: 235; cls: ENoDynLibsSupport; msg: @SNoDynLibsSupport)
   );
 
 function FindExceptMapEntry(err: longint): PExceptMapEntry;
@@ -735,3 +760,21 @@ begin
     OnBeep;
 end;
 
+// OSes that only provide 1 byte versions can enable the following define
+{$ifdef executeprocuni}
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: UnicodeString;Flags:TExecuteFlags=[]):integer;
+begin
+  result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ToSingleByteFileSystemEncodedFileName(ComLine));
+end;
+
+function ExecuteProcess(Const Path: UnicodeString; Const ComLine: Array of UnicodeString;Flags:TExecuteFlags=[]):integer;
+var 
+  ComLineA : array of RawByteString;
+  I        : Integer;
+begin
+  SetLength(ComLineA,high(comline)-low(comline)+1);
+  For I:=0 to length(ComLineA)-1 Do
+    ComLineA[i]:=ToSingleByteFileSystemEncodedFileName(ComLine[I]);
+  result:=ExecuteProcess(ToSingleByteFileSystemEncodedFileName(Path),ComLineA);
+end;
+{$endif}

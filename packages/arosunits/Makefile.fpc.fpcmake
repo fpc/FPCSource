@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for Free Pascal AROS units Bindings
+#
+
+[package]
+name=arosunits
+version=3.1.1
+
+[target]
+units= agraphics amigados exec hardware inputevent intuition keymap layers \
+       longarray tagsarray timer utility diskfont iffparse clipboard       \
+       workbench icon gadtools asl mui
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

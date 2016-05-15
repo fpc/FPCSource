@@ -45,10 +45,18 @@ interface
        end;
        tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
+       tloadparentfpkind = (
+         { as parameter to a nested routine (current routine's frame) }
+         lpf_forpara,
+         { to load a local from a parent routine in the current nested routine
+           (some parent routine's frame) }
+         lpf_forload
+       );
        tloadparentfpnode = class(tunarynode)
           parentpd : tprocdef;
           parentpdderef : tderef;
-          constructor create(pd:tprocdef);virtual;
+          kind: tloadparentfpkind;
+          constructor create(pd: tprocdef; fpkind: tloadparentfpkind);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -75,6 +83,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function simplify(forinline : boolean) : tnode; override;
          protected
           mark_read_written: boolean;
           function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; virtual;
@@ -106,6 +115,9 @@ interface
        tsubscriptnodeclass = class of tsubscriptnode;
 
        tvecnode = class(tbinarynode)
+       protected
+          function first_arraydef: tnode; virtual;
+       public
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -142,7 +154,7 @@ implementation
       globtype,systems,constexp,
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
-      nbas,nutils,
+      nbas,ninl,nutils,objcutil,
       wpobase,
 {$ifdef i8086}
       cpuinfo,
@@ -237,39 +249,27 @@ implementation
            include(current_procinfo.flags,pi_needs_got);
          if left.nodetype<>typen then
            begin
-             if is_objcclass(left.resultdef) and
-                (left.nodetype<>typen) then
+             if (is_objc_class_or_protocol(left.resultdef) or
+                 is_objcclassref(left.resultdef)) then
                begin
-                 { don't use the ISA field name, assume this field is at offset
-                   0 (just like gcc/clang) }
-                 result:=ctypeconvnode.create_internal(left,voidpointertype);
-                 result:=cderefnode.create(result);
-                 inserttypeconv_internal(result,resultdef);
-                 { reused }
-                 left:=nil;
-               end
-             else if is_javaclass(left.resultdef) and
-                (left.nodetype<>typen) and
-                (left.resultdef.typ<>classrefdef) then
-               begin
-                 { call java.lang.Object.getClass() }
-                 vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
-                 if not assigned(vs) or
-                    (tsym(vs).typ<>procsym) then
-                   internalerror(2011041901);
-                 result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[]);
-                 inserttypeconv_explicit(result,resultdef);
-                 { reused }
-                 left:=nil;
+                 { on non-fragile ABI platforms, the ISA pointer may be opaque
+                   and we must call Object_getClass to obtain the real ISA
+                   pointer }
+                 if target_info.system in systems_objc_nfabi then
+                   begin
+                     result:=ccallnode.createinternfromunit('OBJC','OBJECT_GETCLASS',ccallparanode.create(left,nil));
+                     inserttypeconv_explicit(result,resultdef);
+                   end
+                 else
+                   result:=objcloadbasefield(left,'ISA');
                end
              else
-               firstpass(left)
+               result:=ctypeconvnode.create_internal(load_vmt_for_self_node(left),resultdef);
+             { reused }
+             left:=nil;
            end
          else if not is_objcclass(left.resultdef) and
-                 not is_objcclassref(left.resultdef) and
-                 not is_javaclass(left.resultdef) and
-                 not is_javaclassref(left.resultdef) and
-                 not is_javainterface(left.resultdef) then
+                 not is_objcclassref(left.resultdef) then
            begin
              if not(nf_ignore_for_wpo in flags) and
                 (not assigned(current_procinfo) or
@@ -294,7 +294,7 @@ implementation
                 (vs.typ<>procsym) then
                internalerror(2011080601);
              { can't reuse "self", because it will be freed when we return }
-             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[]);
+             result:=ccallnode.create(nil,tprocsym(vs),vs.owner,self.getcopy,[],nil);
            end;
       end;
 
@@ -303,7 +303,7 @@ implementation
                         TLOADPARENTFPNODE
 *****************************************************************************}
 
-    constructor tloadparentfpnode.create(pd:tprocdef);
+    constructor tloadparentfpnode.create(pd: tprocdef; fpkind: tloadparentfpkind);
       begin
         inherited create(loadparentfpn,nil);
         if not assigned(pd) then
@@ -311,6 +311,7 @@ implementation
         if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
           internalerror(200309284);
         parentpd:=pd;
+        kind:=fpkind;
       end;
 
 
@@ -318,6 +319,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         ppufile.getderef(parentpdderef);
+        kind:=tloadparentfpkind(ppufile.getbyte);
       end;
 
 
@@ -325,6 +327,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(parentpdderef);
+        ppufile.putbyte(byte(kind));
       end;
 
 
@@ -346,7 +349,8 @@ implementation
       begin
         result:=
           inherited docompare(p) and
-          (tloadparentfpnode(p).parentpd=parentpd);
+          (tloadparentfpnode(p).parentpd=parentpd) and
+          (tloadparentfpnode(p).kind=kind);
       end;
 
 
@@ -356,6 +360,7 @@ implementation
       begin
          p:=tloadparentfpnode(inherited dogetcopy);
          p.parentpd:=parentpd;
+         p.kind:=kind;
          dogetcopy:=p;
       end;
 
@@ -570,7 +575,7 @@ implementation
         else
           begin
             hp:=left;
-            while assigned(hp) and (hp.nodetype in [typeconvn,vecn,derefn,subscriptn]) do
+            while assigned(hp) and (hp.nodetype in [typeconvn,derefn,subscriptn]) do
               hp:=tunarynode(hp).left;
             if not assigned(hp) then
               internalerror(200412042);
@@ -593,6 +598,32 @@ implementation
             { vsf_must_be_valid so it doesn't get changed into }
             { vsf_referred_not_inited                          }
             set_varstate(left,vs_read,[vsf_must_be_valid]);
+          end;
+        if not(assigned(result)) then
+          result:=simplify(false);
+      end;
+
+
+    function taddrnode.simplify(forinline : boolean) : tnode;
+      var
+        hsym : tfieldvarsym;
+      begin
+        result:=nil;
+        if ((left.nodetype=subscriptn) and
+          (tsubscriptnode(left).left.nodetype=derefn) and
+          (tsubscriptnode(left).left.resultdef.typ=recorddef) and
+          (tderefnode(tsubscriptnode(left).left).left.nodetype=niln)) or
+          ((left.nodetype=subscriptn) and
+          (tsubscriptnode(left).left.nodetype=typeconvn) and
+          (tsubscriptnode(left).left.resultdef.typ=recorddef) and
+          (ttypeconvnode(tsubscriptnode(left).left).left.nodetype=derefn) and
+          (tderefnode(ttypeconvnode(tsubscriptnode(left).left).left).left.nodetype=niln)) then
+          begin
+            hsym:=tsubscriptnode(left).vs;
+            if tabstractrecordsymtable(hsym.owner).is_packed then
+              result:=cpointerconstnode.create(hsym.fieldoffset div 8,resultdef)
+            else
+              result:=cpointerconstnode.create(hsym.fieldoffset,resultdef);
           end;
       end;
 
@@ -629,7 +660,7 @@ implementation
                 hp:=tunarynode(hp).left;
               end;
             if nf_typedaddr in flags then
-              res:=cpointerconstnode.create(offset,getpointerdef(left.resultdef))
+              res:=cpointerconstnode.create(offset,cpointerdef.getreusable(left.resultdef))
             else
               res:=cpointerconstnode.create(offset,voidpointertype);
             result:=true;
@@ -640,7 +671,7 @@ implementation
             if not(nf_typedaddr in flags) then
               resultdef:=voidpointertype
             else
-              resultdef:=getpointerdef(left.resultdef);
+              resultdef:=cpointerdef.getreusable(left.resultdef);
             result:=true;
           end
       end;
@@ -770,6 +801,10 @@ implementation
     procedure Tsubscriptnode.mark_write;
       begin
         include(flags,nf_write);
+        { if an element of a record is written, then the whole record is changed/it is written to it,
+          for data types being implicit pointers this does not apply as the object itself does not change }
+        if not(is_implicit_pointer_object_type(left.resultdef)) then
+          left.mark_write;
       end;
 
 
@@ -833,7 +868,7 @@ implementation
     function tvecnode.pass_typecheck:tnode;
       var
          hightree: tnode;
-         htype,elementdef : tdef;
+         htype,elementdef,elementptrdef : tdef;
          newordtyp: tordtype;
          valid : boolean;
       begin
@@ -931,7 +966,8 @@ implementation
                        newordtyp:=torddef(ptrsinttype).ordtype;
                      inserttypeconv(right,corddef.create(newordtyp,
                                                          int64(Tarraydef(left.resultdef).lowrange),
-                                                         int64(Tarraydef(left.resultdef).highrange)
+                                                         int64(Tarraydef(left.resultdef).highrange),
+                                                         true
                                                         ))
                    end
                  else
@@ -942,12 +978,14 @@ implementation
                  inserttypeconv(right,u8inttype)
                else if is_shortstring(left.resultdef) then
                  {Convert shortstring indexes to 0..length.}
-                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len)))
+                 inserttypeconv(right,corddef.create(u8bit,0,int64(Tstringdef(left.resultdef).len),true))
                else
                  {Convert indexes into dynamically allocated strings to aword.}
                  inserttypeconv(right,uinttype);
+             pointerdef:
+               inserttypeconv(right,tpointerdef(left.resultdef).pointer_arithmetic_int_type);
              else
-               {Others, i.e. pointer indexes to aint.}
+               {Others, (are there any?) indexes to aint.}
                inserttypeconv(right,sinttype);
            end;
 
@@ -1014,7 +1052,7 @@ implementation
                   ) then
                 begin
                   { convert pointer to array }
-                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef).pointeddef);
+                  htype:=carraydef.create_from_pointer(tpointerdef(left.resultdef));
                   inserttypeconv(left,htype);
                   if right.nodetype=rangen then
                     resultdef:=htype
@@ -1029,19 +1067,23 @@ implementation
                 case tstringdef(left.resultdef).stringtype of
                   st_unicodestring,
                   st_widestring :
-                    elementdef:=cwidechartype;
-                  st_ansistring :
-                    elementdef:=cansichartype;
-                  st_longstring :
-                    elementdef:=cansichartype;
+                    begin
+                      elementdef:=cwidechartype;
+                      elementptrdef:=widecharpointertype;
+                    end;
+                  st_ansistring,
+                  st_longstring,
                   st_shortstring :
-                    elementdef:=cansichartype;
+                    begin
+                      elementdef:=cansichartype;
+                      elementptrdef:=charpointertype;
+                    end;
                   else
                     internalerror(2013112902);
                 end;
                 if right.nodetype=rangen then
                   begin
-                    htype:=carraydef.create_from_pointer(elementdef);
+                    htype:=carraydef.create_from_pointer(tpointerdef(elementptrdef));
                     resultdef:=htype;
                   end
                 else
@@ -1067,6 +1109,9 @@ implementation
     procedure Tvecnode.mark_write;
       begin
         include(flags,nf_write);
+        { see comment in tsubscriptnode.mark_write }
+        if not(is_implicit_pointer_object_type(left.resultdef)) then
+          left.mark_write;
       end;
 
 
@@ -1100,17 +1145,32 @@ implementation
            tcallnode.gen_high_tree }
          if (right.nodetype=rangen) then
            CGMessagePos(right.fileinfo,parser_e_illegal_expression)
-         else if (not is_packed_array(left.resultdef)) or
-            ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
-           if left.expectloc=LOC_CREFERENCE then
-             expectloc:=LOC_CREFERENCE
-           else
-             expectloc:=LOC_REFERENCE
+         else if left.resultdef.typ=arraydef then
+           result:=first_arraydef
          else
-           if left.expectloc=LOC_CREFERENCE then
-             expectloc:=LOC_CSUBSETREF
-           else
-             expectloc:=LOC_SUBSETREF;
+           begin
+             if left.expectloc=LOC_CREFERENCE then
+               expectloc:=LOC_CREFERENCE
+             else
+               expectloc:=LOC_REFERENCE
+           end;
+      end;
+
+
+    function tvecnode.first_arraydef: tnode;
+      begin
+        result:=nil;
+        if (not is_packed_array(left.resultdef)) or
+           ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
+          if left.expectloc=LOC_CREFERENCE then
+            expectloc:=LOC_CREFERENCE
+          else
+            expectloc:=LOC_REFERENCE
+        else
+          if left.expectloc=LOC_CREFERENCE then
+            expectloc:=LOC_CSUBSETREF
+          else
+            expectloc:=LOC_SUBSETREF;
       end;
 
 

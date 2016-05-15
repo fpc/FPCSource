@@ -113,16 +113,27 @@ const
   { implicit parameter positions, normal parameters start at 10
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
-  paranr_parentfp = 1;
-  paranr_parentfp_delphi_cc_leftright = 1;
-  paranr_self = 2;
+  paranr_blockselfpara = 1;
+  paranr_parentfp = 2;
+  paranr_parentfp_delphi_cc_leftright = 2;
+{$ifndef aarch64}
+  paranr_self = 3;
+  paranr_result = 4;
+{$else aarch64}
+  { on AArch64, the result parameter is passed in a special register, so its
+    order doesn't really matter -- except for LLVM, where the "sret" parameter
+    must always be the first -> give it a higher number; can't do it for other
+    platforms, because that would change the register assignment/parameter order
+    and the current one is presumably Delphi-compatible }
   paranr_result = 3;
-  paranr_vmt = 4;
+  paranr_self = 4;
+{$endif aarch64}
+  paranr_vmt = 5;
 
   { the implicit parameters for Objective-C methods need to come
     after the hidden result parameter }
-  paranr_objc_self = 4;
-  paranr_objc_cmd = 5;
+  paranr_objc_self = 5;
+  paranr_objc_cmd = 6;
   { Required to support variations of syscalls on MorphOS }
   paranr_syscall_basesysv    = 9;
   paranr_syscall_sysvbase    = high(word)-5;
@@ -134,6 +145,16 @@ const
   { prefix for names of class helper procsyms added to regular symtables }
   class_helper_prefix = 'CH$';
 
+  { tsym.symid value in case the sym has not yet been registered }
+  symid_not_registered = -2;
+  { tsym.symid value in case the sym has been registered, but not put in a
+    symtable }
+  symid_registered_nost = -1;
+  { tdef.defid value in case the def has not yet been registered }
+  defid_not_registered = -2;
+  { tdef.defid value in case the sym has been registered, but not put in a
+    symtable }
+  defid_registered_nost = -1;
 
 type
   { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }
@@ -191,7 +212,16 @@ type
     { def has been copied from another def so symtable is not owned }
     df_copied_def,
     { def was created as a generic constraint and thus is only "shallow" }
-    df_genconstraint
+    df_genconstraint,
+    { don't free def after finishing the implementation section even if it
+      wasn't written to the ppu, as this def may still be referred (e.g. because
+      it was used to set the type of a paraloc, since paralocs are reused
+      across units) -- never stored to ppu, because in that case the def would
+      be registered }
+    df_not_registered_no_free,
+    { don't pack this record at the llvm level -- can't do this via symllvm
+      because we have to access this information in the symtable unit }
+    df_llvm_no_struct_packing
   );
   tdefoptions=set of tdefoption;
 
@@ -227,12 +257,14 @@ type
   { base types for orddef }
   tordtype = (
     uvoid,
-    u8bit,u16bit,u32bit,u64bit,
-    s8bit,s16bit,s32bit,s64bit,
+    u8bit,u16bit,u32bit,u64bit,u128bit,
+    s8bit,s16bit,s32bit,s64bit,s128bit,
     pasbool8,pasbool16,pasbool32,pasbool64,
     bool8bit,bool16bit,bool32bit,bool64bit,
     uchar,uwidechar,scurrency
   );
+
+  tordtypeset = set of tordtype;
 
   { string types }
   tstringtype = (
@@ -263,7 +295,8 @@ type
     potype_class_destructor,  { class destructor  }
     potype_propgetter,        { Dispinterface property accessors }
     potype_propsetter,
-    potype_exceptfilter       { SEH exception filter or termination handler }
+    potype_exceptfilter,      { SEH exception filter or termination handler }
+    potype_mainstub           { "main" function that calls through to FPC_SYSTEMMAIN }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -309,6 +342,8 @@ type
     po_syscall_basesysv,
     po_syscall_sysvbase,
     po_syscall_r12base,
+    { Used to record the fact that a symbol is asociated to this syscall }
+    po_syscall_has_libsym,
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
@@ -353,7 +388,11 @@ type
     { procedure is far (x86 only) }
     po_far,
     { the procedure never returns, this information is usefull for dfa }
-    po_noreturn
+    po_noreturn,
+    { procvar is a function reference }
+    po_is_function_ref,
+    { procvar is a block (http://en.wikipedia.org/wiki/Blocks_(C_language_extension) ) }
+    po_is_block
   );
   tprocoptions=set of tprocoption;
 
@@ -391,8 +430,17 @@ type
     tsk_jvm_procvar_intconstr, // Java procvar class constructor that accepts an interface instance for easy Java interoperation
     tsk_jvm_virtual_clmethod,  // Java wrapper for virtual class method
     tsk_field_getter,          // getter for a field (callthrough property is passed in skpara)
-    tsk_field_setter           // Setter for a field (callthrough property is passed in skpara)
+    tsk_field_setter,          // Setter for a field (callthrough property is passed in skpara)
+    tsk_block_invoke_procvar,  // Call a procvar to invoke inside a block
+    tsk_interface_wrapper      // Call through to a method from an interface wrapper
   );
+
+  { synthetic procdef supplementary information (tprocdef.skpara) }
+  tskpara_interface_wrapper = record
+    pd: pointer;
+    offset: longint;
+  end;
+  pskpara_interface_wrapper = ^tskpara_interface_wrapper;
 
   { options for objects and classes }
   tobjecttyp = (odt_none,
@@ -461,7 +509,7 @@ type
   );
   tobjectoptions=set of tobjectoption;
 
-  tarraydefoption=(    
+  tarraydefoption=(
     ado_IsConvertedPointer, // array created from pointer (e.g. PInteger(Ptr)[1])
     ado_IsDynamicArray,     // dynamic array
     ado_IsVariant,          //
@@ -575,7 +623,7 @@ type
     staticvarsym,localvarsym,paravarsym,fieldvarsym,
     typesym,procsym,unitsym,constsym,enumsym,
     errorsym,syssym,labelsym,absolutevarsym,propertysym,
-    macrosym,namespacesym,undefinedsym
+    macrosym,namespacesym,undefinedsym,programparasym
   );
 
   { State of the variable:
@@ -617,6 +665,45 @@ type
     { Objective-C }
     objcmetartti,objcmetarortti,
     objcclassrtti,objcclassrortti
+  );
+
+  { prefixes for internally generated type names (centralised to avoid
+    accidental collisions) }
+  tinternaltypeprefix = (
+    itp_1byte,
+    itp_emptyrec,
+    itp_llvmstruct,
+    itp_vmtdef,
+    itp_vmt_tstringmesssagetable,
+    itp_vmt_msgint_table_entries,
+    itp_vmt_tmethod_name_table,
+    itp_vmt_intern_msgint_table,
+    itp_vmt_intern_tmethodnamerec,
+    itp_vmt_intern_tmethodnametable,
+    itp_rttidef,
+    itp_rtti_header,
+    itp_rtti_prop,
+    itp_rtti_ansistr,
+    itp_rtti_ord_outer,
+    itp_rtti_ord_inner,
+    itp_rtti_ord_64bit,
+    itp_rtti_normal_array,
+    itp_rtti_dyn_array,
+    itp_rtti_proc_param,
+    itp_threadvar_record,
+    itp_objc_method_list,
+    itp_objc_proto_list,
+    itp_objc_cat_methods,
+    itb_objc_nf_ivars,
+    itb_objc_nf_category,
+    itb_obcj_nf_class_ro_part,
+    itb_objc_nf_meta_class,
+    itb_objc_nf_class,
+    itb_objc_fr_protocol_ext,
+    itb_objc_fr_protocol,
+    itb_objc_fr_category,
+    itb_objc_fr_meta_class,
+    itb_objc_fr_class
   );
 
   { The order is from low priority to high priority,
@@ -694,11 +781,11 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
 {$endif}
 
-     SymTypeName : array[tsymtyp] of string[12] = (
+     SymTypeName : array[tsymtyp] of string[14] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
        'type','proc','unit','const','enum',
        'errorsym','system sym','label','absolutevar','property',
-       'macrosym','namespace','undefinedsym'
+       'macrosym','namespace','undefinedsym','programparasym'
      );
 
      typName : array[tdeftyp] of string[12] = (
@@ -716,6 +803,43 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
      visibilityName : array[tvisibility] of string[16] = (
        'hidden','strict private','private','strict protected','protected',
        'public','published',''
+     );
+
+     internaltypeprefixName : array[tinternaltypeprefix] of TSymStr = (
+       '$1byte$',
+       '$emptyrec',
+       '$llvmstruct$',
+       '$vmtdef$',
+       '$vmt_TStringMesssageTable$',
+       '$vmt_msgint_table_entries$',
+       '$vmt_tmethod_name_table$',
+       '$vmt_intern_msgint_table$',
+       '$vmt_intern_tmethodnamerec$',
+       '$vmt_intern_tmethodnametable$',
+       '$rttidef$',
+       '$rtti_header$',
+       '$rtti_prop$',
+       '$rtti_ansistr$',
+       '$rtti_ord_outer$',
+       '$rtti_ord_inner$',
+       '$rtti_ord_64bit$',
+       '$rtti_normal_array$',
+       '$rtti_dyn_array$',
+       '$rtti_proc_param$',
+       '$threadvar_record$',
+       '$objc_method_list$',
+       '$objc_proto_list$',
+       '$objc_cat_methods$',
+       '$objc_nf_ivars$',
+       '$objc_nf_category$',
+       '$obcj_nf_class_ro_part$',
+       '$objc_nf_meta_class$',
+       '$objc_nf_class$',
+       '$objc_fr_protocol_ext$',
+       '$objc_fr_protocol$',
+       '$objc_fr_category$',
+       '$objc_fr_meta_class$',
+       '$objc_fr_class$'
      );
 
 
@@ -759,6 +883,12 @@ inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has
       vardefmask = $fff;
       vararray = $2000;
       varbyref = $4000;
+
+      { blocks-related constants }
+      blocks_procvar_invoke_type_name = '__FPC_invoke_pvtype';
+
+      { suffix for indirect symbols (AB_INDIRECT) }
+      suffix_indirect = '$indirect';
 
 implementation
 

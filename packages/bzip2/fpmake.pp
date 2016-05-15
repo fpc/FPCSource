@@ -13,12 +13,13 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('bzip2');
+    P.ShortName:='bz2';
 
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Library: Julian R. Seward, header: Daniel Mantione';
     // 3 clause becaue "prominent notice" is not required.
@@ -27,7 +28,7 @@ begin
     P.Email := '';
     P.Description := 'BZip2 decompression unit.';
     P.NeedLibC:= true;
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

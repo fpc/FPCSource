@@ -7,31 +7,30 @@ uses fpmkunit;
 
 procedure add_rtl_extra(const ADirectory: string);
 
-Const 
+Const
   // All Unices have full set of KVM+Crt in unix/ except QNX which is not
   // in workable state atm.
   UnixLikes = AllUnixOSes -[QNX]; // qnx never was active in 2.x afaik
- 
+
   // Android has a dummy clocale unit, while it also includes unix dir.
   ClocaleOSes   = UnixLikes -[beos];
-  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim];
+  CLocaleIncOSes= [Aix,freebsd,netbsd,openbsd,solaris,darwin,iphonesim,dragonfly];
 
-  IPCOSes       = UnixLikes-[aix,android,beos,haiku,solaris];
-  IPCBSDs       = [FreeBSD,NetBSD,OpenBSD];
+  IPCOSes       = UnixLikes-[aix,android,beos,haiku];
+  IPCBSDs       = [FreeBSD,NetBSD,OpenBSD,DragonFly];
 //  IPCcdeclOSes  = [Darwin,iphonesim];
 
   PrinterOSes   = [go32v2,msdos,os2,win32,win64]+unixlikes-[beos,haiku,morphos];
   SerialOSes    = [android,linux,netbsd,openbsd,win32,win64];
-  UComplexOSes  = [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
-  MatrixOSes	= [amiga,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
-  ObjectsOSes   = [amiga,emx,gba,go32v2,morphos,msdos,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
+  UComplexOSes  = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,watcom,wii,wince,win32,win64]+UnixLikes;
+  MatrixOSes  = [amiga,aros,emx,gba,go32v2,morphos,msdos,nativent,nds,netware,netwlibc,os2,wii,win32,win64,wince]+UnixLikes;
+  ObjectsOSes   = [amiga,aros,emx,gba,go32v2,morphos,msdos,nds,netware,netwlibc,os2,win32,win64,wince]+UnixLikes;
   WinsockOSes   = [win32,win64,wince,os2,emx,netware,netwlibc];
   WinSock2OSes  = [win32,win64,wince];
-  // sockets of  morphos is implemented, but not active
-  SocketsOSes   = UnixLikes+[netware,netwlibc,os2,wince,win32,win64];
-  Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd];
-  Socklibc	= unixlikes-socksyscall;
-  gpmOSes	= [Linux,Android];
+  SocketsOSes   = UnixLikes+AllAmigaLikeOSes+[netware,netwlibc,os2,wince,win32,win64];
+  Socksyscall   = [beos,freebsd,haiku,linux,netbsd,openbsd,dragonfly];
+  Socklibc  = unixlikes-socksyscall;
+  gpmOSes = [Linux,Android];
   AllTargetsextra = ObjectsOSes + UComplexOSes + MatrixOSes+
                       SerialOSes +PrinterOSes+SocketsOSes+gpmOSes;
 
@@ -43,8 +42,9 @@ begin
   With Installer do
     begin
     P:=AddPackage('rtl-extra');
+    P.ShortName:='rtle';
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'FPC core team';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
@@ -52,6 +52,12 @@ begin
     P.Email := '';
     P.Description := 'Rtl-extra, RTL not needed for bootstrapping';
     P.NeedLibC:= false;
+    P.Dependencies.Add('morphunits',[morphos]);
+    P.Dependencies.Add('arosunits',[aros]);
+    if Defaults.CPU=m68k then
+      P.Dependencies.Add('amunits',[amiga]);
+    if Defaults.CPU=powerpc then
+      P.Dependencies.Add('os4units',[amiga]);
 
     P.SourcePath.Add('src/inc');
     P.SourcePath.Add('src/$(OS)');
@@ -64,6 +70,7 @@ begin
     // unit from that directory. Maybe we should try to merge the WinSock(2)
     // units to remove the wince directory completely...
     P.SourcePath.Add('src/win',[win32,win64,wince]);
+    P.SourcePath.Add('src/amiga',[morphos]);
 
     P.IncludePath.Add('src/bsd',AllBSDOSes);
     P.IncludePath.Add('src/inc');
@@ -73,12 +80,15 @@ begin
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/darwin',[iphonesim]);
+    P.IncludePath.Add('src/win',AllWindowsOSes);
 
     T:=P.Targets.AddUnit('ucomplex.pp',UComplexOSes);
 
     T:=P.Targets.AddUnit('objects.pp',ObjectsOSes);
 
     T:=P.Targets.AddUnit('printer.pp',PrinterOSes);
+    T.Dependencies.AddInclude('printerh.inc',PrinterOSes);
+    T.Dependencies.AddInclude('printer.inc',PrinterOSes);
 
     T:=P.Targets.AddUnit('matrix.pp',MatrixOSes);
     with T.Dependencies do
@@ -101,30 +111,33 @@ begin
     T:=P.Targets.AddUnit('sockets.pp',SocketsOSes);
     with T.Dependencies do
      begin
+       addinclude('osdefs.inc',AllUnixOSes);
        addinclude('socketsh.inc');
+       addinclude('fpwinsockh.inc',AllWindowsOSes);
        addinclude('sockets.inc');
        addinclude('sockovl.inc');
        addinclude('unxsockh.inc',UnixLikes);
        addinclude('stdsock.inc',socklibc);
        addinclude('unixsock.inc',socksyscall);
-     end; 
+     end;
 
     T:=P.Targets.AddUnit('ipc.pp',IPCOSes);
     with T.Dependencies do
      begin
+       addinclude('osdefs.inc');
        addinclude('ipcbsd.inc',IPCBSDs);
        addinclude('ipcsys.inc',[Linux]);
        addinclude('ipccall.inc',[Linux]);
 //       addinclude('ipccdecl.inc',IPCcdeclOSes); // not used?
      end;
-    T:=P.Targets.AddUnit('unix/clocale.pp',CLocaleOSes);
+    T:=P.Targets.AddUnit('src/unix/clocale.pp',CLocaleOSes);
     with T.Dependencies do
      begin
        addinclude('clocale.inc',clocaleincOSes);
      end;
   end
 end;
- 
+
 {$ifndef ALLPACKAGES}
 begin
   add_rtl_extra('');

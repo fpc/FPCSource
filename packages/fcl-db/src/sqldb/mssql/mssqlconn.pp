@@ -96,6 +96,7 @@ type
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function RefreshLastInsertID(Query : TCustomSQLQuery; Field : TField): boolean; override;
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
@@ -196,7 +197,7 @@ const
   SBeginTransaction = 'BEGIN TRANSACTION';
   SAutoCommit = 'AUTOCOMMIT';
   STextSize   = 'TEXTSIZE';
-  SAppName   = 'APPLICATIONNAME';
+  SAppName    = 'APPLICATIONNAME';
 
 
 var
@@ -208,6 +209,7 @@ begin
   DBErrorStr:=DBErrorStr+LineEnding+dberrstr;
   DBErrorNo :=dberr;
   Result    :=INT_CANCEL;
+  // for server messages with severity greater than 10 error handler is also called
 end;
 
 function DBMsgHandler(dbproc: PDBPROCESS; msgno: DBINT; msgstate, severity:INT; msgtext, srvname, procname:PChar; line:DBUSMALLINT):INT; cdecl;
@@ -295,8 +297,10 @@ end;
 function TMSSQLConnection.CheckError(const Ret: RETCODE): RETCODE;
 var E: EMSSQLDatabaseError;
 begin
-  if Ret=FAIL then
+  if (Ret=FAIL) or (DBErrorStr<>'') then
   begin
+    // try clear all pending results to allow ROLLBACK and prevent error 10038 "Results pending"
+    if assigned(FDBProc) then dbcancel(FDBProc);
     if DBErrorStr = '' then
       case DBErrorNo of
         SYBEFCON: DBErrorStr:='SQL Server connection failed!';
@@ -312,7 +316,7 @@ end;
 constructor TMSSQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqSupportEmptyDatabaseName, sqEscapeRepeat];
+  FConnOptions := [sqSupportEmptyDatabaseName, sqEscapeRepeat, sqImplicitTransaction, sqLastInsertID];
   //FieldNameQuoteChars:=DoubleQuotes; //default
   Ftds := DBTDS_UNKNOWN;
 end;
@@ -537,7 +541,7 @@ end;
 
 function TMSSQLConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-  Execute('ROLLBACK');
+  Execute('IF @@TRANCOUNT>0 ROLLBACK');
   Result:=true;
 end;
 
@@ -607,7 +611,11 @@ var c: TDBLibCursor;
 begin
   c:=cursor as TDBLibCursor;
 
+  if LogEvent(detParamValue) then
+    LogParams(AParams);
   cmd := c.ReplaceParams(AParams);
+  if LogEvent(detActualSQL) then
+    Log(detActualSQL,Cmd);
   Execute(cmd);
 
   res := SUCCEED;
@@ -656,6 +664,21 @@ begin
     Result := inherited RowsAffected(cursor);
 end;
 
+function TMSSQLConnection.RefreshLastInsertID(Query: TCustomSQLQuery; Field: TField): boolean;
+var Identity: int64;
+begin
+  // global variable @@IDENTITY is NUMERIC(38,0)
+  Result:=False;
+  if dbcmd(FDBProc, 'SELECT @@IDENTITY') = FAIL then Exit;
+  if dbsqlexec(FDBProc) = FAIL then Exit;
+  if dbresults(FDBProc) = FAIL then Exit;
+  if dbnextrow(FDBProc) = FAIL then Exit;
+  if dbconvert(FDBProc, dbcoltype(FDBProc,1), dbdata(FDBProc,1), -1, SYBINT8, @Identity, sizeof(Identity)) = -1 then Exit;
+  // by default identity columns are ReadOnly
+  Field.AsLargeInt := Identity;
+  Result:=True;
+end;
+
 function TMSSQLConnection.TranslateFldType(SQLDataType: integer): TFieldType;
 begin
   case SQLDataType of
@@ -669,10 +692,15 @@ begin
     SQLFLTN:             Result:=ftFloat;
     SQLMONEY4, SQLMONEY,
     SQLMONEYN:           Result:=ftCurrency;
+    SYBMSDATE:           Result:=ftDate;
+    SYBMSTIME:           Result:=ftTime;
     SQLDATETIM4, SQLDATETIME,
-    SQLDATETIMN:         Result:=ftDateTime;
-    SQLIMAGE:            Result:=ftBlob;
+    SQLDATETIMN,
+    SYBMSDATETIME2,
+    SYBMSDATETIMEOFFSET: Result:=ftDateTime;
+    SYBMSXML,
     SQLTEXT:             Result:=ftMemo;
+    SQLIMAGE:            Result:=ftBlob;
     SQLDECIMAL, SQLNUMERIC: Result:=ftBCD;
     SQLBIT:              Result:=ftBoolean;
     SQLBINARY:           Result:=ftBytes;
@@ -701,11 +729,16 @@ begin
       ftString, ftFixedChar:
         begin
         FieldSize := col.MaxLength;
-        if FieldSize > dsMaxStringSize then FieldSize := dsMaxStringSize;
+        if FieldSize >= $3FFFFFFF then // varchar(max)
+           FieldType := ftMemo;
+
         end;
-      ftMemo, ftBlob,
       ftBytes, ftVarBytes:
+        begin
         FieldSize := col.MaxLength;
+        if FieldSize >= $3FFFFFFF then // varbinary(max)
+           FieldType := ftBlob;
+        end;
       ftBCD:
         begin
         FieldSize := col.Scale;
@@ -714,10 +747,10 @@ begin
         end;
       ftGuid:
         FieldSize := 38;
-    else
-      FieldSize := 0;
-      if col.Identity and (FieldType = ftInteger) then
-        FieldType := ftAutoInc;
+      else
+        FieldSize := 0;
+        if col.Identity and (FieldType = ftInteger) then
+          FieldType := ftAutoInc;
     end;
 
     with FieldDefs.Add(FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, (col.Null=0) and (not col.Identity), i) do
@@ -753,8 +786,8 @@ var i: integer;
     srctype, desttype: INT;
     dbdt: DBDATETIME;
     dbdr: DBDATEREC;
+    dbdta: DBDATETIMEALL;
     bcdstr: array[0..MaxFmtBCDFractionSize+2] of char;
-    f: double;
 begin
   CreateBlob:=false;
   i:=FieldDef.FieldNo;
@@ -762,7 +795,7 @@ begin
   srctype:=dbcoltype(FDBProc,i);
   data:=dbdata(FDBProc,i);
   datalen:=dbdatlen(FDBProc,i);
-  Result:=assigned(data) and (datalen<>0);
+  Result:=assigned(data) and (datalen>=0);
   if not Result then
     Exit;
 
@@ -801,17 +834,26 @@ begin
       desttype:=SQLFLT8;
       destlen:=sizeof(DBFLT8); //double
       end;
+    ftDate, ftTime,
     ftDateTime:
-      begin
-      dest:=@dbdt;
-      desttype:=SQLDATETIME;
-      destlen:=sizeof(dbdt);
-      end;
+      if srctype in [SYBMSDATE, SYBMSTIME, SYBMSDATETIME2, SYBMSDATETIMEOFFSET] then // dbwillconvert(srctype, SYBMSDATETIME2)
+        begin
+        dest:=@dbdta;
+        desttype:=SYBMSDATETIME2;
+        destlen:=sizeof(dbdta);
+        end
+      else
+        begin
+        dest:=@dbdt;
+        desttype:=SQLDATETIME;
+        destlen:=sizeof(dbdt);
+        end;
     ftBCD:
       begin
-      dest:=@f;
+      // FreeTDS 0.91 does not support converting from numeric to money
+      //desttype:=SQLMONEY;
       desttype:=SQLFLT8;
-      destlen:=sizeof(DBFLT8); //double
+      destlen:=sizeof(currency);
       end;
     ftFmtBCD:
       begin
@@ -857,7 +899,10 @@ begin
             (ClientCharset = ccISO88591) {hack: FreeTDS} then
           StrPLCopy(PChar(dest), UTF8Encode(PChar(dest)), destlen);
       end;
-    ftDateTime:
+    ftDate, ftTime, ftDateTime:
+      if desttype = SYBMSDATETIME2 then
+        PDateTime(buffer)^ := dbdatetimeallcrack(@dbdta)
+      else
       begin
         //detect DBDATEREC version by pre-setting dbdr
         dbdr.millisecond := -1;
@@ -874,7 +919,7 @@ begin
         end;
       end;
     ftBCD:
-      PCurrency(buffer)^:=FloatToCurr(f);
+      PCurrency(buffer)^ := FloatToCurr(PDouble(buffer)^); //PCurrency(buffer)^ := dbmoneytocurr(buffer);
     ftFmtBCD:
       PBCD(buffer)^:=StrToBCD(bcdstr, FSQLFormatSettings); //PBCD(buffer)^:=dbnumerictobcd(dbnum);
   end;

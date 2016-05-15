@@ -591,7 +591,7 @@ begin
 
     InitSystemThreads;
 
-    InitVariantManager;
+    InitSystemDynLibs;
 
     if os_Mode in [osDOS,osDPMI] then
         DosEnvInit;

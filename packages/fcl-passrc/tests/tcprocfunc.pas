@@ -13,9 +13,11 @@ type
 
   TTestProcedureFunction= class(TTestParser)
   private
+    FAddComment: Boolean;
     FFunc: TPasFunction;
     FHint: String;
     FProc: TPasProcedure;
+    FOperator:TPasOperator;
     procedure AddDeclaration(const ASource: string; const AHint: String='');
     procedure AssertArg(ProcType: TPasProcedureType; AIndex: Integer;
       AName: String; AAccess: TArgumentAccess; const TypeName: String;
@@ -32,9 +34,12 @@ type
     function ParseProcedure(const ASource: string; const AHint: String=''): TPasProcedure;
     Procedure ParseFunction;
     function ParseFunction(const ASource : String; AResult: string = ''; const AHint: String=''; CC : TCallingConvention = ccDefault): TPasProcedure;
+    Procedure ParseOperator;
   protected
     procedure SetUp; override;
     procedure TearDown; override;
+    Procedure AssertComment;
+    Property AddComment : Boolean Read FAddComment Write FAddComment;
     Property Hint : String Read FHint Write FHint;
     Property Proc : TPasProcedure Read FProc;
     Property ProcType : TPasProcedureType Read GetPT;
@@ -42,7 +47,9 @@ type
     Property FuncType : TPasFunctionType Read GetFT;
   published
     procedure TestEmptyProcedure;
+    procedure TestEmptyProcedureComment;
     Procedure TestEmptyFunction;
+    Procedure TestEmptyFunctionComment;
     procedure TestEmptyProcedureDeprecated;
     Procedure TestEmptyFunctionDeprecated;
     procedure TestEmptyProcedurePlatform;
@@ -151,12 +158,15 @@ type
     Procedure TestFunctionCdeclExternalLibNameName;
     Procedure TestProcedureCdeclExternalName;
     Procedure TestFunctionCdeclExternalName;
+    Procedure TestOperatorTokens;
+    procedure TestOperatorNames;
   end;
 
 implementation
 
 
-procedure TTestProcedureFunction.AddDeclaration(Const ASource : string; Const AHint : String = '');
+procedure TTestProcedureFunction.AddDeclaration(const ASource: string;
+  const AHint: String);
 
 Var
   D : String;
@@ -176,13 +186,21 @@ begin
   Result:=Proc.ProcType;
 end;
 
-Function TTestProcedureFunction.ParseProcedure(Const ASource : string; Const AHint : String = '') : TPasProcedure;
+function TTestProcedureFunction.ParseProcedure(const ASource: string;
+  const AHint: String): TPasProcedure;
 
 
 begin
+  If AddComment then
+    begin
+    Add('// A comment');
+    Engine.NeedComments:=True;
+    end;
   AddDeclaration('procedure A '+ASource,AHint);
   Self.ParseProcedure;
   Result:=Fproc;
+  If AddComment then
+    AssertComment;
 end;
 
 procedure TTestProcedureFunction.ParseProcedure;
@@ -214,6 +232,18 @@ begin
   AssertNotNull('Have function result element',FuncType.ResultEl);
   AssertNotNull('Have function result type element',FuncType.ResultEl.ResultType);
   AssertEquals('Correct function result type name',AResult,FuncType.ResultEl.ResultType.Name);
+end;
+
+procedure TTestProcedureFunction.ParseOperator;
+begin
+  //  Writeln(source.text);
+  ParseDeclarations;
+  AssertEquals('One operator definition',1,Declarations.Functions.Count);
+  AssertEquals('First declaration is function declaration.',TPasOperator,TObject(Declarations.Functions[0]).ClassType);
+  FOperator:=TPasOperator(Declarations.Functions[0]);
+  Definition:=FOperator;
+  if (Hint<>'') then
+    CheckHint(TPasMemberHint(Getenumvalue(typeinfo(TPasMemberHint),'h'+Hint)));
 end;
 
 procedure TTestProcedureFunction.ParseFunction;
@@ -261,7 +291,9 @@ begin
   AssertEquals('Not is nested',False,P.ProcType.IsNested);
 end;
 
-Function TTestProcedureFunction.BaseAssertArg(ProcType : TPasProcedureType; AIndex : Integer; AName : String; AAccess : TArgumentAccess; AValue : String='') : TPasArgument;
+function TTestProcedureFunction.BaseAssertArg(ProcType: TPasProcedureType;
+  AIndex: Integer; AName: String; AAccess: TArgumentAccess; AValue: String
+  ): TPasArgument;
 
 Var
   A : TPasArgument;
@@ -287,7 +319,9 @@ begin
   Result:=A;
 end;
 
-procedure TTestProcedureFunction.AssertArg(ProcType : TPasProcedureType; AIndex : Integer; AName : String; AAccess : TArgumentAccess; Const TypeName : String; AValue : String='');
+procedure TTestProcedureFunction.AssertArg(ProcType: TPasProcedureType;
+  AIndex: Integer; AName: String; AAccess: TArgumentAccess;
+  const TypeName: String; AValue: String);
 
 Var
   A : TPasArgument;
@@ -343,10 +377,22 @@ begin
   AssertProc([],ccDefault,0);
 end;
 
+procedure TTestProcedureFunction.TestEmptyProcedureComment;
+begin
+  AddComment:=True;
+  TestEmptyProcedure;
+end;
+
 procedure TTestProcedureFunction.TestEmptyFunction;
 begin
   ParseFunction('');
   AssertFunc([],ccDefault,0);
+end;
+
+procedure TTestProcedureFunction.TestEmptyFunctionComment;
+begin
+  AddComment:=True;
+  TestEmptyProcedure;
 end;
 
 procedure TTestProcedureFunction.TestEmptyProcedureDeprecated;
@@ -1104,6 +1150,54 @@ begin
   AssertExpression('Library symbol expression',Func.LibrarySymbolName,pekString,'''symbolname''');
 end;
 
+procedure TTestProcedureFunction.TestOperatorTokens;
+
+Var
+  t : TOperatorType;
+
+begin
+  For t:=otMul to High(TOperatorType) do
+    // No way to distinguish between logical/bitwise or/and/Xor
+    if not (t in [otBitwiseOr,otBitwiseAnd,otBitwiseXor]) then
+      begin
+      ResetParser;
+      if t in UnaryOperators then
+        AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorTokens[t]]))
+      else
+        AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorTokens[t]]));
+      ParseOperator;
+      AssertEquals('Token based',Not (T in [otInc,otDec]),FOperator.TokenBased);
+      AssertEquals('Correct operator type',T,FOperator.OperatorType);
+      if t in UnaryOperators then
+        AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+      else
+        AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+      end;
+end;
+
+procedure TTestProcedureFunction.TestOperatorNames;
+
+Var
+  t : TOperatorType;
+
+begin
+  For t:=Succ(otUnknown) to High(TOperatorType) do
+      begin
+      ResetParser;
+      if t in UnaryOperators then
+        AddDeclaration(Format('operator %s (a: Integer) : te',[OperatorNames[t]]))
+      else
+        AddDeclaration(Format('operator %s (a: Integer; b: integer) : te',[OperatorNames[t]]));
+      ParseOperator;
+      AssertEquals('Token based',False,FOperator.TokenBased);
+      AssertEquals('Correct operator type',T,FOperator.OperatorType);
+      if t in UnaryOperators then
+        AssertEquals('Correct operator name',format('%s(Integer):te',[OperatorNames[t]]),FOperator.Name)
+      else
+        AssertEquals('Correct operator name',format('%s(Integer,Integer):te',[OperatorNames[t]]),FOperator.Name);
+      end;
+end;
+
 procedure TTestProcedureFunction.SetUp;
 begin
    Inherited;
@@ -1112,6 +1206,11 @@ end;
 procedure TTestProcedureFunction.TearDown;
 begin
    Inherited;
+end;
+
+procedure TTestProcedureFunction.AssertComment;
+begin
+  AssertEquals('Correct comment',' A comment'+sLineBreak,FProc.DocComment);
 end;
 
 initialization

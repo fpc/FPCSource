@@ -102,7 +102,7 @@ unit cpubase;
       first_mm_supreg    = RS_INVALID;
       first_mm_imreg     = 1;
 
-      regnumber_count_bsstart = 32;
+      regnumber_count_bsstart = 8;
 
       regnumber_table : array[tregisterindex] of tregister = (
         {$i rspc32num.inc}

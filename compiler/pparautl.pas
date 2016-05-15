@@ -39,7 +39,7 @@ implementation
 
     uses
       globals,globtype,verbose,systems,
-      symconst,symtype,symbase,symsym,symtable,symcreat,defutil,
+      symconst,symtype,symbase,symsym,symtable,symcreat,defutil,blockutl,
       paramgr;
 
 
@@ -115,7 +115,9 @@ implementation
             { Generate frame pointer. It can't be put in a register since it
               must be accessable from nested routines }
             if not(target_info.system in systems_fpnestedstruct) or
-               { in case of errors, prevent invalid type cast }
+               { in case of errors or declared procvardef types, prevent invalid
+                 type cast and possible nil pointer dereference }
+               not assigned(pd.owner.defowner) or
                (pd.owner.defowner.typ<>procdef) then
               begin
                 vs:=cparavarsym.create('$parentfp',paranr,vs_value
@@ -176,6 +178,31 @@ implementation
             vs:=cparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
+        { while only procvardefs of this type can be declared in Pascal code,
+          internally we also generate procdefs of this type when creating
+          block wrappers }
+        else if (po_is_block in pd.procoptions) then
+          begin
+            { generate the first hidden parameter, which is a so-called "block
+              literal" describing the block and containing its invocation
+              procedure  }
+            hdef:=cpointerdef.getreusable(get_block_literal_type_for_proc(pd));
+            { mark as vo_is_parentfp so that proc2procvar comparisons will
+              succeed when assigning arbitrary routines to the block }
+            vs:=cparavarsym.create('$_block_literal',paranr_blockselfpara,vs_value,
+              hdef,[vo_is_hidden_para,vo_is_parentfp]
+            );
+            pd.parast.insert(vs);
+            if pd.typ=procdef then
+              begin
+                { make accessible to code }
+                sl:=tpropaccesslist.create;
+                sl.addsym(sl_load,vs);
+                aliasvs:=cabsolutevarsym.create_ref('FPC_BLOCK_SELF',hdef,sl);
+                include(aliasvs.varoptions,vo_is_parentfp);
+                tlocalsymtable(tprocdef(pd).localst).insert(aliasvs);
+              end;
+          end
         else
           begin
              if (pd.typ=procdef) and
@@ -200,9 +227,7 @@ implementation
                          (tobjectdef(tprocdef(pd).struct).extendeddef.typ<>objectdef)
                        )) then
                  begin
-                   { can't use classrefdef as type because inheriting
-                     will then always file because of a type mismatch }
-                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
+                   vs:=cparavarsym.create('$vmt',paranr_vmt,vs_value,cclassrefdef.create(tprocdef(pd).struct),[vo_is_vmt,vo_is_hidden_para]);
                    pd.parast.insert(vs);
                  end;
 
@@ -210,6 +235,8 @@ implementation
                   type or equal to an instance of it }
                 if is_objectpascal_helper(tprocdef(pd).struct) then
                   selfdef:=tobjectdef(tprocdef(pd).struct).extendeddef
+                else if is_objccategory(tprocdef(pd).struct) then
+                  selfdef:=tobjectdef(tprocdef(pd).struct).childof
                 else
                   selfdef:=tprocdef(pd).struct;
                 { Generate self variable, for classes we need
@@ -257,7 +284,7 @@ implementation
            if (df_generic in pd.defoptions) or
                not paramanager.ret_in_param(pd.returndef,pd) then
             begin
-              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret]);
+              vs:=clocalvarsym.create('$result',vs_value,pd.returndef,[vo_is_funcret],true);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
@@ -306,17 +333,27 @@ implementation
            { We need a local copy for a value parameter when only the
              address is pushed. Open arrays and Array of Const are
              an exception because they are allocated at runtime and the
-             address that is pushed is patched }
+             address that is pushed is patched.
+
+             Arrays passed to cdecl routines are special: they are pointers in
+             C and hence must be passed as such. Due to historical reasons, if
+             a cdecl routine is implemented in Pascal, we still make a copy on
+             the callee side. Do this the same on platforms that normally must
+             make a copy on the caller side, as otherwise the behaviour will
+             be different (and less perfomant) for routines implemented in C }
            if (varspez=vs_value) and
               paramanager.push_addr_param(varspez,vardef,pd.proccalloption) and
               not(is_open_array(vardef) or
-                  is_array_of_const(vardef)) then
+                  is_array_of_const(vardef)) and
+              (not(target_info.system in systems_caller_copy_addr_value_para) or
+               ((pd.proccalloption in cdecl_pocalls) and
+                (vardef.typ=arraydef))) then
              include(varoptions,vo_has_local_copy);
 
            { needs high parameter ? }
            if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
-               hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
+               hvs:=cparavarsym.create('$high'+name,paranr+1,vs_const,ptrsinttype,[vo_is_high_para,vo_is_hidden_para]);
                hvs.symoptions:=[];
                owner.insert(hvs);
                { don't place to register if it will be accessed from implicit finally block }

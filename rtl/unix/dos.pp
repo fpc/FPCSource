@@ -245,6 +245,7 @@ var
 begin
   GetDate (Year, Month, Day,dow);
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  tv.tv_usec:= Sec100 * 10000;
   fpSettimeofday(@tv,nil);
 end;
 
@@ -255,6 +256,7 @@ var
 begin
   GetTime ( Hour, Min, Sec, Sec100 );
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Min, Sec ) ;
+  tv.tv_usec:= Sec100 * 10000;
   fpSettimeofday(@tv,nil);
 end;
 
@@ -264,6 +266,7 @@ var
   tv : timeval;
 begin
   tv.tv_sec:= LocalToEpoch ( Year, Month, Day, Hour, Minute, Second ) ;
+  tv.tv_usec:= 0;
   SetDatetime:=fpSettimeofday(@tv,nil)=0;
 end;
 
@@ -309,7 +312,7 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
 var
   pid      : longint; // pid_t?
   cmdline2 : ppchar;
-  commandline : ansistring;
+  commandline : RawByteString;
   realpath : ansistring;
 
 // The Error-Checking in the previous Version failed, since halt($7F) gives an WaitPid-status of $7F00
@@ -319,7 +322,7 @@ Begin
     begin
       doserror:=2;
       exit;
-    end;  
+    end;
   pid:=fpFork;
   if pid=0 then
    begin
@@ -327,7 +330,7 @@ Begin
      realpath:=path;
      if Comline<>'' Then
        begin
-         CommandLine:=ComLine;  // conversion must live till after fpexec!
+         CommandLine:=ToSingleByteFileSystemEncodedFileName(ComLine);  // conversion must live till after fpexec!
          cmdline2:=StringtoPPChar(CommandLine,1);
          cmdline2^:=pchar(realPath);
        end

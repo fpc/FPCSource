@@ -28,7 +28,8 @@ var
   Cp866Encoding,
   Cp1251Encoding: TEncoding;
   Bytes: TBytes;
-  Cp1251String: TCp1251String;
+  Cp1251String,
+  Cp1251String2: TCp1251String;
   Cp866String: Tcp866String;
   S: AnsiString;
   U8: UTF8String;
@@ -44,6 +45,12 @@ begin
   SetString(S, PAnsiChar(Bytes), Length(Bytes));
   if not CompareMem(Pointer(S), Pointer(Cp866String), Length(S)) then
     halt(1);
+  if StringCodePage(S)<>CP_ACP then
+    halt(11);
+  Cp1251String2:=Cp1251String;
+  SetString(Cp1251String,pchar(Cp1251String2),length(Cp1251String2));
+  if StringCodePage(Cp1251String)<>1251 then
+    halt(12);
   U1 := Cp866Encoding.GetString(Bytes);
   U2 := TEncoding.Unicode.GetString(TEncoding.Convert(Cp866Encoding, TEncoding.Unicode, Bytes));
   if U1 <> U2 then

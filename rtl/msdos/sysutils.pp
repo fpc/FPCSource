@@ -23,6 +23,8 @@ interface
 {$MODESWITCH out}
 { force ansistrings }
 {$H+}
+{$modeswitch typehelpers}
+{$modeswitch advancedrecords}
 
 uses
   {go32,}dos;
@@ -46,8 +48,17 @@ implementation
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
+{$DEFINE executeprocuni} (* Only 1 byte version of ExecuteProcess is provided by the OS *)
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
+
+type
+  PFarChar=^Char;far;
+  PPFarChar=^PFarChar;
+var
+  envp:PPFarChar;external name '__fpc_envp';
+  dos_env_count:smallint;external name '__dos_env_count';
 
 
 {****************************************************************************
@@ -353,7 +364,7 @@ Var Sr : PSearchrec;
 begin
   //!! Sr := New(PSearchRec);
   getmem(sr,sizeof(searchrec));
-  Rslt.FindHandle := longint(Sr);
+  Rslt.FindHandle := Sr;
   DOS.FindFirst(Path, Attr, Sr^);
   result := -DosError;
   if result = 0 then
@@ -388,7 +399,7 @@ begin
 end;
 
 
-Procedure InternalFindClose(var Handle: THandle);
+Procedure InternalFindClose(var Handle: Pointer);
 var
   Sr: PSearchRec;
 begin
@@ -400,7 +411,7 @@ begin
       DOS.FindClose(SR^);
       freemem(sr,sizeof(searchrec));
     end;
-  Handle := 0;
+  Handle := nil;
 end;
 
 
@@ -558,9 +569,7 @@ VAR S    : String;
   end;
 
 BEGIN
- { TODO: implement }
- runerror(304);
-(* if LFNSupport then
+ if LFNSupport then
   begin
    S:='C:\'#0;
    if Drive=0 then
@@ -573,20 +582,17 @@ BEGIN
     S[1]:=chr(Drive+64);
    Rec.Strucversion:=0;
    Rec.RetSize := 0;
-   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
-   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
-   regs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
-   regs.ds:=tb_segment;
-   regs.di:=tb_offset;
-   regs.es:=tb_segment;
+   regs.dx:=Ofs(S[1]);
+   regs.ds:=Seg(S[1]);
+   regs.di:=Ofs(Rec);
+   regs.es:=Seg(Rec);
    regs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
    regs.ax:=$7303;
    msdos(regs);
    if (regs.flags and fcarry) = 0 then {No error clausule in int except cf}
     begin
-     copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-     if Rec.RetSize = 0 then *)(* Error - "FAT32" function not supported! *)
-(*      OldDosDiskData
+     if Rec.RetSize = 0 then (* Error - "FAT32" function not supported! *)
+      OldDosDiskData
      else
       if Free then
        Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
@@ -597,7 +603,7 @@ BEGIN
     OldDosDiskData;
   end
  else
-  OldDosDiskData;*)
+  OldDosDiskData;
 end;
 
 
@@ -696,6 +702,8 @@ end;
 
 
 procedure InitAnsi;
+type
+  PFarChar = ^char; far;
 var
   CountryInfo: TCountryInfo; i: integer;
 begin
@@ -728,10 +736,9 @@ begin
     and Offset:Segment word record (PM) }
     {  get the uppercase table from dosmemory  }
     GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
-    { TODO: implement }
-//    DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
     for i := 128 to 255 do
        begin
+       UpperCaseTable[i] := PFarChar(CountryInfo.UpperCaseTable)[i+(2-128)];
        if UpperCaseTable[i] <> chr(i) then
           LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
        end;
@@ -755,29 +762,92 @@ end;
                               Os utils
 ****************************************************************************}
 
-Function GetEnvironmentVariable(Const EnvVar : String) : String;
+{$if defined(FPC_MM_TINY) or defined(FPC_MM_SMALL) or defined(FPC_MM_MEDIUM)}
+{ environment handling for near data memory models }
 
+function far_strpas(p: pfarchar): string;
+begin
+  Result:='';
+  if p<>nil then
+    while p^<>#0 do
+      begin
+        Result:=Result+p^;
+        Inc(p);
+      end;
+end;
+
+Function small_FPCGetEnvVarFromP(EP : PPFarChar; EnvVar : String) : String;
+var
+  hp         : ppfarchar;
+  lenvvar,hs : string;
+  eqpos      : smallint;
+begin
+  lenvvar:=upcase(envvar);
+  hp:=EP;
+  Result:='';
+  If (hp<>Nil) then
+    while assigned(hp^) do
+     begin
+       hs:=far_strpas(hp^);
+       eqpos:=pos('=',hs);
+       if upcase(copy(hs,1,eqpos-1))=lenvvar then
+        begin
+          Result:=copy(hs,eqpos+1,length(hs)-eqpos);
+          exit;
+        end;
+       inc(hp);
+     end;
+end;
+
+Function small_FPCGetEnvStrFromP(EP : PPFarChar; Index : SmallInt) : String;
+begin
+  Result:='';
+  while assigned(EP^) and (Index>1) do
+    begin
+      dec(Index);
+      inc(EP);
+    end;
+  if Assigned(EP^) then
+    Result:=far_strpas(EP^);
+end;
+
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
+begin
+  Result:=small_FPCGetEnvVarFromP(envp,EnvVar);
+end;
+
+Function GetEnvironmentVariableCount : Integer;
+begin
+  Result:=dos_env_count;
+end;
+
+Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
+begin
+  Result:=small_FPCGetEnvStrFromP(Envp,Index);
+end;
+{$else}
+{ environment handling for far data memory models }
+Function GetEnvironmentVariable(Const EnvVar : String) : String;
 begin
   Result:=FPCGetEnvVarFromP(envp,EnvVar);
 end;
 
 Function GetEnvironmentVariableCount : Integer;
-
 begin
-  Result:=FPCCountEnvVar(EnvP);
+  Result:=dos_env_count;
 end;
 
 Function GetEnvironmentString(Index : Integer) : {$ifdef FPC_RTL_UNICODE}UnicodeString{$else}AnsiString{$endif};
-
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);
 end;
+{$endif}
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: RawByteString; Const ComLine: RawByteString;Flags:TExecuteFlags=[]):integer;
 var
   e : EOSError;
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
 
 begin
   dos.exec_ansistring(path,comline);
@@ -796,11 +866,11 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
+function ExecuteProcess (const Path: RawByteString;
+                                  const ComLine: array of RawByteString;Flags:TExecuteFlags=[]): integer;
 
 var
-  CommandLine: AnsiString;
+  CommandLine: RawByteString;
   I: integer;
 
 begin

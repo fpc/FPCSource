@@ -438,7 +438,7 @@ implementation
 
     Procedure UpdateStatus;
       var
-        module : tmodulebase;
+        module : tmodule;
       begin
       { fix status }
         status.currentline:=current_filepos.line;
@@ -451,9 +451,11 @@ implementation
             begin
               { update status record }
               status.currentmodule:=module.modulename^;
+              status.currentsourceppufilename:=module.ppufilename;
               status.currentmodulestate:=ModuleStateStr[module.state];
               status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
               status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
+              status.sources_avail:=module.sources_avail;
               { if currentsourcepath is relative, make it absolute }
               if not path_absolute(status.currentsourcepath) then
                 status.currentsourcepath:=GetCurrentDir+status.currentsourcepath;
@@ -998,6 +1000,7 @@ implementation
         lastfileidx:=-1;
         lastmoduleidx:=-1;
         status.currentmodule:='';
+        status.currentsourceppufilename:='';
         status.currentsource:='';
         status.currentsourcepath:='';
         { Register internalerrorproc for cutils/cclasses }

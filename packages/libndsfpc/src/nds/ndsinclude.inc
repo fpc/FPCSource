@@ -45,6 +45,7 @@
   {$include arm9/paddle.inc}
   {$include arm9/piano.inc}
   {$include arm9/dldi.inc}
+  {$include arm9/window.inc}
 {$endif ARM9}
 
 {$ifdef ARM7}

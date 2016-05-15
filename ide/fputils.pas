@@ -29,11 +29,19 @@ const
   pasext = '.pas';
   ppext  = '.pp';
 {$else}
+  {$ifdef HASAMIGA}
+    listsep = [';'];
+    exeext = '';
+    pasext = '.pas';
+    ppext  = '.pp';
+  {$else HASAMIGA}
   listsep = [';'];
   exeext = '.exe';
   pasext = '.pas';
   ppext  = '.pp';
+  {$endif HASAMIGA}
 {$endif}
+
 
 function SmartPath(Path: string): string;
 Function FixPath(s:string;allowdot:boolean):string;
@@ -97,7 +105,11 @@ function SmartPath(Path: string): string;
 var S: string;
 begin
   GetDir(0,S);
+{$ifdef HASAMIGA}
+  if (copy(S,length(S),1)<>DirSep) and (copy(S,length(S),1)<>DriveSeparator) then S:=S+DirSep;
+{$else}
   if copy(S,length(S),1)<>DirSep then S:=S+DirSep;
+{$endif}
 {$ifdef FSCaseInsensitive}
   if (LowerCaseStr(copy(Path,1,length(S)))=LowerCaseStr(S)) {and (Pos('\',copy(Path,length(S)+1,High(S)))=0)} then
 {$else}
@@ -145,8 +157,12 @@ begin
             else
              FixFileName[i]:=s[i];
  {$else}
+ {$ifndef hasamiga}
       '/' : FixFileName[i]:='\';
  'A'..'Z' : FixFileName[i]:=char(byte(s[i])+32);
+ {$else}
+      '\' : FixFileName[i]:='/';
+ {$endif}
  {$endif}
      else
       FixFileName[i]:=s[i];

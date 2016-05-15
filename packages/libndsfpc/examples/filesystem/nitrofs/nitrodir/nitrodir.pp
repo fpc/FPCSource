@@ -63,7 +63,7 @@ begin
   // Initialise the console, required for printf
   consoleDemoInit();
    
-  if (nitroFSInit()) then
+  if nitroFSInit(nil) then
   begin
     dirlist('/');
     begin

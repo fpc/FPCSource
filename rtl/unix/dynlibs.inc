@@ -13,36 +13,9 @@
 
  **********************************************************************}
 
-{$ifdef readinterface}
-
-{ ---------------------------------------------------------------------
-    Interface declarations
-  ---------------------------------------------------------------------}
-
-Type
-  { using PtrInt here is compliant with the other platforms }
-  TLibHandle = PtrInt;
-
-Const
-  NilHandle = TLibHandle(0);
-// these are for easier crossplatform construction of dll names in dynloading libs.
-{$if defined(Darwin)}
-  SharedSuffix = 'dylib';
-{$elseif defined(aix)}
-  SharedSuffix = 'a';
-{$else}
-  SharedSuffix = 'so';
-{$endif}
-
-{$else}
-
-{ ---------------------------------------------------------------------
-    Implementation section
-  ---------------------------------------------------------------------}
-
 uses dl;
 
-Function DoLoadLibrary(const Name : RawByteString) : TLibHandle;
+Function SysLoadLibraryA(const Name : RawByteString) : TLibHandle;
 {$ifdef aix}
 var
   MemberName: RawByteString;
@@ -65,23 +38,41 @@ begin
 {$endif aix}
 end;
 
-Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
+Function SysLoadLibraryU(const Name: UnicodeString) : TLibHandle;
+begin
+  Result := SysLoadLibraryA(ToSingleByteFileSystemEncodedFileName(Name));
+end;
+
+Function SysGetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=dlsym(lib,pchar(ProcName));
 end;
 
-Function UnloadLibrary(Lib : TLibHandle) : Boolean;
+Function SysUnloadLibrary(Lib : TLibHandle) : Boolean;
 
 begin
   Result:=dlClose(Lib)=0;
 end;
 
-Function GetLoadErrorStr: string;
+Function SysGetLoadErrorStr: string;
 
 begin
   Result:=dl.dlerror;
 end;
 
-{$endif}
+const
+  SysDynLibsManager: TDynLibsManager = (
+    LoadLibraryU: @SysLoadLibraryU;
+    LoadLibraryA: @SysLoadLibraryA;
+    GetProcAddress: @SysGetProcedureAddress;
+    GetProcAddressOrdinal: Nil;
+    UnloadLibrary: @SysUnloadLibrary;
+    GetLoadErrorStr: @SysGetLoadErrorStr;
+  );
+
+procedure InitDynLibs;
+begin
+  SetDynLibsManager(SysDynLibsManager);
+end;
 

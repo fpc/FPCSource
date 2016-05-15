@@ -21,7 +21,7 @@ PROGRAM ImageGadget;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-USES Intuition, Exec, Graphics, GadTools, Utility, systemvartags,pastoc;
+USES Intuition, Exec, AGraphics, GadTools, Utility;
 
 
 CONST
@@ -289,6 +289,7 @@ end;
 FUNCTION EasyReq(wp : pWindow; title,body,gad : PChar) : Longint;
 VAR
   es : tEasyStruct;
+  Res: LongWord;
 BEGIN
   es.es_StructSize:=SizeOf(tEasyStruct);
   es.es_Flags:=0;
@@ -296,7 +297,7 @@ BEGIN
   es.es_TextFormat:=body;
   es.es_GadgetFormat:=gad;
 
-  EasyReq := EasyRequestArgs(wp,@es,0,NIL);
+  EasyReq := EasyRequestArgs(wp,@es,@Res,NIL);
 END;
 
 PROCEDURE CleanUp(why : PChar; rc : BYTE);
@@ -360,8 +361,8 @@ BEGIN
   g^.SelectRender := @selecti;
 
   wp := OpenWindowTags(NIL,[
-                WA_Gadgets,gl,
-                WA_Title, 'Images in Gadgets',
+                WA_Gadgets, AsTag(gl),
+                WA_Title, AsTag('Images in Gadgets'),
                 WA_Flags, WFLG_SMART_REFRESH OR WFLG_NOCAREREFRESH OR
                                 WFLG_DEPTHGADGET OR WFLG_DRAGBAR OR WFLG_CLOSEGADGET OR
                                 WFLG_ACTIVATE,
@@ -390,7 +391,7 @@ BEGIN
         CASE iclass OF
           IDCMP_CLOSEWINDOW : ende := TRUE;
           IDCMP_GADGETUP :
-             i := EasyReq(wp,WIN_TITLE,pas2c('You have clicked on the Gadget!'),pas2c('Wheeew!'));
+             i := EasyReq(wp,WIN_TITLE, 'You have clicked on the Gadget!', 'Wheeew!');
         ELSE END;
        msg := GT_GetIMsg(wp^.UserPort);
      END;

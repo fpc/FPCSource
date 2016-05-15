@@ -28,6 +28,7 @@ interface
 { $define AnsiStrRef}
 
     uses
+      parabase,
       nx86cal,cgutils;
 
     type
@@ -36,7 +37,7 @@ interface
           procedure pop_parasize(pop_size:longint);override;
           procedure extra_interrupt_code;override;
           procedure extra_call_ref_code(var ref: treference);override;
-          procedure do_call_ref(ref: treference);override;
+          function do_call_ref(ref: treference): tcgpara;override;
        end;
 
 
@@ -49,6 +50,7 @@ implementation
       cpubase,paramgr,
       aasmtai,aasmdata,aasmcpu,
       ncal,nbas,nmem,nld,ncnv,
+      hlcgobj,
       cga,cgobj,cgx86,cpuinfo;
 
 
@@ -114,12 +116,13 @@ implementation
       end;
 
 
-    procedure ti8086callnode.do_call_ref(ref: treference);
+    function ti8086callnode.do_call_ref(ref: treference): tcgpara;
       begin
         if current_settings.x86memorymodel in x86_far_code_models then
           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_FAR,ref))
         else
           current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+        result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
       end;
 
 

@@ -78,7 +78,7 @@ unit ra68kmot;
          function is_register(const s:string):boolean;
          procedure GetToken;
          function consume(t : tasmtoken):boolean;
-         function findopcode(s: string; var opsize: topsize): tasmop;
+         function findopcode(const s: string; var opsize: topsize): tasmop;
          Function BuildExpression(allow_symbol : boolean; asmsym : pshortstring) : longint;
          Procedure BuildConstant(maxvalue: longint);
          Procedure BuildRealConstant(typ : tfloattype);
@@ -86,7 +86,6 @@ unit ra68kmot;
          Function BuildRefExpression: longint;
          procedure BuildReference(const oper:tm68koperand);
          Procedure BuildOperand(const oper:tm68koperand);
-         Procedure BuildStringConstant(asciiz: boolean);
          Procedure BuildOpCode(instr:Tm68kinstruction);
       end;
 
@@ -205,8 +204,7 @@ const
     function tm68kmotreader.is_register(const s:string):boolean;
       begin
         result:=false;
-        // FIX ME!!! '%'+ is ugly, needs a proper fix (KB)
-        actasmregister:=gas_regnum_search('%'+lower(s));
+        actasmregister:=std_regnum_search(lower(s));
         if actasmregister<>NR_NO then
           begin
             result:=true;
@@ -220,7 +218,7 @@ const
         if lower(s)='sp' then
           actasmregister:=NR_STACK_POINTER_REG;
         if lower(s)='fp' then
-          actasmregister:=NR_STACK_POINTER_REG;
+          actasmregister:=NR_FRAME_POINTER_REG;
         if actasmregister<>NR_NO then
           begin
             result:=true;
@@ -238,8 +236,8 @@ const
   var
    token: tasmtoken;
    forcelabel: boolean;
-   s : string;
   begin
+    c:=scanner.c;
     forcelabel := FALSE;
     actasmpattern :='';
     {* INIT TOKEN TO NOTHING *}
@@ -248,11 +246,11 @@ const
     while c in [' ',#9] do
      c:=current_scanner.asmgetchar;
 
-    if not (c in [#10,#13,'{',';']) then
+    if not (c in [#10,#13,'{',';','(','/']) then
      current_scanner.gettokenpos;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
-    if firsttoken and not (c in [#10,#13,'{',';']) then
+    if firsttoken and not (c in [#10,#13,'{',';','(','/']) then
     begin
 
       firsttoken := FALSE;
@@ -416,8 +414,14 @@ const
                    exit;
                  end;
            '(' : begin
-                   actasmtoken := AS_LPAREN;
                    c:=current_scanner.asmgetchar;
+                   if c='*' then
+                     begin
+                       current_scanner.skipoldtpcomment(true);
+                       GetToken;
+                     end
+                   else
+                     actasmtoken:=AS_LPAREN;
                    exit;
                  end;
            ')' : begin
@@ -451,8 +455,14 @@ const
                    exit;
                  end;
            '/' : begin
-                   actasmtoken := AS_SLASH;
                    c:=current_scanner.asmgetchar;
+                   if c='/' then
+                     begin
+                       current_scanner.skipdelphicomment;
+                       GetToken;
+                     end
+                   else
+                     actasmtoken := AS_SLASH;
                    exit;
                  end;
            '<' : begin
@@ -520,16 +530,19 @@ const
                   actasmtoken:=AS_SEPARATOR;
                end;
 
-         '{',#13,#10 : begin
+         '{' : begin
+                 current_scanner.skipcomment(true);
+                 GetToken;
+               end;
+
+         #13,#10 : begin
+                            current_scanner.linebreak;
                             c:=current_scanner.asmgetchar;
                             firsttoken := TRUE;
                             actasmtoken:=AS_SEPARATOR;
                            end;
             else
-             begin
-               s:=c;
-               Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
-             end;
+             current_scanner.illegal_char(c);
 
       end; { end case }
     end; { end else if }
@@ -541,14 +554,10 @@ const
   {---------------------------------------------------------------------}
 
     function tm68kmotreader.consume(t : tasmtoken):boolean;
-      var
-        p: pointer;
       begin
         Consume:=true;
         if t<>actasmtoken then
          begin
-           p:=nil;
-           dword(p^):=0;
            Message2(scan_f_syn_expected,token2str[t],token2str[actasmtoken]);
            Consume:=false;
          end;
@@ -558,24 +567,21 @@ const
       end;
 
 
-   function tm68kmotreader.findopcode(s: string; var opsize: topsize): tasmop;
+   function tm68kmotreader.findopcode(const s: string; var opsize: topsize): tasmop;
   {*********************************************************************}
   { FUNCTION findopcode(s: string): tasmop;                             }
   {  Description: Determines if the s string is a valid opcode          }
   {  if so returns correct tasmop token.                                }
   {*********************************************************************}
    var
-    j: byte;
-    op_size: string;
+     j: longint;
    begin
-     findopcode := A_NONE;
      j:=pos('.',s);
-     if j<>0 then
+     if (j <> 0) and (j < length(s)) then
      begin
-       op_size:=copy(s,j+1,1);
-       case op_size[1] of
+       case s[j+1] of
        { For the motorola only opsize size is used to }
-       { determine the size of the operands.             }
+       { determine the size of the operands.          }
        'B': opsize := S_B;
        'W': opsize := S_W;
        'L': opsize := S_L;
@@ -583,10 +589,8 @@ const
        'D': opsize := S_FD;
        'X': opsize := S_FX;
        else
-        Message1(asmr_e_unknown_opcode,s);
+         Message1(asmr_e_unknown_opcode,s);
        end;
-       { delete everything starting from dot }
-       delete(s,j,length(s));
      end;
      result:=actopcode;
    end;
@@ -616,6 +620,7 @@ const
       l : longint;
       errorflag: boolean;
   begin
+    BuildExpression:=0;
     errorflag := FALSE;
     expr := '';
     tempstr := '';
@@ -986,6 +991,7 @@ const
       l: longint;
       code: integer;
   begin
+     str:='';
      Consume(AS_STAR);
      if (oper.opr.ref.scalefactor <> 0)
      and (oper.opr.ref.scalefactor <> 1) then
@@ -1180,6 +1186,7 @@ const
       code: integer;
       str: string;
     begin
+       str:='';
        Consume(AS_LPAREN);
        case actasmtoken of
          { // (reg ... // }
@@ -1309,6 +1316,7 @@ const
    dataregset := [];
    addrregset := [];
    tempstr := '';
+   r:=NR_NO;
    case actasmtoken of
    { // Memory reference //  }
      AS_LPAREN:
@@ -1343,7 +1351,6 @@ const
                    end;
    { // A constant expression, or a Variable ref. // }
      AS_ID:  begin
-              Oper.InitRef;
               if actasmpattern[1] = '@' then
               { // Label or Special symbol reference // }
               begin
@@ -1510,6 +1517,7 @@ const
                          case actasmtoken of
                           AS_REGISTER:
                             begin
+                              r:=actasmregister;
                               if getregtype(r)=R_ADDRESSREGISTER then
                                 include(addrregset,getsupreg(r))
                               else if getregtype(r)=R_INTREGISTER then
@@ -1636,46 +1644,6 @@ const
  end;
 
 
-
-  Procedure tm68kmotreader.BuildStringConstant(asciiz: boolean);
-  {*********************************************************************}
-  { PROCEDURE BuildStringConstant                                       }
-  {  Description: Takes care of a ASCII, or ASCIIZ directive.           }
-  {   asciiz: boolean -> if true then string will be null terminated.   }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to AS_SEPARATOR.  }
-  { On ENTRY: Token should point to AS_STRING                           }
-  {*********************************************************************}
-  var
-   expr: string;
-   errorflag : boolean;
-  begin
-      errorflag := FALSE;
-      Repeat
-        Case actasmtoken of
-          AS_STRING: begin
-                      expr:=actasmpattern;
-                      if asciiz then
-                       expr:=expr+#0;
-                      ConcatString(curlist,expr);
-                      Consume(AS_STRING);
-                    end;
-          AS_COMMA:  begin
-                       Consume(AS_COMMA);
-                     END;
-          AS_SEPARATOR: ;
-        else
-         begin
-          Consume(actasmtoken);
-          if not errorflag then
-           Message(asmr_e_invalid_string_expression);
-          errorflag := TRUE;
-         end;
-    end; { end case }
-   Until actasmtoken = AS_SEPARATOR;
-  end;
-
-
   Procedure TM68kmotReader.BuildOpCode(instr:Tm68kinstruction);
   {*********************************************************************}
   { PROCEDURE BuildOpcode;                                              }
@@ -1750,7 +1718,6 @@ const
             _asmsorted := TRUE;
           end;
         curlist:=TAsmList.Create;
-        c:=current_scanner.asmgetchar;
         gettoken;
         while actasmtoken<>AS_END do
           begin
@@ -1814,15 +1781,7 @@ const
                     instr.ConcatInstruction(curlist);
                   end;
                   instr.Free;
-{
-                  instr.init;
-                  BuildOpcode;
-                  instr.ops := operandnum;
-                  if instr.labeled then
-                    ConcatLabeledInstr(instr)
-                  else
-                    ConcatOpCode(instr);
-                  instr.done;}
+
                 end;
               AS_SEPARATOR:
                 begin

@@ -50,7 +50,8 @@ type
      IBBkpNoGarbageCollect,IBBkpOldDescriptions,IBBkpNonTransportable,IBBkpConvert);
   TIBBackupOptions= set of TIBBackupOption;
   TIBRestoreOption=(IBResVerbose,IBResDeactivateIdx,IBResNoShadow,IBResNoValidity,
-     IBResOneAtaTime,IBResReplace,IBResCreate,IBResUseAllSpace,IBResAMReadOnly,IBResAMReadWrite);
+     IBResOneAtaTime,IBResReplace,IBResCreate,IBResUseAllSpace,IBResAMReadOnly,IBResAMReadWrite,
+     IBFixFssData, IBFixFssMeta);
   TIBRestoreOptions= set of TIBRestoreOption;
   TServiceProtocol=(IBSPLOCAL,IBSPTCPIP,IBSPNETBEUI,IBSPNAMEDPIPE);
   TIBOnOutput= procedure(Sender: TObject; msg: string; IBAdminAction: string) of object;
@@ -64,6 +65,7 @@ type
   private
     FErrorCode: longint;
     FErrorMsg: string;
+    FFixFssDataCharSet: String;
     FHost: string;
     FOnOutput: TIBOnOutput;
     FOutput: TStringList;
@@ -152,6 +154,8 @@ type
     property ServerMsgDir:string read FServerMsgDir;
     //Path to the security database in use by the server
     property ServerSecDBDir:string read FServerSecDBDir;
+    // FixFxxData/FixFxxMetaData code page
+    property FixFssDataCharSet: String read FFixFssDataCharSet write FFixFssDataCharSet;
   published
     //User name to connect to service manager
     property User: string read FUser write FUser;
@@ -203,17 +207,11 @@ end;
 
 procedure TFBAdmin.IBRaiseError(GDSErrorCode: Longint; const msg: string;
   const args: array of const);
-var
-  E:EIBDatabaseError;
 begin
-  FErrorMsg:=format(msg,args);
+  FErrorMsg:=Format(msg,args);
   FErrorCode:=GDSErrorCode;
   if FUseExceptions then
-    begin
-    E := EIBDatabaseError.Create(FErrorMsg);
-    E.GDSErrorCode := GDSErrorCode;
-    Raise E;
-    end;
+    raise EIBDatabaseError.CreateFmt(msg,args,nil,GDSErrorCode,'');
 end;
 
 function TFBAdmin.IBSPBParamSerialize(isccode: byte; value: string): string;
@@ -379,6 +377,7 @@ begin
   inherited Create(AOwner);
   FPort:= 3050;
   FOutput:=TStringList.Create;
+  FFixFssDataCharSet:= '';
 end;
 
 destructor TFBAdmin.Destroy;
@@ -391,7 +390,6 @@ end;
 
 function TFBAdmin.Connect: boolean;
 var
-  E:EIBDatabaseError;
   Service:string;
   spb:string;
 begin
@@ -400,11 +398,7 @@ begin
   result:=InitialiseIBase60<>0;
   {$EndIf}
   if FSvcHandle<>FB_API_NULLHANDLE then
-    begin
-    E := EIBDatabaseError.CreateFmt(SErrConnected,[self.Name]);
-    E.GDSErrorCode := 0;
-    Raise E;
-    end;
+    raise EIBDatabaseError.CreateFmt(SErrConnected,[Self.Name],nil,0,'');
   Service:='service_mgr';
   case FProtocol of
     IBSPTCPIP:if FPort=3050 then
@@ -517,6 +511,10 @@ begin
     else
       spb:=spb+chr(isc_spb_res_access_mode)+chr(isc_spb_res_am_readwrite);
     end;
+  if (IBFixFssData in Options) and (FixFssDataCharSet > ' ') then
+    spb:=spb+IBSPBParamSerialize(isc_spb_res_fix_fss_data, FixFssDataCharSet);
+  if (IBFixFssMeta in Options) and (FixFssDataCharSet > ' ') then
+    spb:=spb+IBSPBParamSerialize(isc_spb_res_fix_fss_metadata, FixFssDataCharSet);
   spb:=spb+IBSPBParamSerialize(isc_spb_options,MakeRestoreOptions(Options));
   result:=isc_service_start(@FStatus[0], @FSvcHandle, nil, length(spb),
     @spb[1])=0;

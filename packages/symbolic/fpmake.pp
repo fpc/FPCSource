@@ -12,17 +12,18 @@ begin
     begin
 {$endif ALLPACKAGES}
     P:=AddPackage('symbolic');
+    P.ShortName:='symb';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Marco van de Voort';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Expression parser with support for fast evaluation';
     P.NeedLibC:= false;
-    P.OSes:=P.OSes-[embedded,msdos];
+    P.OSes:=P.OSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

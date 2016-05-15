@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fprcp');
+    P:=AddPackage('utils-fprcp');
+    P.ShortName:='fprcp';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -26,7 +27,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     T:=P.Targets.AddProgram('fprcp.pp');
     T.Dependencies.AddUnit('comments');

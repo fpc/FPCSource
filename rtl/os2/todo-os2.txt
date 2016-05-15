@@ -21,8 +21,8 @@ RTL                                           high
     - sockets
           - winsock.................................................YP
     - graph
-    - pass dos compatibility tests
-    - exception handler
+          - pass dos compatibility tests............................TH
+          - exception handler.......................................TH
     - WriteLn support for PM apps (message boxes)
 
 libgdb                                        medium
@@ -58,7 +58,7 @@ FCL                                           medium
           - thread.inc..............................................TH
           - pipes.inc...............................................TH
           - eventlog.inc............................................TH
-  - process.inc
+          - process.inc.............................................TH
   - ? unit SyncObjs
   - ? unit HTTPApp
 
@@ -131,7 +131,7 @@ Odin32 target (as fast as native fpc/2 will be ready)  low
 
 documentation (fpdoc)                         low
   - TeX to INF converter
-  - Inf support for fpdoc
+          - Inf support for fpdoc.........(added by Graeme Geldenhuys)
   - RTL
     - CPI
       - os2defs

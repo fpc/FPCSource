@@ -17,12 +17,28 @@
   dependent on objpas unit.
 }
 unit lineinfo;
+
 interface
 
 {$S-}
 {$Q-}
 
+{$IF FPC_VERSION<3}
+type
+  CodePointer = Pointer;
+{$ENDIF}
+
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
+function StabBackTraceStr(addr:CodePointer):string;
+procedure CloseStabs;
+
+var
+  // Allows more efficient operation by reusing previously loaded debug data
+  // when the target module filename is the same. However, if an invalid memory
+  // address is supplied then further calls may result in an undefined behaviour.
+  // In summary: enable for speed, disable for resilience.
+  AllowReuseOfLineInfoData: Boolean = True;
+
 
 implementation
 
@@ -59,7 +75,6 @@ type
 {$WARNING This code is not thread-safe, and needs improvement }  
 var
   e          : TExeFile;
-  staberr    : boolean;
   stabcnt,              { amount of stabs }
   stablen,
   stabofs,              { absolute stab section offset in executable }
@@ -72,22 +87,51 @@ var
   dirstab,              { stab with current directory info }
   filestab   : tstab;   { stab with current file info }
   filename,
+  lastfilename,         { store last processed file }
   dbgfn : string;
+  lastopenstabs: Boolean; { store last result of processing a file }
 
 
 function OpenStabs(addr : pointer) : boolean;
   var
     baseaddr : pointer;
 begin
+  // False by default
   OpenStabs:=false;
-  if staberr then
-    exit;
 
+  // Empty so can test if GetModuleByAddr has worked
+  filename := '';
+
+  // Get filename by address using GetModuleByAddr
   GetModuleByAddr(addr,baseaddr,filename);
 {$ifdef DEBUG_LINEINFO}
   writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
 {$endif DEBUG_LINEINFO}
 
+  // Check if GetModuleByAddr has worked
+  if filename = '' then
+    exit;
+
+  // If target filename same as previous, then re-use previous result
+  if AllowReuseOfLineInfoData and (filename = lastfilename) then
+  begin
+    {$ifdef DEBUG_LINEINFO}
+    writeln(stderr,'Reusing debug data');
+    {$endif DEBUG_LINEINFO}
+    OpenStabs:=lastopenstabs;
+    exit;
+  end;
+
+  // Close previously opened stabs
+  CloseStabs;
+
+  // Reset last open stabs result
+  lastopenstabs := false;
+
+  // Save newly processed filename
+  lastfilename := filename;
+
+  // Open exe file or debug link
   if not OpenExeFile(e,filename) then
     exit;
   if ReadDebugLink(e,dbgfn) then
@@ -96,6 +140,8 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
+
+  // Find stab section
 {$ifdef BeOS}
   { Do not change ProcessAddress field for BeOS/Haiku
     if baseAddr is lower than ProcessAdress }
@@ -107,19 +153,21 @@ begin
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then
     begin
       stabcnt:=stablen div sizeof(tstab);
+      lastopenstabs:=true;
       OpenStabs:=true;
     end
   else
-    begin
-      staberr:=true;
-      exit;
-    end;
+    CloseExeFile(e);
 end;
 
 
 procedure CloseStabs;
 begin
-  CloseExeFile(e);
+  if e.isopen then
+    CloseExeFile(e);
+
+  // Reset last processed filename
+  lastfilename := '';
 end;
 
 
@@ -138,13 +186,9 @@ begin
   fillchar(func,high(func)+1,0);
   fillchar(source,high(source)+1,0);
   line:=0;
-  if staberr then
+
+  if not OpenStabs(pointer(addr)) then
     exit;
-  if not e.isopen then
-   begin
-     if not OpenStabs(pointer(addr)) then
-      exit;
-   end;
 
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
@@ -252,17 +296,19 @@ begin
      if i>0 then
       Delete(func,i,255);
    end;
-  if e.isopen then
+
+  if not AllowReuseOfLineInfoData then
     CloseStabs;
+
   GetLineInfo:=true;
 end;
 
 
-function StabBackTraceStr(addr:CodePointer):shortstring;
+function StabBackTraceStr(addr:CodePointer):string;
 var
   func,
   source : string;
-  hs     : string[32];
+  hs     : string;
   line   : longint;
   Store  : TBackTraceStrFunc;
   Success : boolean;
@@ -283,28 +329,32 @@ begin
 {$else}
   StabBackTraceStr:='  $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
 {$endif}
-  if func<>'' then
-    StabBackTraceStr:=StabBackTraceStr+'  '+func;
-  if source<>'' then
-   begin
-     if func<>'' then
-      StabBackTraceStr:=StabBackTraceStr+', ';
-     if line<>0 then
+  if Success then
+  begin
+    if func<>'' then
+      StabBackTraceStr:=StabBackTraceStr+'  '+func;
+    if source<>'' then
+    begin
+      if func<>'' then
+        StabBackTraceStr:=StabBackTraceStr+', ';
+      if line<>0 then
       begin
         str(line,hs);
         StabBackTraceStr:=StabBackTraceStr+' line '+hs;
       end;
-     StabBackTraceStr:=StabBackTraceStr+' of '+source;
-   end;
-  if Success then
-    BackTraceStrFunc:=Store;
+      StabBackTraceStr:=StabBackTraceStr+' of '+source;
+    end;
+  end;
+  BackTraceStrFunc:=Store;
 end;
 
 
 initialization
+  lastfilename := '';
+  lastopenstabs := false;
   BackTraceStrFunc:=@StabBackTraceStr;
 
 finalization
-  if e.isopen then
-   CloseStabs;
+  CloseStabs;
+
 end.

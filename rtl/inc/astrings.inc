@@ -24,12 +24,12 @@
   This file contains the implementation of the AnsiString type,
   and all things that are needed for it.
   AnsiString is defined as a 'silent' pchar :
-  a pchar that points to :
+  a pchar that points to (S= SizeOf(SizeInt)):
 
-  @-16 : Code page indicator.
-  @-12 : Character size (2 bytes)
-  @-8  : SizeInt for reference count;
-  @-4  : SizeInt for size;
+  @-3*S   : Code page indicator.
+  @-3*S+2 : Character size (2 bytes)
+  @-2*S   : SizeInt for reference count;
+  @-S  : SizeInt for size;
   @    : String + Terminating #0;
   Pchar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.
@@ -915,18 +915,18 @@ end;
 
 {$ifndef FPC_HAS_POS_SHORTSTR_ANSISTR}
 {$define FPC_HAS_POS_SHORTSTR_ANSISTR}
-Function Pos(Const Substr : ShortString; Const Source : RawByteString) : SizeInt;
+Function Pos(Const Substr : ShortString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
 
 var
   i,MaxLen : SizeInt;
   pc : PAnsiChar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr);
-     i:=0;
-     pc:=@source[1];
+     i:=Offset-1;
+     pc:=@source[Offset];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -945,17 +945,17 @@ end;
 
 {$ifndef FPC_HAS_POS_ANSISTR_ANSISTR}
 {$define FPC_HAS_POS_ANSISTR_ANSISTR}
-Function Pos(Const Substr : RawByteString; Const Source : RawByteString) : SizeInt;
+Function Pos(Const Substr : RawByteString; Const Source : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : PAnsiChar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(Source)) then
    begin
      MaxLen:=Length(source)-Length(SubStr);
-     i:=0;
-     pc:=@source[1];
+     i:=Offset-1;
+     pc:=@source[Offset];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -978,13 +978,16 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos(c : AnsiChar; Const s : RawByteString) : SizeInt;
+Function Pos(c : AnsiChar; Const s : RawByteString; Offset : Sizeint = 1) : SizeInt;
 var
   i: SizeInt;
   pc : PAnsiChar;
 begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  Pos:=0;
+  If (Offset<1) or (Offset>Length(S)) then 
+    exit;
+  pc:=@s[OffSet];
+  for i:=Offset to length(s) do
    begin
      if pc^=c then
       begin
@@ -1239,7 +1242,6 @@ end;
 {$endif FPC_STR_ENUM_INTERN}
 
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[public,alias:'FPC_ANSISTR_CURRENCY']; compilerproc; inline;
 var
   ss: ShortString;
@@ -1250,7 +1252,6 @@ begin
   SetCodePage(s,cp,false);
   {$endif FPC_HAS_CPSTRING}
 end;
-{$endif FPC_HAS_STR_CURRENCY}
 
 Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; out S : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING});[Public,Alias : 'FPC_ANSISTR_VALUINT']; compilerproc; inline;
 Var
@@ -1383,7 +1384,10 @@ begin
    index := LS+1;
   Dec(Index);
   SetLength(Temp,Length(Source)+LS);
-  cp:=TranslatePlaceholderCP(StringCodePage(S));
+  if length(S)<>0 then
+    cp:=TranslatePlaceholderCP(StringCodePage(S))
+  else
+    cp:=TranslatePlaceholderCP(StringCodePage(Source));
   SetCodePage(Temp,cp,false);
   If Index>0 then
     fpc_pchar_ansistr_intern_charmove(pchar(S),0,Temp,0,Index);
@@ -1404,20 +1408,36 @@ end;
 {$endif FPC_HAS_ANSISTR_OF_CHAR}
 
 
-Procedure SetString(Out S : AnsiString; Buf : PAnsiChar; Len : SizeInt); inline;
+{$ifdef FPC_HAS_CPSTRING}
+Procedure fpc_setstring_ansistr_pansichar(out S : RawByteString; Buf : PAnsiChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
+{$else}
+Procedure SetString(out S : AnsiString; Buf : PAnsiChar; Len : SizeInt);
+{$endif}
 begin
   SetLength(S,Len);
+{$ifdef FPC_HAS_CPSTRING}
+  SetCodePage(S,cp,false);
+{$endif}
   If (Buf<>Nil) then
     fpc_pchar_ansistr_intern_charmove(Buf,0,S,0,Len);
 end;
 
 
-Procedure SetString(Out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+{$ifdef FPC_HAS_CPSTRING}
+Procedure fpc_setstring_ansistr_pwidechar(out S : RawByteString; Buf : PWideChar; Len : SizeInt; cp: TSystemCodePage); rtlproc; compilerproc;
+{$else}
+Procedure SetString(out S : AnsiString; Buf : PWideChar; Len : SizeInt);
+{$endif}
 begin
   if (Buf<>nil) and (Len>0) then
-    widestringmanager.Wide2AnsiMoveProc(Buf,RawByteString(S),DefaultSystemCodePage,Len)
+    widestringmanager.Wide2AnsiMoveProc(Buf,S,{$ifdef FPC_HAS_CPSTRING}cp{$else}DefaultSystemCodePage{$endif},Len)
   else
-    SetLength(S, Len);
+    begin
+      SetLength(S, Len);
+{$ifdef FPC_HAS_CPSTRING}
+      SetCodePage(S,cp,false);
+{$endif}
+    end;
 end;
 
 
@@ -1510,14 +1530,20 @@ procedure InternalSetCodePage(var s : RawByteString; CodePage : TSystemCodePage;
   extra exception frames }
 procedure SetCodePage(var s : RawByteString; CodePage : TSystemCodePage; Convert : Boolean = True);
   var
+    OrgCodePage,
     TranslatedCodePage,
     TranslatedCurrentCodePage: TSystemCodePage;
   begin
     if (S='') then
       exit;
+    { if the codepage are identical, we don't have to do anything (even if the
+      string has multiple references) }
+    OrgCodePage:=PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage;
+    if OrgCodePage=CodePage then
+      exit;
     { if we're just replacing a placeholder code page with its actual value or
       vice versa, we don't have to perform any conversion }
-    TranslatedCurrentCodePage:=TranslatePlaceholderCP(PAnsiRec(pointer(S)-AnsiFirstOff)^.CodePage);
+    TranslatedCurrentCodePage:=TranslatePlaceholderCP(OrgCodePage);
     TranslatedCodePage:=TranslatePlaceholderCP(CodePage);
     Convert:=Convert and
       (TranslatedCurrentCodePage<>TranslatedCodePage);

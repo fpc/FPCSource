@@ -397,7 +397,10 @@ implementation
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
         hreg64hi:=left.location.register64.reghi;
         hreg64lo:=left.location.register64.reglo;
+        location.register64.reglo:=hreg64lo;
+        location.register64.reghi:=hreg64hi;
 
+        v:=0;
         if right.nodetype=ordconstn then
           v:=Tordconstnode(right).value and 63;
 
@@ -423,6 +426,44 @@ implementation
                 emit_const_reg(A_RCR,S_W,1,GetNextReg(hreg64lo));
                 emit_const_reg(A_RCR,S_W,1,hreg64lo);
               end;
+          end
+        { shifting by >=48 }
+        else if (right.nodetype=ordconstn) and (v>=48) then
+          begin
+            if nodetype=shln then
+              begin
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,hreg64lo,GetNextReg(hreg64hi));
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64lo,hreg64lo);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_16,v-48,GetNextReg(hreg64hi));
+              end
+            else
+              begin
+                cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_16,OS_16,GetNextReg(hreg64hi),hreg64lo);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64hi));
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_16,v-48,hreg64lo);
+              end;
+          end
+        { shifting by 32..47 }
+        else if (right.nodetype=ordconstn) and (v>=32) and (v<=47) then
+          begin
+            if nodetype=shln then
+              begin
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64hi,hreg64hi);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64hi),GetNextReg(hreg64hi));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_32,v-32,hreg64lo);
+              end
+            else
+              begin
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,hreg64lo,hreg64lo);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_16,GetNextReg(hreg64lo),GetNextReg(hreg64lo));
+                cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_32,v-32,hreg64hi);
+              end;
+            location.register64.reghi:=hreg64lo;
+            location.register64.reglo:=hreg64hi;
           end
         else
           begin
@@ -451,14 +492,24 @@ implementation
               we've already handled them earlier as a special case }
             if right.nodetype<>ordconstn then
               begin
+                if (cs_opt_size in current_settings.optimizerswitches) or
+                   (current_settings.optimizecputype<=cpu_386) then
+                  begin
+                    ai:=Taicpu.Op_Sym(A_JCXZ,S_W,l3);
+                    ai.is_jmp := True;
+                    current_asmdata.CurrAsmList.Concat(ai);
+                  end
+                else
+                  begin
+                    emit_reg_reg(A_TEST,S_W,NR_CX,NR_CX);
+                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
+                  end;
                 emit_const_reg(A_CMP,S_L,64,NR_CX);
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_L,l1);
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,hreg64lo,hreg64lo);
                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_XOR,OS_32,hreg64hi,hreg64hi);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,l3);
                 cg.a_label(current_asmdata.CurrAsmList,l1);
-                emit_reg_reg(A_TEST,S_W,NR_CX,NR_CX);
-                cg.a_jmp_flags(current_asmdata.CurrAsmList,F_E,l3);
               end;
             cg.a_label(current_asmdata.CurrAsmList,l2);
             if nodetype=shln then
@@ -482,9 +533,6 @@ implementation
 
             cg.ungetcpuregister(current_asmdata.CurrAsmList,NR_CX);
           end;
-
-        location.register64.reglo:=hreg64lo;
-        location.register64.reghi:=hreg64hi;
       end;
 
 

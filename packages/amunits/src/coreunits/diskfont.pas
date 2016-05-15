@@ -34,17 +34,13 @@
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit diskfont;
 
 INTERFACE
 
-uses exec, graphics,utility;
+uses exec, agraphics,utility;
 
 Const
 
@@ -141,205 +137,28 @@ Type
 const
     DISKFONTNAME : PChar = 'diskfont.library';
 
-VAR DiskfontBase : pLibrary;
+VAR DiskfontBase : pLibrary = nil;
 
-FUNCTION AvailFonts(buffer : pCHAR; bufBytes : LONGINT; flags : LONGINT) : LONGINT;
-PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader);
-FUNCTION NewFontContents(fontsLock : BPTR; fontName : pCHAR) : pFontContentsHeader;
-FUNCTION NewScaledDiskFont(sourceFont : pTextFont; destTextAttr : pTextAttr) : pDiskFontHeader;
-FUNCTION OpenDiskFont(textAttr : pTextAttr) : pTextFont;
-FUNCTION GetDiskFontCtrl(tagid : LONGINT) : LONGINT;
-PROCEDURE SetDiskFontCtrlA(taglist : pTagItem);
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitDISKFONTLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    DISKFONTIsCompiledHow : longint;
+FUNCTION AvailFonts(buffer : pCHAR location 'a0'; bufBytes : LONGINT location 'd0'; flags : LONGINT location 'd1') : LONGINT; syscall DiskfontBase 036;
+PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader location 'a1'); syscall DiskfontBase 048;
+FUNCTION NewFontContents(fontsLock : BPTR location 'a0'; fontName : pCHAR location 'a1') : pFontContentsHeader; syscall DiskfontBase 042;
+FUNCTION NewScaledDiskFont(sourceFont : pTextFont location 'a0'; destTextAttr : pTextAttr location 'a1') : pDiskFontHeader; syscall DiskfontBase 054;
+FUNCTION OpenDiskFont(textAttr : pTextAttr location 'a0') : pTextFont; syscall DiskfontBase 030;
+FUNCTION GetDiskFontCtrl(tagid : LONGINT location 'd0') : LONGINT; syscall DiskfontBase 060;
+PROCEDURE SetDiskFontCtrlA(taglist : pTagItem location 'a0'); syscall DiskfontBase 066;
 
 IMPLEMENTATION
 
-{
- If you don't use array of const then just remove tagsarray
-}
-uses
-{$ifndef dont_use_openlib}
-msgbox;
-{$endif dont_use_openlib}
-
-FUNCTION AvailFonts(buffer : pCHAR; bufBytes : LONGINT; flags : LONGINT) : LONGINT;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L buffer,A0
-    MOVE.L  bufBytes,D0
-    MOVE.L  flags,D1
-    MOVEA.L DiskfontBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE DisposeFontContents(fontContentsHeader : pFontContentsHeader);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L fontContentsHeader,A1
-    MOVEA.L DiskfontBase,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION NewFontContents(fontsLock : BPTR; fontName : pCHAR) : pFontContentsHeader;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L fontsLock,A0
-    MOVEA.L fontName,A1
-    MOVEA.L DiskfontBase,A6
-    JSR -042(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION NewScaledDiskFont(sourceFont : pTextFont; destTextAttr : pTextAttr) : pDiskFontHeader;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L sourceFont,A0
-    MOVEA.L destTextAttr,A1
-    MOVEA.L DiskfontBase,A6
-    JSR -054(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenDiskFont(textAttr : pTextAttr) : pTextFont;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L textAttr,A0
-    MOVEA.L DiskfontBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION GetDiskFontCtrl(tagid : LONGINT) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  tagid,D0
-        MOVEA.L DiskfontBase,A6
-        JSR     -060(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE SetDiskFontCtrlA(taglist : pTagItem);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L taglist,A0
-        MOVEA.L DiskfontBase,A6
-        JSR     -066(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of diskfont.library}
-  {$Info don't forget to use InitDISKFONTLibrary in the beginning of your program}
-
-var
-    diskfont_exit : Pointer;
-
-procedure ClosediskfontLibrary;
-begin
-    ExitProc := diskfont_exit;
-    if DiskfontBase <> nil then begin
-        CloseLibrary(DiskfontBase);
-        DiskfontBase := nil;
-    end;
-end;
-
-procedure InitDISKFONTLibrary;
-begin
-    DiskfontBase := nil;
-    DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
-    if DiskfontBase <> nil then begin
-        diskfont_exit := ExitProc;
-        ExitProc := @ClosediskfontLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open diskfont.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    DISKFONTIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of diskfont.library}
-
-var
-    diskfont_exit : Pointer;
-
-procedure ClosediskfontLibrary;
-begin
-    ExitProc := diskfont_exit;
-    if DiskfontBase <> nil then begin
-        CloseLibrary(DiskfontBase);
-        DiskfontBase := nil;
-    end;
-end;
-
-begin
-    DiskfontBase := nil;
-    DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
-    if DiskfontBase <> nil then begin
-        diskfont_exit := ExitProc;
-        ExitProc := @ClosediskfontLibrary;
-        DISKFONTIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open diskfont.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    DISKFONTIsCompiledHow := 3;
-   {$Warning No autoopening of diskfont.library compiled}
-   {$Warning Make sure you open diskfont.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  DiskfontBase := OpenLibrary(DISKFONTNAME,LIBVERSION);
+finalization
+  if Assigned(DiskfontBase) then
+    CloseLibrary(DiskfontBase);
 END. (* UNIT DISKFONT *)
 
 

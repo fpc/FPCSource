@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -61,6 +62,11 @@ interface
 {$elsec}
 	{$setc __arm__ := 0}
 {$endc}
+{$ifc not defined __arm64__ and defined CPUAARCH64}
+  {$setc __arm64__ := 1}
+{$elsec}
+  {$setc __arm64__ := 0}
+{$endc}
 
 {$ifc defined cpu64}
   {$setc __LP64__ := 1}
@@ -79,6 +85,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -89,6 +96,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -99,6 +107,7 @@ interface
 	{$setc TARGET_CPU_X86 := TRUE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 {$ifc defined(iphonesim)}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
@@ -115,9 +124,16 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
+{$elsec}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$endc}
 	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
@@ -125,13 +141,26 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elifc defined __arm64__ and __arm64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := TRUE}
 	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
-	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
 
 {$ifc defined __LP64__ and __LP64__ }
@@ -254,6 +283,13 @@ var kCTKernAttributeName: CFStringRef; external name '_kCTKernAttributeName'; (*
                 combine characters. English text has no essential ligatures, and
                 typically has only two standard ligatures, those for "fi" and
                 "fl" -- all others being considered more advanced or fancy.
+
+                On iOS releases prior to 6.0 essential ligatures are applied
+                if the font contains glyphs for any of U+FB00 through U+FB04 and
+                the font lacks AAT or OpenType shaping tables, but as of 6.0
+                shaping tables (or the lack thereof) are treated as definitive.
+                This character-based shaping will still be performed if this
+                attribute is explicitly specified with the default value of 1.
 }
 
 var kCTLigatureAttributeName: CFStringRef; external name '_kCTLigatureAttributeName'; (* attribute const *)
@@ -391,6 +427,20 @@ var kCTGlyphInfoAttributeName: CFStringRef; external name '_kCTGlyphInfoAttribut
 
 var kCTCharacterShapeAttributeName: CFStringRef; external name '_kCTCharacterShapeAttributeName'; (* attribute const *)
 (* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
+
+
+{!
+    @const      kCTLanguageAttributeName
+    @abstract   Specifies text language.
+
+    @discussion Value must be a CFStringRef containing a locale identifier. Default
+                is unset. When this attribute is set to a valid identifier, it will
+                be used to select localized glyphs (if supported by the font) and
+                locale-specific line breaking rules.
+}
+
+var kCTLanguageAttributeName: CFStringRef; external name '_kCTLanguageAttributeName'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_10_9, __IPHONE_7_0) *)
 
 
 {!

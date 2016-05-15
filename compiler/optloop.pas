@@ -81,15 +81,13 @@ unit optloop;
 
     function replaceloadnodes(var n: tnode; arg: pointer): foreachnoderesult;
       begin
-        if ((n.nodetype=loadn) and (preplaceinfo(arg)^.node.nodetype=loadn) and
-          (tloadnode(n).symtableentry=tloadnode(preplaceinfo(arg)^.node).symtableentry)) or
-          ((n.nodetype=temprefn) and (preplaceinfo(arg)^.node.nodetype=temprefn) and
-          (ttemprefnode(n).tempinfo=ttemprefnode(preplaceinfo(arg)^.node).tempinfo)) then
+        if n.isequal(preplaceinfo(arg)^.node) then
           begin
             if n.flags*[nf_modify,nf_write,nf_address_taken]<>[] then
               internalerror(2012090402);
             n.free;
             n:=cordconstnode.create(preplaceinfo(arg)^.value,preplaceinfo(arg)^.node.resultdef,false);
+            do_firstpass(n);
           end;
         result:=fen_false;
       end;
@@ -135,12 +133,12 @@ unit optloop;
                 unrollblock:=internalstatements(unrollstatement);
 
                 { can we get rid completly of the for ? }
-                getridoffor:=(unrolls=counts) and not(usesbreakcontinue);
+                getridoffor:=(unrolls=counts) and not(usesbreakcontinue) and
+                  { TP/Macpas allows assignments to the for-variables, so we cannot get rid of the for }
+                  ([m_tp7,m_mac]*current_settings.modeswitches=[]);
 
                 if getridoffor then
                   begin
-                    if not(tfornode(node).left.nodetype in [temprefn,loadn]) then
-                      internalerror(2012090301);
                     replaceinfo.node:=tfornode(node).left;
                     replaceinfo.value:=tordconstnode(tfornode(node).right).value;
                   end;
@@ -188,6 +186,7 @@ unit optloop;
                     { create block statement }
                     result:=internalstatements(newforstatement);
                     addstatement(newforstatement,unrollblock);
+                    doinlinesimplify(result);
                   end;
               end
             else
@@ -491,6 +490,7 @@ unit optloop;
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
+            initcode:=nil;
             addstatement(newcodestatements,node);
             addstatement(newcodestatements,deletecode);
           end;

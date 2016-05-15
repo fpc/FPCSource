@@ -73,7 +73,8 @@ implementation
   uses
     globals,
     symdef,
-    verbose;
+    verbose,
+    entfile;
 
   procedure tunitwpoinfo.clearderefinfo;
     begin
@@ -142,7 +143,7 @@ implementation
     begin
       { load start of definition section, which holds the amount of defs }
       if ppufile.readentry<>ibcreatedobjtypes then
-        cgmessage(unit_f_ppu_read_error);
+        message(unit_f_ppu_read_error);
 
       { don't load the wpo info from the units if we are not generating
         a wpo feedback file (that would just take time and memory)

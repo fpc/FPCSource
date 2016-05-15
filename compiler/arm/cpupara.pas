@@ -28,17 +28,18 @@ unit cpupara;
 
     uses
        globtype,globals,
+       aasmdata,
        cpuinfo,cpubase,cgbase,cgutils,
        symconst,symtype,symdef,parabase,paramgr;
 
     type
-       tarmparamanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
-          procedure getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
+          procedure getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;override;
@@ -59,7 +60,7 @@ unit cpupara;
        procinfo;
 
 
-    function tarmparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         if (target_info.system<>system_arm_darwin) then
           result:=VOLATILE_INTREGISTERS
@@ -68,19 +69,19 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_FPUREGISTERS;
       end;
 
 
-    function tarmparamanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
       begin
         result:=VOLATILE_MMREGISTERS;
       end;
 
 
-    procedure tarmparamanager.getintparaloc(pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
+    procedure tcpuparamanager.getintparaloc(list: TAsmList; pd : tabstractprocdef; nr : longint; var cgpara : tcgpara);
       var
         paraloc : pcgparalocation;
         psym : tparavarsym;
@@ -91,7 +92,7 @@ unit cpupara;
         psym:=tparavarsym(pd.paras[nr-1]);
         pdef:=psym.vardef;
         if push_addr_param(psym.varspez,pdef,pd.proccalloption) then
-          pdef:=getpointerdef(pdef);
+          pdef:=cpointerdef.getreusable_no_free(pdef);
         cgpara.reset;
         cgpara.size:=def_cgsize(pdef);
         cgpara.intsize:=tcgsize2size[cgpara.size];
@@ -128,12 +129,12 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if (target_info.abi = abi_eabihf) and
+              if ((target_info.abi=abi_eabihf) or (calloption=pocall_hardfloat)) and
                  (not isvariadic) then
                 getparaloc:=LOC_MMREGISTER
               else if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or
                  (cs_fp_emulation in current_settings.moduleswitches) or
-                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16]) then
+                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) then
                 { the ARM eabi also allows passing VFP values via VFP registers,
                   but Mac OS X doesn't seem to do that and linux only does it if
                   built with the "-mfloat-abi=hard" option }
@@ -162,7 +163,10 @@ unit cpupara;
             filedef:
               getparaloc:=LOC_REGISTER;
             arraydef:
-              getparaloc:=LOC_REFERENCE;
+              if is_dynamic_array(p) then
+                getparaloc:=LOC_REGISTER
+              else
+                getparaloc:=LOC_REFERENCE;
             setdef:
               if is_smallset(p) then
                 getparaloc:=LOC_REGISTER
@@ -179,7 +183,7 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         if varspez in [vs_var,vs_out,vs_constref] then
@@ -210,11 +214,10 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         i: longint;
         sym: tsym;
-        fpufield: boolean;
       begin
         if handle_common_ret_in_param(def,pd,result) then
           exit;
@@ -293,7 +296,7 @@ unit cpupara;
       end;
 
 
-    procedure tarmparamanager.init_values(p : tabstractprocdef; side: tcallercallee;
+    procedure tcpuparamanager.init_values(p : tabstractprocdef; side: tcallercallee;
       var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister);
       begin
         curintreg:=RS_R0;
@@ -308,7 +311,7 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
+    function tcpuparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
         var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword; var sparesinglereg: tregister; isvariadic: boolean):longint;
 
       var
@@ -375,7 +378,7 @@ unit cpupara;
 
             if push_addr_param(hp.varspez,paradef,p.proccalloption) then
               begin
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef);
                 loc:=LOC_REGISTER;
                 paracgsize := OS_ADDR;
                 paralen := tcgsize2size[OS_ADDR];
@@ -469,7 +472,7 @@ unit cpupara;
                             { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=getarraydef(u8inttype,paralen);
+                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -543,7 +546,7 @@ unit cpupara;
                             { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
-                            paraloc^.def:=getarraydef(u8inttype,paralen);
+                            paraloc^.def:=carraydef.getreusable_no_free(u8inttype,paralen);
                             if (side=callerside) then
                               paraloc^.reference.index:=NR_STACK_POINTER_REG;
                             paraloc^.reference.offset:=stack_offset;
@@ -556,7 +559,7 @@ unit cpupara;
                         if push_addr_param(hp.varspez,paradef,p.proccalloption) then
                           begin
                             paraloc^.size:=OS_ADDR;
-                            paraloc^.def:=getpointerdef(paradef);
+                            paraloc^.def:=cpointerdef.getreusable_no_free(paradef);
                             assignintreg
                           end
                         else
@@ -611,7 +614,7 @@ unit cpupara;
       end;
 
 
-    function  tarmparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
+    function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): tcgpara;
       var
         paraloc : pcgparalocation;
         retcgsize  : tcgsize;
@@ -623,7 +626,7 @@ unit cpupara;
         { Return in FPU register? }
         if result.def.typ=floatdef then
           begin
-            if target_info.abi = abi_eabihf then 
+            if (target_info.abi=abi_eabihf) or (p.proccalloption=pocall_hardfloat) then
               begin
                 paraloc^.loc:=LOC_MMREGISTER;
                 case retcgsize of
@@ -645,7 +648,7 @@ unit cpupara;
               end
             else if (p.proccalloption in [pocall_softfloat]) or
                (cs_fp_emulation in current_settings.moduleswitches) or
-               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv3_d16,fpu_fpv4_s16]) then
+               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3,fpu_vfpv4,fpu_vfpv3_d16,fpu_fpv4_s16]) then
               begin
                 case retcgsize of
                   OS_64,
@@ -736,7 +739,7 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
@@ -750,7 +753,7 @@ unit cpupara;
      end;
 
 
-    function tarmparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         cur_stack_offset: aword;
         curintreg, curfloatreg, curmmreg: tsuperregister;
@@ -767,5 +770,5 @@ unit cpupara;
       end;
 
 begin
-   paramanager:=tarmparamanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

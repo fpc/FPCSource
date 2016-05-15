@@ -3,10 +3,10 @@
 #
 
 [target]
-programs=mdtest crctest sha1test
+programs=mdtest crctest sha1test md5performancetest  sha1performancetest
 
 [require]
-packages=hash
+packages=hash rtl-extra rtl-objpas
 
 [install]
 fpcpackage=y

@@ -29,7 +29,7 @@ unit agavrgas;
   interface
 
     uses
-       globtype,
+       globtype,systems,
        aasmtai,aasmdata,
        aggas,
        cpubase;
@@ -39,7 +39,7 @@ unit agavrgas;
       { TAVRGNUAssembler }
 
       TAVRGNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
        function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -52,7 +52,6 @@ unit agavrgas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmbase,aasmcpu,
        itcpugas,
@@ -63,9 +62,9 @@ unit agavrgas;
 {                         GNU Arm Assembler writer                           }
 {****************************************************************************}
 
-    constructor TAVRGNUAssembler.create(smart: boolean);
+    constructor TAVRGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TAVRInstrWriter.create(self);
       end;
 
@@ -81,6 +80,7 @@ unit agavrgas;
         var
           s : string;
         begin
+           s:='';
            with ref do
             begin
   {$ifdef extdebug}
@@ -95,9 +95,8 @@ unit agavrgas;
               else if base<>NR_NO then
                 begin
                   if addressmode=AM_PREDRECEMENT then
-                    s:='-'
-                  else
-                    s:='';
+                    s:='-';
+
                   case base of
                     NR_R26:
                       s:=s+'X';
@@ -119,9 +118,7 @@ unit agavrgas;
               else if assigned(symbol) or (offset<>0) then
                 begin
                   if assigned(symbol) then
-                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name)
-                  else
-                     s:='';
+                    s:=ReplaceForbiddenAsmSymbolChars(symbol.name);
 
                   if offset<0 then
                     s:=s+tostr(offset)
@@ -130,8 +127,12 @@ unit agavrgas;
                   case refaddr of
                     addr_hi8:
                       s:='hi8('+s+')';
+                    addr_hi8_gs:
+                      s:='hi8(gs('+s+'))';
                     addr_lo8:
                       s:='lo8('+s+')';
+                    addr_lo8_gs:
+                      s:='lo8(gs('+s+'))';
                     else
                       s:='('+s+')';
                   end;
@@ -186,7 +187,7 @@ unit agavrgas;
               sep:=',';
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 
@@ -197,7 +198,7 @@ unit agavrgas;
 
 
     const
-       as_arm_gas_info : tasminfo =
+       as_avr_gas_info : tasminfo =
           (
             id     : as_gas;
 
@@ -213,5 +214,5 @@ unit agavrgas;
 
 
 begin
-  RegisterAssembler(as_arm_gas_info,TAVRGNUAssembler);
+  RegisterAssembler(as_avr_gas_info,TAVRGNUAssembler);
 end.

@@ -1,3 +1,4 @@
+{ %skiptarget=os2,emx }
 {$mode objfpc}
 {$H+}
 

@@ -173,7 +173,7 @@ type
     function LeftPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean; virtual;
     function RightPromotion(const V: TVarData; const Operation: TVarOp; out RequiredVarType: TVarType): Boolean; virtual;
     function OlePromotion(const V: TVarData; out RequiredVarType: TVarType): Boolean; virtual;
-    procedure DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer); virtual;
+    procedure DispInvoke(Dest: PVarData; var Source: TVarData; CallDesc: PCallDesc; Params: Pointer); virtual;
     procedure VarDataInit(var Dest: TVarData);
     procedure VarDataClear(var Dest: TVarData);
     procedure VarDataCopy(var Dest: TVarData; const Source: TVarData);
@@ -219,13 +219,13 @@ type
       const Arguments: TVarDataArray): Boolean;
     function GetProperty(var Dest: TVarData; const V: TVarData;
       const Name: string): Boolean;
-    function SetProperty(const V: TVarData; const Name: string;
+    function SetProperty(var V: TVarData; const Name: string;
       const Value: TVarData): Boolean;
   end;
 
   TInvokeableVariantType = class(TCustomVariantType, IVarInvokeable)
   protected
-    procedure DispInvoke(Dest: PVarData; const Source: TVarData;
+    procedure DispInvoke(Dest: PVarData; var Source: TVarData;
       CallDesc: PCallDesc; Params: Pointer); override;
   public
     { IVarInvokeable }
@@ -235,7 +235,7 @@ type
       const Arguments: TVarDataArray): Boolean; virtual;
     function GetProperty(var Dest: TVarData; const V: TVarData;
       const Name: string): Boolean; virtual;
-    function SetProperty(const V: TVarData; const Name: string;
+    function SetProperty(var V: TVarData; const Name: string;
       const Value: TVarData): Boolean; virtual;
   end;
 
@@ -251,7 +251,7 @@ type
   public
     function GetProperty(var Dest: TVarData; const V: TVarData;
       const Name: string): Boolean; override;
-    function SetProperty(const V: TVarData; const Name: string;
+    function SetProperty(var V: TVarData; const Name: string;
       const Value: TVarData): Boolean; override;
   end;
 
@@ -342,9 +342,8 @@ const
 
 { Typinfo unit Variant routines have been moved here, so as not to make TypInfo dependent on variants }
 
-Function GetPropValue(Instance: TObject; const PropName: string): Variant;
-Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
-Procedure SetPropValue(Instance: TObject; const PropName: string; const Value: Variant);
+Function  GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant; overload;
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo; const Value: Variant); overload;
 Function  GetVariantProp(Instance: TObject; PropInfo : PPropInfo): Variant;
 Function  GetVariantProp(Instance: TObject; const PropName: string): Variant;
 Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
@@ -481,15 +480,16 @@ end;
 
 function TVariantArrayIterator.AtEnd: Boolean;
 var
-  i : sizeint;
+  i,l : sizeint;
 begin
-  result:=true;
-  for i:=0 to Pred(Dims) do
-    if Coords^[i] < Bounds^[i].LowBound + Bounds^[i].ElementCount then
-      begin
-        result:=false;
-        exit;
-      end;
+  result:=false;
+  l:=Pred(dims);
+  I:=0;
+  While (not Result) and (I<=L) do
+    begin
+    Result:=Coords^[i] >= (Bounds^[i].LowBound + Bounds^[i].ElementCount);
+    inc(i);
+    end;
 end;
 
 {$pop}// {$r-} for TVariantArrayIterator
@@ -2254,12 +2254,18 @@ begin
       Dest.vType := varString;
       Dest.vString := nil;
       AnsiString(Dest.vString) := AnsiString(vString);
+    end else if vType = varOleStr then begin
+      Dest.vType := varOleStr;
+      Dest.vOleStr := nil;
+      WideString(Pointer(Dest.vOleStr)) := WideString(Pointer(vOleStr));
     end else if vType = varAny then begin
       Dest := Source;
       RefAnyProc(Dest);
     end else if vType and varArray <> 0 then
       DoVarCopyArray(Dest, Source, @DoVarCopy)
-    else if (vType and varByRef <> 0) and (vType xor varByRef = varString) then
+    else if (vType and varByRef <> 0) and
+             (((vType xor varByRef) = varString)
+               or ((vType xor varByRef)= varOleStr)) then
       Dest := Source
     else if FindCustomVariantType(vType, Handler) then
       Handler.Copy(Dest, Source, False)
@@ -2523,7 +2529,7 @@ begin
 end;
 
 
-procedure sysdispinvoke(Dest : PVarData; const Source : TVarData;calldesc : pcalldesc;params : Pointer);cdecl;
+procedure sysdispinvoke(Dest : PVarData; var source : TVarData;calldesc : pcalldesc;params : Pointer);cdecl;
 var
   temp  : TVarData;
   tempp : ^TVarData;
@@ -3726,7 +3732,7 @@ begin
 end;
 
 
-procedure TCustomVariantType.DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
+procedure TCustomVariantType.DispInvoke(Dest: PVarData; var Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
 
 begin
   RaiseDispError;
@@ -3992,7 +3998,7 @@ end;
     TInvokeableVariantType implementation
   ---------------------------------------------------------------------}
 
-procedure TInvokeableVariantType.DispInvoke(Dest: PVarData; const Source: TVarData;
+procedure TInvokeableVariantType.DispInvoke(Dest: PVarData; var Source: TVarData;
   CallDesc: PCallDesc; Params: Pointer);
 var
   method_name: ansistring;
@@ -4004,6 +4010,8 @@ var
   arg_ptr: pointer;
   arg_data: PVarData;
   dummy_data: TVarData;
+  arg_advanced: boolean;
+
 const
   argtype_mask = $7F;
   argref_mask = $80;
@@ -4032,22 +4040,46 @@ begin
         Inc(arg_ptr,sizeof(Pointer));
       end
       else
-        case arg_type of
-          varError:
-            arg_data^.vError:=VAR_PARAMNOTFOUND;
-          varVariant:
-            begin
+        begin
+          arg_advanced:=false;
+          case arg_type of
+            varError:
+              begin
+                arg_data^.vError:=VAR_PARAMNOTFOUND;
+                arg_advanced := true;
+              end;
+            varVariant:
               arg_data^ := PVarData(PPointer(arg_ptr)^)^;
-              Inc(arg_ptr,sizeof(Pointer));
-            end;
-          varDouble, varCurrency, varInt64, varQWord:
-            begin
-              arg_data^.vQWord := PQWord(arg_ptr)^; // 64bit on all platforms
-              inc(arg_ptr,sizeof(qword))
-            end
-        else
-          arg_data^.vAny := PPointer(arg_ptr)^; // 32 or 64bit
-          inc(arg_ptr,sizeof(pointer))
+            varDouble, varCurrency, varDate, varInt64, varQWord:
+              begin
+                arg_data^.vQWord := PQWord(arg_ptr)^; // 64bit on all platforms
+                inc(arg_ptr,sizeof(QWord));
+                arg_advanced := true;
+              end;
+            { values potentially smaller than sizeof(pointer) must be handled
+              explicitly to guarantee endian safety and to prevent copying/
+              skipping data (they are always copied into a 4 byte element
+              by the compiler, although it will still skip sizeof(pointer)
+              bytes afterwards) }
+            varSingle:
+              arg_data^.vSingle := PSingle(arg_ptr)^;
+            varSmallint:
+              arg_data^.vSmallInt := PLongint(arg_ptr)^;
+            varInteger:
+              arg_data^.vInteger := PLongint(arg_ptr)^;
+            varBoolean:
+              arg_data^.vBoolean := WordBool(PLongint(arg_ptr)^);
+            varShortInt:
+              arg_data^.vShortInt := PLongint(arg_ptr)^;
+            varByte:
+              arg_data^.vByte := PLongint(arg_ptr)^;
+            varWord:
+              arg_data^.vWord := PLongint(arg_ptr)^;
+            else
+              arg_data^.vAny := PPointer(arg_ptr)^; // 32 or 64bit
+          end;
+          if not arg_advanced then
+            inc(arg_ptr,sizeof(pointer));
         end;
     end;
   end;
@@ -4123,7 +4155,7 @@ function TInvokeableVariantType.GetProperty(var Dest: TVarData; const V: TVarDat
   end;
 
 
-function TInvokeableVariantType.SetProperty(const V: TVarData; const Name: string; const Value: TVarData): Boolean;
+function TInvokeableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
     result := False;
   end;
@@ -4136,14 +4168,14 @@ function TInvokeableVariantType.SetProperty(const V: TVarData; const Name: strin
 function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
   begin
     Result:=true;
-    Variant(Dest):=GetPropValue(getinstance(v),name);
+    Variant(Dest):=TypInfo.GetPropValue(getinstance(v),name);
   end;
 
 
-function TPublishableVariantType.SetProperty(const V: TVarData; const Name: string; const Value: TVarData): Boolean;
+function TPublishableVariantType.SetProperty(var V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
     Result:=true;
-    SetPropValue(getinstance(v),name,Variant(value));
+    TypInfo.SetPropValue(getinstance(v),name,Variant(value));
   end;
 
 
@@ -4464,65 +4496,54 @@ end;
 
 Function GetPropValue(Instance: TObject; const PropName: string): Variant;
 begin
-  Result:=GetPropValue(Instance,PropName,True);
+  Result:=TypInfo.GetPropValue(Instance,PropName,True);
 end;
 
 
-Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
-
-var
-  PropInfo: PPropInfo;
+Function GetPropValue(Instance: TObject; PropInfo: PPropInfo; PreferStrings: Boolean): Variant;
 
 begin
-  // find the property
-  PropInfo := GetPropInfo(Instance, PropName);
-  if PropInfo = nil then
-    raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
- else
-   begin
-   Result := Null; //at worst
-   // call the Right GetxxxProp
-   case PropInfo^.PropType^.Kind of
-     tkInteger, tkChar, tkWChar, tkClass, tkBool:
+  Result := Null; //at worst
+  // call the Right GetxxxProp
+  case PropInfo^.PropType^.Kind of
+    tkInteger, tkChar, tkWChar, tkClass, tkBool:
+      Result := GetOrdProp(Instance, PropInfo);
+    tkEnumeration:
+      if PreferStrings then
+        Result := GetEnumProp(Instance, PropInfo)
+      else
         Result := GetOrdProp(Instance, PropInfo);
-     tkEnumeration:
-       if PreferStrings then
-         Result := GetEnumProp(Instance, PropInfo)
-       else
-         Result := GetOrdProp(Instance, PropInfo);
-     tkSet:
-       if PreferStrings then
-         Result := GetSetProp(Instance, PropInfo, False)
-       else
-         Result := GetOrdProp(Instance, PropInfo);
+    tkSet:
+      if PreferStrings then
+        Result := GetSetProp(Instance, PropInfo, False)
+      else
+        Result := GetOrdProp(Instance, PropInfo);
 {$ifndef FPUNONE}
-     tkFloat:
-       Result := GetFloatProp(Instance, PropInfo);
+    tkFloat:
+      Result := GetFloatProp(Instance, PropInfo);
 {$endif}
-     tkMethod:
-       Result := PropInfo^.PropType^.Name;
-     tkString, tkLString, tkAString:
-       Result := GetStrProp(Instance, PropInfo);
-     tkWString:
-       Result := GetWideStrProp(Instance, PropInfo);
-     tkUString:
-       Result := GetUnicodeStrProp(Instance, PropInfo);
-     tkVariant:
-       Result := GetVariantProp(Instance, PropInfo);
-     tkInt64:
-       Result := GetInt64Prop(Instance, PropInfo);
-     tkQWord:
-       Result := QWord(GetInt64Prop(Instance, PropInfo));
-   else
-     raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
-   end;
-   end;
+    tkMethod:
+      Result := PropInfo^.PropType^.Name;
+    tkString, tkLString, tkAString:
+      Result := GetStrProp(Instance, PropInfo);
+    tkWString:
+      Result := GetWideStrProp(Instance, PropInfo);
+    tkUString:
+      Result := GetUnicodeStrProp(Instance, PropInfo);
+    tkVariant:
+      Result := GetVariantProp(Instance, PropInfo);
+    tkInt64:
+      Result := GetInt64Prop(Instance, PropInfo);
+    tkQWord:
+      Result := QWord(GetInt64Prop(Instance, PropInfo));
+    else
+      raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
+  end;
 end;
 
-Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
+Procedure SetPropValue(Instance: TObject; PropInfo: PPropInfo;  const Value: Variant);
 
 var
- PropInfo: PPropInfo;
  TypeData: PTypeData;
  O: Integer;
  I64: Int64;
@@ -4531,103 +4552,96 @@ var
  B: Boolean;
 
 begin
-   // find the property
-   PropInfo := GetPropInfo(Instance, PropName);
-   if PropInfo = nil then
-     raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
-   else
-     begin
-     TypeData := GetTypeData(PropInfo^.PropType);
-     // call Right SetxxxProp
-     case PropInfo^.PropType^.Kind of
-       tkBool:
+   TypeData := GetTypeData(PropInfo^.PropType);
+   // call Right SetxxxProp
+   case PropInfo^.PropType^.Kind of
+     tkBool:
+       begin
+       { to support the strings 'true' and 'false' }
+       if (VarType(Value)=varOleStr) or
+          (VarType(Value)=varString) or
+          (VarType(Value)=varBoolean) then
          begin
-         { to support the strings 'true' and 'false' }
-         if (VarType(Value)=varOleStr) or
-            (VarType(Value)=varString) or
-            (VarType(Value)=varBoolean) then
-           begin
-             B:=Value;
-             SetOrdProp(Instance, PropInfo, ord(B));
-           end
-         else
-           begin
-             I64:=Value;
-             if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
-               raise ERangeError.Create(SRangeError);
-             SetOrdProp(Instance, PropInfo, I64);
-           end;
-         end;
-       tkInteger, tkChar, tkWChar:
+           B:=Value;
+           SetOrdProp(Instance, PropInfo, ord(B));
+         end
+       else
          begin
-         I64:=Value;
-         if (TypeData^.OrdType=otULong) then
-           if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
-             raise ERangeError.Create(SRangeError)
-           else
-         else
-         if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
-           raise ERangeError.Create(SRangeError);
-         SetOrdProp(Instance, PropInfo, I64);
-         end;
-       tkEnumeration :
-         begin
-         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
-           begin
-           S:=Value;
-           SetEnumProp(Instance,PropInfo,S);
-           end
-         else
-           begin
            I64:=Value;
            if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
              raise ERangeError.Create(SRangeError);
            SetOrdProp(Instance, PropInfo, I64);
-           end;
          end;
-       tkSet :
-         begin
-         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
-           begin
-           S:=Value;
-           SetSetProp(Instance,PropInfo,S);
-           end
+       end;
+     tkInteger, tkChar, tkWChar:
+       begin
+       I64:=Value;
+       if (TypeData^.OrdType=otULong) then
+         if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
+           raise ERangeError.Create(SRangeError)
          else
-           begin
-           O:=Value;
-           SetOrdProp(Instance, PropInfo, O);
-           end;
-         end;
-{$ifndef FPUNONE}
-       tkFloat:
-         SetFloatProp(Instance, PropInfo, Value);
-{$endif}
-       tkString, tkLString, tkAString:
-         SetStrProp(Instance, PropInfo, VarToStr(Value));
-       tkWString:
-         SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
-       tkUString:
-         SetUnicodeStrProp(Instance, PropInfo, VarToUnicodeStr(Value));
-       tkVariant:
-         SetVariantProp(Instance, PropInfo, Value);
-       tkInt64:
+       else
+       if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+         raise ERangeError.Create(SRangeError);
+       SetOrdProp(Instance, PropInfo, I64);
+       end;
+     tkEnumeration :
+       begin
+       if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
          begin
-           I64:=Value;
-           if (I64<TypeData^.MinInt64Value) or (I64>TypeData^.MaxInt64Value) then
-             raise ERangeError.Create(SRangeError);
-           SetInt64Prop(Instance, PropInfo, I64);
-         end;
-       tkQWord:
-         begin
-           Qw:=Value;
-           if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
-             raise ERangeError.Create(SRangeError);
-           SetInt64Prop(Instance, PropInfo,Qw);
+         S:=Value;
+         SetEnumProp(Instance,PropInfo,S);
          end
-     else
-       raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
-                                      [PropInfo^.PropType^.Name]);
-     end;
+       else
+         begin
+         I64:=Value;
+         if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+           raise ERangeError.Create(SRangeError);
+         SetOrdProp(Instance, PropInfo, I64);
+         end;
+       end;
+     tkSet :
+       begin
+       if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
+         begin
+         S:=Value;
+         SetSetProp(Instance,PropInfo,S);
+         end
+       else
+         begin
+         O:=Value;
+         SetOrdProp(Instance, PropInfo, O);
+         end;
+       end;
+{$ifndef FPUNONE}
+     tkFloat:
+       SetFloatProp(Instance, PropInfo, Value);
+{$endif}
+     tkString, tkLString, tkAString:
+       SetStrProp(Instance, PropInfo, VarToStr(Value));
+     tkWString:
+       SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
+     tkUString:
+       SetUnicodeStrProp(Instance, PropInfo, VarToUnicodeStr(Value));
+     tkVariant:
+       SetVariantProp(Instance, PropInfo, Value);
+     tkInt64:
+       begin
+         I64:=Value;
+         if (I64<TypeData^.MinInt64Value) or (I64>TypeData^.MaxInt64Value) then
+           raise ERangeError.Create(SRangeError);
+         SetInt64Prop(Instance, PropInfo, I64);
+       end;
+     tkQWord:
+       begin
+         Qw:=Value;
+         if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
+           raise ERangeError.Create(SRangeError);
+         SetInt64Prop(Instance, PropInfo,Qw);
+       end
+   else
+     raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
+                                    [PropInfo^.PropType^.Name]);
    end;
 end;
 

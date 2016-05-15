@@ -31,7 +31,7 @@ unit agppcgas;
   interface
   
     uses
-       aasmbase,
+       systems,aasmbase,
        aasmtai,aasmdata,
        aggas,
        cpubase,cgutils,
@@ -43,17 +43,18 @@ unit agppcgas;
     end;
 
     TPPCGNUAssembler=class(TGNUassembler)
-      constructor create(smart: boolean); override;
+      constructor create(info: pasminfo; smart: boolean); override;
+      function MakeCmdLine: TCmdStr; override;
       procedure WriteExtraHeader; override;
     end;
 
     TPPCAppleGNUAssembler=class(TAppleGNUassembler)
-      constructor create(smart: boolean); override;
+      constructor create(info: pasminfo; smart: boolean); override;
       function MakeCmdLine: TCmdStr; override;
     end;
 
     TPPCAIXAssembler=class(TPPCGNUAssembler)
-      constructor create(smart: boolean); override;
+      constructor create(info: pasminfo; smart: boolean); override;
      protected
       function sectionname(atype: TAsmSectiontype; const aname: string; aorder: TAsmSectionOrder): string; override;
       procedure WriteExtraHeader; override;
@@ -63,9 +64,6 @@ unit agppcgas;
 
     topstr = string[4];
 
-    function getreferencestring(var ref : treference) : string;
-    function getopstr_jmp(const o:toper) : string;
-    function getopstr(const o:toper) : string;
     function branchmode(o: tasmop): topstr;
     function cond2str(op: tasmop; c: tasmcond): string;  
 
@@ -73,7 +71,7 @@ unit agppcgas;
 
     uses
        cutils,globals,verbose,
-       cgbase,systems,
+       cgbase,
        assemble,
        itcpugas,cpuinfo,
        aasmcpu;
@@ -91,7 +89,7 @@ unit agppcgas;
 {$endif cpu64bitaddr}
 
 
-    function getreferencestring(var ref : treference) : string;
+    function getreferencestring(asminfo: pasminfo; var ref : treference) : string;
     var
       s : string;
     begin
@@ -111,7 +109,7 @@ unit agppcgas;
                    (offset<>0) or
                    not assigned(symbol) then
                   internalerror(2011122701);
-                if target_asm.dollarsign<>'$' then
+                if asminfo^.dollarsign<>'$' then
                   getreferencestring:=ReplaceForbiddenAsmSymbolChars(symbol.name)+'('+gas_regname(NR_RTOC)+')'
                 else
                   getreferencestring:=symbol.name+'('+gas_regname(NR_RTOC)+')';
@@ -126,7 +124,7 @@ unit agppcgas;
                 s := s+'(';
                 if assigned(symbol) then
                   begin
-                    if target_asm.dollarsign<>'$' then
+                    if asminfo^.dollarsign<>'$' then
                       begin
                         s:=s+ReplaceForbiddenAsmSymbolChars(symbol.name);
                         if assigned(relsymbol) then
@@ -190,7 +188,7 @@ unit agppcgas;
     end;
     
 
-    function getopstr_jmp(const o:toper) : string;
+    function getopstr_jmp(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin
@@ -203,9 +201,9 @@ unit agppcgas;
         top_ref :
           begin
             if o.ref^.refaddr<>addr_full then
-              internalerror(200402262);
+              internalerror(200402267);
             hs:=o.ref^.symbol.name;
-            if target_asm.dollarsign<>'$' then
+            if asminfo^.dollarsign<>'$' then
               hs:=ReplaceForbiddenAsmSymbolChars(hs);
             if o.ref^.offset>0 then
               hs:=hs+'+'+tostr(o.ref^.offset)
@@ -222,7 +220,7 @@ unit agppcgas;
     end;
 
 
-    function getopstr(const o:toper) : string;
+    function getopstr(asminfo: pasminfo; const o:toper) : string;
     var
       hs : string;
     begin
@@ -235,7 +233,7 @@ unit agppcgas;
           if o.ref^.refaddr=addr_full then
             begin
               hs:=o.ref^.symbol.name;
-              if target_asm.dollarsign<>'$' then
+              if asminfo^.dollarsign<>'$' then
                 hs:=ReplaceForbiddenAsmSymbolChars(hs);
               if o.ref^.offset>0 then
                hs:=hs+'+'+tostr(o.ref^.offset)
@@ -245,7 +243,7 @@ unit agppcgas;
               getopstr:=hs;
             end
           else
-            getopstr:=getreferencestring(o.ref^);
+            getopstr:=getreferencestring(asminfo,o.ref^);
         else
           internalerror(2002070604);
       end;
@@ -366,8 +364,8 @@ unit agppcgas;
             begin
               { first write the current contents of s, because the symbol }
               { may be 255 characters                                     }
-              owner.asmwrite(s);
-              s:=getopstr_jmp(taicpu(hp).oper[0]^);
+              owner.writer.AsmWrite(s);
+              s:=getopstr_jmp(owner.asminfo,taicpu(hp).oper[0]^);
             end;
         end
       else
@@ -387,12 +385,12 @@ unit agppcgas;
                    // debug code
                    // writeln(s);
                    // writeln(taicpu(hp).fileinfo.line);
-                   s:=s+sep+getopstr(taicpu(hp).oper[i]^);
+                   s:=s+sep+getopstr(owner.asminfo,taicpu(hp).oper[i]^);
                    sep:=',';
                 end;
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 
@@ -400,10 +398,26 @@ unit agppcgas;
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCGNUAssembler.create(smart: boolean);
+    constructor TPPCGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
+      end;
+
+
+    function TPPCGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        result := inherited MakeCmdLine;
+{$ifdef cpu64bitaddr}
+        Replace(result,'$ARCH','-a64')
+{$else cpu64bitaddr}
+        { MorphOS has an old 2.9.1 GNU AS, with a bunch of patches
+          to support the system, and it doesn't know the -a32 argument }
+        if target_info.system = system_powerpc_morphos then
+          Replace(result,'$ARCH','')
+        else
+          Replace(result,'$ARCH','-a32');
+{$endif cpu64bitaddr}
       end;
 
 
@@ -411,10 +425,12 @@ unit agppcgas;
       var
          i : longint;
       begin
+        if target_info.abi = abi_powerpc_elfv2 then
+          writer.AsmWriteln(#9'.abiversion 2');
         for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
         for i:=0 to 31 do
-          AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
       end;
 
 
@@ -422,9 +438,9 @@ unit agppcgas;
 {                      GNU/Apple PPC Assembler writer                        }
 {****************************************************************************}
 
-    constructor TPPCAppleGNUAssembler.create(smart: boolean);
+    constructor TPPCAppleGNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
@@ -451,9 +467,9 @@ unit agppcgas;
 {                         AIX PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TPPCAIXAssembler.create(smart: boolean);
+    constructor TPPCAIXAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TPPCInstrWriter.create(self);
       end;
 
@@ -465,13 +481,13 @@ unit agppcgas;
         inherited WriteExtraHeader;
         { map cr registers to plain numbers }
         for i:=0 to 7 do
-          AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
+          writer.AsmWriteln(#9'.set'#9'cr'+tostr(i)+','+tostr(i));
         { make sure we always have a code and toc section, the linker expects
           that }
-        AsmWriteln(#9'.csect .text[PR]');
+        writer.AsmWriteln(#9'.csect .text[PR]');
         { set _text_s, to be used by footer below } 
-        AsmWriteln(#9'_text_s:');
-        AsmWriteln(#9'.toc');
+        writer.AsmWriteln(#9'_text_s:');
+        writer.AsmWriteln(#9'.toc');
       end;
 
 
@@ -479,11 +495,11 @@ unit agppcgas;
       begin
         inherited WriteExtraFooter;
         { link between data and text section }
-        AsmWriteln(#9'.csect .data[RW],4');
+        writer.AsmWriteln(#9'.csect .data[RW],4');
 {$ifdef cpu64bitaddr}
-        AsmWriteln('text_pos:'#9'.llong _text_s')
+        writer.AsmWriteln('text_pos:'#9'.llong _text_s')
 {$else cpu64bitaddr}
-        AsmWriteln('text_pos:'#9'.long _text_s')
+        writer.AsmWriteln('text_pos:'#9'.long _text_s')
 {$endif cpu64bitaddr}
       end;
 
@@ -492,10 +508,10 @@ unit agppcgas;
       begin
         case dir of
           asd_reference:
-            AsmWrite('.ref ');
+            writer.AsmWrite('.ref ');
           asd_weak_reference,
           asd_weak_definition:
-            AsmWrite('.weak ');
+            writer.AsmWrite('.weak ');
           else
             inherited WriteDirectiveName(dir);
         end;
@@ -540,9 +556,9 @@ unit agppcgas;
          idtxt  : 'AS';
          asmbin : 'as';
 {$ifdef cpu64bitaddr}
-         asmcmd : '-a64 -o $OBJ $EXTRAOPT $ASM';
+         asmcmd : '-a64 $ENDIAN -o $OBJ $EXTRAOPT $ASM';
 {$else cpu64bitaddr}
-         asmcmd: '-o $OBJ $EXTRAOPT $ASM';
+         asmcmd: '$ENDIAN -o $OBJ $EXTRAOPT $ARCH $ASM';
 {$endif cpu64bitaddr}
          supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_needar,af_smartlink_sections];
@@ -556,7 +572,7 @@ unit agppcgas;
        (
          id     : as_darwin;
 
-         idtxt  : 'AS-Darwin';
+         idtxt  : 'AS-DARWIN';
          asmbin : 'as';
          asmcmd : '-o $OBJ $EXTRAOPT $ASM -arch $ARCH';
          supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];

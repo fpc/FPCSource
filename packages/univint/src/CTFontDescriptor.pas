@@ -7,6 +7,7 @@
  }
 {  Initial Pascal Translation:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, August 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -61,6 +62,11 @@ interface
 {$elsec}
 	{$setc __arm__ := 0}
 {$endc}
+{$ifc not defined __arm64__ and defined CPUAARCH64}
+  {$setc __arm64__ := 1}
+{$elsec}
+  {$setc __arm64__ := 0}
+{$endc}
 
 {$ifc defined cpu64}
   {$setc __LP64__ := 1}
@@ -79,6 +85,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -89,6 +96,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -99,6 +107,7 @@ interface
 	{$setc TARGET_CPU_X86 := TRUE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 {$ifc defined(iphonesim)}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
@@ -115,9 +124,16 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
+{$elsec}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$endc}
 	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
@@ -125,13 +141,26 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elifc defined __arm64__ and __arm64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := TRUE}
 	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
-	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
 
 {$ifc defined __LP64__ and __LP64__ }
@@ -437,6 +466,24 @@ type
 var kCTFontEnabledAttribute: CFStringRef; external name '_kCTFontEnabledAttribute'; (* attribute const *)
 (* CT_AVAILABLE_STARTING( __MAC_10_6, __IPHONE_3_2) *)
 
+{!
+	@defined    kCTFontDownloadableAttribute
+	@abstract   The font downloadable state.
+	@discussion The value associated with this key is a CFBoolean.  If it is kCFBooleanTrue, CoreText attempts to download a font if necessary when matching a descriptor.
+}
+var kCTFontDownloadableAttribute: CFStringRef; external name '_kCTFontDownloadableAttribute'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_10_8, __IPHONE_6_0) *)
+
+{$ifc TARGET_OS_IPHONE}
+{!
+    @defined    kCTFontDownloadedAttribute
+    @abstract   The download state.
+    @discussion The value associated with this key is a CFBoolean.  If it is kCFBooleanTrue, corresponding FontAsset has been downloaded. (but still it may be necessary to call appropriate API in order to use the font in the FontAsset.)
+}
+var kCTFontDownloadedAttribute: CFStringRef; external name '_kCTFontDownloadedAttribute'; (* attribute const *)
+(* CT_AVAILABLE_STARTING( __MAC_NA, __IPHONE_7_0) *)
+{$endc} {TARGET_OS_IPHONE}
+
 {! --------------------------------------------------------------------------
     @group Descriptor Creation
 }//--------------------------------------------------------------------------
@@ -484,8 +531,41 @@ function CTFontDescriptorCreateCopyWithAttributes( original: CTFontDescriptorRef
 (* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
 
 {!
+    @function   CTFontCreateCopyWithFamily
+    @abstract   Returns a new font descriptor in the specified family based on the traits of the original descriptor.
+
+    @param      original
+                The original font descriptor reference.
+
+    @param		family
+                The name of the desired family.
+
+    @result     Returns a new font reference with the original traits in the given family, or NULL if none found in the system.
+}
+function CTFontDescriptorCreateCopyWithFamily( original: CTFontDescriptorRef; family: CFStringRef ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateCopyWithFamily';
+(* CT_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0) *)
+
+{!
+    @function   CTFontDescriptorCreateCopyWithSymbolicTraits
+    @abstract   Returns a new font descriptor based on the original descriptor having the specified symbolic traits.
+
+    @param      original
+                The original font descriptor reference.
+
+    @param		symTraitValue
+                The value of the symbolic traits. This bitfield is used to indicate the desired value for the traits specified by the symTraitMask parameter. Used in conjunction, they can allow for trait removal as well as addition.
+
+    @param		symTraitMask
+                The mask bits of the symbolic traits. This bitfield is used to indicate the traits that should be changed.
+
+    @result     Returns a new font descriptor reference in the same family with the given symbolic traits, or NULL if none found in the system.
+}
+function CTFontDescriptorCreateCopyWithSymbolicTraits( original: CTFontDescriptorRef; symTraitValue: CTFontSymbolicTraits; symTraitMask: CTFontSymbolicTraits ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateCopyWithSymbolicTraits';
+(* CT_AVAILABLE_STARTING(__MAC_10_9, __IPHONE_7_0) *)
+
+{!
     @function   CTFontDescriptorCreateCopyWithVariation
-    @abstract   Creates a copy of the original font descriptor with a new  variation instance.
+    @abstract   Creates a copy of the original font descriptor with a new variation instance.
 
     @param      original
                 The original font descriptor reference.
@@ -550,6 +630,63 @@ function CTFontDescriptorCreateMatchingFontDescriptors( descriptor: CTFontDescri
 }
 function CTFontDescriptorCreateMatchingFontDescriptor( descriptor: CTFontDescriptorRef; mandatoryAttributes: CFSetRef ): CTFontDescriptorRef; external name '_CTFontDescriptorCreateMatchingFontDescriptor';
 (* CT_AVAILABLE_STARTING( __MAC_10_5, __IPHONE_3_2) *)
+
+{!
+    Progress state
+ }
+
+type
+  CTFontDescriptorMatchingState = SInt32;
+const
+    kCTFontDescriptorMatchingDidBegin = 0;              // called once at the beginning.
+    kCTFontDescriptorMatchingDidFinish = 1;             // called once at the end.
+    
+    kCTFontDescriptorMatchingWillBeginQuerying = 2;     // called once before talking to the server.  Skipped if not necessary.
+    kCTFontDescriptorMatchingStalled = 3;               // called when stalled. (e.g. while waiting for server response.)
+    
+    // Downloading and activating are repeated for each descriptor.
+    kCTFontDescriptorMatchingWillBeginDownloading = 4;  // Downloading part may be skipped if all the assets are already downloaded
+    kCTFontDescriptorMatchingDownloading = 5;
+    kCTFontDescriptorMatchingDidFinishDownloading = 6;
+    kCTFontDescriptorMatchingDidMatch = 7;              // called when font descriptor is matched.
+    
+    kCTFontDescriptorMatchingDidFailWithError = 8;       // called when an error occurred.  (may be called multiple times.)
+
+{!
+    keys for progressParameter dictionary.
+ }
+
+{ CTFontDescriptorRef; The current font descriptor.   Valid when state is kCTFontDescriptorMatchingDidMatch. }
+var kCTFontDescriptorMatchingSourceDescriptor: CFStringRef; external name '_kCTFontDescriptorMatchingSourceDescriptor'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFArray; Array of descriptors to be queried.   Valid while downloading or when state is kCTFontDescriptorMatchingWillBeginQuerying. }
+var kCTFontDescriptorMatchingDescriptors: CFStringRef; external name '_kCTFontDescriptorMatchingDescriptors'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFArray; Array of matched font descriptors.   Valid when state is kCTFontDescriptorMatchingDidMatch or CTFontDescriptorMatchingEnd. }
+var kCTFontDescriptorMatchingResult: CFStringRef; external name '_kCTFontDescriptorMatchingResult'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFNumber; Progress in 0 - 100 for the current descriptor.   Valid during Downloading state. }
+var kCTFontDescriptorMatchingPercentage: CFStringRef; external name '_kCTFontDescriptorMatchingPercentage'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFNumber; Byte size to download for the current descriptor.   Valid during Downloading state. }
+var kCTFontDescriptorMatchingCurrentAssetSize: CFStringRef; external name '_kCTFontDescriptorMatchingCurrentAssetSize'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFNumber; Total downloaded byte size.   Valid during Downloading state. }
+var kCTFontDescriptorMatchingTotalDownloadedSize: CFStringRef; external name '_kCTFontDescriptorMatchingTotalDownloadedSize'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFNumber; Total byte size to download.   Always valid, but may be Zero when information is not available. }
+var kCTFontDescriptorMatchingTotalAssetSize: CFStringRef; external name '_kCTFontDescriptorMatchingTotalAssetSize'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
+
+{ CFError; Valid when state kCTFontDescriptorMatchingDidFailWithError. }
+var kCTFontDescriptorMatchingError: CFStringRef; external name '_kCTFontDescriptorMatchingError'; (* attribute const *)
+(* CT_AVAILABLE_STARTING(__MAC_10_8, __IPHONE_6_0) *)
 
 {! --------------------------------------------------------------------------
     @group Descriptor Accessors

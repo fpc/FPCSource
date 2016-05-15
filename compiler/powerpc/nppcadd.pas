@@ -73,6 +73,7 @@ interface
         tmpreg : tregister;
         useconst : boolean;
       begin
+        tmpreg:=NR_NO;
         // get the constant on the right if there is one
         if (left.location.loc = LOC_CONSTANT) then
           swapleftright;
@@ -142,6 +143,8 @@ interface
 
     procedure tppcaddnode.second_add64bit;
       var
+        truelabel,
+        falselabel : tasmlabel;
         op         : TOpCG;
         op1,op2    : TAsmOp;
         cmpop,
@@ -191,10 +194,10 @@ interface
            case nodetype of
               ltn,gtn:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swapped);
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                    toggleflag(nf_swapped);
                 end;
               lten,gten:
@@ -204,24 +207,24 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
                 begin
                   nodetype := unequaln;
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
                   nodetype := equaln;
                 end;
               unequaln:
                 begin
-                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
+                  cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
                 end;
            end;
         end;
@@ -236,20 +239,20 @@ interface
                 begin
                    { the comparison of the low dword always has }
                    { to be always unsigned!                     }
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
               equaln:
                 begin
                    nodetype := unequaln;
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrFalseLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,falselabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,truelabel);
                    nodetype := equaln;
                 end;
               unequaln:
                 begin
-                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,current_procinfo.CurrTrueLabel);
-                   cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                   cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags,truelabel);
+                   cg.a_jmp_always(current_asmdata.CurrAsmList,falselabel);
                 end;
            end;
         end;
@@ -259,6 +262,8 @@ interface
       tempreg64: tregister64;
 
       begin
+        truelabel:=nil;
+        falselabel:=nil;
         firstcomplex(self);
 
         pass_left_and_right;
@@ -305,8 +310,16 @@ interface
             internalerror(2002072705);
         end;
 
-        if not cmpop then
-          location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        if not cmpop or
+           (nodetype in [equaln,unequaln]) then
+          location_reset(location,LOC_REGISTER,def_cgsize(resultdef))
+        else
+          begin
+            { we call emit_cmp, which will set location.loc to LOC_FLAGS ->
+              wait till the end with setting the location }
+            current_asmdata.getjumplabel(truelabel);
+            current_asmdata.getjumplabel(falselabel);
+          end;
 
         load_left_right(cmpop,((cs_check_overflow in current_settings.localswitches) and
             (nodetype in [addn,subn])) or (nodetype = muln));
@@ -472,7 +485,8 @@ interface
           end
         else
           begin
-            if is_signed(resultdef) then
+            if is_signed(left.resultdef) and
+               is_signed(right.resultdef) then
               begin
                 case nodetype of
                   addn:
@@ -512,6 +526,8 @@ interface
                       op1 := A_MULLW;
                       op2 := A_MULHWU
                     end;
+                  else
+                    internalerror(2014082040);
                 end;
               end;
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op1,location.register64.reglo,
@@ -541,7 +557,7 @@ interface
         {  real location only now) (JM)                               }
         if cmpop and
            not(nodetype in [equaln,unequaln]) then
-          location_reset(location,LOC_JUMP,OS_NO);
+          location_reset_jump(location,truelabel,falselabel);
       end;
 
 
@@ -663,6 +679,8 @@ interface
                        cgop := OP_OR;
                      andn:
                        cgop := OP_AND;
+                     else
+                       internalerror(2014082041);
                    end;
                    if (left.location.loc = LOC_CONSTANT) then
                      swapleftright;

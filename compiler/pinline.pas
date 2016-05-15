@@ -35,6 +35,7 @@ interface
     function new_function : tnode;
 
     function inline_setlength : tnode;
+    function inline_setstring : tnode;
     function inline_initialize : tnode;
     function inline_finalize : tnode;
     function inline_copy : tnode;
@@ -82,7 +83,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p:=comp_expr(true,false);
+        p:=comp_expr([ef_accept_equal]);
         { calc return type }
         if is_new then
           begin
@@ -124,7 +125,7 @@ implementation
                  exit;
               end;
 
-            do_member_read(classh,false,sym,p2,again,[]);
+            do_member_read(classh,false,sym,p2,again,[],nil);
 
             { we need the real called method }
             do_typecheckpass(p2);
@@ -153,7 +154,7 @@ implementation
             new_dispose_statement := p2;
           end
         { constructor,destructor specified }
-        else if (([m_mac,m_iso]*current_settings.modeswitches)=[]) and
+        else if (([m_mac,m_iso,m_extpas]*current_settings.modeswitches)=[]) and
                 try_to_consume(_COMMA) then
           begin
             { extended syntax of new and dispose }
@@ -166,7 +167,7 @@ implementation
             if is_typeparam(p.resultdef) then
               begin
                  p.free;
-                 p:=factor(false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cnothingnode.create;
@@ -177,7 +178,7 @@ implementation
               begin
                  Message1(type_e_pointer_type_expected,p.resultdef.typename);
                  p.free;
-                 p:=factor(false,false);
+                 p:=factor(false,[]);
                  p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
@@ -188,7 +189,7 @@ implementation
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
-                 new_dispose_statement:=factor(false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -198,7 +199,7 @@ implementation
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
-                 new_dispose_statement:=factor(false,false);
+                 new_dispose_statement:=factor(false,[]);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
                  exit;
@@ -237,14 +238,14 @@ implementation
                 else
                   callflag:=cnf_dispose_call;
                 if is_new then
-                  do_member_read(classh,false,sym,p2,again,[callflag])
+                  do_member_read(classh,false,sym,p2,again,[callflag],nil)
                 else
                   begin
                     if not(m_fpc in current_settings.modeswitches) then
-                      do_member_read(classh,false,sym,p2,again,[callflag])
+                      do_member_read(classh,false,sym,p2,again,[callflag],nil)
                     else
                       begin
-                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag]);
+                        p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2,[callflag],nil);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -339,7 +340,7 @@ implementation
 
                      { create call to fpc_initialize }
                      if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
-                       ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
+                       ((m_isolike_io in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
                        addstatement(newstatement,cnodeutils.initialize_data_node(cderefnode.create(ctemprefnode.create(temp)),false));
 
                      { copy the temp to the destination }
@@ -347,13 +348,13 @@ implementation
                          p,
                          ctemprefnode.create(temp)));
 
-                     if (m_iso in current_settings.modeswitches) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
+                     if (([m_iso,m_extpas]*current_settings.modeswitches)<>[]) and (is_record(tpointerdef(p.resultdef).pointeddef)) then
                        begin
                          variantdesc:=trecorddef(tpointerdef(p.resultdef).pointeddef).variantrecdesc;
                          while (token=_COMMA) and assigned(variantdesc) do
                            begin
                              consume(_COMMA);
-                             p2:=factor(false,false);
+                             p2:=factor(false,[]);
                              do_typecheckpass(p2);
                              if p2.nodetype=ordconstn then
                                begin
@@ -375,11 +376,13 @@ implementation
                                    end;
                                  if found then
                                    begin
-                                     { setup variant selector }
-                                     addstatement(newstatement,cassignmentnode.create(
-                                         csubscriptnode.create(variantselectsymbol,
-                                           cderefnode.create(ctemprefnode.create(temp))),
-                                         p2));
+                                     { if no tag-field is given, do not create an assignment statement for it }
+                                     if assigned(variantselectsymbol) then
+                                       { setup variant selector }
+                                       addstatement(newstatement,cassignmentnode.create(
+                                           csubscriptnode.create(variantselectsymbol,
+                                             cderefnode.create(ctemprefnode.create(temp))),
+                                           p2));
                                    end
                                  else
                                    Message(parser_e_illegal_expression);
@@ -409,10 +412,6 @@ implementation
 
     function new_function : tnode;
       var
-        newstatement : tstatementnode;
-        newblock     : tblocknode;
-        temp         : ttempcreatenode;
-        para         : tcallparanode;
         p1,p2  : tnode;
         classh : tobjectdef;
         srsym    : tsym;
@@ -422,7 +421,7 @@ implementation
         if target_info.system in systems_managed_vm then
           message(parser_e_feature_unsupported_for_vm);
         consume(_LKLAMMER);
-        p1:=factor(false,false);
+        p1:=factor(false,[]);
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);
@@ -476,7 +475,7 @@ implementation
             afterassignment:=false;
             searchsym_in_class(classh,classh,pattern,srsym,srsymtable,[ssf_search_helper]);
             consume(_ID);
-            do_member_read(classh,false,srsym,p1,again,[cnf_new_call]);
+            do_member_read(classh,false,srsym,p1,again,[cnf_new_call],nil);
             { we need to know which procedure is called }
             do_typecheckpass(p1);
             if not(
@@ -509,6 +508,61 @@ implementation
            exit;
          end;
         result:=cinlinenode.create(in_setlength_x,false,paras);
+      end;
+
+
+    function inline_setstring : tnode;
+      var
+        paras, strpara, pcharpara: tnode;
+        procname: string;
+        cp: tstringencoding;
+      begin
+        consume(_LKLAMMER);
+        paras:=parse_paras(false,false,_RKLAMMER);
+        consume(_RKLAMMER);
+        procname:='';
+        if assigned(paras) and
+           assigned(tcallparanode(paras).right) and
+           assigned(tcallparanode(tcallparanode(paras).right).right) then
+          begin
+            do_typecheckpass(tcallparanode(tcallparanode(paras).right).left);
+            do_typecheckpass(tcallparanode(tcallparanode(tcallparanode(paras).right).right).left);
+            pcharpara:=tcallparanode(tcallparanode(paras).right).left;
+            strpara:=tcallparanode(tcallparanode(tcallparanode(paras).right).right).left;
+            if strpara.resultdef.typ=stringdef then
+              begin
+                { if there are three parameters and the first parameter
+                  ( = paras.right.right) is an ansistring, add a codepage
+                  parameter }
+                if is_ansistring(strpara.resultdef) then
+                  begin
+                    cp:=tstringdef(strpara.resultdef).encoding;
+                    if (cp=globals.CP_NONE) then
+                      cp:=0;
+                    paras:=ccallparanode.create(genintconstnode(cp),paras);
+                  end;
+                procname:='fpc_setstring_'+tstringdef(strpara.resultdef).stringtypname;
+                { decide which version to call based on the second parameter }
+                if not is_shortstring(strpara.resultdef) then
+                  if is_pwidechar(pcharpara.resultdef) or
+                     is_widechar(pcharpara.resultdef) or
+                     ((pcharpara.resultdef.typ=arraydef) and
+                      is_widechar(tarraydef(pcharpara.resultdef).elementdef)) then
+                    procname:=procname+'_pwidechar'
+                  else
+                    procname:=procname+'_pansichar';
+              end;
+          end;
+        { default version (for error message) in case of missing or wrong
+          parameters }
+        if procname='' then
+          if m_default_unicodestring in current_settings.modeswitches then
+            procname:='fpc_setstring_unicodestr_pwidechar'
+          else if m_default_ansistring in current_settings.modeswitches then
+            procname:='fpc_setstring_ansistr_pansichar'
+          else
+            procname:='fpc_setstring_shortstr';
+        result:=ccallnode.createintern(procname,paras)
       end;
 
 

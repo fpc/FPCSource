@@ -16,20 +16,20 @@
 
 
 Procedure UniqueString (Var S : WideString);external name 'FPC_WIDESTR_UNIQUE';
-Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
-Function Pos (c : Char; Const s : WideString) : SizeInt;
-Function Pos (c : WideChar; Const s : WideString) : SizeInt;
-Function Pos (c : WideChar; Const s : RawByteString) : SizeInt;
-Function Pos (const c : RawByteString; Const s : WideString) : SizeInt;
-Function Pos (const c : WideString; Const s : RawByteString) : SizeInt;
-Function Pos (const c : ShortString; Const s : WideString) : SizeInt;
+Function Pos (Const Substr : WideString; Const Source : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : Char; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : WideChar; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (c : WideChar; Const s : RawByteString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : RawByteString; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : WideString; Const s : RawByteString; Offset : SizeInt = 1) : SizeInt;
+Function Pos (const c : ShortString; Const s : WideString; Offset : SizeInt = 1) : SizeInt;
 
 Function UpCase(const s : WideString) : WideString;
 
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
 Procedure Delete (Var S : WideString; Index,Size: SizeInt);
-Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
-Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pwidechar{$else}SetString{$endif}(Out S : WideString; Buf : PWideChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_widestr_pansichar{$else}SetString{$endif}(Out S : WideString; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 
 procedure DefaultAnsi2WideMove(source:pchar;cp : TSystemCodePage;var dest:widestring;len:SizeInt);
 

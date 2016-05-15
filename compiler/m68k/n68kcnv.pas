@@ -68,8 +68,14 @@ implementation
           end
         else
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resultdef) then
+        if is_64bitint(left.resultdef) or
+            is_currency(left.resultdef) then
           begin
+            { hack to avoid double division by 10000, as it's
+              already done by typecheckpass.resultdef_int_to_real }
+            if is_currency(left.resultdef) then
+              left.resultdef := s64inttype;
+
             if is_signed(left.resultdef) then
               fname := 'fpc_int64_to_double'
             else
@@ -114,14 +120,11 @@ implementation
     procedure tm68ktypeconvnode.second_int_to_real;
 
       var
-        tempconst: trealconstnode;
         ref: treference;
-        valuereg, tempreg, leftreg, tmpfpureg: tregister;
+        leftreg: tregister;
         signed : boolean;
-        scratch_used : boolean;
         opsize : tcgsize;
       begin
-        scratch_used := false;
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
         signed := is_signed(left.resultdef);
         opsize := def_cgsize(left.resultdef);
@@ -138,14 +141,15 @@ implementation
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
-              leftreg := left.location.register;
+              leftreg:=tcg68k(cg).force_to_dataregister(current_asmdata.CurrAsmList,left.location.size,left.location.register);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FMOVE,TCGSize2OpSize[opsize],leftreg,
                   location.register));
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],
-                  left.location.reference,location.register));
+              ref:=left.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,ref,false);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FMOVE,TCGSize2OpSize[opsize],ref,location.register));
             end
           else
             internalerror(200110012);
@@ -161,16 +165,9 @@ implementation
         resflags : tresflags;
         opsize   : tcgsize;
         newsize  : tcgsize;
-        hlabel,
-        oldTrueLabel,
-        oldFalseLabel : tasmlabel;
+        hlabel   : tasmlabel;
         tmpreference : treference;
       begin
-         oldTrueLabel:=current_procinfo.CurrTrueLabel;
-         oldFalseLabel:=current_procinfo.CurrFalseLabel;
-         current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-         current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-
          secondpass(left);
 
          { Explicit typecasts from any ordinal type to a boolean type }
@@ -186,8 +183,6 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-              current_procinfo.CurrTrueLabel:=oldTrueLabel;
-              current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
            end;
 
@@ -195,6 +190,10 @@ implementation
 
          newsize:=def_cgsize(resultdef);
          opsize := def_cgsize(left.resultdef);
+
+        if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
          case left.location.loc of
             LOC_CREFERENCE,LOC_REFERENCE :
               begin
@@ -258,13 +257,13 @@ implementation
                 location_reset(location,LOC_REGISTER,newsize);
                 location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
                 current_asmdata.getjumplabel(hlabel);
-                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+                cg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
                 if not(is_cbool(resultdef)) then
                   cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,1,location.register)
                 else
                   cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,-1,location.register);
                 cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-                cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+                cg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,location.size,0,location.register);
                 cg.a_label(current_asmdata.CurrAsmList,hlabel);
               end;
@@ -297,8 +296,6 @@ implementation
                   cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,newsize,location.register,location.register);
               end
            end;
-         current_procinfo.CurrTrueLabel:=oldTrueLabel;
-         current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

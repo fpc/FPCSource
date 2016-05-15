@@ -21,6 +21,9 @@ Interface
 
 Type
    bestreal = double;
+{$if FPC_FULLVERSION>20700}
+   bestrealrec = TDoubleRec;
+{$endif FPC_FULLVERSION>20700}
    ts32real = single;
    ts64real = double;
    ts80real = type extended;
@@ -47,6 +50,12 @@ Type
       ct_spc32v1
      );
 
+   tcontrollerdatatype = record
+      controllertypestr, controllerunitstr: string[20];
+      cputype: tcputype; fputype: tfputype;
+      flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
+   end;
+
 Const
    {# Size of native extended floating point type }
    extended_size = 12;
@@ -67,6 +76,8 @@ Const
      { same as stdcall but floating point numbers are handled like equal sized integers }
      pocall_softfloat
    ];
+	 
+   ControllerSupport = true;
 
    cputypestr : array[tcputype] of string[7] = ('',
      'SPC32v1'
@@ -82,6 +93,8 @@ Const
    ((
    	controllertypestr:'';
         controllerunitstr:'';
+				cputype:cpu_none;
+				fputype:fpu_none;
         flashbase:0;
         flashsize:0;
         srambase:0;
@@ -94,6 +107,8 @@ Const
         (
    	controllertypestr:'SPC32V1';
         controllerunitstr:'SPC32V1';
+				cputype:cpu_spc32v1;
+				fputype:fpu_soft;
         flashbase:0;
         flashsize:0;
         srambase:0;

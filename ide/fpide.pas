@@ -235,8 +235,18 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_file_exit         = 'E~x~it';
 
                 menu_edit              = '~E~dit';
+                {$ifdef HASAMIGA}
+                {$ifdef AROS}
+                menu_edit_copywin      = 'Cop~y~ to AROS';
+                menu_edit_pastewin     = 'Paste from A~R~OS';
+                {$else}
+                menu_edit_copywin      = 'Cop~y~ to System';
+                menu_edit_pastewin     = 'Paste from Syste~m~';
+                {$endif}
+                {$else}
                 menu_edit_copywin      = 'Cop~y~ to Windows';
                 menu_edit_pastewin     = 'Paste from ~W~indows';
+                {$endif}
                 menu_edit_undo         = '~U~ndo';
                 menu_edit_redo         = '~R~edo';
                 menu_edit_cut          = 'Cu~t~';
@@ -380,6 +390,8 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 menu_key_edit_copy_microsoft   = menu_key_common_copy_microsoft;
                 menu_key_edit_paste_microsoft  = 'Ctrl+V';
                 menu_key_edit_clear    = 'Ctrl+Del';
+                menu_key_edit_all_microsoft = 'Ctrl+A';
+                menu_key_edit_all_borland = '';
 
                 menu_key_run_run       = 'Ctrl+F9';
                 menu_key_run_stepover  = 'F8';
@@ -572,9 +584,12 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_remote_dir = 'Remote ~d~irectory';
                 label_remote_config = 'Remote config ~o~ptions';
                 label_remote_ident = 'Remote ~i~dent';
-                label_remote_command = 'Remote ~c~ommand';
-                label_remote_scp = 'Scp executable';
-                label_remote_ssh = 'Ssh executable';
+                label_remote_send_command = 'Remote ~S~end command';
+                label_remote_exec_command = 'Remote ~E~xec command';
+                label_remote_ssh_exec_command = 'Remote Ss~h~ exec command';
+                label_remote_copy = 'Remote copy executable';
+                label_remote_shell = 'Remote shell executable';
+                label_remote_gdbserver = 'Remote gdbserver executable';
 
                 {Directories dialog.}
                 dialog_directories = 'Directories';
@@ -878,7 +893,7 @@ begin
       NewItem(menu_edit_copy,menu_key_edit_copy, copy_key, cmCopy, hcCopy,
       NewItem(menu_edit_paste,menu_key_edit_paste, paste_key, cmPaste, hcPaste,
       NewItem(menu_edit_clear,menu_key_edit_clear, kbCtrlDel, cmClear, hcClear,
-      NewItem(menu_edit_selectall,'', kbNoKey, cmSelectAll, hcSelectAll,
+      NewItem(menu_edit_selectall,menu_key_edit_all, all_Key, cmSelectAll, hcSelectAll,
       NewItem(menu_edit_unselect,'', kbNoKey, cmUnselect, hcUnselect,
       NewLine(
       NewItem(menu_edit_showclipboard,'', kbNoKey, cmShowClipboard, hcShowClipboard,
@@ -1041,20 +1056,24 @@ begin
          menu_key_edit_cut:=menu_key_edit_cut_microsoft;
          menu_key_edit_copy:=menu_key_edit_copy_microsoft;
          menu_key_edit_paste:=menu_key_edit_paste_microsoft;
+         menu_key_edit_all:=menu_key_edit_all_microsoft;
          menu_key_hlplocal_copy:=menu_key_hlplocal_copy_microsoft;
          cut_key:=kbCtrlX;
          copy_key:=kbCtrlC;
          paste_key:=kbCtrlV;
+         all_key:=kbCtrlA;
        end;
      ekm_borland:
        begin
          menu_key_edit_cut:=menu_key_edit_cut_borland;
          menu_key_edit_copy:=menu_key_edit_copy_borland;
          menu_key_edit_paste:=menu_key_edit_paste_borland;
+         menu_key_edit_all:=menu_key_edit_all_borland;
          menu_key_hlplocal_copy:=menu_key_hlplocal_copy_borland;
          cut_key:=kbShiftDel;
          copy_key:=kbCtrlIns;
          paste_key:=kbShiftIns;
+         all_key:=kbNoKey;
        end;
    end;
    loadmenubar;
@@ -1468,7 +1487,6 @@ begin
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
-  Video.SetCursorType(crHidden);
 {$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
@@ -1543,7 +1561,9 @@ begin
       Writeln('Running "'+ProgramPath+' '+Params+'"');
      { DO NOT use COMSPEC for exe files as the
       ExitCode is lost in those cases PM }
-
+{$ifdef HASAMIGA}
+  DosExecute(ProgramPath, Params);
+{$else}
 {$ifndef Unix}
     posexe:=Pos('.EXE',UpCaseStr(ProgramPath));
     { if programpath was three char long => bug }
@@ -1570,6 +1590,7 @@ begin
           InFile,OutFile,ErrFile);
      end;
 {$endif Unix}
+{$endif HASAMIGA}
 
 {$ifdef Unix}
     if (DebuggeeTTY='') and (OutFile='') and (ExecType<>exDosShell) then
@@ -1718,6 +1739,9 @@ procedure TIDEApp.DosShell;
 var
   s : string;
 begin
+{$ifdef HASAMIGA}
+  s := 'C:NewShell';
+{$else}
 {$ifdef Unix}
   s:=GetEnv('SHELL');
   if s='' then
@@ -1734,6 +1758,7 @@ begin
         if Not LocateExeFile(s) then
           s:='';
       end;
+{$endif}
 {$endif}
   if s='' then
     ErrorBox(msg_errorexecutingshell,nil)

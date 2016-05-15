@@ -27,10 +27,17 @@ end;
 
 
 procedure do_close(h : thandle);
+var
+  res: LongInt;
 begin
   if do_isdevice(h) then
     Exit;
-  NtClose(h);
+  res:=NtClose(h);
+  if res <> STATUS_SUCCESS then
+    begin
+      errno:=res;
+      Errno2InOutRes;
+    end;
 end;
 
 
@@ -411,6 +418,7 @@ begin
   if res < 0 then begin
     errno := res;
     Errno2InoutRes;
+    FileRec(f).mode:=fmclosed;
   end;
   if oldp<>p then
     freemem(p);

@@ -82,6 +82,7 @@ procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
   Writeln('Options:');
+  Writeln('  -C --config-file   Specify the configuration file to use');
   Writeln('  -c --config        Set compiler configuration to use');
   Writeln('  -h --help          This help');
   Writeln('  -v --verbose       Show more information');
@@ -104,10 +105,12 @@ begin
   Writeln('  build             Build package');
   Writeln('  compile           Compile package');
   Writeln('  install           Install package');
+  Writeln('  uninstall         Uninstall package');
   Writeln('  clean             Clean package');
   Writeln('  archive           Create archive of package');
   Writeln('  download          Download package');
   Writeln('  convertmk         Convert Makefile.fpc to fpmake.pp');
+  Writeln('  info              Show more information about a package');
   Writeln('  fixbroken         Recompile all (broken) packages with changed dependencies');
   Writeln('  listsettings      Show the values for all fppkg settings');
 //  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
@@ -194,7 +197,12 @@ begin
     begin
       Inc(I);
       // Check options.
-      if CheckOption(I,'c','config') then
+      if CheckOption(I,'C','config-file') then
+        begin
+          // Do nothing, the config-file has already been read.
+          OptionArg(I);
+        end
+      else if CheckOption(I,'c','config') then
         GlobalOptions.CompilerConfig:=OptionArg(I)
       else if CheckOption(I,'v','verbose') then
         LogLevels:=AllLogLevels

@@ -1,9 +1,14 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2002 by the Free Pascal development team.
+    Copyright (c) 1999-2014 by the Free Pascal development team.
 
-    Basic OS/2 constants, types and functions
-    implemented (mostly) in DOSCALL1.DLL.
+    Basic OS/2 constants, types and functions implemented (mostly)
+    in DOSCALL1.DLL. Only functions available in all 32-bit OS/2
+    versions (i.e. starting with OS/2 2.0) are included here
+    to make sure that programs using this unit could still run on
+    these old versions. Certain functions supported in later versions
+    which could be emulated on older versions are provided in unit
+    DosCall2 (using dynamic loading of the respective entry points).
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -533,10 +538,6 @@ type    TFileLock=record
 function DosSetFileLocks(Handle:THandle;var Unlock,Lock:TFileLock;
                          Timeout,Flags: cardinal):cardinal; cdecl;
 
-function DosProtectSetFileLocks (Handle: THandle; var Unlock, Lock: TFileLock;
-                                 Timeout, Flags: cardinal;
-                                   FileHandleLockID: cardinal): cardinal; cdecl;
-
 {Cancel a filelock area.
 
 Handle  = File handle.
@@ -702,7 +703,7 @@ const       doFail          =  0;
       OPEN_ACTION_FAIL_IF_NEW        =doFail;    { ---- ---- 0000 ---- }
       OPEN_ACTION_CREATE_IF_NEW      =DoCreate;  { ---- ---- 0001 ---- }
 
-{Usefull constants for openmode parameter.}
+{Useful constants for openmode parameter.}
 
 const       doRead          =     0;
             doWrite         =     1;
@@ -720,7 +721,7 @@ const       doRead          =     0;
             doDASD          = 32768;
 
 
-   { DosOpen/DosSetFHandState flags }
+   { Dos(Protect)Open(L)/Dos(Protect)SetFHState flags }
       OPEN_ACCESS_READONLY           =doRead;       { ---- ---- ---- -000 }
       OPEN_ACCESS_WRITEONLY          =doWrite;      { ---- ---- ---- -001 }
       OPEN_ACCESS_READWRITE          =doReadWrite;  { ---- ---- ---- -010 }
@@ -740,6 +741,7 @@ const       doRead          =     0;
       OPEN_FLAGS_DASD                =doDASD;       { 1--- ---- ---- ---- }
 
       OPEN_FLAGS_NONSPOOLED          =$00040000;
+      OPEN_SHARE_DENYLEGACY          =$10000000;
       OPEN_FLAGS_PROTECTED_HANDLE    =$40000000;
 
 
@@ -793,6 +795,10 @@ The bits in the filemode parameter have the following meanings:
                                     before write operation functions return.
  Bit 15:    DASD flag.          0 = Open a file or device.
                                 1 = Open a drive as file.
+ Bit 29:    32-bit access flag. 0 = Allow opening the file using DosOpen.
+                                1 = Avoid file to be open using DosOpen as well.
+ Bit 30:    Protection flag.    0 = File handle is not protected.
+                                1 = File handle is protected.
 
 When the DASD flag is set, the whole drive is read as a single file. The
 file starts with 512 bytes of bootsector, then 512 bytes of the second sector etc.
@@ -821,32 +827,9 @@ function DosCreate(const FileName:string;var Handle: THandle;
 function DosOpen(const FileName:string;var Handle: THandle;
                  Attrib,OpenMode:cardinal):cardinal;
 
-function DosProtectOpen (FileName: PChar; var Handle: longint;
-                         var Action: longint; InitSize, Attrib,
-                         OpenFlags, OpenMode: longint; ea: PEAOp2;
-                               var FileHandleLockID: cardinal): cardinal; cdecl;
-
-function DosProtectOpen (FileName: PChar; var Handle: THandle;
-                         var Action: cardinal; InitSize, Attrib,
-                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
-                               var FileHandleLockID: cardinal): cardinal; cdecl;
-
-function DosProtectOpen (const FileName: string; var Handle: longint;
-                         var Action: longint; InitSize, Attrib,
-                         OpenFlags, OpenMode: longint; ea: PEAOp2;
-                                      var FileHandleLockID: cardinal): cardinal;
-
-function DosProtectOpen (const FileName: string; var Handle: THandle;
-                         var Action: cardinal; InitSize, Attrib,
-                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
-                                      var FileHandleLockID: cardinal): cardinal;
-
 {Close a file.
 Cannot fail if handle does exist.}
 function DosClose (Handle: THandle): cardinal; cdecl;
-
-function DosProtectClose (Handle: THandle;
-                                   FileHandleLockID: cardinal): cardinal; cdecl;
 
 {Read from a file or other type of handle.
 
@@ -860,12 +843,6 @@ function DosRead (Handle: longint; var Buffer; Count: longint;
 function DosRead (Handle: THandle; var Buffer; Count: cardinal;
                  var ActCount:cardinal):cardinal; cdecl;
 
-function DosProtectRead (Handle: longint; var Buffer; Count: longint;
-            var ActCount: longint; FileHandleLockID: cardinal): cardinal; cdecl;
-
-function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
-           var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
-
 {Write to a file or other type of handle.
 
     Handle      = File handle.
@@ -877,14 +854,6 @@ function DosWrite (Handle: longint; const Buffer; Count: longint;
 
 function DosWrite (Handle: THandle; const Buffer; Count: cardinal;
                   var ActCount:cardinal):cardinal; cdecl;
-
-function DosProtectWrite (Handle: longint; const Buffer; Count: longint;
-                          var ActCount: longint;
-                          FileHandleLockID: cardinal): cardinal; cdecl;
-
-function DosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
-                          var ActCount: cardinal;
-                          FileHandleLockID: cardinal): cardinal; cdecl;
 
 const   dsZeroBased=0;      {Set filepointer from begin of file.}
         dsRelative=1;       {Set filepointer relative to the current one.}
@@ -899,37 +868,19 @@ function DosSetFilePtr (Handle: longint; Pos: longint; Method: cardinal;
                        var PosActual: longint): cardinal; cdecl;
 function DosSetFilePtr (Handle: THandle; Pos: longint; Method: cardinal;
                        var PosActual: cardinal): cardinal; cdecl;
-function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
-                               var PosActual: longint;
-                               FileHandleLockID: cardinal): cardinal; cdecl;
-
-function DosProtectSetFilePtr (Handle: THandle; Pos: longint; Method: cardinal;
-                               var PosActual: cardinal;
-                               FileHandleLockID: cardinal): cardinal; cdecl;
-
 {This variant seeks always from begin of file and does not return the
  actual position.}
 function DosSetFilePtr (Handle: THandle; Pos: longint): cardinal;
-function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
-                                          FileHandleLockID: cardinal): cardinal;
+
 {This variant returns the current filepointer.}
 function DosGetFilePtr (Handle: longint; var PosActual: longint): cardinal;
 
 function DosGetFilePtr (Handle: THandle; var PosActual: cardinal): cardinal;
 
-function DosProtectGetFilePtr (Handle: longint;
-                  var PosActual: longint; FileHandleLockID: cardinal): cardinal;
-
-function DosProtectGetFilePtr (Handle: THandle;
-                 var PosActual: cardinal; FileHandleLockID: cardinal): cardinal;
-
 {Use DosQueryFileInfo or DosQueryPathInfo to get the size of a file.}
 
 {Change the size of a file.}
 function DosSetFileSize (Handle: THandle; Size: cardinal): cardinal; cdecl;
-
-function DosProtectSetFileSize (Handle: THandle; Size: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
 
 {Flush update the changes to a file to disk.}
 function DosResetBuffer (Handle: THandle): cardinal; cdecl;
@@ -950,15 +901,9 @@ function DosQueryFHState (Handle: longint; var FileMode: longint): cardinal;
 function DosQueryFHState (Handle: THandle; var FileMode: cardinal): cardinal;
                                                                          cdecl;
 
-function DosProtectQueryFHState (Handle: THandle; var FileMode: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-
 {Set information about a specific handle. See DosOpen for a description
  of FileMode.}
 function DosSetFHState (Handle: THandle; FileMode: cardinal): cardinal; cdecl;
-
-function DosProtectSetFHState (Handle: THandle; FileMode: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
 
 {Useful constants for the handle type.}
 const   dhFile      =    0;
@@ -1011,7 +956,7 @@ function DosMove(const OldFile,NewFile:string):cardinal;
 
 const   dcExisting=1;           {Overwrite existing files.}
         dcAppend=2;             {Append to existing file.}
-        dcFailAs=4;             {?? Info wanted!}
+        dcFailEAs=4;            {Discard EAs if not supported by target FS}
 
 {Copy a file.
  OldFile    = source file
@@ -1282,18 +1227,10 @@ function DosFindClose (Handle: THandle): cardinal; cdecl;
 function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
 
-function DosProtectQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
-                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-
 {Set info about a file. File must be opened with write permissions. See
  above fo the parameters.}
 function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
-
-function DosProtectSetFileInfo (Handle: THandle; InfoLevel: cardinal;
-                            AFileStatus: PFileStatus; FileStatusLen: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
 
 {Return info about a file. In contradiction to the above functions, the
  file does not have to be open.}
@@ -1337,31 +1274,15 @@ function DosEnumAttribute(RefType: cardinal; const AFile: THandle;
                           Entry: cardinal; var Buf; BufSize: cardinal;
                     var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
 
-function DosProtectEnumAttribute (RefType: cardinal; AFile: pointer;
-                                  Entry: cardinal; var Buf; BufSize: cardinal;
-                                  var Count: cardinal; InfoLevel: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-
 function DosEnumAttribute (Handle: longint; Entry: longint; var Buf;
            BufSize: longint; var Count: longint; InfoLevel: longint): cardinal;
 
 function DosEnumAttribute (Handle: THandle; Entry: cardinal; var Buf;
         BufSize: cardinal; var Count: cardinal; InfoLevel: cardinal): cardinal;
 
-function DosProtectEnumAttribute (Handle: THandle; Entry: cardinal; var Buf;
-                                  BufSize: cardinal; var Count: cardinal;
-                                  InfoLevel: cardinal;
-                                  FileHandleLockID: cardinal): cardinal;
-
 function DosEnumAttribute (const FileName: string;
                            Entry: cardinal; var Buf; BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
-
-function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
-                                  var Buf; BufSize: cardinal;
-                                  var Count: cardinal; InfoLevel: cardinal;
-                                  FileHandleLockID: cardinal): cardinal;
-
 
 {Get an environment variable.
  Name               = Name of environment variable to get.
@@ -2351,11 +2272,16 @@ function DosQueryCollate(Size:longint;var Country:TCountryCode;
 function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                       Buf:PByteArray; var TableLen: cardinal): cardinal; cdecl;
 
-{Get the current codepage. The PWordArray is filled with the current code
- page followed by alternative codepages.}
-function DosQueryCP(Size:longint;CodePages:PWordArray;
+{Get the current codepage. The return buffer (CodePages) is filled with the
+ current code page followed by the list of prepared codepages as specified in
+ CONFIG.SYS - all of them returned as DWORDs, typically not more than 3 should
+ be necessary. Return value of 473 indicates that not all values fit into the
+ provided space.}
+function DosQueryCP(Size:longint; PCodePages: PWordArray;
                                           var ActSize:longint):cardinal; cdecl;
-function DosQueryCP (Size: cardinal; CodePages: PWordArray;
+function DosQueryCP(Size: cardinal; PCodePages: PWordArray;
+                                         var ActSize:cardinal):cardinal; cdecl;
+function DosQueryCP (Size: cardinal; var CodePages;
                                        var ActSize: cardinal): cardinal; cdecl;
 
 {Change the codepage, but only for the current process.}
@@ -2720,7 +2646,7 @@ function DosGetMessage(Table:PInsertTable;TableSize:longint;Buf:PChar;
                        var MsgSize:longint):cardinal;
 function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
                         BufSize, MsgNumber: cardinal; FileName: PChar;
-                        var MsgSize: cardinal): cardinal;
+                        var MsgSize: cardinal): cardinal; cdecl;
 {And a variant using strings and open arrays.
 function DosGetMessage(const Table:array of PString;var Buf:string;
                        BufSize,MsgNumber:longint;const FileName:PChar):cardinal;}
@@ -3893,6 +3819,96 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                           PDataBuf: pointer; cbBuf: cardinal): cardinal; cdecl;
 
 
+{
+ Creates a private Read/Write alias or an LDT code segment alias to part
+ of an existing memory object. The alias object is accessible only to the
+ process that created it. The original object must be accessible to the caller
+ of DosAliasMem.
+
+ An alias is removed by calling DosFreeMem with the alias address.
+
+ Although it is possible to create a Read/Write alias to a code segment
+ to allow code modification, this is not recommended. On Pentium processors,
+ and later, pipe-lining techniques used by the processor might allow
+ the processor not to be aware of the modified code, if appropriate
+ pipe-line serialization is not performed by the programmer. For further
+ information see the processor documentation.
+
+ Possible return values:
+     0 No_Error
+     8 Error_Not_Enough_Memory
+    87 Error_Invalid_Parameter
+    95 Error_Interrupt
+ 32798 Error_Crosses_Object_Boundary
+
+pMem   = Pointer to the memory to be aliased. It must be on a page boundary
+         (i.e. aligned to 4 kB), but may specify an address within a memory
+         object.
+Size   = Specifies size in bytes for the memory to alias. The entire range
+         must lie within a single memory object and must be committed
+         if OBJ_SELMAPALL is specified.
+Alias  = Pointer where the address of the aliased memory is returned.
+         The corresponding LDT selector is not explicitly returned but may be
+         calculated by using the Compatibility Mapping Algorithm
+         ((Alias shr 13) or 7).
+Flags  = Combination of the following values:
+            obj_SelMapAll = $800 (Create a Read/Write 32 bit alias
+                                  to the address specified. The entire range
+                                  must be committed, start on page boundary
+                                  and be within the extent of a single memory
+                                  object. An LDT selector is created to map
+                                  the entire range specified. If obj_SelMapAll
+                                  is not specified, then size is rounded up
+                                  to a 4K multiple and the alias created
+                                  inherits the permissions from the pages
+                                  of the original object.)
+            obj_Tile      =  $40  (Obj_Tile may be specified, but currently
+                                   this is enforced whether or not specified.
+                                   This forces LDT selectors to be based
+                                   on 64K boundaries.)
+            sel_Code      =    1  (Marks the LDT alias selector(s)
+                                   Read-Executable code selectors.)
+            sel_Use32     =    2  (Used with obj_SelMapAll, otherwise ignored.
+                                   Marks the first alias LDT selector
+                                   as a 32 bit selector by setting the BIG/C32
+                                   bit.)
+}
+function DosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer;
+                                             Flags: cardinal): cardinal; cdecl;
+
+const
+  PAG_INVALID     =  0; (* Page is invalid. *)
+  PAG_NPOUT       =  0; (* Page is not present, not in core. *)
+  PAG_PRESENT     =  1; (* Page is present. *)
+  PAG_NPIN        =  2; (* Page is not present, in core. *)
+  PAG_PRESMASK    =  3; (* Present state mask. *)
+  PAG_RESIDENT    = 16; (* Page is resident. *)
+  PAG_SWAPPABLE   = 32; (* Page is swappable. *)
+  PAG_DISCARDABLE = 48; (* Page is discardable. *)
+  PAG_TYPEMASK    = 48; (* Typemask *)
+
+{
+DosQueryMemState gets the status of a range of pages in memory. Its input
+parameters are an address and size. The address is rounded down to page
+boundary and size is rounded up to a whole number of pages. The status
+of the pages in the range is returned in the state parameter, and the size
+of the range queried is returned in the size parameter. If the pages
+in the range have conflicting states, then the state of the first page
+is returned.
+
+Parameters:
+PMem - Pointer to memory to be queried
+Size - Size of memory to be queried
+State - Flags (PAG_*) indicating state of the memory (or the first memory page
+        if the states for the following pages differ):
+
+Possible return codes:
+  0 - NO_ERROR 
+ 87 - ERROR_INVALID_PARAMETER 
+487 - ERROR_INVALID_ADDRESS 
+}
+function DosQueryMemState (PMem: pointer; var Size: cardinal;
+                                         var State: cardinal): cardinal; cdecl;
 
 {***************************************************************************}
 implementation
@@ -4008,11 +4024,6 @@ function DosSetFileLocks (Handle: THandle; var Unlock, Lock: TFileLock;
                           Timeout, Flags: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 428;
 
-function DosProtectSetFileLocks (Handle: THandle; var Unlock, Lock: TFileLock;
-                                 Timeout, Flags: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 639;
-
 function DosCancelLockRequest (Handle: THandle; var Lock: TFileLock): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 429;
@@ -4089,48 +4100,8 @@ begin
     DosOpen:=DosOpen(@T,Handle,Action,0,Attrib,1,OpenMode,nil);
 end;
 
-function DosProtectOpen (FileName: PChar; var Handle: longint;
-                         var Action: longint; InitSize, Attrib,
-                         OpenFlags, OpenMode: longint; ea: PEAOp2;
-                              var FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 637;
-
-function DosProtectOpen (FileName: PChar; var Handle: THandle;
-                         var Action: cardinal; InitSize, Attrib,
-                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
-                              var FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 637;
-
-function DosProtectOpen (const FileName: string; var Handle: longint;
-                         var Action: longint; InitSize, Attrib,
-                         OpenFlags, OpenMode: longint; ea: PEAOp2;
-                               var FileHandleLockID: cardinal): cardinal;
-
-var T:array[0..255] of char;
-
-begin
-    StrPCopy(@T,FileName);
-    DosProtectOpen:=DosProtectOpen(@T,Handle,Action,InitSize,Attrib,OpenFlags,OpenMode,EA,FileHandleLockID);
-end;
-
-function DosProtectOpen (const FileName: string; var Handle: THandle;
-                         var Action: cardinal; InitSize, Attrib,
-                         OpenFlags, OpenMode: cardinal; ea: PEAOp2;
-                               var FileHandleLockID: cardinal): cardinal;
-
-var T:array[0..255] of char;
-
-begin
-    StrPCopy(@T,FileName);
-    DosProtectOpen:=DosProtectOpen(@T,Handle,Action,InitSize,Attrib,OpenFlags,OpenMode,EA,FileHandleLockID);
-end;
-
 function DosClose (Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 257;
-
-function DosProtectClose (Handle: THandle;
-                                   FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 638;
 
 function DosRead(Handle:longint;var Buffer;Count:longint;
                  var ActCount:longint):cardinal; cdecl;
@@ -4140,14 +4111,6 @@ function DosRead (Handle: THandle; var Buffer; Count: cardinal;
                   var ActCount: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 281;
 
-function DosProtectRead (Handle: longint; var Buffer; Count: longint;
-           var ActCount: longint; FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 641;
-
-function DosProtectRead (Handle: THandle; var Buffer; Count: cardinal;
-          var ActCount: cardinal; FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 641;
-
 function DosWrite(Handle:longint;const Buffer;Count:longint;
                   var ActCount:longint):cardinal; cdecl;
 external 'DOSCALLS' index 282;
@@ -4155,16 +4118,6 @@ external 'DOSCALLS' index 282;
 function DosWrite (Handle: THandle; const Buffer; Count: cardinal;
                    var ActCount: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 282;
-
-function DosProtectWrite (Handle: longint; const Buffer; Count: longint;
-                          var ActCount: longint;
-                          FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 642;
-
-function DosProtectWrite (Handle: THandle; const Buffer; Count: cardinal;
-                          var ActCount: cardinal;
-                          FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 642;
 
 function DosSetFilePtr(Handle:longint;Pos:longint;Method:cardinal;
                        var PosActual:longint):cardinal; cdecl;
@@ -4182,26 +4135,6 @@ begin
     DosSetFilePtr:=DosSetFilePtr(Handle,Pos,0,PosActual);
 end;
 
-function DosProtectSetFilePtr (Handle: longint; Pos, Method: longint;
-                               var PosActual: longint;
-                               FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 621;
-
-function DosProtectSetFilePtr (Handle: THandle; Pos: longint; Method: cardinal;
-                               var PosActual: cardinal;
-                               FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 621;
-
-function DosProtectSetFilePtr (Handle: THandle; Pos: longint;
-                                          FileHandleLockID: cardinal): cardinal;
-
-var PosActual:cardinal;
-
-begin
-    DosProtectSetFilePtr:=DosProtectSetFilePtr(Handle,Pos,0,PosActual,
-                                                             FileHandleLockID);
-end;
-
 function DosGetFilePtr(Handle:longint;var PosActual:longint):cardinal;
 
 begin
@@ -4214,28 +4147,8 @@ begin
     DosGetFilePtr:=DosSetFilePtr(Handle,0,1,PosActual);
 end;
 
-function DosProtectGetFilePtr (Handle: longint;
-                 var PosActual: longint; FileHandleLockID: cardinal): cardinal;
-
-begin
-    DosProtectGetFilePtr := DosProtectSetFilePtr (Handle, 0, 1, PosActual,
-                                                             FileHandleLockID);
-end;
-
-function DosProtectGetFilePtr (Handle: THandle;
-                var PosActual: cardinal; FileHandleLockID: cardinal): cardinal;
-
-begin
-    DosProtectGetFilePtr := DosProtectSetFilePtr (Handle, 0, 1, PosActual,
-                                                             FileHandleLockID);
-end;
-
 function DosSetFileSize (Handle: THandle; Size: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 272;
-
-function DosProtectSetFileSize (Handle: THandle; Size: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 640;
 
 function DosResetBuffer (Handle: THandle): cardinal; cdecl;
 external 'DOSCALLS' index 254;
@@ -4251,16 +4164,8 @@ function DosQueryFHState (Handle: THandle; var FileMode: cardinal): cardinal;
                                                                          cdecl;
 external 'DOSCALLS' index 276;
 
-function DosProtectQueryFHState (Handle: THandle; var FileMode: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 645;
-
 function DosSetFHState (Handle: THandle; FileMode: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 221;
-
-function DosProtectSetFHState (Handle: THandle; FileMode: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 644;
 
 function DosQueryHType(Handle:longint;var HandType:longint;
                        var Attr:longint):cardinal; cdecl;
@@ -4459,22 +4364,10 @@ function DosQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
                                      FileStatusLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 279;
 
-function DosProtectQueryFileInfo (Handle: THandle; InfoLevel: cardinal;
-                                  AFileStatus: PFileStatus;
-                                  FileStatusLen: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 646;
-
 function DosSetFileInfo (Handle: THandle; InfoLevel: cardinal;
                          AFileStatus: PFileStatus;
                          FileStatusLen: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 218;
-
-function DosProtectSetFileInfo (Handle: THandle; InfoLevel: cardinal;
-                                AFileStatus: PFileStatus;
-                                FileStatusLen: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 643;
 
 function DosQueryPathInfo (FileName: PChar; InfoLevel: cardinal;
            AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
@@ -4519,12 +4412,6 @@ function DosEnumAttribute (RefType: cardinal; const AFile: THandle;
                                                                          cdecl;
 external 'DOSCALLS' index 372;
 
-function DosProtectEnumAttribute (RefType: cardinal; AFile: pointer;
-                                  Entry: cardinal; var Buf; BufSize: cardinal;
-                                  var Count: cardinal; InfoLevel: cardinal;
-                                  FileHandleLockID: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 636;
-
 function DosEnumAttribute (Handle: longint; Entry: longint; var Buf;
                            BufSize: longint;
                            var Count: longint; InfoLevel: longint): cardinal;
@@ -4543,16 +4430,6 @@ begin
      InfoLevel);
 end;
 
-function DosProtectEnumAttribute (Handle: THandle; Entry: cardinal; var Buf;
-                                  BufSize: cardinal; var Count: cardinal;
-                                  InfoLevel: cardinal;
-                                          FileHandleLockID: cardinal): cardinal;
-
-begin
-    DosProtectEnumAttribute := DosProtectEnumAttribute (0, @Handle, Entry, Buf,
-                                  BufSize, Count, InfoLevel, FileHandleLockID);
-end;
-
 function DosEnumAttribute (const FileName: string;
                            Entry: cardinal;var Buf;BufSize: cardinal;
                            var Count: cardinal; InfoLevel: cardinal): cardinal;
@@ -4563,19 +4440,6 @@ begin
     StrPCopy(@T,FileName);
     DosEnumAttribute:=DosEnumAttribute(1,@T,Entry,Buf,BufSize,Count,
      InfoLevel);
-end;
-
-function DosProtectEnumAttribute (const FileName: string; Entry: cardinal;
-                                  var Buf; BufSize: cardinal;
-                                  var Count: cardinal; InfoLevel: cardinal;
-                                          FileHandleLockID: cardinal): cardinal;
-
-var T: array [0..255] of char;
-
-begin
-    StrPCopy (@T, FileName);
-    DosProtectEnumAttribute := DosProtectEnumAttribute (1, @T, Entry, Buf,
-                                  BufSize, Count, InfoLevel, FileHandleLockID);
 end;
 
 function DosScanEnv(Name:PChar;var Value:PChar):cardinal; cdecl;
@@ -5198,11 +5062,15 @@ function DosQueryCollate (Size: cardinal; var Country: TCountryCode;
                      Buf: PByteArray; var TableLen: cardinal): cardinal; cdecl;
 external 'NLS' index 8;
 
-function DosQueryCP(Size:longint;CodePages:PWordArray;
+function DosQueryCP(Size:longint; PCodePages:PWordArray;
                                           var ActSize:longint):cardinal; cdecl;
 external 'DOSCALLS' index 291;
 
-function DosQueryCP (Size: cardinal; CodePages: PWordArray;
+function DosQueryCP (Size: cardinal; PCodePages: PWordArray;
+                                       var ActSize: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 291;
+
+function DosQueryCP (Size: cardinal; var CodePages;
                                        var ActSize: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 291;
 
@@ -5375,18 +5243,8 @@ function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
                             var MsgSize: cardinal): cardinal; cdecl;
 external 'MSG' index 6;
 
-function DosTrueGetMessage (MsgSeg: pointer; Table: PInsertTable;
-                            TableSize: longint; Buf: PChar;
-                            BufSize, MsgNumber: longint; FileName: PChar;
-                            var MsgSize: longint): cardinal; cdecl;
-external 'MSG' index 6;
-
 function DosIQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
                      var InfoSize: cardinal; MesSeg: pointer): cardinal; cdecl;
-external 'MSG' index 8;
-
-function DosIQueryMessageCP (var Buf; BufSize: longint; FileName: PChar;
-                      var InfoSize: longint; MesSeg: pointer): cardinal; cdecl;
 external 'MSG' index 8;
 
 procedure MagicHeaderEnd; assembler; forward;
@@ -5404,18 +5262,21 @@ end;
 
 function DosGetMessage (Table: PInsertTable; TableSize: cardinal; Buf: PChar;
                         BufSize, MsgNumber: cardinal; FileName: PChar;
-                        var MsgSize: cardinal): cardinal;
-begin
-    DosGetMessage := DosTrueGetMessage(@MagicHeaderStart,Table,TableSize,
-                                 Buf,BufSize,MsgNumber,FileName,MsgSize);
+                        var MsgSize: cardinal): cardinal; cdecl; assembler;
+                                                                  nostackframe;
+asm
+  pop eax
+  push offset MagicHeaderStart
+  push eax
+  jmp DosTrueGetMessage
 end;
 
 function DosGetMessage (Table: PInsertTable; TableSize:longint;Buf:PChar;
-                       BufSize,MsgNumber:longint;FileName:PChar;
-                       var MsgSize:longint):cardinal;
+                        BufSize,MsgNumber:longint;FileName:PChar;
+                        var MsgSize:longint):cardinal;
 begin
-    DosGetMessage := DosTrueGetMessage(@MagicHeaderStart,Table,TableSize,
-                                 Buf,BufSize,MsgNumber,FileName,MsgSize);
+  DosGetMessage := DosGetMessage (Table, cardinal (TableSize), Buf,
+       cardinal (BufSize), cardinal (MsgNumber), FileName, cardinal (MsgSize));
 end;
 
 function DosQueryMessageCP (var Buf; BufSize: cardinal; FileName: PChar;
@@ -5428,8 +5289,8 @@ end;
 function DosQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
                             var InfoSize:longint):cardinal;
 begin
-    DosQueryMessageCP := DosIQueryMessageCP(Buf, BufSize, FileName, InfoSize,
-                                                            @MagicHeaderStart);
+    DosQueryMessageCP := DosIQueryMessageCP(Buf, cardinal (BufSize), FileName,
+                                       cardinal (InfoSize), @MagicHeaderStart);
 end;
 
 procedure MagicHeaderEnd; assembler;
@@ -5765,31 +5626,49 @@ function LogAddEntries (Handle: cardinal; Service: cardinal;
 function LogAddEntries (Handle: cardinal; Service: cardinal;
   var LogEntries: TLogEntryRec): cardinal; cdecl; external 'DOSCALLS' index 432;
 
+function DosQueryMemState (PMem: pointer; var Size: cardinal;
+                                         var State: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 307;
+
 (* Todo:
 
-function DosRawReadNPipe ...; cdecl;
-external 'DOSCALLS' index 246;
+function DosRawReadNPipe (HPIPE hPipe,
+                                    PVOID pBuffer,
+                                    ULONG cbRead,
+                                    PULONG pcbActual); cdecl;
+external 'DOSCALLS' index 246; - no documentation???
 
-function DosRawWriteNPipe ...; cdecl;
-external 'DOSCALLS' index 247;
+function DosRawWriteNPipe (HPIPE hPipe,
+                                    PVOID pBuffer,
+                                    ULONG cbWrite,
+                                    PULONG pcbActual); cdecl;
+external 'DOSCALLS' index 247; - no documentation???
 
 function DosSetCP ...; cdecl;
-external 'DOSCALLS' index 288;
+external 'DOSCALLS' index 288; - no documentation???
 
 function DosDynamicTrace ...; cdecl;
-external 'DOSCALLS' index 316;
+external 'DOSCALLS' index 316; - no documentation???
 
-function DosRegisterPerfCtrs ...; cdecl;
-external 'DOSCALLS' index 367;
+function DosRegisterPerfCtrs (PBYTE pbDataBlk,
+                                       PBYTE pbTextBlk,
+                                       ULONG flFlags); cdecl;
+external 'DOSCALLS' index 367; - no documentation???
 
-function DosQueryDOSProperty ...; cdecl;
-external 'DOSCALLS' index 373;
+function DosQueryDOSProperty (SGID sgid,
+                                        PSZ pszName,
+                                        ULONG cb,
+                                        PSZ pch); cdecl;
+external 'DOSCALLS' index 373; - no documentation???
 
-function DosSetDOSProperty ...; cdecl;
-external 'DOSCALLS' index 374;
+function DosSetDOSProperty (SGID sgid,
+                                      PSZ pszName,
+                                      ULONG cb,
+                                      PSZ pch); cdecl;
+external 'DOSCALLS' index 374; - no documentation???
 
 function DosProfile ...; cdecl;
-external 'DOSCALLS' index 377;
+external 'DOSCALLS' index 377; - no documentation???
 *)
 
 function DosReplaceModule (OldModule, NewModule, BackupModule: PChar):
@@ -5797,137 +5676,62 @@ function DosReplaceModule (OldModule, NewModule, BackupModule: PChar):
 external 'DOSCALLS' index 417;
 
 (*
-function DosTIB ...; cdecl;
+??? function DosTIB ...; cdecl;
 external 'DOSCALLS' index 419;
 
-function DosOpenChangeNotify ...; cdecl;
+??? function DosOpenChangeNotify ...; cdecl;
 external 'DOSCALLS' index 440;
 
-function DosResetChangeNotify ...; cdecl;
+??? function DosResetChangeNotify ...; cdecl;
 external 'DOSCALLS' index 441;
 
-function DosCloseChangeNotify ...; cdecl;
+??? function DosCloseChangeNotify ...; cdecl;
 external 'DOSCALLS' index 442;
 
-function DosInitializePorthole ...; cdecl;
+??? function DosInitializePorthole ...; cdecl;
 external 'DOSCALLS' index 580;
 
-function DosQueryHeaderInfo ...; cdecl;
+??? function DosQueryHeaderInfo ...; cdecl;
 external 'DOSCALLS' index 582;
 
-WSeB/eCS APIs:
- Creates a private Read/Write alias or an LDT code segment alias to part
- of an existing memory object. The alias object is accessible only to the
- process that created it. The original object must be accessible to the caller
- of DosAliasMem.
+DosCreateThread2 2.45
+DosDumpProcess 2.10
+DosForceSystemDump - ???
 
- An alias is removed by calling DosFreeMem with the alias address.
+??? function DosQueryPageUsage (...): cardinal; cdecl;
+external 'DOSCALLS' index 358;
 
- Although it is possible to create a Read/Write alias to a code segment
- to allow code modification, this is not recommended. On Pentium processors,
- and later, pipe-lining techniques used by the processor might allow
- the processor not to be aware of the modified code, if appropriate
- pipe-line serialization is not performed by the programmer. For further
- information see the processor documentation.
+ DosPerfSystemCall 2.40
 
- Possible return values:
-     0 No_Error
-     8 Error_Not_Enough_Memory
-    87 Error_Invalid_Parameter
-    95 Error_Interrupt
- 32798 Error_Crosses_Object_Boundary
-
-pMem   = Pointer to the memory to be aliased. It must be on a page boundary
-         (i.e. aligned to 4 kB), but may specify an address within a memory
-         object.
-Size   = Specifies size in bytes for the memory to alias. The entire range
-         must lie within a single memory object and must be committed
-         if OBJ_SELMAPALL is specified.
-Alias  = Pointer where the address of the aliased memory is returned.
-         The corresponding LDT selector is not explicitly returned but may be
-         calculated by using the Compatibility Mapping Algorithm
-         ((Alias shr 13) or 7).
-Flags  = Combination of the following values:
-            obj_SelMapAll = $800 (Create a Read/Write 32 bit alias
-                                  to the address specified. The entire range
-                                  must be committed, start on page boundary
-                                  and be within the extent of a single memory
-                                  object. An LDT selector is created to map
-                                  the entire range specified. If obj_SelMapAll
-                                  is not specified, then size is rounded up
-                                  to a 4K multiple and the alias created
-                                  inherits the permissions from the pages
-                                  of the original object.)
-            obj_Tile      =  $40  (Obj_Tile may be specified, but currently
-                                   this is enforced whether or not specified.
-                                   This forces LDT selectors to be based
-                                   on 64K boundaries.)
-            sel_Code      =    1  (Marks the LDT alias selector(s)
-                                   Read-Executable code selectors.)
-            sel_Use32     =    2  (Used with obj_SelMapAll, otherwise ignored.
-                                   Marks the first alias LDT selector
-                                   as a 32 bit selector by setting the BIG/C32
-                                   bit.)
-functionDosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer; Flags: cardinal): cardinal; cdecl;
-external 'DOSCALLS' index 298;
-
- DosCancelLockRequestL cancels an outstanding DosSetFileLocksL request.
- If two threads in a process are waiting on a lock file range, and another
- thread issues DosCancelLockRequestL for that lock file range, then both
- waiting threads are released.
- Not all file-system drivers (FSDs) can cancel an outstanding lock request.
- Local Area Network (LAN) servers cannot cancel an outstanding lock request
- if they use a version of the operating system prior to OS/2 Version 2.00.
-
-Possible return values:
-     0 No_Error
-     6 Error_Invalid_Handle
-    87 Error_Invalid_Parameter
-   173 Error_Cancel_Violation
-
-hFile    = File handle used in the DosSetFileLocksL function
-           that is to be cancelled.
-pflLockL = Address of the structure describing the lock request to cancel.
-
-function DosCancelLockRequestL (hFile: THandle; pflLock: PFileLockL): cardinal; cdecl;
-external 'DOSCALLS' index ???;
-
-function DosCancelLockRequestL (hFile: THandle; const Lock: TFileLockL): cardinal; cdecl;
-external 'DOSCALLS' index ???;
-
-DosCreateThread2
-DosDumpProcess
-DosForceSystemDump
 
 functionDosGetProcessorStatus (...): cardinal; cdecl;
 external 'DOSCALLS' index 447;
 
-function DosQueryPageUsage (...): cardinal; cdecl;
-external 'DOSCALLS' index 358;
+ DosSetProcessorStatus = DOSCALLS.448
 
+type
+  TSpinLock = cardinal;
+  HSpinLock = TSpinLock;
+  PSpinLock = ^TSpinLock;
+  PHSpinLock = PSpinLock;
 
-DosSetProcessorStatus = DOSCALLS.448
-DosCreateSpinLock     = DOSCALLS.449
-DosAcquireSpinLock    = DOSCALLS.450
-DosReleaseSpinLock    = DOSCALLS.451
-DosFreeSpinLock       = DOSCALLS.452
-DosListIO
-DosListIOL
-DosOpenL = DOSCALLS.981
-DosPerfSystemCall
-DosProtectOpenL
-DosProtectSetFileLocksL
-DosProtectSetFilePrtL
-DosProtectSetFileSizeL
-DosQueryABIOSSuport
+function DosCreateSpinLock (var SpinLock: TSpinLock): cardinal; cdecl;
+procedure DosAcquireSpinLock (SpinLock: TSpinLock); cdecl;
+procedure DosReleaseSpinLock (SpinLock: TSpinLock); cdecl;
+function DosFreeSpinLock (SpinLock: TSpinLock): cardinal; cdecl;
 
-functionDosQueryMemState (...): cardinal; cdecl;
-external 'DOSCALLS' index 307;
+ DosCreateSpinLock     = DOSCALLS.449
+ DosAcquireSpinLock    = DOSCALLS.450
+ DosReleaseSpinLock    = DOSCALLS.451
+ DosFreeSpinLock       = DOSCALLS.452
+ DosListIO 2.45
+ DosListIOL 2.45
+ DosQueryABIOSSuport 2.10
 
 ___ functionDos16QueryModFromCS (...): ...
 external 'DOSCALLS' index 359;
 
-DosQueryModFromEIP
+ DosQueryModFromEIP 2.10
 *)
 function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                                 var Buffer; BufLen: cardinal): cardinal; cdecl;
@@ -5937,14 +5741,15 @@ function DosQuerySysState (EntityList, EntityLevel, PID, TID: cardinal;
                           PDataBuf: pointer; cbBuf: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 368;
 
+function DosAliasMem (pMem: pointer; Size: cardinal; var Alias: pointer;
+                                             Flags: cardinal): cardinal; cdecl;
+external 'DOSCALLS' index 298;
+
 (*
-DosQueryThreadAffinity
-DosSetFileLocksL
-DosSetFilePtrL = DOSCALLS.988
-DosSetFileSizeL = DOSCALLS.989
-DosSetThreadAffinity
-Dos16SysTrace
-DosVerifyPidTid
+ DosQueryThreadAffinity
+ DosSetThreadAffinity
+ Dos16SysTrace
+ DosVerifyPidTid 2.30
 *)
 
 

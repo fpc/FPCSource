@@ -38,6 +38,9 @@ implementation
     {$ifndef NOTARGETMSDOS}
       ,t_msdos
     {$endif}
+    {$ifndef NOTARGETWIN}
+      ,t_win16
+    {$endif}
 
 {**************************************
              Assemblers
@@ -53,10 +56,7 @@ implementation
 //      ,agx86int
     {$endif}
 
-//      ,ogcoff
-//      ,ogelf
-//      ,ogmacho
-//      ,cpuelf
+        ,ogomf
 
 {**************************************
         Assembler Readers

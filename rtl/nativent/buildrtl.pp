@@ -6,7 +6,7 @@ unit buildrtl;
       ndk, ndkutils, ddk,
       ctypes, strings,
       rtlconsts, sysconst, sysutils, math, types,
-      strutils, typinfo, fgl, classes,
+      typinfo, fgl, classes,
 {$ifdef cpui386}
       mmx, cpu,
 {$endif}

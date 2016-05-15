@@ -19,7 +19,7 @@ type
   PNearFsInteger = ^Integer; near 'FS';
   PNearGsInteger = ^Integer; near 'GS';
   PFarInteger = ^Integer; far;
-//  PHugeInteger = ^Integer; huge;
+  PHugeInteger = ^Integer; huge;
 begin
   Write('SizeOf(PNearInteger) = ');
   CheckSize(SizeOf(PNearInteger), 2);
@@ -37,8 +37,8 @@ begin
   CheckSize(SizeOf(PNearGsInteger), 2);
   Write('SizeOf(PFarInteger) = ');
   CheckSize(SizeOf(PFarInteger), 4);
-{  Write('SizeOf(PHugeInteger) = ');
-  CheckSize(SizeOf(PHugeInteger), 4);}
+  Write('SizeOf(PHugeInteger) = ');
+  CheckSize(SizeOf(PHugeInteger), 4);
 
   Write('SizeOf(NearPointer) = ');
   CheckSize(SizeOf(NearPointer), 2);

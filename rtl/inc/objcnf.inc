@@ -172,12 +172,16 @@ type
   function  objc_msgSend(self: id; op: SEL): id; cdecl; varargs; external libname;
   function  objc_msgSendSuper(const super: pobjc_super; op: SEL): id; cdecl; varargs; external libname;
   function  objc_msgSendSuper2(const super: pobjc_super; op: SEL): id; cdecl; varargs; weakexternal libname; { Mac OS X 10.6 and later }
-  { The following two are declared as procedures with the hidden result pointer
-    as their first parameter. This corresponds to the declaration below as far
-    as the code generator is concerned (and is easier to handle in the compiler).  }
+{ the AArch64 ABI does not require special handling of struct returns, so no
+  special handlers are provided/required }
+{$ifndef cpuaarch64}
+{ The following two are declared as procedures with the hidden result pointer
+  as their first parameter. This corresponds to the declaration below as far
+  as the code generator is concerned (and is easier to handle in the compiler).  }
   function  objc_msgSend_stret(self: id; op: SEL): tdummyrecbyaddrresult; cdecl; varargs; external libname;
   function  objc_msgSendSuper_stret(const super: pobjc_super; op: SEL): tdummyrecbyaddrresult; cdecl; varargs; external libname;
   function  objc_msgSendSuper2_stret(const super: pobjc_super; op: SEL): tdummyrecbyaddrresult; cdecl; varargs; weakexternal libname;
+{$endif cpuaarch64}
   { This one actually also exists to return extended on x86_64, but
     we don't support that yet
   }
@@ -230,7 +234,9 @@ type
   function class_getInstanceMethod(cls:pobjc_class; name:SEL):Method; cdecl; external libname;
   function class_getClassMethod(cls:pobjc_class; name:SEL):Method; cdecl; external libname;
   function class_getMethodImplementation(cls:pobjc_class; name:SEL):IMP; cdecl; external libname;
+{$ifndef cpuaarch64}
   function class_getMethodImplementation_stret(cls:pobjc_class; name:SEL):IMP; cdecl; external libname;
+{$endif cpuaarch64}
   function class_respondsToSelector(cls:pobjc_class; sel:SEL):BOOL; cdecl; external libname;
   function class_copyMethodList(cls:pobjc_class; outCount:pdword):PMethod; cdecl; external libname;
 

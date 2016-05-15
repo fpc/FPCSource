@@ -108,6 +108,7 @@ const
   EsockENOTSOCK = SOCENOTSOCK;
   EsockEPROTONOSUPPORT = SOCEPROTONOSUPPORT;
   EsockEWOULDBLOCK = SOCEWOULDBLOCK;
+  EsockADDRINUSE = SOCEADDRINUSE;
 
 
 (***************************************************************************)

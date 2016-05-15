@@ -28,18 +28,11 @@ Interface
 Uses
   cutils,cclasses,
   globtype,aasmbase,aasmtai,aasmdata,cpubase,cpuinfo,cgbase,cgutils,
-  symconst,symbase,symtype,symdef,symsym;
+  symconst,symbase,symtype,symdef,symsym,symcpu;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
   OpMax  = 25;
-
-{$if max_operands = 2}
-  {$define MAX_OPER_2}
-{$endif}
-{$if max_operands = 3}
-  {$define MAX_OPER_3}
-{$endif}
 
 Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
@@ -56,12 +49,12 @@ type
     case typ:TOprType of
       OPR_NONE      : ();
       OPR_CONSTANT  : (val:aint);
-      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint);
-      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint; ref:treference);
+      OPR_SYMBOL    : (symbol:tasmsymbol;symofs:aint;symseg:boolean;sym_farproc_entry:boolean);
+      OPR_REFERENCE : (varsize:asizeint; constoffset: asizeint;ref_farproc_entry:boolean;ref:treference);
       OPR_LOCAL     : (localvarsize, localconstoffset: asizeint;localsym:tabstractnormalvarsym;localsymofs:aint;localindexreg:tregister;localscale:byte;localgetoffset,localforceref:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGSET   : (regsetdata,regsetaddr : tcpuregisterset);
+      OPR_REGSET   : (regsetdata,regsetaddr,regsetfpu : tcpuregisterset);
 {$endif m68k}
 {$ifdef powerpc}
       OPR_COND      : (cond : tasmcond);
@@ -76,6 +69,10 @@ type
       OPR_MODEFLAGS : (flags : tcpumodeflags);
       OPR_SPECIALREG: (specialreg : tregister; specialregflags : tspecialregflags);
 {$endif arm}
+{$ifdef aarch64}
+      OPR_SHIFTEROP : (shifterop : tshifterop);
+      OPR_COND      : (cc : tasmcond);
+{$endif aarch64}
   end;
 
   TOperand = class
@@ -110,7 +107,6 @@ type
       and concats it to the passed list. The newly created item is returned if the
       instruction was valid, otherwise nil is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
-    Procedure Swapoperands;
   end;
 
   {---------------------------------------------------------------------}
@@ -495,7 +491,7 @@ Function EscapeToPascal(const s:string): string;
 { converts a C styled string - which contains escape }
 { characters to a pascal style string.               }
 var
-  i,len : aint;
+  i,len : asizeint;
   hs    : string;
   temp  : string;
   c     : char;
@@ -743,15 +739,60 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
   end;
 
 
+  procedure setvarsize(sym: tabstractvarsym);
+  var
+    harrdef: tarraydef;
+    l: asizeint;
+  begin
+    case sym.vardef.typ of
+      orddef,
+      enumdef,
+      pointerdef,
+      procvardef,
+      floatdef :
+        SetSize(sym.getsize,false);
+      arraydef :
+        begin
+          { for arrays try to get the element size, take care of
+            multiple indexes }
+          harrdef:=tarraydef(sym.vardef);
+
+          { calc array size }
+          if is_special_array(harrdef) then
+             l := -1
+           else
+             l := harrdef.size;
+
+          case opr.typ of
+            OPR_REFERENCE: opr.varsize := l;
+                OPR_LOCAL: opr.localvarsize := l;
+          end;
+
+
+          while assigned(harrdef.elementdef) and
+                (harrdef.elementdef.typ=arraydef) do
+           harrdef:=tarraydef(harrdef.elementdef);
+          if not is_packed_array(harrdef) then
+            SetSize(harrdef.elesize,false)
+           else
+               if (harrdef.elepackedbitsize mod 8) = 0 then
+                 SetSize(harrdef.elepackedbitsize div 8,false);
+        end;
+      recorddef:
+        case opr.typ of
+          OPR_REFERENCE: opr.varsize := sym.getsize;
+              OPR_LOCAL: opr.localvarsize := sym.getsize;
+        end;
+    end;
+  end;
+
 { search and sets up the correct fields in the Instr record }
 { for the NON-constant identifier passed to the routine.    }
 { if not found returns FALSE.                               }
 var
   sym : tsym;
   srsymtable : TSymtable;
-  harrdef : tarraydef;
   indexreg : tregister;
-  l : aint;
   plist : ppropaccesslistitem;
 Begin
   SetupVar:=false;
@@ -788,6 +829,7 @@ Begin
           setconst(tfieldvarsym(sym).fieldoffset div 8)
         else
           Message(asmr_e_packed_element);
+        setvarsize(tabstractvarsym(sym));
         hasvar:=true;
         SetupVar:=true;
       end;
@@ -842,45 +884,7 @@ Begin
                 SetSize(sizeof(pint),false);
             end;
         end;
-        case tabstractvarsym(sym).vardef.typ of
-          orddef,
-          enumdef,
-          pointerdef,
-          floatdef :
-            SetSize(tabstractvarsym(sym).getsize,false);
-          arraydef :
-            begin
-              { for arrays try to get the element size, take care of
-                multiple indexes }
-              harrdef:=tarraydef(tabstractvarsym(sym).vardef);
-
-              { calc array size }
-              if is_special_array(harrdef) then
-                 l := -1
-               else
-                 l := harrdef.size;
-
-              case opr.typ of
-                OPR_REFERENCE: opr.varsize := l;
-                    OPR_LOCAL: opr.localvarsize := l;
-              end;
-
-
-              while assigned(harrdef.elementdef) and
-                    (harrdef.elementdef.typ=arraydef) do
-               harrdef:=tarraydef(harrdef.elementdef);
-              if not is_packed_array(harrdef) then
-                SetSize(harrdef.elesize,false)
-               else
-                   if (harrdef.elepackedbitsize mod 8) = 0 then
-                     SetSize(harrdef.elepackedbitsize div 8,false);
-            end;
-          recorddef:
-            case opr.typ of
-              OPR_REFERENCE: opr.varsize := tabstractvarsym(sym).getsize;
-                  OPR_LOCAL: opr.localvarsize := tabstractvarsym(sym).getsize;
-            end;
-        end;
+        setvarsize(tabstractvarsym(sym));
         hasvar:=true;
         SetupVar:=true;
         Exit;
@@ -905,18 +909,55 @@ Begin
       end;
     procsym :
       begin
-        if opr.typ<>OPR_NONE then
-          Message(asmr_e_invalid_operand_type);
         if Tprocsym(sym).ProcdefList.Count>1 then
           Message(asmr_w_calling_overload_func);
-        l:=opr.ref.offset;
-        opr.typ:=OPR_SYMBOL;
-        opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
-        opr.symofs:=l;
+        case opr.typ of
+          OPR_REFERENCE:
+            begin
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+{$ifdef i8086}
+              opr.ref_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                        and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
+{$endif i8086}
+            end;
+          OPR_NONE:
+            begin
+              opr.typ:=OPR_SYMBOL;
+              opr.symbol:=current_asmdata.RefAsmSymbol(tprocdef(tprocsym(sym).ProcdefList[0]).mangledname);
+{$ifdef i8086}
+              opr.sym_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                        and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
+{$endif i8086}
+              opr.symofs:=0;
+            end;
+        else
+          Message(asmr_e_invalid_operand_type);
+        end;
         hasvar:=true;
         SetupVar:=TRUE;
         Exit;
       end;
+{$ifdef i8086}
+    labelsym :
+      begin
+        case opr.typ of
+          OPR_REFERENCE:
+            begin
+              opr.ref.symbol:=current_asmdata.RefAsmSymbol(tlabelsym(sym).mangledname);
+              if opr.ref.segment=NR_NO then
+                opr.ref.segment:=NR_CS;
+            end;
+          else
+            begin
+              Message(asmr_e_unsupported_symbol_type);
+              exit;
+            end;
+        end;
+        hasvar:=true;
+        SetupVar:=TRUE;
+        Exit;
+      end
+{$endif i8086}
     else
       begin
         Message(asmr_e_unsupported_symbol_type);
@@ -939,6 +980,7 @@ var
   hsymofs : aint;
   hsymbol : tasmsymbol;
   reg : tregister;
+  hsym_farprocentry: Boolean;
 Begin
   case opr.typ of
     OPR_REFERENCE :
@@ -951,12 +993,14 @@ Begin
         opr.Ref.Offset:=l;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
       end;
     OPR_NONE :
       begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
     OPR_REGISTER :
@@ -965,6 +1009,7 @@ Begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.Ref.base:=reg;
       end;
@@ -972,12 +1017,14 @@ Begin
       begin
         hsymbol:=opr.symbol;
         hsymofs:=opr.symofs;
+        hsym_farprocentry:=opr.sym_farproc_entry;
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
         Fillchar(opr.ref,sizeof(treference),0);
         opr.ref.symbol:=hsymbol;
         opr.ref.offset:=hsymofs;
+        opr.ref_farproc_entry:=hsym_farprocentry;
       end;
     else
       begin
@@ -986,6 +1033,7 @@ Begin
         opr.typ:=OPR_REFERENCE;
         opr.varsize:=0;
         opr.constoffset:=0;
+        opr.ref_farproc_entry:=false;
         Fillchar(opr.ref,sizeof(treference),0);
       end;
   end;
@@ -1030,44 +1078,6 @@ Begin
 end;
 
 
-  Procedure TInstruction.Swapoperands;
-    Var
-      p : toperand;
-    Begin
-      case ops of
-        0,1:
-          ;
-        2 : begin
-              { 0,1 -> 1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[2];
-              Operands[2]:=p;
-            end;
-{$ifndef MAX_OPER_2}
-        3 : begin
-              { 0,1,2 -> 2,1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[3];
-              Operands[3]:=p;
-            end;
-{$ifndef MAX_OPER_3}
-        4 : begin
-              { 0,1,2,3 -> 3,2,1,0 }
-              p:=Operands[1];
-              Operands[1]:=Operands[4];
-              Operands[4]:=p;
-              p:=Operands[2];
-              Operands[2]:=Operands[3];
-              Operands[3]:=p;
-            end;
-{$endif}
-{$endif}
-        else
-          internalerror(201108142);
-      end;
-    end;
-
-
   function TInstruction.ConcatInstruction(p:TAsmList) : tai;
     var
       ai   : taicpu;
@@ -1097,20 +1107,22 @@ end;
                 ai.loadref(i-1,ref);
 {$ifdef m68k}
               OPR_REGSET:
-                ai.loadregset(i-1,regsetdata,regsetaddr);
+                ai.loadregset(i-1,regsetdata,regsetaddr,regsetfpu);
 {$endif}
 {$ifdef ARM}
               OPR_REGSET:
                 ai.loadregset(i-1,regtype,subreg,regset,usermode);
-              OPR_SHIFTEROP:
-                ai.loadshifterop(i-1,shifterop);
-              OPR_COND:
-                ai.loadconditioncode(i-1,cc);
               OPR_MODEFLAGS:
                 ai.loadmodeflags(i-1,flags);
               OPR_SPECIALREG:
                 ai.loadspecialreg(i-1,specialreg,specialregflags);
 {$endif ARM}
+{$if defined(arm) or defined(aarch64)}
+             OPR_SHIFTEROP:
+               ai.loadshifterop(i-1,shifterop);
+             OPR_COND:
+               ai.loadconditioncode(i-1,cc);
+{$endif arm or aarch64}
               { ignore wrong operand }
               OPR_NONE:
                 ;
@@ -1245,7 +1257,7 @@ Begin
          begin
            if tconstsym(srsym).consttyp=constord then
             Begin
-              l:=tconstsym(srsym).value.valueord.svalue;
+              l:=aint(tconstsym(srsym).value.valueord.svalue);
               SearchIConstant:=TRUE;
               exit;
             end;
@@ -1523,17 +1535,19 @@ end;
   {***********************************************************************}
     Begin
        case real_typ of
-          s32real : p.concat(Tai_real_32bit.Create(value));
+          s32real : p.concat(tai_realconst.create_s32real(value));
           s64real :
 {$ifdef ARM}
            if is_double_hilo_swapped then
-             p.concat(Tai_real_64bit.Create_hiloswapped(value))
+             p.concat(tai_realconst.create_s64real_hiloswapped(value))
            else
 {$endif ARM}
-             p.concat(Tai_real_64bit.Create(value));
-          s80real : p.concat(Tai_real_80bit.Create(value,s80floattype.size));
-          sc80real : p.concat(Tai_real_80bit.Create(value,sc80floattype.size));
-          s64comp : p.concat(Tai_comp_64bit.Create(trunc(value)));
+             p.concat(tai_realconst.create_s64real(value));
+          s80real : p.concat(tai_realconst.create_s80real(value,s80floattype.size));
+          sc80real : p.concat(tai_realconst.create_s80real(value,sc80floattype.size));
+          s64comp : p.concat(tai_realconst.create_s64compreal(trunc(value)));
+          else
+            internalerror(2014050608);
        end;
     end;
 

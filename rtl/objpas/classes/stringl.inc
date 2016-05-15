@@ -42,13 +42,13 @@ end;
 
 { //!! is used to mark unsupported things. }
 
-Function QuoteString (Const S : String; Quote : String) : String;
+Function QuoteString (Const S : String; Const Quote : String) : String;
 Var
   I,J : Integer;
 begin
   J:=0;
   Result:=S;
-  for i:=1to length(s) do
+  for i:=1 to length(s) do
    begin
      inc(j);
      if S[i]=Quote then
@@ -74,9 +74,24 @@ begin
     FQuoteChar:='"';
     FDelimiter:=',';
     FNameValueSeparator:='=';
-    FSpecialCharsInited:=true;
     FLBS:=DefaultTextLineBreakStyle;
+    FSpecialCharsInited:=true;
+    FLineBreak:=sLineBreak;
     end;
+end;
+
+Function TStrings.GetSkipLastLineBreak : Boolean;
+
+begin
+  CheckSpecialChars;
+  Result:=FSkipLastLineBreak;
+end;
+
+procedure TStrings.SetSkipLastLineBreak(const AValue : Boolean);
+
+begin
+  CheckSpecialChars;
+  FSkipLastLineBreak:=AValue;
 end;
 
 Function TStrings.GetLBS : TTextLineBreakStyle;
@@ -97,6 +112,24 @@ begin
   FDelimiter:=c;
 end;
 
+Function TStrings.GetDelimiter : Char;
+begin
+  CheckSpecialChars;
+  Result:=FDelimiter;
+end;
+
+procedure TStrings.SetLineBreak(Const S : String);
+begin
+  CheckSpecialChars;
+  FLineBreak:=S;
+end;
+
+Function TStrings.GetLineBreak : String;
+begin
+  CheckSpecialChars;
+  Result:=FLineBreak;
+end;
+
 
 procedure TStrings.SetQuoteChar(c:Char);
 begin
@@ -104,10 +137,22 @@ begin
   FQuoteChar:=c;
 end;
 
+Function TStrings.GetQuoteChar :Char;
+begin
+  CheckSpecialChars;
+  Result:=FQuoteChar;
+end;
+
 procedure TStrings.SetNameValueSeparator(c:Char);
 begin
   CheckSpecialChars;
   FNameValueSeparator:=c;
+end;
+
+Function TStrings.GetNameValueSeparator :Char;
+begin
+  CheckSpecialChars;
+  Result:=FNameValueSeparator;
 end;
 
 
@@ -469,15 +514,20 @@ Var P : Pchar;
 begin
   CheckSpecialChars;
   // Determine needed place
-  Case FLBS of
-    tlbsLF   : NL:=#10;
-    tlbsCRLF : NL:=#13#10;
-    tlbsCR   : NL:=#13; 
-  end;
+  if FLineBreak<>sLineBreak then
+    NL:=FLineBreak
+  else
+    Case FLBS of
+      tlbsLF   : NL:=#10;
+      tlbsCRLF : NL:=#13#10;
+      tlbsCR   : NL:=#13;
+    end;
   L:=0;
   NLS:=Length(NL);
   For I:=0 to count-1 do
     L:=L+Length(Strings[I])+NLS;
+  if SkipLastLineBreak then
+    Dec(L,NLS);
   Setlength(Result,L);
   P:=Pointer(Result);
   For i:=0 To count-1 do
@@ -487,11 +537,12 @@ begin
     if L<>0 then
       System.Move(Pointer(S)^,P^,L);
     P:=P+L;
-    For L:=1 to NLS do
-      begin
-      P^:=NL[L];
-      inc(P);
-      end;
+    if (I<Count-1) or Not SkipLastLineBreak then
+      For L:=1 to NLS do
+        begin
+        P^:=NL[L];
+        inc(P);
+        end;
     end;
 end;
 
@@ -523,7 +574,7 @@ begin
   // Empty.
 end;
 
-Function GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+Class Function TStrings.GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
 
 Var 
   PS : PChar;
@@ -557,6 +608,27 @@ begin
   Result:=True;
 end;
 
+Function TStrings.GetNextLineBreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+
+Var
+  PS,PC,PP : PChar;
+
+begin
+  S:='';
+  Result:=False;
+  If ((Length(Value)-P)<0) then
+    exit;
+  PS:=@Value[P];
+  PC:=PS;
+  PP:=AnsiStrPos(PS,PChar(FLineBreak));
+  // Stop on #0.
+  While (PC^<>#0) and (PC<>PP) do
+    Inc(PC);
+  P:=P+(PC-PS)+Length(FLineBreak);
+  SetString(S,PS,PC-PS);
+  Result:=True;
+end;
+
 Procedure TStrings.DoSetTextStr(const Value: string; DoClear : Boolean);
 
 Var
@@ -569,8 +641,14 @@ begin
     if DoClear then
       Clear;
     P:=1;
-    While GetNextLine (Value,S,P) do
-      Add(S);
+    if FLineBreak=sLineBreak then
+      begin
+      While GetNextLine (Value,S,P) do
+        Add(S)
+      end
+    else
+      While GetNextLineBreak (Value,S,P) do
+        Add(S);
   finally
     EndUpdate;
   end;
@@ -579,12 +657,14 @@ end;
 Procedure TStrings.SetTextStr(const Value: string);
 
 begin
+  CheckSpecialChars;
   DoSetTextStr(Value,True);
 end;
 
 Procedure TStrings.AddText(const S: string);
 
 begin
+  CheckSpecialChars;
   DoSetTextStr(S,False);
 end;
 
@@ -611,6 +691,11 @@ begin
   Insert (Count,S);
 end;
 
+function TStrings.Add(const Fmt : string; const Args : Array of const): Integer;
+
+begin
+  Result:=Add(Format(Fmt,Args));
+end;
 
 
 Function TStrings.AddObject(const S: string; AObject: TObject): Integer;
@@ -620,6 +705,11 @@ begin
   Objects[result]:=AObject;
 end;
 
+function TStrings.AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer;
+
+begin
+  Result:=AddObject(Format(Fmt,Args),AObject);
+end;
 
 
 Procedure TStrings.Append(const S: string);
@@ -630,31 +720,47 @@ end;
 
 
 
-Procedure TStrings.AddStrings(TheStrings: TStrings);
+Procedure TStrings.AddStrings(TheStrings: TStrings; ClearFirst : Boolean);
 
-Var Runner : longint;
 
 begin
+  beginupdate;
   try
-    beginupdate;
-    For Runner:=0 to TheStrings.Count-1 do
-      self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+    if ClearFirst then
+      Clear;
+    AddStrings(TheStrings);
   finally
     EndUpdate;
   end;
 end;
 
+Procedure TStrings.AddStrings(TheStrings: TStrings);
+
+Var Runner : longint;
+begin
+  For Runner:=0 to TheStrings.Count-1 do
+    self.AddObject (Thestrings[Runner],TheStrings.Objects[Runner]);
+end;
+
 Procedure TStrings.AddStrings(const TheStrings: array of string);
 
 Var Runner : longint;
+begin
+  if Count + High(TheStrings)+1 > Capacity then
+    Capacity := Count + High(TheStrings)+1;
+  For Runner:=Low(TheStrings) to High(TheStrings) do
+    self.Add(Thestrings[Runner]);
+end;
+
+Procedure TStrings.AddStrings(const TheStrings: array of string; ClearFirst : Boolean);
+
 
 begin
+  beginupdate;
   try
-    beginupdate;
-    if Count + High(TheStrings)+1 > Capacity then
-      Capacity := Count + High(TheStrings)+1;
-    For Runner:=Low(TheStrings) to High(TheStrings) do
-      self.Add(Thestrings[Runner]);
+    if ClearFirst then
+      Clear;
+    AddStrings(TheStrings);
   finally
     EndUpdate;
   end;
@@ -677,6 +783,7 @@ begin
       FDelimiter:=S.FDelimiter;
       FNameValueSeparator:=S.FNameValueSeparator;
       FLBS:=S.FLBS;
+      FLineBreak:=S.FLineBreak;
       AddStrings(S);
     finally
       EndUpdate;
@@ -741,8 +848,8 @@ Var
   Str : String;
 
 begin
+  beginUpdate;
   Try
-    beginUpdate;
     Obj:=Objects[Index1];
     Str:=Strings[Index1];
     Objects[Index1]:=Objects[Index2];
@@ -849,8 +956,8 @@ Var
   I,BufDelta     : Longint;
 begin
   // reread into a buffer
+  beginupdate;
   try
-    beginupdate;
     Buffer:='';
     BufLen:=0;
     I:=1;
@@ -877,12 +984,15 @@ Var
   Str : String;
 begin
   BeginUpdate;
-  Obj:=Objects[CurIndex];
-  Str:=Strings[CurIndex];
-  Objects[CurIndex]:=Nil; // Prevent Delete from freeing.
-  Delete(Curindex);
-  InsertObject(NewIndex,Str,Obj);
-  EndUpdate;
+  Try
+    Obj:=Objects[CurIndex];
+    Str:=Strings[CurIndex];
+    Objects[CurIndex]:=Nil; // Prevent Delete from freeing.
+    Delete(Curindex);
+    InsertObject(NewIndex,Str,Obj);
+  finally
+    EndUpdate;
+    end;
 end;
 
 
@@ -933,7 +1043,7 @@ end;
 
 {$if not defined(FPC_TESTGENERICS)}
 
-Procedure TStringList.ExchangeItemsInt(Index1, Index2: Integer);
+procedure TStringList.ExchangeItemsInt(Index1, Index2: Integer);
 
 Var P1,P2 : Pointer;
 
@@ -946,14 +1056,19 @@ begin
   Pointer(Flist^[Index2].FObject):=P2;
 end;
 
+function TStringList.GetSorted: Boolean;
+begin
+  Result:=FSortStyle in [sslUser,sslAuto];
+end;
 
-Procedure TStringList.ExchangeItems(Index1, Index2: Integer);
+
+procedure TStringList.ExchangeItems(Index1, Index2: Integer);
 begin
   ExchangeItemsInt(Index1, Index2);
 end;
 
 
-Procedure TStringList.Grow;
+procedure TStringList.Grow;
 
 Var
   NC : Integer;
@@ -969,7 +1084,7 @@ begin
   SetCapacity(NC);
 end;
 
-Procedure TStringList.InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
+procedure TStringList.InternalClear(FromIndex: Integer; ClearOnly: Boolean);
 
 Var
   I: Integer;
@@ -996,7 +1111,8 @@ begin
     SetCapacity(0);
 end;
 
-Procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
+procedure TStringList.QuickSort(L, R: Integer; CompareFn: TStringListSortCompare
+  );
 var
   Pivot, vL, vR: Integer;
   ExchangeProc: procedure(Left, Right: Integer) of object;
@@ -1042,13 +1158,13 @@ begin
 end;
 
 
-Procedure TStringList.InsertItem(Index: Integer; const S: string);
+procedure TStringList.InsertItem(Index: Integer; const S: string);
 begin
   InsertItem(Index, S, nil);
 end;
 
 
-Procedure TStringList.InsertItem(Index: Integer; const S: string; O: TObject);
+procedure TStringList.InsertItem(Index: Integer; const S: string; O: TObject);
 begin
   Changing;
   If FCount=Fcapacity then Grow;
@@ -1063,19 +1179,18 @@ begin
 end;
 
 
-Procedure TStringList.SetSorted(Value: Boolean);
+procedure TStringList.SetSorted(Value: Boolean);
 
 begin
-  If FSorted<>Value then
-    begin
-    If Value then sort;
-    FSorted:=VAlue
-    end;
+  If Value then
+    SortStyle:=sslAuto
+  else
+    SortStyle:=sslNone
 end;
 
 
 
-Procedure TStringList.Changed;
+procedure TStringList.Changed;
 
 begin
   If (FUpdateCount=0) Then
@@ -1088,7 +1203,7 @@ end;
 
 
 
-Procedure TStringList.Changing;
+procedure TStringList.Changing;
 
 begin
   If FUpdateCount=0 then
@@ -1098,7 +1213,7 @@ end;
 
 
 
-Function TStringList.Get(Index: Integer): string;
+function TStringList.Get(Index: Integer): string;
 
 begin
   If (Index<0) or (INdex>=Fcount)  then
@@ -1108,7 +1223,7 @@ end;
 
 
 
-Function TStringList.GetCapacity: Integer;
+function TStringList.GetCapacity: Integer;
 
 begin
   Result:=FCapacity;
@@ -1116,7 +1231,7 @@ end;
 
 
 
-Function TStringList.GetCount: Integer;
+function TStringList.GetCount: Integer;
 
 begin
   Result:=FCount;
@@ -1124,7 +1239,7 @@ end;
 
 
 
-Function TStringList.GetObject(Index: Integer): TObject;
+function TStringList.GetObject(Index: Integer): TObject;
 
 begin
   If (Index<0) or (INdex>=Fcount)  then
@@ -1134,7 +1249,7 @@ end;
 
 
 
-Procedure TStringList.Put(Index: Integer; const S: string);
+procedure TStringList.Put(Index: Integer; const S: string);
 
 begin
   If Sorted then
@@ -1148,7 +1263,7 @@ end;
 
 
 
-Procedure TStringList.PutObject(Index: Integer; AObject: TObject);
+procedure TStringList.PutObject(Index: Integer; AObject: TObject);
 
 begin
   If (Index<0) or (INdex>=Fcount)  then
@@ -1160,10 +1275,10 @@ end;
 
 
 
-Procedure TStringList.SetCapacity(NewCapacity: Integer);
+procedure TStringList.SetCapacity(NewCapacity: Integer);
 
 Var NewList : Pointer;
-    I,MSize : Longint;
+    MSize : Longint;
 
 begin
   If (NewCapacity<0) then
@@ -1177,7 +1292,7 @@ begin
       begin
       MSize:=FCapacity*Sizeof(TStringItem);
       System.Move (FList^,NewList^,MSize);
-      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*WordRatio, 0);
+      FillWord (Pchar(NewList)[MSize],(NewCapacity-FCapacity)*(SizeOf(TStringItem) div SizeOf(Word)), 0);
       FreeMem (Flist,MSize);
       end;
     Flist:=NewList;
@@ -1205,7 +1320,7 @@ end;
 
 
 
-Procedure TStringList.SetUpdateState(Updating: Boolean);
+procedure TStringList.SetUpdateState(Updating: Boolean);
 
 begin
   If Updating then
@@ -1225,10 +1340,10 @@ end;
 
 
 
-Function TStringList.Add(const S: string): Integer;
+function TStringList.Add(const S: string): Integer;
 
 begin
-  If Not Sorted then
+  If Not (SortStyle=sslAuto) then
     Result:=FCount
   else
     If Find (S,Result) then
@@ -1239,7 +1354,7 @@ begin
    InsertItem (Result,S);
 end;
 
-Procedure TStringList.Clear;
+procedure TStringList.Clear;
 
 begin
   if FCount = 0 then Exit;
@@ -1248,7 +1363,7 @@ begin
   Changed;
 end;
 
-Procedure TStringList.Delete(Index: Integer);
+procedure TStringList.Delete(Index: Integer);
 
 begin
   If (Index<0) or (Index>=FCount) then
@@ -1267,7 +1382,7 @@ end;
 
 
 
-Procedure TStringList.Exchange(Index1, Index2: Integer);
+procedure TStringList.Exchange(Index1, Index2: Integer);
 
 begin
   If (Index1<0) or (Index1>=FCount) then
@@ -1285,22 +1400,33 @@ begin
   if b=FCaseSensitive then
     Exit;
   FCaseSensitive:=b;
-  if FSorted then
+  if FSortStyle=sslAuto then
     begin
     FForceSort:=True;
-    sort;
-    FForceSort:=False;
+    try
+      Sort;
+    finally
+      FForceSort:=False;
+    end;
     end;
 end;
 
+procedure TStringList.SetSortStyle(AValue: TStringsSortStyle);
+begin
+  if FSortStyle=AValue then Exit;
+  if (AValue=sslAuto) then
+    Sort;
+  FSortStyle:=AValue;
+end;
 
-Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
-  begin
-        if FCaseSensitive then
-          result:=AnsiCompareStr(s1,s2)
-        else
-          result:=AnsiCompareText(s1,s2);
-  end;
+
+function TStringList.DoCompareText(const s1, s2: string): PtrInt;
+begin
+  if FCaseSensitive then
+    result:=AnsiCompareStr(s1,s2)
+  else
+    result:=AnsiCompareText(s1,s2);
+end;
 
 
 function TStringList.CompareStrings(const s1,s2 : string) : Integer;
@@ -1309,13 +1435,16 @@ begin
 end;
 
 
-Function TStringList.Find(const S: string; Out Index: Integer): Boolean;
+function TStringList.Find(const S: string; out Index: Integer): Boolean;
 
 var
   L, R, I: Integer;
   CompareRes: PtrInt;
 begin
   Result := false;
+  Index:=-1;
+  if Not Sorted then
+    Raise EListError.Create(SErrFindNeedsSortedList);
   // Use binary search.
   L := 0;
   R := Count - 1;
@@ -1339,7 +1468,7 @@ end;
 
 
 
-Function TStringList.IndexOf(const S: string): Integer;
+function TStringList.IndexOf(const S: string): Integer;
 
 begin
   If Not Sorted then
@@ -1352,10 +1481,10 @@ end;
 
 
 
-Procedure TStringList.Insert(Index: Integer; const S: string);
+procedure TStringList.Insert(Index: Integer; const S: string);
 
 begin
-  If Sorted then
+  If SortStyle=sslAuto then
     Error (SSortedListError,0)
   else
     If (Index<0) or (Index>FCount) then
@@ -1365,10 +1494,10 @@ begin
 end;
 
 
-Procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
+procedure TStringList.CustomSort(CompareFn: TStringListSortCompare);
 
 begin
-  If (FForceSort or (Not Sorted)) and (FCount>1) then
+  If (FForceSort or (Not (FSortStyle=sslAuto))) and (FCount>1) then
     begin
     Changing;
     QuickSort(0,FCount-1, CompareFn);
@@ -1383,7 +1512,7 @@ begin
     List.FList^[Index].FString);
 end;
 
-Procedure TStringList.Sort;
+procedure TStringList.Sort;
 
 begin
   CustomSort(@StringListAnsiCompare);

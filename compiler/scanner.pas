@@ -68,11 +68,19 @@ interface
        // stack for replay buffers
        treplaystack = class
          token    : ttoken;
+         idtoken  : ttoken;
+         orgpattern,
+         pattern  : string;
+         cstringpattern: ansistring;
+         patternw : pcompilerwidestring;
          settings : tsettings;
          tokenbuf : tdynamicarray;
          next     : treplaystack;
-         constructor Create(atoken: ttoken;asettings:tsettings;
+         constructor Create(atoken: ttoken;aidtoken:ttoken;
+           const aorgpattern,apattern:string;const acstringpattern:ansistring;
+           apatternw:pcompilerwidestring;asettings:tsettings;
            atokenbuf:tdynamicarray;anext:treplaystack);
+         destructor destroy;override;
        end;
 
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
@@ -128,11 +136,9 @@ interface
 
           comment_level,
           yylexcount     : longint;
-          lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
           replaystack    : treplaystack;
-          in_asm_string  : boolean;
 
           preproc_pattern : string;
           preproc_token   : ttoken;
@@ -164,6 +170,7 @@ interface
           procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
           procedure popreplaystack;
+          function replay_stack_depth:longint;
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
@@ -204,15 +211,15 @@ interface
           function  readcomment:string;
           function  readquotedstring:string;
           function  readstate:char;
+          function  readoptionalstate(fallback:char):char;
           function  readstatedefault:char;
           procedure skipspace;
           procedure skipuntildirective;
-          procedure skipcomment;
+          procedure skipcomment(read_first_char:boolean);
           procedure skipdelphicomment;
-          procedure skipoldtpcomment;
+          procedure skipoldtpcomment(read_first_char:boolean);
           procedure readtoken(allowrecordtoken:boolean);
           function  readpreproc:ttoken;
-          function  asmgetcharstart : char;
           function  asmgetchar:char;
        end;
 
@@ -243,7 +250,7 @@ interface
 
         current_scanner : tscannerfile;  { current scanner in use }
 
-        aktcommentstyle : tcommentstyle; { needed to use read_comment from directives }
+        current_commentstyle : tcommentstyle; { needed to use read_comment from directives }
 {$ifdef PREPROCWRITE}
         preprocfile     : tpreprocfile;  { used with only preprocessing }
 {$endif PREPROCWRITE}
@@ -273,7 +280,9 @@ implementation
       symbase,symtable,symtype,symsym,symconst,symdef,defutil,
       { This is needed for tcputype }
       cpuinfo,
-      fmodule
+      fmodule,
+      { this is needed for $I %CURRENTROUTINE%}
+      procinfo
 {$if FPC_FULLVERSION<20700}
       ,ccharset
 {$endif}
@@ -381,26 +390,67 @@ implementation
         { turn on system codepage by default }
         if switch in [m_none,m_systemcodepage] then
           begin
+            { both m_systemcodepage and specifying a code page via -FcXXX or
+              "$codepage XXX" change current_settings.sourcecodepage. If
+              we used -FcXXX and then have a sourcefile with "$mode objfpc",
+              this routine will be called to disable m_systemcodepage (to ensure
+              it's off in case it would have been set on the command line, or
+              by a previous mode(switch).
+
+              In that case, we have to ensure that we don't overwrite
+              current_settings.sourcecodepage, as that would cancel out the
+              -FcXXX. This is why we use two separate module switches
+              (cs_explicit_codepage and cs_system_codepage) for the same setting
+              (current_settings.sourcecodepage)
+            }
             if m_systemcodepage in current_settings.modeswitches then
               begin
+                { m_systemcodepage gets enabled -> disable any -FcXXX and
+                  "codepage XXX" settings (exclude cs_explicit_codepage), and
+                  overwrite the sourcecode page }
                 current_settings.sourcecodepage:=DefaultSystemCodePage;
                 if (current_settings.sourcecodepage<>CP_UTF8) and not cpavailable(current_settings.sourcecodepage) then
                   begin
                     Message2(scan_w_unavailable_system_codepage,IntToStr(current_settings.sourcecodepage),IntToStr(default_settings.sourcecodepage));
                     current_settings.sourcecodepage:=default_settings.sourcecodepage;
                   end;
-                include(current_settings.moduleswitches,cs_explicit_codepage);
+                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                include(current_settings.moduleswitches,cs_system_codepage);
                 if changeinit then
-                begin
-                  init_settings.sourcecodepage:=current_settings.sourcecodepage;
-                  include(init_settings.moduleswitches,cs_explicit_codepage);
-                end;
+                  begin
+                    init_settings.sourcecodepage:=current_settings.sourcecodepage;
+                    exclude(init_settings.moduleswitches,cs_explicit_codepage);
+                    include(init_settings.moduleswitches,cs_system_codepage);
+                  end;
               end
             else
               begin
-                exclude(current_settings.moduleswitches,cs_explicit_codepage);
+                { m_systemcodepage gets disabled -> reset sourcecodepage only if
+                  cs_explicit_codepage is not set (it may be set in the scenario
+                  where -FcXXX was passed on the command line and then "$mode
+                  fpc" is used, because then the caller of this routine will
+                  set the "$mode fpc" modeswitches (which don't include
+                  m_systemcodepage) and call this routine with m_none).
+
+                  Or it can happen if -FcXXX was passed, and the sourcefile
+                  contains "$modeswitch systemcodepage-" statement.
+
+                  Since we unset cs_system_codepage if m_systemcodepage gets
+                  activated, we will revert to the default code page if you
+                  set a source file code page, then enable the systemcode page
+                  and finally disable it again. We don't keep a stack of
+                  settings, by design. The only thing we have to ensure is that
+                  disabling m_systemcodepage if it wasn't on in the first place
+                  doesn't overwrite the sourcecodepage }
+                exclude(current_settings.moduleswitches,cs_system_codepage);
+                if not(cs_explicit_codepage in current_settings.moduleswitches) then
+                  current_settings.sourcecodepage:=default_settings.sourcecodepage;
                 if changeinit then
-                  exclude(init_settings.moduleswitches,cs_explicit_codepage);
+                  begin
+                    exclude(init_settings.moduleswitches,cs_system_codepage);
+                    if not(cs_explicit_codepage in init_settings.moduleswitches) then
+                      init_settings.sourcecodepage:=default_settings.sourcecodepage;
+                  end;
               end;
           end;
       end;
@@ -447,6 +497,9 @@ implementation
          if s='ISO' then
           current_settings.modeswitches:=isomodeswitches
         else
+         if s='EXTENDEDPASCAL' then
+          current_settings.modeswitches:=extpasmodeswitches
+        else
          b:=false;
 
 {$ifdef jvm}
@@ -464,16 +517,16 @@ implementation
 
            HandleModeSwitches(m_none,changeinit);
 
-           { turn on bitpacking for mode macpas and iso pascal }
-           if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { turn on bitpacking for mode macpas and iso pascal as well as extended pascal }
+           if ([m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
                if changeinit then
                  include(init_settings.localswitches,cs_bitpacking);
              end;
 
-           { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac,m_iso] * current_settings.modeswitches <> []) then
+           { support goto/label by default in delphi/tp7/mac/iso/extpas modes }
+           if ([m_delphi,m_tp7,m_mac,m_iso,m_extpas] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then
@@ -515,7 +568,11 @@ implementation
            { Default to intel assembler for delphi/tp7 on i386/i8086 }
            if (m_delphi in current_settings.modeswitches) or
               (m_tp7 in current_settings.modeswitches) then
+{$ifdef i8086}
+             current_settings.asmmode:=asmmode_i8086_intel;
+{$else i8086}
              current_settings.asmmode:=asmmode_i386_intel;
+{$endif i8086}
            if changeinit then
              init_settings.asmmode:=current_settings.asmmode;
 {$endif i386 or i8086}
@@ -595,6 +652,15 @@ implementation
                  not(target_info.system in systems_objc_supported) then
                 begin
                   Message1(option_unsupported_target_for_feature,'Objective-C');
+                  break;
+                end;
+
+              { Blocks supported? }
+              if doinclude and
+                 (i = m_blocks) and
+                 not(target_info.system in systems_blocks_supported) then
+                begin
+                  Message1(option_unsupported_target_for_feature,'Blocks');
                   break;
                 end;
 
@@ -853,12 +919,12 @@ type
         variables are initialised. Since these types are only used for
         compile-time evaluation of conditional expressions, it doesn't matter
         that we use the base types instead of the cpu-specific ones. }
-      sintdef:=torddef.create(s64bit,low(int64),high(int64));
-      uintdef:=torddef.create(u64bit,low(qword),high(qword));
-      booldef:=torddef.create(pasbool8,0,1);
-      strdef:=tstringdef.createansi(0);
-      setdef:=tsetdef.create(sintdef,0,255);
-      realdef:=tfloatdef.create(s80real);
+      sintdef:=torddef.create(s64bit,low(int64),high(int64),false);
+      uintdef:=torddef.create(u64bit,low(qword),high(qword),false);
+      booldef:=torddef.create(pasbool8,0,1,false);
+      strdef:=tstringdef.createansi(0,false);
+      setdef:=tsetdef.create(sintdef,0,255,false);
+      realdef:=tfloatdef.create(s80real,false);
     end;
 
   class destructor texprvalue.destroydefs;
@@ -1908,21 +1974,38 @@ type
                     { first look for a macros/int/float }
                     result:=preproc_substitutedtoken(storedpattern,eval);
                     if eval and (result.consttyp=conststring) then
-                      if searchsym(storedpattern,srsym,srsymtable) then
+                      begin
+                        if searchsym(storedpattern,srsym,srsymtable) then
+                          begin
+                            try_consume_nestedsym(srsym,srsymtable);
+                            if assigned(srsym) then
+                              case srsym.typ of
+                                constsym:
+                                  begin
+                                    result.free;
+                                    result:=texprvalue.create_const(tconstsym(srsym));
+                                  end;
+                                enumsym:
+                                  begin
+                                    result.free;
+                                    result:=texprvalue.create_int(tenumsym(srsym).value);
+                                  end;
+                              end;
+                          end
+                        end
+                      { skip id(<expr>) if expression must not be evaluated }
+                      else if not(eval) and (result.consttyp=conststring) then
                         begin
-                          try_consume_nestedsym(srsym,srsymtable);
-                          if assigned(srsym) then
-                            case srsym.typ of
-                              constsym:
-                                begin
-                                  result.free;
-                                  result:=texprvalue.create_const(tconstsym(srsym));
-                                end;
-                              enumsym:
-                                begin
-                                  result.free;
-                                  result:=texprvalue.create_int(tenumsym(srsym).value);
-                                end;
+                          if current_scanner.preproc_token =_LKLAMMER then
+                            begin
+                              preproc_consume(_LKLAMMER);
+                              current_scanner.skipspace;
+
+                              result:=preproc_factor(false);
+                              if current_scanner.preproc_token =_RKLAMMER then
+                                preproc_consume(_RKLAMMER)
+                              else
+                                Message(scan_e_error_in_preproc_expr);
                             end;
                         end;
                   end
@@ -2174,8 +2257,6 @@ type
       var
         hs  : string;
         mac : tmacro;
-        l : longint;
-        w : integer;
         exprvalue: texprvalue;
       begin
         current_scanner.skipspace;
@@ -2342,40 +2423,35 @@ type
            path:=hs;
          { first check for internal macros }
            macroIsString:=true;
-           if hs='TIME' then
-            hs:=gettimestr
-           else
-            if hs='DATE' then
-             hs:=getdatestr
-           else
-            if hs='FILE' then
-             hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex)
-           else
-            if hs='LINE' then
-             hs:=tostr(current_filepos.line)
-           else
-            if hs='LINENUM' then
-              begin
-                hs:=tostr(current_filepos.line);
-                macroIsString:=false;
-              end
-           else
-            if hs='FPCVERSION' then
-             hs:=version_string
-           else
-            if hs='FPCDATE' then
-             hs:=date_string
-           else
-            if hs='FPCTARGET' then
-             hs:=target_cpu_string
-           else
-            if hs='FPCTARGETCPU' then
-             hs:=target_cpu_string
-           else
-            if hs='FPCTARGETOS' then
-             hs:=target_info.shortname
-           else
-             hs:=GetEnvironmentVariable(hs);
+           case hs of
+             'TIME':
+               hs:=gettimestr;
+             'DATE':
+               hs:=getdatestr;
+             'FILE':
+               hs:=current_module.sourcefiles.get_file_name(current_filepos.fileindex);
+             'LINE':
+               hs:=tostr(current_filepos.line);
+             'LINENUM':
+               begin
+                 hs:=tostr(current_filepos.line);
+                 macroIsString:=false;
+               end;
+             'FPCVERSION':
+               hs:=version_string;
+             'FPCDATE':
+               hs:=date_string;
+             'FPCTARGET':
+               hs:=target_cpu_string;
+             'FPCTARGETCPU':
+               hs:=target_cpu_string;
+             'FPCTARGETOS':
+               hs:=target_info.shortname;
+             'CURRENTROUTINE':
+               hs:=current_procinfo.procdef.procsym.RealName;
+             else
+               hs:=GetEnvironmentVariable(hs);
+           end;
            if hs='' then
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
@@ -2498,13 +2574,31 @@ type
 {*****************************************************************************
                               TReplayStack
 *****************************************************************************}
-    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;
+    constructor treplaystack.Create(atoken:ttoken;aidtoken:ttoken;
+      const aorgpattern,apattern:string;const acstringpattern:ansistring;
+      apatternw:pcompilerwidestring;asettings:tsettings;
       atokenbuf:tdynamicarray;anext:treplaystack);
       begin
         token:=atoken;
+        idtoken:=aidtoken;
+        orgpattern:=aorgpattern;
+        pattern:=apattern;
+        cstringpattern:=acstringpattern;
+        initwidestring(patternw);
+        if assigned(apatternw) then
+          begin
+            setlengthwidestring(patternw,apatternw^.len);
+            move(apatternw^.data^,patternw^.data^,apatternw^.len*sizeof(tcompilerwidechar));
+          end;
         settings:=asettings;
         tokenbuf:=atokenbuf;
         next:=anext;
+      end;
+
+
+    destructor treplaystack.destroy;
+      begin
+        donewidestring(patternw);
       end;
 
 {*****************************************************************************
@@ -2554,9 +2648,7 @@ type
         nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
-        lastasmgetchar:=#0;
         ignoredirectives:=TFPHashList.Create;
-        in_asm_string:=false;
       end;
 
 
@@ -2939,9 +3031,18 @@ type
             minfpconstprec:=tfloattype(tokenreadenum(sizeof(tfloattype)));
 
             disabledircache:=boolean(tokenreadbyte);
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-            controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)));
-{$endif defined(ARM) or defined(AVR) or DEFINED(MIPSEL)}
+{ TH: Since the field was conditional originally, it was not stored in PPUs.  }
+{ While adding ControllerSupport constant, I decided not to store ct_none     }
+{ on targets not supporting controllers, but this might be changed here and   }
+{ in tokenwritesettings in the future to unify the PPU structure and handling }
+{ of this field in the compiler.                                              }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if ControllerSupport then
+             controllertype:=tcontrollertype(tokenreadenum(sizeof(tcontrollertype)))
+            else
+             ControllerType:=ct_none;
+{$POP}
            endpos:=replaytokenbuf.pos;
            if endpos-startpos<>expected_size then
              Comment(V_Error,'Wrong size of Settings read-in');
@@ -3008,9 +3109,12 @@ type
             tokenwriteenum(minfpconstprec,sizeof(tfloattype));
 
             recordtokenbuf.write(byte(disabledircache),1);
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
-            tokenwriteenum(controllertype,sizeof(tcontrollertype));
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
+{ TH: See note about controllertype field in tokenreadsettings. }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+            if ControllerSupport then
+              tokenwriteenum(controllertype,sizeof(tcontrollertype));
+{$POP}
            endpos:=recordtokenbuf.pos;
            size:=endpos-startpos;
            recordtokenbuf.seek(sizepos);
@@ -3157,11 +3261,9 @@ type
       begin
         if not assigned(buf) then
           internalerror(200511175);
-        { save current token }
-        if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
-          internalerror(200511178);
-        replaystack:=treplaystack.create(token,current_settings,
-          replaytokenbuf,replaystack);
+        { save current scanner state }
+        replaystack:=treplaystack.create(token,idtoken,orgpattern,pattern,
+          cstringpattern,patternw,current_settings,replaytokenbuf,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
@@ -3201,6 +3303,12 @@ type
         if replaytokenbuf.pos>=replaytokenbuf.size then
           begin
             token:=replaystack.token;
+            idtoken:=replaystack.idtoken;
+            pattern:=replaystack.pattern;
+            orgpattern:=replaystack.orgpattern;
+            setlengthwidestring(patternw,replaystack.patternw^.len);
+            move(replaystack.patternw^.data^,patternw^.data^,replaystack.patternw^.len*sizeof(tcompilerwidechar));
+            cstringpattern:=replaystack.cstringpattern;
             replaytokenbuf:=replaystack.tokenbuf;
             { restore compiler settings }
             current_settings:=replaystack.settings;
@@ -3283,8 +3391,6 @@ type
                       begin
                         current_settings.pmessage:=nil;
                         mesgnb:=tokenreadsizeint;
-                        if mesgnb>0 then
-                          Comment(V_Error,'Message recordind not yet supported');
                         prevmsg:=nil;
                         for i:=1 to mesgnb do
                           begin
@@ -3383,6 +3489,7 @@ type
                        inc(inputpointer,3);
                        message(scan_c_switching_to_utf8);
                        current_settings.sourcecodepage:=CP_UTF8;
+                       exclude(current_settings.moduleswitches,cs_system_codepage);
                        include(current_settings.moduleswitches,cs_explicit_codepage);
                      end;
 
@@ -3703,6 +3810,20 @@ type
          end;
       end;
 
+
+    function tscannerfile.replay_stack_depth:longint;
+      var
+        tmp: treplaystack;
+      begin
+        result:=0;
+        tmp:=replaystack;
+        while assigned(tmp) do
+          begin
+            inc(result);
+            tmp:=tmp.next;
+          end;
+      end;
+
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
       begin
         savetokenpos;
@@ -3763,7 +3884,7 @@ type
             if (comment_level>0) then
              readcomment;
             { we've read the whole comment }
-            aktcommentstyle:=comment_none;
+            current_commentstyle:=comment_none;
             exit;
           end;
          { Check for compiler switches }
@@ -3818,7 +3939,7 @@ type
             if (current_scanner.comment_level>0) then
              current_scanner.readcomment;
             { we've read the whole comment }
-            aktcommentstyle:=comment_none;
+            current_commentstyle:=comment_none;
           end;
       end;
 
@@ -3969,12 +4090,12 @@ type
           case c of
             '{' :
               begin
-                if aktcommentstyle=comment_tp then
+                if current_commentstyle=comment_tp then
                   inc_comment_level;
               end;
             '}' :
               begin
-                if aktcommentstyle=comment_tp then
+                if current_commentstyle=comment_tp then
                   begin
                     readchar;
                     dec_comment_level;
@@ -3986,7 +4107,7 @@ type
               end;
             '*' :
               begin
-                if aktcommentstyle=comment_oldtp then
+                if current_commentstyle=comment_oldtp then
                   begin
                     readchar;
                     if c=')' then
@@ -4102,6 +4223,37 @@ type
       end;
 
 
+    function tscannerfile.readoptionalstate(fallback:char):char;
+      var
+        state : char;
+      begin
+        state:=' ';
+        if c=' ' then
+         begin
+           current_scanner.skipspace;
+           if c in ['*','}'] then
+             state:=fallback
+           else
+             begin
+               current_scanner.readid;
+               if pattern='ON' then
+                state:='+'
+               else
+                if pattern='OFF' then
+                 state:='-';
+             end;
+         end
+        else
+          if c in ['*','}'] then
+            state:=fallback
+          else
+            state:=c;
+        if not (state in ['+','-']) then
+         Message(scan_e_wrong_switch_toggle);
+        readoptionalstate:=state;
+      end;
+
+
     function tscannerfile.readstatedefault:char;
       var
         state : char;
@@ -4173,9 +4325,9 @@ type
                end;
              '{' :
                begin
-                 if (aktcommentstyle in [comment_tp,comment_none]) then
+                 if (current_commentstyle in [comment_tp,comment_none]) then
                    begin
-                     aktcommentstyle:=comment_tp;
+                     current_commentstyle:=comment_tp;
                      if (comment_level=0) then
                        found:=1;
                      inc_comment_level;
@@ -4183,14 +4335,14 @@ type
                end;
              '*' :
                begin
-                 if (aktcommentstyle=comment_oldtp) then
+                 if (current_commentstyle=comment_oldtp) then
                    begin
                      readchar;
                      if c=')' then
                        begin
                          dec_comment_level;
                          found:=0;
-                         aktcommentstyle:=comment_none;
+                         current_commentstyle:=comment_none;
                        end
                      else
                        next_char_loaded:=true;
@@ -4200,11 +4352,11 @@ type
                end;
              '}' :
                begin
-                 if (aktcommentstyle=comment_tp) then
+                 if (current_commentstyle=comment_tp) then
                    begin
                      dec_comment_level;
                      if (comment_level=0) then
-                       aktcommentstyle:=comment_none;
+                       current_commentstyle:=comment_none;
                      found:=0;
                    end;
                end;
@@ -4214,7 +4366,7 @@ type
                   found:=2;
                end;
              '''' :
-               if (aktcommentstyle=comment_none) then
+               if (current_commentstyle=comment_none) then
                 begin
                   repeat
                     readchar;
@@ -4237,7 +4389,7 @@ type
                 end;
              '(' :
                begin
-                 if (aktcommentstyle=comment_none) then
+                 if (current_commentstyle=comment_none) then
                   begin
                     readchar;
                     if c='*' then
@@ -4247,11 +4399,11 @@ type
                         begin
                           found:=2;
                           inc_comment_level;
-                          aktcommentstyle:=comment_oldtp;
+                          current_commentstyle:=comment_oldtp;
                         end
                        else
                         begin
-                          skipoldtpcomment;
+                          skipoldtpcomment(false);
                           next_char_loaded:=true;
                         end;
                      end
@@ -4263,7 +4415,7 @@ type
                end;
              '/' :
                begin
-                 if (aktcommentstyle=comment_none) then
+                 if (current_commentstyle=comment_none) then
                   begin
                     readchar;
                     if c='/' then
@@ -4288,10 +4440,11 @@ type
                              Comment Handling
 ****************************************************************************}
 
-    procedure tscannerfile.skipcomment;
+    procedure tscannerfile.skipcomment(read_first_char:boolean);
       begin
-        aktcommentstyle:=comment_tp;
-        readchar;
+        current_commentstyle:=comment_tp;
+        if read_first_char then
+          readchar;
         inc_comment_level;
       { handle compiler switches }
         if (c='$') then
@@ -4316,13 +4469,13 @@ type
            end;
            readchar;
          end;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
     procedure tscannerfile.skipdelphicomment;
       begin
-        aktcommentstyle:=comment_delphi;
+        current_commentstyle:=comment_delphi;
         inc_comment_level;
         readchar;
         { this is not supported }
@@ -4332,19 +4485,19 @@ type
         while not (c in [#10,#13,#26]) do
           readchar;
         dec_comment_level;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
-    procedure tscannerfile.skipoldtpcomment;
+    procedure tscannerfile.skipoldtpcomment(read_first_char:boolean);
       var
         found : longint;
       begin
-        aktcommentstyle:=comment_oldtp;
+        current_commentstyle:=comment_oldtp;
         inc_comment_level;
         { only load a char if last already processed,
           was cause of bug1634 PM }
-        if c=#0 then
+        if read_first_char then
           readchar;
       { this is now supported }
         if (c='$') then
@@ -4405,7 +4558,7 @@ type
              readchar;
            until (found=2);
          end;
-        aktcommentstyle:=comment_none;
+        current_commentstyle:=comment_none;
       end;
 
 
@@ -4452,7 +4605,7 @@ type
         repeat
           case c of
             '{' :
-              skipcomment;
+              skipcomment(true);
             #26 :
               begin
                 reload;
@@ -4691,8 +4844,7 @@ type
                  case c of
                    '*' :
                      begin
-                       c:=#0;{Signal skipoldtpcomment to reload a char }
-                       skipoldtpcomment;
+                       skipoldtpcomment(true);
                        readtoken(false);
                        exit;
                      end;
@@ -5373,87 +5525,17 @@ exit_label:
       end;
 
 
-    function tscannerfile.asmgetcharstart : char;
-      begin
-        { return first the character already
-          available in c }
-        lastasmgetchar:=c;
-        result:=asmgetchar;
-      end;
-
-
     function tscannerfile.asmgetchar : char;
       begin
-         if lastasmgetchar<>#0 then
-          begin
-            c:=lastasmgetchar;
-            lastasmgetchar:=#0;
-          end
-         else
-          readchar;
-         if in_asm_string then
-           begin
-             asmgetchar:=c;
-             exit;
-           end;
+         readchar;
          repeat
            case c of
-             // the { ... } is used in ARM assembler to define register sets,  so we can't used
-             // it as comment, either (* ... *), /* ... */ or // ... should be used instead.
-             // But compiler directives {$...} are allowed in ARM assembler.
-             '{' :
-               begin
-{$ifdef arm}
-                 readchar;
-                 dec(inputpointer);
-                 if c<>'$' then
-                   begin
-                     asmgetchar:='{';
-                     exit;
-                   end
-                 else
-{$endif arm}
-                   skipcomment;
-               end;
-             #10,#13 :
-               begin
-                 linebreak;
-                 asmgetchar:=c;
-                 exit;
-               end;
              #26 :
                begin
                  reload;
                  if (c=#26) and not assigned(inputfile.next) then
                    end_of_file;
                  continue;
-               end;
-             '/' :
-               begin
-                  readchar;
-                  if c='/' then
-                   skipdelphicomment
-                  else
-                   begin
-                     asmgetchar:='/';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
-               end;
-             '(' :
-               begin
-                  readchar;
-                  if c='*' then
-                   begin
-                     c:=#0;{Signal skipoldtpcomment to reload a char }
-                     skipoldtpcomment;
-                   end
-                  else
-                   begin
-                     asmgetchar:='(';
-                     lastasmgetchar:=c;
-                     exit;
-                   end;
                end;
              else
                begin

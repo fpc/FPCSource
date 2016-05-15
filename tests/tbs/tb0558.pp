@@ -11,6 +11,11 @@ var
  d: double;
  z: TChartZPosition;
 begin
+  if not(has_sse2_support) then
+   begin
+    WriteLn ('CPU does not support SSE2, skipping test...');
+    halt(0);
+   end;
   d:=5.0;
   z:=3;
   d:=d-z;

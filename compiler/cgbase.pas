@@ -95,12 +95,21 @@ interface
          {$ENDIF}
          {$IFDEF AVR}
          ,addr_lo8
+         ,addr_lo8_gs
          ,addr_hi8
+         ,addr_hi8_gs
          {$ENDIF}
          {$IFDEF i8086}
          ,addr_dgroup      // the data segment group
+         ,addr_fardataseg  // the far data segment of the current pascal module (unit or program)
          ,addr_seg         // used for getting the segment of an object, e.g. 'mov ax, SEG symbol'
          {$ENDIF}
+         {$IFDEF AARCH64}
+         ,addr_page
+         ,addr_pageoffset
+         ,addr_gotpage
+         ,addr_gotpageoffset
+         {$ENDIF AARCH64}
          {$IFDEF SPC32}
          ,addr_lo16
          ,addr_hi16
@@ -173,7 +182,9 @@ interface
         R_MMXREGISTER,     { = 3 }
         R_MMREGISTER,      { = 4 }
         R_SPECIALREGISTER, { = 5 }
-        R_ADDRESSREGISTER  { = 6 }
+        R_ADDRESSREGISTER, { = 6 }
+        { used on llvm, every temp gets its own "base register" }
+        R_TEMPREGISTER     { = 7 }
       );
 
       { Sub registers }
@@ -332,6 +343,13 @@ interface
           OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
           OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
           OS_M64,OS_M128,OS_M256);
+
+       tcgsize2signed : array[tcgsize] of tcgsize = (OS_NO,
+          OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128,
+          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
+          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M256,OS_M8,OS_M16,OS_M32,
+          OS_M64,OS_M128,OS_M256);
+
 
        tcgloc2str : array[TCGLoc] of string[12] = (
             'LOC_INVALID',

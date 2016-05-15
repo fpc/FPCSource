@@ -802,6 +802,33 @@ type
         window : TWindow;
      end;
 
+   (***************************************************************
+    *
+    * GenericEvent.  This event is the standard event for all newer extensions.
+    *)
+
+   PXGenericEvent = ^TXGenericEvent;
+   TXGenericEvent = record
+        _type: cint;                 { of event. Always GenericEvent }
+        serial: culong;              { # of last request processed }
+        send_event: TBool;           { true if from SendEvent request }
+        display: PDisplay;           { Display the event was read from }
+        extension: cint;             { major opcode of extension that caused the event }
+        evtype: cint;                { actual event type. }
+     end;
+
+   PXGenericEventCookie = ^TXGenericEventCookie;
+   TXGenericEventCookie = record
+        _type: cint;                 { of event. Always GenericEvent }
+        serial: culong;              { # of last request processed }
+        send_event: TBool;           { true if from SendEvent request }
+        display: PDisplay;           { Display the event was read from }
+        extension: cint;             { major opcode of extension that caused the event }
+        evtype: cint;                { actual event type. }
+        cookie: cuint;
+        data: pointer;
+     end;
+
    PXEvent = ^TXEvent;
    TXEvent = record
        case longint of
@@ -837,7 +864,9 @@ type
           29 : ( xmapping : TXMappingEvent );
           30 : ( xerror : TXErrorEvent );
           31 : ( xkeymap : TXKeymapEvent );
-          32 : ( pad : array[0..23] of clong );
+          32 : ( xgeneric : TXGenericEvent );
+          33 : ( xcookie : TXGenericEventCookie );
+          34 : ( pad : array[0..23] of clong );
        end;
 
 type
@@ -1766,6 +1795,16 @@ procedure XSetAuthorization(para1:Pchar; para2:cint; para3:Pchar; para4:cint);cd
   _Xmbtowc?
   _Xwctomb?
 }
+
+function XGetEventData(
+    dpy: PDisplay;
+    cookie: PXGenericEventCookie
+): TBoolResult;cdecl;external libX11;
+
+procedure XFreeEventData(
+    dpy: PDisplay;
+    cookie: PXGenericEventCookie
+);cdecl;external libX11;
 
 {$ifdef MACROS}
 function ConnectionNumber(dpy : PDisplay) : cint;

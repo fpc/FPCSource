@@ -324,11 +324,15 @@
   { CompareString, LCMapString  }
      LOCALE_SYSTEM_DEFAULT = $800;
      LOCALE_USER_DEFAULT = $400;
-     NORM_IGNORECASE = 1;
-     NORM_IGNOREKANATYPE = 65536;
-     NORM_IGNORENONSPACE = 2;
-     NORM_IGNORESYMBOLS = 4;
-     NORM_IGNOREWIDTH = 131072;
+     NORM_IGNORECASE            = 1;
+     NORM_IGNORENONSPACE        = 2;
+     NORM_IGNORESYMBOLS         = 4;
+     LINGUISTIC_IGNORECASE      = $00000010;
+     LINGUISTIC_IGNOREDIACRITIC = $00000020;
+     NORM_IGNOREKANATYPE        = $00010000;
+     NORM_IGNOREWIDTH           = $00020000;
+     NORM_LINGUISTIC_CASING     = $08000000;
+     SORT_DIGITSASNUMBERS       = $00000008;
      SORT_STRINGSORT = 4096;
      LCMAP_BYTEREV = 2048;
      LCMAP_FULLWIDTH = 8388608;
@@ -647,6 +651,7 @@
      CREATE_NEW_PROCESS_GROUP = 512;
      CREATE_SEPARATE_WOW_VDM = 2048;
      CREATE_SUSPENDED = 4;
+     STACK_SIZE_PARAM_IS_A_RESERVATION = $10000;
      CREATE_UNICODE_ENVIRONMENT = 1024;
      DEBUG_PROCESS = 1;
      DEBUG_ONLY_THIS_PROCESS = 2;
@@ -5911,6 +5916,68 @@ const
     IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
     IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
     IMAGE_FILE_MACHINE_CEE               = $C0EE;
+    IMAGE_FILE_LARGE_ADDRESS_AWARE       = $20;    // for peflags.
+
+  //
+  // Section characteristics.
+  //
+  //      IMAGE_SCN_TYPE_REG                   = $00000000;  // Reserved.
+  //      IMAGE_SCN_TYPE_DSECT                 = $00000001;  // Reserved.
+  //      IMAGE_SCN_TYPE_NOLOAD                = $00000002;  // Reserved.
+  //      IMAGE_SCN_TYPE_GROUP                 = $00000004;  // Reserved.
+     IMAGE_SCN_TYPE_NO_PAD                = $00000008;  // Reserved.
+  //      IMAGE_SCN_TYPE_COPY                  = $00000010;  // Reserved.
+
+     IMAGE_SCN_CNT_CODE                   = $00000020;  // Section contains code.
+     IMAGE_SCN_CNT_INITIALIZED_DATA       = $00000040;  // Section contains initialized data.
+     IMAGE_SCN_CNT_UNINITIALIZED_DATA     = $00000080;  // Section contains uninitialized data.
+
+     IMAGE_SCN_LNK_OTHER                  = $00000100;  // Reserved.
+     IMAGE_SCN_LNK_INFO                   = $00000200;  // Section contains comments or some other type of information.
+  //      IMAGE_SCN_TYPE_OVER                  = $00000400  // Reserved.
+     IMAGE_SCN_LNK_REMOVE                 = $00000800;  // Section contents will not become part of image.
+     IMAGE_SCN_LNK_COMDAT                 = $00001000;  // Section contents comdat.
+  //                                           = $00002000  // Reserved.
+  //      IMAGE_SCN_MEM_PROTECTED - Obsolete   = $00004000
+     IMAGE_SCN_NO_DEFER_SPEC_EXC          = $00004000;  // Reset speculative exceptions handling bits in the TLB entries for this section.
+     IMAGE_SCN_GPREL                      = $00008000;  // Section content can be accessed relative to GP
+     IMAGE_SCN_MEM_FARDATA                = $00008000;
+  //      IMAGE_SCN_MEM_SYSHEAP  - Obsolete    = $00010000;
+     IMAGE_SCN_MEM_PURGEABLE              = $00020000;
+     IMAGE_SCN_MEM_16BIT                  = $00020000;
+     IMAGE_SCN_MEM_LOCKED                 = $00040000;
+     IMAGE_SCN_MEM_PRELOAD                = $00080000;
+
+     IMAGE_SCN_ALIGN_1BYTES               = $00100000;  //
+     IMAGE_SCN_ALIGN_2BYTES               = $00200000;  //
+     IMAGE_SCN_ALIGN_4BYTES               = $00300000;  //
+     IMAGE_SCN_ALIGN_8BYTES               = $00400000;  //
+     IMAGE_SCN_ALIGN_16BYTES              = $00500000;  // Default alignment if no others are specified.
+     IMAGE_SCN_ALIGN_32BYTES              = $00600000;  //
+     IMAGE_SCN_ALIGN_64BYTES              = $00700000;  //
+     IMAGE_SCN_ALIGN_128BYTES             = $00800000;  //
+     IMAGE_SCN_ALIGN_256BYTES             = $00900000;  //
+     IMAGE_SCN_ALIGN_512BYTES             = $00A00000;  //
+     IMAGE_SCN_ALIGN_1024BYTES            = $00B00000;  //
+     IMAGE_SCN_ALIGN_2048BYTES            = $00C00000;  //
+     IMAGE_SCN_ALIGN_4096BYTES            = $00D00000;  //
+     IMAGE_SCN_ALIGN_8192BYTES            = $00E00000;  //
+  // Unused                                    = $00F00000;
+     IMAGE_SCN_ALIGN_MASK                 = $00F00000;
+
+     IMAGE_SCN_LNK_NRELOC_OVFL            = $01000000;  // Section contains extended relocations.
+     IMAGE_SCN_MEM_DISCARDABLE            = $02000000;  // Section can be discarded.
+     IMAGE_SCN_MEM_NOT_CACHED             = $04000000;  // Section is not cachable.
+     IMAGE_SCN_MEM_NOT_PAGED              = $08000000;  // Section is not pageable.
+     IMAGE_SCN_MEM_SHARED                 = $10000000;  // Section is shareable.
+     IMAGE_SCN_MEM_EXECUTE                = $20000000;  // Section is executable.
+     IMAGE_SCN_MEM_READ                   = $40000000;  // Section is readable.
+     IMAGE_SCN_MEM_WRITE                  = $80000000;  // Section is writeable.
+
+  //
+  // TLS Characteristic Flags
+  //
+     IMAGE_SCN_SCALE_INDEX                = $00000001;  // Tls index is scaled
 
 
     GWLP_WNDPROC        		 = -4; 
@@ -5927,6 +5994,26 @@ const
     GCLP_WNDPROC                         = -24;
     GCLP_HICONSM                         = -34;
 
+    IMAGE_ORDINAL_FLAG64 = uint64($8000000000000000);
+    IMAGE_ORDINAL_FLAG32 = uint32($80000000);
+    bm__IMAGE_TLS_DIRECTORY64_Reserved0 = $FFFFF;
+    bp__IMAGE_TLS_DIRECTORY64_Reserved0 = 0;
+    bm__IMAGE_TLS_DIRECTORY64_Alignment = $F00000;
+    bp__IMAGE_TLS_DIRECTORY64_Alignment = 20;
+    bm__IMAGE_TLS_DIRECTORY64_Reserved1 = $FF000000;
+    bp__IMAGE_TLS_DIRECTORY64_Reserved1 = 24;
+    bm__IMAGE_TLS_DIRECTORY32_Reserved0 = $FFFFF;
+    bp__IMAGE_TLS_DIRECTORY32_Reserved0 = 0;
+    bm__IMAGE_TLS_DIRECTORY32_Alignment = $F00000;
+    bp__IMAGE_TLS_DIRECTORY32_Alignment = 20;
+    bm__IMAGE_TLS_DIRECTORY32_Reserved1 = $FF000000;
+    bp__IMAGE_TLS_DIRECTORY32_Reserved1 = 24;
+
+{$ifdef WIN64}
+    IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG64;
+{$else}
+    IMAGE_ORDINAL_FLAG = IMAGE_ORDINAL_FLAG32;
+{$endif}                                                          
 
 // #if(WINVER >= 0x0500)
 {/*
@@ -5957,6 +6044,58 @@ const
 // Constants for the tagMENUBARINFO.FocusedBits bit mask
       MBIFB_BAR_FOCUSED = $00000001;
       MBIFB_FOCUSED     = $00000002;
+
+
+const 
+//
+// Define possible return codes from the CopyFileEx callback routine
+//
+
+    PROGRESS_CONTINUE   = 0;
+    PROGRESS_CANCEL     = 1;
+    PROGRESS_STOP       = 2;
+    PROGRESS_QUIET      = 3;
+
+//
+// Define CopyFileEx callback routine state change values
+//
+
+    CALLBACK_CHUNK_FINISHED         = $00000000;
+    CALLBACK_STREAM_SWITCH          = $00000001;
+
+//
+// Define CopyFileEx option flags
+//
+
+    COPY_FILE_FAIL_IF_EXISTS              = $00000001;
+    COPY_FILE_RESTARTABLE                 = $00000002;
+    COPY_FILE_OPEN_SOURCE_FOR_WRITE       = $00000004;
+    COPY_FILE_ALLOW_DECRYPTED_DESTINATION = $00000008;
+
+//
+//  Gap for private copyfile flags
+//
+
+    COPY_FILE_COPY_SYMLINK                = $00000800;
+    COPY_FILE_NO_BUFFERING                = $00001000;
+
+//
+//  CopyFile2 flags
+//
+
+    COPY_FILE_REQUEST_SECURITY_PRIVILEGES        = $00002000;
+    COPY_FILE_RESUME_FROM_PAUSE                  = $00004000;
+
+
+    COPY_FILE_NO_OFFLOAD                         = $00040000;
+
+//
+// Define ReplaceFile option flags
+//
+
+    REPLACEFILE_WRITE_THROUGH       = $00000001;
+    REPLACEFILE_IGNORE_MERGE_ERRORS = $00000002;
+    REPLACEFILE_IGNORE_ACL_ERRORS   = $00000004;
 
 {$endif read_interface}
 

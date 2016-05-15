@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=2.7.1
+version=3.1.1
 
 [target]
 dirs=compiler rtl utils packages ide installer
@@ -20,8 +20,7 @@ fpcdir=.
 rule=help
 
 [prerules]
-REQUIREDVERSION=2.6.4
-REQUIREDVERSION2=2.6.2
+REQUIREDVERSION=3.0.0
 
 
 # make versions < 3.77 (OS2 version) are buggy
@@ -78,6 +77,9 @@ PPSUF=8086
 endif
 ifeq ($(CPU_TARGET),avr)
 PPSUF=avr
+endif
+ifeq ($(CPU_TARGET),aarch64)
+PPSUF=a64
 endif
 ifeq ($(CPU_TARGET),spc32)
 PPSUF=spc32
@@ -207,7 +209,7 @@ endif
 BuildOnlyBaseCPUs=jvm
 
 ifneq ($(wildcard utils),)
-NOUTILSTARGETS=embedded gba $(BuildOnlyBaseCPUs)
+NOUTILSTARGETS=embedded gba nds msdos win16 $(BuildOnlyBaseCPUs)
 ifeq ($(findstring $(OS_TARGET),$(NOUTILSTARGETS)),)
 ifdef BUILDFULLNATIVE
 UTILS=1
@@ -233,8 +235,7 @@ override TARGET_DIRS:=$(wildcard $(TARGET_DIRS))
 help:
         @$(ECHO)
         @$(ECHO) Targets
-        @$(ECHO)    all         Alias for build
-        @$(ECHO)    build       Build a new compiler and all packages
+        @$(ECHO)    all         Build a new compiler and all packages
         @$(ECHO)    install     Install newly build files
         @$(ECHO)    zipinstall  Create zip/tar of installed files
         @$(ECHO)    singlezipinstall  Alias for zipinstall
@@ -266,14 +267,14 @@ BUILDSTAMP=build-stamp.$(FULL_TARGET)
 .PHONY: installother zipinstallbase zipinstallotherzipinstall
 .PHONY: singlezipinstall versioncheckstartingcompiler
 
-versioncheckstartingcompiler: 
+versioncheckstartingcompiler:
 ifndef CROSSCOMPILE
 ifneq ($(FPC_VERSION),$(REQUIREDVERSION))
 ifneq ($(FPC_VERSION),$(REQUIREDVERSION2))
 ifndef OVERRIDEVERSIONCHECK
-	$(error The only supported starting compiler version is $(REQUIREDVERSION). You are trying to build with $(FPC_VERSION). If you are absolutely sure that the current compiler is built from the exact same version/revision, you can try to use OVERRIDEVERSIONCHECK=1 to override )
+	$(error The only supported starting compiler version is $(REQUIREDVERSION). You are trying to build with $(FPC_VERSION).)
 else
-	@$(ECHO) You have overriden the starting compiler versioncheck while using starting compiler version $(FPC_VERSION). This situation is not supported and strange things and errors may happen. Remove OVERRIDEVERSIONCHECK=1 to fix this. 
+	@$(ECHO) You have overriden the starting compiler versioncheck while using starting compiler version $(FPC_VERSION). This situation is not supported and strange things and errors may happen. Remove OVERRIDEVERSIONCHECK=1 to fix this.
 endif
 endif
 endif

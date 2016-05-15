@@ -536,8 +536,6 @@ implementation
                       end;
                     ait_align:
                       inc(CurrOffset,tai_align(curtai).aligntype);
-                    ait_weak,
-                    ait_set,
                     ait_marker,
                     ait_const:
                       ;

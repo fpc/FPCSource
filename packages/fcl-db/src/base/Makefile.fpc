@@ -4,7 +4,7 @@
 
 [package]
 main=fcl-db
-version=2.7.1
+version=3.1.1
 
 [target]
 units=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll sqlscript xmldatapacketreader

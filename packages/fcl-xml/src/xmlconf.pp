@@ -32,7 +32,7 @@ uses
   SysUtils, Classes, DOM, XMLRead, XMLWrite;
 
 resourcestring
-  SWrongRootName = 'XML file has wrong root element name';
+  SWrongRootName = 'XML file has wrong root element name: expected "%s" but was "%s"';
 
 type
   EXMLConfigError = class(Exception);
@@ -76,7 +76,10 @@ type
     procedure OpenKey(const aPath: DOMString);
     procedure CloseKey;
     procedure ResetKey;
-    procedure SaveToFile(AFileName: string);
+    procedure SaveToFile(Const AFileName: string);
+    procedure SaveToStream(S : TStream);
+    procedure LoadFromFile(Const AFileName: string);
+    procedure LoadFromStream(S : TStream);
 
     function  GetValue(const APath: DOMString; const ADefault: DOMString): DOMString; overload;
     function  GetValue(const APath: DOMString; ADefault: Integer): Integer; overload;
@@ -130,18 +133,52 @@ end;
 procedure TXMLConfig.Flush;
 begin
   if Modified and not FReadOnly then
-  begin
-    SaveToFile(FFilename)
+    if (FFileName<>'') then
+      SaveToFile(FFilename)
+end;
+
+procedure TXMLConfig.SaveToFile(const AFileName: string);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(AFileName,fmCreate);
+  try
+    SaveToStream(F);
+    FFileName:=AFileName;
+  finally
+    F.Free;
   end;
 end;
 
-procedure TXMLConfig.SaveToFile(AFileName: string);
+procedure TXMLConfig.SaveToStream(S: TStream);
 begin
-  if AFileName <> '' then
-  begin
-    WriteXMLFile(Doc, AFilename);
-    FModified := False;
+  WriteXMLFile(Doc,S);
+  FModified := False;
+end;
+
+procedure TXMLConfig.LoadFromFile(const AFileName: string);
+
+Var
+  F : TFileStream;
+
+begin
+  F:=TFileStream.Create(AFileName,fmOpenread or fmShareDenyWrite);
+  try
+    ReadXMLFile(Doc, AFilename);
+    FFileName:=AFileName;
+  finally
+    F.Free;
   end;
+end;
+
+procedure TXMLConfig.LoadFromStream(S: TStream);
+begin
+  ReadXMLFile(Doc,S);
+  FModified := False;
+  if (Doc.DocumentElement.NodeName<>FRootName) then
+    raise EXMLConfigError.CreateFmt(SWrongRootName,[FRootName,Doc.DocumentElement.NodeName]);
 end;
 
 function TXMLConfig.GetValue(const APath: DOMString; const ADefault: DOMString): DOMString;
@@ -364,24 +401,16 @@ begin
     
   Flush;
   FreeAndNil(Doc);
-    
-  FFilename := AFilename;
-
   if csLoading in ComponentState then
     exit;
-
   if FileExists(AFilename) and not FStartEmpty then
-    ReadXMLFile(Doc, AFilename);
-
-  if not Assigned(Doc) then
+    LoadFromFile(AFilename)
+  else if not Assigned(Doc) then
+    begin
+    FFileName:=AFileName;
     Doc := TXMLDocument.Create;
-
-  if not Assigned(Doc.DocumentElement) then
     Doc.AppendChild(Doc.CreateElement(FRootName))
-  else
-    if Doc.DocumentElement.NodeName <> FRootName then
-      raise EXMLConfigError.Create(SWrongRootName);
-
+    end;
 end;
 
 procedure TXMLConfig.SetFilename(const AFilename: String);

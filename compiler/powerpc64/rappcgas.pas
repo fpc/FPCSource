@@ -39,6 +39,8 @@ type
     procedure ReadAt(oper: tppcoperand);
     procedure ReadSym(oper: tppcoperand);
     procedure ConvertCalljmp(instr: tppcinstruction);
+    function is_targetdirective(const s: string): boolean; override;
+    procedure HandleTargetDirective; override;
   end;
 
 implementation
@@ -47,7 +49,7 @@ uses
   { helpers }
   cutils,
   { global }
-  globtype, verbose,
+  globtype, globals, verbose,
   systems,
   { aasm }
   cpubase, aasmbase, aasmtai,aasmdata, aasmcpu,
@@ -763,15 +765,53 @@ begin
     if (instr.Operands[1].opr.ref.base<>NR_NO) or
       (instr.Operands[1].opr.ref.index<>NR_NO) then
       Message(asmr_e_syn_operand);
-    if (target_info.system in systems_dotted_function_names) and
+    if use_dotted_functions and
        assigned(instr.Operands[1].opr.ref.symbol) then
       instr.Operands[1].opr.ref.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.ref.symbol.name,instr.Operands[1].opr.ref.symbol.bind,AT_FUNCTION);
   end;
-  if (target_info.system in systems_dotted_function_names) and
+  if use_dotted_functions and
      (instr.Operands[1].opr.typ = OPR_SYMBOL) and
      (instr.Operands[1].opr.symbol.typ=AT_FUNCTION) then
     instr.Operands[1].opr.symbol:=current_asmdata.DefineAsmSymbol('.'+instr.Operands[1].opr.symbol.name,instr.Operands[1].opr.symbol.bind,AT_FUNCTION);
 end;
+
+function tppcattreader.is_targetdirective(const s: string): boolean;
+  begin
+    if (target_info.abi=abi_powerpc_elfv2) and
+       (s='.localentry') then
+      result:=true
+    else
+      result:=inherited;
+  end;
+
+procedure tppcattreader.HandleTargetDirective;
+  var
+    symname,
+    symval  : String;
+    val     : aint;
+    symtyp  : TAsmsymtype;
+  begin
+    if (target_info.abi=abi_powerpc_elfv2) and
+       (actasmpattern='.localentry') then
+      begin
+        { .localentry funcname, .-funcname }
+        consume(AS_TARGET_DIRECTIVE);
+        BuildConstSymbolExpression(true,false,false, val,symname,symtyp);
+        Consume(AS_COMMA);
+        { we need a '.', but these are parsed as identifiers -> if the current
+          pattern is different from a '.' try to consume AS_DOT so we'll get
+          the correct error message, otherwise consume this '.' identifier }
+        if actasmpattern<>'.' then
+          Consume(AS_DOT)
+        else
+          Consume(AS_ID);
+        Consume(AS_MINUS);
+        BuildConstSymbolExpression(true,false,false, val,symval,symtyp);
+        curList.concat(tai_symbolpair.create(spk_localentry,symname,symval));
+      end
+    else
+      inherited;
+  end;
 
 procedure tppcattreader.handleopcode;
 var

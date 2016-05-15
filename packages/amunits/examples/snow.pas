@@ -23,7 +23,7 @@ takes a long time, and frankly doesn't look as good as level 5.  }
 }
 
 
-uses exec,intuition,graphics,utility,systemvartags;
+uses exec,intuition,agraphics,utility;
 
 
 
@@ -114,10 +114,10 @@ begin
     nc := readcycles();
     initarrays;
 
-    s := OpenScreenTags(nil, [SA_Pens,   @pens,
+    s := OpenScreenTags(nil, [SA_Pens,   AsTag(@pens),
       SA_Depth,     2,
       SA_DisplayID, HIRES_KEY,
-      SA_Title,     'Simple Fractal SnowFlakes',
+      SA_Title,     AsTag('Simple Fractal SnowFlakes'),
       TAG_END]);
 
     if s = NIL then CleanUp('No screen',20);
@@ -134,8 +134,8 @@ begin
          WA_ReportMouse,  ltrue,
          WA_SmartRefresh, ltrue,
          WA_Activate,     ltrue,
-         WA_Title,        'Close the Window to Quit',
-         WA_CustomScreen, s,
+         WA_Title,        AsTag('Close the Window to Quit'),
+         WA_CustomScreen, AsTag(s),
          TAG_END]);
 
     if w = nil then CleanUp('No window',20);
@@ -145,7 +145,7 @@ begin
         for n := 0 to nc do
             sn[n] := 0;
 
-        Move(rp, trunc(x), trunc(y));
+        GfxMove(rp, trunc(x), trunc(y));
 
         repeat
             d := 0;

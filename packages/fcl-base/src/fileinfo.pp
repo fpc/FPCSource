@@ -194,7 +194,8 @@ begin
     Inc(I);
     end;
   // This will read the info.
-  FVersionInfo.FixedInfo;
+  if assigned(FVersionInfo) then
+    FVersionInfo.FixedInfo;
 end;
 
 procedure TVersionInfo.Load(Const Instance: THandle);

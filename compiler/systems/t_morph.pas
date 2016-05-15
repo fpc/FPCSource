@@ -31,7 +31,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutl,cclasses,rescmn,comprsrc,
        globtype,globals,systems,verbose,script,fmodule,i_morph,link;
 
     type
@@ -53,17 +53,12 @@ implementation
 
 Constructor TLinkerMorphOS.Create;
 begin
+  UseVLink:=(cs_link_vlink in current_settings.globalswitches);
+
   Inherited Create;
   { allow duplicated libs (PM) }
   SharedLibFiles.doubles:=true;
   StaticLibFiles.doubles:=true;
-  { TODO: always use vlink on MorphOS for now, but allow ld for cross compiling,
-    we need a command line switch to switch between vlink and ld later. (KB) }
-{$IFDEF MORPHOS}
-  UseVLink:=true;
-{$ELSE}
-  UseVLink:=(cs_link_on_target in current_settings.globalswitches);
-{$ENDIF}
 end;
 
 
@@ -78,7 +73,7 @@ begin
      end
     else
      begin
-      ExeCmd[1]:='fpcvlink -b elf32amiga $OPT $STRIP -o $EXE -T $RES';
+      ExeCmd[1]:='vlink -b elf32amiga $OPT $STRIP -o $EXE -T $RES';
      end;
    end;
 end;
@@ -205,13 +200,13 @@ var
   success : boolean;
   StripStr: string[40];
 begin
+  StripStr:='';
 
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename);
 
   if UseVLink then
    begin
-    StripStr:='';
     if (cs_link_strip in current_settings.globalswitches) then
      StripStr:='-s -P __abox__';
    end;
@@ -265,4 +260,5 @@ end;
 initialization
   RegisterLinker(ld_morphos,TLinkerMorphOS);
   RegisterTarget(system_powerpc_morphos_info);
+  RegisterRes(res_elf_info, TWinLikeResourceFile);
 end.

@@ -90,39 +90,39 @@ begin
   FCalcFieldsSize := 0;
   FBlobFieldCount := 0;
   for i := 0 to Fields.Count - 1 do
-    with Fields[i] do begin
+    with Fields[i] do
+      begin
       FFieldDef:=Nil;
-      if Binding then begin
-        if FieldKind in [fkCalculated, fkLookup] then begin
-          FFieldNo := -1;
-          FOffset := FCalcFieldsSize;
-          Inc(FCalcFieldsSize, DataSize + 1);
-          if FieldKind in [fkLookup] then begin
-            if ((FLookupDataSet = nil) or (FLookupKeyFields = '') or
-               (FLookupResultField = '') or (FKeyFields = '')) then
-              DatabaseErrorFmt(SLookupInfoError, [DisplayName]);
-            FFields.CheckFieldNames(FKeyFields);
-            FLookupDataSet.Open;
-            FLookupDataSet.Fields.CheckFieldNames(FLookupKeyFields);
-            FLookupDataSet.FieldByName(FLookupResultField);
-            if FLookupCache then RefreshLookupList;
-          end
-        end else begin
-          FFieldDef := nil;
-          FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
-          if FieldIndex <> -1 then begin
-            FFieldDef := FieldDefs[FieldIndex];
-            FFieldNo := FFieldDef.FieldNo;
-            if FieldDef.InternalCalcField then FInternalCalcFields := True;
-            if IsBlob then begin
-              FSize := FFieldDef.Size;
-              FOffset := FBlobFieldCount;
-              Inc(FBlobFieldCount);
+      if not Binding then
+        FFieldNo := 0
+      else if FieldKind in [fkCalculated, fkLookup] then
+        begin
+        FFieldNo := -1;
+        FOffset := FCalcFieldsSize;
+        Inc(FCalcFieldsSize, DataSize + 1);
+        end
+      else
+        begin
+        FFieldDef := nil;
+        FieldIndex := FieldDefs.IndexOf(Fields[i].FieldName);
+        if FieldIndex = -1 then
+          DatabaseErrorFmt(SFieldNotFound,[Fields[i].FieldName],Self)
+        else
+          begin
+          FFieldDef := FieldDefs[FieldIndex];
+          FFieldNo := FFieldDef.FieldNo;
+          if FieldDef.InternalCalcField then
+            FInternalCalcFields := True;
+          if IsBlob then
+            begin
+            FSize := FFieldDef.Size;
+            FOffset := FBlobFieldCount;
+            Inc(FBlobFieldCount);
             end;
-          end else FFieldNo := 0;
+          end
         end;
-      end else FFieldNo := 0;
-    end;
+      Bind(Binding);
+      end;
 end;
 
 function TDataSet.BookmarkAvailable: Boolean;
@@ -1028,7 +1028,7 @@ end;
 
 procedure TDataSet.InternalPost;
 
-  Procedure Checkrequired;
+  Procedure CheckRequiredFields;
 
   Var I : longint;
 
@@ -1042,7 +1042,7 @@ procedure TDataSet.InternalPost;
   end;
 
 begin
-  Checkrequired;
+  CheckRequiredFields;
 end;
 
 procedure TDataSet.InternalSetToRecord(Buffer: TRecordBuffer);
@@ -2060,9 +2060,9 @@ end;
 procedure TDataSet.Post;
 
 begin
+  UpdateRecord;
   if State in [dsEdit,dsInsert] then
     begin
-    DataEvent(deUpdateRecord,0);
     DataEvent(deCheckBrowseMode,0);
 {$ifdef dsdebug}
     writeln ('Post: checking required fields');
@@ -2083,7 +2083,7 @@ begin
 {$endif}
     DoAfterPost;
     end
-  else
+  else if State<>dsSetKey then
     DatabaseErrorFmt(SNotEditing, [Name], Self);
 end;
 
@@ -2482,3 +2482,30 @@ end;
 
 {------------------------------------------------------------------------------}
 
+operator Enumerator(ADataSet: TDataSet): TDataSetEnumerator;
+begin
+ Result:=TDataSetEnumerator.Create(ADataSet);
+end;
+
+constructor TDataSetEnumerator.Create(ADataSet: TDataSet);
+begin
+  inherited Create;
+  FDataSet:=ADataSet;
+  FBOF:=True;
+  FDataSet.First;
+end;
+
+function TDataSetEnumerator.GetCurrent: TFields;
+begin
+  Result := FDataSet.Fields;
+end;
+
+function TDataSetEnumerator.MoveNext: Boolean;
+
+begin
+  if FBOF then
+    FBOF:=False
+  else
+    FDataSet.Next;
+  Result:=not FDataSet.EOF;
+end;

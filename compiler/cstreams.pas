@@ -132,6 +132,20 @@ var
   CFileStreamClass: TCFileStreamClass = TCFileStream;
 
 type
+  TCRangeStream = class(TCStream)
+  private
+    FBase: TCStream;
+    FOffset: LongInt;
+    FMaxOffset: LongInt;
+    FSize: LongInt;
+    FPosition: LongInt;
+  public
+    constructor Create(ABase: TCStream; AOffset, ASize: LongInt);
+    function Read(var Buffer; Count: LongInt): LongInt; override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
+    function Seek(Offset: LongInt; Origin: Word): LongInt; override;
+  end;
+
 { TCustomMemoryStream abstract class }
 
   TCCustomMemoryStream = class(TCStream)
@@ -466,6 +480,92 @@ begin
   EOF:=system.eof(FHandle);
 end;
 
+
+{****************************************************************************}
+{*                             TCRangeStream                                *}
+{****************************************************************************}
+
+
+constructor TCRangeStream.Create(ABase: TCStream; AOffset, ASize: LongInt);
+begin
+  if not assigned(ABase) then
+    CStreamError:=155
+  else
+    { we allow to be positioned directly at the end for appending }
+    if (AOffset<0) or (AOffset>ABase.Size) then
+      CStreamError:=156
+    else
+      begin
+        FBase:=ABase;
+        FOffset:=AOffset;
+        if ASize<0 then
+          FSize:=maxLongint-FOffset
+        else
+          FSize:=ASize;
+        FMaxOffset:=FOffset+FSize-1;
+      end;
+end;
+
+
+function TCRangeStream.Read(var Buffer; Count: LongInt): LongInt;
+begin
+  Count:=Min(Count,FMaxOffset-FPosition+1);
+  if Count>0 then
+    begin
+      FBase.Seek(FOffset+FPosition,soFromBeginning);
+      result:=FBase.Read(Buffer,Count);
+    end
+  else
+    result:=0;
+  FPosition:=FPosition+result;
+end;
+
+
+function TCRangeStream.Write(const Buffer; Count: LongInt): LongInt;
+begin
+  Count:=Min(Count,FMaxOffset-FPosition+1);
+  if Count>0 then
+    begin
+      FBase.Seek(FOffset+FPosition,soFromBeginning);
+      result:=FBase.Write(Buffer,Count);
+    end
+  else
+    result:=0;
+  FPosition:=FPosition+result;
+end;
+
+
+function TCRangeStream.Seek(Offset: LongInt; Origin: Word): LongInt;
+begin
+  case Origin of
+    soFromBeginning:
+      begin
+        if Offset>FMaxOffset then
+          CStreamError:=156
+        else
+          FPosition:=FBase.Seek(FOffset+Offset,soFromBeginning)-FOffset;
+      end;
+    soFromCurrent:
+      begin
+        if Offset>FMaxOffset then
+          CStreamError:=156
+        else
+          FPosition:=FBase.Seek(FOffset+FPosition+Offset,soFromBeginning)-FOffset;
+      end;
+    soFromEnd:
+      begin
+        if Offset>FSize-1 then
+          CStreamError:=156
+        else
+          FPosition:=FBase.Seek(FMaxOffset-Offset,soFromBeginning)-FOffset;
+      end;
+    else
+      begin
+        CStreamError:=156;
+      end;
+  end;
+  Result:=FPosition;
+end;
 
 {****************************************************************************}
 {*                             TCustomMemoryStream                          *}

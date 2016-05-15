@@ -16,8 +16,8 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
-    P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd];
+    P.Version:='3.1.1';
+    P.OSes := [beos,haiku,linux,freebsd,solaris,netbsd,openbsd,dragonfly];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('svgalib.pp');
@@ -28,7 +28,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testvga.pp');
     P.Targets.AddExampleProgram('vgatest.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

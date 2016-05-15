@@ -77,6 +77,10 @@ const calculated_cmdline:Pchar=nil;
 
 {$I system.inc}
 
+{$ifdef android}
+{$I sysandroid.inc}
+{$endif android}
+
 {*****************************************************************************
                        Misc. System Dependent Functions
 *****************************************************************************}
@@ -368,7 +372,8 @@ begin
   InOutRes:=0;
   { threading }
   InitSystemThreads;
-  initvariantmanager;
+  { dynamic libraries }
+  InitSystemDynLibs;
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

@@ -16,7 +16,7 @@
 program mkspc32reg;
 
 const Version = '1.00';
-      max_regcount = 200;
+      max_regcount = 16;
 
 var s : string;
     i : longint;

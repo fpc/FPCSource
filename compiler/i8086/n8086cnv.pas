@@ -34,6 +34,7 @@ interface
 
        t8086typeconvnode = class(tx86typeconvnode)
        protected
+         function typecheck_int_to_int: tnode;override;
          function typecheck_proc_to_procvar: tnode;override;
          procedure second_proc_to_procvar;override;
        end;
@@ -46,10 +47,21 @@ implementation
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symconst,symdef,symcpu,
       cgbase,cga,procinfo,pass_1,pass_2,
-      ncon,ncal,ncnv,
+      ncon,ncal,ncnv,nmem,n8086mem,
       cpubase,cpuinfo,
       cgutils,cgobj,hlcgobj,cgx86,ncgutil,
       tgobj;
+
+    function t8086typeconvnode.typecheck_int_to_int: tnode;
+      begin
+        Result:=inherited typecheck_int_to_int;
+        if (is_16bitint(totypedef) or is_8bitint(totypedef)) and (left.nodetype=addrn) then
+          begin
+            if left.nodetype=addrn then
+              ti8086addrnode(left).get_offset_only:=true;
+          end;
+      end;
+
 
     function t8086typeconvnode.typecheck_proc_to_procvar: tnode;
       begin

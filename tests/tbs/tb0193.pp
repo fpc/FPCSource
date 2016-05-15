@@ -1,4 +1,4 @@
-{ %skiptarget=win32,win64 }
+{ %skiptarget=win32,win64,android }
 { %OPT=-Cg- }
 { Old file: tbs0227.pp }
 { external var does strange things when declared in localsymtable OK 0.99.11 (PFV) }
@@ -57,6 +57,12 @@ end;
  end;
 {$define implemented}
 {$endif cpumips}
+{$ifdef cpuaarch64}
+  adrp x0,stacksize@PAGE
+  ldr  x0,[x0,stacksize@PAGEOFF]
+end;
+{$define implemented}   
+{$endif cpuaarch64}
 {$ifndef implemented}
  {$error This test does not supported this CPU}
 end;

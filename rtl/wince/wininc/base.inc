@@ -159,7 +159,7 @@
 
      LP     = ^word;
      LPBOOL = ^WINBOOL;      //windef
-     LPBYTE = ^BYTE;         //windef
+     LPBYTE = System.pbyte;         //windef
      LPCCH  = PCHAR;         //winnt
      LPCH   = PCHAR;         //winnt
 
@@ -175,7 +175,7 @@
      LPCWCH  = Pwidechar;   //winnt
      LPCWSTR = Pwidechar;   //winnt
 
-     LPDWORD = ^DWORD;      //windef
+     LPDWORD = system.pdword;      //windef
 
      LPHANDLE = ^HANDLE;    //windef
      LPINT  = ^longint;     //windef
@@ -197,7 +197,7 @@
      LPCVOID = pointer;     //windef
 
      LPWCH  = Pwidechar;
-     LPWORD = ^word;        //windef
+     LPWORD = system.pword;        //windef
      LPWSTR = Pwidechar;    //winnt
 
      //

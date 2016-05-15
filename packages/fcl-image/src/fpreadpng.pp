@@ -87,6 +87,7 @@ Type
       function DecideSetPixel : TSetPixelProc; virtual;
       procedure InternalRead  (Str:TStream; Img:TFPCustomImage); override;
       function  InternalCheck (Str:TStream) : boolean; override;
+      class function InternalSize(Str:TStream): TPoint; override;
       //property ColorFormat : TColorformat read CFmt;
       property ConvertColor : TConvertColorProc read FConvertColor;
       property CurrentPass : byte read FCurrentPass;
@@ -403,20 +404,24 @@ end;
 function TFPReaderPNG.CalcColor: TColorData;
 var cd : longword;
     r : word;
-    b : byte;
-    tmp : pbytearray;
+    b : pbyte;
 begin
   if UsingBitGroup = 0 then
     begin
     Databytes := 0;
     if Header.BitDepth = 16 then
       begin
-       getmem(tmp, bytewidth);
-       fillchar(tmp^, bytewidth, 0);
-       for r:=0 to bytewidth-2 do
-        tmp^[r+1]:=FCurrentLine^[Dataindex+r];
-       move (tmp^[0], Databytes, bytewidth);
-       freemem(tmp);
+        b := @Databytes;
+        b^ := 0;
+        r := 0;
+        while (r < ByteWidth-1) do
+        begin
+          b^ := FCurrentLine^[DataIndex+r+1];
+          inc (b);
+          b^ := FCurrentLine^[DataIndex+r];
+          inc (b);
+          inc (r,2);
+        end;
       end
     else move (FCurrentLine^[DataIndex], Databytes, bytewidth);
     {$IFDEF ENDIAN_BIG}
@@ -534,13 +539,21 @@ end;
 function TFPReaderPNG.ColorGrayAlpha16 (CD:TColorData) : TFPColor;
 var c : word;
 begin
+  {$ifdef FPC_LITTLE_ENDIAN}
+  c := CD and $FFFF;
+  {$else}
   c := (CD shr 16) and $FFFF;
+  {$endif}
   with result do
     begin
     red := c;
     green := c;
     blue := c;
+  {$ifdef FPC_LITTLE_ENDIAN}
+    alpha := (CD shr 16) and $FFFF;
+  {$else}
     alpha := CD and $FFFF;
+  {$endif}
     end;
 end;
 
@@ -824,6 +837,41 @@ begin
   end;
 end;
 
+class function TFPReaderPNG.InternalSize(Str: TStream): TPoint;
+var
+  SigCheck: array[0..7] of byte;
+  r: Integer;
+  Width, Height: Word;
+  StartPos: Int64;
+begin
+  Result.X := 0;
+  Result.Y := 0;
+
+  StartPos := Str.Position;
+  // Check Signature
+  Str.Read(SigCheck, SizeOf(SigCheck));
+  for r := Low(SigCheck) to High(SigCheck) do
+  begin
+    If SigCheck[r] <> Signature[r] then
+      Exit;
+  end;
+  if not(
+        (Str.Seek(10, soFromCurrent)=StartPos+18)
+    and (Str.Read(Width, 2)=2)
+    and (Str.Seek(2, soFromCurrent)=StartPos+22)
+    and (Str.Read(Height, 2)=2))
+  then
+    Exit;
+
+  {$IFDEF ENDIAN_LITTLE}
+  Width := Swap(Width);
+  Height := Swap(Height);
+  {$ENDIF}
+
+  Result.X := Width;
+  Result.Y := Height;
+end;
+
 function  TFPReaderPNG.InternalCheck (Str:TStream) : boolean;
 var SigCheck : array[0..7] of byte;
     r : integer;
@@ -834,7 +882,7 @@ begin
     for r := 0 to 7 do
     begin
       If SigCheck[r] <> Signature[r] then
-        raise PNGImageException.Create('This is not PNG-data');
+        Exit(false);
     end;
     // Check IHDR
     ReadChunk;

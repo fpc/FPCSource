@@ -101,6 +101,19 @@ Resourcestring
   SLogCompilerCfgGlobalPrefix     = ' GlobalPrefix:     "%s" -> "%s"';
   SLogCompilerCfgLocalPrefix      = ' LocalPrefix:      "%s" -> "%s"';
 
+  SLogPackageInfoName             = 'Package:        %s';
+  SLogPackageInfoVersion          = 'Version:        %s';
+  SLogPackageInfoAuthor           = 'Author:         %s %s';
+  SLogPackageInfoCategory         = 'Category:       %s';
+  SLogPackageInfoLicense          = 'License:        %s';
+  SLogPackageInfoWebsite          = 'Website:        %s';
+  SLogPackageInfoOSes             = 'Supported OSes: %s';
+  SLogPackageInfoCPUs             = 'Supported CPUs: %s';
+  SLogPackageInfoDescription1     = 'Description:';
+  SLogPackageInfoDescription2     = '%s';
+  SLogPackageInfoDependencies1    = 'Dependencies:';
+  SLogPackageInfoDependencies2    = '  %s %s';
+
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
   SDbgDirectoryExists        = 'Directory "%s" %s';

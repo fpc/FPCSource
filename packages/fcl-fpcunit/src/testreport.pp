@@ -186,33 +186,59 @@ var
 begin
   Result := StringOfChar(' ',Indent) + '<TestSuite name="' + ASuite.TestName + '">' + System.sLineBreak;
   Inc(Indent, 2);
-  for i := 0 to aSuite.Tests.Count - 1 do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Tests.Items[i]),Indent)
+  for i := 0 to aSuite.ChildTestCount - 1 do
+    if TTest(aSuite.Test[i]) is TTestSuite then
+      Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Test[i]),Indent)
     else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result + StringOfChar(' ',Indent) + '<test>' + TTestcase(aSuite.Tests.Items[i]).TestName + '</test>' + System.sLineBreak;
+      if TTest(aSuite.Test[i]) is TTestCase then
+        Result := Result + StringOfChar(' ',Indent) + '<test>' + TTestcase(aSuite.Test[i]).TestName + '</test>' + System.sLineBreak;
   Dec(Indent, 2);
   Result := Result + StringOfChar(' ',Indent) + '</TestSuite>' + System.sLineBreak;
 end;
 
+function EscapeText(const S: string): String;
+var
+  i: integer;
+begin
+  SetLength(Result, 0);
+    for i := 1 to Length(S) do
+      case S[i] of
+        '&','{','}','#','_','$','%':     // Escape these characters
+          Result := Result + '\' + S[i];
+        '~','^':
+          Result := Result + '\'+S[i]+' ';
+        '\':
+          Result := Result + '$\backslash$';
+        '<':
+          Result := Result + '$<$';
+        '>':
+          Result := Result + '$>$'
+        else
+          Result := Result + S[i];
+      end;
+end;
 
 function TestSuiteAsLatex(aSuite:TTestSuite): string;
 var
   i,j: integer;
   s: TTestSuite;
 begin
-  Result := '\flushleft' + System.sLineBreak;
-  for i := 0 to aSuite.Tests.Count - 1 do
-  begin
-    s := TTestSuite(ASuite.Tests.Items[i]);
-    Result := Result + s.TestSuiteName + System.sLineBreak;
-    Result := Result + '\begin{itemize}'+ System.sLineBreak;
-    for j := 0 to s.Tests.Count - 1 do
-      if TTest(s.Tests.Items[j]) is TTestCase then
-        Result := Result + '\item[-] ' + TTestcase(s.Tests.Items[j]).TestName  + System.sLineBreak;
-    Result := Result +'\end{itemize}' + System.sLineBreak;
-  end;
+  Result := EscapeText(aSuite.TestSuiteName) + System.sLineBreak;
+  Result := Result + '\begin{itemize}'+ System.sLineBreak;
+  for i := 0 to aSuite.ChildTestCount - 1 do
+    if ASuite.Test[i] is TTestSuite then
+      begin
+      Result:=Result + '\item[-] ';
+      Result := Result + '\flushleft' + System.sLineBreak;
+      Result:=Result+TestSuiteAsLatex(TTestSuite(ASuite.Test[i]))+System.sLineBreak;
+      end
+    else   
+      begin
+      Result := Result + '\item[-] ' + 
+               EscapeText(TTestcase(aSuite.Test[i]).TestName)
+               + System.sLineBreak;
+      end;    
+  Result := Result +'\end{itemize}' + System.sLineBreak;
 end;
 
 function TestSuiteAsPlain(aSuite:TTestSuite): string;
@@ -220,12 +246,12 @@ var
   i,j: integer;
   s: TTestSuite;
 begin
-  for i := 0 to aSuite.Tests.Count - 1 do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsPlain(TTestSuite(aSuite.Tests.Items[i]))
+  for i := 0 to aSuite.ChildTestCount - 1 do
+    if TTest(aSuite.Test[i]) is TTestSuite then
+      Result := Result + TestSuiteAsPlain(TTestSuite(aSuite.Test[i]))
     else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result + '  ' + ASuite.TestName+'.' + TTestcase(aSuite.Tests.Items[i]).TestName + System.sLineBreak;
+      if TTest(aSuite.Test[i]) is TTestCase then
+        Result := Result + '  ' + ASuite.TestName+'.' + TTestcase(aSuite.Test[i]).TestName + System.sLineBreak;
 end;
 
 function GetSuiteAsXML(aSuite: TTestSuite): string;

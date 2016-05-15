@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-registry');
+    P.ShortName:='fclr';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
 
@@ -26,7 +27,7 @@ begin
     P.Email := '';
     P.Description := 'Windows registry + emulation parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -34,7 +35,8 @@ begin
       with T.Dependencies do
         begin
           AddInclude('regdef.inc');
-          AddInclude('xregreg.inc');
+          AddInclude('winreg.inc',AllWindowsOSes);
+          AddInclude('xregreg.inc',AllOSes-AllWindowsOSes);
           AddInclude('regini.inc');
           AddUnit('xmlreg');
         end;

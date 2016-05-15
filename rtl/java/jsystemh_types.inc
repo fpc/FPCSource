@@ -507,7 +507,8 @@ Type
   { the size of textrec/filerec is hardcoded in the 2.6 compiler binary }
   {$define FPC_ANSI_TEXTFILEREC}
 {$endif}
-  TFileTextRecChar    = {$ifdef FPC_ANSI_TEXTFILEREC}AnsiChar{$else}UnicodeChar{$endif};
+
+  TFileTextRecChar    = {$if defined(FPC_ANSI_TEXTFILEREC) or not(defined(FPC_HAS_FEATURE_WIDESTRINGS))}AnsiChar{$else}UnicodeChar{$endif};
   PFileTextRecChar    = ^TFileTextRecChar;
 
   TTextLineBreakStyle = (tlbsLF,tlbsCRLF,tlbsCR);
@@ -539,9 +540,14 @@ type
   TEntryInformation = record
     InitFinalTable : Pointer;
     ThreadvarTablesTable : Pointer;
-    asm_exit : Procedure;stdcall;
-    PascalMain : Procedure;stdcall;
+    ResourceStringTables : Pointer;
+    ResStrInitTables : Pointer;
+    ResLocation : Pointer;
+    PascalMain : Procedure;
     valgrind_used : boolean;
+    {$ifdef HAS_ENTRYINFORMATION_OS}
+    OS : TEntryInformationOS;
+    {$endif HAS_ENTRYINFORMATION_OS}
   end;
 *)
 
@@ -703,6 +709,8 @@ Var
   { Stack checking }
   StackBottom : Pointer;
   StackLength : SizeUInt;
+
+function StackTop: Pointer;
 *)
 
 { Numbers for routines that have compiler magic }

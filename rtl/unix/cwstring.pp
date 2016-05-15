@@ -90,7 +90,7 @@ function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib n
 {$else}
 function setlocale(category: cint; locale: pchar): pchar; cdecl; external clib name 'setlocale';
 {$endif}
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
 function mbrtowc(pwc: pwchar_t; const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrtowc';
 function wcrtomb(s: pchar; wc: wchar_t; ps: pmbstate_t): size_t; cdecl; external clib name 'wcrtomb';
 function mbrlen(const s: pchar; n: size_t; ps: pmbstate_t): size_t; cdecl; external clib name 'mbrlen';
@@ -122,11 +122,12 @@ const
   CODESET=49;
   LC_ALL = 6;
 {$elseif defined(beos)}
-  {$warning check correct value for BeOS}
-  CODESET=49;
   {$ifdef haiku}
+  CODESET= 0; // Checked for Haiku
   LC_ALL = 0; // Checked for Haiku
   {$else}
+  {$warning check correct value for BeOS}
+  CODESET=49;
   LC_ALL = 6; // Checked for BeOS
   {$endif}
   ESysEILSEQ = EILSEQ;
@@ -141,6 +142,12 @@ const
 {$elseif defined(aix)}
   CODESET = 49;
   LC_ALL = -1;
+{$elseif defined(dragonfly)}
+  CODESET = 0;
+  LC_ALL = 0;
+  __LC_CTYPE = 0;
+  _NL_CTYPE_CLASS = (__LC_CTYPE shl 16);
+  _NL_CTYPE_CODESET_NAME = (_NL_CTYPE_CLASS)+14;
 {$else not aix}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
 // and while doing it, check if iconv is in libc, and if the symbols are prefixed with iconv_ or libiconv_
@@ -223,12 +230,12 @@ procedure InitThread;
 var
   transliterate: cint;
   iconvindex: longint;
-{$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
+{$if not(defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) and not defined(iphonesim)}
   iconvname: rawbytestring;
 {$endif}
 begin
   current_DefaultSystemCodePage:=DefaultSystemCodePage;
-{$if not(defined(darwin) and defined(cpuarm)) and not defined(iphonesim)}
+{$if not(defined(darwin) and (defined(cpuarm) or defined(cpuaarch64))) and not defined(iphonesim)}
   iconvindex:=GetCodepageData(DefaultSystemCodePage);
   if iconvindex<>-1 then
     iconvname:=UnixCpMap[iconvindex].name
@@ -556,7 +563,7 @@ end;
 
 
 { concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
 procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt; var mbstate: mbstate_t);
 {$else not beos}
 procedure ConcatUTF32ToAnsiStr(const nc: wint_t; var S: AnsiString; var index: SizeInt);
@@ -572,7 +579,7 @@ begin
   else
     begin
       EnsureAnsiLen(s,index+MB_CUR_MAX);
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
       mblen:=wcrtomb(p,wchar_t(nc),@mbstate);
 {$else not beos}
       mblen:=wctomb(p,wchar_t(nc));
@@ -594,13 +601,13 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
     i, slen,
     resindex : SizeInt;
     mblen    : size_t;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     ombstate,
     nmbstate : mbstate_t;
 {$endif beos}
     wc       : wchar_t;
   begin
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     fillchar(ombstate,sizeof(ombstate),0);
     fillchar(nmbstate,sizeof(nmbstate),0);
 {$endif beos}
@@ -616,7 +623,7 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
             mblen:= 1;
           end
         else
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
           mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
@@ -643,7 +650,7 @@ function LowerAnsiString(const s : AnsiString) : AnsiString;
               { even if mblen = 1, the lowercase version may have a }
               { different length                                     }
               { We can't do anything special if wchar_t is 16 bit... }
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
               ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
               ConcatUTF32ToAnsiStr(towlower(wint_t(wc)),result,resindex);
@@ -661,13 +668,13 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
     i, slen,
     resindex : SizeInt;
     mblen    : size_t;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     ombstate,
     nmbstate : mbstate_t;
 {$endif beos}
     wc       : wchar_t;
   begin
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     fillchar(ombstate,sizeof(ombstate),0);
     fillchar(nmbstate,sizeof(nmbstate),0);
 {$endif beos}
@@ -683,7 +690,7 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
             mblen:= 1;
           end
         else
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
           mblen:=mbrtowc(@wc, pchar(@s[i]), slen-i+1, @ombstate);
 {$else not beos}
           mblen:=mbtowc(@wc, pchar(@s[i]), slen-i+1);
@@ -710,7 +717,7 @@ function UpperAnsiString(const s : AnsiString) : AnsiString;
               { even if mblen = 1, the uppercase version may have a }
               { different length                                     }
               { We can't do anything special if wchar_t is 16 bit... }
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
               ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex,nmbstate);
 {$else not beos}
               ConcatUTF32ToAnsiStr(towupper(wint_t(wc)),result,resindex);
@@ -759,36 +766,59 @@ function WideStringToUCS4StringNoNulls(const s : WideString) : UCS4String;
   end;
 
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 {$if not(defined (aix) and defined(cpupowerpc32))}
   var
     hs1,hs2 : UCS4String;
+    us1,us2 : WideString;
+    
   begin
     { wcscoll interprets null chars as end-of-string -> filter out }
-    hs1:=WideStringToUCS4StringNoNulls(s1);
-    hs2:=WideStringToUCS4StringNoNulls(s2);
+    if coIgnoreCase in Options then
+      begin
+      us1:=UpperWideString(s1);
+      us2:=UpperWideString(s2);
+      end     
+    else      
+      begin   
+      us1:=s1;
+      us2:=s2;
+      end;  
+    hs1:=WideStringToUCS4StringNoNulls(us1);
+    hs2:=WideStringToUCS4StringNoNulls(us2);
     result:=wcscoll(pwchar_t(hs1),pwchar_t(hs2));
   end;
 {$else}
   { AIX/PPC32 has a 16 bit wchar_t }
   var
     i, len: longint;
+    us1,us2 : WideString;
     hs1, hs2: array of widechar;
   begin
-    len:=length(s1);
+    if coIgnoreCase in Options then
+      begin
+      us1:=UpperWideString(s1);
+      us2:=UpperWideString(s2);
+      end
+    else
+      begin
+      us1:=s1;
+      us2:=s2;
+      end;  
+    len:=length(us1);
     setlength(hs1,len+1);
     for i:=1 to len do
-      if s1[i]<>#0 then
-        hs1[i-1]:=s1[i]
+      if us1[i]<>#0 then
+        hs1[i-1]:=us1[i]
       else
         hs1[i-1]:=#32;
     hs1[len]:=#0;
 
-    len:=length(s2);
+    len:=length(us2);
     setlength(hs2,len+1);
     for i:=1 to len do
-      if s2[i]<>#0 then
-        hs2[i-1]:=s2[i]
+      if us2[i]<>#0 then
+        hs2[i-1]:=us2[i]
       else
         hs2[i-1]:=#32;
     hs2[len]:=#0;
@@ -797,47 +827,46 @@ function CompareWideString(const s1, s2 : WideString) : PtrInt;
 {$endif}
 
 
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-  begin
-    result:=CompareWideString(UpperWideString(s1),UpperWideString(s2));
-  end;
 
-
+{ return value: number of code points in the string. Whenever an invalid
+  code point is encountered, all characters part of this invalid code point
+  are considered to form one "character" and the next character is
+  considered to be the start of a new (possibly also invalid) code point }
 function CharLengthPChar(const Str: PChar): PtrInt;
   var
     nextlen: ptrint;
     s: pchar;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     mbstate: mbstate_t;
 {$endif not beos}
   begin
     result:=0;
     s:=str;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
     fillchar(mbstate,sizeof(mbstate),0);
 {$endif not beos}
     repeat
-{$ifdef beos}
-      nextlen:=ptrint(mblen(str,MB_CUR_MAX));
+{$if defined(beos) and not defined(haiku)}
+      nextlen:=ptrint(mblen(s,MB_CUR_MAX));
 {$else beos}
-      nextlen:=ptrint(mbrlen(str,MB_CUR_MAX,@mbstate));
+      nextlen:=ptrint(mbrlen(s,MB_CUR_MAX,@mbstate));
 {$endif beos}
       { skip invalid/incomplete sequences }
       if (nextlen<0) then
         nextlen:=1;
-      inc(result,nextlen);
+      inc(result,1);
       inc(s,nextlen);
     until (nextlen=0);
   end;
 
 
 function CodePointLength(const Str: PChar; maxlookahead: ptrint): PtrInt;
-{$ifndef beos}
+{$if not(defined(beos) and not defined(haiku))}
   var
     mbstate: mbstate_t;
 {$endif not beos}
   begin
-{$ifdef beos}
+{$if defined(beos) and not defined(haiku)}
     result:=ptrint(mblen(str,maxlookahead));
 {$else beos}
     fillchar(mbstate,sizeof(mbstate),0);
@@ -987,6 +1016,18 @@ begin
   ansi2pchar(temp,str,result);
 end;
 
+
+function envvarset(const varname: pchar): boolean;
+var
+  varval: pchar;
+begin
+  varval:=fpgetenv(varname);
+  result:=
+    assigned(varval) and
+    (varval[0]<>#0);
+end;
+
+
 function GetStandardCodePage(const stdcp: TStandardCodePageEnum): TSystemCodePage;
 var
   langinfo: pchar;
@@ -998,15 +1039,25 @@ begin
       exit;
     end;
 {$endif}
-  langinfo:=nl_langinfo(CODESET);
-  { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
-    that causes it to return an empty string of UTF-8 locales
-    -> patch up (and in general, UTF-8 is a good default on
-    Unix platforms) }
-  if not assigned(langinfo) or
-     (langinfo^=#0) then
-    langinfo:='UTF-8';
-  Result := GetCodepageByName(ansistring(langinfo));
+  { if none of the relevant LC_* environment variables are set, fall back to
+    UTF-8 (this happens under some versions of OS X for GUI applications, which
+    otherwise get CP_ASCII) }
+  if envvarset('LC_ALL') or
+     envvarset('LC_CTYPE') or
+     envvarset('LANG') then
+    begin
+      langinfo:=nl_langinfo(CODESET);
+      { there's a bug in the Mac OS X 10.5 libc (based on FreeBSD's)
+        that causes it to return an empty string of UTF-8 locales
+        -> patch up (and in general, UTF-8 is a good default on
+        Unix platforms) }
+      if not assigned(langinfo) or
+         (langinfo^=#0) then
+        langinfo:='UTF-8';
+      Result:=GetCodepageByName(ansistring(langinfo));
+    end
+  else
+    Result:=unixcp.GetSystemCodepage;
 end;
 
 {$ifdef FPC_HAS_CPSTRING}
@@ -1047,7 +1098,7 @@ begin
       LowerWideStringProc:=@LowerWideString;
 
       CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
+//      CompareTextWideStringProc:=@CompareTextWideString;
 
       CharLengthPCharProc:=@CharLengthPChar;
       CodePointLengthProc:=@CodePointLength;
@@ -1070,7 +1121,6 @@ begin
       UpperUnicodeStringProc:=@UpperWideString;
       LowerUnicodeStringProc:=@LowerWideString;
       CompareUnicodeStringProc:=@CompareWideString;
-      CompareTextUnicodeStringProc:=@CompareTextWideString;
       { CodePage }
       GetStandardCodePageProc:=@GetStandardCodePage;
     end;

@@ -82,7 +82,7 @@ implementation
     aasmbase,aasmtai,aasmcpu,cpubase,
     cgbase,cgobj,cgutils,ogbase,ncgutil,
     comprsrc,
-    ogelf,
+    ogelf,owar,
     rescmn, i_linux
     ;
 
@@ -124,35 +124,44 @@ implementation
 procedure SetupLibrarySearchPath;
 begin
   if not Dontlinkstdlibpath Then
+    begin
 {$ifdef x86_64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
 {$else}
 {$ifdef powerpc64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+      if target_info.abi<>abi_powerpc_elfv2 then
+        LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib64;/usr/X11R6/lib64',true)
+      else
+        LibrarySearchPath.AddPath(sysrootpath,'/lib64;/usr/lib/powerpc64le-linux-gnu;/usr/X11R6/powerpc64le-linux-gnu',true);
 {$else powerpc64}
-    LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib',true);
 {$endif powerpc64}
 {$endif x86_64}
 
 {$ifdef arm}
   { some newer Debian have the crt*.o files at uncommon locations,
     for other arm flavours, this cannot hurt }
-  if not Dontlinkstdlibpath Then
 {$ifdef FPC_ARMHF}
-    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabihf',true);
 {$endif FPC_ARMHF}
 {$ifdef FPC_ARMEL}
-    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/arm-linux-gnueabi',true);
 {$endif}
 {$endif arm}
 {$ifdef x86_64}
-    LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/x86_64-linux-gnu',true);
 {$endif x86_64}
+{$ifdef i386}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/i386-linux-gnu',true);
+{$endif i386}
+{$ifdef aarch64}
+      LibrarySearchPath.AddPath(sysrootpath,'/usr/lib/aarch64-linux-gnu',true);
+{$endif aarch64}
+    end;
 end;
 
 {$ifdef m68k}
-  { experimental, is this correct? }
-  const defdynlinker='/lib/ld-linux.so.2';
+  const defdynlinker='/lib/ld.so.1';
 {$endif m68k}
 
 {$ifdef i386}
@@ -172,7 +181,9 @@ end;
 {$endif powerpc}
 
 {$ifdef powerpc64}
-  const defdynlinker='/lib64/ld64.so.1';
+  const defdynlinkerv1='/lib64/ld64.so.1';
+  const defdynlinkerv2='/lib64/ld64.so.2';
+  var defdynlinker: string;
 {$endif powerpc64}
 
 {$ifdef arm}
@@ -187,12 +198,23 @@ end;
 {$endif FPC_ARMHF}
 {$endif arm}
 
+{$ifdef aarch64}
+const defdynlinker='/lib/ld-linux-aarch64.so.1';
+{$endif aarch64}
+
 {$ifdef mips}
   const defdynlinker='/lib/ld.so.1';
 {$endif mips}
 
 procedure SetupDynlinker(out DynamicLinker:string;out libctype:TLibcType);
 begin
+{$ifdef powerpc64}
+  if defdynlinker='' then
+    if target_info.abi=abi_powerpc_sysv then
+      defdynlinker:=defdynlinkerv1
+    else
+      defdynlinker:=defdynlinkerv2;
+{$endif powerpc64}
   {
     Search order:
     glibc 2.1+
@@ -274,9 +296,10 @@ const
 {$ifdef i386}      platform_select='-b elf32-i386 -m elf_i386';{$endif}
 {$ifdef x86_64}    platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
 {$ifdef powerpc}   platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
-{$ifdef POWERPC64} platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
+{$ifdef POWERPC64} platform_select='';{$endif}
 {$ifdef sparc}     platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
 {$ifdef arm}       platform_select='';{$endif} {unknown :( }
+{$ifdef aarch64}   platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}      platform_select='';{$endif} {unknown :( }
 {$ifdef mips}
   {$ifdef mipsel}  
@@ -286,16 +309,33 @@ const
   {$endif}
 {$endif}
 
-
+var
+  platformopt: string;
 begin
+  platformopt:='';
+{$ifdef powerpc64}
+  if (target_info.abi=abi_powerpc_elfv2) and
+     (target_info.endian=endian_little) then
+    platformopt:=' -b elf64-powerpcle -m elf64lppc'
+  else
+    platformopt:=' -b elf64-powerpc -m elf64ppc';
+{$endif powerpc64}
   with Info do
    begin
-     ExeCmd[1]:='ld '+platform_select+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
-     { when we want to cross-link we need to override default library paths }
-     if length(sysrootpath) > 0 then
-       ExeCmd[1]:=ExeCmd[1]+' -T';
+     ExeCmd[1]:='ld '+platform_select+platformopt+' $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -L. -o $EXE';
+     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE';
+     { when we want to cross-link we need to override default library paths;
+       when targeting binutils 2.19 or later, we use the "INSERT" command to
+       augment the default linkerscript, which also requires -T (normally that
+       option means "completely replace the default linkerscript) }
+     if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) or
+       (length(sysrootpath)>0) then
+       begin
+         ExeCmd[1]:=ExeCmd[1]+' -T';
+         DllCmd[1]:=DllCmd[1]+' -T';
+       end;
      ExeCmd[1]:=ExeCmd[1]+' $RES';
-     DllCmd[1]:='ld '+platform_select+' $OPT $INIT $FINI $SONAME -shared -L. -o $EXE $RES';
+     DllCmd[1]:=DllCmd[1]+' $RES';
      DllCmd[2]:='strip --strip-unneeded $EXE';
      ExtDbgCmd[1]:='objcopy --only-keep-debug $EXE $DBG';
      ExtDbgCmd[2]:='objcopy --add-gnu-debuglink=$DBG $EXE';
@@ -480,7 +520,7 @@ begin
       if (isdll) then
        begin
          Add('INPUT(');
-         Add(info.DynamicLinker);
+         Add(sysrootpath+info.DynamicLinker);
          Add(')');
        end;
       linksToSharedLibFiles := not SharedLibFiles.Empty;
@@ -560,379 +600,52 @@ begin
           end;
        end;
 
-      {Entry point. Only needed for executables, set on the linker command line for
-       shared libraries. }
+      { Entry point. Only needed for executables, as for shared lubraries we use
+        the -init command line option instead
+
+       The "ENTRY" linkerscript command does not have any effect when augmenting
+       a linker script, so use the command line parameter instead }
       if (not isdll) then
-       if (linksToSharedLibFiles and not linklibc) then
-        add('ENTRY(_dynamic_start)')
-       else
-        add('ENTRY(_start)');
+        if (linksToSharedLibFiles and not linklibc) then
+          info.ExeCmd[1]:=info.ExeCmd[1]+' -e _dynamic_start'
+        else
+          info.ExeCmd[1]:=info.ExeCmd[1]+' -e _start';
 
-{$ifdef x86_64}
-{$define LINKERSCRIPT_INCLUDED}
-      add('SECTIONS');
-      add('{');
-      {Read-only sections, merged into text segment:}
-      if current_module.islibrary  then
-        add('  . = 0 +  SIZEOF_HEADERS;')
-      else
-        add('  PROVIDE (__executable_start = 0x0400000); . = 0x0400000 +  SIZEOF_HEADERS;');
-      add('  . = 0 +  SIZEOF_HEADERS;');
-      add('  .interp         : { *(.interp) }');
-      add('  .hash           : { *(.hash) }');
-      add('  .dynsym         : { *(.dynsym) }');
-      add('  .dynstr         : { *(.dynstr) }');
-      add('  .gnu.version    : { *(.gnu.version) }');
-      add('  .gnu.version_d  : { *(.gnu.version_d) }');
-      add('  .gnu.version_r  : { *(.gnu.version_r) }');
-      add('  .rel.dyn        :');
-      add('    {');
-      add('      *(.rel.init)');
-      add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
-      add('      *(.rel.fini)');
-      add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
-      add('      *(.rel.data.rel.ro*)');
-      add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
-      add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
-      add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
-      add('      *(.rel.got)');
-      add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
-      add('    }');
-      add('  .rela.dyn       :');
-      add('    {');
-      add('      *(.rela.init)');
-      add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
-      add('      *(.rela.fini)');
-      add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
-      add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
-      add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
-      add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
-      add('      *(.rela.got)');
-      add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
-      add('    }');
-      add('  .rel.plt        : { *(.rel.plt) }');
-      add('  .rela.plt       : { *(.rela.plt) }');
-      add('  .init           :');
-      add('  {');
-      add('    KEEP (*(.init))');
-      add('  } =0x90909090');
-      add('  .plt            : { *(.plt) }');
-      add('  .text           :');
-      add('  {');
-      add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
-      add('    KEEP (*(.text.*personality*))');
-      {.gnu.warning sections are handled specially by elf32.em.}
-      add('    *(.gnu.warning)');
-      add('  } =0x90909090');
-      add('  .fini           :');
-      add('  {');
-      add('    KEEP (*(.fini))');
-      add('  } =0x90909090');
-      add('  PROVIDE (_etext = .);');
-      add('  .rodata         :');
-      add('  {');
-      add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
-      add('  }');
-      {Adjust the address for the data segment.  We want to adjust up to
-       the same address within the page on the next page up.}
-      add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
-      add('  .dynamic        : { *(.dynamic) }');
-      add('  .got            : { *(.got .toc) }');
-      add('  .got.plt        : { *(.got.plt .toc.plt) }');
-      add('  .data           :');
-      add('  {');
-      add('    *(.data .data.* .gnu.linkonce.d.*)');
-      add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-      add('    KEEP (*(.gnu.linkonce.d.*personality*))');
-      add('  }');
-      add('  PROVIDE (_edata = .);');
-      add('  PROVIDE (edata = .);');
-    {$ifdef zsegment_threadvars}
-      add('  _z = .;');
-      add('  .threadvar 0 : AT (_z) { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
-      add('  PROVIDE (_threadvar_size = SIZEOF(.threadvar));');
-      add('  . = _z + SIZEOF (.threadvar);');
-    {$else}
-      add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
-    {$endif}
-      add('  __bss_start = .;');
-      add('  .bss            :');
-      add('  {');
-      add('   *(.dynbss)');
-      add('   *(.bss .bss.* .gnu.linkonce.b.*)');
-      add('   *(COMMON)');
-      {Align here to ensure that the .bss section occupies space up to
-       _end.  Align after .bss to ensure correct alignment even if the
-       .bss section disappears because there are no input sections.}
-      add('   . = ALIGN(32 / 8);');
-      add('}');
-      add('  . = ALIGN(32 / 8);');
-      add('  PROVIDE (_end = .);');
-      add('  PROVIDE (end = .);');
-      {Stabs debugging sections.}
-      add('  .stab          0 : { *(.stab) }');
-      add('  .stabstr       0 : { *(.stabstr) }');
-      add('  /* DWARF debug sections.');
-      add('     Symbols in the DWARF debugging sections are relative to the beginning');
-      add('     of the section so we begin them at 0.  */');
-      add('  /* DWARF 1 */');
-      add('  .debug          0 : { *(.debug) }');
-      add('  .line           0 : { *(.line) }');
-      add('  /* GNU DWARF 1 extensions */');
-      add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
-      add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
-      add('  /* DWARF 1.1 and DWARF 2 */');
-      add('  .debug_aranges  0 : { *(.debug_aranges) }');
-      add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
-      add('  /* DWARF 2 */');
-      add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
-      add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
-      add('  .debug_line     0 : { *(.debug_line) }');
-      add('  .debug_frame    0 : { *(.debug_frame) }');
-      add('  .debug_str      0 : { *(.debug_str) }');
-      add('  .debug_loc      0 : { *(.debug_loc) }');
-      add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
-      add('  /* SGI/MIPS DWARF 2 extensions */');
-      add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
-      add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
-      add('  .debug_typenames 0 : { *(.debug_typenames) }');
-      add('  .debug_varnames  0 : { *(.debug_varnames) }');
-      add('  /DISCARD/ : { *(.note.GNU-stack) }');
-      add('}');
-{$endif x86_64}
-
-{$ifdef ARM}
-      if target_info.abi=abi_eabi then
+      { If we are using the default sysroot, use the default linker script and
+        just augment it with the FPC-specific parts.
+      }
+      if sysrootpath='' then
         begin
-          { from GNU ld (CodeSourcery Sourcery G++ Lite 2007q3-53) 2.18.50.20070820 }
-          add('/* Script for -z combreloc: combine and sort reloc sections */');
-          add('OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",');
-          add('	      "elf32-littlearm")');
-          add('OUTPUT_ARCH(arm)');
-          add('SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");');
           add('SECTIONS');
           add('{');
-          add('  /* Read-only sections, merged into text segment: */');
-          add('  PROVIDE (__executable_start = 0x8000); . = 0x8000 + SIZEOF_HEADERS;');
-          add('  .interp         : { *(.interp) }');
-          add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
-          add('  .hash           : { *(.hash) }');
-          add('  .gnu.hash       : { *(.gnu.hash) }');
-          add('  .dynsym         : { *(.dynsym) }');
-          add('  .dynstr         : { *(.dynstr) }');
-          add('  .gnu.version    : { *(.gnu.version) }');
-          add('  .gnu.version_d  : { *(.gnu.version_d) }');
-          add('  .gnu.version_r  : { *(.gnu.version_r) }');
-          add('  .rel.dyn        :');
-          add('    {');
-          add('      *(.rel.init)');
-          add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
-          add('      *(.rel.fini)');
-          add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
-          add('      *(.rel.data.rel.ro* .rel.gnu.linkonce.d.rel.ro.*)');
-          add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
-          add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
-          add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
-          add('      *(.rel.ctors)');
-          add('      *(.rel.dtors)');
-          add('      *(.rel.got)');
-          add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
-          add('    }');
-          add('  .rela.dyn       :');
-          add('    {');
-          add('      *(.rela.init)');
-          add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
-          add('      *(.rela.fini)');
-          add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
-          add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
-          add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
-          add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
-          add('      *(.rela.ctors)');
-          add('      *(.rela.dtors)');
-          add('      *(.rela.got)');
-          add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
-          add('    }');
-          add('  .rel.plt        : { *(.rel.plt) }');
-          add('  .rela.plt       : { *(.rela.plt) }');
-          add('  .init           :');
+          if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) then
+            { we can't use ".data", as that would hide the .data from the
+              original linker script in combination with the INSERT at the end }
+            add('  .fpcdata           :')
+          else
+            add('  .data           :');
           add('  {');
-          add('    KEEP (*(.init))');
-          add('  } =0');
-          add('  .plt            : { *(.plt) }');
-          add('  .text           :');
-          add('  {');
-          add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
-          add('    KEEP (*(.text.*personality*))');
-          add('    /* .gnu.warning sections are handled specially by elf32.em.  */');
-          add('    *(.gnu.warning)');
-          add('    *(.glue_7t) *(.glue_7) *(.vfp11_veneer)');
-          add('  } =0');
-          add('  .fini           :');
-          add('  {');
-          add('    KEEP (*(.fini))');
-          add('  } =0');
-          add('  PROVIDE (__etext = .);');
-          add('  PROVIDE (_etext = .);');
-          add('  PROVIDE (etext = .);');
-          add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
-          add('  .rodata1        : { *(.rodata1) }');
-          add('  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) }');
-          add('   __exidx_start = .;');
-          add('  .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }');
-          add('   __exidx_end = .;');
-          add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
-          add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
-          add('  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }');
-          add('  /* Adjust the address for the data segment.  We want to adjust up to');
-          add('     the same address within the page on the next page up.  */');
-          add('  . = ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1));');
-          add('  /* Exception handling  */');
-          add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
-          add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
-          add('  /* Thread Local Storage sections  */');
-          add('  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }');
-          add('  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }');
-          add('  .preinit_array     :');
-          add('  {');
-          add('    PROVIDE_HIDDEN (__preinit_array_start = .);');
-          add('    KEEP (*(.preinit_array))');
-          add('    PROVIDE_HIDDEN (__preinit_array_end = .);');
-          add('  }');
-          add('  .init_array     :');
-          add('  {');
-          add('     PROVIDE_HIDDEN (__init_array_start = .);');
-          add('     KEEP (*(SORT(.init_array.*)))');
-          add('     KEEP (*(.init_array))');
-          add('     PROVIDE_HIDDEN (__init_array_end = .);');
-          add('  }');
-          add('  .fini_array     :');
-          add('  {');
-          add('    PROVIDE_HIDDEN (__fini_array_start = .);');
-          add('    KEEP (*(.fini_array))');
-          add('    KEEP (*(SORT(.fini_array.*)))');
-          add('    PROVIDE_HIDDEN (__fini_array_end = .);');
-          add('  }');
-          add('  .ctors          :');
-          add('  {');
-          add('    /* gcc uses crtbegin.o to find the start of');
-          add('       the constructors, so we make sure it is');
-          add('       first.  Because this is a wildcard, it');
-          add('       doesn''t matter if the user does not');
-          add('       actually link against crtbegin.o; the');
-          add('       linker won''t look for a file to match a');
-          add('       wildcard.  The wildcard also means that it');
-          add('       doesn''t matter which directory crtbegin.o');
-          add('       is in.  */');
-          add('    KEEP (*crtbegin.o(.ctors))');
-          add('    KEEP (*crtbegin?.o(.ctors))');
-          add('    /* We don''t want to include the .ctor section from');
-          add('       the crtend.o file until after the sorted ctors.');
-          add('       The .ctor section from the crtend file contains the');
-          add('       end of ctors marker and it must be last */');
-          add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))');
-          add('    KEEP (*(SORT(.ctors.*)))');
-          add('    KEEP (*(.ctors))');
-          add('  }');
-          add('  .dtors          :');
-          add('  {');
-          add('    KEEP (*crtbegin.o(.dtors))');
-          add('    KEEP (*crtbegin?.o(.dtors))');
-          add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))');
-          add('    KEEP (*(SORT(.dtors.*)))');
-          add('    KEEP (*(.dtors))');
-          add('  }');
-          add('  .jcr            : { KEEP (*(.jcr)) }');
-          add('  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro* .gnu.linkonce.d.rel.ro.*) }');
-          add('  .dynamic        : { *(.dynamic) }');
-          add('  .got            : { *(.got.plt) *(.got) }');
-          add('  .data           :');
-          add('  {');
-          add('    __data_start = . ;');
-          add('    *(.data .data.* .gnu.linkonce.d.*)');
-
-          { extra by FPC }
           add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-
-          add('    KEEP (*(.gnu.linkonce.d.*personality*))');
-          add('    SORT(CONSTRUCTORS)');
           add('  }');
-          add('  .data1          : { *(.data1) }');
-          add('  _edata = .; PROVIDE (edata = .);');
-          add('  __bss_start = .;');
-          add('  __bss_start__ = .;');
-          add('  .bss            :');
-          add('  {');
-          add('   *(.dynbss)');
-          add('   *(.bss .bss.* .gnu.linkonce.b.*)');
-          add('   *(COMMON)');
-          add('   /* Align here to ensure that the .bss section occupies space up to');
-          add('      _end.  Align after .bss to ensure correct alignment even if the');
-          add('      .bss section disappears because there are no input sections.');
-          add('      FIXME: Why do we need it? When there is no .bss section, we don''t');
-          add('      pad the .data section.  */');
-          add('   . = ALIGN(. != 0 ? 32 / 8 : 1);');
-          add('  }');
-          add('  _bss_end__ = . ; __bss_end__ = . ;');
-          add('  . = ALIGN(32 / 8);');
-          add('  . = ALIGN(32 / 8);');
-          add('  __end__ = . ;');
-          add('  _end = .; PROVIDE (end = .);');
-          add('  /* Stabs debugging sections.  */');
-          add('  .stab          0 : { *(.stab) }');
-          add('  .stabstr       0 : { *(.stabstr) }');
-          add('  .stab.excl     0 : { *(.stab.excl) }');
-          add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
-          add('  .stab.index    0 : { *(.stab.index) }');
-          add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
-          add('  .comment       0 : { *(.comment) }');
-          add('  /* DWARF debug sections.');
-          add('     Symbols in the DWARF debugging sections are relative to the beginning');
-          add('     of the section so we begin them at 0.  */');
-          add('  /* DWARF 1 */');
-          add('  .debug          0 : { *(.debug) }');
-          add('  .line           0 : { *(.line) }');
-          add('  /* GNU DWARF 1 extensions */');
-          add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
-          add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
-          add('  /* DWARF 1.1 and DWARF 2 */');
-          add('  .debug_aranges  0 : { *(.debug_aranges) }');
-          add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
-          add('  /* DWARF 2 */');
-          add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
-          add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
-          add('  .debug_line     0 : { *(.debug_line) }');
-          add('  .debug_frame    0 : { *(.debug_frame) }');
-          add('  .debug_str      0 : { *(.debug_str) }');
-          add('  .debug_loc      0 : { *(.debug_loc) }');
-          add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
-          add('  /* SGI/MIPS DWARF 2 extensions */');
-          add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
-          add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
-          add('  .debug_typenames 0 : { *(.debug_typenames) }');
-          add('  .debug_varnames  0 : { *(.debug_varnames) }');
-          add('  /* DWARF 3 */');
-          add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
-          add('  .debug_ranges   0 : { *(.debug_ranges) }');
-          add('    .stack         0x80000 :');
-          add('  {');
-          add('    _stack = .;');
-          add('    *(.stack)');
-          add('  }');
-          add('  .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) KEEP (*(.gnu.attributes)) }');
-          add('  .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }');
-          add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) }');
+          add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
           add('}');
+          { this "INSERT" means "merge into the original linker script, even if
+            -T is used" }
+          if not(cs_link_pre_binutils_2_19 in current_settings.globalswitches) then
+            add('INSERT AFTER .data;');
         end
       else
-{$endif ARM}
-
-{$ifndef LINKERSCRIPT_INCLUDED}
         begin
-          {Sections.}
+{$ifdef x86_64}
+{$define LINKERSCRIPT_INCLUDED}
           add('SECTIONS');
           add('{');
           {Read-only sections, merged into text segment:}
-          add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 + SIZEOF_HEADERS;');
+          if current_module.islibrary  then
+            add('  . = 0 +  SIZEOF_HEADERS;')
+          else
+            add('  PROVIDE (__executable_start = 0x0400000); . = 0x0400000 +  SIZEOF_HEADERS;');
+          add('  . = 0 +  SIZEOF_HEADERS;');
           add('  .interp         : { *(.interp) }');
           add('  .hash           : { *(.hash) }');
           add('  .dynsym         : { *(.dynsym) }');
@@ -992,8 +705,8 @@ begin
            the same address within the page on the next page up.}
           add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
           add('  .dynamic        : { *(.dynamic) }');
-          add('  .got            : { *(.got) }');
-          add('  .got.plt        : { *(.got.plt) }');
+          add('  .got            : { *(.got .toc) }');
+          add('  .got.plt        : { *(.got.plt .toc.plt) }');
           add('  .data           :');
           add('  {');
           add('    *(.data .data.* .gnu.linkonce.d.*)');
@@ -1020,16 +733,584 @@ begin
            _end.  Align after .bss to ensure correct alignment even if the
            .bss section disappears because there are no input sections.}
           add('   . = ALIGN(32 / 8);');
-          add('  }');
+          add('}');
           add('  . = ALIGN(32 / 8);');
           add('  PROVIDE (_end = .);');
           add('  PROVIDE (end = .);');
           {Stabs debugging sections.}
           add('  .stab          0 : { *(.stab) }');
           add('  .stabstr       0 : { *(.stabstr) }');
+          add('  /* DWARF debug sections.');
+          add('     Symbols in the DWARF debugging sections are relative to the beginning');
+          add('     of the section so we begin them at 0.  */');
+          add('  /* DWARF 1 */');
+          add('  .debug          0 : { *(.debug) }');
+          add('  .line           0 : { *(.line) }');
+          add('  /* GNU DWARF 1 extensions */');
+          add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+          add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+          add('  /* DWARF 1.1 and DWARF 2 */');
+          add('  .debug_aranges  0 : { *(.debug_aranges) }');
+          add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+          add('  /* DWARF 2 */');
+          add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+          add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+          add('  .debug_line     0 : { *(.debug_line) }');
+          add('  .debug_frame    0 : { *(.debug_frame) }');
+          add('  .debug_str      0 : { *(.debug_str) }');
+          add('  .debug_loc      0 : { *(.debug_loc) }');
+          add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+          add('  /* SGI/MIPS DWARF 2 extensions */');
+          add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+          add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+          add('  .debug_typenames 0 : { *(.debug_typenames) }');
+          add('  .debug_varnames  0 : { *(.debug_varnames) }');
+          add('  /DISCARD/ : { *(.note.GNU-stack) }');
           add('}');
-        end;
+{$endif x86_64}
+
+{$ifdef AArch64}
+{$define LINKERSCRIPT_INCLUDED}
+          { Complete linker script for aarch64-linux: }
+          add('SECTIONS');
+          add('{');
+          add('  /* Read-only sections, merged into text segment: */');
+          add('  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x400000)); . = SEGMENT_START("text-segment", 0x400000) + SIZEOF_HEADERS;');
+          add('  .interp         : { *(.interp) }');
+          add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
+          add('  .hash           : { *(.hash) }');
+          add('  .gnu.hash       : { *(.gnu.hash) }');
+          add('  .dynsym         : { *(.dynsym) }');
+          add('  .dynstr         : { *(.dynstr) }');
+          add('  .gnu.version    : { *(.gnu.version) }');
+          add('  .gnu.version_d  : { *(.gnu.version_d) }');
+          add('  .gnu.version_r  : { *(.gnu.version_r) }');
+          add('  .rela.dyn       :');
+          add('    {');
+          add('      *(.rela.init)');
+          add('        *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+          add('      *(.rela.fini)');
+          add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+          add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+          add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+          add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+          add('      *(.rela.ctors)');
+          add('      *(.rela.dtors)');
+          add('      *(.rela.got)');
+          add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+          add('      *(.rela.ifunc)');
+          add('    }');
+          add('  .rela.plt       :');
+          add('    {');
+          add('      *(.rela.plt)');
+          add('      PROVIDE_HIDDEN (__rela_iplt_start = .);');
+          add('      *(.rela.iplt)');
+          add('      PROVIDE_HIDDEN (__rela_iplt_end = .);');
+          add('    }');
+          add('  .init           :');
+          add('  {');
+          add('    KEEP (*(SORT_NONE(.init)))');
+          add('  } =0');
+          add('  .plt            : ALIGN(16) { *(.plt) *(.iplt) }');
+          add('  .text           :');
+          add('  {');
+          add('    *(.text.unlikely .text.*_unlikely .text.unlikely.*)');
+          add('    *(.text.exit .text.exit.*)');
+          add('    *(.text.startup .text.startup.*)');
+          add('    *(.text.hot .text.hot.*)');
+          add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
+          add('    /* .gnu.warning sections are handled specially by elf32.em.  */');
+          add('    *(.gnu.warning)');
+          add('  } =0');
+          add('  .fini           :');
+          add('  {');
+          add('    KEEP (*(SORT_NONE(.fini)))');
+          add('  } =0');
+          add('  PROVIDE (__etext = .);');
+          add('  PROVIDE (_etext = .);');
+          add('  PROVIDE (etext = .);');
+          add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
+          add('  .rodata1        : { *(.rodata1) }');
+          add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
+          add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
+          add('  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table');
+          add('  .gcc_except_table.*) }');
+          add('  /* These sections are generated by the Sun/Oracle C++ compiler.  */');
+          add('  .exception_ranges   : ONLY_IF_RO { *(.exception_ranges');
+          add('  .exception_ranges*) }');
+          add('  /* Adjust the address for the data segment.  We want to adjust up to');
+          add('     the same address within the page on the next page up.  */');
+          add('  . = ALIGN (CONSTANT (MAXPAGESIZE)) - ((CONSTANT (MAXPAGESIZE) - .) & (CONSTANT (MAXPAGESIZE) - 1)); . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE));');
+          add('  /* Exception handling  */');
+          add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
+          add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
+          add('  .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }');
+          add('  /* Thread Local Storage sections  */');
+          add('  .tdata          : { *(.tdata .tdata.* .gnu.linkonce.td.*) }');
+          add('  .tbss           : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }');
+          add('  .preinit_array     :');
+          add('  {');
+          add('    PROVIDE_HIDDEN (__preinit_array_start = .);');
+          add('    KEEP (*(.preinit_array))');
+          add('    PROVIDE_HIDDEN (__preinit_array_end = .);');
+          add('  }');
+          add('  .init_array     :');
+          add('  {');
+          add('    PROVIDE_HIDDEN (__init_array_start = .);');
+          add('    KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))');
+          add('    KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))');
+          add('    PROVIDE_HIDDEN (__init_array_end = .);');
+          add('  }');
+          add('  .fini_array     :');
+          add('  {');
+          add('    PROVIDE_HIDDEN (__fini_array_start = .);');
+          add('    KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))');
+          add('    KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))');
+          add('    PROVIDE_HIDDEN (__fini_array_end = .);');
+          add('  }');
+          add('  .ctors          :');
+          add('  {');
+          add('    /* gcc uses crtbegin.o to find the start of');
+          add('       the constructors, so we make sure it is');
+          add('       first.  Because this is a wildcard, it');
+          add('       doesn''t matter if the user does not');
+          add('       actually link against crtbegin.o; the');
+          add('       linker won''t look for a file to match a');
+          add('       wildcard.  The wildcard also means that it');
+          add('       doesn''t matter which directory crtbegin.o');
+          add('       is in.  */');
+          add('    KEEP (*crtbegin.o(.ctors))');
+          add('    KEEP (*crtbegin?.o(.ctors))');
+          add('    /* We don''t want to include the .ctor section from');
+          add('       the crtend.o file until after the sorted ctors.');
+          add('       The .ctor section from the crtend file contains the');
+          add('       end of ctors marker and it must be last */');
+          add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))');
+          add('    KEEP (*(SORT(.ctors.*)))');
+          add('    KEEP (*(.ctors))');
+          add('  }');
+          add('  .dtors          :');
+          add('  {');
+          add('    KEEP (*crtbegin.o(.dtors))');
+          add('    KEEP (*crtbegin?.o(.dtors))');
+          add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))');
+          add('    KEEP (*(SORT(.dtors.*)))');
+          add('    KEEP (*(.dtors))');
+          add('  }');
+          add('  .jcr            : { KEEP (*(.jcr)) }');
+          add('  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }');
+          add('  .dynamic        : { *(.dynamic) }');
+          add('  .got            : { *(.got) *(.igot) }');
+          add('  . = DATA_SEGMENT_RELRO_END (24, .);');
+          add('  .got.plt        : { *(.got.plt)  *(.igot.plt) }');
+          add('  .data           :');
+          add('  {');
+          add('    PROVIDE (__data_start = .);');
+
+          { extra by FPC }
+          add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+
+          add('    *(.data .data.* .gnu.linkonce.d.*)');
+          add('    SORT(CONSTRUCTORS)');
+          add('  }');
+          add('  .data1          : { *(.data1) }');
+          add('  _edata = .; PROVIDE (edata = .);');
+          add('  . = .;');
+          add('  __bss_start = .;');
+          add('  __bss_start__ = .;');
+          add('  .bss            :');
+          add('  {');
+          add('   *(.dynbss)');
+          add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+          add('   *(COMMON)');
+          add('   /* Align here to ensure that the .bss section occupies space up to');
+          add('      _end.  Align after .bss to ensure correct alignment even if the');
+          add('      .bss section disappears because there are no input sections.');
+          add('      FIXME: Why do we need it? When there is no .bss section, we don''t');
+          add('      pad the .data section.  */');
+          add('   . = ALIGN(. != 0 ? 64 / 8 : 1);');
+          add('  }');
+          add('  _bss_end__ = . ; __bss_end__ = . ;');
+          add('  . = ALIGN(64 / 8);');
+          add('  . = SEGMENT_START("ldata-segment", .);');
+          add('  . = ALIGN(64 / 8);');
+          add('  __end__ = . ;');
+          add('  _end = .; PROVIDE (end = .);');
+          add('  . = DATA_SEGMENT_END (.);');
+          add('  /* Stabs debugging sections.  */');
+          add('  .stab          0 : { *(.stab) }');
+          add('  .stabstr       0 : { *(.stabstr) }');
+          add('  .stab.excl     0 : { *(.stab.excl) }');
+          add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+          add('  .stab.index    0 : { *(.stab.index) }');
+          add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+          add('  .comment       0 : { *(.comment) }');
+          add('  /* DWARF debug sections.');
+          add('     Symbols in the DWARF debugging sections are relative to the beginning');
+          add('     of the section so we begin them at 0.  */');
+          add('  /* DWARF 1 */');
+          add('  .debug          0 : { *(.debug) }');
+          add('  .line           0 : { *(.line) }');
+          add('  /* GNU DWARF 1 extensions */');
+          add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+          add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+          add('  /* DWARF 1.1 and DWARF 2 */');
+          add('  .debug_aranges  0 : { *(.debug_aranges) }');
+          add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+          add('  /* DWARF 2 */');
+          add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+          add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+          add('  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }');
+          add('  .debug_frame    0 : { *(.debug_frame) }');
+          add('  .debug_str      0 : { *(.debug_str) }');
+          add('  .debug_loc      0 : { *(.debug_loc) }');
+          add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+          add('  /* SGI/MIPS DWARF 2 extensions */');
+          add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+          add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+          add('  .debug_typenames 0 : { *(.debug_typenames) }');
+          add('  .debug_varnames  0 : { *(.debug_varnames) }');
+          add('  /* DWARF 3 */');
+          add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+          add('  .debug_ranges   0 : { *(.debug_ranges) }');
+          add('  /* DWARF Extension.  */');
+          add('  .debug_macro    0 : { *(.debug_macro) }');
+          add('  .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) KEEP (*(.gnu.attributes)) }');
+          add('  .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }');
+          add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }');
+          add('}');
+{$endif AArch64}
+
+{$ifdef ARM}
+          if target_info.abi in [abi_eabi,abi_eabihf] then
+            begin
+              { from GNU ld (CodeSourcery Sourcery G++ Lite 2007q3-53) 2.18.50.20070820 }
+              add('/* Script for -z combreloc: combine and sort reloc sections */');
+              add('OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm",');
+              add('	      "elf32-littlearm")');
+              add('OUTPUT_ARCH(arm)');
+              add('SEARCH_DIR("=/usr/local/lib"); SEARCH_DIR("=/lib"); SEARCH_DIR("=/usr/lib");');
+              add('SECTIONS');
+              add('{');
+              add('  /* Read-only sections, merged into text segment: */');
+              add('  PROVIDE (__executable_start = 0x8000); . = 0x8000 + SIZEOF_HEADERS;');
+              add('  .interp         : { *(.interp) }');
+              add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
+              add('  .hash           : { *(.hash) }');
+              add('  .gnu.hash       : { *(.gnu.hash) }');
+              add('  .dynsym         : { *(.dynsym) }');
+              add('  .dynstr         : { *(.dynstr) }');
+              add('  .gnu.version    : { *(.gnu.version) }');
+              add('  .gnu.version_d  : { *(.gnu.version_d) }');
+              add('  .gnu.version_r  : { *(.gnu.version_r) }');
+              add('  .rel.dyn        :');
+              add('    {');
+              add('      *(.rel.init)');
+              add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
+              add('      *(.rel.fini)');
+              add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
+              add('      *(.rel.data.rel.ro* .rel.gnu.linkonce.d.rel.ro.*)');
+              add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
+              add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
+              add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
+              add('      *(.rel.ctors)');
+              add('      *(.rel.dtors)');
+              add('      *(.rel.got)');
+              add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
+              add('    }');
+              add('  .rela.dyn       :');
+              add('    {');
+              add('      *(.rela.init)');
+              add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+              add('      *(.rela.fini)');
+              add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+              add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+              add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+              add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+              add('      *(.rela.ctors)');
+              add('      *(.rela.dtors)');
+              add('      *(.rela.got)');
+              add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+              add('    }');
+              add('  .rel.plt        : { *(.rel.plt) }');
+              add('  .rela.plt       : { *(.rela.plt) }');
+              add('  .init           :');
+              add('  {');
+              add('    KEEP (*(.init))');
+              add('  } =0');
+              add('  .plt            : { *(.plt) }');
+              add('  .text           :');
+              add('  {');
+              add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
+              add('    KEEP (*(.text.*personality*))');
+              add('    /* .gnu.warning sections are handled specially by elf32.em.  */');
+              add('    *(.gnu.warning)');
+              add('    *(.glue_7t) *(.glue_7) *(.vfp11_veneer)');
+              add('  } =0');
+              add('  .fini           :');
+              add('  {');
+              add('    KEEP (*(.fini))');
+              add('  } =0');
+              add('  PROVIDE (__etext = .);');
+              add('  PROVIDE (_etext = .);');
+              add('  PROVIDE (etext = .);');
+              add('  .rodata         : { *(.rodata .rodata.* .gnu.linkonce.r.*) }');
+              add('  .rodata1        : { *(.rodata1) }');
+              add('  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) }');
+              add('   __exidx_start = .;');
+              add('  .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }');
+              add('   __exidx_end = .;');
+              add('  .eh_frame_hdr : { *(.eh_frame_hdr) }');
+              add('  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }');
+              add('  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }');
+              add('  /* Adjust the address for the data segment.  We want to adjust up to');
+              add('     the same address within the page on the next page up.  */');
+              add('  . = ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1));');
+              add('  /* Exception handling  */');
+              add('  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }');
+              add('  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }');
+              add('  /* Thread Local Storage sections  */');
+              add('  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }');
+              add('  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }');
+              add('  .preinit_array     :');
+              add('  {');
+              add('    PROVIDE_HIDDEN (__preinit_array_start = .);');
+              add('    KEEP (*(.preinit_array))');
+              add('    PROVIDE_HIDDEN (__preinit_array_end = .);');
+              add('  }');
+              add('  .init_array     :');
+              add('  {');
+              add('     PROVIDE_HIDDEN (__init_array_start = .);');
+              add('     KEEP (*(SORT(.init_array.*)))');
+              add('     KEEP (*(.init_array))');
+              add('     PROVIDE_HIDDEN (__init_array_end = .);');
+              add('  }');
+              add('  .fini_array     :');
+              add('  {');
+              add('    PROVIDE_HIDDEN (__fini_array_start = .);');
+              add('    KEEP (*(.fini_array))');
+              add('    KEEP (*(SORT(.fini_array.*)))');
+              add('    PROVIDE_HIDDEN (__fini_array_end = .);');
+              add('  }');
+              add('  .ctors          :');
+              add('  {');
+              add('    /* gcc uses crtbegin.o to find the start of');
+              add('       the constructors, so we make sure it is');
+              add('       first.  Because this is a wildcard, it');
+              add('       doesn''t matter if the user does not');
+              add('       actually link against crtbegin.o; the');
+              add('       linker won''t look for a file to match a');
+              add('       wildcard.  The wildcard also means that it');
+              add('       doesn''t matter which directory crtbegin.o');
+              add('       is in.  */');
+              add('    KEEP (*crtbegin.o(.ctors))');
+              add('    KEEP (*crtbegin?.o(.ctors))');
+              add('    /* We don''t want to include the .ctor section from');
+              add('       the crtend.o file until after the sorted ctors.');
+              add('       The .ctor section from the crtend file contains the');
+              add('       end of ctors marker and it must be last */');
+              add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))');
+              add('    KEEP (*(SORT(.ctors.*)))');
+              add('    KEEP (*(.ctors))');
+              add('  }');
+              add('  .dtors          :');
+              add('  {');
+              add('    KEEP (*crtbegin.o(.dtors))');
+              add('    KEEP (*crtbegin?.o(.dtors))');
+              add('    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))');
+              add('    KEEP (*(SORT(.dtors.*)))');
+              add('    KEEP (*(.dtors))');
+              add('  }');
+              add('  .jcr            : { KEEP (*(.jcr)) }');
+              add('  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro* .gnu.linkonce.d.rel.ro.*) }');
+              add('  .dynamic        : { *(.dynamic) }');
+              add('  .got            : { *(.got.plt) *(.got) }');
+              add('  .data           :');
+              add('  {');
+              add('    __data_start = . ;');
+              add('    *(.data .data.* .gnu.linkonce.d.*)');
+
+              { extra by FPC }
+              add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+
+              add('    KEEP (*(.gnu.linkonce.d.*personality*))');
+              add('    SORT(CONSTRUCTORS)');
+              add('  }');
+              add('  .data1          : { *(.data1) }');
+              add('  _edata = .; PROVIDE (edata = .);');
+              add('  __bss_start = .;');
+              add('  __bss_start__ = .;');
+              add('  .bss            :');
+              add('  {');
+              add('   *(.dynbss)');
+              add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+              add('   *(COMMON)');
+              add('   /* Align here to ensure that the .bss section occupies space up to');
+              add('      _end.  Align after .bss to ensure correct alignment even if the');
+              add('      .bss section disappears because there are no input sections.');
+              add('      FIXME: Why do we need it? When there is no .bss section, we don''t');
+              add('      pad the .data section.  */');
+              add('   . = ALIGN(. != 0 ? 32 / 8 : 1);');
+              add('  }');
+              add('  _bss_end__ = . ; __bss_end__ = . ;');
+              add('  . = ALIGN(32 / 8);');
+              add('  . = ALIGN(32 / 8);');
+              add('  __end__ = . ;');
+              add('  _end = .; PROVIDE (end = .);');
+              add('  /* Stabs debugging sections.  */');
+              add('  .stab          0 : { *(.stab) }');
+              add('  .stabstr       0 : { *(.stabstr) }');
+              add('  .stab.excl     0 : { *(.stab.excl) }');
+              add('  .stab.exclstr  0 : { *(.stab.exclstr) }');
+              add('  .stab.index    0 : { *(.stab.index) }');
+              add('  .stab.indexstr 0 : { *(.stab.indexstr) }');
+              add('  .comment       0 : { *(.comment) }');
+              add('  /* DWARF debug sections.');
+              add('     Symbols in the DWARF debugging sections are relative to the beginning');
+              add('     of the section so we begin them at 0.  */');
+              add('  /* DWARF 1 */');
+              add('  .debug          0 : { *(.debug) }');
+              add('  .line           0 : { *(.line) }');
+              add('  /* GNU DWARF 1 extensions */');
+              add('  .debug_srcinfo  0 : { *(.debug_srcinfo) }');
+              add('  .debug_sfnames  0 : { *(.debug_sfnames) }');
+              add('  /* DWARF 1.1 and DWARF 2 */');
+              add('  .debug_aranges  0 : { *(.debug_aranges) }');
+              add('  .debug_pubnames 0 : { *(.debug_pubnames) }');
+              add('  /* DWARF 2 */');
+              add('  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }');
+              add('  .debug_abbrev   0 : { *(.debug_abbrev) }');
+              add('  .debug_line     0 : { *(.debug_line) }');
+              add('  .debug_frame    0 : { *(.debug_frame) }');
+              add('  .debug_str      0 : { *(.debug_str) }');
+              add('  .debug_loc      0 : { *(.debug_loc) }');
+              add('  .debug_macinfo  0 : { *(.debug_macinfo) }');
+              add('  /* SGI/MIPS DWARF 2 extensions */');
+              add('  .debug_weaknames 0 : { *(.debug_weaknames) }');
+              add('  .debug_funcnames 0 : { *(.debug_funcnames) }');
+              add('  .debug_typenames 0 : { *(.debug_typenames) }');
+              add('  .debug_varnames  0 : { *(.debug_varnames) }');
+              add('  /* DWARF 3 */');
+              add('  .debug_pubtypes 0 : { *(.debug_pubtypes) }');
+              add('  .debug_ranges   0 : { *(.debug_ranges) }');
+              add('    .stack         0x80000 :');
+              add('  {');
+              add('    _stack = .;');
+              add('    *(.stack)');
+              add('  }');
+              add('  .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) KEEP (*(.gnu.attributes)) }');
+              add('  .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }');
+              add('  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) }');
+              add('}');
+            end
+          else
+{$endif ARM}
+
+{$ifndef LINKERSCRIPT_INCLUDED}
+          begin
+            {Sections.}
+            add('SECTIONS');
+            add('{');
+            {Read-only sections, merged into text segment:}
+            add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 + SIZEOF_HEADERS;');
+            add('  .interp         : { *(.interp) }');
+            add('  .hash           : { *(.hash) }');
+            add('  .dynsym         : { *(.dynsym) }');
+            add('  .dynstr         : { *(.dynstr) }');
+            add('  .gnu.version    : { *(.gnu.version) }');
+            add('  .gnu.version_d  : { *(.gnu.version_d) }');
+            add('  .gnu.version_r  : { *(.gnu.version_r) }');
+            add('  .rel.dyn        :');
+            add('    {');
+            add('      *(.rel.init)');
+            add('      *(.rel.text .rel.text.* .rel.gnu.linkonce.t.*)');
+            add('      *(.rel.fini)');
+            add('      *(.rel.rodata .rel.rodata.* .rel.gnu.linkonce.r.*)');
+            add('      *(.rel.data.rel.ro*)');
+            add('      *(.rel.data .rel.data.* .rel.gnu.linkonce.d.*)');
+            add('      *(.rel.tdata .rel.tdata.* .rel.gnu.linkonce.td.*)');
+            add('      *(.rel.tbss .rel.tbss.* .rel.gnu.linkonce.tb.*)');
+            add('      *(.rel.got)');
+            add('      *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)');
+            add('    }');
+            add('  .rela.dyn       :');
+            add('    {');
+            add('      *(.rela.init)');
+            add('      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)');
+            add('      *(.rela.fini)');
+            add('      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)');
+            add('      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)');
+            add('      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)');
+            add('      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)');
+            add('      *(.rela.got)');
+            add('      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)');
+            add('    }');
+            add('  .rel.plt        : { *(.rel.plt) }');
+            add('  .rela.plt       : { *(.rela.plt) }');
+            add('  .init           :');
+            add('  {');
+            add('    KEEP (*(.init))');
+            add('  } =0x90909090');
+            add('  .plt            : { *(.plt) }');
+            add('  .text           :');
+            add('  {');
+            add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
+            add('    KEEP (*(.text.*personality*))');
+            {.gnu.warning sections are handled specially by elf32.em.}
+            add('    *(.gnu.warning)');
+            add('  } =0x90909090');
+            add('  .fini           :');
+            add('  {');
+            add('    KEEP (*(.fini))');
+            add('  } =0x90909090');
+            add('  PROVIDE (_etext = .);');
+            add('  .rodata         :');
+            add('  {');
+            add('    *(.rodata .rodata.* .gnu.linkonce.r.*)');
+            add('  }');
+            {Adjust the address for the data segment.  We want to adjust up to
+             the same address within the page on the next page up.}
+            add('  . = ALIGN (0x1000) - ((0x1000 - .) & (0x1000 - 1));');
+            add('  .dynamic        : { *(.dynamic) }');
+            add('  .got            : { *(.got) }');
+            add('  .got.plt        : { *(.got.plt) }');
+            add('  .data           :');
+            add('  {');
+            add('    *(.data .data.* .gnu.linkonce.d.*)');
+            add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+            add('    KEEP (*(.gnu.linkonce.d.*personality*))');
+            add('  }');
+            add('  PROVIDE (_edata = .);');
+            add('  PROVIDE (edata = .);');
+          {$ifdef zsegment_threadvars}
+            add('  _z = .;');
+            add('  .threadvar 0 : AT (_z) { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+            add('  PROVIDE (_threadvar_size = SIZEOF(.threadvar));');
+            add('  . = _z + SIZEOF (.threadvar);');
+          {$else}
+            add('  .threadvar : { *(.threadvar .threadvar.* .gnu.linkonce.tv.*) }');
+          {$endif}
+            add('  __bss_start = .;');
+            add('  .bss            :');
+            add('  {');
+            add('   *(.dynbss)');
+            add('   *(.bss .bss.* .gnu.linkonce.b.*)');
+            add('   *(COMMON)');
+            {Align here to ensure that the .bss section occupies space up to
+             _end.  Align after .bss to ensure correct alignment even if the
+             .bss section disappears because there are no input sections.}
+            add('   . = ALIGN(32 / 8);');
+            add('  }');
+            add('  . = ALIGN(32 / 8);');
+            add('  PROVIDE (_end = .);');
+            add('  PROVIDE (end = .);');
+            {Stabs debugging sections.}
+            add('  .stab          0 : { *(.stab) }');
+            add('  .stabstr       0 : { *(.stabstr) }');
+            add('}');
+          end;
 {$endif LINKERSCRIPT_INCLUDED}
+        end;
       { Write and Close response }
       writetodisk;
       Free;
@@ -1179,6 +1460,7 @@ begin
   SetupLibrarySearchPath;
   SetupDynlinker(dynlinker,libctype);
 
+  CArObjectReader:=TArObjectReader;
   CExeOutput:=ElfExeOutputClass;
   CObjInput:=TElfObjInput;
 
@@ -1518,15 +1800,16 @@ initialization
   RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
 {$ifdef powerpc64}
+  { default to little endian either when compiling with -dppc64le, or when
+    compiling on a little endian ppc64 platform }
+ {$if defined(ppc64le) or (defined(cpupowerpc64) and defined(FPC_LITTLE_ENDIAN))}
+  system_powerpc64_linux_info.endian:=endian_little;
+  system_powerpc64_linux_info.abi:=abi_powerpc_elfv2;
+ {$endif}
   RegisterImport(system_powerpc64_linux,timportliblinux);
   RegisterExport(system_powerpc64_linux,texportliblinux);
   RegisterTarget(system_powerpc64_linux_info);
 {$endif powerpc64}
-{$ifdef alpha}
-  RegisterImport(system_alpha_linux,timportliblinux);
-  RegisterExport(system_alpha_linux,texportliblinux);
-  RegisterTarget(system_alpha_linux_info);
-{$endif alpha}
 {$ifdef x86_64}
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
@@ -1542,6 +1825,11 @@ initialization
   RegisterExport(system_arm_linux,texportliblinux);
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
+{$ifdef aarch64}
+  RegisterImport(system_aarch64_linux,timportliblinux);
+  RegisterExport(system_aarch64_linux,texportliblinux);
+  RegisterTarget(system_aarch64_linux_info);
+{$endif aarch64}
 {$ifdef MIPS}
 {$ifdef MIPSEL}
   RegisterImport(system_mipsel_linux,timportliblinux);

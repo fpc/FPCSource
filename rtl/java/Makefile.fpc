@@ -84,16 +84,18 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 $(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp $(REDIR)
 
-uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+uuchar$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+        $(COMPILER) $(INC)/uuchar.pp $(REDIR)
 
-objpas$(PPUEXT): objpas.pp
+objpas$(PPUEXT) : objpas.pp
         $(COMPILER) objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/strings.pp $(REDIR)
 
-jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) jdk15.inc jdk15.pas 
+jdk15$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) jdk15.inc jdk15.pas
 
 #
 # System Dependent Units

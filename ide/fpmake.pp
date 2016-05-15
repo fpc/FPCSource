@@ -9,6 +9,7 @@ uses
 
 const
   NoGDBOption: boolean = false;
+  GDBMIOption: boolean = false;
 
 procedure ide_check_gdb_availability(Sender: TObject);
 
@@ -75,7 +76,12 @@ begin
   P := sender as TPackage;
   with installer do
     begin
-    if not (NoGDBOption) then
+    if GDBMIOption then
+      begin
+        BuildEngine.log(vlCommand, 'Compiling IDE with GDB/MI debugger support, LibGDB is not needed');
+        P.Options.Add('-dGDBMI');
+      end
+    else if not (NoGDBOption) then
       begin
         // Detection of GDB.
         GDBLibDir := DetectLibGDBDir;
@@ -141,11 +147,15 @@ Var
 begin
   AddCustomFpmakeCommandlineOption('CompilerTarget','Target CPU for the IDE''s compiler');
   AddCustomFpmakeCommandlineOption('NoGDB','If value=1 or ''Y'', no GDB support');
+  AddCustomFpmakeCommandlineOption('GDBMI','If value=1 or ''Y'', builds IDE with GDB/MI support (no need for LibGDB)');
   With Installer do
     begin
     s := GetCustomFpmakeCommandlineOptionValue('NoGDB');
     if (s='1') or (s='Y') then
      NoGDBOption := true;
+    s := GetCustomFpmakeCommandlineOptionValue('GDBMI');
+    if (s='1') or (s='Y') then
+     GDBMIOption := true;
     s :=GetCustomFpmakeCommandlineOptionValue('CompilerTarget');
     if s <> '' then
       CompilerTarget:=StringToCPU(s)
@@ -153,19 +163,20 @@ begin
       CompilerTarget:=Defaults.CPU;
 
     P:=AddPackage('ide');
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
 
-    P.Dependencies.Add('rtl');
     P.Dependencies.Add('rtl-extra');
     P.Dependencies.Add('fv');
     P.Dependencies.Add('chm');
     { This one is only needed if DEBUG is set }
     P.Dependencies.Add('regexpr');
-    if not (NoGDBOption) then
-      P.Dependencies.Add('gdbint',AllOSes-[morphos]);
+    if not (NoGDBOption) and not (GDBMIOption) then
+      P.Dependencies.Add('gdbint',AllOSes-AllAmigaLikeOSes);
+    if GDBMIOption then
+      P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('graph',[go32v2]);
 
     P.SupportBuildModes:=[bmOneByOne];
@@ -183,7 +194,7 @@ begin
     P.Options.Add('-Fi../compiler/'+CPUToString(CompilerTarget));
     P.Options.Add('-Fi../compiler');
 
-    if CompilerTarget in [x86_64, i386] then
+    if CompilerTarget in [x86_64, i386, i8086] then
       P.Options.Add('-Fu../compiler/x86');
     if CompilerTarget in [powerpc, powerpc64] then
       P.Options.Add('-Fu../compiler/ppcgen');
@@ -192,28 +203,49 @@ begin
     if CompilerTarget = mipsel then
       P.Options.Add('-Fu../compiler/mips');
 
+    { Handle SPECIALLINK environment variable if available }
+    s:=GetEnvironmentVariable('SPECIALLINK');
+    if s<>'' then
+      P.Options.Add(s);
     P.Options.Add('-Sg');
+    P.IncludePath.Add('compiler');
 
     T:=P.Targets.AddProgram('fp.pas');
-    T.Dependencies.AddUnit('compunit');
+    with T.Dependencies do
+     begin
+      AddUnit('compunit');
+     end;
 
     T:=P.Targets.AddUnit('compunit.pas');
     T.Directory:='compiler';
     T.Install:=false;
 
-    P.InstallFiles.Add('fp.ans','$(BININSTALLDIR)');
-    P.InstallFiles.Add('gplprog.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('gplunit.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('program.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('unit.pt','$(BININSTALLDIR)');
-    P.InstallFiles.Add('cvsco.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('cvsdiff.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('cvsup.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('grep.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('tpgrep.tdf','$(BININSTALLDIR)');
-    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(BININSTALLDIR)');
+    P.InstallFiles.Add('fp.ans','$(bininstalldir)');
+    P.InstallFiles.Add('gplprog.pt','$(bininstalldir)');
+    P.InstallFiles.Add('gplunit.pt','$(bininstalldir)');
+    P.InstallFiles.Add('program.pt','$(bininstalldir)');
+    P.InstallFiles.Add('unit.pt','$(bininstalldir)');
+    P.InstallFiles.Add('cvsco.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('cvsdiff.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('cvsup.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('grep.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('tpgrep.tdf','$(bininstalldir)');
+    P.InstallFiles.Add('fp32.ico', [win32, win64], '$(bininstalldir)');
 
-    P.Sources.AddDoc('readme.ide');
+    with P.Sources do
+     begin
+      AddDoc('readme.ide');
+      AddSrc('readme.txt');
+      AddSrc('todo.txt');
+      AddSrc('fp.ans');
+      AddSrcFiles('*.tdf',P.Directory);
+      AddSrcFiles('*.pas',P.Directory,true);
+      AddSrcFiles('*.inc',P.Directory,true);
+      AddSrcFiles('*.rc',P.Directory);
+      AddSrcFiles('*.ico',P.Directory);
+      AddSrcFiles('*.term',P.Directory);
+      AddSrcFiles('*.pt',P.Directory);
+     end;
 
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)ppheap.ppu');
     P.CleanFiles.Add('$(UNITSOUTPUTDIR)compiler.ppu');

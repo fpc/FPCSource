@@ -5,7 +5,7 @@ program concatenate_resourestrings_delphiunicode;
 
 {$ifdef unix}
 uses
-  cwstring;
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$endif}
 
 resourcestring

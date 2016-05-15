@@ -290,7 +290,17 @@ implementation
               encodedstr:=encodedstr+c;
             end;
           filedef :
-            result:=false;
+            begin
+              case tfiledef(def).filetyp of
+                ft_text:
+                  result:=jvmaddencodedtype(search_system_type('TEXTREC').typedef,false,encodedstr,forcesignature,founderror);
+                ft_typed,
+                ft_untyped:
+                  result:=jvmaddencodedtype(search_system_type('FILEREC').typedef,false,encodedstr,forcesignature,founderror);
+                else
+                  internalerror(2015091406);
+              end;
+            end;
           recorddef :
             begin
               encodedstr:=encodedstr+'L'+trecorddef(def).jvm_full_typename(true)+';'
@@ -505,6 +515,7 @@ implementation
                 is_open_array(def) or
                 is_array_of_const(def) or
                 is_array_constructor(def);
+          filedef,
           recorddef,
           setdef:
             result:=true;
@@ -919,8 +930,8 @@ implementation
                         begin
                           if tdef(container.defowner).typ<>procdef then
                             internalerror(2011040303);
-                          { defid is added to prevent problem with overloads }
-                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tostr(tprocdef(container.defowner).defid)+'$'+result;
+                          { unique_id_str is added to prevent problem with overloads }
+                          result:=tprocdef(container.defowner).procsym.realname+'$$'+tprocdef(container.defowner).unique_id_str+'$'+result;
                           container:=container.defowner.owner;
                         end;
                     end;

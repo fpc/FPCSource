@@ -81,7 +81,7 @@ const
   { ------------- System Control (SYSCON) ------------- }
 
 type
-  TSYSCONRegisters = record
+  TSYSCON_Registers = record
     SYSMEMREMAP  : longword;
     PRESETCTRL   : longword;
     SYSPLLCTRL   : longword;
@@ -150,7 +150,7 @@ type
 
   { ------------- Pin Connect Block (IOCON) ------------- }
 
-  TIOCONRegisters = record
+  TIOCON_Registers = record
     PIO2_6       : longword;
     RESERVED0    : longword;
     PIO2_0       : longword;
@@ -202,7 +202,7 @@ type
   end;
 
   { ------------- Power Management Unit (PMU) ------------- }
-  TPMURegisters = record
+  TPMU_Registers = record
     PCON  : longword;
     GPREG0: longword;
     GPREG1: longword;
@@ -211,7 +211,7 @@ type
   end;
 
   { ------------- General Purpose Input/Output (GPIO) ------------- }
-  TGPIORegisters = record
+  TGPIO_Registers = record
     MASKED_ACCESS: array [0 .. 4095] of longword;
     RESERVED1    : array [0 .. 4095] of longword;
     DIR          : longword;
@@ -225,7 +225,7 @@ type
   end;
 
   { ------------- Timer (TMR) ------------- }
-  TTMRRegisters = record
+  TTMR_Registers = record
     IR       : longword;
     TCR      : longword;
     TC       : longword;
@@ -246,7 +246,7 @@ type
   end;
 
   { ------------- Universal Asynchronous Receiver Transmitter (UART) ------------- }
-  TUARTRegisters = record
+  TUART_Registers = record
     DLL      : longword;
     DLM      : longword;
     FCR      : longword;
@@ -268,7 +268,7 @@ type
   end;
 
   { ------------- Synchronous Serial Communication (SSP) ------------- }
-  TSSPRegisters = record
+  TSSP_Registers = record
     CR0 : longword;
     CR1 : longword;
     DR  : longword;
@@ -281,7 +281,7 @@ type
   end;
 
   { ------------- Inter-Integrated Circuit (I2C) ------------- }
-  TI2CRegisters = record
+  TI2C_Registers = record
     CONSET     : longword;
     STAT       : longword;
     DAT        : longword;
@@ -302,7 +302,7 @@ type
 
   { ------------- Watchdog Timer (WDT) ------------- }
 
-  TWDTRegisters = record
+  TWDT_Registers = record
     _MOD     : longword;
     TC       : longword;
     FEED     : longword;
@@ -313,7 +313,7 @@ type
   end;
 
   { ------------- Analog-to-Digital Converter (ADC) ------------- }
-  TADCRegisters = record
+  TADC_Registers = record
     CR       : longword;
     GDR      : longword;
     RESERVED0: longword;
@@ -323,7 +323,7 @@ type
   end;
 
   { ------------- Universal Serial Bus (USB) ------------- }
-  TUSBRegisters = record
+  TUSB_Registers = record
     DevIntSt : longword;
     DevIntEn : longword;
     DevIntClr: longword;
@@ -375,25 +375,25 @@ const
 { **************************************************************************** }
 
 var
-  LPC_I2C      : TI2CRegisters    absolute(LPC_I2C_BASE);
-  LPC_WDT      : TWDTRegisters    absolute(LPC_WDT_BASE);
-  LPC_UART     : TUARTRegisters   absolute(LPC_UART_BASE);
-  LPC_CT16B0   : TTMRRegisters     absolute(LPC_CT16B0_BASE);
-  LPC_CT16B1   : TTMRRegisters     absolute(LPC_CT16B1_BASE);
-  LPC_CT32B0   : TTMRRegisters     absolute(LPC_CT32B0_BASE);
-  LPC_CT23B1   : TTMRRegisters     absolute(LPC_CT32B1_BASE);
-  LPC_ADC      : TADCRegisters    absolute(LPC_ADC_BASE);
-  LPC_USB      : TUSBRegisters    absolute(LPC_USB_BASE);
-  LPC_PMU      : TPMURegisters    absolute(LPC_PMU_BASE);
-  LPC_SSP0     : TSSPRegisters    absolute(LPC_SSP0_BASE);
-  LPC_IOCON    : TIOCONRegisters  absolute(LPC_IOCON_BASE);
-  LPC_SYSCON   : TSYSCONRegisters absolute(LPC_SYSCON_BASE);
-  LPC_SSP1     : TSSPRegisters    absolute(LPC_SSP0_BASE);
+  LPC_I2C      : TI2C_Registers    absolute(LPC_I2C_BASE);
+  LPC_WDT      : TWDT_Registers    absolute(LPC_WDT_BASE);
+  LPC_UART     : TUART_Registers   absolute(LPC_UART_BASE);
+  LPC_CT16B0   : TTMR_Registers     absolute(LPC_CT16B0_BASE);
+  LPC_CT16B1   : TTMR_Registers     absolute(LPC_CT16B1_BASE);
+  LPC_CT32B0   : TTMR_Registers     absolute(LPC_CT32B0_BASE);
+  LPC_CT23B1   : TTMR_Registers     absolute(LPC_CT32B1_BASE);
+  LPC_ADC      : TADC_Registers    absolute(LPC_ADC_BASE);
+  LPC_USB      : TUSB_Registers    absolute(LPC_USB_BASE);
+  LPC_PMU      : TPMU_Registers    absolute(LPC_PMU_BASE);
+  LPC_SSP0     : TSSP_Registers    absolute(LPC_SSP0_BASE);
+  LPC_IOCON    : TIOCON_Registers  absolute(LPC_IOCON_BASE);
+  LPC_SYSCON   : TSYSCON_Registers absolute(LPC_SYSCON_BASE);
+  LPC_SSP1     : TSSP_Registers    absolute(LPC_SSP0_BASE);
 
-  LPC_GPIO0    : TGPIORegisters      absolute(LPC_GPIO0_BASE);
-  LPC_GPIO1    : TGPIORegisters      absolute(LPC_GPIO1_BASE);
-  LPC_GPIO2    : TGPIORegisters      absolute(LPC_GPIO2_BASE);
-  LPC_GPIO3    : TGPIORegisters      absolute(LPC_GPIO3_BASE);
+  LPC_GPIO0    : TGPIO_Registers      absolute(LPC_GPIO0_BASE);
+  LPC_GPIO1    : TGPIO_Registers      absolute(LPC_GPIO1_BASE);
+  LPC_GPIO2    : TGPIO_Registers      absolute(LPC_GPIO2_BASE);
+  LPC_GPIO3    : TGPIO_Registers      absolute(LPC_GPIO3_BASE);
 
 implementation
 
@@ -401,6 +401,7 @@ procedure NonMaskableInt_interrupt;   external name 'NonMaskableInt_interrupt';
 procedure MemoryManagement_interrupt; external name 'MemoryManagement_interrupt';
 procedure BusFault_interrupt;         external name 'BusFault_interrupt';
 procedure UsageFault_interrupt;       external name 'UsageFault_interrupt';
+procedure Startup_Checksum;           external name 'Startup_Checksum';
 procedure SVCall_interrupt;           external name 'SVCall_interrupt';
 procedure DebugMonitor_interrupt;     external name 'DebugMonitor_interrupt';
 procedure PendSV_interrupt;           external name 'PendSV_interrupt';
@@ -464,7 +465,7 @@ procedure EINT1_Interrupt;     external name 'EINT1_Interrupt';
 procedure EINT0_Interrupt;     external name 'EINT0_Interrupt';
 procedure SSP1_Interrupt;      external name 'SSP1_Interrupt';
 
-{$I cortexm0_start.inc}
+{$I cortexm3_start.inc}
 
 procedure Vectors; assembler;
 nostackframe;
@@ -479,7 +480,7 @@ asm
   .long MemoryManagement_interrupt
   .long BusFault_interrupt
   .long UsageFault_interrupt
-  .long 0
+  .long Startup_Checksum
   .long 0
   .long 0
   .long 0
@@ -552,6 +553,7 @@ asm
   .weak MemoryManagement_interrupt
   .weak BusFault_interrupt
   .weak UsageFault_interrupt
+  .weak Startup_Checksum
   .weak SVCall_interrupt
   .weak DebugMonitor_interrupt
   .weak PendSV_interrupt

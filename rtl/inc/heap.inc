@@ -18,7 +18,7 @@
 { $define HAS_MEMORYMANAGER}
 
 { Memory manager }
-{$ifndef EMBEDDED}
+{$ifndef FPC_NO_DEFAULT_MEMORYMANAGER}
 const
   MemoryManager: TMemoryManager = (
     NeedLock: false;  // Obsolete
@@ -34,7 +34,7 @@ const
     GetHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetHeapStatus{$else}nil{$endif};
     GetFPCHeapStatus: {$ifndef FPC_NO_DEFAULT_HEAP}@SysGetFPCHeapStatus{$else}nil{$endif};
   );
-{$else}
+{$else not FPC_NO_DEFAULT_MEMORYMANAGER}
 {$ifndef FPC_IN_HEAPMGR}
 const
   MemoryManager: TMemoryManager = (
@@ -52,7 +52,7 @@ const
     GetFPCHeapStatus: nil;
   );public name 'FPC_SYSTEM_MEMORYMANAGER';
 {$endif FPC_IN_HEAPMGR}
-{$endif EMBEDDED}
+{$endif not FPC_NO_DEFAULT_MEMORYMANAGER}
 
 
 { Try to find the best matching block in general freelist }
@@ -62,7 +62,7 @@ const
 { define DUMPGROW}
 
 { Memory profiling: at moment in time of max heap size usage,
-  keep statistics of number of each size allocated 
+  keep statistics of number of each size allocated
   (with 16 byte granularity) }
 { define DUMP_MEM_USAGE}
 
@@ -131,9 +131,9 @@ const
   of user freeing/allocing same or a small set of sizes, we only do
   the conversion to the new fixed os chunk size format after we
   reuse the os chunk for another fixed size, or variable. Note that
-  while the fixed size os chunk is on the freelists.oslist, it is also 
-  still present in a freelists.fixedlists, therefore we can easily remove 
-  the os chunk from the freelists.oslist if this size is needed again; we 
+  while the fixed size os chunk is on the freelists.oslist, it is also
+  still present in a freelists.fixedlists, therefore we can easily remove
+  the os chunk from the freelists.oslist if this size is needed again; we
   don't need to search freelists.oslist in alloc_oschunk, since it won't
   be present anymore if alloc_oschunk is reached. Note that removing
   from the freelists.oslist is not really done, only the recycleflag is
@@ -212,9 +212,9 @@ type
   end;
 
 const
-  fixedfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_fixed_hdr) + $f) 
+  fixedfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_fixed_hdr) + $f)
       and not $f) - sizeof(tmemchunk_fixed_hdr);
-  varfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_var_hdr) + $f) 
+  varfirstoffset = ((sizeof(toschunk) + sizeof(tmemchunk_var_hdr) + $f)
       and not $f) - sizeof(tmemchunk_var_hdr);
 {$ifdef BESTMATCH}
   matcheffort = high(longint);
@@ -265,8 +265,12 @@ begin
 {$ifdef HAS_MEMORYMANAGER}
   Result:=false;
 {$else HAS_MEMORYMANAGER}
-  IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem) 
+{$ifdef FPC_NO_DEFAULT_MEMORYMANAGER}
+  Result:=false;
+{$else not FPC_NO_DEFAULT_MEMORYMANAGER}
+  IsMemoryManagerSet := (MemoryManager.GetMem<>@SysGetMem)
     or (MemoryManager.FreeMem<>@SysFreeMem);
+{$endif notFPC_NO_DEFAULT_MEMORYMANAGER}
 {$endif HAS_MEMORYMANAGER}
 end;
 
@@ -362,7 +366,8 @@ end;
 {$endif FPC_IN_HEAPMGR}
 
 {$if defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}
-{$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
+
 {*****************************************************************************
                                GetHeapStatus
 *****************************************************************************}
@@ -457,7 +462,7 @@ end;
 
 {$ifdef HEAP_DEBUG}
 
-function find_fixed_mc(loc_freelists: pfreelists; chunkindex: ptruint; 
+function find_fixed_mc(loc_freelists: pfreelists; chunkindex: ptruint;
   pmc: pmemchunk_fixed): boolean;
 var
   pmc_temp: pmemchunk_fixed;
@@ -715,7 +720,7 @@ end;
                                 Grow Heap
 *****************************************************************************}
 
-function find_free_oschunk(loc_freelists: pfreelists; 
+function find_free_oschunk(loc_freelists: pfreelists;
   minsize, maxsize: ptruint; var size: ptruint): poschunk;
 var
   prev_poc, poc: poschunk;
@@ -982,9 +987,9 @@ begin
     if currheapused > maxheapused then
     begin
       maxheapused := currheapused;
-{$ifdef DUMP_MEM_USAGE}        
+{$ifdef DUMP_MEM_USAGE}
       maxsizeusage := sizeusage;
-{$endif}        
+{$endif}
     end;
   end;
   inc(poc^.used);
@@ -1051,9 +1056,9 @@ begin
     if currheapused > maxheapused then
     begin
       maxheapused := currheapused;
-{$ifdef DUMP_MEM_USAGE}        
+{$ifdef DUMP_MEM_USAGE}
       maxsizeusage := sizeusage;
-{$endif}        
+{$endif}
     end;
   end;
 end;
@@ -1233,7 +1238,7 @@ end;
 
 function try_finish_waitfixedlist(loc_freelists: pfreelists): boolean;
 begin
-  if loc_freelists^.waitfixed = nil then 
+  if loc_freelists^.waitfixed = nil then
     exit(false);
 {$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(heap_lock);
@@ -1261,7 +1266,7 @@ end;
 
 procedure try_finish_waitvarlist(loc_freelists: pfreelists);
 begin
-  if loc_freelists^.waitvar = nil then 
+  if loc_freelists^.waitvar = nil then
     exit;
 {$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(heap_lock);
@@ -1490,7 +1495,7 @@ begin
   SysReAllocMem := p;
 end;
 
-{$endif HAS_MEMORYMANAGER}
+{$endif FPC_NO_DEFAULT_HEAP}
 
 {$ifndef HAS_MEMORYMANAGER}
 
@@ -1498,6 +1503,7 @@ end;
                                  InitHeap
 *****************************************************************************}
 
+{$ifndef FPC_NO_DEFAULT_HEAP}
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
 {$ifdef FPC_HAS_FEATURE_THREADING}
@@ -1617,7 +1623,7 @@ begin
   end;
 {$endif}
 {$ifdef SHOW_MEM_USAGE}
-  writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 
+  writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/',
     loc_freelists^.internal_status.maxheapsize);
   flush(output);
 {$endif}
@@ -1629,6 +1635,8 @@ begin
   flush(output);
 {$endif}
 end;
+
+{$endif ndef FPC_NO_DEFAULT_HEAP}
 
 {$endif HAS_MEMORYMANAGER}
 {$endif defined(FPC_HAS_FEATURE_HEAP) or defined(FPC_IN_HEAPMGR)}

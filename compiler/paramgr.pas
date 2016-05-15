@@ -81,7 +81,7 @@ unit paramgr;
           function get_volatile_registers_flags(calloption : tproccalloption):tcpuregisterset;virtual;
           function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;virtual;
 
-          procedure getintparaloc(pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
+          procedure getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);virtual;
 
           {# allocate an individual pcgparalocation that's part of a tcgpara
 
@@ -179,15 +179,14 @@ implementation
     { true if uses a parameter as return value }
     function tparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       begin
+         { This handles all managed types, including COM interfaces and Variants }
          if handle_common_ret_in_param(def,pd,result) then
            exit;
          ret_in_param:=(def.typ=arraydef) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
            ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or
-           { interfaces are also passed by reference to be compatible with delphi and COM }
-           ((def.typ=objectdef) and (is_object(def) or is_interface(def) or is_dispinterface(def))) or
-           (def.typ=variantdef) or
+           ((def.typ=objectdef) and (is_object(def))) or
            ((def.typ=setdef) and not is_smallset(def));
       end;
 
@@ -404,7 +403,11 @@ implementation
             newparaloc:=cgpara.add_location;
             newparaloc^.size:=paraloc^.size;
             newparaloc^.def:=paraloc^.def;
-            newparaloc^.shiftval:=paraloc^.shiftval;
+            { shiftval overlaps with part of the reference, so it may be
+              different from 0 and if wr then force the newparaloc to a register
+              in the optimization below, shiftval will remain <> 0 }
+            if not(paraloc^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              newparaloc^.shiftval:=paraloc^.shiftval;
             { $warning maybe release this optimization for all targets?  }
             { released for all CPUs:
               i386 isn't affected anyways because it uses the stack to push parameters
@@ -420,7 +423,12 @@ implementation
               newparaloc^.loc:=paraloc^.loc;
             case newparaloc^.loc of
               LOC_REGISTER :
-                newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+                begin
+                  if (vo_has_explicit_paraloc in parasym.varoptions) and (paraloc^.loc = LOC_REGISTER) then
+                    newparaloc^.register:=paraloc^.register
+                  else
+                    newparaloc^.register:=cg.getintregister(list,paraloc^.size);
+                end;
               LOC_FPUREGISTER :
                 newparaloc^.register:=cg.getfpuregister(list,paraloc^.size);
               LOC_MMREGISTER :
@@ -475,7 +483,8 @@ implementation
 
     procedure tparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       begin
-        p.funcretloc[side]:=get_funcretloc(p,side,nil);
+        if not assigned(p.funcretloc[side].Location) then
+          p.funcretloc[side]:=get_funcretloc(p,side,nil);
       end;
 
 
@@ -555,7 +564,7 @@ implementation
             retloc.def:=tdef(p.owner.defowner);
             if not (is_implicit_pointer_object_type(retloc.def) or
                (retloc.def.typ<>objectdef)) then
-              retloc.def:=getpointerdef(retloc.def);
+              retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
           end;
         retcgsize:=def_cgsize(retloc.def);
         retloc.intsize:=retloc.def.size;
@@ -563,7 +572,7 @@ implementation
         { Return is passed as var parameter }
         if ret_in_param(retloc.def,p) then
           begin
-            retloc.def:=getpointerdef(retloc.def);
+            retloc.def:=cpointerdef.getreusable_no_free(retloc.def);
             paraloc:=retloc.add_location;
             paraloc^.loc:=LOC_REFERENCE;
             paraloc^.size:=retcgsize;
@@ -616,11 +625,11 @@ implementation
         else if restlen in [1,2,4,8] then
           result:=cgsize_orddef(int_cgsize(restlen))
         else
-          result:=getarraydef(u8inttype,restlen);
+          result:=carraydef.getreusable_no_free(u8inttype,restlen);
       end;
 
 
-    procedure tparamanager.getintparaloc(pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);
+    procedure tparamanager.getintparaloc(list: TAsmList; pd: tabstractprocdef; nr : longint; var cgpara: tcgpara);
       begin
         if (nr<1) or (nr>pd.paras.count) then
           InternalError(2013060101);

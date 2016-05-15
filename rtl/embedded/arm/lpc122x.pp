@@ -48,7 +48,7 @@ const
 
 type
   { ------------- Inter-Integrated Circuit (I2C) ------------- }
-  TI2CRegisters = record
+  TI2C_Registers = record
     CONSET     : longword;
     STAT       : longword;
     DAT        : longword;
@@ -68,7 +68,7 @@ type
   end;
 
   { ------------- Watchdog Timer (WDT) ------------- }
-  TWDTRegisters = record
+  TWDT_Registers = record
     _MOD   : longword;
     TC     : longword;
     FEED   : longword;
@@ -79,7 +79,7 @@ type
   end;
 
   { ------------- Universal Asynchronous Receiver Transmitter 0 (UART0) ------------- }
-  TUART0Registers = record
+  TUART0_Registers = record
     DLL_THR_RBR  : longword;
     IER_DLM      : longword;
     FCR_IIR      : longword;
@@ -101,7 +101,7 @@ type
   end;
 
   { ------------- Universal Asynchronous Receiver Transmitter 1 (UART1) ------------- }
-  TUART1Registers = record
+  TUART1_Registers = record
     DLL_THR_RBR: longword;
     IER_DLM    : longword;
     FCR_IIR    : longword;
@@ -120,7 +120,7 @@ type
   end;
 
   { ------------- Timer (TCTxxBx) ------------- }
-  TCTxxBxRegisters = record
+  TCTxxBx_Registers = record
     IR       : longword;
     TCR      : longword;
     TC       : longword;
@@ -142,7 +142,7 @@ type
   end;
 
   { ------------- Analog-to-Digital Converter (ADC) ------------- }
-  TADCRegisters = record
+  TADC_Registers = record
     CR       : longword;
     GDR      : longword;
     RESERVED0: longword;
@@ -152,7 +152,7 @@ type
   end;
 
   { ------------- Power Management Unit (PMU) ------------- }
-  TPMURegisters = record
+  TPMU_Registers = record
     PCON  : longword;
     GPREG0: longword;
     GPREG1: longword;
@@ -162,7 +162,7 @@ type
   end;
 
   { ------------- Synchronous Serial Communication (SSP) ------------- }
-  TSSPRegisters = record
+  TSSP_Registers = record
     CR0  : longword;
     CR1  : longword;
     DR   : longword;
@@ -176,7 +176,7 @@ type
   end;
 
   { ------------- Pin Connect Block (IOCON) ------------- }
-  TIOCONRegisters = record
+  TIOCON_Registers = record
     RESERVED0    : array [0 .. 1] of longword;
     PIO0_19      : longword;
     PIO0_20      : longword;
@@ -238,7 +238,7 @@ type
   end;
 
   { ------------- System Control (SYSCON) ------------- }
-  TSYSCONRegisters = record
+  TSYSCON_Registers = record
     SYSMEMREMAP    : longword;
     PRESETCTRL     : longword;
     SYSPLLCTRL     : longword;
@@ -302,7 +302,7 @@ type
   end;
 
   { ------------- Micro DMA Controller (MICRO_DMA) ------------- }
-  TMICRODMARegisters = record
+  TMICRODMA_Registers = record
     DMA_STATUS          : longword;
     DMA_CFG             : longword;
     CTRL_BASE_PTR       : longword;
@@ -328,7 +328,7 @@ type
   end;
 
   { ------------- Real Time Clock (RTC) ------------- }
-  TRTCRegisters = record
+  TRTC_Registers = record
     DR  : longword;
     MR  : longword;
     LR  : longword;
@@ -340,13 +340,13 @@ type
   end;
 
   { ------------- Analog Comparator (ACOMP) ------------- }
-  TACOMPRegisters = record
+  TACOMP_Registers = record
     CMP : longword;
     VLAD: longword;
   end;
 
   { ------------- General Purpose Input/Output (GPIO) ------------- }
-  TGPIORegisters = record
+  TGPIO_Registers = record
     MASK     : longword;
     PIN      : longword;
     _OUT     : longword;
@@ -364,13 +364,13 @@ type
     IC       : longword;
   end;
 
-  TFLASHCTRLRegisters = record
+  TFLASHCTRL_Registers = record
     RESERVED0: array [0 .. 9] of longword;
     FLASHCFG : longword;
   end;
 
   { ------------- CRC Engine(CRC) ------------- }
-  TCRCRegisters = record
+  TCRC_Registers = record
     MODE: longword;
     SEED: longword;
     SUM : longword;
@@ -420,33 +420,34 @@ const
 {$ALIGN 2}
 
 var
-  LPC_I2C      : TI2CRegisters      absolute(LPC_I2C_BASE);
-  LPC_WDT      : TWDTRegisters      absolute(LPC_WDT_BASE);
-  LPC_UART0    : TUART0Registers    absolute(LPC_UART0_BASE);
-  LPC_UART1    : TUART1Registers    absolute(LPC_UART1_BASE);
-  LPC_CT16B0   : TCTxxBxRegisters   absolute(LPC_CT16B0_BASE);
-  LPC_CT16B1   : TCTxxBxRegisters   absolute(LPC_CT16B1_BASE);
-  LPC_CT32B0   : TCTxxBxRegisters   absolute(LPC_CT32B0_BASE);
-  LPC_CT23B1   : TCTxxBxRegisters   absolute(LPC_CT32B1_BASE);
-  LPC_ADC      : TADCRegisters      absolute(LPC_ADC_BASE);
-  LPC_PMU      : TPMURegisters      absolute(LPC_PMU_BASE);
-  LPC_SSP      : TSSPRegisters      absolute(LPC_SSP_BASE);
-  LPC_IOCON    : TIOCONRegisters    absolute(LPC_IOCON_BASE);
-  LPC_SYSCON   : TSYSCONRegisters   absolute(LPC_SYSCON_BASE);
-  LPC_MICRO_DMA: TMICRODMARegisters absolute(LPC_MICRO_DMA_BASE);
-  LPC_RTC      : TRTCRegisters      absolute(LPC_RTC_BASE);
-  LPC_ACOMP    : TACOMPRegisters    absolute(LPC_ACOMP_BASE);
+  LPC_I2C      : TI2C_Registers      absolute(LPC_I2C_BASE);
+  LPC_WDT      : TWDT_Registers      absolute(LPC_WDT_BASE);
+  LPC_UART0    : TUART0_Registers    absolute(LPC_UART0_BASE);
+  LPC_UART1    : TUART1_Registers    absolute(LPC_UART1_BASE);
+  LPC_CT16B0   : TCTxxBx_Registers   absolute(LPC_CT16B0_BASE);
+  LPC_CT16B1   : TCTxxBx_Registers   absolute(LPC_CT16B1_BASE);
+  LPC_CT32B0   : TCTxxBx_Registers   absolute(LPC_CT32B0_BASE);
+  LPC_CT23B1   : TCTxxBx_Registers   absolute(LPC_CT32B1_BASE);
+  LPC_ADC      : TADC_Registers      absolute(LPC_ADC_BASE);
+  LPC_PMU      : TPMU_Registers      absolute(LPC_PMU_BASE);
+  LPC_SSP      : TSSP_Registers      absolute(LPC_SSP_BASE);
+  LPC_IOCON    : TIOCON_Registers    absolute(LPC_IOCON_BASE);
+  LPC_SYSCON   : TSYSCON_Registers   absolute(LPC_SYSCON_BASE);
+  LPC_MICRO_DMA: TMICRODMA_Registers absolute(LPC_MICRO_DMA_BASE);
+  LPC_RTC      : TRTC_Registers      absolute(LPC_RTC_BASE);
+  LPC_ACOMP    : TACOMP_Registers    absolute(LPC_ACOMP_BASE);
 
-  LPC_GPIO0    : TGPIORegisters      absolute(LPC_GPIO0_BASE);
-  LPC_GPIO1    : TGPIORegisters      absolute(LPC_GPIO1_BASE);
-  LPC_GPIO2    : TGPIORegisters      absolute(LPC_GPIO2_BASE);
-  LPC_FLASHCTRL: TFLASHCTRLRegisters absolute(LPC_FLASHCTRL_BASE);
-  LPC_CRC      : TCRCRegisters       absolute(LPC_CRC_BASE);
+  LPC_GPIO0    : TGPIO_Registers      absolute(LPC_GPIO0_BASE);
+  LPC_GPIO1    : TGPIO_Registers      absolute(LPC_GPIO1_BASE);
+  LPC_GPIO2    : TGPIO_Registers      absolute(LPC_GPIO2_BASE);
+  LPC_FLASHCTRL: TFLASHCTRL_Registers absolute(LPC_FLASHCTRL_BASE);
+  LPC_CRC      : TCRC_Registers       absolute(LPC_CRC_BASE);
 
 implementation
 
 procedure NonMaskableInt_interrupt; external name 'NonMaskableInt_interrupt';
 procedure Hardfault_interrupt;      external name 'Hardfault_interrupt';
+procedure Startup_Checksum;         external name 'Startup_Checksum';
 procedure SVCall_interrupt;         external name 'SVCall_interrupt';
 procedure DebugMonitor_interrupt;   external name 'DebugMonitor_interrupt';
 procedure PendSV_interrupt;         external name 'PendSV_interrupt';
@@ -497,7 +498,7 @@ asm
   .long 0
   .long 0
   .long 0
-  .long 0
+  .long Startup_Checksum
   .long 0
   .long 0
   .long 0
@@ -542,6 +543,7 @@ asm
 
   .weak NonMaskableInt_interrupt
   .weak Hardfault_interrupt
+  .weak Startup_Checksum
   .weak SVCall_interrupt
   .weak DebugMonitor_interrupt
   .weak PendSV_interrupt

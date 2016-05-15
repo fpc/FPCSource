@@ -189,8 +189,8 @@ begin
   0, 1: if SampleCnt-ExtraSampleCnt<>1 then
     TiffError('gray images expect one sample per pixel, but found '+IntToStr(
       SampleCnt));
-  2: if SampleCnt-ExtraSampleCnt<>3 then
-    TiffError('rgb images expect three samples per pixel, but found '+IntToStr(
+  2: if (SampleCnt-ExtraSampleCnt<>3) and (SampleCnt-ExtraSampleCnt<>4) then
+    TiffError('rgb(a) images expect three or four samples per pixel, but found '+IntToStr(
       SampleCnt));
   3: if SampleCnt-ExtraSampleCnt<>1 then
     TiffError('palette images expect one sample per pixel, but found '+IntToStr(
@@ -213,8 +213,8 @@ begin
   for i:=0 to SampleCnt-1 do begin
     if SampleBits[i]>64 then
       TiffError('Samples bigger than 64 bit not supported');
-    if not (SampleBits[i] in [1, 8, 16]) then
-      TiffError('Only samples of 1, 8 and 16 bit are supported');
+    if not (SampleBits[i] in [1, 8, 12, 16]) then
+      TiffError('Only samples of 1, 8, 12 and 16 bit are supported');
     inc(SampleBitsPerPixel, SampleBits[i]);
   end;
   case IFD.PhotoMetricInterpretation of
@@ -228,8 +228,8 @@ begin
           IFD.AlphaBits:=AlphaBits;
         end;
       end;
-      if not (GrayBits in [1, 8, 16]) then
-        TiffError('gray image only supported with gray BitsPerSample 1, 8 or 16');
+      if not (GrayBits in [1, 8, 12, 16]) then
+        TiffError('gray image only supported with gray BitsPerSample 1, 8, 12 or 16');
       if not (AlphaBits in [0, 8, 16]) then
         TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
     end;
@@ -238,10 +238,15 @@ begin
       RedBits:=SampleBits[0];
       GreenBits:=SampleBits[1];
       BlueBits:=SampleBits[2];
+      if SampleCnt=4 then
+        AlphaBits:=SampleBits[3];
       IFD.RedBits:=RedBits;
       IFD.GreenBits:=GreenBits;
       IFD.BlueBits:=BlueBits;
-      IFD.AlphaBits:=0;
+      if SampleCnt=4 then
+        IFD.AlphaBits:=AlphaBits
+      else
+        IFD.AlphaBits:=0;
       for i:=0 to ExtraSampleCnt-1 do begin
         //writeln('  ',i,'/',ExtraSampleCnt,' Type=',ExtraSamples[i],' Count=',SampleBits[3+i]);
         if ExtraSamples[i] in [1, 2] then begin
@@ -361,6 +366,7 @@ procedure TFPReaderTiff.ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
   Predictor: word; var LastValue: word; out Value: Word); inline;
 var
   BitNumber: byte;
+  Byte1, Byte2: byte;
 begin
   case BitCount of
   1:
@@ -385,6 +391,18 @@ begin
       end;
       Value:=Value shl 8+Value;
       inc(Run);
+    end;
+  12:
+    begin
+      Byte1 := PCUInt8(Run)^;
+      Byte2 := PCUInt8(Run+1)^;
+      if (x mod 2) = 0 then begin
+        Value := (((Byte1) shl 4) or (Byte2 shr 4)) * 16;
+        inc(Run);
+      end else begin
+        Value := (((Byte1 and $0F) shl 8) or Byte2) * 16;
+        inc(Run, 2);
+      end;
     end;
   16:
     begin
@@ -546,6 +564,9 @@ begin
   if Debug then
     writeln('ReadIFD Start=',Start);
   {$endif}
+  // set default values if not read from file
+  IFD.RowsPerStrip := $FFFFFFFF;
+  
   Result:=0;
   SetStreamPos(Start);
   IFD.IFDStart:=Start;
@@ -1465,11 +1486,20 @@ begin
   if EntryType<>2 then
     TiffError('asciiz expected, but found '+IntToStr(EntryType));
   EntryCount:=ReadDWord;
-  EntryStart:=ReadDWord;
-  SetStreamPos(EntryStart);
   SetLength(Result,EntryCount-1);
-  if EntryCount>1 then
+  if EntryCount>4 then begin
+    // long string -> next 4 DWord is the offset
+    EntryStart:=ReadDWord;
+    SetStreamPos(EntryStart);
     s.Read(Result[1],EntryCount-1);
+  end else begin
+    // short string -> stored directly in the next 4 bytes
+    if Result<>'' then
+      s.Read(Result[1],length(Result));
+    // skip rest of 4 bytes
+    if length(Result)<4 then
+      s.Read(EntryStart,4-length(Result));
+  end;
 end;
 
 function TFPReaderTiff.ReadByte: Byte;
@@ -1822,7 +1852,10 @@ begin
               ReadImgValue(RedBits,Run,cx,IFD.Predictor,LastRedValue,RedValue);
               ReadImgValue(GreenBits,Run,cx,IFD.Predictor,LastGreenValue,GreenValue);
               ReadImgValue(BlueBits,Run,cx,IFD.Predictor,LastBlueValue,BlueValue);
-              AlphaValue:=alphaOpaque;
+              if SampleBitsPerPixel=32 then
+                ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue)
+              else
+                AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i] in [1,2] then begin
                   ReadImgValue(AlphaBits,Run,cx,IFD.Predictor,LastAlphaValue,AlphaValue);
@@ -1965,7 +1998,7 @@ begin
   for i:=0 to ImageCount-1 do begin
     CurImg:=Images[i];
     NewSize:=Int64(CurImg.ImageWidth)*CurImg.ImageHeight;
-    if (NewSize<BestSize) then continue;
+    if (NewSize<=BestSize) then continue;
     BestSize:=NewSize;
     Best:=i;
   end;
@@ -2256,6 +2289,8 @@ var
     p[s1.Count]:=s2.Data^;
     // increase TableCount
     inc(TableCount);
+    if ((SrcPos+3=Count) and (CurBitLength+SrcPosBit>16)) or
+       ((SrcPos+2=Count) and (CurBitLength+SrcPosBit<=16)) then exit;
     case TableCount+259 of
     512,1024,2048: inc(CurBitLength);
     end;

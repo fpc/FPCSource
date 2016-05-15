@@ -142,7 +142,7 @@ function tjvmassignmentnode.pass_1: tnode;
           ccallnode.create(
             ccallparanode.create(right,
               ccallparanode.create(tvecnode(target).right,nil)),
-            tprocsym(psym),psym.owner,tvecnode(target).left,[]);
+            tprocsym(psym),psym.owner,tvecnode(target).left,[],nil);
         right:=nil;
         tvecnode(target).left:=nil;
         tvecnode(target).right:=nil;
@@ -221,7 +221,7 @@ function tjvmloadnode.handle_threadvar_access: tnode;
       end
     else
       begin
-        result:=ctypeconvnode.create_explicit(result,getpointerdef(resultdef));
+        result:=ctypeconvnode.create_explicit(result,cpointerdef.getreusable(resultdef));
         result:=cderefnode.create(result);
       end;
   end;

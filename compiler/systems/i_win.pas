@@ -34,7 +34,7 @@ unit i_win;
             system       : system_i386_WIN32;
             name         : 'Win32 for i386';
             shortname    : 'Win32';
-            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_smartlink_library
+            flags        : [tf_files_case_aware,tf_has_dllscanner
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
@@ -94,6 +94,7 @@ unit i_win;
             stacksize    : 16*1024*1024;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f80:128:128-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32';
           );
 
        system_x64_win64_info : tsysteminfo =
@@ -102,7 +103,7 @@ unit i_win;
             name         : 'Win64 for x64';
             shortname    : 'Win64';
             flags        : [tf_files_case_aware,tf_has_dllscanner,
-                            tf_smartlink_sections,tf_smartlink_library,
+                            tf_smartlink_sections,
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_dwarf_only_local_labels,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
@@ -161,6 +162,7 @@ unit i_win;
             stacksize    : 16*1024*1024;
             stackalign   : 16;
             abi          : abi_default;
+            llvmdatalayout : 'e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128';
           );
 
        system_arm_wince_info : tsysteminfo =
@@ -198,7 +200,7 @@ unit i_win;
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '\';
-            assem        : as_gas;
+            assem        : as_arm_pecoffwince;
             assemextern  : as_gas;
             link         : ld_int_windows;
             linkextern   : ld_windows;
@@ -226,6 +228,7 @@ unit i_win;
             stacksize    : 262144;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
        system_i386_wince_info : tsysteminfo =
@@ -291,6 +294,7 @@ unit i_win;
             stacksize    : 262144;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
 

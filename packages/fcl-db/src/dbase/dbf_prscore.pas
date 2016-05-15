@@ -248,9 +248,9 @@ procedure Func_OR(Param: PExpressionRec);
 procedure Func_NOT(Param: PExpressionRec);
 
 var
-  DbfWordsSensGeneralList, DbfWordsInsensGeneralList: TExpressList;
-  DbfWordsSensPartialList, DbfWordsInsensPartialList: TExpressList;
-  DbfWordsSensNoPartialList, DbfWordsInsensNoPartialList: TExpressList;
+  DbfWordsSensGeneralList, DbfWordsInsensGeneralList: TExpressList; //case sensitive and case insensitive
+  DbfWordsSensPartialList, DbfWordsInsensPartialList: TExpressList; //for partial matches
+  DbfWordsSensNoPartialList, DbfWordsInsensNoPartialList: TExpressList; //no partial match allowed
   DbfWordsGeneralList: TExpressList;
 
 implementation
@@ -594,7 +594,7 @@ begin
     begin
       // save variable type for easy access
       ExprRec^.ArgsType[I] := ExprRec^.ArgList[I]^.ExprWord.ResultType;
-      // check if we need to copy argument, variables in general do not
+      // check if we need to copy argument: variables in general do not
       // need copying, except for fixed len strings which are not
       // null-terminated
 //      if ExprRec^.ArgList[I].ExprWord.NeedsCopy then

@@ -33,6 +33,8 @@
          argc <--- esp
 }
 
+{$asmmode gas}
+
 var
   libc_environ: pchar; external name '__environ';
   libc_fpu_control: word; external name '__fpu_control';
@@ -163,11 +165,9 @@ procedure main_stub; assembler; nostackframe;
     hlt
   end;
 
-procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_libc_haltproc(e:longint); assembler; nostackframe; public name '_haltproc';
   asm
-    movq      ExitCode@GOTPCREL(%rip),%rax
-    movzwq    (%rax),%rax { load and save exitcode }
-
+    movl %edi,%eax
     movq fpc_ret(%rip),%rdx         { return to libc }
     movq fpc_ret_rbp(%rip),%rbp
     pushq %rdx

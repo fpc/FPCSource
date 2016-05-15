@@ -38,13 +38,12 @@ unit cpunode;
          n68kcal,
 //       nppccon,
 //       nppcflw,
-//       n68kmem,
+         n68kmem,
 //       nppcset,
-//       nppcinl,
+         n68kinl,
 //       nppcopt,
        { this not really a node }
 //       nppcobj,
-//       nppcmat,
          n68kmat,
          n68kcnv,
          { symtable }

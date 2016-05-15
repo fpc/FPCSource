@@ -27,6 +27,7 @@ interface
 
     uses
       globtype,
+      symtype,
       cgbase,cpuinfo,cpubase,
       node,nmem,ncgmem,nx86mem,ni86mem;
 
@@ -35,6 +36,9 @@ interface
         protected
          procedure set_absvarsym_resultdef; override;
          function typecheck_non_proc(realsource: tnode; out res: tnode): boolean; override;
+         procedure pass_generate_code;override;
+        public
+         get_offset_only: boolean;
        end;
 
        ti8086derefnode = class(tx86derefnode)
@@ -43,21 +47,23 @@ interface
 
        { tx86vecnode doesn't work for i8086, so we inherit tcgvecnode }
        ti8086vecnode = class(tcgvecnode)
-         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);override;
+        protected
+         function first_arraydef: tnode;override;
+         procedure update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);override;
        end;
 
 implementation
 
     uses
-      systems,globals,
+      systems,globals,constexp,
       cutils,verbose,
-      symbase,symconst,symdef,symtable,symtype,symsym,symcpu,
+      symbase,symconst,symdef,symtable,symsym,symx86,symcpu,
       parabase,paramgr,
       aasmtai,aasmdata,
-      nld,ncon,nadd,
+      nld,ncon,nadd,ncal,ncnv,
       cgutils,cgobj,
       defutil,hlcgobj,
-      pass_2,ncgutil;
+      pass_1,pass_2,ncgutil;
 
 {*****************************************************************************
                              TI8086ADDRNODE
@@ -86,6 +92,23 @@ implementation
           end
         else
           result:=inherited;
+      end;
+
+
+    procedure ti8086addrnode.pass_generate_code;
+      begin
+        if get_offset_only then
+          begin
+            secondpass(left);
+
+            location_reset(location,LOC_REGISTER,OS_16);
+            location.register:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidnearpointertype);
+            if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+              internalerror(2015103001);
+            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,voidnearpointertype,left.location.reference,location.register);
+          end
+        else
+          inherited;
       end;
 
 {*****************************************************************************
@@ -153,12 +176,12 @@ implementation
                  internalerror(2012010601);
                pd:=tprocdef(tprocsym(sym).ProcdefList[0]);
                paraloc1.init;
-               paramanager.getintparaloc(pd,1,paraloc1);
+               paramanager.getintparaloc(current_asmdata.CurrAsmList,pd,1,paraloc1);
                hlcg.a_load_reg_cgpara(current_asmdata.CurrAsmList,resultdef,location.reference.base,paraloc1);
                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                paraloc1.done;
                hlcg.allocallcpuregisters(current_asmdata.CurrAsmList);
-               hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',nil,false);
+               hlcg.a_call_name(current_asmdata.CurrAsmList,pd,'FPC_CHECKPOINTER',[],nil,false);
                hlcg.deallocallcpuregisters(current_asmdata.CurrAsmList);
              end;
           end
@@ -170,13 +193,53 @@ implementation
                              TI8086VECNODE
 *****************************************************************************}
 
-    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
+    function ti8086vecnode.first_arraydef: tnode;
+      var
+        arraydef: tcpuarraydef;
+        procname:string;
+      begin
+        if tcpuarraydef(left.resultdef).is_huge then
+          begin
+            arraydef:=tcpuarraydef(left.resultdef);
+
+            if not (ado_IsConvertedPointer in arraydef.arrayoptions) then
+              internalerror(2014080701);
+
+            if left.nodetype<>typeconvn then
+              internalerror(2014080702);
+
+            procname:='fpc_hugeptr_add_longint';
+            if cs_hugeptr_arithmetic_normalization in current_settings.localswitches then
+              procname:=procname+'_normalized';
+
+            if arraydef.elementdef.size>1 then
+              right:=caddnode.create(muln,right,
+                cordconstnode.create(arraydef.elementdef.size,s32inttype,true));
+
+            result:=ccallnode.createintern(procname,
+              ccallparanode.create(right,
+              ccallparanode.create(ttypeconvnode(left).left,nil)));
+            inserttypeconv_internal(result,tx86pointerdef(cpointerdef).getreusablex86(arraydef.elementdef,x86pt_huge));
+            result:=cderefnode.create(result);
+
+            ttypeconvnode(left).left:=nil;
+            ttypeconvnode(left).free;
+            left := nil;
+            right := nil;
+            firstpass(result);
+          end
+        else
+          result:=inherited;
+      end;
+
+
+    procedure ti8086vecnode.update_reference_reg_mul(maybe_const_reg: tregister; regsize: tdef; l: aint);
       var
         saveseg: TRegister;
       begin
         saveseg:=location.reference.segment;
         location.reference.segment:=NR_NO;
-        inherited update_reference_reg_mul(maybe_const_reg,l);
+        inherited;
         location.reference.segment:=saveseg;
       end;
 

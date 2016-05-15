@@ -31,11 +31,7 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-    {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 UNIT lowlevel;
 
@@ -265,305 +261,49 @@ Const
 
 { --- functions in V40 or higher (Release 3.1) --- }
 
-VAR LowLevelBase : pLibrary;
+VAR LowLevelBase : pLibrary = nil;
 
-FUNCTION AddKBInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
-FUNCTION AddTimerInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
-FUNCTION AddVBlankInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
-FUNCTION ElapsedTime(context : pEClockVal) : ULONG;
-FUNCTION GetKey : ULONG;
-FUNCTION GetLanguageSelection : BYTE;
-PROCEDURE QueryKeys(queryArray : pKeyQuery; arraySize : ULONG);
-FUNCTION ReadJoyPort(port : ULONG) : ULONG;
-PROCEDURE RemKBInt(intHandle : POINTER);
-PROCEDURE RemTimerInt(intHandle : POINTER);
-PROCEDURE RemVBlankInt(intHandle : POINTER);
-FUNCTION SetJoyPortAttrsA(portNumber : ULONG;const tagList : pTagItem) : BOOLEAN;
-PROCEDURE StartTimerInt(intHandle : POINTER; timeInterval : ULONG; continuous : LONGINT);
-PROCEDURE StopTimerInt(intHandle : POINTER);
-FUNCTION SystemControlA(const tagList : pTagItem) : ULONG;
+FUNCTION AddKBInt(const intRoutine : POINTER location 'a0'; const intData : POINTER location 'a1') : POINTER; syscall LowLevelBase 060;
+FUNCTION AddTimerInt(const intRoutine : POINTER location 'a0'; const  intData : POINTER location 'a1') : POINTER; syscall LowLevelBase 078;
+FUNCTION AddVBlankInt(const intRoutine : POINTER location 'a0'; const intData : POINTER location 'a1') : POINTER; syscall LowLevelBase 108;
+FUNCTION ElapsedTime(context : pEClockVal location 'a0') : ULONG; syscall LowLevelBase 102;
+FUNCTION GetKey : ULONG; syscall LowLevelBase 048;
+FUNCTION GetLanguageSelection : BYTE; syscall LowLevelBase 036;
+PROCEDURE QueryKeys(queryArray : pKeyQuery location 'a0'; arraySize : ULONG location 'd1'); syscall LowLevelBase 054;
+FUNCTION ReadJoyPort(port : ULONG location 'd0') : ULONG; syscall LowLevelBase 030;
+PROCEDURE RemKBInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 066;
+PROCEDURE RemTimerInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 084;
+PROCEDURE RemVBlankInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 114;
+FUNCTION SetJoyPortAttrsA(portNumber : ULONG location 'd0'; const tagList : pTagItem location 'a1') : LongBool; syscall LowLevelBase 132;
+PROCEDURE StartTimerInt(intHandle : POINTER location 'a1'; timeInterval : ULONG location 'd0'; continuous : LONGINT location 'd1'); syscall LowLevelBase 096;
+PROCEDURE StopTimerInt(intHandle : POINTER location 'a1'); syscall LowLevelBase 090;
+FUNCTION SystemControlA(const tagList : pTagItem location 'a1') : ULONG; syscall LowLevelBase 072;
 
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitLOWLEVELLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    LOWLEVELIsCompiledHow : longint;
+function SetJoyPortAttrs(portNumber : ULONG; Const argv : array of PtrUInt) : BOOLEAN;
+function SystemControl(Const argv : array of PtrUInt) : ULONG;
 
 IMPLEMENTATION
 
-{$ifndef dont_use_openlib}
-uses msgbox;
-{$endif dont_use_openlib}
+function SetJoyPortAttrs(portNumber : ULONG; Const argv : array of PtrUInt) : BOOLEAN;
+begin
+    SetJoyPortAttrs := SetJoyPortAttrsA(portNumber,@argv);
+end;
 
-FUNCTION AddKBInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intRoutine,A0
-    MOVEA.L intData,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -060(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddTimerInt(const intRoutine : POINTER;const  intData : POINTER) : POINTER;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intRoutine,A0
-    MOVEA.L intData,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -078(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddVBlankInt(const intRoutine : POINTER;const intData : POINTER) : POINTER;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intRoutine,A0
-    MOVEA.L intData,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -108(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ElapsedTime(context : pEClockVal) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L context,A0
-    MOVEA.L LowLevelBase,A6
-    JSR -102(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION GetKey : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L LowLevelBase,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION GetLanguageSelection : BYTE;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L LowLevelBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE QueryKeys(queryArray : pKeyQuery; arraySize : ULONG);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L queryArray,A0
-    MOVE.L  arraySize,D1
-    MOVEA.L LowLevelBase,A6
-    JSR -054(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION ReadJoyPort(port : ULONG) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  port,D0
-    MOVEA.L LowLevelBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE RemKBInt(intHandle : POINTER);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intHandle,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -066(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE RemTimerInt(intHandle : POINTER);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intHandle,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -084(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE RemVBlankInt(intHandle : POINTER);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intHandle,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -114(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION SetJoyPortAttrsA(portNumber : ULONG;const tagList : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  portNumber,D0
-    MOVEA.L tagList,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -132(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-PROCEDURE StartTimerInt(intHandle : POINTER; timeInterval : ULONG; continuous : LONGINT);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intHandle,A1
-    MOVE.L  timeInterval,D0
-    MOVE.L  continuous,D1
-    MOVEA.L LowLevelBase,A6
-    JSR -096(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE StopTimerInt(intHandle : POINTER);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L intHandle,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -090(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION SystemControlA(const tagList : pTagItem) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L tagList,A1
-    MOVEA.L LowLevelBase,A6
-    JSR -072(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
+function SystemControl(Const argv : array of PtrUInt) : ULONG;
+begin
+    SystemControl := SystemControlA(@argv);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of lowlevel.library}
-  {$Info don't forget to use InitLOWLEVELLibrary in the beginning of your program}
-
-var
-    lowlevel_exit : Pointer;
-
-procedure CloselowlevelLibrary;
-begin
-    ExitProc := lowlevel_exit;
-    if LowLevelBase <> nil then begin
-        CloseLibrary(LowLevelBase);
-        LowLevelBase := nil;
-    end;
-end;
-
-procedure InitLOWLEVELLibrary;
-begin
-    LowLevelBase := nil;
-    LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
-    if LowLevelBase <> nil then begin
-        lowlevel_exit := ExitProc;
-        ExitProc := @CloselowlevelLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open lowlevel.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    LOWLEVELIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of lowlevel.library}
-
-var
-    lowlevel_exit : Pointer;
-
-procedure CloselowlevelLibrary;
-begin
-    ExitProc := lowlevel_exit;
-    if LowLevelBase <> nil then begin
-        CloseLibrary(LowLevelBase);
-        LowLevelBase := nil;
-    end;
-end;
-
-begin
-    LowLevelBase := nil;
-    LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
-    if LowLevelBase <> nil then begin
-        lowlevel_exit := ExitProc;
-        ExitProc := @CloselowlevelLibrary;
-        LOWLEVELIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open lowlevel.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    LOWLEVELIsCompiledHow := 3;
-   {$Warning No autoopening of lowlevel.library compiled}
-   {$Warning Make sure you open lowlevel.library yourself}
-{$endif dont_use_openlib}
-
+initialization
+  LowLevelBase := OpenLibrary(LOWLEVELNAME,LIBVERSION);
+finalization
+  if Assigned(LowLevelBase) then
+    CloseLibrary(LowLevelBase);
 END. (* UNIT LOWLEVEL *)
 
 

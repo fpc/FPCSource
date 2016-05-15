@@ -25,10 +25,13 @@ interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$ifdef FPC_USE_WIN64_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
   {$define FPC_SYSTEM_HAS_RERAISE}
+  {$define FPC_SYSTEM_HAS_CAPTUREBACKTRACE}
 {$endif FPC_USE_WIN64_SEH}
 
 { include system-independent routine headers }
@@ -100,8 +103,11 @@ Const
 
 implementation
 
+{$asmmode att}
+
 var
-  SysInstance : qword;public;
+  SysInstance : qword;
+  FPCSysInstance: PQWord = @SysInstance; public name '_FPC_SysInstance';
 
 {$ifdef FPC_USE_WIN64_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; assembler; nostackframe;
@@ -132,7 +138,7 @@ end;
 {$ifndef FPC_USE_WIN64_SEH}
 procedure install_exception_handlers;forward;
 {$endif FPC_USE_WIN64_SEH}
-procedure PascalMain;stdcall;external name 'PASCALMAIN';
+procedure PascalMain;external name 'PASCALMAIN';
 
 { include code common with win32 }
 {$I syswin.inc}
@@ -605,15 +611,14 @@ begin
     InitSystemThreads;
   end;
   SysInitExceptions;
-  initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
+  InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

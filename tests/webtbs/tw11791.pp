@@ -1,7 +1,7 @@
 {$mode objfpc}{$H+}
 
 uses
-{$ifdef unix}cwstring,{$endif}
+{$ifdef unix}{$ifdef darwin}iosxwstr{$else}cwstring{$endif},{$endif}
 Classes, SysUtils;
 
 

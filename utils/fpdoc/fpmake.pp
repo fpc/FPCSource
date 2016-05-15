@@ -16,7 +16,8 @@ begin
   AddCustomFpmakeCommandlineOption('bin2obj', 'Use indicated bin2obj executable.');
   With Installer do
     begin
-    P:=AddPackage('fpdoc');
+    P:=AddPackage('utils-fpdoc');
+    P.ShortName:='fpdoc';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -32,9 +33,8 @@ begin
     P.Dependencies.Add('chm');
     P.Dependencies.Add('univint',[darwin,iphonesim]);
 
-
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Options.Add('-S2h');
 
@@ -56,9 +56,7 @@ begin
     T.Dependencies.AddUnit('dglobals');
 
     T:=P.Targets.AddProgram('unitdiff.pp');
-    T.ResourceStrings:=true;
     T:=P.Targets.AddProgram('fpclasschart.pp');
-    T.ResourceStrings:=true;
 
     T := P.Targets.AddUnit('dglobals.pp');
     T.install:=false;

@@ -45,10 +45,10 @@ const
   DaySunday    = 7;
 
   // Fraction of a day
-  OneHour        = 1/HoursPerDay;
-  OneMinute      = 1/MinsPerDay;
-  OneSecond      = 1/SecsPerDay;
-  OneMillisecond = 1/MSecsPerDay;
+  OneHour        = TDateTime(1)/HoursPerDay;
+  OneMinute      = TDateTime(1)/MinsPerDay;
+  OneSecond      = TDateTime(1)/SecsPerDay;
+  OneMillisecond = TDateTime(1)/MSecsPerDay;
 
   { This is actual days per year but you need to know if it's a leap year}
   DaysPerYear: array [Boolean] of Word = (365, 366);
@@ -1414,14 +1414,43 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
+{ TDateTime is not defined in the interval [-1.0..0.0[. Additionally, when
+  negative the time part must be treated using its absolute value (0.25 always
+  means "6 a.m.") -> skip the gap and convert the time part when crossing the
+  gap -- and take care of rounding errors }
 Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
 begin
-  if (OldDate>0) and (NewDate<0) then
-    NewDate:=NewDate-0.5
-  else if (OldDate<-1.0) and (NewDate>-1.0) then
-    NewDate:=NewDate+0.5;
+  if (OldDate>=0) and (NewDate<-TDateTimeEpsilon) then
+    NewDate:=int(NewDate-1.0+TDateTimeEpsilon)-frac(1.0+frac(NewDate))
+  else if (OldDate<=-1.0) and (NewDate>-1.0+TDateTimeEpsilon) then
+    NewDate:=int(NewDate+1.0-TDateTimeEpsilon)+frac(1.0-abs(frac(1.0+NewDate)));
 end;
 
+
+function IncNegativeTime(AValue, Addend: TDateTime): TDateTime;
+var
+  newtime: tdatetime;
+begin
+  newtime:=-frac(Avalue)+frac(Addend);
+  { handle rounding errors }
+  if SameValue(newtime,int(newtime)+1,TDateTimeEpsilon) then
+    newtime:=int(newtime)+1
+  else if SameValue(newtime,int(newtime),TDateTimeEpsilon) then
+    newtime:=int(newtime);
+  { time underflow -> previous day }
+  if newtime<-TDateTimeEpsilon then
+    begin
+      newtime:=1.0+newtime;
+      avalue:=int(avalue)-1;
+    end
+  { time overflow -> next day }
+  else if newtime>=1.0-TDateTimeEpsilon then
+    begin
+      newtime:=newtime-1.0;
+      avalue:=int(avalue)+1;
+    end;
+  Result:=int(AValue)+int(Addend)-newtime;
+end;
 
 Function IncYear(const AValue: TDateTime; const ANumberOfYears: Integer ): TDateTime;
 
@@ -1470,7 +1499,10 @@ end;
 
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfHours/HoursPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfHours/HoursPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfHours/HoursPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1483,7 +1515,10 @@ end;
 
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfMinutes / MinsPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfMinutes/MinsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfMinutes/MinsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1496,7 +1531,10 @@ end;
 
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfSeconds / SecsPerDay;
+  if AValue>=0 then
+    Result:=AValue+ANumberOfSeconds/SecsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfSeconds/SecsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -1509,7 +1547,10 @@ end;
 
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
-  Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay;
+  if Avalue>=0 then
+    Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay
+  else
+    Result:=IncNegativeTime(Avalue,ANumberOfMilliSeconds/MSecsPerDay);
   MaybeSkipTimeWarp(AValue,Result);
 end;
 
@@ -2236,13 +2277,17 @@ var
 
 function findimatch(const mnts:array of string;p:pchar):integer;
 var i : integer;
+    plen, findlen: integer;
 begin
   result:=-1;
   i:=0;
+  plen := strlen(p);
   while (i<=high(mnts)) and (result=-1) do
     begin
-      if AnsiStrLIComp(p,@mnts[i][1],length(mnts[i]))=0 then
-        result:=i;
+      findlen := length(mnts[i]);
+      if (findlen > 0) and (findlen <= plen) then // protect against buffer over-read
+        if AnsiStrLIComp(p,@(mnts[i][1]),findlen)=0 then
+          result:=i;
       inc(i);
     end;
 end;
@@ -2253,18 +2298,17 @@ begin
   raiseexception(format(SNoArrayMatch,[pind+1,ind]))
 end;
 
-function findmatch(const mnts : array of string;const s:string):integer;
-
+function scanmatch(const mnts : array of string;p:pchar; patlen: integer):integer;
 begin
-  result:=findimatch(mnts,@s[ind]);
+  result:=findimatch(mnts,p);
   if result=-1 then
     arraymatcherror
   else
-    begin
-      inc(ind,length(mnts[result])+1);
-      inc(pind,length(mnts[result])+1);
-      inc(result); // was 0 based.
-    end;
+  begin
+    inc(ind,length(mnts[result]));
+    inc(pind,patlen);
+    inc(result); // was 0 based.
+  end;
 end;
 
 var
@@ -2343,10 +2387,18 @@ begin
                        i:=scanpatlen;
                        case i of
                           1,2 : dd:=scanfixedint(2);
-                          3   : dd:=findmatch(fmt.shortDayNames,s);
-                          4   : dd:=findmatch(fmt.longDayNames,s);
-                          5   : matchpattern(fmt.shortdateformat);
-                          6   : matchpattern(fmt.longdateformat);
+                          3   : dd:=scanmatch(fmt.shortDayNames,@s[ind],i);
+                          4   : dd:=scanmatch(fmt.longDayNames,@s[ind],i);
+                          5   :
+                            begin
+                              matchpattern(fmt.shortdateformat);
+                              inc(pind, i);
+                            end;
+                          6   :
+                            begin
+                              matchpattern(fmt.longdateformat);
+                              inc(pind, i);
+                            end;
                          end;
                      end;
                'N':  timeval:=timeval+scanfixedint(2)* minfactor;
@@ -2354,7 +2406,10 @@ begin
                'Z':  timeval:=timeval+scanfixedint(3)* mssecfactor;
                'Y':  begin
                        i:=scanpatlen;
-                       yy:=scanfixedint(i);
+                       case i of
+                          1,2 : yy:=scanfixedint(2);
+                          else  yy:=scanfixedint(i);
+                       end;
                        if i<=2 then
                          begin
                            pivot:=YearOf(now)-fmt.TwoDigitYearCenturyWindow;
@@ -2367,15 +2422,23 @@ begin
                        i:=scanpatlen;
                        case i of
                           1,2: mm:=scanfixedint(2);
-                          3:   mm:=findmatch(fmt.ShortMonthNames,s);
-                          4:   mm:=findmatch(fmt.LongMonthNames,s);
+                          3:   mm:=scanmatch(fmt.ShortMonthNames,@s[ind],i);
+                          4:   mm:=scanmatch(fmt.LongMonthNames,@s[ind],i);
                           end;
                     end;
                'T' : begin
                        i:=scanpatlen;
                        case i of
-                       1: matchpattern(fmt.shortdateformat);
-                       2: matchpattern(fmt.longtimeformat);
+                       1:
+                         begin
+                           matchpattern(fmt.shorttimeformat);
+                           inc(pind, i);
+                         end;
+                       2:
+                         begin
+                           matchpattern(fmt.longtimeformat);
+                           inc(pind, i);
+                         end;
                        end;
                      end;
                'A' : begin
@@ -2414,8 +2477,6 @@ begin
                                      arraymatcherror
                                      end;
                                    inc(pind,length(AMPMformatting[2]));
-                                   inc(pind,2);
-                                   inc(ind,2);
                                  end;
                             else  // no AM/PM match. Assume 'a' is simply a char
                                 matchchar(ptrn[pind]);
@@ -2482,7 +2543,7 @@ end;
 function scandatetime(const pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
 
 begin
- result:=scandatetime(pattern,s,defaultformatsettings);
+ result:=scandatetime(pattern,s,defaultformatsettings,startpos);
 end;
 
 { Conversion of UTC to local time and vice versa }
@@ -2491,16 +2552,16 @@ end;
 function UniversalTimeToLocal(UT: TDateTime): TDateTime;
 
 begin
-  Result:=UniversalTimeToLocal(UT,GetLocalTimeOffset);
+  Result:=UniversalTimeToLocal(UT,-GetLocalTimeOffset);
 end;
 
 function UniversalTimeToLocal(UT: TDateTime; TZOffset : Integer): TDateTime;
 
 begin
   if (TZOffset > 0) then
-    Result := UT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+    Result := UT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
   else if (TZOffset < 0) then
-    Result := UT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+    Result := UT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := UT;
 end;
@@ -2508,16 +2569,16 @@ end;
 Function LocalTimeToUniversal(LT: TDateTime): TDateTime;
 
 begin
-  Result:=LocalTimeToUniversal(LT,GetLocalTimeOffset);
+  Result:=LocalTimeToUniversal(LT,-GetLocalTimeOffset);
 end;
 
 Function LocalTimeToUniversal(LT: TDateTime;TZOffset: Integer): TDateTime;
 
 begin
   if (TZOffset > 0) then
-    Result := LT + EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
+    Result := LT - EncodeTime(TZOffset div 60, TZOffset mod 60, 0, 0)
   else if (TZOffset < 0) then
-    Result := LT - EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
+    Result := LT + EncodeTime(Abs(TZOffset) div 60, Abs(TZOffset) mod 60, 0, 0)
   else
     Result := LT;
 end;

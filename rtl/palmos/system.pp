@@ -15,7 +15,7 @@
 
 {$define PALMOS}
 {$ASMMODE DIRECT}
-unit system;
+unit System;
 
 {$I os.inc}
 

@@ -67,28 +67,10 @@ Const
                                 Local types
 ****************************************************************************}
 
-{
-  TextRec and FileRec are put in a separate file to make it available to other
-  units without putting it explicitly in systemh.
-  This way we keep TP compatibility, and the TextRec definition is available
-  for everyone who needs it.
-}
-{$ifdef FPC_HAS_FEATURE_FILEIO}
-{$i filerec.inc}
-{$endif FPC_HAS_FEATURE_FILEIO}
-
-{$ifndef CPUJVM}
-{$i textrec.inc}
-{$endif CPUJVM}
-
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
-  {$ifdef FPC_OBJFPC_EXTENDED_IF}
-    {$if High(errorcode)<>maxExitCode}
-      {$define FPC_LIMITED_EXITCODE}
-    {$endif}
-  {$else}
+  {$if High(errorcode)<>maxExitCode}
     {$define FPC_LIMITED_EXITCODE}
-  {$endif FPC_OBJFPC_EXTENDED_IF}
+  {$endif}
 {$endif FPC_HAS_FEATURE_EXITCODE}
 
 Procedure HandleError (Errno : Longint); external name 'fpc_handleerror';
@@ -108,7 +90,7 @@ const
 
 (*
 { For Error Handling.}
-  ErrorBase : Pointer = nil; public name 'FPC_ERRORBASE';
+  ErrorBase : Pointer = nil;public name 'FPC_ERRORBASE';
 *)
 
 {$ifndef cpujvm}
@@ -382,22 +364,22 @@ End;
 
 Function Swap (X : Longint) : Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffff) shl 16 + (X shr 16)
+  Swap:=(X shl 16) + (X shr 16);
 End;
 
 //Function Swap (X : Cardinal) : Cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
 //Begin
-//  Swap:=(X and $ffff) shl 16 + (X shr 16)
+//  Swap:=(X shl 16) + (X shr 16);
 //End;
 
 //Function Swap (X : QWord) : QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 //Begin
-//  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+//  Swap:=(X shl 32) + (X shr 32);
 //End;
 
-Function swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function Swap (X : Int64) : Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 Begin
-  Swap:=(X and $ffffffff) shl 32 + (X shr 32);
+  Swap:=(X shl 32) + (X shr 32);
 End;
 
 {$ifdef SUPPORT_DOUBLE}
@@ -934,7 +916,7 @@ end;
 
 procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
 
-procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
+procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];compilerproc;
 begin
 {$ifdef FPC_HAS_FEATURE_DYNLIBS}
   IsLibrary:=true;
@@ -1076,11 +1058,13 @@ Begin
 End;
 
 
-Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
+Procedure fpc_do_exit;[Public,Alias:'FPC_DO_EXIT']; compilerproc;
 begin
   InternalExit;
   System_exit;
 end;
+
+procedure internal_do_exit; external name 'fpc_do_exit';
 
 
 Procedure lib_exit;[Public,Alias:'FPC_LIB_EXIT'];
@@ -1099,7 +1083,7 @@ Begin
 {$endif FPC_LIMITED_EXITCODE}
     ExitCode:=ErrNum;
 {$endif FPC_HAS_FEATURE_EXITCODE}
-  Do_Exit;
+  internal_do_exit;
 end;
 
 (*
@@ -1576,6 +1560,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure DoDirSeparators(var ps:RawByteString);
 var
   i : longint;
@@ -1595,7 +1580,10 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+
+{$ifdef FPC_HAS_FEATURE_UNICODESTRINGS}
 procedure DoDirSeparators(var ps:UnicodeString);
 var
   i : longint;
@@ -1615,6 +1603,7 @@ begin
         p[i-1]:=DirectorySeparator;
       end;
 end;
+{$endif FPC_HAS_FEATURE_UNICODESTRINGS}
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -1699,10 +1688,23 @@ end;
 
 {$endif FPC_HAS_FEATURE_FILEIO}
 
+(* already declared earlier in system.pp for java
+
+{ helper for targets supporting no ansistrings, it is used
+  by non-ansistring code }
+function min(v1,v2 : SizeInt) : SizeInt;
+  begin
+    if v1<v2 then
+      result:=v1
+    else
+      result:=v2;
+  end;
+*)
+
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file }
-{$ifndef CPUJVM}
 {$i text.inc}
-{$endif CPUJVM}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 { Untyped file }

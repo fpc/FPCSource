@@ -29,6 +29,7 @@ unit agspc32gas;
   interface
 
     uses
+       systems,
        globtype,
        aasmtai,aasmdata,
        aggas,
@@ -39,7 +40,7 @@ unit agspc32gas;
       { Tspc32GNUAssembler }
 
       Tspc32GNUAssembler=class(TGNUassembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
        function MakeCmdLine: TCmdStr; override;
       end;
 
@@ -52,7 +53,6 @@ unit agspc32gas;
 
     uses
        cutils,globals,verbose,
-       systems,
        assemble,
        aasmbase,aasmcpu,
        itcpugas,
@@ -63,9 +63,9 @@ unit agspc32gas;
 {                         GNU spc32 Assembler writer                           }
 {****************************************************************************}
 
-    constructor Tspc32GNUAssembler.create(smart: boolean);
+    constructor Tspc32GNUAssembler.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited create(info,smart);
         InstrWriter := Tspc32InstrWriter.create(self);
       end;
 
@@ -172,7 +172,7 @@ unit agspc32gas;
               sep:=',';
             end;
         end;
-      owner.AsmWriteLn(s);
+      owner.writer.AsmWriteLn(s);
     end;
 
 

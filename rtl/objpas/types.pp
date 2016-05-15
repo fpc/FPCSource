@@ -12,25 +12,26 @@
 
  **********************************************************************}
 {$MODE OBJFPC}
-unit types;
+unit Types;
 
   interface
-
+{$modeswitch advancedrecords}
+{$modeswitch class}
 {$ifdef Windows}
     uses
        Windows;
 {$endif Windows}
 
-  {$ifdef wince}
-  //roozbeh:the reason is currently RT_RCDATA is defines in windows for wince as constant,
-  //        but in win32 it is function so here is required to redeclared.
-  //RT_RCDATA = PWideChar(10);
-  {$else}
- const
-  RT_RCDATA = PChar(10);
-  {$endif}
+{$ifdef mswindows}
+const
+  RT_RCDATA = Windows.RT_RCDATA deprecated 'Use Windows.RT_RCDATA instead';
+{$endif mswindows}
 
 type
+  TEndian = (Big,Little);
+  TDirection = (FromBeginning, FromEnd);
+  TValueRelationship = -1..1;
+  
   DWORD = LongWord;
 
   PLongint = System.PLongint;
@@ -46,80 +47,113 @@ type
   LARGE_UINT= LargeUInt;
   PLargeuInt = ^LargeuInt;
 
-  TIntegerDynArray = array of Integer;
-  TCardinalDynArray = array of Cardinal;
-  TWordDynArray = array of Word;
-  TSmallIntDynArray = array of SmallInt;
+  TBooleanDynArray = array of Boolean;
   TByteDynArray = array of Byte;
-  TShortIntDynArray = array of ShortInt;
+  TCardinalDynArray = array of Cardinal;
   TInt64DynArray = array of Int64;
-  TQWordDynArray = array of QWord;
+  TIntegerDynArray = array of Integer;
   TLongWordDynArray = array of LongWord;
+  TPointerDynArray = array of Pointer;
+  TQWordDynArray = array of QWord;
+  TShortIntDynArray = array of ShortInt;
+  TSmallIntDynArray = array of SmallInt;
+  TStringDynArray = array of AnsiString;
+  TWideStringDynArray   = array of WideString;
+  TWordDynArray = array of Word;
+  TCurrencyArray = Array of currency;
 {$ifndef FPUNONE}
   TSingleDynArray = array of Single;
   TDoubleDynArray = array of Double;
+  TExtendedDynArray = array of Extended;
+  TCompDynArray = array of Comp;
 {$endif}
-  TBooleanDynArray = array of Boolean;
-  TStringDynArray = array of AnsiString;
-  TWideStringDynArray   = array of WideString;
-  TPointerDynArray = array of Pointer;
 
 {$ifdef Windows}
+  TArray4IntegerType = Windows.TArray4IntegerType;
+  TSmallPoint = Windows.TSmallPoint;
+  PSmallPoint = Windows.PSmallPoint;
+
+  TSize  = Windows.TSize;
+  TagSize  = Windows.tagSize deprecated;
+  PSize  = Windows.PSize;
+
   TPoint = Windows.TPoint;
+  TagPoint = Windows.TagPoint deprecated;
+  PPoint = Windows.PPoint;
+
+  TRect  = Windows.TRect;
+  PRect  = Windows.PRect;
+  TSplitRectType = Windows.TSplitRectType;
+const
+  srLeft = TSplitRectType.srLeft;
+  srRight = TSplitRectType.srRight;
+  srTop = TSplitRectType.srTop;
+  srBottom = TSplitRectType.srBottom;
+type
 {$else}
-  TPoint =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
-    X : Longint;
-    Y : Longint;
-  end;
+  {$i typshrdh.inc}
+   TagSize = tSize deprecated;
+   TagPoint = TPoint deprecated;
 {$endif}
-  PPoint = ^TPoint;
-  tagPOINT = TPoint;
 
-{$ifdef Windows}
-  TRect = Windows.TRect;
-{$else}
-  TRect =
+  { TPointF }
+  TPointF =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
   packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
   record
+       x,y : Single;
+       public
+          function Add(const apt: TPoint): TPointF;
+          function Add(const apt: TPointF): TPointF;
+          function Distance(const apt : TPointF) : Single;
+          function DotProduct(const apt : TPointF) : Single;
+          function IsZero : Boolean;
+          function Subtract(const apt : TPointF): TPointF;
+          function Subtract(const apt : TPoint): TPointF;
+          procedure SetLocation(const apt :TPointF);
+          procedure SetLocation(const apt :TPoint);
+          procedure SetLocation(ax,ay : Longint);
+          procedure Offset(const apt :TPointF);
+          procedure Offset(const apt :TPoint);
+          procedure Offset(dx,dy : Longint);
+
+          function  Scale (afactor:Single)  : TPointF;
+          function  Ceiling : TPoint;
+          function  Truncate: TPoint;
+          function  Floor   : TPoint;
+          function  Round   : TPoint;
+          function  Length  : Single;
+          class operator = (const apt1, apt2 : TPointF) : Boolean;
+          class operator <> (const apt1, apt2 : TPointF): Boolean;
+          class operator + (const apt1, apt2 : TPointF): TPointF;
+          class operator - (const apt1, apt2 : TPointF): TPointF;
+          class operator - (const apt1 : TPointF): TPointF;
+          class operator * (const apt1, apt2: TPointF): Single; // scalar product
+          class operator * (const apt1: TPointF; afactor: single): TPointF;
+          class operator * (afactor: single; const apt1: TPointF): TPointF;
+       end;
+  { TRectF }
+
+  TRectF =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+  packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  record
+  private
+    function GetHeight: Single; inline;
+    function GetWidth: Single;  inline;
+    procedure SetHeight(AValue: Single);
+    procedure SetWidth (AValue: Single);
+  public
+    function  Union  (const r: TRectF):TRectF; inline;
+    procedure Offset (const dx,dy : Single); inline;
+    property  Width  : Single read GetWidth write SetWidth;
+    property  Height : Single read GetHeight write SetHeight;
     case Integer of
-      0: (Left,Top,Right,Bottom : Longint);
-      1: (TopLeft,BottomRight : TPoint);
+     0: (Left, Top, Right, Bottom: Single);
+     1: (TopLeft, BottomRight: TPointF);
     end;
-{$endif Windows}
-  PRect = ^TRect;
-
-{$ifdef Windows}
-  TSize = Windows.TSize;
-{$else}
-  TSize =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
-     cx : Longint;
-     cy : Longint;
-  end;
-{$endif Windows}
-  PSize = ^TSize;
-  tagSIZE = TSize;
-//  SIZE = TSize;
-
-
-  TSmallPoint =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
-     x : SmallInt;
-     y : SmallInt;
-  end;
-  PSmallPoint = ^TSmallPoint;
 
   TDuplicates = (dupIgnore, dupAccept, dupError);
 
@@ -273,17 +307,13 @@ type
   end;
 
   IStream = interface(ISequentialStream) ['{0000000C-0000-0000-C000-000000000046}']
-     function Seek(dlibMove : LargeInt; dwOrigin : Longint;
-       out libNewPosition : LargeInt) : HResult;stdcall;
-     function SetSize(libNewSize : LargeInt) : HRESULT;stdcall;
-     function CopyTo(stm: IStream;cb : LargeInt;out cbRead : LargeInt;
-       out cbWritten : LargeInt) : HRESULT;stdcall;
+     function Seek(dlibMove : LargeUInt; dwOrigin : Longint; out libNewPosition : LargeUInt) : HResult;stdcall;
+     function SetSize(libNewSize : LargeUInt) : HRESULT;stdcall;
+     function CopyTo(stm: IStream;cb : LargeUInt;out cbRead : LargeUInt; out cbWritten : LargeUInt) : HRESULT;stdcall;
      function Commit(grfCommitFlags : Longint) : HRESULT;stdcall;
      function Revert : HRESULT;stdcall;
-     function LockRegion(libOffset : LargeInt;cb : LargeInt;
-       dwLockType : Longint) : HRESULT;stdcall;
-     function UnlockRegion(libOffset : LargeInt;cb : LargeInt;
-       dwLockType : Longint) : HRESULT;stdcall;
+     function LockRegion(libOffset : LargeUInt;cb : LargeUInt; dwLockType : Longint) : HRESULT;stdcall;
+     function UnlockRegion(libOffset : LargeUInt;cb : LargeUInt; dwLockType : Longint) : HRESULT;stdcall;
      Function Stat(out statstg : TStatStg;grfStatFlag : Longint) : HRESULT;stdcall;
      function Clone(out stm : IStream) : HRESULT;stdcall;
   end;
@@ -304,13 +334,17 @@ function Size(const ARect: TRect): TSize;
 
 implementation
 
+Uses Math;
+
+{$ifndef Windows}
+  {$i typshrd.inc}
+{$endif}
 
 function EqualRect(const r1,r2 : TRect) : Boolean;
 
 begin
   EqualRect:=(r1.left=r2.left) and (r1.right=r2.right) and (r1.top=r2.top) and (r1.bottom=r2.bottom);
 end;
-
 
 function Rect(Left,Top,Right,Bottom : Integer) : TRect;
 
@@ -321,7 +355,6 @@ begin
   Rect.Bottom:=Bottom;
 end;
 
-
 function Bounds(ALeft,ATop,AWidth,AHeight : Integer) : TRect;
 
 begin
@@ -330,7 +363,6 @@ begin
   Bounds.Right:=ALeft+AWidth;
   Bounds.Bottom:=ATop+AHeight;
 end;
-
 
 function Point(x,y : Integer) : TPoint; inline;
 
@@ -347,7 +379,6 @@ begin
             (p.x>=Rect.Left) and
             (p.x<Rect.Right);
 end;
-
 
 function IntersectRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
 var
@@ -473,5 +504,192 @@ begin
 end;
 
 
+{ TPointF}
+
+function TPointF.Add(const apt: TPoint): TPointF;
+begin
+  result.x:=x+apt.x;
+  result.y:=y+apt.y;
+end;
+
+function TPointF.Add(const apt: TPointF): TPointF;
+begin
+  result.x:=x+apt.x;
+  result.y:=y+apt.y;
+end;
+
+function TPointF.Subtract(const apt : TPointF): TPointF;
+begin
+  result.x:=x-apt.x;
+  result.y:=y-apt.y;
+end;
+
+function TPointF.Subtract(const apt: TPoint): TPointF;
+begin
+  result.x:=x-apt.x;
+  result.y:=y-apt.y;
+end;
+
+function TPointF.Distance(const apt : TPointF) : Single;
+begin
+  result:=sqrt(sqr(apt.x-x)+sqr(apt.y-y));
+end;
+
+function TPointF.DotProduct(const apt: TPointF): Single;
+begin
+  result:=x*apt.x+y*apt.y;
+end;
+
+function TPointF.IsZero : Boolean;
+begin
+  result:=SameValue(x,0.0) and SameValue(y,0.0);
+end;
+
+procedure TPointF.Offset(const apt :TPointF);
+begin
+  x:=x+apt.x;
+  y:=y+apt.y;
+end;
+
+procedure TPointF.Offset(const apt: TPoint);
+begin
+  x:=x+apt.x;
+  y:=y+apt.y;
+end;
+
+procedure TPointF.Offset(dx,dy : Longint);
+begin
+  x:=x+dx;
+  y:=y+dy;
+end;
+
+function TPointF.Scale(afactor: Single): TPointF;
+begin
+  result.x:=afactor*x;
+  result.y:=afactor*y;
+end;
+
+function TPointF.Ceiling: TPoint;
+begin
+  result.x:=ceil(x);
+  result.y:=ceil(y);
+end;
+
+function TPointF.Truncate: TPoint;
+begin
+  result.x:=trunc(x);
+  result.y:=trunc(y);
+end;
+
+function TPointF.Floor: TPoint;
+begin
+  result.x:=Math.floor(x);
+  result.y:=Math.floor(y);
+end;
+
+function TPointF.Round: TPoint;
+begin
+  result.x:=System.round(x);
+  result.y:=System.round(y);
+end;
+
+function TPointF.Length: Single;
+begin     //distance(self) ?
+  result:=sqrt(sqr(x)+sqr(y));
+end;
+
+class operator TPointF.= (const apt1, apt2 : TPointF) : Boolean;
+begin
+  result:=SameValue(apt1.x,apt2.x) and SameValue(apt1.y,apt2.y);
+end;
+
+class operator TPointF.<> (const apt1, apt2 : TPointF): Boolean;
+begin
+  result:=NOT (SameValue(apt1.x,apt2.x) and Samevalue(apt1.y,apt2.y));
+end;
+
+class operator TPointF. * (const apt1, apt2: TPointF): Single;
+begin
+  result:=apt1.x*apt2.x + apt1.y*apt2.y;
+end;
+
+class operator TPointF. * (afactor: single; const apt1: TPointF): TPointF;
+begin
+  result:=apt1.Scale(afactor);
+end;
+
+class operator TPointF. * (const apt1: TPointF; afactor: single): TPointF;
+begin
+  result:=apt1.Scale(afactor);
+end;
+
+class operator TPointF.+ (const apt1, apt2 : TPointF): TPointF;
+begin
+  result.x:=apt1.x+apt2.x;
+  result.y:=apt1.y+apt2.y;
+end;
+
+class operator TPointF.- (const apt1, apt2 : TPointF): TPointF;
+begin
+  result.x:=apt1.x-apt2.x;
+  result.y:=apt1.y-apt2.y;
+end;
+
+class operator TPointF. - (const apt1: TPointF): TPointF;
+begin
+  Result.x:=-apt1.x;
+  Result.y:=-apt1.y;
+end;
+
+procedure TPointF.SetLocation(const apt :TPointF);
+begin
+ x:=apt.x; y:=apt.y;
+end;
+
+procedure TPointF.SetLocation(const apt: TPoint);
+begin
+  x:=apt.x; y:=apt.y;
+end;
+
+procedure TPointF.SetLocation(ax,ay : Longint);
+begin
+  x:=ax; y:=ay;
+end;
+
+{ TRectF }
+
+function TRectF.GetHeight: Single;
+begin
+  result:=bottom-top;
+end;
+
+function TRectF.GetWidth: Single;
+begin
+ result:=right-left;
+end;
+
+procedure TRectF.SetHeight(AValue: Single);
+begin
+  bottom:=top+avalue;
+end;
+
+procedure TRectF.SetWidth(AValue: Single);
+begin
+  right:=left+avalue;
+end;
+
+function TRectF.Union(const r: TRectF): TRectF;
+begin
+  result.left:=min(r.left,left);
+  result.top:=min(r.top,top);
+  result.right:=min(r.right,right);
+  result.bottom:=min(r.bottom,bottom);
+end;
+
+procedure TRectF.Offset(const dx, dy: Single);
+begin
+  left:=left+dx; right:=right+dx;
+  bottom:=bottom+dy; top:=top+dy;
+end;
 
 end.

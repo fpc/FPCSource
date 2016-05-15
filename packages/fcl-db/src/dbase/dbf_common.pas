@@ -67,7 +67,11 @@ const
 {$ifdef WINDOWS}
   PathDelim = '\';
 {$else}
+ {$IFDEF UNIX}
   PathDelim = '/';
+ {$ELSE UNIX}
+  PathDelim = '\';
+ {$ENDIF UNIX}
 {$endif}
 {$endif}
 
@@ -145,13 +149,13 @@ end;
 
 function IsFullFilePath(const Path: string): Boolean; // full means not relative
 begin
-{$ifdef WINDOWS}
+{$ifdef SUPPORT_DRIVES_AND_UNC}
   Result := Length(Path) > 1;
   if Result then
     // check for 'x:' or '\\' at start of path
     Result := ((Path[2]=':') and (upcase(Path[1]) in ['A'..'Z']))
       or ((Path[1]='\') and (Path[2]='\'));
-{$else}  // Linux
+{$else}  // Linux / Unix
   Result := Length(Path) > 0;
   if Result then
     Result := Path[1]='/';
@@ -236,7 +240,11 @@ begin
 {$ifdef WINDOWS}
   Result := IncludeTrailingBackslash(Path);
 {$else}
+ {$IFDEF UNIX}
   Result := IncludeTrailingSlash(Path);
+ {$ELSE UNIX}
+  Result := IncludeTrailingBackslash(Path);
+ {$ENDIF UNIX}
 {$endif}
 end;
 

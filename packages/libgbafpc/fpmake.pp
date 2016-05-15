@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Author := 'Library: libgba and maxmod from devkitARM; headers: Francesco Lombardi';
     P.License := 'LGPL';
     P.HomepageURL := 'www.freepascal.org';
@@ -70,7 +70,7 @@ begin
        AddInclude('mm_types.inc');
      end;
 
-    P.Sources.AddExampleFiles('examples/*',true,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,true,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

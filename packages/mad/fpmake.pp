@@ -16,8 +16,8 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
-    P.OSes := [linux,win32,win64];
+    P.Version:='3.1.1';
+    P.OSes := [linux,win32,win64,wii];
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('mad.pas');

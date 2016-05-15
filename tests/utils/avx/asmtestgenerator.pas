@@ -28,7 +28,8 @@ uses BaseList, Classes;
 
 type
   TOpType = (otUnknown, otXMMReg, otXMMRM, otXMMRM16, otXMMRM8, otYMMReg, otYMMRM, otEAX, otRAX, otMem32,
-             otMem8, otMem16, otMem64, otMem128, otMem256, otREG64, otREG32, otRM32, otRM64, otIMM8);
+             otMem8, otMem16, otMem64, otMem128, otMem256, otREG64, otREG32, otRM32, otRM64, otIMM8,
+             otXMEM32, otXMEM64, otYMEM32, otYMEM64);
 
   TOperandListItem = class(TObject)
   private
@@ -58,6 +59,8 @@ type
   end;
 
 
+  { TAsmTestGenerator }
+
   TAsmTestGenerator = class(TObject)
   private
     FReg32Base     : TStringList;
@@ -66,10 +69,15 @@ type
     FReg64Index    : TStringList;
     FReg6432Base   : TStringList;
     FReg6432Index  : TStringList;
+    FReg32XMMIndex : TStringList;
+    FReg32YMMIndex : TStringList;
+    FReg64XMMIndex : TStringList;
+    FReg64YMMIndex : TStringList;
 
     Fx64: boolean;
 
     procedure MemRegBaseIndexCombi(const aPrefix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
+    procedure VectorMemRegBaseIndexCombi(const aPrefix: String; aSLBaseReg, aSLIndexReg, aRList: TStringList);
 
     function InternalCalcTestData(const aInst, aOp1, aOp2, aOp3, aOp4: String): TStringList;
   public
@@ -583,6 +591,76 @@ begin
 
               Item.Values.Add('0');
             end
+            else if AnsiSameText(sl_Operand, 'XMEM32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMEM32;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'oword ';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64XMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32XMMIndex, Item.Values);
+              end;
+            end
+            else if AnsiSameText(sl_Operand, 'XMEM64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otXMEM64;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'oword ';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64XMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32XMMIndex, Item.Values);
+              end;
+            end
+            else if AnsiSameText(sl_Operand, 'YMEM32') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMEM32;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'yword ';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64YMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32YMMIndex, Item.Values);
+              end;
+            end
+            else if AnsiSameText(sl_Operand, 'YMEM64') then
+            begin
+              Item.OpNumber := il_Op;
+              Item.OpTyp    := otYMEM64;
+              Item.OpActive := true;
+
+              if UsePrefix then sl_Prefix := 'yword ';
+
+              if x64 then
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg64Base, FReg64YMMIndex, Item.Values);
+              end
+              else
+              begin
+                VectorMemRegBaseIndexCombi(sl_prefix, FReg32Base, FReg32YMMIndex, Item.Values);
+              end;
+            end
+
+
             else
             begin
               Item.OpNumber := il_Op;
@@ -590,7 +668,8 @@ begin
               Item.OpActive := false;
 
               Item.Values.Add('');
-            end;
+            end
+
           end;
 
           sl_RegCombi := '';
@@ -755,6 +834,11 @@ begin
   FReg64Index    := TStringList.Create;
   FReg6432Base   := TStringList.Create;
   FReg6432Index  := TStringList.Create;
+  FReg32XMMIndex := TStringList.Create;
+  FReg32YMMIndex := TStringList.Create;
+  FReg64XMMIndex := TStringList.Create;
+  FReg64YMMIndex := TStringList.Create;
+
 
   FReg32Base.Add('EAX');
   FReg32Base.Add('EBX');
@@ -840,6 +924,60 @@ begin
   FReg6432Index.Add('R13D');
   FReg6432Index.Add('R14D');
   FReg6432Index.Add('R15D');
+
+  FReg32XMMIndex.ADD('XMM0');
+  FReg32XMMIndex.ADD('XMM1');
+  FReg32XMMIndex.ADD('XMM2');
+  FReg32XMMIndex.ADD('XMM3');
+  FReg32XMMIndex.ADD('XMM4');
+  FReg32XMMIndex.ADD('XMM5');
+  FReg32XMMIndex.ADD('XMM6');
+  FReg32XMMIndex.ADD('XMM7');
+
+  FReg32YMMIndex.ADD('YMM0');
+  FReg32YMMIndex.ADD('YMM1');
+  FReg32YMMIndex.ADD('YMM2');
+  FReg32YMMIndex.ADD('YMM3');
+  FReg32YMMIndex.ADD('YMM4');
+  FReg32YMMIndex.ADD('YMM5');
+  FReg32YMMIndex.ADD('YMM6');
+  FReg32YMMIndex.ADD('YMM7');
+
+  FReg64XMMIndex.ADD('XMM0');
+  FReg64XMMIndex.ADD('XMM1');
+  FReg64XMMIndex.ADD('XMM2');
+  FReg64XMMIndex.ADD('XMM3');
+  FReg64XMMIndex.ADD('XMM4');
+  FReg64XMMIndex.ADD('XMM5');
+  FReg64XMMIndex.ADD('XMM6');
+  FReg64XMMIndex.ADD('XMM7');
+  FReg64XMMIndex.ADD('XMM8');
+  FReg64XMMIndex.ADD('XMM9');
+  FReg64XMMIndex.ADD('XMM10');
+  FReg64XMMIndex.ADD('XMM11');
+  FReg64XMMIndex.ADD('XMM12');
+  FReg64XMMIndex.ADD('XMM13');
+  FReg64XMMIndex.ADD('XMM14');
+  FReg64XMMIndex.ADD('XMM15');
+
+
+  FReg64YMMIndex.ADD('YMM0');
+  FReg64YMMIndex.ADD('YMM1');
+  FReg64YMMIndex.ADD('YMM2');
+  FReg64YMMIndex.ADD('YMM3');
+  FReg64YMMIndex.ADD('YMM4');
+  FReg64YMMIndex.ADD('YMM5');
+  FReg64YMMIndex.ADD('YMM6');
+  FReg64YMMIndex.ADD('YMM7');
+  FReg64YMMIndex.ADD('YMM8');
+  FReg64YMMIndex.ADD('YMM9');
+  FReg64YMMIndex.ADD('YMM10');
+  FReg64YMMIndex.ADD('YMM11');
+  FReg64YMMIndex.ADD('YMM12');
+  FReg64YMMIndex.ADD('YMM13');
+  FReg64YMMIndex.ADD('YMM14');
+  FReg64YMMIndex.ADD('YMM15');
+
 end;
 
 destructor TAsmTestGenerator.Destroy;
@@ -850,6 +988,11 @@ begin
   FreeAndNil(FReg64Index);
   FreeAndNil(FReg6432Base);
   FreeAndNil(FReg6432Index);
+
+  FreeAndNil(FReg32XMMIndex);
+  FreeAndNil(FReg32YMMIndex);
+  FreeAndNil(FReg64XMMIndex);
+  FreeAndNil(FReg64YMMIndex);
 
   inherited;
 end;
@@ -876,6 +1019,51 @@ begin
       aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
       aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
       aRList.Add(format(aPrefix + '[%s + %s * 8 + 48]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+    end;
+  end;
+end;
+
+procedure TAsmTestGenerator.VectorMemRegBaseIndexCombi(const aPrefix: String;
+  aSLBaseReg, aSLIndexReg, aRList: TStringList);
+var
+  il_Base: integer;
+  il_Index: integer;
+begin
+
+  //for il_Index := 0 to aSLIndexReg.Count - 1 do
+  //begin
+  //  aRList.Add(format(aPrefix + '[%s]', [aSLIndexReg[il_Index]]));
+  //
+  //  aRList.Add(format(aPrefix + '[%s * 2]', [aSLIndexReg[il_Index]]));
+  //  aRList.Add(format(aPrefix + '[%s * 4]', [aSLIndexReg[il_Index]]));
+  //  aRList.Add(format(aPrefix + '[%s * 8]', [aSLIndexReg[il_Index]]));
+  //
+  //  aRList.Add(format(aPrefix + '[%s * 2 + 16]', [aSLIndexReg[il_Index]]));
+  //  aRList.Add(format(aPrefix + '[%s * 4 + 32]', [aSLIndexReg[il_Index]]));
+  //  aRList.Add(format(aPrefix + '[%s * 8 + 48]', [aSLIndexReg[il_Index]]));
+  //end;
+
+
+  for il_Base := 0 to aSLBaseReg.Count - 1 do
+  begin
+    //aRList.Add(format(aPrefix + '[%s]', [aSLBaseReg[il_Base]]));
+
+    for il_Index := 0 to aSLIndexReg.Count - 1 do
+    begin
+      aRList.Add(format(aPrefix + '[%s + %s]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+
+      aRList.Add(format(aPrefix + '[%s + %s * 2]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+      aRList.Add(format(aPrefix + '[%s + %s * 4]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+      aRList.Add(format(aPrefix + '[%s + %s * 8]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+
+      aRList.Add(format(aPrefix + '[%s + %s * 2 + 16]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+      aRList.Add(format(aPrefix + '[%s + %s * 4 + 32]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+      aRList.Add(format(aPrefix + '[%s + %s * 8 + 48]', [aSLBaseReg[il_Base], aSLIndexReg[il_Index]]));
+
+
+      aRList.Add(format(aPrefix + '[%s + %s]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
+
+      aRList.Add(format(aPrefix + '[%s + %s + 16]', [aSLIndexReg[il_Index], aSLBaseReg[il_Base]]));
     end;
   end;
 end;

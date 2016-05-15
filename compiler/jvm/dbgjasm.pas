@@ -38,9 +38,10 @@ interface
       TDebugInfoJasmin=class(TDebugInfo)
       protected
         fcurrprocstart,
+        fcurrprocafterstart,
         fcurrprocend: tasmsymbol;
 
-        procedure appendsym_localsym(list: TAsmList; sym: tabstractnormalvarsym);
+        procedure appendsym_localsym(list: TAsmList; sym: tabstractnormalvarsym; startlab: tasmsymbol);
 
         procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
         procedure appendsym_localvar(list:TAsmList;sym:tlocalvarsym);override;
@@ -65,7 +66,7 @@ implementation
                               TDebugInfoJasmin
 ****************************************************************************}
 
-  procedure TDebugInfoJasmin.appendsym_localsym(list: TAsmList; sym: tabstractnormalvarsym);
+  procedure TDebugInfoJasmin.appendsym_localsym(list: TAsmList; sym: tabstractnormalvarsym; startlab: tasmsymbol);
     var
       jvar: tai_jvar;
       proc: tprocdef;
@@ -75,20 +76,20 @@ implementation
       if not(sym.localloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
         exit;
       proc:=tprocdef(sym.owner.defowner);
-      jvar:=tai_jvar.create(sym.localloc.reference.offset,jvmmangledbasename(sym,true),fcurrprocstart,fcurrprocend);
+      jvar:=tai_jvar.create(sym.localloc.reference.offset,jvmmangledbasename(sym,true),startlab,fcurrprocend);
       tcpuprocdef(proc).exprasmlist.InsertAfter(jvar,proc.procstarttai);
     end;
 
 
   procedure TDebugInfoJasmin.appendsym_paravar(list: TAsmList; sym: tparavarsym);
     begin
-      appendsym_localsym(list,sym);
+      appendsym_localsym(list,sym,fcurrprocstart);
     end;
 
 
   procedure TDebugInfoJasmin.appendsym_localvar(list: TAsmList; sym: tlocalvarsym);
     begin
-      appendsym_localsym(list,sym);
+      appendsym_localsym(list,sym,fcurrprocafterstart);
     end;
 
 
@@ -100,7 +101,11 @@ implementation
   procedure TDebugInfoJasmin.appendprocdef(list: TAsmList; def: tprocdef);
     var
       procstartlabel,
-      procendlabel    : tasmlabel;
+      procendlabel,
+      afterprocstartlabel : tasmlabel;
+      hp,
+      afterproccodestart  : tai;
+      instrcount          : longint;
     begin
       { insert debug information for local variables and parameters, but only
         for routines implemented in the Pascal code }
@@ -113,6 +118,33 @@ implementation
       tcpuprocdef(def).exprasmlist.insertbefore(tai_label.create(procendlabel),def.procendtai);
 
       fcurrprocstart:=procstartlabel;
+      { set the start label for local variables after the first instruction,
+        because javac's code completion support assumes that all info at
+        bytecode position 0 is for parameters }
+      instrcount:=0;
+      afterproccodestart:=def.procstarttai;
+      while assigned(afterproccodestart.next) do
+        begin
+          afterproccodestart:=tai(afterproccodestart.next);
+          if (afterproccodestart.typ=ait_instruction) then
+            break;
+        end;
+      { must be followed by at least one more instruction }
+      hp:=tai(afterproccodestart.next);
+      while assigned(hp) do
+        begin
+          if hp.typ=ait_instruction then
+            break;
+          hp:=tai(hp.next);
+        end;
+      if assigned(hp) then
+        begin
+          current_asmdata.getlabel(afterprocstartlabel,alt_dbgtype);
+          tcpuprocdef(def).exprasmlist.insertafter(tai_label.create(afterprocstartlabel),afterproccodestart);
+          fcurrprocafterstart:=afterprocstartlabel;
+        end
+      else
+        fcurrprocafterstart:=procstartlabel;
       fcurrprocend:=procendlabel;
 
       write_symtable_parasyms(list,def.paras);

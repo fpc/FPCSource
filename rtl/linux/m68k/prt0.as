@@ -50,6 +50,7 @@ _start:
         move.l %a0, operatingsystem_parameter_argv
         lea.l 8(%sp,%d0.l*4), %a0
         move.l %a0, operatingsystem_parameter_envp
+        move.l %sp, __stkptr
 
 #        move.l 8(%sp), %d0
 #        move.l %d0, operatingsystem_parameter_envp
@@ -95,4 +96,5 @@ operatingsystem_parameters:
         .set operatingsystem_parameter_envp,operatingsystem_parameters+0
         .set operatingsystem_parameter_argc,operatingsystem_parameters+4
         .set operatingsystem_parameter_argv,operatingsystem_parameters+8
+.section .note.GNU-stack,"",%progbits
 

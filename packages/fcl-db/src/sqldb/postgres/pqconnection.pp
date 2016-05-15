@@ -21,10 +21,10 @@ type
 
   TPQTrans = Class(TSQLHandle)
   protected
-    PGConn        : PPGConn;
-    FList : TThreadList;
-    Procedure RegisterCursor(S : TPQCursor);
-    Procedure UnRegisterCursor(S : TPQCursor);
+    PGConn : PPGConn;
+    FList  : TThreadList;
+    Procedure RegisterCursor(Cursor : TPQCursor);
+    Procedure UnRegisterCursor(Cursor : TPQCursor);
   Public
     Constructor Create;
     Destructor Destroy; override;
@@ -60,6 +60,8 @@ type
     Destructor Destroy; override;
   end;
 
+  { EPQDatabaseError }
+
   EPQDatabaseError = class(EDatabaseError)
     public
       SEVERITY:string;
@@ -69,6 +71,8 @@ type
       MESSAGE_HINT:string;
       STATEMENT_POSITION:string;
   end;
+
+  { TPQTranConnection }
 
   TPQTranConnection = class
   protected
@@ -85,12 +89,14 @@ type
     FConnectString       : string;
     FIntegerDateTimes    : boolean;
     FVerboseErrors       : Boolean;
+  protected
+    // Protected so they can be used by descendents.
     procedure CheckConnectionStatus(var conn: PPGconn);
     procedure CheckResultError(var res: PPGresult; conn:PPGconn; ErrMsg: string);
     function TranslateFldType(res : PPGresult; Tuple : integer; out Size : integer; Out ATypeOID : oid) : TFieldType;
     procedure ExecuteDirectPG(const Query : String);
     Procedure GetExtendedFieldInfo(cursor: TPQCursor; Bindings : TFieldBindings);
-  protected
+
     procedure ApplyFieldUpdate(C : TSQLCursor; P: TSQLDBParam; F: TField; UseOldValue: Boolean); override;
     Function ErrorOnUnknownType : Boolean;
     // Add connection to pool.
@@ -116,15 +122,17 @@ type
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
-    function StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
+    function StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
+    function StartDBTransaction(trans : TSQLHandle; AParams : string) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override;
-    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField; cursor: TSQLCursor;ATransaction : TSQLTransaction); override;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
+    function GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string; override;
   public
     constructor Create(AOwner : TComponent); override;
-    destructor destroy; override;
+    destructor Destroy; override;
     function GetConnectionInfo(InfoType:TConnInfoType): string; override;
     procedure CreateDB; override;
     procedure DropDB; override;
@@ -171,6 +179,7 @@ const Oid_Bool     = 16;
       Oid_Int8     = 20;
       Oid_int2     = 21;
       Oid_Int4     = 23;
+      Oid_JSON     = 114;
       Oid_Float4   = 700;
       Oid_Money    = 790;
       Oid_Float8   = 701;
@@ -188,23 +197,12 @@ const Oid_Bool     = 16;
       oid_numeric   = 1700;
       Oid_uuid      = 2950;
 
+
 { TPQTrans }
-
-procedure TPQTrans.RegisterCursor(S: TPQCursor);
-begin
-  FList.Add(S);
-  S.tr:=Self;
-end;
-
-procedure TPQTrans.UnRegisterCursor(S: TPQCursor);
-begin
-  S.tr:=Nil;
-  FList.Remove(S);
-end;
 
 constructor TPQTrans.Create;
 begin
-  Flist:=TThreadList.Create;
+  FList:=TThreadList.Create;
   FList.Duplicates:=dupIgnore;
 end;
 
@@ -215,18 +213,38 @@ Var
   I : integer;
 
 begin
-  L:=Flist.LockList;
+  L:=FList.LockList;
   try
     For I:=0 to L.Count-1 do
       TPQCursor(L[i]).tr:=Nil;
   finally
-    Flist.UnlockList;
+    FList.UnlockList;
   end;
   FreeAndNil(FList);
   inherited Destroy;
 end;
 
+procedure TPQTrans.RegisterCursor(Cursor: TPQCursor);
+begin
+  FList.Add(Cursor);
+  Cursor.tr:=Self;
+end;
+
+procedure TPQTrans.UnRegisterCursor(Cursor: TPQCursor);
+begin
+  Cursor.tr:=Nil;
+  FList.Remove(Cursor);
+end;
+
+
 { TPQCursor }
+
+destructor TPQCursor.Destroy;
+begin
+  if Assigned(tr) then
+    tr.UnRegisterCursor(Self);
+  inherited Destroy;
+end;
 
 function TPQCursor.GetFieldBinding(F: TFieldDef): PFieldBinding;
 
@@ -251,25 +269,20 @@ begin
     end;
 end;
 
-destructor TPQCursor.Destroy;
-begin
-  if Assigned(tr) then
-    Tr.UnRegisterCursor(Self);
-  inherited Destroy;
-end;
 
+{ TPQConnection }
 
 constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash];
+  FConnOptions := FConnOptions + [sqSupportParams, sqSupportEmptyDatabaseName, sqEscapeRepeat, sqEscapeSlash, sqImplicitTransaction,sqSupportReturning];
   FieldNameQuoteChars:=DoubleQuotes;
   VerboseErrors:=True;
   FConnectionPool:=TThreadlist.Create;
 end;
 
-destructor TPQConnection.destroy;
+destructor TPQConnection.Destroy;
 begin
   // We must disconnect here. If it is done in inherited, then connection pool is gone.
   Connected:=False;
@@ -322,7 +335,8 @@ begin
 {$EndIf}
 end;
 
-procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor; Bindings: TFieldBindings);
+procedure TPQConnection.GetExtendedFieldInfo(cursor: TPQCursor;
+  Bindings: TFieldBindings);
 
 Var
   tt,tc,Tn,S : String;
@@ -430,6 +444,7 @@ var
 begin
   result := false;
   tr := trans as TPQTrans;
+  // unprepare statements associated with given transaction
   L:=tr.FList.LockList;
   try
     For I:=0 to L.Count-1 do
@@ -439,8 +454,9 @@ begin
       end;
     L.Clear;
   finally
-    tr.flist.UnlockList;
+    tr.FList.UnlockList;
   end;
+
   res := PQexec(tr.PGConn, 'ROLLBACK');
   CheckResultError(res,tr.PGConn,SErrRollbackFailed);
   PQclear(res);
@@ -460,62 +476,6 @@ begin
   PQclear(res);
   //make connection available in pool
   ReleaseConnection(tr.PGConn,false);
-  result := true;
-end;
-
-function TPQConnection.StartdbTransaction(trans : TSQLHandle; AParams : string) : boolean;
-var
-  res : PPGresult;
-  tr  : TPQTrans;
-  i   : Integer;
-  t : TPQTranConnection;
-  L : TList;
-begin
-  result:=false;
-  tr := trans as TPQTrans;
-
-  //find an unused connection in the pool
-  i:=0;
-  t:=Nil;
-  L:=FConnectionPool.LockList;
-  try
-    while (I<L.Count) do
-      begin
-      T:=TPQTranConnection(L[i]);
-      if (T.FPGConn=nil) or not T.FTranActive then
-        break
-      else
-        T:=Nil;
-      i:=i+1;
-      end;
-    // set to active now, so when we exit critical section,
-    // it will be marked active and will not be found.
-    if Assigned(T) then
-      T.FTranActive:=true;
-  finally
-    FConnectionPool.UnLockList;
-  end;
-  if (T=Nil) then
-    begin
-    T:=TPQTranConnection.Create;
-    T.FTranActive:=True;
-    AddConnection(T);
-    end;
-  if (T.FPGConn<>nil) then
-    tr.PGConn:=T.FPGConn
-  else
-    begin
-    tr.PGConn := PQconnectdb(pchar(FConnectString));
-    T.FPGConn:=tr.PGConn;
-    CheckConnectionStatus(tr.PGConn);
-    if CharSet <> '' then
-      PQsetClientEncoding(tr.PGConn, pchar(CharSet));
-    end;
-
-  res := PQexec(tr.PGConn, 'BEGIN');
-  CheckResultError(res,tr.PGConn,sErrTransactionFailed);
-
-  PQclear(res);
   result := true;
 end;
 
@@ -549,6 +509,71 @@ begin
   CheckResultError(res,tr.PGConn,sErrTransactionFailed);
 
   PQclear(res);
+end;
+
+function TPQConnection.StartImplicitTransaction(trans : TSQLHandle; AParams : string) : boolean;
+var
+  i : Integer;
+  T : TPQTranConnection;
+  L : TList;
+begin
+  //find an unused connection in the pool
+  i:=0;
+  T:=Nil;
+  L:=FConnectionPool.LockList;
+  try
+    while (i<L.Count) do
+      begin
+      T:=TPQTranConnection(L[i]);
+      if (T.FPGConn=nil) or not T.FTranActive then
+        break
+      else
+        T:=Nil;
+      i:=i+1;
+      end;
+    // set to active now, so when we exit critical section,
+    // it will be marked active and will not be found.
+    if Assigned(T) then
+      T.FTranActive:=true;
+  finally
+    FConnectionPool.UnLockList;
+  end;
+
+  if (T=Nil) then
+    begin
+    T:=TPQTranConnection.Create;
+    T.FTranActive:=True;
+    AddConnection(T);
+    end;
+
+  if (T.FPGConn=nil) then
+    begin
+    T.FPGConn := PQconnectdb(pchar(FConnectString));
+    CheckConnectionStatus(T.FPGConn);
+    if CharSet <> '' then
+      PQsetClientEncoding(T.FPGConn, pchar(CharSet));
+    end;
+
+  TPQTrans(trans).PGConn := T.FPGConn;
+  Result := true;
+end;
+
+function TPQConnection.StartDBTransaction(trans: TSQLHandle; AParams: string
+  ): boolean;
+
+Var
+  res : PPGresult;
+  tr  : TPQTrans;
+
+begin
+  Result:=StartImplicitTransaction(trans, AParams);
+  if Result then
+    begin
+    tr := trans as TPQTrans;
+    res := PQexec(tr.PGConn, 'BEGIN');
+    CheckResultError(res,tr.PGConn,sErrTransactionFailed);
+    PQclear(res);
+    end;
 end;
 
 
@@ -648,9 +673,21 @@ var
   MESSAGE_DETAIL: string;
   MESSAGE_HINT: string;
   STATEMENT_POSITION: string;
+  P : Pchar;
+  haveError : Boolean;
+
 begin
-  if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+  HaveError:=False;
+  if (Res=Nil) then
     begin
+    HaveError:=True;
+    P:=PQerrorMessage(conn);
+    If Assigned(p) then
+      ErrMsg:=StrPas(P);
+    end
+  else if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
+    begin
+    HaveError:=True;
     SEVERITY:=PQresultErrorField(res,ord('S'));
     SQLSTATE:=PQresultErrorField(res,ord('C'));
     MESSAGE_PRIMARY:=PQresultErrorField(res,ord('M'));
@@ -667,6 +704,9 @@ begin
       MaybeAdd(sErr,'Hint',MESSAGE_HINT);
       MaybeAdd(sErr,'Character',STATEMENT_POSITION);
       end;
+    end;
+  if HaveError then
+    begin
     if (Self.Name='') then CompName := Self.ClassName else CompName := Self.Name;
     E:=EPQDatabaseError.CreateFmt('%s : %s  (PostgreSQL: %s)', [CompName, ErrMsg, sErr]);
     E.SEVERITY:=SEVERITY;
@@ -675,7 +715,6 @@ begin
     E.MESSAGE_DETAIL:=MESSAGE_DETAIL;
     E.MESSAGE_HINT:=MESSAGE_HINT;
     E.STATEMENT_POSITION:=STATEMENT_POSITION;
-
     PQclear(res);
     res:=nil;
     if assigned(conn) then
@@ -716,7 +755,7 @@ begin
                              if size > MaxSmallint then size := MaxSmallint;
                              end;
 //    Oid_text               : Result := ftstring;
-    Oid_text               : Result := ftMemo;
+    Oid_text,Oid_JSON      : Result := ftMemo;
     Oid_Bytea              : Result := ftBlob;
     Oid_oid                : Result := ftInteger;
     Oid_int8               : Result := ftLargeInt;
@@ -892,6 +931,8 @@ begin
       s := s + ' as ' + buf;
       if LogEvent(detPrepare) then
         Log(detPrepare,S);
+      if LogEvent(detActualSQL) then
+        Log(detActualSQL,S);
       res := PQexec(tr.PGConn,pchar(s));
       CheckResultError(res,nil,SErrPrepareFailed);
       // if statement is INSERT, UPDATE, DELETE with RETURNING clause, then
@@ -918,7 +959,7 @@ begin
     res:=nil;
     if FPrepared then
       begin
-      if PQtransactionStatus(tr.PGConn) <> PQTRANS_INERROR then
+      if assigned(tr) and (PQtransactionStatus(tr.PGConn) <> PQTRANS_INERROR) then
         begin
         res := PQexec(tr.PGConn,pchar('deallocate '+StmtName));
         CheckResultError(res,nil,SErrUnPrepareFailed);
@@ -953,6 +994,8 @@ begin
     PQclear(res);
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
+      if LogEvent(detParamValue) then
+        LogParams(AParams);
       if Assigned(AParams) and (AParams.Count > 0) then
         begin
         l:=AParams.Count;
@@ -963,9 +1006,9 @@ begin
           begin
           case AParams[i].DataType of
             ftDateTime:
-              s := FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AParams[i].AsDateTime);
+              s := FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss.zzz', AParams[i].AsDateTime);
             ftDate:
-              s := FormatDateTime('yyyy-mm-dd', AParams[i].AsDateTime);
+              s := FormatDateTime('yyyy"-"mm"-"dd', AParams[i].AsDateTime);
             ftTime:
               s := FormatTimeInterval(AParams[i].AsDateTime);
             ftFloat, ftBCD:
@@ -1000,7 +1043,7 @@ begin
       end
     else
       begin
-      // Registercursor sets tr
+      // RegisterCursor sets tr
       TPQTrans(aTransaction.Handle).RegisterCursor(Cursor as TPQCursor);
 
       if Assigned(AParams) and (AParams.Count > 0) then
@@ -1090,7 +1133,7 @@ begin
             end
         else
           if ErrorOnUnknownType then
-            DatabaseError('unhandled field type :'+FB^.TypeName,Self);
+            DatabaseError('Unhandled field type :'+FB^.TypeName,Self);
         end;
         end;
       end;
@@ -1457,6 +1500,11 @@ begin
     s := inherited;
   end; {case}
   result := s;
+end;
+
+function TPQConnection.GetNextValueSQL(const SequenceName: string; IncrementBy: Integer): string;
+begin
+  Result := Format('SELECT nextval(''%s'')', [SequenceName]);
 end;
 
 procedure TPQConnection.LoadBlobIntoBuffer(FieldDef: TFieldDef;

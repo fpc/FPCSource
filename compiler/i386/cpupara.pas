@@ -32,7 +32,7 @@ unit cpupara;
        parabase,paramgr;
 
     type
-       ti386paramanager = class(tparamanager)
+       tcpuparamanager = class(tparamanager)
           function param_use_paraloc(const cgpara:tcgpara):boolean;override;
           function ret_in_param(def:tdef;pd:tabstractprocdef):boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
@@ -62,10 +62,10 @@ unit cpupara;
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
 
 {****************************************************************************
-                                TI386PARAMANAGER
+                                tcpuparamanager
 ****************************************************************************}
 
-    function ti386paramanager.param_use_paraloc(const cgpara:tcgpara):boolean;
+    function tcpuparamanager.param_use_paraloc(const cgpara:tcgpara):boolean;
       var
         paraloc : pcgparalocation;
       begin
@@ -86,7 +86,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
+    function tcpuparamanager.ret_in_param(def:tdef;pd:tabstractprocdef):boolean;
       var
         size: longint;
       begin
@@ -107,6 +107,23 @@ unit cpupara;
                        ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                         (def.size>0) and
                         (def.size<=8)) then
+                     begin
+                       result:=false;
+                       exit;
+                     end;
+                  end;
+              end;
+            end;
+          system_i386_os2,
+          system_i386_emx:
+            begin
+              case def.typ of
+                recorddef :
+                  begin
+                    { EMX port of GCC returns small records in the FUNCTION_RETURN_REG up to 4 bytes in registers. }
+                    if ((pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+                        (def.size>0) and
+                        (def.size<=4)) then
                      begin
                        result:=false;
                        exit;
@@ -147,7 +164,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+    function tcpuparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
         { var,out,constref always require address }
@@ -220,7 +237,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_para_align(calloption : tproccalloption):byte;
+    function tcpuparamanager.get_para_align(calloption : tproccalloption):byte;
       begin
         if calloption=pocall_oldfpccall then
           begin
@@ -234,7 +251,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         case calloption of
           pocall_internproc :
@@ -243,6 +260,7 @@ unit cpupara;
           pocall_safecall,
           pocall_stdcall,
           pocall_cdecl,
+          pocall_syscall,
           pocall_cppdecl,
           pocall_mwpascal :
             result:=[RS_EAX,RS_EDX,RS_ECX];
@@ -256,25 +274,23 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_fpu_imreg-1];
       end;
 
 
-    function ti386paramanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
+    function tcpuparamanager.get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=[0..first_mm_imreg-1];
       end;
 
 
-
-
-    function  ti386paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
+    function  tcpuparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; forcetempdef: tdef): TCGPara;
       var
         retcgsize  : tcgsize;
         paraloc : pcgparalocation;
-        sym: tfieldvarsym;
+        fdef,
         usedef: tdef;
         handled: boolean;
       begin
@@ -284,13 +300,15 @@ unit cpupara;
           usedef:=forcetempdef;
         { on darwin/i386, if a record has only one field and that field is a
           single or double, it has to be returned like a single/double }
-        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim,
+                                   system_i386_freebsd,system_i386_openbsd,
+                                   system_i386_os2,system_i386_emx]) and
            ((usedef.typ=recorddef) or
             is_object(usedef)) and
-           tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(sym) and
-           (sym.vardef.typ=floatdef) and
-           (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
-          usedef:=sym.vardef;
+           tabstractrecordsymtable(tabstractrecorddef(usedef).symtable).has_single_field(fdef) and
+           (fdef.typ=floatdef) and
+           (tfloatdef(fdef).floattype in [s32real,s64real]) then
+          usedef:=fdef;
 
         handled:=set_common_funcretloc_info(p,usedef,retcgsize,result);
         { normally forcetempdef is passed straight through to
@@ -361,7 +379,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
+    procedure tcpuparamanager.create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
       var
         i  : integer;
         hp : tparavarsym;
@@ -404,7 +422,7 @@ unit cpupara;
               begin
                 paralen:=sizeof(aint);
                 paracgsize:=OS_ADDR;
-                paradef:=getpointerdef(paradef);
+                paradef:=cpointerdef.getreusable_no_free(paradef);
               end
             else
               begin
@@ -510,7 +528,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
+    procedure tcpuparamanager.create_register_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;
                                                             var parareg,parasize:longint);
       var
         hp : tparavarsym;
@@ -556,7 +574,7 @@ unit cpupara;
                       begin
                         paralen:=sizeof(aint);
                         paracgsize:=OS_ADDR;
-                        paradef:=getpointerdef(paradef);
+                        paradef:=cpointerdef.getreusable_no_free(paradef);
                       end
                     else
                       begin
@@ -583,7 +601,8 @@ unit cpupara;
                     if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
                        (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                        pushaddr) and
+                        pushaddr or
+                        is_dynamic_array(hp.vardef)) and
                        (not(vo_is_parentfp in hp.varoptions) or
                         not(po_delphi_nested_cc in p.procoptions)) then
                       begin
@@ -683,7 +702,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    function tcpuparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       var
         parasize,
         parareg : longint;
@@ -711,7 +730,7 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
+    function tcpuparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;
       var
         parasize : longint;
       begin
@@ -724,7 +743,7 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
+    procedure tcpuparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
       begin
         { Never a need for temps when value is pushed (calls inside parameters
           will simply allocate even more stack space for their parameters) }
@@ -735,5 +754,5 @@ unit cpupara;
 
 
 begin
-   paramanager:=ti386paramanager.create;
+   paramanager:=tcpuparamanager.create;
 end.

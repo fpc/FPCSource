@@ -42,7 +42,11 @@ procedure flushpendingswitchesstate;
 implementation
 uses
   systems,cpuinfo,
-  globals,verbose,comphook,
+{$ifdef llvm}
+  { override optimizer switches }
+  llvminfo,
+{$endif llvm}
+  globals,verbose,comphook,dirparse,
   fmodule;
 
 {****************************************************************************
@@ -50,7 +54,7 @@ uses
 ****************************************************************************}
 
 type
-  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw,packenumsw,pentiumfdivsw);
+  TSwitchType=(ignoredsw,localsw,modulesw,globalsw,illegalsw,unsupportedsw,alignsw,optimizersw,packenumsw,pentiumfdivsw,targetsw);
   SwitchRec=record
     typesw : TSwitchType;
     setsw  : byte;
@@ -69,11 +73,15 @@ const
 {$else i8086}
    {F} (typesw:ignoredsw; setsw:ord(cs_localnone)),
 {$endif i8086}
-   {G} (typesw:ignoredsw; setsw:ord(cs_localnone)),
+   {G} (typesw:localsw; setsw:ord(cs_imported_data)),
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_typed_const_writable)),
+{$ifdef i8086}
+   {K} (typesw:modulesw; setsw:ord(cs_win16_smartcallbacks)),
+{$else i8086}
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+{$endif i8086}
    {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -85,7 +93,11 @@ const
    {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
    {U} (typesw:pentiumfdivsw; setsw:ord(cs_localnone)),
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
+{$ifdef i8086}
+   {W} (typesw:targetsw; setsw:ord(ts_x86_far_procs_push_odd_bp)),
+{$else i8086}
    {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
+{$endif i8086}
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
    {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {Z} (typesw:packenumsw; setsw:ord(cs_localnone))
@@ -107,7 +119,11 @@ const
    {H} (typesw:localsw; setsw:ord(cs_refcountedstrings)),
    {I} (typesw:localsw; setsw:ord(cs_check_io)),
    {J} (typesw:localsw; setsw:ord(cs_external_var)),
+{$ifdef i8086}
+   {K} (typesw:modulesw; setsw:ord(cs_win16_smartcallbacks)),
+{$else i8086}
    {K} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
+{$endif i8086}
    {L} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {M} (typesw:localsw; setsw:ord(cs_generate_rtti)),
    {N} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
@@ -119,7 +135,11 @@ const
    {T} (typesw:localsw; setsw:ord(cs_typed_addresses)),
    {U} (typesw:illegalsw; setsw:ord(cs_localnone)),
    {V} (typesw:localsw; setsw:ord(cs_strict_var_strings)),
+{$ifdef i8086}
+   {W} (typesw:targetsw; setsw:ord(ts_x86_far_procs_push_odd_bp)),
+{$else i8086}
    {W} (typesw:localsw; setsw:ord(cs_generate_stackframes)),
+{$endif i8086}
    {X} (typesw:modulesw; setsw:ord(cs_extsyntax)),
    {Y} (typesw:unsupportedsw; setsw:ord(cs_localnone)),
    {Z} (typesw:localsw; setsw:ord(cs_externally_visible))
@@ -222,6 +242,8 @@ begin
            if state='+' then
              Message1(scan_w_unsupported_switch,'$'+switch);
          end;
+       targetsw:
+         UpdateTargetSwitchStr(TargetSwitchStr[ttargetswitch(setsw)].name+state,current_settings.targetswitches,current_module.in_global);
      end;
    end;
 end;

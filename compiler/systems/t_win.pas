@@ -111,6 +111,7 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
+{$ifdef x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
@@ -121,6 +122,7 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
+{$endif x86_64}
 
 
   Procedure GlobalInitSysInitUnitName(Linker : TLinker);
@@ -389,7 +391,7 @@ implementation
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
         current_module.linkotherstaticlibs.add(current_module.importlibfilename,link_always);
-        ObjWriter:=TARObjectWriter.create(current_module.importlibfilename);
+        ObjWriter:=TARObjectWriter.CreateAr(current_module.importlibfilename);
         ObjOutput:=TPECoffObjOutput.Create(ObjWriter);
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin
@@ -649,12 +651,12 @@ implementation
 
     procedure TExportLibWin.exportprocedure(hp : texported_item);
       begin
-        if ((hp.options and eo_index)<>0) and ((hp.index<=0) or (hp.index>$ffff)) then
+        if (eo_index in hp.options) and ((hp.index<=0) or (hp.index>$ffff)) then
           begin
            message1(parser_e_export_invalid_index,tostr(hp.index));
            exit;
           end;
-        if hp.options and eo_index=eo_index then
+        if eo_index in hp.options then
           EList_indexed.Add(hp)
         else
           EList_nonindexed.Add(hp);
@@ -679,7 +681,7 @@ implementation
             if hp2.name^=hp.name^ then
               begin
                 { this is not allowed !! }
-                message1(parser_e_export_name_double,hp.name^);
+                duplicatesymbol(hp.name^);
                 exit;
               end;
             current_module._exports.insertbefore(hp,hp2);
@@ -828,7 +830,7 @@ implementation
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-              if (hp.options and eo_name)<>0 then
+              if eo_name in hp.options then
                 begin
                    current_asmdata.getjumplabel(name_label);
                    name_table_pointers.concat(Tai_const.Create_rva_sym(name_label));
@@ -869,7 +871,7 @@ implementation
                 end;
 
               { symbol known? then get a new name }
-              if assigned(hp.sym) then
+              if assigned(hp.sym) and not (eo_no_sym_name in hp.options) then
                 case hp.sym.typ of
                   staticvarsym :
                     asmsym:=current_asmdata.RefAsmSymbol(tstaticvarsym(hp.sym).mangledname);
@@ -933,6 +935,7 @@ implementation
     constructor TInternalLinkerWin.Create;
       begin
         inherited Create;
+        CArObjectReader:=TArObjectReader;
         CExeoutput:=TPECoffexeoutput;
         CObjInput:=TPECoffObjInput;
       end;
@@ -955,7 +958,7 @@ implementation
                     imagebase:=$10000
                   else
 {$ifdef cpu64bitaddr}
-                    if (paratargetdbg = dbg_stabs) then
+                    if (target_dbg.id = dbg_stabs) then
                       imagebase:=$400000
                     else
                       imagebase:= $100000000;

@@ -17,7 +17,8 @@
 program testjson;
 
 uses
-  Classes, testjsondata, testjsonparser, consoletestrunner; //, testjsonrtti, fpjsonrtti;
+  Classes, testjsondata, testjsonparser, testjsonrtti, consoletestrunner;
+
 type
   { TLazTestRunner }
    TMyTestRunner = class(TTestRunner)
@@ -30,8 +31,7 @@ var
 begin
   DefaultFormat := fPlain;
   DefaultRunAllTests := True;
-
-  Application := TMyTestRunner.Create(nil); 
+  Application := TMyTestRunner.Create(nil);
   Application.Initialize;
   Application.Run;  
   Application.Free;

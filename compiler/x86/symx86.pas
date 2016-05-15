@@ -26,7 +26,7 @@ unit symx86;
 interface
 
 uses
-  globtype,
+  globtype, cclasses,
   symconst, symtype,symdef,symsym;
 
 type
@@ -37,18 +37,34 @@ type
    public
     x86pointertyp : tx86pointertyp;
     constructor create(def: tdef); override;
+    class function getreusable(def: tdef): tpointerdef; override;
+    class function getreusablex86(def: tdef; x86typ: tx86pointertyp): tpointerdef;
     constructor createx86(def:tdef;x86typ:tx86pointertyp);virtual;
     function size: asizeint; override;
     function getcopy: tstoreddef; override;
     function GetTypeName: string; override;
     class function default_x86_data_pointer_type: tx86pointertyp; virtual;
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
   end;
   tx86pointerdefclass = class of tx86pointerdef;
+
+  tx86procvardef = class(tprocvardef)
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
+  end;
+  tx86procvardefclass = class of tx86procvardef;
+
+  tx86procdef = class(tprocdef)
+    function compatible_with_pointerdef_size(ptr: tpointerdef): boolean; override;
+  end;
+  tx86procdefclass = class of tx86procdef;
+
 
 implementation
 
   uses
-    globals, verbose;
+    globals, verbose,
+    symbase, fmodule;
+
 
 {****************************************************************************
                              tx86pointerdef
@@ -75,11 +91,52 @@ implementation
     end;
 
 
+  class function tx86pointerdef.getreusable(def: tdef): tpointerdef;
+    begin
+      result:=getreusablex86(def,default_x86_data_pointer_type);
+    end;
+
+
+  class function tx86pointerdef.getreusablex86(def: tdef; x86typ: tx86pointertyp): tpointerdef;
+    type
+      tx86PtrDefKey = packed record
+        def: tdef;
+        x86typ:tx86pointertyp;
+      end;
+    var
+      res: PHashSetItem;
+      oldsymtablestack: tsymtablestack;
+      key: tx86PtrDefKey;
+    begin
+      if not assigned(current_module) then
+        internalerror(2011071101);
+      key.def:=def;
+      key.x86typ:=x86typ;
+      res:=current_module.ptrdefs.FindOrAdd(@key,sizeof(key));
+      if not assigned(res^.Data) then
+        begin
+          { since these pointerdefs can be reused anywhere in the current
+            unit, add them to the global/staticsymtable (or local symtable
+            if they're a local def, because otherwise they'll be saved
+            to the ppu referencing a local symtable entry that doesn't
+            exist in the ppu) }
+          oldsymtablestack:=symtablestack;
+          { do not simply push/pop current_module.localsymtable, because
+            that can have side-effects (e.g., it removes helpers) }
+          symtablestack:=nil;
+          result:=tx86pointerdefclass(cpointerdef).createx86(def,x86typ);
+          setup_reusable_def(def,result,res,oldsymtablestack);
+          { res^.Data may still be nil -> don't overwrite result }
+          exit;
+        end;
+      result:=tpointerdef(res^.Data);
+    end;
+
+
   constructor tx86pointerdef.createx86(def: tdef; x86typ: tx86pointertyp);
     begin
-      tabstractpointerdef(self).create(pointerdef,def);
-      x86pointertyp := x86typ;
-      has_pointer_math:=cs_pointermath in current_settings.localswitches;
+      inherited create(def);
+      x86pointertyp:=x86typ;
     end;
 
 
@@ -134,6 +191,40 @@ implementation
     begin
       result:=x86pt_near;
     end;
+
+
+  function tx86pointerdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+    begin
+      result:=
+        inherited and
+        (x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+    end;
+
+
+{****************************************************************************
+                           tx86procvardef
+****************************************************************************}
+
+
+  function tx86procvardef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+    begin
+      result:=
+        inherited and
+        (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+    end;
+
+
+  {****************************************************************************
+                             tx86procdef
+  ****************************************************************************}
+
+
+    function tx86procdef.compatible_with_pointerdef_size(ptr: tpointerdef): boolean;
+      begin
+        result:=
+          inherited and
+          (tx86pointerdef(voidcodepointertype).x86pointertyp=tx86pointerdef(ptr).x86pointertyp);
+      end;
 
 
 end.

@@ -26,14 +26,11 @@ type
 
    TPoint=Types.TPoint;
    TRect=Types.TRect;
+   TSmallPoint=Types.TSmallPoint;
 
 {$ifndef windows}
-   TSmallPoint = record
-      x,y : smallint;
-   end;
    HMODULE = ptrint; // hmodule is handle on windows. Pointer eq.
 {$else}
-   TSmallPoint = Windows.TSmallPoint;
    HModule = System.HModule;
 {$endif}
 
@@ -392,6 +389,7 @@ type
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
       procedure SetSize(value : longint);
+   Protected   
       procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
    public
       { Public declarations }
@@ -608,7 +606,9 @@ type
     FUpdateCount: Integer;
     FAdapter: IStringsAdapter;
     FLBS : TTextLineBreakStyle;
+    FSkipLastLineBreak : Boolean;
     FStrictDelimiter : Boolean;
+    FLineBreak : String;
     function GetCommaText: string;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
@@ -623,6 +623,13 @@ type
     procedure SetNameValueSeparator(c:Char);
     procedure WriteData(Writer: TWriter);
     procedure DoSetTextStr(const Value: string; DoClear : Boolean);
+    Function GetDelimiter : Char;
+    Function GetNameValueSeparator : Char;
+    Function GetQuoteChar: Char;
+    Function GetLineBreak : String;
+    procedure SetLineBreak(const S : String);
+    Function GetSkipLastLineBreak : Boolean;
+    procedure SetSkipLastLineBreak(const AValue : Boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -644,13 +651,19 @@ type
     Function GetValueFromIndex(Index: Integer): string;
     Procedure SetValueFromIndex(Index: Integer; const Value: string);
     Procedure CheckSpecialChars;
+    Class Function GetNextLine (Const Value : String; Var S : String; Var P : Integer) : Boolean;
+    Function GetNextLinebreak (Const Value : String; Var S : String; Var P : Integer) : Boolean;
   public
     destructor Destroy; override;
-    function Add(const S: string): Integer; virtual;
-    function AddObject(const S: string; AObject: TObject): Integer; virtual;
+    function Add(const S: string): Integer; virtual; overload;
+    function AddObject(const S: string; AObject: TObject): Integer; virtual; overload;
+    function Add(const Fmt : string; const Args : Array of const): Integer; overload;
+    function AddObject(const Fmt: string; Args : Array of const; AObject: TObject): Integer; overload;
     procedure Append(const S: string);
     procedure AddStrings(TheStrings: TStrings); overload; virtual;
+    procedure AddStrings(TheStrings: TStrings; ClearFirst : Boolean); overload; 
     procedure AddStrings(const TheStrings: array of string); overload; virtual;
+    procedure AddStrings(const TheStrings: array of string; ClearFirst : Boolean); overload; 
     Procedure AddText(Const S : String); virtual;
     procedure Assign(Source: TPersistent); override;
     procedure BeginUpdate;
@@ -677,11 +690,12 @@ type
     procedure GetNameValue(Index : Integer; Out AName,AValue : String);
     function  ExtractName(Const S:String):String;
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
-    property Delimiter: Char read FDelimiter write SetDelimiter;
+    property Delimiter: Char read GetDelimiter write SetDelimiter;
     property DelimitedText: string read GetDelimitedText write SetDelimitedText;
+    property LineBreak : string Read GetLineBreak write SetLineBreak;
     Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
-    property QuoteChar: Char read FQuoteChar write SetQuoteChar;
-    Property NameValueSeparator : Char Read FNameValueSeparator Write SetNameValueSeparator;
+    property QuoteChar: Char read GetQuoteChar write SetQuoteChar;
+    Property NameValueSeparator : Char Read GetNameValueSeparator Write SetNameValueSeparator;
     property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
     property Capacity: Integer read GetCapacity write SetCapacity;
     property CommaText: string read GetCommaText write SetCommaText;
@@ -692,6 +706,7 @@ type
     property Strings[Index: Integer]: string read Get write Put; default;
     property Text: string read GetTextStr write SetTextStr;
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
+    Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
   end;
 
 { TStringList class }
@@ -711,6 +726,9 @@ type
   PStringItemList = ^TStringItemList;
   TStringItemList = array[0..MaxListSize] of TStringItem;
 
+  TStringsSortStyle = (sslNone,sslUser,sslAuto);
+  TStringsSortStyles = Set of TStringsSortStyle;
+
   TStringList = class(TStrings)
   private
     FList: PStringItemList;
@@ -720,15 +738,17 @@ type
     FOnChanging: TNotifyEvent;
     FDuplicates: TDuplicates;
     FCaseSensitive : Boolean;
-    FSorted: Boolean;
     FForceSort : Boolean;
     FOwnsObjects : Boolean;
+    FSortStyle: TStringsSortStyle;
     procedure ExchangeItemsInt(Index1, Index2: Integer); inline;
+    function GetSorted: Boolean;
     procedure Grow;
     procedure InternalClear(FromIndex : Integer = 0; ClearOnly : Boolean = False);
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
     procedure SetSorted(Value: Boolean);
     procedure SetCaseSensitive(b : boolean);
+    procedure SetSortStyle(AValue: TStringsSortStyle);
   protected
     procedure ExchangeItems(Index1, Index2: Integer); virtual;
     procedure Changed; virtual;
@@ -758,11 +778,12 @@ type
     procedure Sort; virtual;
     procedure CustomSort(CompareFn: TStringListSortCompare); virtual;
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
-    property Sorted: Boolean read FSorted write SetSorted;
+    property Sorted: Boolean read GetSorted write SetSorted;
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
     property OwnsObjects : boolean read FOwnsObjects write FOwnsObjects;
+    Property SortStyle : TStringsSortStyle Read FSortStyle Write SetSortStyle;
   end;
 
 {$else}
@@ -989,7 +1010,7 @@ type
     function GetPosition: Int64; Override;
     procedure SetSize(NewSize: Longint); override;
   public
-    constructor Create(const AString: string);
+    constructor Create(const AString: string = '');
     function Read(var Buffer; Count: Longint): Longint; override;
     function ReadString(Count: Longint): string;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
@@ -1039,13 +1060,13 @@ type
     destructor Destroy; override;
     function Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; virtual; stdcall;
     function Write(pv: Pointer; cb: DWORD; pcbWritten: PDWORD): HResult; virtual; stdcall;
-    function Seek(dlibMove: Largeint; dwOrigin: Longint; out libNewPosition: Largeint): HResult; virtual; stdcall;
-    function SetSize(libNewSize: Largeint): HResult; virtual; stdcall;
-    function CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint; out cbWritten: Largeint): HResult; virtual; stdcall;
+    function Seek(dlibMove: LargeUint; dwOrigin: Longint; out libNewPosition: LargeUint): HResult; virtual; stdcall;
+    function SetSize(libNewSize: LargeUint): HResult; virtual; stdcall;
+    function CopyTo(stm: IStream; cb: LargeUint; out cbRead: LargeUint; out cbWritten: LargeUint): HResult; virtual; stdcall;
     function Commit(grfCommitFlags: Longint): HResult; virtual; stdcall;
     function Revert: HResult; virtual; stdcall;
-    function LockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; virtual; stdcall;
-    function UnlockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; virtual; stdcall;
+    function LockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: Longint): HResult; virtual; stdcall;
+    function UnlockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: Longint): HResult; virtual; stdcall;
     function Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult; virtual; stdcall;
     function Clone(out stm: IStream): HResult; virtual; stdcall;
     property Stream: TStream read FStream;
@@ -1120,6 +1141,7 @@ type
     function ReadInt32: LongInt; virtual; abstract;
     function ReadInt64: Int64; virtual; abstract;
     function ReadSet(EnumType: Pointer): Integer; virtual; abstract;
+    procedure ReadSignature; virtual; abstract;
     function ReadStr: String; virtual; abstract;
     function ReadString(StringType: TValueType): String; virtual; abstract;
     function ReadWideString: WideString;virtual;abstract;
@@ -1172,6 +1194,7 @@ type
     function ReadInt32: LongInt; override;
     function ReadInt64: Int64; override;
     function ReadSet(EnumType: Pointer): Integer; override;
+    procedure ReadSignature; override;
     function ReadStr: String; override;
     function ReadString(StringType: TValueType): String; override;
     function ReadWideString: WideString;override;
@@ -1280,6 +1303,7 @@ type
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
     function ReadVariant: Variant;
+    procedure ReadSignature;
     function ReadString: string;
     function ReadWideString: WideString;
     function ReadUnicodeString: UnicodeString;
@@ -1312,6 +1336,7 @@ type
     procedure BeginCollection; virtual; abstract;  { Ends with the next "EndList" }
     procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
       ChildPos: Integer); virtual; abstract;  { Ends after the second "EndList" }
+    procedure WriteSignature; virtual; abstract;
     procedure BeginList; virtual; abstract;
     procedure EndList; virtual; abstract;
     procedure BeginProperty(const PropName: String); virtual; abstract;
@@ -1348,8 +1373,6 @@ type
     FBufSize: Integer;
     FBufPos: Integer;
     FBufEnd: Integer;
-    FSignatureWritten: Boolean;
-
     procedure WriteWord(w : word); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteDWord(lw : longword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
     procedure WriteQWord(qw : qword); {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1361,6 +1384,7 @@ type
   public
     constructor Create(Stream: TStream; BufSize: Integer);
     destructor Destroy; override;
+    procedure WriteSignature; override;
 
     procedure BeginCollection; override;
     procedure BeginComponent(Component: TComponent; Flags: TFilerFlags;
@@ -1457,6 +1481,7 @@ type
     procedure WriteSet(Value: LongInt; SetType: Pointer);
     procedure WriteListBegin;
     procedure WriteListEnd;
+    Procedure WriteSignature;
     procedure WriteRootComponent(ARoot: TComponent);
     procedure WriteString(const Value: string);
     procedure WriteWideString(const Value: WideString);
@@ -1536,13 +1561,25 @@ type
   end;
 
 { TThread }
-
+  TThread = Class;
+  
   EThread = class(Exception);
   EThreadExternalException = class(EThread);
   EThreadDestroyCalled = class(EThread);
   TSynchronizeProcVar = procedure;
   TThreadMethod = procedure of object;
+  
+  TThreadReportStatus = Procedure(Const status : String) of Object;
 
+  TThreadStatusNotifyEvent = Procedure(Sender : TThread; Const status : String) of Object;
+  TThreadExecuteHandler = TThreadMethod;
+  TThreadExecuteStatusHandler = Procedure(ReportStatus : TThreadReportStatus) of object;
+
+  TNotifyCallBack = Procedure(Sender : TObject; AData : Pointer);
+  TThreadStatusNotifyCallBack = Procedure(Sender : TThread; AData : Pointer; Const status : String);
+  TThreadExecuteCallBack = Procedure(AData : Pointer);
+  TThreadExecuteStatusCallBack = Procedure(AData : Pointer; ReportStatus : TThreadReportStatus);
+  
   TThreadPriority = (tpIdle, tpLowest, tpLower, tpNormal, tpHigher, tpHighest,
     tpTimeCritical);
 
@@ -1599,16 +1636,15 @@ type
     procedure Queue(aMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
-{$ifdef windows}
+{$if defined(windows) or defined(OS2)}
   private
     FInitialSuspended: boolean;
 {$endif}
 {$ifdef Unix}
   private
     // see tthread.inc, ThreadFunc and TThread.Resume
-    FSem: Pointer;
+    FSuspendEvent: PRTLEvent;
     FInitialSuspended: boolean;
-    FSuspendedExternal: boolean;
     FSuspendedInternal: longbool;
     FThreadReaped: boolean;
 {$endif}
@@ -1619,6 +1655,10 @@ type
     FInitialSuspended: boolean;
     FSuspendedExternal: boolean;
     FPid: LongInt;
+{$endif}
+{$if defined(hasamiga)}
+  private
+    FInitialSuspended: boolean;
 {$endif}
   public
     constructor Create(CreateSuspended: Boolean;
@@ -1649,6 +1689,12 @@ type
     class procedure GetSystemTimes(out aSystemTimes: TSystemTimes); static;
     class function GetTickCount: LongWord; static; deprecated 'Use TThread.GetTickCount64 instead';
     class function GetTickCount64: QWord; static;
+    // Object based
+    Class Function ExecuteInThread(AMethod : TThreadExecuteHandler; AOnTerminate : TNotifyEvent = Nil) : TThread; overload; static;
+    Class Function ExecuteInThread(AMethod : TThreadExecuteStatusHandler; AOnStatus : TThreadStatusNotifyEvent; AOnTerminate : TNotifyEvent = Nil) : TThread; overload;static;
+    // Plain methods.
+    Class Function ExecuteInThread(AMethod : TThreadExecuteCallback; AData : Pointer = Nil; AOnTerminate: TNotifyCallBack = Nil) : TThread; overload;static;
+    Class Function ExecuteInThread(AMethod : TThreadExecuteStatusCallback; AOnStatus : TThreadStatusNotifyCallback; AData : Pointer = Nil; AOnTerminate : TNotifyCallBack = Nil) : TThread; overload;static;
     procedure AfterConstruction; override;
     procedure Start;
     procedure Resume; deprecated;
@@ -2087,7 +2133,7 @@ var
 
 procedure RegisterIntegerConsts(IntegerType: Pointer; IdentToIntFn: TIdentToInt;
   IntToIdentFn: TIntToIdent);
-function IdentToInt(const Ident: string; var Int: Longint; const Map: array of TIdentMapEntry): Boolean;
+function IdentToInt(const Ident: string; out Int: Longint; const Map: array of TIdentMapEntry): Boolean;
 function IntToIdent(Int: Longint; var Ident: string; const Map: array of TIdentMapEntry): Boolean;
 function FindIntToIdent(AIntegerType: Pointer): TIntToIdent;
 function FindIdentToInt(AIntegerType: Pointer): TIdentToInt;

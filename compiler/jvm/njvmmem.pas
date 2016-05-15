@@ -46,7 +46,13 @@ interface
           procedure pass_generate_code; override;
        end;
 
+       tjvmsubscriptnode = class(tcgsubscriptnode)
+        protected
+         function handle_platform_subscript: boolean; override;
+       end;
+
        tjvmloadvmtaddrnode = class(tcgloadvmtaddrnode)
+         function pass_1: tnode; override;
          procedure pass_generate_code; override;
        end;
 
@@ -122,6 +128,27 @@ implementation
               location.reference.checkcast:=true;
           end
       end;
+
+
+{*****************************************************************************
+                            TJVMSUBSCRIPTNODE
+*****************************************************************************}
+
+    function tjvmsubscriptnode.handle_platform_subscript: boolean;
+      begin
+        result:=false;
+        if is_java_class_or_interface(left.resultdef) or
+           (left.resultdef.typ=recorddef) then
+          begin
+            if (location.loc<>LOC_REFERENCE) or
+               (location.reference.index<>NR_NO) or
+               assigned(location.reference.symbol) then
+              internalerror(2011011301);
+            location.reference.symbol:=current_asmdata.RefAsmSymbol(vs.mangledname);
+            result:=true;
+          end
+      end;
+
 
 {*****************************************************************************
                               TJVMADDRNODE
@@ -291,6 +318,28 @@ implementation
                          TJVMLOADVMTADDRNODE
 *****************************************************************************}
 
+    function tjvmloadvmtaddrnode.pass_1: tnode;
+      var
+        vs: tsym;
+      begin
+        result:=nil;
+        if is_javaclass(left.resultdef) and
+           (left.nodetype<>typen) and
+           (left.resultdef.typ<>classrefdef) then
+          begin
+            { call java.lang.Object.getClass() }
+            vs:=search_struct_member(tobjectdef(left.resultdef),'GETCLASS');
+            if not assigned(vs) or
+               (tsym(vs).typ<>procsym) then
+              internalerror(2011041901);
+            result:=ccallnode.create(nil,tprocsym(vs),vs.owner,left,[],nil);
+            inserttypeconv_explicit(result,resultdef);
+            { reused }
+            left:=nil;
+          end;
+      end;
+
+
     procedure tjvmloadvmtaddrnode.pass_generate_code;
       begin
         current_asmdata.CurrAsmList.concat(taicpu.op_sym(a_ldc,current_asmdata.RefAsmSymbol(
@@ -336,7 +385,7 @@ implementation
             { Pascal strings are 1-based, Java strings 0-based }
             result:=ccallnode.create(ccallparanode.create(
               caddnode.create(subn,right,genintconstnode(1)),nil),tprocsym(psym),
-              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[]);
+              psym.owner,ctypeconvnode.create_explicit(left,stringclass),[],nil);
             left:=nil;
             right:=nil;
             exit;
@@ -356,10 +405,8 @@ implementation
 
     procedure tjvmvecnode.pass_generate_code;
       var
-        otl,ofl: tasmlabel;
         psym: tsym;
         newsize: tcgsize;
-        isjump: boolean;
       begin
         if left.resultdef.typ=stringdef then
           internalerror(2011052702);
@@ -381,30 +428,18 @@ implementation
           and then asking for the size doesn't make any sense }
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,java_jlobject,java_jlobject,true);
         location.reference.base:=left.location.register;
-        isjump:=(right.expectloc=LOC_JUMP);
-        if isjump then
-         begin
-           otl:=current_procinfo.CurrTrueLabel;
-           current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-           ofl:=current_procinfo.CurrFalseLabel;
-           current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-         end;
         secondpass(right);
+        if (right.expectloc=LOC_JUMP)<>
+           (right.location.loc=LOC_JUMP) then
+          internalerror(2011090501);
 
         { simplify index location if necessary, since array references support
           an index in memory, but not an another array index }
-        if isjump or
+        if (right.location.loc=LOC_JUMP) or
            ((right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
             (right.location.reference.arrayreftype<>art_none)) then
           hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
 
-        if isjump then
-         begin
-           current_procinfo.CurrTrueLabel:=otl;
-           current_procinfo.CurrFalseLabel:=ofl;
-         end
-        else if (right.location.loc = LOC_JUMP) then
-          internalerror(2011090501);
         { replace enum class instance with the corresponding integer value }
         if (right.resultdef.typ=enumdef) then
           begin
@@ -416,7 +451,7 @@ implementation
                   (tprocsym(psym).ProcdefList.count<>1) then
                  internalerror(2011062607);
                thlcgjvm(hlcg).a_load_loc_stack(current_asmdata.CurrAsmList,right.resultdef,right.location);
-               hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,nil,false);
+               hlcg.a_call_name(current_asmdata.CurrAsmList,tprocdef(tprocsym(psym).procdeflist[0]),tprocdef(tprocsym(psym).procdeflist[0]).mangledname,[],nil,false);
                { call replaces self parameter with longint result -> no stack
                  height change }
                location_reset(right.location,LOC_REGISTER,OS_S32);
@@ -476,6 +511,7 @@ implementation
 
 begin
    cderefnode:=tjvmderefnode;
+   csubscriptnode:=tjvmsubscriptnode;
    caddrnode:=tjvmaddrnode;
    cvecnode:=tjvmvecnode;
    cloadvmtaddrnode:=tjvmloadvmtaddrnode;

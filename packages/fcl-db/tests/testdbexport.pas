@@ -517,7 +517,6 @@ begin
   ExportSettings:=TCSVFormatSettings.Create(true);
   try
     ExportSettings.FieldDelimiter:=';';
-    ExportSettings.QuoteStrings:=[qsAlways,qsSpace,qsDelimiter]; //quote everything we can
     ExportSettings.StringQuoteChar:='"'; //try explicit assignment
     ExportSettings.RowDelimiter:=#10; //Unix/Linux format
     ExportSettings.BooleanFalse:='onwaar'; //why not a Dutch output format?

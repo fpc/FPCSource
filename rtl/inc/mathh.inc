@@ -115,6 +115,86 @@ procedure float_raise(i: TFPUExceptionMask);
     operator := (b:real48) e:extended;
 {$endif SUPPORT_EXTENDED}
 
+    type
+      TFloatSpecial = (fsZero,fsNZero,fsDenormal,fsNDenormal,fsPositive,fsNegative,
+                       fsInf,fsNInf,fsNaN,fsInvalidOp);
+
+{$ifdef SUPPORT_EXTENDED}
+      TExtended80Rec = packed record
+      private
+        function GetExp : QWord;
+        procedure SetExp(e : QWord);
+        function GetSign : Boolean;
+        procedure SetSign(s : Boolean);
+      public
+        function Mantissa : QWord;
+        function Fraction : Extended;
+        function Exponent : Longint;
+        property Sign : Boolean read GetSign write SetSign;
+        property Exp : QWord read GetExp write SetExp;
+        function SpecialType : TFloatSpecial;
+        // procedure BuildUp(const _Sign : Boolean; const _Mantissa : QWord; const Exponent : Longint);
+        case byte of
+          0: (Bytes : array[0..9] of Byte);
+          1: (Words : array[0..4] of Word);
+{$ifdef ENDIAN_LITTLE}
+          2: (Frac : QWord; _Exp: Word);
+{$else ENDIAN_LITTLE}
+          2: (_Exp: Word; Frac : QWord);
+{$endif ENDIAN_LITTLE}
+          3: (Value: Extended);
+      end;
+{$endif SUPPORT_EXTENDED}
+
+{$ifdef SUPPORT_DOUBLE}
+      TDoubleRec = packed record
+      private
+        function GetExp : QWord;
+        procedure SetExp(e : QWord);
+        function GetSign : Boolean;
+        procedure SetSign(s : Boolean);
+        function GetFrac : QWord;
+        procedure SetFrac(e : QWord);
+      public
+        function Mantissa : QWord;
+        function Fraction : ValReal;
+        function Exponent : Longint;
+        property Sign : Boolean read GetSign write SetSign;
+        property Exp : QWord read GetExp write SetExp;
+        property Frac : QWord read Getfrac write SetFrac;
+        function SpecialType : TFloatSpecial;
+        case byte of
+          0: (Bytes : array[0..7] of Byte);
+          1: (Words : array[0..3] of Word);
+          2: (Data : QWord);
+          3: (Value: Double);
+      end;
+{$endif SUPPORT_DOUBLE}
+
+{$ifdef SUPPORT_SINGLE}
+      TSingleRec = packed record
+      private
+        function GetExp : QWord;
+        procedure SetExp(e : QWord);
+        function GetSign : Boolean;
+        procedure SetSign(s : Boolean);
+        function GetFrac : QWord;
+        procedure SetFrac(e : QWord);
+      public
+        function Mantissa : QWord;
+        function Fraction : ValReal;
+        function Exponent : Longint;
+        property Sign : Boolean read GetSign write SetSign;
+        property Exp : QWord read GetExp write SetExp;
+        property Frac : QWord read Getfrac write SetFrac;
+        function SpecialType : TFloatSpecial;
+        case byte of
+          0: (Bytes : array[0..3] of Byte);
+          1: (Words : array[0..1] of Word);
+          2: (Data : DWord);
+          3: (Value: Single);
+      end;
+{$endif SUPPORT_SINGLE}
 
     function FMASingle(s1,s2,s3 : single) : single;[internproc:fpc_in_fma_single];
 {$ifdef SUPPORT_DOUBLE}

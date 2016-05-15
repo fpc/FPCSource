@@ -41,6 +41,8 @@ unit cpu;
 
   implementation
 
+{$asmmode att}
+
     var
       _AESSupport,
       _AVXSupport,

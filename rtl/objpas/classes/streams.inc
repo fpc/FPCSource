@@ -159,10 +159,6 @@ end;
 
   procedure TStream.FakeSeekForward(Offset: Int64;  const Origin: TSeekOrigin; const Pos: Int64);
 
-  var
-    Buffer: Pointer;
-    BufferSize, i: LongInt;
-
   begin
     if Origin=soBeginning then
        Dec(Offset,Pos);
@@ -184,15 +180,31 @@ end;
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
 
-    begin
-       if Read(Buffer,Count)<Count then
-         Raise EReadError.Create(SReadError);
-    end;
+  Var
+    r,t : longint;
+
+  begin
+    t:=0;
+    repeat
+      r:=Read(PByte(@Buffer)[t],Count-t);
+      inc(t,r);
+    until (t=Count) or (r<=0);
+    if (t<Count) then
+      Raise EReadError.Create(SReadError);
+  end;
 
   procedure TStream.WriteBuffer(const Buffer; Count: Longint);
 
+  var
+    r,t : Longint;
+
     begin
-       if Write(Buffer,Count)<Count then
+      T:=0;
+      Repeat
+         r:=Write(PByte(@Buffer)[t],Count-t);
+         inc(t,r);
+      Until (t=count) or (r<=0);
+      if (t<Count) then
          Raise EWriteError.Create(SWriteError);
     end;
 
@@ -802,7 +814,7 @@ begin
 end;
 
 
-constructor TStringStream.Create(const AString: string);
+constructor TStringStream.Create(const AString: string = '');
 
 begin
   Inherited create;
@@ -817,8 +829,11 @@ begin
   Result:=Length(FDataString)-FPosition;
   If Result>Count then Result:=Count;
   // This supposes FDataString to be of type AnsiString !
-  Move (Pchar(FDataString)[FPosition],Buffer,Result);
-  FPosition:=FPosition+Result;
+  if Result>0 then
+   begin
+   Move (Pchar(FDataString)[FPosition],Buffer,Result);
+   FPosition:=FPosition+Result;
+   end;
 end;
 
 
@@ -1019,9 +1034,9 @@ begin
   Result := S_OK;
 end;
 
-function TStreamAdapter.Seek(dlibMove: Largeint; dwOrigin: Longint; out libNewPosition: Largeint): HResult; stdcall;
+function TStreamAdapter.Seek(dlibMove: LargeUint; dwOrigin: Longint; out libNewPosition: LargeUint): HResult; stdcall;
 var
-  newpos: Int64;
+  newpos: QWord;
 begin
   if m_bReverted then
     begin
@@ -1043,7 +1058,7 @@ begin
   Result := S_OK;
 end;
 
-function TStreamAdapter.SetSize(libNewSize: Largeint): HResult; stdcall;
+function TStreamAdapter.SetSize(libNewSize: LargeUint): HResult; stdcall;
 begin
   if m_bReverted then
     begin
@@ -1065,7 +1080,7 @@ begin
 end;
 
 
-function TStreamAdapter.CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint; out cbWritten: Largeint): HResult; stdcall;
+function TStreamAdapter.CopyTo(stm: IStream; cb: LargeUint; out cbRead: LargeUint; out cbWritten: Largeuint): HResult; stdcall;
 var
   sz: dword;
   buffer : array[0..1023] of byte;
@@ -1114,13 +1129,13 @@ begin
 end;
 
 
-function TStreamAdapter.LockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; stdcall;
+function TStreamAdapter.LockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: Longint): HResult; stdcall;
 begin
   Result := STG_E_INVALIDFUNCTION;
 end;
 
 
-function TStreamAdapter.UnlockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; stdcall;
+function TStreamAdapter.UnlockRegion(libOffset: LargeUint; cb: LargeUint; dwLockType: Longint): HResult; stdcall;
 begin
   Result := STG_E_INVALIDFUNCTION;
 end;
@@ -1175,9 +1190,9 @@ begin
   Check(FStream.Read(@Buffer, Count, @Result));
 end;
 
-function TProxyStream. Seek(const Offset: int64; Origin: TSeekOrigin): int64;
+function TProxyStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 begin
-  Check(FStream.Seek(Offset, ord(Origin), result));
+  Check(FStream.Seek(Offset, ord(Origin), QWord(result)));
 end;
 
 function TProxyStream.Write(const Buffer; Count: Longint): Longint;

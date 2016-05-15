@@ -153,15 +153,14 @@ begin
     loadsigned(tfloatdef(resultdef).floattype)
   else
   begin
-    current_asmdata.getdatalabel(l1);
+    current_asmdata.getglobaldatalabel(l1);
     current_asmdata.getjumplabel(l2);
     reference_reset_symbol(href, l1, 0, sizeof(aint));
-    hregister := cg.getintregister(current_asmdata.CurrAsmList, OS_32);
-    hlcg.a_load_loc_reg(current_asmdata.CurrAsmList, left.resultdef, u32inttype, left.location, hregister);
+    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
 
     { Always load into 64-bit FPU register }
     loadsigned(s64real);
-    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, hregister, l2);
+    cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList, OS_INT, OC_GTE, 0, left.location.register, l2);
 
     case tfloatdef(resultdef).floattype of
       { converting dword to s64real first and cut off at the end avoids precision loss }
@@ -171,7 +170,7 @@ begin
         hregister := cg.getfpuregister(current_asmdata.CurrAsmList, OS_F64);
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(8));
         current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_64bit.Create(4294967296.0));
+        current_asmdata.asmlists[al_typedconsts].concat(tai_realconst.create_s64real(4294967296.0));
 
         cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList, OS_F64, OS_F64, href, hregister);
         current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_ADD_D, location.Register, hregister, location.Register));
@@ -196,38 +195,36 @@ procedure tMIPSELtypeconvnode.second_int_to_bool;
 var
   hreg1, hreg2: tregister;
   opsize: tcgsize;
-  hlabel, oldtruelabel, oldfalselabel: tasmlabel;
+  hlabel: tasmlabel;
   newsize  : tcgsize;
   href: treference;
 begin
-  oldtruelabel  := current_procinfo.CurrTrueLabel;
-  oldfalselabel := current_procinfo.CurrFalseLabel;
-  current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-  current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
   secondpass(left);
   if codegenerror then
     exit;
 
-         { Explicit typecasts from any ordinal type to a boolean type }
-         { must not change the ordinal value                          }
-         if (nf_explicit in flags) and
-            not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
-           begin
-              location_copy(location,left.location);
-              newsize:=def_cgsize(resultdef);
-              { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
-              if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
-                 ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
-                hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
-              else
-                location.size:=newsize;
-              current_procinfo.CurrTrueLabel:=oldTrueLabel;
-              current_procinfo.CurrFalseLabel:=oldFalseLabel;
-              exit;
-           end;
+  { Explicit typecasts from any ordinal type to a boolean type }
+  { must not change the ordinal value                          }
+  if (nf_explicit in flags) and
+     not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) then
+    begin
+       location_copy(location,left.location);
+       newsize:=def_cgsize(resultdef);
+       { change of size? change sign only if location is LOC_(C)REGISTER? Then we have to sign/zero-extend }
+       if (tcgsize2size[newsize]<>tcgsize2size[left.location.size]) or
+          ((newsize<>left.location.size) and (location.loc in [LOC_REGISTER,LOC_CREGISTER])) then
+         hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
+       else
+         location.size:=newsize;
+       exit;
+    end;
 
   location_reset(location, LOC_REGISTER, def_cgsize(resultdef));
   opsize := def_cgsize(left.resultdef);
+
+  if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+    hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
   case left.location.loc of
     LOC_CREFERENCE, LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER:
     begin
@@ -268,10 +265,10 @@ begin
     begin
       hreg1 := cg.getintregister(current_asmdata.CurrAsmList, OS_INT);
       current_asmdata.getjumplabel(hlabel);
-      cg.a_label(current_asmdata.CurrAsmList, current_procinfo.CurrTrueLabel);
+      cg.a_label(current_asmdata.CurrAsmList, left.location.truelabel);
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 1, hreg1);
       cg.a_jmp_always(current_asmdata.CurrAsmList, hlabel);
-      cg.a_label(current_asmdata.CurrAsmList, current_procinfo.CurrFalseLabel);
+      cg.a_label(current_asmdata.CurrAsmList, left.location.falselabel);
       cg.a_load_const_reg(current_asmdata.CurrAsmList, OS_INT, 0, hreg1);
       cg.a_label(current_asmdata.CurrAsmList, hlabel);
     end;
@@ -302,10 +299,6 @@ begin
        else
 {$endif not cpu64bitalu}
          location.Register := hreg1;
-
-
-  current_procinfo.CurrTrueLabel  := oldtruelabel;
-  current_procinfo.CurrFalseLabel := oldfalselabel;
 end;
 
 

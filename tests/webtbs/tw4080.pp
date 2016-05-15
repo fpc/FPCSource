@@ -3,7 +3,7 @@ program tw4080;
 
 {$ifdef unix}
 uses
-  cwstring;
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif};
 {$endif unix}
 
 var

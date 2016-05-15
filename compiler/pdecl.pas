@@ -37,15 +37,15 @@ interface
 
     function  readconstant(const orgname:string;const filepos:tfileposinfo; out nodetype: tnodetype):tconstsym;
 
-    procedure const_dec;
-    procedure consts_dec(in_structure, allow_typed_const: boolean);
+    procedure const_dec(out had_generic:boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
     procedure label_dec;
-    procedure type_dec;
-    procedure types_dec(in_structure: boolean);
-    procedure var_dec;
-    procedure threadvar_dec;
+    procedure type_dec(out had_generic:boolean);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean);
+    procedure var_dec(out had_generic:boolean);
+    procedure threadvar_dec(out had_generic:boolean);
     procedure property_dec;
-    procedure resourcestring_dec;
+    procedure resourcestring_dec(out had_generic:boolean);
 
 implementation
 
@@ -85,7 +85,7 @@ implementation
         if orgname='' then
          internalerror(9584582);
         hp:=nil;
-        p:=comp_expr(true,false);
+        p:=comp_expr([ef_accept_equal]);
         nodetype:=p.nodetype;
         storetokenpos:=current_tokenpos;
         current_tokenpos:=filepos;
@@ -159,14 +159,17 @@ implementation
                { this situation only happens if a intrinsic is parsed that has a
                  generic type as its argument. As we don't know certain
                  information about the final type yet, we need to use safe
-                 values (mostly 0) }
+                 values (mostly 0, except for (Bit)SizeOf()) }
                if not parse_generic then
                  Message(parser_e_illegal_expression);
                case tinlinenode(p).inlinenumber of
-                 in_sizeof_x,
+                 in_sizeof_x:
+                   begin
+                     hp:=cconstsym.create_ord(orgname,constord,1,p.resultdef);
+                   end;
                  in_bitsizeof_x:
                    begin
-                     hp:=cconstsym.create_ord(orgname,constord,0,p.resultdef);
+                     hp:=cconstsym.create_ord(orgname,constord,8,p.resultdef);
                    end;
                  { add other cases here if necessary }
                  else
@@ -181,13 +184,13 @@ implementation
         readconstant:=hp;
       end;
 
-    procedure const_dec;
+    procedure const_dec(out had_generic:boolean);
       begin
         consume(_CONST);
-        consts_dec(false,true);
+        consts_dec(false,true,had_generic);
       end;
 
-    procedure consts_dec(in_structure, allow_typed_const: boolean);
+    procedure consts_dec(in_structure, allow_typed_const: boolean;out had_generic:boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -197,15 +200,20 @@ implementation
          storetokenpos,filepos : tfileposinfo;
          nodetype : tnodetype;
          old_block_type : tblock_type;
+         first,
+         isgeneric,
          skipequal : boolean;
          tclist : tasmlist;
          varspez : tvarspez;
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
+         had_generic:=false;
+         first:=true;
          repeat
            orgname:=orgpattern;
            filepos:=current_tokenpos;
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (token=_ID) and (idtoken=_GENERIC);
            consume(_ID);
            case token of
 
@@ -266,13 +274,13 @@ implementation
                      to it from the structure or linking will fail }
                    if symtablestack.top.symtabletype in [recordsymtable,ObjectSymtable] then
                      begin
-                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cfieldvarsym.create(orgname,varspez,hdef,[],true);
                        symtablestack.top.insert(sym);
                        sym:=make_field_static(symtablestack.top,tfieldvarsym(sym));
                      end
                    else
                      begin
-                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[]);
+                       sym:=cstaticvarsym.create(orgname,varspez,hdef,[],true);
                        sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end;
@@ -314,9 +322,17 @@ implementation
                 end;
 
               else
-                { generate an error }
-                consume(_EQ);
+                if not first and isgeneric and (token in [_PROCEDURE,_FUNCTION,_CLASS]) then
+                  begin
+                    had_generic:=true;
+                    break;
+                  end
+                else
+                  { generate an error }
+                  consume(_EQ);
            end;
+
+           first:=false;
          until (token<>_ID) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
@@ -347,12 +363,12 @@ implementation
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin
-                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=clocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
                         symtablestack.top.insert(labelsym.jumpbuf);
                       end
                     else
                       begin
-                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        labelsym.jumpbuf:=cstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[],true);
                         symtablestack.top.insert(labelsym.jumpbuf);
                         cnodeutils.insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
@@ -367,7 +383,7 @@ implementation
          consume(_SEMICOLON);
       end;
 
-    procedure types_dec(in_structure: boolean);
+    procedure types_dec(in_structure: boolean;out had_generic:boolean);
 
       function determine_generic_def(name:tidstring):tstoreddef;
         var
@@ -435,6 +451,7 @@ implementation
          old_block_type : tblock_type;
          old_checkforwarddefs: TFPObjectList;
          objecttype : tobjecttyp;
+         first,
          isgeneric,
          isunique,
          istyperenaming : boolean;
@@ -444,6 +461,7 @@ implementation
          p:tnode;
          gendef : tstoreddef;
          s : shortstring;
+         i : longint;
 {$ifdef x86}
          segment_register: string;
 {$endif x86}
@@ -455,6 +473,8 @@ implementation
          current_module.checkforwarddefs:=TFPObjectList.Create(false);
          block_type:=bt_type;
          hdef:=nil;
+         first:=true;
+         had_generic:=false;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
@@ -462,7 +482,9 @@ implementation
            generictokenbuf:=nil;
 
            { fpc generic declaration? }
-           isgeneric:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
+           if first then
+             had_generic:=not(m_delphi in current_settings.modeswitches) and try_to_consume(_GENERIC);
+           isgeneric:=had_generic;
 
            typename:=pattern;
            orgtypename:=orgpattern;
@@ -481,6 +503,13 @@ implementation
                consume(_LSHARPBRACKET);
                generictypelist:=parse_generic_parameters(true);
                consume(_RSHARPBRACKET);
+
+               { we are not freeing the type parameters, so register them }
+               for i:=0 to generictypelist.count-1 do
+                 begin
+                    ttypesym(generictypelist[i]).register_sym;
+                    tstoreddef(ttypesym(generictypelist[i]).typedef).register_def;
+                 end;
 
                str(generictypelist.Count,s);
                gentypename:=typename+'$'+s;
@@ -592,7 +621,7 @@ implementation
                   sym:=tsym(symtablestack.top.Find(typename));
                   if not assigned(sym) then
                     begin
-                      sym:=ctypesym.create(orgtypename,cundefineddef.create);
+                      sym:=ctypesym.create(orgtypename,cundefineddef.create(true),true);
                       Include(sym.symoptions,sp_generic_dummy);
                       ttypesym(sym).typedef.typesym:=sym;
                       sym.visibility:=symtablestack.top.currentvisibility;
@@ -628,7 +657,7 @@ implementation
               { insert a new type if we don't reuse an existing symbol }
               if not assigned(newtype) then
                 begin
-                  newtype:=ctypesym.create(genorgtypename,hdef);
+                  newtype:=ctypesym.create(genorgtypename,hdef,true);
                   newtype.visibility:=symtablestack.top.currentvisibility;
                   symtablestack.top.insert(newtype);
                 end;
@@ -658,7 +687,7 @@ implementation
                       { check if it is an ansistirng(codepage) declaration }
                       if is_ansistring(hdef) and try_to_consume(_LKLAMMER) then
                         begin
-                          p:=comp_expr(true,false);
+                          p:=comp_expr([ef_accept_equal]);
                           consume(_RKLAMMER);
                           if not is_constintnode(p) then
                             begin
@@ -706,10 +735,21 @@ implementation
                 ttypesym(sym).typedef:=hdef;
               newtype.typedef:=hdef;
               { KAZ: handle TGUID declaration in system unit }
-              if (cs_compilesystem in current_settings.moduleswitches) and not assigned(rec_tguid) and
-                 (gentypename='TGUID') and { name: TGUID and size=16 bytes that is 128 bits }
-                 assigned(hdef) and (hdef.typ=recorddef) and (hdef.size=16) then
-                rec_tguid:=trecorddef(hdef);
+              if (cs_compilesystem in current_settings.moduleswitches) and
+                 assigned(hdef) and
+                 (hdef.typ=recorddef) then
+                begin
+                  if not assigned(rec_tguid) and
+                     (gentypename='TGUID') and
+                     (hdef.size=16) then
+                    rec_tguid:=trecorddef(hdef)
+                  else if not assigned(rec_jmp_buf) and
+                     (gentypename='JMP_BUF') then
+                    rec_jmp_buf:=trecorddef(hdef)
+                  else if not assigned(rec_exceptaddr) and
+                     (gentypename='TEXCEPTADDR') then
+                    rec_exceptaddr:=trecorddef(hdef);
+                end;
             end;
            if assigned(hdef) then
             begin
@@ -719,6 +759,14 @@ implementation
                     try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 {$ifdef x86}
+  {$ifdef i8086}
+                    if try_to_consume(_HUGE) then
+                     begin
+                       tcpupointerdef(hdef).x86pointertyp:=x86pt_huge;
+                       consume(_SEMICOLON);
+                     end
+                    else
+  {$endif i8086}
                     if try_to_consume(_FAR) then
                      begin
   {$if defined(i8086)}
@@ -728,7 +776,7 @@ implementation
   {$elseif defined(x86_64)}
                        { for compatibility with previous versions of fpc,
                          far pointer = regular pointer on x86_64 }
-                       { TODO: decide if we still want to keep this }
+                       Message1(parser_w_ptr_type_ignored,'FAR');
   {$endif}
                        consume(_SEMICOLON);
                      end
@@ -755,10 +803,10 @@ implementation
                        end;
 {$else x86}
                     { Previous versions of FPC support declaring a pointer as
-                      far even on non-x86 platforms.
-                      TODO: decide if we still want to keep this }
+                      far even on non-x86 platforms. }
                     if try_to_consume(_FAR) then
                      begin
+                       Message1(parser_w_ptr_type_ignored,'FAR');
                        consume(_SEMICOLON);
                      end;
 {$endif x86}
@@ -779,6 +827,29 @@ implementation
                            consume(_SEMICOLON);
                          end;
                        parse_var_proc_directives(tsym(newtype));
+                       if po_is_function_ref in tprocvardef(hdef).procoptions then
+                         begin
+                           { these always support everything, no "of object" or
+                             "is_nested" is allowed }
+                           if is_nested_pd(tprocvardef(hdef)) or
+                              is_methodpointer(hdef) then
+                             cgmessage(type_e_function_reference_kind)
+                           else
+                             begin
+                               if (po_hascallingconvention in tprocvardef(hdef).procoptions) and
+                                  (tprocvardef(hdef).proccalloption=pocall_cdecl) then
+                                 begin
+                                   include(tprocvardef(hdef).procoptions,po_is_block);
+                                   { can't check yet whether the parameter types
+                                     are valid for a block, since some of them
+                                     may still be forwarddefs }
+                                 end
+                               else
+                                 { a regular anonymous function type: not yet supported }
+                                 { the }
+                                 Comment(V_Error,'Function references are not yet supported, only C blocks (add "cdecl;" at the end)');
+                             end
+                         end;
                        handle_calling_convention(tprocvardef(hdef));
                        if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                          consume(_SEMICOLON);
@@ -847,6 +918,18 @@ implementation
                hdef.typesym:=newtype;
                generictypelist.free;
              end;
+
+           if not (m_delphi in current_settings.modeswitches) and
+               (token=_ID) and (idtoken=_GENERIC) then
+             begin
+               had_generic:=true;
+               consume(_ID);
+               if token in [_PROCEDURE,_FUNCTION,_CLASS] then
+                 break;
+             end
+           else
+             had_generic:=false;
+           first:=false;
          until (token<>_ID) or
                (in_structure and
                 ((idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]) or
@@ -862,19 +945,19 @@ implementation
 
 
     { reads a type declaration to the symbol table }
-    procedure type_dec;
+    procedure type_dec(out had_generic:boolean);
       begin
         consume(_TYPE);
-        types_dec(false);
+        types_dec(false,had_generic);
       end;
 
 
-    procedure var_dec;
+    procedure var_dec(out had_generic:boolean);
     { parses variable declarations and inserts them in }
     { the top symbol table of symtablestack         }
       begin
         consume(_VAR);
-        read_var_decls([]);
+        read_var_decls([vd_check_generic],had_generic);
       end;
 
 
@@ -896,7 +979,7 @@ implementation
       end;
 
 
-    procedure threadvar_dec;
+    procedure threadvar_dec(out had_generic:boolean);
     { parses thread variable declarations and inserts them in }
     { the top symbol table of symtablestack                }
       begin
@@ -904,16 +987,16 @@ implementation
         if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
           message(parser_e_threadvars_only_sg);
         if f_threading in features then
-          read_var_decls([vd_threadvar])
+          read_var_decls([vd_threadvar,vd_check_generic],had_generic)
         else
           begin
-            Message(parser_f_unsupported_feature);
-            read_var_decls([]);
+            Message1(parser_f_unsupported_feature,featurestr[f_threading]);
+            read_var_decls([vd_check_generic],had_generic);
           end;
       end;
 
 
-    procedure resourcestring_dec;
+    procedure resourcestring_dec(out had_generic:boolean);
       var
          orgname : TIDString;
          p : tnode;
@@ -923,23 +1006,28 @@ implementation
          old_block_type : tblock_type;
          sp : pchar;
          sym : tsym;
+         first,
+         isgeneric : boolean;
       begin
          if target_info.system in systems_managed_vm then
            message(parser_e_feature_unsupported_for_vm);
          consume(_RESOURCESTRING);
          if not(symtablestack.top.symtabletype in [staticsymtable,globalsymtable]) then
            message(parser_e_resourcestring_only_sg);
+         first:=true;
+         had_generic:=false;
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
            orgname:=orgpattern;
            filepos:=current_tokenpos;
+           isgeneric:=not (m_delphi in current_settings.modeswitches) and (token=_ID) and (idtoken=_GENERIC);
            consume(_ID);
            case token of
              _EQ:
                 begin
                    consume(_EQ);
-                   p:=comp_expr(true,false);
+                   p:=comp_expr([ef_accept_equal]);
                    storetokenpos:=current_tokenpos;
                    current_tokenpos:=filepos;
                    sym:=nil;
@@ -985,8 +1073,17 @@ implementation
                    consume(_SEMICOLON);
                    p.free;
                 end;
-              else consume(_EQ);
+              else
+                if not first and isgeneric and
+                    (token in [_PROCEDURE, _FUNCTION, _CLASS]) then
+                  begin
+                    had_generic:=true;
+                    break;
+                  end
+                else
+                  consume(_EQ);
            end;
+           first:=false;
          until token<>_ID;
          block_type:=old_block_type;
       end;

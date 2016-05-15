@@ -31,6 +31,10 @@
 					NULL
 }
 
+{$asmmode gas}
+
+{$L abitag.o}
+
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
 {******************************************************************************
@@ -68,8 +72,11 @@ procedure _FPC_dynamic_proc_start; assembler; nostackframe; public name '_dynami
     jmp _FPC_proc_start
   end;
 
-procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_proc_haltproc(e: longint); assembler; public name '_haltproc';
+  var
+    code: longint;
   asm
+    movl    %edi,code
     movq    dlexitproc@GOTPCREL(%rip),%rax
     movq    (%rax),%rdx
     testq   %rdx,%rdx
@@ -79,26 +86,8 @@ procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
 
   .Lhaltproc:
     movl    $231,%eax                             { exit_group call }
-    movq    ExitCode@GOTPCREL(%rip),%rdi
-    movzwl  (%rdi),%edi
+    movl    code,%edi
     syscall
     jmp     .Lhaltproc
-
-    { We need this stuff to make gdb behave itself, otherwise
-      gdb will chokes with SIGILL when trying to debug apps.
-    }
-(*
-    .section ".note.ABI-tag", "a"
-    .align 4
-    .long 1f - 0f
-    .long 3f - 2f
-    .long  1
-0:  .asciz "GNU"
-1:  .align 4
-2:  .long 0
-    .long 2,4,0
-3:  .align 4
-
-    .section	.note.GNU-stack,"",@progbits *)
   end;
 

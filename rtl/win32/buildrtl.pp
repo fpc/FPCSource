@@ -4,6 +4,7 @@ unit buildrtl;
 
     uses
       sysinitpas, sysinitcyg, sysinitgprof,
+      extpas,
       ctypes, strings,
       heaptrc,
       windows,  initc, cmem, dynlibs, signals,

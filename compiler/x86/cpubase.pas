@@ -116,9 +116,10 @@ uses
       RS_ST5        = $05;
       RS_ST6        = $06;
       RS_ST7        = $07;
+      RS_ST         = $08;
 
       { Number of first imaginary register }
-      first_fpu_imreg     = $08;
+      first_fpu_imreg     = $09;
 
       { MM Super registers }
       RS_XMM0        = $00;
@@ -182,9 +183,6 @@ uses
 {$endif}
 
     const
-{ TODO: Calculate bsstart}
-      regnumber_count_bsstart = 64;
-
       regnumber_table : array[tregisterindex] of tregister = (
 {$if defined(x86_64)}
         {$i r8664num.inc}

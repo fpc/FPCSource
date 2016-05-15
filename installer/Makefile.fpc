@@ -4,7 +4,7 @@
 
 [package]
 name=installer
-version=2.7.1
+version=3.1.1
 
 [target]
 programs_go32v2=install writeidx

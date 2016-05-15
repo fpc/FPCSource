@@ -255,7 +255,11 @@ procedure InitTemplates;
       PT : PTemplate;
       i : sw_integer;
   begin
+    {$ifdef HASAMIGA}
+    if (copy(Dir,length(Dir),1)<>DirSep) and (copy(Dir,length(Dir),1)<>DriveSeparator) then Dir:=Dir+DirSep;
+    {$else}
     if copy(Dir,length(Dir),1)<>DirSep then Dir:=Dir+DirSep;
+    {$endif}
     FindFirst(Dir+'*'+TemplateExt,AnyFile,SR);
     while (DosError=0) do
     begin

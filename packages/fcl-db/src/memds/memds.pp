@@ -46,29 +46,31 @@ type
 
   MDSError=class(Exception);
 
-  PRecInfo=^TMTRecInfo;
-  TMTRecInfo=record
-    Bookmark: Longint;
-    BookmarkFlag: TBookmarkFlag;
-  end;
-
   { TMemDataset }
 
   TMemDataset=class(TDataSet)
   private
-    FOpenStream : TStream;
-    FFileName : String;
-    FFileModified : Boolean;
-    FStream: TMemoryStream;
-    FRecInfoOffset: integer;
-    FRecCount: integer;
-    FRecSize: integer;
-    FCurrRecNo: integer;
-    FIsOpen: boolean;
-    FTableIsCreated: boolean;
-    FFilterBuffer: TRecordBuffer;
-    ffieldoffsets: PInteger;
-    ffieldsizes: PInteger;
+    type
+      TMDSBlobList = class(TFPList)
+        public
+          procedure Clear; reintroduce;
+      end;
+    var
+      FOpenStream : TStream;
+      FFileName : String;
+      FFileModified : Boolean;
+      FStream: TMemoryStream;
+      FRecInfoOffset: integer;
+      FRecCount: integer;
+      FRecSize: integer;
+      FCurrRecNo: integer;
+      FIsOpen: boolean;
+      FTableIsCreated: boolean;
+      FFilterBuffer: TRecordBuffer;
+      ffieldoffsets: PInteger;
+      ffieldsizes: PInteger;
+      FBlobs: TMDSBlobList;
+
     function GetRecordBufferPointer(p:TRecordBuffer; Pos:Integer):TRecordBuffer;
     function GetIntegerPointer(p:PInteger; Pos:Integer):PInteger;
 
@@ -126,17 +128,17 @@ type
     // If SaveData=False, a size 0 block should be written.
     Procedure SaveDataToStream(F : TStream; SaveData : Boolean); virtual;
 
-
   public
-    constructor Create(AOwner:tComponent); override;
+    constructor Create(AOwner:TComponent); override;
     destructor Destroy; override;
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
+    function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions): boolean; override;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant; override;
+
     procedure CreateTable;
-
     Function  DataSize : Integer;
-
     Procedure Clear(ClearDefs : Boolean);{$IFNDEF FPC} overload; {$ENDIF}
     Procedure Clear;{$IFNDEF FPC} overload; {$ENDIF}
     Procedure SaveToFile(AFileName : String);{$IFNDEF FPC} overload; {$ENDIF}
@@ -183,7 +185,7 @@ type
 implementation
 
 uses
-  Variants, FmtBCD;
+  DBConst, Variants, FmtBCD;
 
 ResourceString
   SErrFieldTypeNotSupported = 'Fieldtype of Field "%s" not supported.';
@@ -192,8 +194,40 @@ ResourceString
   SErrInvalidMarkerAtPos    = 'Wrong data stream marker at position %d. Got %d, expected %d';
   SErrNoFileName            = 'Filename must not be empty.';
 
+type
+  TMDSRecInfo=record
+    Bookmark: Longint;
+    BookmarkFlag: TBookmarkFlag;
+  end;
+  PRecInfo=^TMDSRecInfo;
+
+  TMDSBlobField = record
+    Buffer: Pointer;  // pointer to memory allocated for Blob data
+    Size: PtrInt;     // size of Blob data
+  end;
+
+  { TMDSBlobStream }
+
+  TMDSBlobStream = class(TStream)
+    private
+      FField      : TBlobField;
+      FDataSet    : TMemDataset;
+      FBlobField  : TMDSBlobField;
+      FPosition   : PtrInt;
+      FModified   : boolean;
+      procedure AllocBlobField(NewSize: PtrInt);
+      procedure FreeBlobField;
+    public
+      constructor Create(Field: TField; Mode: TBlobStreamMode);
+      destructor Destroy; override;
+      function Seek(const Offset: int64; Origin: TSeekOrigin): int64; override;
+      function Read(var Buffer; Count: Longint): Longint; override;
+      function Write(const Buffer; Count: Longint): Longint; override;
+  end;
+
 Const
-  SizeRecInfo = SizeOf(TMTRecInfo);
+  SizeRecInfo = SizeOf(TMDSRecInfo);
+
 
 procedure unsetfieldisnull(nullmask: pbyte; const x: integer);
 
@@ -259,22 +293,110 @@ begin
     S.WriteBuffer(Value[1],L);
 end;
 
+
+{ TMDSBlobStream }
+
+constructor TMDSBlobStream.Create(Field: TField; Mode: TBlobStreamMode);
+begin
+  FField := Field as TBlobField;
+  FDataSet := Field.DataSet as TMemDataset;
+  if not Field.GetData(@FBlobField) then // IsNull
+  begin
+    FBlobField.Buffer := nil;
+    FBlobField.Size := 0;
+  end;
+
+  if Mode = bmWrite then
+    // release existing Blob
+    FreeBlobField;
+end;
+
+destructor TMDSBlobStream.Destroy;
+begin
+  if FModified then
+  begin
+    if FBlobField.Size = 0 then // Empty blob = IsNull
+      FField.SetData(nil)
+    else
+      FField.SetData(@FBlobField);
+  end;
+  inherited;
+end;
+
+procedure TMDSBlobStream.FreeBlobField;
+begin
+  FDataSet.FBlobs.Remove(FBlobField.Buffer);
+  FreeMem(FBlobField.Buffer, FBlobField.Size);
+  FBlobField.Buffer := nil;
+  FBlobField.Size := 0;
+  FModified := True;
+end;
+
+procedure TMDSBlobStream.AllocBlobField(NewSize: PtrInt);
+begin
+  FDataSet.FBlobs.Remove(FBlobField.Buffer);
+  ReAllocMem(FBlobField.Buffer, NewSize);
+  FDataSet.FBlobs.Add(FBlobField.Buffer);
+  FModified := True;
+end;
+
+function TMDSBlobStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
+begin
+  Case Origin of
+    soBeginning : FPosition := Offset;
+    soEnd       : FPosition := FBlobField.Size + Offset;
+    soCurrent   : FPosition := FPosition + Offset;
+  end;
+  Result := FPosition;
+end;
+
+function TMDSBlobStream.Read(var Buffer; Count: Longint): Longint;
+var p: Pointer;
+begin
+  if FPosition + Count > FBlobField.Size then
+    Count := FBlobField.Size - FPosition;
+  p := FBlobField.Buffer + FPosition;
+  Move(p^, Buffer, Count);
+  Inc(FPosition, Count);
+  Result := Count;
+end;
+
+function TMDSBlobStream.Write(const Buffer; Count: Longint): Longint;
+var p: Pointer;
+begin
+  AllocBlobField(FPosition+Count);
+  p := FBlobField.Buffer + FPosition;
+  Move(Buffer, p^, Count);
+  Inc(FBlobField.Size, Count);
+  Inc(FPosition, Count);
+  Result := Count;
+end;
+
+
+{ TMemDataset.TMDSBlobList }
+
+procedure TMemDataset.TMDSBlobList.Clear;
+var i: integer;
+begin
+  for i:=0 to Count-1 do FreeMem(Items[i]);
+  inherited Clear;
+end;
+
 { ---------------------------------------------------------------------
     TMemDataset
   ---------------------------------------------------------------------}
 
-
-constructor TMemDataset.Create(AOwner:tComponent);
+constructor TMemDataset.Create(AOwner:TComponent);
 
 begin
-  inherited create(aOwner);
+  inherited Create(AOwner);
   FStream:=TMemoryStream.Create;
   FRecCount:=0;
   FRecSize:=0;
   FRecInfoOffset:=0;
   FCurrRecNo:=-1;
   BookmarkSize := sizeof(Longint);
-  FIsOpen:=False;
+  FBlobs := TMDSBlobList.Create;
 end;
 
 destructor TMemDataset.Destroy;
@@ -282,6 +404,8 @@ begin
   FStream.Free;
   FreeMem(FFieldOffsets);
   FreeMem(FFieldSizes);
+  FBlobs.Clear;
+  FBlobs.Free;
   inherited Destroy;
 end;
 
@@ -295,6 +419,28 @@ begin
   Result := (ReqBookmark>=0) and (ReqBookmark<FRecCount);
 end;
 
+function TMemDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint;
+const r: array[Boolean, Boolean] of ShortInt = ((2,-1),(1,0));
+begin
+  Result := r[Bookmark1=nil, Bookmark2=nil];
+  if Result = 2 then
+    Result := PInteger(Bookmark1)^ - PInteger(Bookmark2)^;
+end;
+
+function TMemDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode
+  ): TStream;
+begin
+  // Blobs are not saved to stream/file !
+  if Mode = bmWrite then
+    begin
+    if not (State in [dsEdit, dsInsert, dsFilter, dsCalcFields]) then
+      DatabaseErrorFmt(SNotEditing, [Name], Self);
+    if Field.ReadOnly and not (State in [dsSetKey, dsFilter]) then
+      DatabaseErrorFmt(SReadOnlyField, [Field.DisplayName]);
+    end;
+  Result := TMDSBlobStream.Create(Field, Mode);
+end;
+
 function TMemDataset.MDSGetRecordOffset(ARecNo: integer): longint;
 begin
   Result:=FRecSize*ARecNo
@@ -302,7 +448,7 @@ end;
 
 function TMemDataset.MDSGetFieldOffset(FieldNo: integer): integer;
 begin
- result:= getIntegerpointer(ffieldoffsets, fieldno-1)^;
+  Result:= getIntegerPointer(ffieldoffsets, fieldno-1)^;
 end;
 
 procedure TMemDataset.RaiseError(Fmt: String; Args: array of const);
@@ -333,10 +479,12 @@ begin
     ftTime,
     ftDate:   result:=SizeOf(TDateTime);
   ftFmtBCD:   result:=SizeOf(TBCD);
-  ftWideString,
-  ftFixedWideChar: result:=(FD.Size+1)*SizeOf(WideChar);
+  ftWideString, ftFixedWideChar:
+              result:=(FD.Size+1)*SizeOf(WideChar);
   ftBytes:    result := FD.Size;
   ftVarBytes: result := FD.Size + SizeOf(Word);
+  ftBlob, ftMemo, ftWideMemo:
+              result := SizeOf(TMDSBlobField);
  else
   RaiseError(SErrFieldTypeNotSupported,[FD.Name]);
  end;
@@ -346,25 +494,22 @@ begin
 end;
 
 function TMemDataset.MDSGetActiveBuffer(out Buffer: TRecordBuffer): Boolean;
-
 begin
- case State of
-   dsBrowse:
-     if IsEmpty then
-       Buffer:=nil
-     else
-       Buffer:=ActiveBuffer;
-  dsEdit,
-  dsInsert:
-     Buffer:=ActiveBuffer;
-  dsFilter:
-     Buffer:=FFilterBuffer;
-  dsCalcFields:
-     Buffer:=CalcBuffer;
- else
-   Buffer:=nil;
- end;
- Result:=(Buffer<>nil);
+  case State of
+    dsEdit,
+    dsInsert:
+      Buffer:=ActiveBuffer;
+    dsFilter:
+      Buffer:=FFilterBuffer;
+    dsCalcFields:
+      Buffer:=CalcBuffer;
+    else
+      if IsEmpty then
+        Buffer:=nil
+      else
+        Buffer:=ActiveBuffer;
+  end;
+  Result := Buffer<>nil;
 end;
 
 procedure TMemDataset.MDSReadRecord(Buffer:TRecordBuffer;ARecNo:Integer);   //Reads a Rec from Stream in Buffer
@@ -536,6 +681,7 @@ Var
 begin
   CheckMarker(F,smData);
   Size:=ReadInteger(F);
+  FBlobs.Clear;
   FStream.Clear;
   FStream.CopyFrom(F,Size);
   FRecCount:=Size div FRecSize;
@@ -657,9 +803,8 @@ begin
  FIsOpen:=False;
  FFileModified:=False;
  // BindFields(False);
- if DefaultFields then begin
+ if DefaultFields then
   DestroyFields;
- end;
 end;
 
 procedure TMemDataset.InternalPost;
@@ -875,6 +1020,7 @@ end;
 procedure TMemDataset.Clear(ClearDefs : Boolean);
 
 begin
+  FBlobs.Clear;
   FStream.Clear;
   FRecCount:=0;
   FCurrRecNo:=-1;
@@ -910,7 +1056,7 @@ begin
  for i:= 0 to Count-1 do
    begin
    GetIntegerPointer(FFieldOffsets, i)^ := FRecSize;
-   GetIntegerPointer(FFieldSizes,   i)^ := MDSGetbufferSize(i+1);
+   GetIntegerPointer(FFieldSizes,   i)^ := MDSGetBufferSize(i+1);
    FRecSize:= FRecSize+GetIntegerPointer(FFieldSizes, i)^;
    end;
  FRecInfoOffset:=FRecSize;
@@ -921,10 +1067,7 @@ procedure TMemDataset.CreateTable;
 
 begin
   CheckInactive;
-  FStream.Clear;
-  FRecCount:=0;
-  FCurrRecNo:=-1;
-  FIsOpen:=False;
+  Clear(False);
   calcrecordlayout;
   FTableIsCreated:=True;
 end;
@@ -989,9 +1132,8 @@ begin
     end;
   CreateTable;
   If CopyData then
-    begin
+  begin
     Open;
-    OriginalPosition:=Dataset.GetBookmark;
     L1:=TList.Create;
     Try
       L2:=TList.Create;
@@ -1004,7 +1146,9 @@ begin
           L1.Add(F1);
           L2.Add(F2);
           end;
+        DisableControls;
         Dataset.DisableControls;
+        OriginalPosition:=Dataset.GetBookmark;
         Try
           Dataset.Open;
           Dataset.First; //make sure we copy from the beginning
@@ -1038,7 +1182,9 @@ begin
             Dataset.Next;
             end;
         Finally
+          DataSet.GotoBookmark(OriginalPosition); //Return to original record
           Dataset.EnableControls;
+          EnableControls;
         end;
       finally
         L2.Free;
@@ -1046,8 +1192,7 @@ begin
     finally
       l1.Free;
     end;
-    DataSet.GotoBookmark(OriginalPosition); //Return to original record
-    end;
+  end;
 end;
 
 function TMemDataset.GetRecordBufferPointer(p:TRecordBuffer; Pos:Integer):TRecordBuffer;

@@ -4,7 +4,7 @@
 
 [package]
 name=rtl-console
-version=2.7.1
+version=3.1.1
 
 # all Unices support everything except QNX(nothing)
 [target]
@@ -30,6 +30,7 @@ units_os2=crt video mouse keyboard
 units_netware=crt video mouse keyboard
 units_netwlibc=crt video mouse keyboard
 units_morphos=video mouse keyboard
+units_aros=video mouse keyboard
 
 [compiler]
 includedir=src/$(OS_TARGET) src/inc

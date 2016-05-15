@@ -41,10 +41,14 @@ interface
 
        tjvmtryexceptnode = class(ttryexceptnode)
           procedure pass_generate_code;override;
+         protected
+          procedure adjust_estimated_stack_size; override;
        end;
 
        tjvmtryfinallynode = class(ttryfinallynode)
           procedure pass_generate_code;override;
+         protected
+          procedure adjust_estimated_stack_size; override;
        end;
 
        tjvmonnode = class(tonnode)
@@ -258,6 +262,12 @@ implementation
       end;
 
 
+    procedure tjvmtryexceptnode.adjust_estimated_stack_size;
+      begin
+        { do nothing }
+      end;
+
+
     {*****************************************************************************
                                    SecondOn
     *****************************************************************************}
@@ -340,6 +350,12 @@ implementation
          reasonbuf,
          exceptreg: tregister;
       begin
+         oldBreakLabel:=nil;
+         oldContinueLabel:=nil;
+         finallycodecopy:=nil;
+         continuefinallylabel:=nil;
+         breakfinallylabel:=nil;
+
          { not necessary on a garbage-collected platform }
          if implicitframe then
            internalerror(2011031803);
@@ -490,6 +506,12 @@ implementation
             current_procinfo.CurrBreakLabel:=oldBreakLabel;
           end;
          flowcontrol:=oldflowcontrol+(tryflowcontrol-[fc_inflowcontrol]);
+      end;
+
+
+    procedure tjvmtryfinallynode.adjust_estimated_stack_size;
+      begin
+        { do nothing }
       end;
 
 begin

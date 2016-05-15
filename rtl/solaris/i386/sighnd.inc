@@ -61,7 +61,15 @@ begin
               res:=207;
          end;
          with sigcontext^.uc_mcontext.fpregs.fpchip_state do
-           status:=status and not FPU_ExceptionMask;
+           begin
+             status:=status and not FPU_ExceptionMask;
+             { Control word is index 0 }
+             state[0]:=Default8087CW;
+             { Status word is also index 1 }
+             state[1]:=status;
+             { Tag word is index 2 }
+             state[2]:=$ffff;
+          end;
        end;
    SIGILL:
        if sse_check then

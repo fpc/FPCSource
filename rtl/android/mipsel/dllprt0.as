@@ -43,13 +43,11 @@ GotEnv:
     la $t1, operatingsystem_parameter_envp
     sw $t0, ($t1)
 
-    /* Register exit handler */
-    la $a0, FPC_LIB_EXIT
-    jal atexit
-    nop
-
-    /* Call main, exit */
+    /* Call main */
     jal PASCALMAIN
+    nop
+    /* Call library init */
+    jal FPC_LIB_INIT_ANDROID
     nop
 
     /* restore registers, exit */

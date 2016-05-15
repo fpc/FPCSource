@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fpmkunit');
+    P.ShortName:='fpmk';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Description:='Free Pascal Make Tool';
     P.Author := 'Peter Vreman';
     P.License := 'LGPL with modification, ';
@@ -24,19 +25,19 @@ begin
     P.Email := '';
     P.Description := 'Basic library of the fpmake/fppkg build system.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc?
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     // All dependencies (including implicit) are listed
     // here to be able to update all requirements to
     // compile fpmake from a single place
     D:=P.Dependencies.Add('hash');
-      D.Version:='2.7.1';
+      D.Version:='3.1.1';
     D:=P.Dependencies.Add('paszlib');
-      D.Version:='2.7.1';
+      D.Version:='3.1.1';
     D:=P.Dependencies.Add('fcl-process');
-      D.Version:='2.7.1';
+      D.Version:='3.1.1';
     D:=P.Dependencies.Add('libtar');
-      D.Version:='2.7.1';
+      D.Version:='3.1.1';
 
     with P.Targets.AddUnit('src/fpmkunit.pp') do
       ResourceStrings:=true;

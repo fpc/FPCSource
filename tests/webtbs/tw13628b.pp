@@ -13,8 +13,16 @@ const
   {$endif unix}
 
   {$ifdef windows}
-  libname = 'tw13628a.dll';
+   {$DEFINE NODLLPREFIX}
   {$endif windows}
+
+  {$ifdef os2}
+   {$DEFINE NODLLPREFIX}
+  {$endif os2}
+
+  {$IFDEF NODLLPREFIX}
+  libname = 'tw13628a.' + SharedSuffix;
+  {$ENDIF NODLLPREFIX}
 
 var
   hdl: TLibHandle;

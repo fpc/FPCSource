@@ -351,15 +351,22 @@ var
 begin
   if Assigned(FHTMLParser) then FHTMLParser.Free;
   TmpStream := TMemoryStream.Create;
-  TmpStream.LoadFromFile(AFileName);
-  SetLength(Buffer, TmpStream.Size);
-  TmpStream.Position := 0;
-  TmpStream.Read(Buffer[1], TmpStream.Size);
+  try
+    TmpStream.LoadFromFile(AFileName);
+    SetLength(Buffer, TmpStream.Size);
+    TmpStream.Position := 0;
+    TmpStream.Read(Buffer[1], TmpStream.Size);
+  finally
+    TmpStream.Free;
+  end;
   FHTMLParser := THTMLParser.Create(Buffer);
-  FHTMLParser.OnFoundTag := @FoundTag;
-  FHTMLParser.OnFoundText := @FoundText;
-  FHTMLParser.Exec;
-  FreeAndNil(FHTMLParser);
+  try
+    FHTMLParser.OnFoundTag := @FoundTag;
+    FHTMLParser.OnFoundText := @FoundText;
+    FHTMLParser.Exec;
+  finally
+    FreeAndNil(FHTMLParser);
+  end;
 end;
 
 procedure TChmSiteMap.LoadFromStream(AStream: TStream);

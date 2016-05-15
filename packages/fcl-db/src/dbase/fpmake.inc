@@ -5,11 +5,11 @@
 { DBase, only for I386}
 Targets.ResetDefaults;  
 Targets.DefaultCPU:=[i386];
-Targets.DefaultOS:=[linux,win32,freebsd];
+Targets.DefaultOS:=[linux,win32,freebsd,os2,emx];
 Targets.DefaultDir:='db/dbase';
 T:=Targets.AddUnit('dbf');
 T:=Targets.Addexampleunit('testdbf');
-If (Defaults.CPU=i386) and (Defaults.OS in [linux,win32,freebsd]) then
+If (Defaults.CPU=i386) and (Defaults.OS in [linux,win32,freebsd,os2,emx]) then
   begin
   { Install files. }
   InstallFiles.add('dbf_common.o');

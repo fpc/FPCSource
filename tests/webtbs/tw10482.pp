@@ -4,7 +4,7 @@ program fpctest4;
 {$endif fpc}
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
   Classes,sysutils,variants,typinfo;
 

@@ -4,6 +4,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2012 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2015 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -58,6 +59,11 @@ interface
 {$elsec}
 	{$setc __arm__ := 0}
 {$endc}
+{$ifc not defined __arm64__ and defined CPUAARCH64}
+  {$setc __arm64__ := 1}
+{$elsec}
+  {$setc __arm64__ := 0}
+{$endc}
 
 {$ifc defined cpu64}
   {$setc __LP64__ := 1}
@@ -76,6 +82,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -86,6 +93,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -96,6 +104,7 @@ interface
 	{$setc TARGET_CPU_X86 := TRUE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 {$ifc defined(iphonesim)}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
@@ -112,9 +121,16 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
+{$elsec}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$endc}
 	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
@@ -122,13 +138,26 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elifc defined __arm64__ and __arm64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := TRUE}
 	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
-	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
 
 {$ifc defined __LP64__ and __LP64__ }
@@ -911,14 +940,6 @@ procedure CGContextSetFont( c: CGContextRef; font: CGFontRef ); external name '_
 procedure CGContextSetFontSize( c: CGContextRef; size: CGFloat ); external name '_CGContextSetFontSize';
 (* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Attempts to find the font named `name' and, if successful, sets it as the
-   font in the current graphics state of `c' and sets the font size in the
-   current graphics state to `size'. `textEncoding' specifies how to
-   translate from bytes to glyphs when displaying text. }
-
-procedure CGContextSelectFont( c: CGContextRef; name: ConstCStringPtr; size: CGFloat; textEncoding: CGTextEncoding ); external name '_CGContextSelectFont';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
-
 { Draw `glyphs', an array of `count' CGGlyphs, at the points specified by
    `positions'. Each element of `positions' specifies the position from the
    associated glyph; the positions are specified in user space. }
@@ -926,61 +947,12 @@ procedure CGContextSelectFont( c: CGContextRef; name: ConstCStringPtr; size: CGF
 procedure CGContextShowGlyphsAtPositions( context: CGContextRef; {const} glyphs: {variable-size-array} CGGlyphPtr; {const} positions: {variable-size-array} CGPointPtr; count: size_t ); external name '_CGContextShowGlyphsAtPositions';
 (* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
 
-{* Text convenience functions. *}
-
-{ Draw `string', a string of `length' bytes, at the point specified by the
-   text matrix in the context `c'. Each byte of the string is mapped through
-   the encoding vector of the current font to obtain the glyph to
-   display. }
-
-procedure CGContextShowText( c: CGContextRef; strng: ConstCStringPtr; length: size_t ); external name '_CGContextShowText';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
-
-{ Draw `string', a string of `length' bytes, at the point `(x, y)',
-   specified in user space, in the context `c'. Each byte of the string is
-   mapped through the encoding vector of the current font to obtain the
-   glyph to display. }
-
-procedure CGContextShowTextAtPoint( c: CGContextRef; x: CGFloat; y: CGFloat; strng: ConstCStringPtr; length: size_t ); external name '_CGContextShowTextAtPoint';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
-
-{ Draw the glyphs pointed to by `g', an array of `count' glyphs, at the
-   point specified by the text matrix in the context `c'. }
-
-procedure CGContextShowGlyphs( c: CGContextRef; {const} g: {variable-size-array} CGGlyphPtr; count: size_t ); external name '_CGContextShowGlyphs';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
-
-{ Display the glyphs pointed to by `glyphs', an array of `count' glyphs, at
-   the point `(x, y)', specified in user space, in `context'. }
-
-procedure CGContextShowGlyphsAtPoint( context: CGContextRef; x: CGFloat; y: CGFloat; {const} glyphs: {variable-size-array} CGGlyphPtr; count: size_t ); external name '_CGContextShowGlyphsAtPoint';
-(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
-
-{ Draw `glyphs', an array of `count' CGGlyphs, at the current point
-   specified by the text matrix. Each element of `advances' specifies the
-   offset from the previous glyph's origin to the origin of the associated
-   glyph; the advances are specified in user space. }
-
-procedure CGContextShowGlyphsWithAdvances( c: CGContextRef; {const} glyphs: {variable-size-array} CGGlyphPtr; {const} advances: {variable-size-array} CGSizePtr; count: size_t ); external name '_CGContextShowGlyphsWithAdvances';
-(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
-
 {* PDF functions. *}
 
 { Draw `page' in the current user space of the context `c'. }
 
 procedure CGContextDrawPDFPage( c: CGContextRef; page: CGPDFPageRef ); external name '_CGContextDrawPDFPage';
 (* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
-
-{$ifc TARGET_OS_MAC}
-{ DEPRECATED; use the CGPDFPage API instead.
-
-   Draw `page' in `document' in the rectangular area specified by `rect' in
-   the context `c'. The media box of the page is scaled, if necessary, to
-   fit into `rect'. }
-
-procedure CGContextDrawPDFDocument( c: CGContextRef; rect: CGRect; document: CGPDFDocumentRef; page: SInt32 ); external name '_CGContextDrawPDFDocument';
-(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
-{$endc}
 
 {* Output page functions. *}
 
@@ -1164,6 +1136,46 @@ function CGContextConvertRectToDeviceSpace( context: CGContextRef; rect: CGRect 
 function CGContextConvertRectToUserSpace( context: CGContextRef; rect: CGRect ): CGRect; external name '_CGContextConvertRectToUserSpace';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
+{* Deprecated functions. *}
+
+{ DEPRECATED; use the CoreText API instead. }
+
+procedure CGContextSelectFont( c: CGContextRef; name: ConstCStringPtr; size: CGFloat; textEncoding: CGTextEncoding ); external name '_CGContextSelectFont';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_9, __IPHONE_2_0, __IPHONE_7_0) *)
+
+{ DEPRECATED; use the CoreText API instead. }
+
+procedure CGContextShowText( c: CGContextRef; strng: ConstCStringPtr; length: size_t ); external name '_CGContextShowText';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_9, __IPHONE_2_0, __IPHONE_7_0) *)
+
+{ DEPRECATED; use the CoreText API instead. }
+
+procedure CGContextShowTextAtPoint( c: CGContextRef; x: CGFloat; y: CGFloat; strng: ConstCStringPtr; length: size_t ); external name '_CGContextShowTextAtPoint';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_9, __IPHONE_2_0, __IPHONE_7_0) *)
+
+{ DEPRECATED; use the CoreText API instead. }
+
+procedure CGContextShowGlyphs( c: CGContextRef; {const} g: {variable-size-array} CGGlyphPtr; count: size_t ); external name '_CGContextShowGlyphs';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_9, __IPHONE_2_0, __IPHONE_7_0) *)
+
+{ DEPRECATED; use the CoreText API instead. }
+
+procedure CGContextShowGlyphsAtPoint( context: CGContextRef; x: CGFloat; y: CGFloat; {const} glyphs: {variable-size-array} CGGlyphPtr; count: size_t ); external name '_CGContextShowGlyphsAtPoint';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_9, __IPHONE_2_0, __IPHONE_7_0) *)
+
+{ DEPRECATED; use the CoreText API instead. }
+
+procedure CGContextShowGlyphsWithAdvances( context: CGContextRef; {const} glyphs: {variable-size-array} CGGlyphPtr; {const} advances: {variable-size-array} CGSizePtr; count: size_t ); external name '_CGContextShowGlyphsWithAdvances';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_3, __MAC_10_9, __IPHONE_2_0, __IPHONE_7_0) *)
+
+{$ifc TARGET_OS_MAC}
+
+{ DEPRECATED; use the CGPDFPage API instead. }
+
+procedure CGContextDrawPDFDocument( c: CGContextRef; rect: CGRect; document: CGPDFDocumentRef; page: SInt32 ); external name '_CGContextDrawPDFDocument';
+(* CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_NA, __IPHONE_NA) *)
+
+{$endc}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.

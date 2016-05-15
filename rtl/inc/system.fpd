@@ -19,10 +19,15 @@ Type
    Char    = #0..#255;
    Longint = -2147483648..2147483647;
    Longword= 0..4294967295;
+   Int64   = -9223372036854775808..9223372036854775807;
+   QWord   = 0..18446744073709551615;
    Shortint= -128 .. 127;
    Smallint= -32768 .. 32767;
    Word    = 0 .. 65535;
    WideChar= #$0000..#$FFFF;
+   UnicodeString = UnicodeString;
+   WideString = WideString;
+
 Function Addr (X : TAnytype) : Pointer;
 Procedure Assert(Expr : Boolean); 
 Procedure Assert(Expr : Boolean; const Msg : string);
@@ -60,20 +65,24 @@ Procedure Write (Args : Arguments);
 Procedure Writeln (Args : Arguments);
 Procedure Write (Var F : Text; Args : Arguments);
 Procedure WriteLn (Var F : Text; Args : Arguments);
-Function Copy(S : AStringType; Index,Count : Integer) : String;
-Function Copy(A : DynArrayType; Index,Count : Integer) : DynArray;
-Procedure SetLength(Var S : AStringType; Len : Integer);
-Procedure SetLength(Var A : DynArrayType; Len : Integer);
-Function Length(S : AStringType) : Integer;
-Function Length(A : DynArrayType) : Integer;
-Function Power(Base:double;expon:double):double;
-Function Power(Base:Longint;expon:Longint):Longint;
+Function Copy(S : AStringType; Index,Count : SizeInt) : String;
+Function Copy(A : DynArrayType; Index,Count : SizeInt) : DynArray;
+Procedure SetLength(Var S : AStringType; Len : SizeInt);
+Procedure SetLength(Var A : DynArrayType; Len : SizeInt);
+Function Length(S : AStringType) : SizeInt;
+Function Length(A : DynArrayType) : SizeInt;
 Procedure WriteStr(Out S : String; Args : Arguments);
 Procedure ReadStr(Const S : String; Args : Arguments);
 Procedure Pack(Const A : UnpackedArrayType; StartIndex : TIndexType; Out Z : PackedArrayType);
 Procedure UnPack(Const Z : PackedArrayType; Out A : UnpackedArrayType; StartIndex : TIndexType);
 Function Slice(Const A : ArrayType; ACount : Integer) : ArrayType2;
- 
+Function Default(Const T : AnyType) : AnyType;
+Function TypeInfo(Const T : AnyType) : Pointer;
+Procedure Fail;
+Function TypeOf(T : TObjectType) : Pointer;
+Procedure Initialize(Var T : TAnyType; ACount : SizeInt = 1);
+Procedure Finalize(Var T : TAnyType; ACount : SizeInt = 1);
+
 {$IFNDEF GO32V2}
 Var
   mem  : array[0..$7fffffff-1] of byte;

@@ -261,7 +261,7 @@ Type
   TPipeEnd = (peRead,peWrite);
   TPipePair = Array[TPipeEnd] of cint;
 
-Procedure CreatePipes(Var HI,HO,HE : TPipePair; CE : Boolean);
+Procedure CreatePipes(Var HI,HO,HE : TPipePair; CI, CE : Boolean);
 
   Procedure CreatePair(Var P : TPipePair);
 
@@ -285,7 +285,8 @@ begin
   HE[peRead]:=-1;HE[peWrite]:=-1;
   Try
     CreatePair(HO);
-    CreatePair(HI);
+    if CI then
+      CreatePair(HI);
     If CE then
       CreatePair(HE);
   except
@@ -317,8 +318,8 @@ Var
   PName    : String;
 
 begin
-  If (poUsePipes in FProcessOptions) then
-    CreatePipes(HI,HO,HE,Not (poStdErrToOutPut in FProcessOptions));
+  If (poUsePipes in Options) then
+    CreatePipes(HI, HO, HE, Not(poPassInput in Options), Not (poStdErrToOutPut in Options));
   Try
     if FEnvironment.Count<>0 then
       FEnv:=StringsToPcharList(FEnvironment)
@@ -351,8 +352,16 @@ begin
           child borrows the execution thread of the parent
           unit it either exits or execs -> potential 
           deadlock depending on how quickly the SIGSTOP
-          signal is delivered }
-        if not(poRunSuspended in Options) then
+          signal is delivered
+
+          We also can't use vfork in case we have to change the working
+          directory, use pipes or not use a console since calling anything but
+          exec* or _exit after vfork is unsupported. For the same reason, also
+          don't use vfork in case there is a forkevent (since we don't know
+          what that one will call) }
+        if (([poRunSuspended,PoUsePipes,poNoConsole] * Options) = []) and
+           (FCurrentDirectory='') and
+           not assigned(FForkEvent) then
           Pid:=fpvfork
         else
           Pid:=fpfork;
@@ -373,11 +382,24 @@ begin
           begin
             { We're in the child }
             if (FCurrentDirectory<>'') then
-               ChDir(FCurrentDirectory);
+               begin
+{$push}{$i-}
+                 ChDir(FCurrentDirectory);
+                 { exit if the requested working directory does not exist (can
+                   use DirectoryExists, that would not be atomic; cannot change
+                   before forking because that would also change the CWD of the
+                   parent, which could influence other threads }
+                 if ioresult<>0 then
+                   fpexit(127);
+{$pop}
+               end;
             if PoUsePipes in Options then
               begin
-                FileClose(HI[peWrite]);
-                safefpdup2(HI[peRead],0);
+                if not (poPassInput in Options) then
+                  begin
+                    FileClose(HI[peWrite]);
+                    safefpdup2(HI[peRead],0);
+                  end;
                 FileClose(HO[peRead]);
                 safefpdup2(HO[peWrite],1);
                 if (poStdErrToOutPut in Options) then
@@ -398,7 +420,7 @@ begin
             if Assigned(FForkEvent) then
               FForkEvent(Self);
             if (poRunSuspended in Options) then
-              sigraise(SIGSTOP);
+              fpkill(fpgetpid,SIGSTOP);
             if FEnv<>Nil then
               fpexecve(PName,Argv,Fenv)
             else
@@ -413,10 +435,11 @@ begin
         FreePCharList(FEnv);
     end;
   Finally
-    if POUsePipes in FProcessOptions then
+    if POUsePipes in Options then
       begin
         FileClose(HO[peWrite]);
-        FileClose(HI[peRead]);
+        if not (POPassInput in Options) then
+          FileClose(HI[peRead]);
         if Not (poStdErrToOutPut in FProcessOptions) then
           FileClose(HE[peWrite]);
         CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
@@ -439,6 +462,47 @@ begin
     fexitcode:=waitprocess(handle);
   Result:=(fexitcode>=0);
   FRunning:=False;
+end;
+
+{ maybe some unixes might need a simpler solution }
+{$define USE_GETTIMEOFDAY}
+
+Function TProcess.WaitOnExit(Timeout : DWord) : Boolean;
+var
+  res: cint;
+{$ifdef USE_GETTIMEOFDAY}
+  timeout_tv,t : timeval;
+  tz : timezone;
+{$endif USE_GETTIMEOFDAY}
+
+begin
+  Result:=false;
+{$ifdef USE_GETTIMEOFDAY}
+  fpGetTimeOfDay(@timeout_tv,@tz);
+  inc(timeout_tv.tv_sec,Timeout div 1000);
+  inc(timeout_tv.tv_usec,(Timeout mod 1000)*1000);
+{$endif USE_GETTIMEOFDAY}
+  res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
+  while res=0 do
+    begin
+{$ifdef USE_GETTIMEOFDAY}
+      fpGetTimeOfDay(@t,@tz);
+      if (t.tv_sec>timeout_tv.tv_sec) or
+        ((t.tv_sec=timeout_tv.tv_sec) and (t.tv_usec>timeout_tv.tv_usec)) then
+        exit;
+{$else USE_GETTIMEOFDAY}
+      if Timeout=0 then
+        Exit;
+{$endif USE_GETTIMEOFDAY}
+      Sleep(1);
+      dec(Timeout);
+      res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
+    end;
+  result:=res=Handle;
+  If Not Result then
+    FexitCode:=cardinal(-1) // was 0, better testable for abnormal exit.
+  else
+    FRunning:=False;
 end;
 
 Function TProcess.Suspend : Longint;

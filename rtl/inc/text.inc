@@ -200,10 +200,15 @@ Begin
   TextRec(t).mode:=mode;
   TextRec(t).bufpos:=0;
   TextRec(t).bufend:=0;
-  {$ifdef FPC_HAS_CPSTRING}
+
+{$ifdef FPC_HAS_CPSTRING}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   { if no codepage is yet assigned then assign default ansi codepage }
   TextRec(t).CodePage:=TranslatePlaceholderCP(TextRec(t).CodePage);
-  {$endif}
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  TextRec(t).CodePage:=0;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$endif FPC_HAS_CPSTRING}
   FileFunc(TextRec(t).OpenFunc)(TextRec(t));
   { reset the mode to closed when an error has occured }
   if InOutRes<>0 then
@@ -266,6 +271,7 @@ Begin
 End;
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure Rename(var t : Text;const s : unicodestring);[IOCheck];
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 var
@@ -296,8 +302,11 @@ Begin
 {$endif FPC_ANSI_TEXTFILEREC}
 {$endif FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
+
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure Rename(var t : Text;const s : rawbytestring);[IOCheck];
 var
 {$ifdef FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
@@ -342,6 +351,7 @@ Begin
     TextRec(t).Name:=fs
 {$endif FPC_ANSI_TEXTTextRec and not FPCRTL_FILESYSTEM_SINGLE_BYTE_API}
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
 Procedure Rename(var t : Text;const s : ShortString);[IOCheck];
@@ -366,16 +376,16 @@ Begin
 End;
 {$else FPC_HAS_FEATURE_ANSISTRINGS}
 var
-  len: SizeInt
+  len: SizeInt;
 Begin
   if InOutRes<>0 then
     exit;
-  if TextRec(f).mode<>fmClosed then
+  if TextRec(t).mode<>fmClosed then
     begin
       InOutRes:=102;
       exit;
     end;
-  Do_Rename(PFileTextRecChar(@TextRec(t).Name),p,false);
+  Do_Rename(PFileTextRecChar(@TextRec(t).Name),p,false,false);
   { check error code of do_rename }
   if InOutRes=0 then
     begin
@@ -602,16 +612,17 @@ End;
 
 function GetTextCodePage(var T: Text): TSystemCodePage;
 begin
-{$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   GetTextCodePage:=TextRec(T).CodePage;
 {$else}
   GetTextCodePage:=0;
 {$endif}
 end;
 
+
 procedure SetTextCodePage(var T: Text; CodePage: TSystemCodePage);
 begin
-{$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   TextRec(T).CodePage:=TranslatePlaceholderCP(CodePage);
 {$endif}
 end;
@@ -631,8 +642,14 @@ end;
 
 Procedure fpc_textinit_iso(var t : Text;nr : DWord);compilerproc;
 begin
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
   assign(t,paramstr(nr));
-  reset(t);
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+  { primitive workaround for targets supporting no command line arguments,
+    invent some file name, try to avoid complex procedures like concating strings which might
+    pull-in bigger parts of the rtl }
+  assign(t,chr((nr mod 16)+65));
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 end;
 
 
@@ -1198,6 +1215,9 @@ var
     s:string;
 
 begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   if textrec(t).mode<>fmoutput then
     begin
       if textrec(t).mode=fminput then
@@ -1210,10 +1230,15 @@ begin
   if (inoutres <> 0) then
     exit;
   fpc_writeBuffer(t,s[1],length(s));
+{$endif EXCLUDE_COMPLEX_PROCS}
 end;
 
-{$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+      begin
+        runerror(217);
+      end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   s : String;
 Begin
@@ -1222,7 +1247,7 @@ Begin
   str(c:Len:fixkomma,s);
   Write_Str(Len,t,s);
 End;
-{$endif FPC_HAS_STR_CURRENCY}
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; compilerproc;
 Begin
@@ -1662,6 +1687,9 @@ var
   p,startp,maxp : pchar;
   end_of_string:boolean;
 Begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   ReadPCharLen:=0;
   If not CheckRead(f) then
     exit;
@@ -1703,6 +1731,7 @@ Begin
     inc(sPos,Len);
   until (spos=MaxLen) or end_of_string;
   ReadPCharLen:=spos;
+{$endif EXCLUDE_COMPLEX_PROCS}
 End;
 
 
@@ -2290,76 +2319,26 @@ end;
 
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-function UTF8CodePointLength(firstbyte: byte): SizeInt;
-var
-  firstzerobit: SizeInt;
-begin
-  result:=1;
-  { bsr searches for the leftmost 1 bit. We are interested in the
-    leftmost 0 bit, so first invert the value
-  }
-  firstzerobit:=BsrByte(not(firstbyte));
-  { if there is no zero bit or the first zero bit is the rightmost bit
-    (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
-    UTF-8-encoded string, and in the worst case bit 1 has to be zero)
-  }
-  if (firstzerobit=0) or (firstzerobit=255)  then
-    exit;
-  { the number of bytes belonging to this code point is
-    7-(pos first 0-bit).
-  }
-  result:=7-firstzerobit;
-end;
-
-
 function EndOfLastCompleteUTF8CodePoint(var t: textrec): SizeInt;
 var
-  i, lenfound, codepointlen: SizeInt;
-  b: byte;
+  i, codepointlen: sizeint;
 begin
-  lenfound:=0;
   for i:=t.bufpos-1 downto 0 do
     begin
-      b:=byte(t.bufptr^[i]);
-      if b<=127 then
+      { we don't care about combining diacritical marks here: we just want a
+        valid UTF-8 codepoint that we can translate to UTF-16. The combining
+        diacritical marks can be translated separately }
+      codepointlen:=Utf8CodePointLen(pchar(@t.bufptr^[i]),(t.bufpos-1-i)+1,false);
+      { complete codepoint -> flush till here }
+      if codepointlen>0 then
         begin
-          if lenfound = 0 then
-            { valid simple code point }
-            result:=i+1
-          else
-            { valid simple code point followed by a bunch of invalid data ->
-              handle everything since it can't become valid by adding more
-              bytes }
-            result:=t.bufpos;
+          result:=i+codepointlen;
           exit;
-        end;
-      { start of a complex character }
-      if (b and %11000000)<>0 then
-        begin
-          codepointlen:=UTF8CodePointLength(b);
-          { we did not yet get all bytes of the last code point -> handle
-            everything until the start of this character }
-          if codepointlen>lenfound+1 then
-            if i<>0 then
-              result:=i
-            { the buffer is too small to contain the entire utf-8 code point
-              -> nothing else to do but handle the entire buffer (and end up
-              with an invalid character) -- since writestr uses the default
-              buffer size of 32 bytes, this can only happen for invalid utf-8
-              encodings }
-            else
-              result:=t.bufpos
-          { the last code point is invalid -> handle everything since it can't
-            become valid by adding more bytes; in case it's complete, we also
-            handle everything, of course}
-          else
-            result:=t.bufpos;
-          exit;
-        end;
-      inc(lenfound);
+        end
     end;
   { all invalid data, or the buffer is too small to be able to deal with the
-    complete utf8char -> nothing else to do but to handle the entire buffer }
+    complete utf8char -> nothing else to do but to handle the entire buffer
+    (and end up with a partial/invalid character) }
   result:=t.bufpos;
 end;
 
@@ -2450,9 +2429,9 @@ begin
   t.mode:=fmOutput;
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
-  {$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   t.CodePage:=TranslatePlaceholderCP(cp);
-  {$endif}
+{$endif}
 end;
 
 
@@ -2561,7 +2540,7 @@ begin
   t.mode:=fmInput;
   t.OpenFunc:=nil;
   t.CloseFunc:=nil;
-  {$ifdef FPC_HAS_CPSTRING}
+{$if defined(FPC_HAS_CPSTRING) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
   t.CodePage:=TranslatePlaceholderCP(cp);
   {$endif}
   PSizeInt(@t.userdata[BytesReadIndex])^:=0;

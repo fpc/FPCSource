@@ -6,7 +6,7 @@ type
   tr = packed record
     l: longint;
     case byte of
-      0: (l: longint);
+      0: (x: longint);
       1: (e: ta);
   end;
 

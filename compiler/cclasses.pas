@@ -401,7 +401,7 @@ type
        { string container }
        TCmdStrList = class(TLinkedList)
        private
-          FDoubles : boolean;  { if this is set to true, doubles are allowed }
+          FDoubles : boolean;  { if this is set to true, doubles (case insensitive!) are allowed }
        public
           constructor Create;
           constructor Create_No_Double;
@@ -508,14 +508,14 @@ type
          destructor Destroy; override;
          procedure Clear;
          { finds an entry by key }
-         function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
+         function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;virtual;
          { finds an entry, creates one if not exists }
          function FindOrAdd(Key: Pointer; KeyLen: Integer;
-           var Found: Boolean): PHashSetItem;
+           var Found: Boolean): PHashSetItem;virtual;
          { finds an entry, creates one if not exists }
-         function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
+         function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;virtual;
          { returns Data by given Key }
-         function Get(Key: Pointer; KeyLen: Integer): TObject;
+         function Get(Key: Pointer; KeyLen: Integer): TObject;virtual;
          { removes an entry, returns False if entry wasn't there }
          function Remove(Entry: PHashSetItem): Boolean;
          property Count: LongWord read FCount;
@@ -2407,7 +2407,7 @@ end;
     procedure TCmdStrList.insert(const s : TCmdStr);
       begin
          if (s='') or
-            ((not FDoubles) and (find(s)<>nil)) then
+            ((not FDoubles) and (findcase(s)<>nil)) then
           exit;
          inherited insert(TCmdStrListItem.create(s));
       end;
@@ -2416,7 +2416,7 @@ end;
     procedure TCmdStrList.concat(const s : TCmdStr);
       begin
          if (s='') or
-            ((not FDoubles) and (find(s)<>nil)) then
+            ((not FDoubles) and (findcase(s)<>nil)) then
           exit;
          inherited concat(TCmdStrListItem.create(s));
       end;
@@ -2428,7 +2428,7 @@ end;
       begin
         if s='' then
          exit;
-        p:=find(s);
+        p:=findcase(s);
         if assigned(p) then
          begin
            inherited Remove(p);
@@ -2881,7 +2881,7 @@ end;
         h: LongWord;
       begin
         h := FPHash(Key, KeyLen);
-        Entry := @FBucket[h mod FBucketCount];
+        Entry := @FBucket[h and (FBucketCount-1)];
         while Assigned(Entry^) and
           not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
             (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
@@ -2900,7 +2900,7 @@ end;
           end
         else
           begin
-            New(Result);
+            GetMem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);
@@ -2924,13 +2924,13 @@ end;
         i: Integer;
         e, n: PHashSetItem;
       begin
-        p := AllocMem(NewCapacity * SizeOfItem);
+        p := AllocMem(NewCapacity * SizeOf(PHashSetItem));
         for i := 0 to FBucketCount-1 do
           begin
             e := FBucket[i];
             while Assigned(e) do
             begin
-              chain := @p[e^.HashValue mod NewCapacity];
+              chain := @p[e^.HashValue and (NewCapacity-1)];
               n := e^.Next;
               e^.Next := chain^;
               chain^ := e;
@@ -2988,7 +2988,7 @@ end;
         h: LongWord;
       begin
         h := FPHash(Key, KeyLen, Tag);
-        Entry := @PPTagHashSetItem(FBucket)[h mod FBucketCount];
+        Entry := @PPTagHashSetItem(FBucket)[h and (FBucketCount-1)];
         while Assigned(Entry^) and
           not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
             (Entry^^.Tag = Tag) and (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
@@ -3007,7 +3007,7 @@ end;
           end
         else
           begin
-            New(Result);
+            Getmem(Result,SizeOfItem);
             if FOwnsKeys then
             begin
               GetMem(Result^.Key, KeyLen);

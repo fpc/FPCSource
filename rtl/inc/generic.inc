@@ -133,18 +133,22 @@ end;
 Procedure FillChar(var x;count:SizeInt;value:byte);
 var
   pdest,pend : pbyte;
-  v : ptruint;
+  v : ALUUInt;
 begin
   if count <= 0 then
     exit;
   pdest:=@x;
   if Count>4*sizeof(ptruint)-1 then
     begin
+{$if sizeof(v)>=2}
       v:=(value shl 8) or value;
+{$endif sizeof(v)>=2}
+{$if sizeof(v)>=4}
       v:=(v shl 16) or v;
-{$ifdef CPU64}
+{$endif sizeof(v)>=4}
+{$if sizeof(v)=8}
       v:=(v shl 32) or v;
-{$endif CPU64}
+{$endif sizeof(v)=8}
       { Align on native pointer size }
       pend:=pbyte(align(pdest,sizeof(PtrUInt)));
       dec(count,pend-pdest);
@@ -177,17 +181,19 @@ procedure fillword(var x;count : SizeInt;value : word);
 var
   aligncount : sizeint;
   pdest,pend : pword;
-  v : ptruint;
+  v : ALUUInt;
 begin
   if count <= 0 then
     exit;
   pdest:=@x;
   if Count>4*sizeof(ptruint)-1 then
     begin
+{$if sizeof(v)>=4}
       v:=(value shl 16) or value;
-{$ifdef CPU64}
+{$endif sizeof(v)>=4}
+{$if sizeof(v)=8}
       v:=(v shl 32) or v;
-{$endif CPU64}
+{$endif sizeof(v)=8}
       { Align on native pointer size }
       aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 1;
       dec(count,aligncount);
@@ -221,7 +227,7 @@ procedure filldword(var x;count : SizeInt;value : dword);
 var
   aligncount : sizeint;
   pdest,pend : pdword;
-  v : ptruint;
+  v : ALUUInt;
 begin
   if count <= 0 then
     exit;
@@ -229,9 +235,9 @@ begin
   if Count>4*sizeof(ptruint)-1 then
     begin
       v:=value;
-{$ifdef CPU64}
+{$if sizeof(v)=8}
       v:=(v shl 32) or v;
-{$endif CPU64}
+{$endif sizeof(v)=8}
       { Align on native pointer size }
       aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1)) shr 2;
       dec(count,aligncount);
@@ -893,7 +899,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 procedure fpc_shortstr_concat(var dests:shortstring;const s1,s2:shortstring);compilerproc;
 var
-  s1l, s2l : longint;
+  s1l, s2l : ObjpasInt;
 begin
   s1l:=length(s1);
   s2l:=length(s2);
@@ -923,7 +929,7 @@ procedure fpc_shortstr_concat_multi(var dests:shortstring;const sarr:array of ps
 var
   s2l : byte;
   LowStart,i,
-  Len : longint;
+  Len : ObjpasInt;
   needtemp : boolean;
   tmpstr  : shortstring;
   p,pdest  : pshortstring;
@@ -1004,7 +1010,7 @@ end;
 function fpc_shortstr_compare(const left,right:shortstring) : longint;[public,alias:'FPC_SHORTSTR_COMPARE']; compilerproc;
 var
    s1,s2,max,i : byte;
-   d : longint;
+   d : ObjpasInt;
 begin
   s1:=length(left);
   s2:=length(right);
@@ -1033,9 +1039,9 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
 function fpc_shortstr_compare_equal(const left,right:shortstring): longint; [public,alias:'FPC_SHORTSTR_COMPARE_EQUAL']; compilerproc;
 begin
-  Result := longint(left[0]) - longint(right[0]);
+  Result := ObjpasInt(left[0]) - ObjpasInt(right[0]);
   if Result = 0 then
-    Result := CompareByte(left[1],right[1], longint(left[0]));
+    Result := CompareByte(left[1],right[1], ObjpasInt(left[0]));
 end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE_EQUAL}
 
@@ -1045,7 +1051,7 @@ end;
 
 procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);[public,alias:'FPC_PCHAR_TO_SHORTSTR']; compilerproc;
 var
-  l : longint;
+  l : ObjpasInt;
   s: shortstring;
 begin
   if p=nil then
@@ -1076,12 +1082,150 @@ function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$endif not cpujvm}
 
+
+function Utf8CodePointLen(P: PAnsiChar; MaxLookAhead: SizeInt; IncludeCombiningDiacriticalMarks: Boolean): SizeInt;
+  var
+    bytes: sizeint;
+    firstzerobit: byte;
+  begin
+    { see https://en.wikipedia.org/wiki/UTF-8#Description for details }
+
+    if maxlookahead<=0 then
+      begin
+        { incomplete }
+        result:=0;
+        exit;
+      end;
+    { include the first byte }
+    result:=1;
+    { multiple byte utf-8 code point? }
+    if p[0]>#127 then
+      begin
+        { bsr searches for the leftmost 1 bit. We are interested in the
+          leftmost 0 bit, so first invert the value
+        }
+        firstzerobit:=bsrbyte(not(byte(p[0])));
+        { if there is no zero bit or the first zero bit is the rightmost bit
+          (bit 0), this is an invalid UTF-8 byte ($ff cannot appear in an
+          UTF-8-encoded string, and in the worst case bit 1 has to be zero)
+          Additionally, 5-byte UTF-8 sequences don't exist either, so bit 1
+          cannot be the first zero-bit either. And bits 6 and 7 can't be 0
+          either in the first byte.
+        }
+        if (firstzerobit<=1) or (firstzerobit>=6)  then
+          begin
+            result:=-result;
+            exit;
+          end;
+        { the number of bytes belonging to this code point is
+          7-(pos first 0-bit). Subtract 1 since we're already at the first
+          byte. All subsequent bytes of the same sequence must have their
+          highest bit set and the next one unset. We stop when we detect an
+          invalid sequence.
+        }
+        bytes:=6-firstzerobit;
+        while (result<maxlookahead) and
+              (bytes>0) and
+              ((ord(p[result]) and %11000000)=%10000000) do
+          begin
+            inc(result);
+            dec(bytes);
+          end;
+        { stopped because of invalid/incomplete sequence -> exit }
+        if bytes<>0 then
+          begin
+            if result>=maxlookahead then
+              result:=0
+            else
+              result:=-result;
+            exit;
+          end;
+      end;
+    if includecombiningdiacriticalmarks then
+      begin
+        { combining diacritical marks?
+            1) U+0300 - U+036F in UTF-8 = %11001100 10000000 - %11001101 10101111
+            2) U+1AB0 - U+1AFF in UTF-8 = %11100001 10101010 10110000 - %11100001 10101011 10111111
+            3) U+1DC0 - U+1DFF in UTF-8 = %11100001 10110111 10000000 - %11100001 10110111 10111111
+            4) U+20D0 - U+20FF in UTF-8 = %11100010 10000011 10010000 - %11100010 10000011 10111111
+            5) U+FE20 - U+FE2F in UTF-8 = %11101111 10111000 10100000 - %11101111 10111000 10101111
+        }
+        repeat
+          bytes:=result;
+          if result+1<maxlookahead then
+            begin
+              { case 1) }
+              if ((ord(p[result]) and %11001100=%11001100)) and
+                  (ord(p[result+1])>=%10000000) and
+                  (ord(p[result+1])<=%10101111) then
+                inc(result,2)
+                  { case 2), 3), 4), 5) }
+              else if (result+2<maxlookahead) and
+                 (ord(p[result])>=%11100001) then
+                begin
+                     { case 2) }
+                  if ((ord(p[result])=%11100001) and
+                      (ord(p[result+1])=%10101010) and
+                      (ord(p[result+2])>=%10110000) and
+                      (ord(p[result+2])<=%10111111)) or
+                     { case 3) }
+                     ((ord(p[result])=%11100001) and
+                      (ord(p[result+1])=%10110111) and
+                      (ord(p[result+2])>=%10000000) and
+                      (ord(p[result+2])<=%10111111)) or
+                     { case 4) }
+                     ((ord(p[result])=%11100010) and
+                      (ord(p[result+1])=%10000011) and
+                      (ord(p[result+2])>=%10010000) and
+                      (ord(p[result+2])<=%10111111)) or
+                     { case 5) }
+                     ((ord(p[result])=%11101111) and
+                      (ord(p[result+1])=%10111000) and
+                      (ord(p[result+2])>=%10100000) and
+                      (ord(p[result+2])<=%10101111)) then
+                    inc(result,3);
+                end;
+            end;
+        until bytes=result;
+        { is there an incomplete diacritical mark? (invalid makes little sense:
+          either a sequence is a combining diacritical mark, or it's not ; if
+          it's invalid, it may also not have been a combining diacritical mark)
+        }
+        if result<maxlookahead then
+          begin
+               { case 1) }
+            if (((ord(p[result]) and %11001100=%11001100)) and
+                (result+1>=maxlookahead)) or
+               { case 2) and 3)}
+               ((ord(p[result])=%11100001) and
+                ((result+1>=maxlookahead) or
+                 (((ord(p[result+1])=%10101010) or
+                   (ord(p[result+1])=%10110111)) and
+                  (result+2>=maxlookahead)))) or
+               { case 4 }
+               ((ord(p[result])=%11100010) and
+                ((result+1>=maxlookahead) or
+                 ((ord(p[result+1])=%10000011) and
+                  (result+2>=maxlookahead)))) or
+               { case 5 }
+               ((ord(p[result])=%11101111) and
+                ((result+1>=maxlookahead) or
+                 ((ord(p[result+1])=%10111000) and
+                  (result+2>=maxlookahead)))) then
+              begin
+                result:=0;
+                exit;
+              end;
+          end;
+      end;
+  end;
+
 {$ifndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
 procedure fpc_chararray_to_shortstr(out res : shortstring;const arr: array of char; zerobased: boolean = true);[public,alias:'FPC_CHARARRAY_TO_SHORTSTR']; compilerproc;
 var
- l: longint;
- index: longint;
+ l: ObjpasInt;
+ index: ObjpasInt;
  len: byte;
 begin
   l:=high(arr)+1;
@@ -1110,7 +1254,7 @@ end;
 
 procedure fpc_shortstr_to_chararray(out res: array of char; const src: ShortString); compilerproc;
 var
-  len: longint;
+  len: ObjpasInt;
 begin
   len := length(src);
   if len > length(res) then
@@ -1128,13 +1272,11 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
 function fpc_pchar_length(p:pchar):sizeint;[public,alias:'FPC_PCHAR_LENGTH']; compilerproc;
-var i : sizeint;
 begin
-  i:=0;
   if assigned(p) then
-    while p[i]<>#0 do
-      inc(i);
-  exit(i);
+    Result:=IndexByte(p^,high(Result),0)
+  else
+    Result:=0;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
@@ -1418,6 +1560,136 @@ function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; co
 {$endif FPC_SYSTEM_HAS_MOD_DWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_DIV_WORD}
+function fpc_div_word(n,z : word) : word; [public,alias: 'FPC_DIV_WORD']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrWord(z);
+     lzn:=BsrWord(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+       exit;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           begin
+              z:=z-n;
+              result:=result+word(word(1) shl shift);
+           end;
+         n:=n shr 1;
+       end;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_WORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_WORD}
+function fpc_mod_word(n,z : word) : word; [public,alias: 'FPC_MOD_WORD']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrWord(z);
+     lzn:=BsrWord(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+      begin
+         result:=z;
+         exit;
+      end;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           z:=z-n;
+         n:=n shr 1;
+       end;
+    result:=z;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_WORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_DIV_BYTE}
+function fpc_div_byte(n,z : byte) : byte; [public,alias: 'FPC_DIV_BYTE']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrByte(z);
+     lzn:=BsrByte(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+       exit;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           begin
+              z:=z-n;
+              result:=result+byte(byte(1) shl shift);
+           end;
+         n:=n shr 1;
+       end;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_BYTE}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_BYTE}
+function fpc_mod_byte(n,z : byte) : byte; [public,alias: 'FPC_MOD_BYTE']; compilerproc;
+  var
+     shift,lzz,lzn : Byte;
+  begin
+     result:=0;
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     if z=0 then
+       exit;
+     lzz:=BsrByte(z);
+     lzn:=BsrByte(n);
+     { if the denominator contains less zeros
+       then the numerator
+       then d is greater than the n }
+     if lzn>lzz then
+      begin
+         result:=z;
+         exit;
+      end;
+     shift:=lzz-lzn;
+     n:=n shl shift;
+     for shift:=shift downto 0 do
+       begin
+         if z>=n then
+           z:=z-n;
+         n:=n shr 1;
+       end;
+    result:=z;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_BYTE}
+
+
 {$ifndef FPC_SYSTEM_HAS_DIV_LONGINT}
 function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGINT']; compilerproc;
   var
@@ -1480,8 +1752,133 @@ function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGI
   end;
 {$endif FPC_SYSTEM_HAS_MOD_LONGINT}
 
-{$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
+{$ifndef FPC_SYSTEM_HAS_DIV_SMALLINT}
+function fpc_div_smallint(n,z : smallint) : smallint; [public,alias: 'FPC_DIV_SMALLINT']; compilerproc;
+  var
+     sign : boolean;
+     w1,w2 : word;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     sign:=false;
+     if z<0 then
+       begin
+          sign:=not(sign);
+          w1:=word(-z);
+       end
+     else
+       w1:=z;
+     if n<0 then
+       begin
+          sign:=not(sign);
+          w2:=word(-n);
+       end
+     else
+       w2:=n;
+
+     { the div is coded by the compiler as call to divdword }
+     if sign then
+       result:=-(w1 div w2)
+     else
+       result:=w1 div w2;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_SMALLINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_SMALLINT}
+function fpc_mod_smallint(n,z : smallint) : smallint; [public,alias: 'FPC_MOD_SMALLINT']; compilerproc;
+  var
+     signed : boolean;
+     r,nq,zq : word;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     nq:=abs(n);
+
+     if z<0 then
+       begin
+          zq:=word(-z);
+          signed:=true;
+       end
+     else
+       begin
+         zq:=z;
+         signed:=false;
+       end;
+
+     r:=zq mod nq;
+     if signed then
+       result:=-smallint(r)
+     else
+       result:=r;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_SMALLINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_DIV_SHORTINT}
+function fpc_div_shortint(n,z : shortint) : shortint; [public,alias: 'FPC_DIV_SHORTINT']; compilerproc;
+  var
+     sign : boolean;
+     b1,b2 : byte;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     sign:=false;
+     if z<0 then
+       begin
+          sign:=not(sign);
+          b1:=byte(-z);
+       end
+     else
+       b1:=z;
+     if n<0 then
+       begin
+          sign:=not(sign);
+          b2:=byte(-n);
+       end
+     else
+       b2:=n;
+
+     { the div is coded by the compiler as call to divdword }
+     if sign then
+       result:=-(b1 div b2)
+     else
+       result:=b1 div b2;
+  end;
+{$endif FPC_SYSTEM_HAS_DIV_SHORTINT}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOD_SHORTINT}
+function fpc_mod_shortint(n,z : shortint) : shortint; [public,alias: 'FPC_MOD_SHORTINT']; compilerproc;
+  var
+     signed : boolean;
+     r,nq,zq : byte;
+  begin
+     if n=0 then
+       HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
+     nq:=abs(n);
+
+     if z<0 then
+       begin
+          zq:=byte(-z);
+          signed:=true;
+       end
+     else
+       begin
+         zq:=z;
+         signed:=false;
+       end;
+
+     r:=zq mod nq;
+     if signed then
+       result:=-shortint(r)
+     else
+       result:=r;
+  end;
+{$endif FPC_SYSTEM_HAS_MOD_SHORTINT}
+
+{$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 {****************************************************************************}
 
@@ -1740,6 +2137,11 @@ end;
 {$ifndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 procedure int_str(l:int64;out s:shortstring);
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   m,m1 : qword;
   pcstart,
@@ -1777,12 +2179,18 @@ begin
     end;
   s[0]:=char(pc2-pc2start);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_INT64}
 
 {$ifndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
 procedure int_str_unsigned(l:qword;out s:shortstring);
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   m1 : qword;
   pcstart,
@@ -1812,6 +2220,7 @@ begin
     end;
   s[0]:=char(pc2-pc2start);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_QWORD}
 
@@ -1854,45 +2263,35 @@ function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endi
 
 function SwapEndian(const AValue: LongInt): LongInt;
   begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
+    Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
+    Result := (Result shl 16) or (Result shr 16);
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: DWord): DWord;
   begin
-    Result := (AValue shl 24)
-           or ((AValue and $0000FF00) shl 8)
-           or ((AValue and $00FF0000) shr 8)
-           or (AValue shr 24);
+    Result := ((AValue shl 8) and $FF00FF00) or ((AValue shr 8) and $00FF00FF);
+    Result := (Result shl 16) or (Result shr 16);
   end;
 {$endif}
 
 function SwapEndian(const AValue: Int64): Int64;
   begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF);
+    Result := (Result shl 32) or ((Result shr 32));
   end;
 
 {$ifndef cpujvm}
 function SwapEndian(const AValue: QWord): QWord;
   begin
-    Result := (AValue shl 56)
-           or ((AValue and $000000000000FF00) shl 40)
-           or ((AValue and $0000000000FF0000) shl 24)
-           or ((AValue and $00000000FF000000) shl 8)
-           or ((AValue and $000000FF00000000) shr 8)
-           or ((AValue and $0000FF0000000000) shr 24)
-           or ((AValue and $00FF000000000000) shr 40)
-           or (AValue shr 56);
+    Result := ((AValue shl 8) and $FF00FF00FF00FF00) or
+            ((AValue shr 8) and $00FF00FF00FF00FF);
+    Result := ((Result shl 16) and $FFFF0000FFFF0000) or
+            ((Result shr 16) and $0000FFFF0000FFFF);
+    Result := (Result shl 32) or ((Result shr 32));
   end;
 {$endif}
 {$endif FPC_SYSTEM_HAS_SWAPENDIAN}
@@ -2376,11 +2775,8 @@ function BsrByte(Const AValue: Byte): Byte;
 {$ifndef FPC_HAS_INTERNAL_BSF_WORD}
 function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
   begin
-    result:=$ff;
-    if lo(AValue)<>0 then
-      result:=BsfByte(lo(AValue))
-    else if hi(AValue) <> 0 then
-      result:=BsfByte(hi(AValue))+8
+    result:=ord(lo(AValue)=0)*8;
+    result:=result or BsfByte(byte(AValue shr result));
   end;
 {$endif}
 {$endif}
@@ -2389,10 +2785,8 @@ function BsfWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
 {$ifndef FPC_HAS_INTERNAL_BSR_WORD}
 function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
   begin
-    if hi(AValue)<>0 then
-      result:=BsrByte(hi(AValue))+8
-    else
-      result:=BsrByte(lo(AValue))
+    result:=ord(AValue>255)*8;
+    result:=result or BsrByte(byte(AValue shr result));
   end;
 {$endif}
 {$endif}
@@ -2400,37 +2794,47 @@ function BsrWord(Const AValue: Word): {$ifdef CPU16}byte{$else}cardinal{$endif};
 {$ifndef FPC_HAS_INTERNAL_BSF_DWORD}
 {$ifndef FPC_SYSTEM_HAS_BSF_DWORD}
 function BsfDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
-begin
-  result:=$ff;
-  if lo(AValue)<>0 then
-    result:=BsfWord(lo(AValue))
-  else if hi(AValue) <> 0 then
-    result:=BsfWord(hi(AValue))+16
-end;
+  var
+    tmp: DWord;
+  begin
+    result:=ord(lo(AValue)=0)*16;
+    tmp:=AValue shr result;
+    result:=result or (ord((tmp and $FF)=0)*8);
+    tmp:=tmp shr (result and 8);
+    result:=result or BsfByte(byte(tmp));
+  end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSR_DWORD}
 {$ifndef FPC_SYSTEM_HAS_BSR_DWORD}
 function BsrDWord(Const AValue : DWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
-begin
-  if hi(AValue)<>0 then
-    result:=BsrWord(hi(AValue))+16
-  else
-    result:=BsrWord(lo(AValue))
-end;
+  var
+    tmp: DWord;
+  begin
+    result:=ord(AValue>$FFFF)*16;
+    tmp:=AValue shr result;
+    result:=result or (ord(tmp>$FF)*8);
+    tmp:=tmp shr (result and 8);
+    result:=result or BsrByte(byte(tmp));
+  end;
 {$endif}
 {$endif}
 
 {$ifndef FPC_HAS_INTERNAL_BSF_QWORD}
 {$ifndef FPC_SYSTEM_HAS_BSF_QWORD}
 function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
   begin
-    result:=$ff;
-    if lo(AValue) <> 0 then
-      result:=BsfDWord(lo(AValue))
-    else if hi(AValue) <> 0 then
-      result:=BsfDWord(hi(AValue)) + 32;
+    result:=0;
+    tmp:=lo(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=hi(AValue);
+        result:=32;
+      end;
+    result:=result or BsfDword(tmp);
   end;
 {$endif}
 {$endif}
@@ -2438,11 +2842,17 @@ function BsfQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endi
 {$ifndef FPC_HAS_INTERNAL_BSR_QWORD}
 {$ifndef FPC_SYSTEM_HAS_BSR_QWORD}
 function BsrQWord(Const AValue : QWord): {$ifdef CPU16}byte{$else}cardinal{$endif};
+  var
+    tmp: DWord;
   begin
-    if hi(AValue) <> 0 then
-      result:=BsrDWord(hi(AValue)) + 32
-    else
-      result:=BsrDWord(lo(AValue))
+    result:=32;
+    tmp:=hi(AValue);
+    if (tmp=0) then
+      begin
+        tmp:=lo(AValue);
+        result:=0;
+      end;
+    result:=result or BsrDword(tmp);
   end;
 {$endif}
 {$endif}

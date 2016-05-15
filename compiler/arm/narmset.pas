@@ -37,7 +37,7 @@ interface
 
        tarminnode = class(tcginnode)
          function pass_1: tnode; override;
-         procedure in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint); override;
+         procedure in_smallset(opdef: tdef; setbase: aint); override;
        end;
 
       tarmcasenode = class(tcgcasenode)
@@ -51,7 +51,7 @@ interface
 implementation
 
     uses
-      verbose,globals,constexp,defutil,
+      verbose,globals,constexp,defutil,systems,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cpubase,cpuinfo,
       cgutils,cgobj,ncgutil,
@@ -72,16 +72,25 @@ implementation
         if not(assigned(result)) then
           begin
             if not(checkgenjumps(setparts,numparts,use_small)) and
-              use_small then
+              use_small and
+              (target_info.endian=endian_little) then
               expectloc:=LOC_FLAGS;
           end;
       end;
 
-    procedure tarminnode.in_smallset(uopsize: tcgsize; opdef: tdef; setbase: aint);
+    procedure tarminnode.in_smallset(opdef: tdef; setbase: aint);
       var
         so : tshifterop;
         hregister : tregister;
       begin
+        { the code below needs changes for big endian targets (they start
+          counting from the most significant bit)
+        }
+        if target_info.endian=endian_big then
+          begin
+            inherited;
+            exit;
+          end;
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=F_NE;
         if (left.location.loc=LOC_CONSTANT) and not(GenerateThumbCode) then
@@ -96,12 +105,12 @@ implementation
           begin
             hlcg.location_force_reg(current_asmdata.CurrAsmList, left.location,
              left.resultdef, opdef, true);
-            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, left.location,
-             setbase);
+            register_maybe_adjust_setbase(current_asmdata.CurrAsmList, opdef,
+             left.location, setbase);
             hlcg.location_force_reg(current_asmdata.CurrAsmList, right.location,
              right.resultdef, right.resultdef, true);
 
-            hregister:=cg.getintregister(current_asmdata.CurrAsmList, uopsize);
+            hregister:=hlcg.getintregister(current_asmdata.CurrAsmList, opdef);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_MOV,hregister,1));
 
             if GenerateThumbCode or GenerateThumb2Code then
@@ -141,6 +150,7 @@ implementation
     procedure tarmcasenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
       var
         last : TConstExprInt;
+        tmpreg,
         basereg,
         indexreg : tregister;
         href : treference;
@@ -222,7 +232,7 @@ implementation
           begin
             if cs_create_pic in current_settings.moduleswitches then
               internalerror(2013082102);
-            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
+            cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_,indexreg,indexreg);
             current_asmdata.getaddrlabel(tablelabel);
 
             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,2,indexreg);
@@ -231,10 +241,17 @@ implementation
             reference_reset_symbol(href,tablelabel,0,4);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList, href, basereg);
 
-            cg.a_op_reg_reg(current_asmdata.CurrAsmList, OP_ADD, OS_ADDr, indexreg, basereg);
+            reference_reset(href,0);
+            href.base:=basereg;
+            href.index:=indexreg;
+            
+            tmpreg:=cg.getintregister(current_asmdata.CurrAsmList, OS_ADDR);
+            cg.a_load_ref_reg(current_asmdata.CurrAsmList, OS_ADDR, OS_ADDR, href, tmpreg);
+            
+            { do not use BX here to avoid switching into arm mode }
+            current_asmdata.CurrAsmList.Concat(taicpu.op_reg_reg(A_MOV, NR_PC, tmpreg));
 
-            current_asmdata.CurrAsmList.Concat(taicpu.op_reg(A_BX, basereg));
-
+            current_asmdata.CurrAsmList.Concat(tai_align.Create(4));                
             cg.a_label(current_asmdata.CurrAsmList,tablelabel);
             { generate jump table }
             last:=min_;

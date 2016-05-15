@@ -42,8 +42,11 @@ type
     TRegistry
   ---------------------------------------------------------------------}
 
+  { TRegistry }
+
   TRegistry = class(TObject)
   private
+    FLastError: Longint;
     FStringSizeIncludesNull : Boolean;
     FSysData : Pointer;
     fAccess: LongWord;
@@ -51,6 +54,7 @@ type
     fRootKey: HKEY;
     fLazyWrite: Boolean;
     fCurrentPath: string;
+    function GetLastErrorMsg: string;
     procedure SetRootKey(Value: HKEY);
     Procedure SysRegCreate;
     Procedure SysRegFree;
@@ -122,6 +126,8 @@ type
     property LazyWrite: Boolean read fLazyWrite write fLazyWrite;
     property RootKey: HKEY read fRootKey write SetRootKey;
     Property StringSizeIncludesNull : Boolean read FStringSizeIncludesNull;
+    property LastError: Longint read FLastError; platform;
+    property LastErrorMsg: string read GetLastErrorMsg; platform;
   end;
 
 { ---------------------------------------------------------------------
@@ -225,7 +231,7 @@ implementation
   ---------------------------------------------------------------------}
 
 
-Constructor TRegistry.Create;
+constructor TRegistry.Create;
 
 begin
   inherited Create;
@@ -236,21 +242,21 @@ begin
   SysRegCreate;
 end;
 
-Constructor TRegistry.Create(aaccess:longword);
+constructor TRegistry.Create(aaccess: longword);
 
 begin
   Create;
   FAccess     := aaccess;
 end;
 
-Destructor TRegistry.Destroy;
+destructor TRegistry.Destroy;
 begin
   CloseKey;
   SysRegFree;
   inherited Destroy;
 end;
 
-function TRegistry.CreateKey(const Key: String): Boolean;
+function TRegistry.CreateKey(const Key: string): Boolean;
 
 begin
   Result:=SysCreateKey(Key);
@@ -266,8 +272,8 @@ begin
     Result := RootKey;
 end;
 
-function TRegistry.GetData(const Name: String; Buffer: Pointer;
-          BufSize: Integer; var RegData: TRegDataType): Integer;
+function TRegistry.GetData(const Name: string; Buffer: Pointer;
+  BufSize: Integer; var RegData: TRegDataType): Integer;
 begin
   Result:=SysGetData(Name,Buffer,BufSize,RegData);
   If (Result=-1) then
@@ -283,7 +289,7 @@ begin
 end;
 
 
-function TRegistry.GetDataSize(const ValueName: String): Integer;
+function TRegistry.GetDataSize(const ValueName: string): Integer;
 
 Var
   Info: TRegDataInfo;
@@ -305,7 +311,7 @@ begin
   Result:=Info.RegData;
 end;
 
-Function TRegistry.HasSubKeys: Boolean;
+function TRegistry.HasSubKeys: Boolean;
 
 Var
   Info : TRegKeyInfo;
@@ -373,6 +379,7 @@ function TRegistry.ReadString(const Name: string): string;
 
 Var
   Info : TRegDataInfo;
+  ReadDataSize: Integer;
 
 begin
   GetDataInfo(Name,Info);
@@ -381,11 +388,19 @@ begin
      If Not (Info.RegData in [rdString,rdExpandString]) then
        Raise ERegistryException.CreateFmt(SInvalidRegType, [Name]);
      SetLength(Result,Info.DataSize);
-     If StringSizeIncludesNull then
-       SetLength(Result, Info.DataSize-1)
+     ReadDataSize := GetData(Name,PChar(Result),Info.DataSize,Info.RegData);
+     if ReadDataSize > 0 then
+     begin
+       // If the data has the REG_SZ, REG_MULTI_SZ or REG_EXPAND_SZ type,
+       // the size includes any terminating null character or characters
+       // unless the data was stored without them! (RegQueryValueEx @ MSDN)
+       if StringSizeIncludesNull then
+         if Result[ReadDataSize] = #0 then
+           Dec(ReadDataSize);
+       SetLength(Result, ReadDataSize);
+     end
      else
-       SetLength(Result, Info.DataSize);
-     GetData(Name,PChar(Result),Info.DataSize,Info.RegData);
+       Result := '';
    end
   else
     result:='';
@@ -603,5 +618,10 @@ begin
         CloseSection;
       end;
 end;
+
+{$ifdef XMLREG}
+finalization
+  TXMLRegistryInstance.FreeXMLRegistryCache;
+{$endif}
 
 end.

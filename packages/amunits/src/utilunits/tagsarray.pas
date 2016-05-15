@@ -14,58 +14,58 @@
 
  **********************************************************************}
 
-{
-     History:
-
-     First version of this unit.
-     Just use this unit when you want to
-     use taglist.
-
-     09 Nov 2002
-
-     nils.sjoholm@mailbox.swipnet.se
-}
-
 unit tagsarray;
-{$mode objfpc}
-
+{$mode objfpc}{$H+}
 
 interface
 
-uses Exec, Utility;
+uses
+  Exec, Utility;
 
+type
+  TTagsList = array of ttagitem;
+  PMyTags = ^TTagsList;
 
-function readintags(const args : array of const): pTagItem;
+procedure AddTags(var Taglist: TTagsList; const Args: array of const);
+function GetTagPtr(var TagList: TTagsList): PTagItem;
 
 implementation
 
-uses pastoc;
-
+procedure AddTags(var Taglist: TTagsList; const Args: array of const);
 var
-   mytags : array [0..200] of ttagitem;
-
-function readintags(const args : array of const): pTagItem;
-var
-    i : longint;
-    ii : longint;
+  i: PtrInt;
+  ii: PtrInt;
 begin
-    ii := 0;
-    for i := 0 to high(args) do begin
-         if (not odd(i)) then begin
-              mytags[ii].ti_tag := longint(Args[i].vinteger);
-         end else begin
-             case Args[i].vtype of
-                  vtinteger : mytags[ii].ti_data := longint(Args[i].vinteger);
-                  vtboolean : mytags[ii].ti_data := longint(byte(Args[i].vboolean));
-                  vtpchar   : mytags[ii].ti_data := longint(Args[i].vpchar);
-                  vtchar    : mytags[ii].ti_data := longint(Args[i].vchar);
-                  vtstring  : mytags[ii].ti_data := longint(pas2c(Args[i].vstring^));
-                  vtpointer : mytags[ii].ti_data := longint(Args[i].vpointer);
-             end;
-             inc(ii);
-         end;
+  ii := Length(TagList);
+  SetLength(TagList, Length(TagList) + (Length(args) DIV 2));
+  for i := 0 to High(args) do
+  begin
+    if (not Odd(i)) then
+    begin
+      TagList[ii].ti_tag := PtrInt(Args[i].vinteger);
+    end else
+    begin
+      case Args[i].vtype of
+        vtinteger : TagList[ii].ti_data := PtrInt(Args[i].vinteger);
+        vtboolean : TagList[ii].ti_data := PtrInt(byte(Args[i].vboolean));
+        vtpchar   : TagList[ii].ti_data := PtrInt(Args[i].vpchar);
+        vtchar    : TagList[ii].ti_data := PtrInt(Args[i].vchar);
+        vtstring  : TagList[ii].ti_data := PtrInt(PChar(string(Args[i].vstring^)));
+        vtpointer : TagList[ii].ti_data := PtrInt(Args[i].vpointer);
+      end;
+      inc(ii);
     end;
-    readintags := @mytags;
+  end;
 end;
+
+function GetTagPtr(var TagList: TTagsList): pTagItem;
+begin
+  AddTags(TagList, [TAG_END, TAG_END]);
+  GetTagPtr := @(TagList[0]);
+end;
+
+initialization
+
+finalization
 
 end.

@@ -31,11 +31,7 @@
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit bullet;
 
@@ -378,178 +374,41 @@ const
     BULLETNAME : PChar = 'bullet.library';
 
 
-PROCEDURE CloseEngine(glyphEngine : pGlyphEngine);
-FUNCTION ObtainInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
-FUNCTION OpenEngine : pGlyphEngine;
-FUNCTION ReleaseInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
-FUNCTION SetInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
+PROCEDURE CloseEngine(glyphEngine : pGlyphEngine location 'a0'); syscall BulletBase 036;
+FUNCTION ObtainInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 048;
+FUNCTION OpenEngine : pGlyphEngine; syscall BulletBase 030;
+FUNCTION ReleaseInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 054;
+FUNCTION SetInfoA(glyphEngine : pGlyphEngine location 'a0'; tagList : pTagItem location 'a1') : ULONG; syscall BulletBase 042;
 
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitBULLETLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    BULLETIsCompiledHow : longint;
+function ObtainInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+function ReleaseInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+function SetInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
 
 IMPLEMENTATION
 
-{
- If you don't use array of const then just remove tagsarray
-}
-uses
-{$ifndef dont_use_openlib}
-msgbox;
-{$endif dont_use_openlib}
+function ObtainInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+begin
+    ObtainInfo := ObtainInfoA(glyphEngine,@argv);
+end;
 
-PROCEDURE CloseEngine(glyphEngine : pGlyphEngine);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L glyphEngine,A0
-    MOVEA.L BulletBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
+function ReleaseInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+begin
+    ReleaseInfo := releaseInfoA(glyphEngine,@argv);
+end;
 
-FUNCTION ObtainInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L glyphEngine,A0
-    MOVEA.L tagList,A1
-    MOVEA.L BulletBase,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenEngine : pGlyphEngine;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L BulletBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ReleaseInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L glyphEngine,A0
-    MOVEA.L tagList,A1
-    MOVEA.L BulletBase,A6
-    JSR -054(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION SetInfoA(glyphEngine : pGlyphEngine; tagList : pTagItem) : ULONG;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L glyphEngine,A0
-    MOVEA.L tagList,A1
-    MOVEA.L BulletBase,A6
-    JSR -042(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
+function SetInfo(glyphEngine : pGlyphEngine; Const argv : array of PtrUInt) : ULONG;
+begin
+    SetInfo := SetInfoA(glyphEngine,@argv);
+end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of bullet.library}
-  {$Info don't forget to use InitBULLETLibrary in the beginning of your program}
-
-var
-    bullet_exit : Pointer;
-
-procedure ClosebulletLibrary;
-begin
-    ExitProc := bullet_exit;
-    if BulletBase <> nil then begin
-        CloseLibrary(BulletBase);
-        BulletBase := nil;
-    end;
-end;
-
-procedure InitBULLETLibrary;
-begin
-    BulletBase := nil;
-    BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
-    if BulletBase <> nil then begin
-        bullet_exit := ExitProc;
-        ExitProc := @ClosebulletLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open bullet.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    BULLETIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of bullet.library}
-
-var
-    bullet_exit : Pointer;
-
-procedure ClosebulletLibrary;
-begin
-    ExitProc := bullet_exit;
-    if BulletBase <> nil then begin
-        CloseLibrary(BulletBase);
-        BulletBase := nil;
-    end;
-end;
-
-begin
-    BulletBase := nil;
-    BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
-    if BulletBase <> nil then begin
-        bullet_exit := ExitProc;
-        ExitProc := @ClosebulletLibrary;
-        BULLETIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open bullet.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    BULLETIsCompiledHow := 3;
-   {$Warning No autoopening of bullet.library compiled}
-   {$Warning Make sure you open bullet.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  BulletBase := OpenLibrary(BULLETNAME,LIBVERSION);
+finalization
+  if Assigned(BulletBase) then
+    CloseLibrary(BulletBase);
 END. (* UNIT BULLET *)
-
-
-

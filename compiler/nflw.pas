@@ -29,7 +29,6 @@ interface
     uses
       cclasses,
       node,cpubase,
-      symnot,
       symtype,symbase,symdef,symsym,
       optloop;
 
@@ -84,6 +83,7 @@ interface
 
        tifnode = class(tloopnode)
           constructor create(l,r,_t1 : tnode);virtual;reintroduce;
+          constructor create_internal(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline : boolean) : tnode;override;
@@ -101,7 +101,6 @@ interface
           loopiteration : tnode;
           loopvar_notid:cardinal;
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;reintroduce;
-          procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function wrap_to_value:tnode;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -183,6 +182,8 @@ interface
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function simplify(forinline: boolean): tnode; override;
+         protected
+          procedure adjust_estimated_stack_size; virtual;
        end;
        ttryexceptnodeclass = class of ttryexceptnode;
 
@@ -195,6 +196,7 @@ interface
           function simplify(forinline:boolean): tnode;override;
        protected
           function create_finalizer_procdef: tprocdef;
+          procedure adjust_estimated_stack_size; virtual;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
 
@@ -398,7 +400,7 @@ implementation
          if not assigned(sym) or
             (sym.typ<>procsym) then
            internalerror(2010061901);
-         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,ctemprefnode.create(expressiontemp),[]);
+         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,ctemprefnode.create(expressiontemp),[],nil);
          addstatement(outerloopbodystatement,cassignmentnode.create(
            ctemprefnode.create(currentamount),hp));
          { if currentamount = 0, bail out (use copy of hloopvar, because we
@@ -457,7 +459,7 @@ implementation
         if hp.resultdef.typ<>pointerdef then
           internalerror(2010061904);
         inserttypeconv(hp,
-          carraydef.create_from_pointer(tpointerdef(hp.resultdef).pointeddef));
+          carraydef.create_from_pointer(tpointerdef(hp.resultdef)));
         hp:=cvecnode.create(hp,ctemprefnode.create(innerloopcounter));
         addstatement(innerloopbodystatement,
           cassignmentnode.create(hloopvar,hp));
@@ -746,12 +748,12 @@ implementation
         if enumerator_get.proctypeoption=potype_operator then
           begin
             enum_get_params:=ccallparanode.create(expr.getcopy,nil);
-            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, []);
+            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, [],nil);
             tcallnode(enum_get).procdefinition:=enumerator_get;
             addsymref(enumerator_get.procsym);
           end
         else
-          enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, []);
+          enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, [],nil);
 
         addstatement(loopstatement,
           cassignmentnode.create(
@@ -774,7 +776,7 @@ implementation
                procsym :
                  begin
                    { generate the method call }
-                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[]);
+                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[],nil);
                    include(enum_current.flags,nf_isproperty);
                  end
                else
@@ -793,7 +795,7 @@ implementation
         { add the actual statement to the loop }
         addstatement(loopbodystatement,hloopbody);
 
-        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), []);
+        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), [],nil);
         whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false);
 
         if enumerator_is_class then
@@ -805,7 +807,7 @@ implementation
                 whileloopnode:=ctryfinallynode.create(
                   whileloopnode, // try node
                   ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
-                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[],nil));
               end;
             { if getenumerator <> nil then do the loop }
             whileloopnode:=cifnode.create(
@@ -824,7 +826,7 @@ implementation
               begin
                 addstatement(loopstatement,
                   ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
-                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[],nil));
               end;
           end;
 
@@ -1334,6 +1336,13 @@ implementation
       end;
 
 
+    constructor tifnode.create_internal(l,r,_t1 : tnode);
+      begin
+        create(l,r,_t1);
+        include(flags,nf_internal);
+      end;
+
+
     function tifnode.internalsimplify(warn: boolean) : tnode;
       begin
         result:=nil;
@@ -1394,7 +1403,7 @@ implementation
            not(is_typeparam(left.resultdef)) then
              inserttypeconv(left,pasbool8type);
 
-         result:=internalsimplify(true);
+         result:=internalsimplify(not(nf_internal in flags));
       end;
 
 
@@ -1431,26 +1440,6 @@ implementation
            include(loopflags,lnf_backward);
          include(loopflags,lnf_testatbegin);
       end;
-
-    procedure Tfornode.loop_var_access(not_type:Tnotification_flag;
-                                       symbol:Tsym);
-
-    begin
-      {If there is a read access, the value of the loop counter is important;
-       at the end of the loop the loop variable should contain the value it
-       had in the last iteration.}
-      if not_type=vn_onwrite then
-        begin
-          writeln('Loopvar does not matter on exit');
-        end
-      else
-        begin
-          exclude(loopflags,lnf_dont_mind_loopvar_on_exit);
-          writeln('Loopvar does matter on exit');
-        end;
-      Tabstractvarsym(symbol).unregister_notification(loopvar_notid);
-    end;
-
 
     function tfornode.simplify(forinline : boolean) : tnode;
       begin
@@ -1524,8 +1513,12 @@ implementation
          set_varstate(left,vs_written,[]);
 
          { loop unrolling }
-         if cs_opt_loopunroll in current_settings.optimizerswitches then
+         if (cs_opt_loopunroll in current_settings.optimizerswitches) and
+           assigned(t2) and
+           { statements must be error free }
+           not(nf_error in t2.flags) then
            begin
+             typecheckpass(t2);
              res:=t2.simplify(false);
              if assigned(res) then
                t2:=res;
@@ -2068,7 +2061,8 @@ implementation
 
         include(current_procinfo.flags,pi_do_call);
         include(current_procinfo.flags,pi_uses_exceptions);
-        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size*2);
+
+        adjust_estimated_stack_size;
       end;
 
 
@@ -2078,6 +2072,11 @@ implementation
         { empty try -> can never raise exception -> do nothing }
         if has_no_code(left) then
           result:=cnothingnode.create;
+      end;
+
+    procedure ttryexceptnode.adjust_estimated_stack_size;
+      begin
+        inc(current_procinfo.estimatedtempsize,rec_jmp_buf.size*2);
       end;
 
 
@@ -2141,7 +2140,7 @@ implementation
         if not(implicitframe) then
           include(current_procinfo.flags,pi_uses_exceptions);
 
-        inc(current_procinfo.estimatedtempsize,get_jumpbuf_size);
+        adjust_estimated_stack_size;
       end;
 
 
@@ -2186,7 +2185,7 @@ implementation
           destroyed before procsym, leaving invalid pointers). }
         oldsymtablestack:=symtablestack;
         symtablestack:=nil;
-        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1);
+        result:=cprocdef.create(max(normal_function_level,st.symtablelevel)+1,true);
         symtablestack:=oldsymtablestack;
         st.insertdef(result);
         result.struct:=current_procinfo.procdef.struct;
@@ -2203,6 +2202,12 @@ implementation
         proc_add_definition(result);
         result.forwarddef:=false;
         result.aliasnames.insert(result.mangledname);
+      end;
+
+
+    procedure ttryfinallynode.adjust_estimated_stack_size;
+      begin
+        inc(current_procinfo.estimatedtempsize,rec_jmp_buf.size);
       end;
 
 

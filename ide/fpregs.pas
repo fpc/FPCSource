@@ -36,31 +36,39 @@ uses
 
     TIntRegs = record
 {$ifndef test_generic_cpu}
-{$ifdef cpui386}
+{$ifdef i386}
 {$define cpu_known}
        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
        cs,ds,es,ss,fs,gs : word;
        eflags : dword;
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386}
+{$ifdef x86_64}
+{$define cpu_known}
+       rax,rbx,rcx,rdx,rsi,rdi,rbp,rsp,
+       r8,r9,r10,r11,r12,r13,r14,r15,
+       rip : qword;
+       cs,ds,es,ss,fs,gs : word;
+       eflags : dword;
+{$endif x86_64}
+{$ifdef m68k}
 {$define cpu_known}
        d0,d1,d2,d3,d4,d5,d6,d7 : dword;
        a0,a1,a2,a3,a4,a5,fp,sp : dword;
        ps,pc : dword;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
 {$define cpu_known}
        r : array [0..31] of dword;
        pc,ps,cr,lr,ctr,xer : dword;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
 {$define cpu_known}
        o : array [0..7] of dword;
        i : array [0..7] of dword;
        l : array [0..7] of dword;
        g : array [0..7] of dword;
        y,psr,wim,tbr,pc,npc,fsr,csr : dword;
-{$endif cpusparc}
+{$endif sparc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        reg : array [0..MaxRegs-1] of string;
@@ -73,6 +81,7 @@ uses
       InDraw : boolean;
       GDBCount : longint;
       first : boolean;
+      LastOK : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -90,21 +99,21 @@ uses
 
     TFPURegs = record
 {$ifndef test_generic_cpu}
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
       st0,st1,st2,st3,st4,st5,st6,st7 :string;
       ftag,fop,fctrl,fstat,fiseg,foseg : word;
       fioff,fooff : cardinal;
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386 or x86_64}
+{$ifdef m68k}
       fp0,fp1,fp2,fp3,fp4,fp5,fp6,fp7 : string;
       fpcontrol,fpstatus,fpiaddr : dword;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
        f : array [0..31] of string;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
        f : array [0..31] of string;
-{$endif cpusparc}
+{$endif sparc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        freg : array [0..MaxRegs-1] of string;
@@ -120,6 +129,7 @@ uses
       UseInfoFloat : boolean;
 {$endif not cpu_known}
       first : boolean;
+      LastOK : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -157,14 +167,14 @@ uses
 
     TVectorRegs = record
 {$ifndef test_generic_cpu}
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
       xmm : array[0..7] of string;
       mmx : array[0..7] of string;
       mxcsr : string;
-{$endif cpui386}
-{$ifdef cpupowerpc}
+{$endif i386 or x86_64}
+{$ifdef powerpc}
       m : array[0..31] of string;
-{$endif cpupowerpc}
+{$endif powerpc}
 {$endif not test_generic_cpu}
 {$ifndef cpu_known}
        vreg : array [0..MaxRegs-1] of string;
@@ -181,6 +191,7 @@ uses
       UseInfoVector : boolean;
 {$endif not cpu_known}
       first : boolean;
+      LastOK : boolean;
       constructor Init(var Bounds: TRect);
       procedure   Draw;virtual;
       destructor  Done; virtual;
@@ -212,7 +223,11 @@ implementation
 uses
   Strings,
 {$ifndef NODEBUG}
-  GDBCon,GDBInt,
+  {$ifdef GDBMI}
+    GDBMICon, GDBMIInt,
+  {$else GDBMI}
+    GDBCon,GDBInt,
+  {$endif GDBMI}
 {$endif NODEBUG}
   App,Menus,
   WViews,WEditor,
@@ -265,6 +280,8 @@ const
       dialog_registers = 'Register View';
       dialog_fpu = 'FPU View';
       dialog_vector = 'Vector Unit View';
+      msg_registervaluesnotavailable = '<no values available>';
+      msg_registerwindowerror = '<debugger error>';
 
 {****************************************************************************
                          TRegistersView
@@ -275,23 +292,126 @@ const
     var
        p,po : pchar;
        p1 : pchar;
-       reg,value : string;
        buffer : array[0..255] of char;
-       v : dword;
-       code : word;
        i : byte;
 
     begin
        GetIntRegs:=false;
 {$ifndef NODEBUG}
+{$ifdef cpu_known}
+{$ifdef i386}
+       GetIntRegs :=
+         Debugger^.GetIntRegister('eax', rs.eax) and
+         Debugger^.GetIntRegister('ebx', rs.ebx) and
+         Debugger^.GetIntRegister('ecx', rs.ecx) and
+         Debugger^.GetIntRegister('edx', rs.edx) and
+         Debugger^.GetIntRegister('esi', rs.esi) and
+         Debugger^.GetIntRegister('edi', rs.edi) and
+         Debugger^.GetIntRegister('ebp', rs.ebp) and
+         Debugger^.GetIntRegister('esp', rs.esp) and
+         Debugger^.GetIntRegister('eip', rs.eip) and
+       { under Windows flags are on a register named ps !! PM }
+         (Debugger^.GetIntRegister('eflags', rs.eflags) or Debugger^.GetIntRegister('ps', rs.eflags)) and
+         Debugger^.GetIntRegister('cs', rs.cs) and
+         Debugger^.GetIntRegister('ds', rs.ds) and
+         Debugger^.GetIntRegister('es', rs.es) and
+         Debugger^.GetIntRegister('fs', rs.fs) and
+         Debugger^.GetIntRegister('gs', rs.gs) and
+         Debugger^.GetIntRegister('ss', rs.ss);
+{$endif i386}
+{$ifdef x86_64}
+       GetIntRegs :=
+         Debugger^.GetIntRegister('rax', rs.rax) and
+         Debugger^.GetIntRegister('rbx', rs.rbx) and
+         Debugger^.GetIntRegister('rcx', rs.rcx) and
+         Debugger^.GetIntRegister('rdx', rs.rdx) and
+         Debugger^.GetIntRegister('rsi', rs.rsi) and
+         Debugger^.GetIntRegister('rdi', rs.rdi) and
+         Debugger^.GetIntRegister('rbp', rs.rbp) and
+         Debugger^.GetIntRegister('rsp', rs.rsp) and
+         Debugger^.GetIntRegister('r8', rs.r8) and
+         Debugger^.GetIntRegister('r9', rs.r9) and
+         Debugger^.GetIntRegister('r10', rs.r10) and
+         Debugger^.GetIntRegister('r11', rs.r11) and
+         Debugger^.GetIntRegister('r12', rs.r12) and
+         Debugger^.GetIntRegister('r13', rs.r13) and
+         Debugger^.GetIntRegister('r14', rs.r14) and
+         Debugger^.GetIntRegister('r15', rs.r15) and
+         Debugger^.GetIntRegister('rip', rs.rip) and
+       { under Windows flags are on a register named ps !! PM }
+         (Debugger^.GetIntRegister('eflags', rs.eflags) or Debugger^.GetIntRegister('ps', rs.eflags)) and
+         Debugger^.GetIntRegister('cs', rs.cs) and
+         Debugger^.GetIntRegister('ds', rs.ds) and
+         Debugger^.GetIntRegister('es', rs.es) and
+         Debugger^.GetIntRegister('fs', rs.fs) and
+         Debugger^.GetIntRegister('gs', rs.gs) and
+         Debugger^.GetIntRegister('ss', rs.ss);
+{$endif x86_64}
+{$ifdef m68k}
+       GetIntRegs :=
+         Debugger^.GetIntRegister('d0', rs.d0) and
+         Debugger^.GetIntRegister('d1', rs.d1) and
+         Debugger^.GetIntRegister('d2', rs.d2) and
+         Debugger^.GetIntRegister('d3', rs.d3) and
+         Debugger^.GetIntRegister('d4', rs.d4) and
+         Debugger^.GetIntRegister('d5', rs.d5) and
+         Debugger^.GetIntRegister('d6', rs.d6) and
+         Debugger^.GetIntRegister('d7', rs.d7) and
+         Debugger^.GetIntRegister('a0', rs.a0) and
+         Debugger^.GetIntRegister('a1', rs.a1) and
+         Debugger^.GetIntRegister('a2', rs.a2) and
+         Debugger^.GetIntRegister('a3', rs.a3) and
+         Debugger^.GetIntRegister('a4', rs.a4) and
+         Debugger^.GetIntRegister('a5', rs.a5) and
+         Debugger^.GetIntRegister('fp', rs.fp) and
+         Debugger^.GetIntRegister('sp', rs.sp) and
+         Debugger^.GetIntRegister('ps', rs.ps) and
+         Debugger^.GetIntRegister('pc', rs.pc);
+{$endif m68k}
+{$ifdef powerpc}
+       GetIntRegs := true;
+       for i:=0 to 31 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('r'+inttostr(i), rs.r[i]);
+       { other regs
+         pc,ps,cr,lr,ctr,xer : dword; }
+       GetIntRegs := GetIntRegs and
+         Debugger^.GetIntRegister('pc', rs.pc) and
+         Debugger^.GetIntRegister('ps', rs.ps) and
+         Debugger^.GetIntRegister('lr', rs.lr) and
+         Debugger^.GetIntRegister('ctr', rs.ctr) and
+         Debugger^.GetIntRegister('xer', rs.xer);
+{$endif powerpc}
+{$ifdef sparc}
+       GetIntRegs := true;
+       for i:=0 to 7 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('o'+inttostr(i), rs.o[i]);
+       for i:=0 to 7 do
+         if i = 6 then
+           GetIntRegs := GetIntRegs and (Debugger^.GetIntRegister('i6', rs.i[6]) or Debugger^.GetIntRegister('fp', rs.i[6]))
+         else
+           GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('i'+inttostr(i), rs.i[i]);
+       for i:=0 to 7 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('l'+inttostr(i), rs.l[i]);
+       for i:=0 to 7 do
+         GetIntRegs := GetIntRegs and Debugger^.GetIntRegister('g'+inttostr(i), rs.g[i]);
+
+       GetIntRegs := GetIntRegs and
+         Debugger^.GetIntRegister('y', rs.y) and
+         Debugger^.GetIntRegister('psr', rs.psr) and
+         Debugger^.GetIntRegister('wim', rs.wim) and
+         Debugger^.GetIntRegister('tbs', rs.tbr) and
+         Debugger^.GetIntRegister('pc', rs.pc) and
+         Debugger^.GetIntRegister('npc', rs.npc) and
+         Debugger^.GetIntRegister('fsr', rs.fsr) and
+         Debugger^.GetIntRegister('csr', rs.csr);
+{$endif sparc}
+{$else cpu_known}
        Debugger^.Command('info registers');
        if Debugger^.Error then
          exit
        else
          begin
-{$ifndef cpu_known}
             i:=0;
-{$endif not cpu_known}
             po:=StrNew(Debugger^.GetOutput);
             p:=po;
             if assigned(p) then
@@ -300,7 +420,6 @@ const
                  p1:=strscan(p,' ');
                  while assigned(p1) do
                    begin
-{$ifndef cpu_known}
                       p1:=strscan(p,#10);
                       if assigned(p1) then
                         begin
@@ -309,162 +428,6 @@ const
                           if i<MaxRegs-1 then
                             inc(i);
                         end;
-{$else cpu_known}
-                      strlcopy(buffer,p,p1-p);
-                      reg:=strpas(buffer);
-                      p1:=strscan(p,'$');
-                      { some targets use 0x instead of $ }
-                      if p1=nil then
-                        p:=strpos(p,'0x')
-                      else
-                        p:=p1;
-                      p1:=strscan(p,#9);
-                      strlcopy(buffer,p,p1-p);
-                      value:=strpas(buffer);
-
-                      { replace the $? }
-                      if copy(value,1,2)='0x' then
-                        value:='$'+copy(value,3,length(value)-2);
-                      val(value,v,code);
-{$ifdef cpui386}
-                      if reg='eax' then
-                        rs.eax:=v
-                      else if reg='ebx' then
-                        rs.ebx:=v
-                      else if reg='ecx' then
-                        rs.ecx:=v
-                      else if reg='edx' then
-                        rs.edx:=v
-                      else if reg='eip' then
-                        rs.eip:=v
-                      else if reg='esi' then
-                        rs.esi:=v
-                      else if reg='edi' then
-                        rs.edi:=v
-                      else if reg='esp' then
-                        rs.esp:=v
-                      else if reg='ebp' then
-                        rs.ebp:=v
-                      { under Windows flags are on a register named ps !! PM }
-                      else if (reg='eflags') or (reg='ps') then
-                        rs.eflags:=v
-                      else if reg='cs' then
-                        rs.cs:=v
-                      else if reg='ds' then
-                        rs.ds:=v
-                      else if reg='es' then
-                        rs.es:=v
-                      else if reg='fs' then
-                        rs.fs:=v
-                      else if reg='gs' then
-                        rs.gs:=v
-                      else if reg='ss' then
-                        rs.ss:=v;
-{$endif cpui386}
-{$ifdef cpum68k}
-                      if reg='d0' then
-                        rs.d0:=v
-                      else if reg='d1' then
-                        rs.d1:=v
-                      else if reg='d2' then
-                        rs.d2:=v
-                      else if reg='d3' then
-                        rs.d3:=v
-                      else if reg='d4' then
-                        rs.d4:=v
-                      else if reg='d5' then
-                        rs.d5:=v
-                      else if reg='d6' then
-                        rs.d6:=v
-                      else if reg='d7' then
-                        rs.d7:=v
-                      else if reg='a0' then
-                        rs.a0:=v
-                      else if reg='a1' then
-                        rs.a1:=v
-                      else if reg='a2' then
-                        rs.a2:=v
-                      else if reg='a3' then
-                        rs.a3:=v
-                      else if reg='a4' then
-                        rs.a4:=v
-                      else if reg='a5' then
-                        rs.a5:=v
-                      else if reg='fp' then
-                        rs.fp:=v
-                      else if reg='sp' then
-                        rs.sp:=v
-                      else if (reg='ps') then
-                        rs.ps:=v
-                      else if reg='pc' then
-                        rs.pc:=v;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
-                      if (reg[1]='r') then
-                        begin
-                          for i:=0 to 31 do
-                            if reg='r'+inttostr(i) then
-                              rs.r[i]:=v;
-                        end
-                      { other regs
-                        pc,ps,cr,lr,ctr,xer : dword; }
-                      else if (reg='pc') then
-                        rs.pc:=v
-                      else if (reg='ps') then
-                        rs.ps:=v
-                      else if (reg='lr') then
-                        rs.lr:=v
-                      else if (reg='ctr') then
-                        rs.ctr:=v
-                      else if (reg='xer') then
-                        rs.xer:=v;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
-                      if (reg[1]='o') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='o'+inttostr(i) then
-                              rs.o[i]:=v;
-                        end
-                      else if (reg[1]='i') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='i'+inttostr(i) then
-                              rs.i[i]:=v;
-                        end
-                      else if (reg[1]='l') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='l'+inttostr(i) then
-                              rs.l[i]:=v;
-                        end
-                      else if (reg[1]='g') then
-                        begin
-                          for i:=0 to 7 do
-                            if reg='g'+inttostr(i) then
-                              rs.g[i]:=v;
-                        end
-
-                      else if reg='fp' then
-                        rs.i[6]:=v
-                      else if reg='y' then
-                        rs.y:=v
-                      else if reg='psr' then
-                        rs.psr:=v
-                      else if reg='wim' then
-                        rs.wim:=v
-                      else if reg='tbs' then
-                        rs.tbr:=v
-                      else if reg='pc' then
-                        rs.pc:=v
-                      else if reg='npc' then
-                        rs.npc:=v
-                      else if reg='fsr' then
-                        rs.fsr:=v
-                      else if reg='csr' then
-                        rs.csr:=v;
-{$endif cpusparc}
-{$endif not cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
                         begin
@@ -483,7 +446,8 @@ const
        { do not open a messagebox for such errors }
        Debugger^.got_error:=false;
        GetIntRegs:=true;
-{$endif}
+{$endif cpu_known}
+{$endif not NODEBUG}
     end;
 
   constructor TRegistersView.Init(var Bounds: TRect);
@@ -514,6 +478,14 @@ const
         color:=8;
     end;
 
+    procedure SetColor(x,y : qword);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
+
     procedure SetStrColor(const x,y : string);
     begin
       if x=y then
@@ -525,11 +497,11 @@ const
     begin
        inherited draw;
 {$ifdef NODEBUG}
-       WriteStr(1,0,'<no values available>',7);
+       WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
-       If not assigned(Debugger) then
+       If (not assigned(Debugger)) or (not Debugger^.IsRunning) then
          begin
-            WriteStr(1,0,'<no values available>',7);
+            WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
          end;
        if InDraw then exit;
@@ -538,6 +510,7 @@ const
          begin
            OldReg:=NewReg;
            OK:=GetIntRegs(rs);
+           LastOK:=OK;
            NewReg:=rs;
            { get inital values }
            if first then
@@ -550,12 +523,12 @@ const
        else
          begin
            rs:=NewReg;
-           OK:=true;
+           OK:=LastOK;
          end;
        if  OK then
          begin
 {$ifdef cpu_known}
-{$ifdef cpui386}
+{$ifdef i386}
             SetColor(rs.eax,OldReg.eax);
             WriteStr(1,0,'EAX '+HexStr(longint(rs.eax),8),color);
             SetColor(rs.ebx,OldReg.ebx);
@@ -602,8 +575,72 @@ const
             WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
             SetColor(rs.eflags and $400,OldReg.eflags and $400);
             WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386}
+{$ifdef x86_64}
+            SetColor(rs.rax,OldReg.rax);
+            WriteStr(1,0,'RAX '+HexStr(rs.rax,16),color);
+            SetColor(rs.rbx,OldReg.rbx);
+            WriteStr(1,1,'RBX '+HexStr(rs.rbx,16),color);
+            SetColor(rs.rcx,OldReg.rcx);
+            WriteStr(1,2,'RCX '+HexStr(rs.rcx,16),color);
+            SetColor(rs.rdx,OldReg.rdx);
+            WriteStr(1,3,'RDX '+HexStr(rs.rdx,16),color);
+            SetColor(rs.rsi,OldReg.rsi);
+            WriteStr(1,4,'RSI '+HexStr(rs.rsi,16),color);
+            SetColor(rs.rdi,OldReg.rdi);
+            WriteStr(1,5,'RDI '+HexStr(rs.rdi,16),color);
+            SetColor(rs.rbp,OldReg.rbp);
+            WriteStr(1,6,'RBP '+HexStr(rs.rbp,16),color);
+            SetColor(rs.rsp,OldReg.rsp);
+            WriteStr(1,7,'RSP '+HexStr(rs.rsp,16),color);
+            SetColor(rs.r8,OldReg.r8);
+            WriteStr(1,8,'R8  '+HexStr(rs.r8,16),color);
+            SetColor(rs.r9,OldReg.r9);
+            WriteStr(1,9,'R9  '+HexStr(rs.r9,16),color);
+            SetColor(rs.r10,OldReg.r10);
+            WriteStr(1,10,'R10 '+HexStr(rs.r10,16),color);
+            SetColor(rs.r11,OldReg.r11);
+            WriteStr(1,11,'R11 '+HexStr(rs.r11,16),color);
+            SetColor(rs.r12,OldReg.r12);
+            WriteStr(1,12,'R12 '+HexStr(rs.r12,16),color);
+            SetColor(rs.r13,OldReg.r13);
+            WriteStr(1,13,'R13 '+HexStr(rs.r13,16),color);
+            SetColor(rs.r14,OldReg.r14);
+            WriteStr(1,14,'R14 '+HexStr(rs.r14,16),color);
+            SetColor(rs.r15,OldReg.r15);
+            WriteStr(1,15,'R15 '+HexStr(rs.r15,16),color);
+            SetColor(rs.rip,OldReg.rip);
+            WriteStr(1,16,'RIP '+HexStr(rs.rip,16),color);
+            SetColor(rs.cs,OldReg.cs);
+            WriteStr(22,11,'CS '+HexStr(rs.cs,4),color);
+            SetColor(rs.ds,OldReg.ds);
+            WriteStr(22,12,'DS '+HexStr(rs.ds,4),color);
+            SetColor(rs.es,OldReg.es);
+            WriteStr(22,13,'ES '+HexStr(rs.es,4),color);
+            SetColor(rs.fs,OldReg.fs);
+            WriteStr(22,14,'FS '+HexStr(rs.fs,4),color);
+            SetColor(rs.gs,OldReg.gs);
+            WriteStr(22,15,'GS '+HexStr(rs.gs,4),color);
+            SetColor(rs.ss,OldReg.ss);
+            WriteStr(22,16,'SS '+HexStr(rs.ss,4),color);
+            SetColor(rs.eflags and $1,OldReg.eflags and $1);
+            WriteStr(24,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),color);
+            SetColor(rs.eflags and $20,OldReg.eflags and $20);
+            WriteStr(24,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),color);
+            SetColor(rs.eflags and $80,OldReg.eflags and $80);
+            WriteStr(24,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),color);
+            SetColor(rs.eflags and $800,OldReg.eflags and $800);
+            WriteStr(24,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),color);
+            SetColor(rs.eflags and $4,OldReg.eflags and $4);
+            WriteStr(24,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),color);
+            SetColor(rs.eflags and $200,OldReg.eflags and $200);
+            WriteStr(24,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),color);
+            SetColor(rs.eflags and $10,OldReg.eflags and $10);
+            WriteStr(24,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),color);
+            SetColor(rs.eflags and $400,OldReg.eflags and $400);
+            WriteStr(24,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),color);
+{$endif x86_64}
+{$ifdef m68k}
             SetColor(rs.d0,OldReg.d0);
             WriteStr(1,0,'d0 '+HexStr(longint(rs.d0),8),color);
             SetColor(rs.d1,OldReg.d1);
@@ -646,8 +683,8 @@ const
             WriteStr(16,8,' z'+chr(byte((rs.ps and $4)<>0)+48),color);
             SetColor(rs.ps and $8,OldReg.ps and $8);
             WriteStr(14,8, 'x'+chr(byte((rs.ps and $8)<>0)+48),color);
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
             for i:=0 to 15 do
               begin
                 SetColor(rs.r[i],OldReg.r[i]);
@@ -672,8 +709,8 @@ const
             WriteStr(15,17,'ctr '+HexStr(longint(rs.ctr),8),color);
             SetColor(rs.xer,OldReg.xer);
             WriteStr(15,18,'xer '+HexStr(longint(rs.xer),8),color);
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
             for i:=0 to 7 do
               begin
                 SetColor(rs.g[i],OldReg.g[i]);
@@ -707,7 +744,7 @@ const
             WriteStr(15,18,'wim '+HexStr(longint(rs.wim),8),color);
             SetColor(rs.fsr,OldReg.fsr);
             WriteStr(15,19,'fsr '+HexStr(longint(rs.fsr),8),color);
-{$endif cpusparc}
+{$endif sparc}
 {$else cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -717,7 +754,7 @@ const
 {$endif cpu_known}
          end
        else
-         WriteStr(0,0,'<debugger error>',7);
+         WriteStr(0,0,msg_registerwindowerror,7);
        InDraw:=false;
 {$endif NODEBUG}
     end;
@@ -739,22 +776,26 @@ const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef cpui386}
+{$ifdef i386}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386}
+{$ifdef x86_64}
+       R.A.X:=R.B.X-32;
+       R.B.Y:=R.A.Y+19;
+{$endif x86_64}
+{$ifdef m68k}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+11;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
-       R.A.X:=R.B.X-28;
-       R.B.Y:=R.A.Y+22;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif m68k}
+{$ifdef powerpc}
+       R.A.X:=R.B.X-30;
+       R.B.Y:=R.A.Y+21;
+{$endif powerpc}
+{$ifdef sparc}
        R.A.X:=R.B.X-30;
        R.B.Y:=R.A.Y+22;
-{$endif cpusparc}
+{$endif sparc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-28;
        R.B.Y:=R.A.Y+22;
@@ -883,7 +924,7 @@ const
                         if v[i]=#9 then
                           v[i]:=' ';
                       val(v,res,err);
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
                       if reg='st0' then
                         rs.st0:=v
                       else if reg='st1' then
@@ -916,8 +957,8 @@ const
                         rs.fooff:=res
                       else if reg='fop' then
                         rs.fop:=res;
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386 or x86_64}
+{$ifdef m68k}
                       if reg='fp0' then
                         rs.fp0:=v
                       else if reg='fp1' then
@@ -940,19 +981,19 @@ const
                         rs.fpstatus:=res
                       else if reg='fpiaddr' then
                         rs.fpiaddr:=res;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
                       if reg[1]='f' then
                         for i:=0 to 31 do
                           if reg='f'+inttostr(i) then
                             rs.f[i]:=v;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
                       if reg[1]='f' then
                         for i:=0 to 31 do
                           if reg='f'+inttostr(i) then
                             rs.f[i]:=v;
-{$endif cpusparc}
+{$endif sparc}
 {$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -1021,11 +1062,11 @@ const
     begin
        inherited draw;
 {$ifdef NODEBUG}
-       WriteStr(1,0,'<no values available>',7);
+       WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
-       If not assigned(Debugger) then
+       If (not assigned(Debugger)) or (not Debugger^.IsRunning) then
          begin
-            WriteStr(1,0,'<no values available>',7);
+            WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
          end;
        if InDraw then
@@ -1039,6 +1080,7 @@ const
              ,UseInfoFloat
 {$endif not cpu_known}
              );
+           LastOK:=OK;
            NewReg:=rs;
            { get inital values }
            if first then
@@ -1051,12 +1093,12 @@ const
        else
          begin
            rs:=newreg;
-           OK:=true;
+           OK:=LastOK;
          end;
        if OK then
          begin
 {$ifdef cpu_known}
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
             top:=(rs.fstat shr 11) and 7;
             SetColor(rs.st0,OldReg.st0);
             WriteStr(1,0,'ST0 '+TypeStr[(rs.ftag shr (2*((0+top) and 7))) and 3]+rs.st0,color);
@@ -1094,8 +1136,8 @@ const
             else
               color:=7;
             WriteStr(1,11,'FO    '+hexstr(rs.foseg,4)+':'+hexstr(rs.fooff,8),color);
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386 or x86_64}
+{$ifdef m68k}
             SetColor(rs.fp0,OldReg.fp0);
             WriteStr(1,0,'fp0 '+rs.fp0,color);
             SetColor(rs.fp1,OldReg.fp1);
@@ -1118,8 +1160,8 @@ const
             WriteStr(1,9,'fpstatus    '+hexstr(rs.fpstatus,8),color);
             SetIColor(rs.fpiaddr,OldReg.fpiaddr);
             WriteStr(1,10,'fpiaddr    '+hexstr(rs.fpiaddr,8),color);
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
             for i:=0 to 31 do
               begin
                 SetColor(rs.f[i],OldReg.f[i]);
@@ -1128,8 +1170,8 @@ const
                 else
                   WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
               end;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
             for i:=0 to 31 do
               begin
                 SetColor(rs.f[i],OldReg.f[i]);
@@ -1138,7 +1180,7 @@ const
                 else
                   WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
               end;
-{$endif cpusparc}
+{$endif sparc}
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -1148,7 +1190,7 @@ const
 {$endif cpu_known}
          end
        else
-         WriteStr(0,0,'<debugger error>',7);
+         WriteStr(0,0,msg_registerwindowerror,7);
        InDraw:=false;
 {$endif NODEBUG}
     end;
@@ -1170,22 +1212,22 @@ const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386 or x86_64}
+{$ifdef m68k}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+14;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
-{$endif cpusparc}
+{$endif sparc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-44;
        R.B.Y:=R.A.Y+33;
@@ -1194,7 +1236,7 @@ const
        Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
        HelpCtx:=hcFPURegisters;
-       R.Assign(1,1,Size.X-2,Size.Y-2);
+       R.Assign(1,1,Size.X-2,Size.Y-1);
        RV:=new(PFPUView,init(R));
        Insert(RV);
        If assigned(FPUWindow) then
@@ -1312,7 +1354,7 @@ const
                         if v[i]=#9 then
                           v[i]:=' ';
                       val(v,res,err);
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
                       if reg[1]='x' then
                         for i:=0 to 7 do
                           begin
@@ -1327,16 +1369,16 @@ const
                             if reg='mm'+inttostr(i) then
                               rs.mmx[i]:=v;
                           end;
-{$endif cpui386}
-{$ifdef cpupowerpc}
+{$endif i386 or x86_64}
+{$ifdef powerpc}
                       { !!!! fixme }
                       if reg[1]='v' then
                         for i:=0 to 31 do
                           if reg='v'+inttostr(i) then
                             rs.m[i]:=v;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
-{$endif cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
+{$endif sparc}
 {$endif cpu_known}
                       p:=strscan(p1,#10);
                       if assigned(p) then
@@ -1405,11 +1447,11 @@ const
     begin
        inherited draw;
 {$ifdef NODEBUG}
-       WriteStr(1,0,'<no values available>',7);
+       WriteStr(1,0,msg_registervaluesnotavailable,7);
 {$else NODEBUG}
-       If not assigned(Debugger) then
+       If (not assigned(Debugger)) or (not Debugger^.IsRunning) then
          begin
-            WriteStr(1,0,'<no values available>',7);
+            WriteStr(1,0,msg_registervaluesnotavailable,7);
             exit;
          end;
        if InDraw then
@@ -1423,6 +1465,7 @@ const
              ,UseInfoVector
 {$endif not cpu_known}
              );
+           LastOK:=OK;
            NewReg:=rs;
            { get inital values }
            if first then
@@ -1435,12 +1478,12 @@ const
        else
          begin
            rs:=newreg;
-           OK:=true;
+           OK:=LastOK;
          end;
        if OK then
          begin
 {$ifdef cpu_known}
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
             for i:=0 to 7 do
               begin
                 SetColor(rs.xmm[i],OldReg.xmm[i]);
@@ -1455,8 +1498,8 @@ const
                 SetColor(rs.mmx[i],OldReg.mmx[i]);
                 WriteStr(1,i+9,'mmx'+IntToStr(i)+'  '+rs.mmx[i],color);
               end;
-{$endif cpui386}
-{$ifdef cpupowerpc}
+{$endif i386 or x86_64}
+{$ifdef powerpc}
             for i:=0 to 31 do
               begin
                 SetColor(rs.m[i],OldReg.m[i]);
@@ -1465,10 +1508,10 @@ const
                 else
                   WriteStr(1,i,'m'+IntToStr(i)+' '+rs.m[i],color);
               end;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
             { no mm regs on the sparc }
-{$endif cpusparc}
+{$endif sparc}
 {$else not cpu_known}
             for i:=0 to MaxRegs-1 do
               begin
@@ -1478,7 +1521,7 @@ const
 {$endif cpu_known}
          end
        else
-         WriteStr(0,0,'<debugger error>',7);
+         WriteStr(0,0,msg_registerwindowerror,7);
        InDraw:=false;
 {$endif NODEBUG}
     end;
@@ -1500,22 +1543,22 @@ const
 
     begin
        Desktop^.GetExtent(R);
-{$ifdef cpui386}
+{$if defined(i386) or defined(x86_64)}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+20;
-{$endif cpui386}
-{$ifdef cpum68k}
+{$endif i386 or x86_64}
+{$ifdef m68k}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+14;
-{$endif cpum68k}
-{$ifdef cpupowerpc}
+{$endif m68k}
+{$ifdef powerpc}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
-{$endif cpupowerpc}
-{$ifdef cpusparc}
+{$endif powerpc}
+{$ifdef sparc}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
-{$endif cpusparc}
+{$endif sparc}
 {$ifndef cpu_known}
        R.A.X:=R.B.X-60;
        R.B.Y:=R.A.Y+33;
@@ -1524,7 +1567,7 @@ const
        Flags:=wfClose or wfMove or wfgrow;
        Palette:=wpCyanWindow;
        HelpCtx:=hcVectorRegisters;
-       R.Assign(1,1,Size.X-2,Size.Y-2);
+       R.Assign(1,1,Size.X-2,Size.Y-1);
        RV:=new(PVectorView,init(R));
        Insert(RV);
        If assigned(VectorWindow) then

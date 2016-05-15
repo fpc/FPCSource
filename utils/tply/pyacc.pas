@@ -36,7 +36,7 @@ Last changes:
     updates)
 
 $History: YACC.PAS $
- *
+ * 
  * *****************  Version 2  *****************
  * User: Berend       Date: 96-10-10   Time: 21:16
  * Updated in $/Lex and Yacc/tply
@@ -110,7 +110,7 @@ uses
     YaccChk source not available anymore PM }
 {$ENDIF}
 {$ENDIF}
-  YaccLib, YaccBase, YaccMsgs, YaccSem, YaccTabl, YaccPars;
+  YaccLib, YaccBase, YaccMsgs, YaccSem, YaccTabl, YaccPars, SysUtils;
 
 const ID = 257;
 const C_ID = 258;
@@ -161,28 +161,28 @@ begin
          yyval := yyv[yysp-0];
        end;
    6 : begin
-         yyerrok;
+         yyerrok; 
        end;
    7 : begin
-         yyerrok;
+         yyerrok; 
        end;
    8 : begin
-         yyerrok;
+         yyerrok; 
        end;
    9 : begin
-         yyerrok;
+         yyerrok; 
        end;
   10 : begin
-         yyerrok;
+         yyerrok; 
        end;
   11 : begin
-         yyerrok;
+         yyerrok; 
        end;
   12 : begin
          yyval := yyv[yysp-0];
        end;
   13 : begin
-         yyerrok;
+         yyerrok; 
        end;
   14 : begin
          yyval := yyv[yysp-0];
@@ -191,19 +191,19 @@ begin
          yyval := yyv[yysp-0];
        end;
   16 : begin
-         error(rcurl_expected);
+         error(rcurl_expected); 
        end;
   17 : begin
          yyval := yyv[yysp-0];
        end;
   18 : begin
-         yyerrok;
+         yyerrok; 
        end;
   19 : begin
-         yyerrok;
+         yyerrok; 
        end;
   20 : begin
-         yyerrok;
+         yyerrok; 
        end;
   21 : begin
          yyval := yyv[yysp-0];
@@ -212,7 +212,7 @@ begin
          yyval := yyv[yysp-0];
        end;
   23 : begin
-         error(rbrace_expected);
+         error(rbrace_expected); 
        end;
   24 : begin
          yyval := yyv[yysp-0];
@@ -221,7 +221,7 @@ begin
          yyval := yyv[yysp-0];
        end;
   26 : begin
-         error(rangle_expected);
+         error(rangle_expected); 
        end;
   27 : begin
          yyval := yyv[yysp-0];
@@ -229,12 +229,12 @@ begin
   28 : begin
          sort_types;
          definitions;
-         next_section;
+         next_section; 
        end;
   29 : begin
          next_section;
          generate_parser;
-         next_section;
+         next_section; 
        end;
   30 : begin
          yyval := yyv[yysp-5];
@@ -242,48 +242,48 @@ begin
   31 : begin
        end;
   32 : begin
-         copy_rest_of_file;
+         copy_rest_of_file; 
        end;
   33 : begin
        end;
   34 : begin
-         yyerrok;
+         yyerrok; 
        end;
   35 : begin
-         error(error_in_def);
+         error(error_in_def); 
        end;
   36 : begin
-         startnt := ntsym(yyv[yysp-0]);
+         startnt := ntsym(yyv[yysp-0]); 
        end;
   37 : begin
-         error(ident_expected);
+         error(ident_expected); 
        end;
   38 : begin
-         copy_code;
+         copy_code; 
        end;
   39 : begin
          yyval := yyv[yysp-2];
        end;
   40 : begin
-         act_prec := 0;
+         act_prec := 0; 
        end;
   41 : begin
          yyval := yyv[yysp-3];
        end;
   42 : begin
-         act_prec := new_prec_level(left);
+         act_prec := new_prec_level(left); 
        end;
   43 : begin
          yyval := yyv[yysp-3];
        end;
   44 : begin
-         act_prec := new_prec_level(right);
+         act_prec := new_prec_level(right); 
        end;
   45 : begin
          yyval := yyv[yysp-3];
        end;
   46 : begin
-         act_prec := new_prec_level(nonassoc);
+         act_prec := new_prec_level(nonassoc); 
        end;
   47 : begin
          yyval := yyv[yysp-3];
@@ -295,169 +295,169 @@ begin
          yyval := yyv[yysp-1];
        end;
   50 : begin
-         act_type := 0;
+         act_type := 0; 
        end;
   51 : begin
-         act_type := yyv[yysp-1]; add_type(yyv[yysp-1]);
+         act_type := yyv[yysp-1]; add_type(yyv[yysp-1]); 
        end;
   52 : begin
          yyval := yyv[yysp-0];
        end;
   53 : begin
-         yyerrok;
+         yyerrok; 
        end;
   54 : begin
-         yyerrok;
+         yyerrok; 
        end;
   55 : begin
-         error(ident_expected);
+         error(ident_expected); 
        end;
   56 : begin
-         error(error_in_def);
+         error(error_in_def); 
        end;
   57 : begin
-         error(ident_expected);
+         error(ident_expected); 
        end;
   58 : begin
          if act_type<>0 then
          sym_type^[yyv[yysp-0]] := act_type;
          if act_prec<>0 then
-         sym_prec^[yyv[yysp-0]] := act_prec;
+         sym_prec^[yyv[yysp-0]] := act_prec; 
        end;
   59 : begin
          litsym(yyv[yysp-0], 0);
          if act_type<>0 then
          sym_type^[litsym(yyv[yysp-0], 0)] := act_type;
          if act_prec<>0 then
-         sym_prec^[litsym(yyv[yysp-0], 0)] := act_prec;
+         sym_prec^[litsym(yyv[yysp-0], 0)] := act_prec; 
        end;
   60 : begin
          litsym(yyv[yysp-0], 0);
          if act_type<>0 then
          sym_type^[litsym(yyv[yysp-0], 0)] := act_type;
          if act_prec<>0 then
-         sym_prec^[litsym(yyv[yysp-0], 0)] := act_prec;
+         sym_prec^[litsym(yyv[yysp-0], 0)] := act_prec; 
        end;
   61 : begin
          litsym(yyv[yysp-1], 0);
          if act_type<>0 then
          sym_type^[litsym(yyv[yysp-1], yyv[yysp-0])] := act_type;
          if act_prec<>0 then
-         sym_prec^[litsym(yyv[yysp-1], 0)]  := act_prec;
+         sym_prec^[litsym(yyv[yysp-1], 0)]  := act_prec; 
        end;
   62 : begin
          litsym(yyv[yysp-1], 0);
          if act_type<>0 then
          sym_type^[litsym(yyv[yysp-1], yyv[yysp-0])] := act_type;
          if act_prec<>0 then
-         sym_prec^[litsym(yyv[yysp-1], 0)]  := act_prec;
+         sym_prec^[litsym(yyv[yysp-1], 0)]  := act_prec; 
        end;
   63 : begin
          yyval := yyv[yysp-0];
        end;
   64 : begin
-         yyerrok;
+         yyerrok; 
        end;
   65 : begin
-         yyerrok;
+         yyerrok; 
        end;
   66 : begin
-         error(ident_expected);
+         error(ident_expected); 
        end;
   67 : begin
-         error(error_in_def);
+         error(error_in_def); 
        end;
   68 : begin
-         error(ident_expected);
+         error(ident_expected); 
        end;
   69 : begin
          if act_type<>0 then
-         sym_type^[ntsym(yyv[yysp-0])] := act_type;
+         sym_type^[ntsym(yyv[yysp-0])] := act_type; 
        end;
   70 : begin
-         next_section;
+         next_section; 
        end;
   71 : begin
          yyval := yyv[yysp-1];
        end;
   72 : begin
-         copy_code;
+         copy_code; 
        end;
   73 : begin
-         next_section;
+         next_section; 
        end;
   74 : begin
          yyval := yyv[yysp-4];
        end;
   75 : begin
-         yyerrok;
+         yyerrok; 
        end;
   76 : begin
-         error(error_in_rule);
+         error(error_in_rule); 
        end;
   77 : begin
-         error(error_in_rule);
+         error(error_in_rule); 
        end;
   78 : begin
-         start_rule(ntsym(yyv[yysp-0]));
+         start_rule(ntsym(yyv[yysp-0])); 
        end;
   79 : begin
-         start_body;
+         start_body; 
        end;
   80 : begin
-         end_body;
+         end_body; 
        end;
   81 : begin
          yyval := yyv[yysp-0];
        end;
   82 : begin
-         start_body;
+         start_body; 
        end;
   83 : begin
-         end_body;
+         end_body; 
        end;
   84 : begin
        end;
   85 : begin
-         add_symbol(yyv[yysp-0]); yyerrok;
+         add_symbol(yyv[yysp-0]); yyerrok; 
        end;
   86 : begin
-         add_symbol(sym(yyv[yysp-0])); yyerrok;
+         add_symbol(sym(yyv[yysp-0])); yyerrok; 
        end;
   87 : begin
-         add_symbol(sym(yyv[yysp-0])); yyerrok;
+         add_symbol(sym(yyv[yysp-0])); yyerrok; 
        end;
   88 : begin
-         add_action; yyerrok;
+         add_action; yyerrok; 
        end;
   89 : begin
-         error(error_in_rule);
+         error(error_in_rule); 
        end;
   90 : begin
-         copy_action;
+         copy_action; 
        end;
   91 : begin
          yyval := yyv[yysp-2];
        end;
   92 : begin
-         copy_single_action;
+         copy_single_action; 
        end;
   93 : begin
        end;
   94 : begin
-         add_rule_prec(yyv[yysp-0]);
+         add_rule_prec(yyv[yysp-0]); 
        end;
   95 : begin
          yyval := yyv[yysp-3];
        end;
   96 : begin
-         add_rule_prec(litsym(yyv[yysp-0], 0));
+         add_rule_prec(litsym(yyv[yysp-0], 0)); 
        end;
   97 : begin
          yyval := yyv[yysp-3];
        end;
   98 : begin
-         add_rule_prec(litsym(yyv[yysp-0], 0));
+         add_rule_prec(litsym(yyv[yysp-0], 0)); 
        end;
   99 : begin
          yyval := yyv[yysp-3];
@@ -468,7 +468,7 @@ begin
  101 : begin
        end;
  102 : begin
-         add_action;
+         add_action; 
        end;
   end;
 end(*yyaction*);
@@ -2131,10 +2131,10 @@ function yylex : integer;
             ('0'<=line[cno]) and (line[cno]<='9') or
             (line[cno]='_') or
             (line[cno]='.') ) do
-        begin
-          idstr := idstr+line[cno];
-          inc(cno)
-        end;
+	begin
+	  idstr := idstr+line[cno];
+	  inc(cno)
+	end;
       yylval := get_key(idstr);
       scan;
       if not end_of_input and (line[cno]=':') then
@@ -2352,9 +2352,9 @@ function yylex : integer;
     else
       case line[cno] of
         'A'..'Z', 'a'..'z', '_' : yylex := scan_ident;
-        '''', '"' : yylex := scan_literal;
-        '0'..'9' : yylex := scan_num;
-        '%', '\' : yylex := scan_keyword;
+	'''', '"' : yylex := scan_literal;
+	'0'..'9' : yylex := scan_num;
+	'%', '\' : yylex := scan_keyword;
         '=' :
           if (cno<length(line)) and (line[succ(cno)]='{') then
             begin
@@ -2363,7 +2363,7 @@ function yylex : integer;
             end
           else
             yylex := scan_char;
-        else yylex := scan_char;
+	else yylex := scan_char;
       end;
     if lno=lno0 then
       tokleng := cno-cno0
@@ -2375,13 +2375,11 @@ var i : Integer;
 
 begin
 {$ifdef Unix}
- {$ifdef BSD}
-  codfilepath:='/usr/local/lib/fpc/lexyacc/';
- {$else}
-  codfilepath:='/usr/lib/fpc/lexyacc/';
- {$endif}
+  codfilepath1:='/usr/local/lib/fpc/lexyacc/';
+  codfilepath2:='/usr/lib/fpc/lexyacc/';
 {$else}
-  codfilepath:=path(paramstr(0));
+  codfilepath1:=path(paramstr(0));
+  codfilepath2:='';
 {$endif}
 
   (* sign-on: *)
@@ -2440,17 +2438,29 @@ begin
   rewrite(yyout); if ioresult<>0 then fatal(cannot_open_file+pasfilename);
   rewrite(yylst); if ioresult<>0 then fatal(cannot_open_file+lstfilename);
 
-  (* search code template in current directory, then on path where Yacc
-     was executed from: *)
+  (* search code template *)
   codfilename := 'yyparse.cod';
   assign(yycod, codfilename);
   reset(yycod);
   if ioresult<>0 then
     begin
-      codfilename := codfilepath+'yyparse.cod';
+      codfilename := IncludeTrailingPathDelimiter(GetEnvironmentVariable('FPCDIR'))+'lexyacc'+DirectorySeparator+'yyparse.cod';
       assign(yycod, codfilename);
       reset(yycod);
-      if ioresult<>0 then fatal(cannot_open_file+codfilename);
+      if ioresult<>0 then
+        begin
+          codfilename := codfilepath1+'yyparse.cod';
+          assign(yycod, codfilename);
+          reset(yycod);
+          if (codfilepath2<>'') and (ioresult<>0) then 
+            begin
+              codfilename := codfilepath2+'yyparse.cod';
+              assign(yycod, codfilename);
+              reset(yycod);
+              if ioresult<>0 then 
+                fatal(cannot_open_file+codfilename);
+            end;
+        end;
     end;
 
   (* parse source grammar: *)

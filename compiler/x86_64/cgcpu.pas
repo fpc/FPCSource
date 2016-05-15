@@ -36,9 +36,11 @@ unit cgcpu;
       tcgx86_64 = class(tcgx86)
         procedure init_register_allocators;override;
 
+        procedure a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara); override;
+        procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
+
         procedure g_proc_entry(list : TAsmList;localsize:longint; nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_local_unwind(list: TAsmList; l: TAsmLabel);override;
         procedure g_save_registers(list: TAsmList);override;
         procedure g_restore_registers(list: TAsmList);override;
@@ -116,6 +118,30 @@ unit cgcpu;
       end;
 
 
+    procedure tcgx86_64.a_loadfpu_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference; const cgpara: TCGPara);
+      begin
+        { a record containing an extended value is returned on the x87 stack
+          -> size will be OS_F128 (if not packed), while cgpara.paraloc^.size
+          contains the proper size
+
+          In the future we should probably always use cgpara.location^.size, but
+          that should only be tested/done after 2.8 is branched }
+        if size in [OS_128,OS_F128] then
+          size:=cgpara.location^.size;
+        inherited;
+      end;
+
+
+    procedure tcgx86_64.a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference);
+      begin
+        { same as with a_loadfpu_ref_cgpara() above, but on the callee side
+          when the value is moved from the fpu register into a memory location }
+        if tosize in [OS_128,OS_F128] then
+          tosize:=OS_F80;
+        inherited;
+      end;
+
+
     function tcgx86_64.use_push: boolean;
       begin
         result:=(current_procinfo.framepointer=NR_STACK_POINTER_REG) or
@@ -142,6 +168,7 @@ unit cgcpu;
     procedure tcgx86_64.g_proc_entry(list : TAsmList;localsize:longint;nostackframe:boolean);
       var
         hitem: tlinkedlistitem;
+        seh_proc: tai_seh_directive;
         r: integer;
         href: treference;
         templist: TAsmList;
@@ -163,9 +190,11 @@ unit cgcpu;
       procedure push_regs;
         var
           r: longint;
+          usedregs: tcpuregisterset;
         begin
+          usedregs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(current_procinfo.procdef.proccalloption);
           for r := low(saved_standard_registers) to high(saved_standard_registers) do
-            if saved_standard_registers[r] in rg[R_INTREGISTER].used_in_proc then
+            if saved_standard_registers[r] in usedregs then
               begin
                 inc(stackmisalignment,sizeof(pint));
                 push_one_reg(newreg(R_INTREGISTER,saved_standard_registers[r],R_SUBWHOLE));
@@ -237,7 +266,7 @@ unit cgcpu;
               begin
                 if target_info.stackalign>sizeof(pint) then
                   localsize := align(localsize+stackmisalignment,target_info.stackalign)-stackmisalignment;
-                cg.g_stackpointer_alloc(list,localsize);
+                g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
@@ -263,7 +292,11 @@ unit cgcpu;
         if not (pi_has_unwind_info in current_procinfo.flags) then
           exit;
         { Generate unwind data for x86_64-win64 }
-        list.insertafter(cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname),hitem);
+        seh_proc:=cai_seh_directive.create_name(ash_proc,current_procinfo.procdef.mangledname);
+        if assigned(hitem) then
+          list.insertafter(seh_proc,hitem)
+        else
+          list.insert(seh_proc);
         templist:=TAsmList.Create;
 
         { We need to record postive offsets from RSP; if registers are saved
@@ -330,10 +363,6 @@ unit cgcpu;
         hreg : tregister;
         r : longint;
       begin
-        { Release PIC register }
-        if cs_create_pic in current_settings.moduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
-
         { Prevent return address from a possible call from ending up in the epilogue }
         { (restoring registers happens before epilogue, providing necessary padding) }
         if (current_procinfo.flags*[pi_has_unwind_info,pi_do_call,pi_has_saved_regs])=[pi_has_unwind_info,pi_do_call] then
@@ -375,7 +404,7 @@ unit cgcpu;
                 list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_ADDR],current_procinfo.framepointer));
               end
             else
-              list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+              generate_leave(list);
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
 
@@ -402,68 +431,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcgx86_64.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      var
-        make_global : boolean;
-        href : treference;
-        sym : tasmsymbol;
-        r : treference;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            if (procdef.extnumber=$ffff) then
-              Internalerror(200006139);
-            { load vmt from first paramter }
-            { win64 uses a different abi }
-            if target_info.system=system_x86_64_win64 then
-              reference_reset_base(href,NR_RCX,0,sizeof(pint))
-            else
-              reference_reset_base(href,NR_RDI,0,sizeof(pint));
-            cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
-            { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_RAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),sizeof(pint));
-            list.concat(taicpu.op_ref(A_JMP,S_Q,href));
-          end
-        else
-          begin
-            sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-            reference_reset_symbol(r,sym,0,sizeof(pint));
-            if (cs_create_pic in current_settings.moduleswitches) and
-               { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-               (target_info.system<>system_x86_64_darwin) then
-              r.refaddr:=addr_pic
-            else
-              r.refaddr:=addr_full;
-
-            list.concat(taicpu.op_ref(A_JMP,S_NO,r));
-          end;
-
-        List.concat(Tai_symbol_end.Createname(labelname));
-      end;
-
     procedure tcgx86_64.g_local_unwind(list: TAsmList; l: TAsmLabel);
       var
         para1,para2: tcgpara;
@@ -478,8 +445,8 @@ unit cgcpu;
         pd:=search_system_proc('_fpc_local_unwind');
         para1.init;
         para2.init;
-        paramanager.getintparaloc(pd,1,para1);
-        paramanager.getintparaloc(pd,2,para2);
+        paramanager.getintparaloc(list,pd,1,para1);
+        paramanager.getintparaloc(list,pd,2,para2);
         reference_reset_symbol(href,l,0,1);
         { TODO: using RSP is correct only while the stack is fixed!!
           (true now, but will change if/when allocating from stack is implemented) }

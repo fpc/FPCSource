@@ -13,7 +13,7 @@
  **********************************************************************}
 { no stack check in system }
 {$S-}
-unit system;
+unit System;
 
 interface
 
@@ -477,5 +477,5 @@ Begin
   IsConsole := TRUE;
   ExitCode  := 0;
   InitSystemThreads;
-  initvariantmanager;
+  InitSystemDynLibs;
 End.

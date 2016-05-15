@@ -155,7 +155,7 @@ Type
     Property AfterInitModule;
   end;
 
-  EFPWebError = Class(HTTPError);
+  EFPWebError = Class(EHTTP);
 
 resourcestring
   SErrInvalidVar        = 'Invalid template variable name : "%s"';

@@ -516,7 +516,7 @@ type
     Property OnCreateWriter;
   end;
   
-  EHTMLError = Class(Exception);
+  EHTMLError = Class(EHTTP);
 
 const SimpleOkButton: array[0..0] of TWebButton = ((buttontype: btok;caption: 'Ok';onclick: ''));
 
@@ -603,12 +603,12 @@ end;
 
 procedure TJavaScriptStack.RedrawContentProducer(AContentProducer: THTMLContentProducer);
 begin
-  raise exception.Create('RedrawContentProducer not supported by current WebController');
+  raise EHTMLError.Create('RedrawContentProducer not supported by current WebController');
 end;
 
 procedure TJavaScriptStack.CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = '');
 begin
-  raise exception.Create('SendServerEvent not supported by current WebController');
+  raise EHTMLError.Create('SendServerEvent not supported by current WebController');
 end;
 
 procedure TJavaScriptStack.Clear;
@@ -786,7 +786,7 @@ begin
     else
       begin
       for i := 0 to high(Events) do if assigned(events[i].csCallback) or assigned(events[i].ServerEvent) then
-        raise exception.Create('There is no webcontroller available, which is necessary to use events.');
+        raise EHTMLError.Create('There is no webcontroller available, which is necessary to use events.');
       end;
     end;
 end;
@@ -832,7 +832,7 @@ begin
       end;
     end;
   if ExceptIfNotAvailable then
-    raise Exception.Create('No webcontroller available');
+    raise EHTMLError.Create('No webcontroller available');
 end;
 
 procedure THTMLContentProducer.BeforeGenerateContent;
@@ -1478,7 +1478,7 @@ var
 begin
   i := length(FIterationIDs);
   if i=0 then
-    raise Exception.Create('DecrementIterationLevel can not be called more times then IncrementIterationLevel');
+    raise EHTMLError.Create('DecrementIterationLevel can not be called more times then IncrementIterationLevel');
   SetLength(FIterationIDs,i-1);
 end;
 

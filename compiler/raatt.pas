@@ -57,7 +57,7 @@ unit raatt;
         AS_SET,AS_WEAK,AS_SECTION,AS_END,
         {------------------ Assembler Operators  --------------------}
         AS_TYPE,AS_SIZEOF,AS_VMTOFFSET,AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR,AS_NOR,AS_AT,
-        AS_LO,AS_HI,
+        AS_RELTYPE, // common token for relocation types
         {------------------ Target-specific directive ---------------}
         AS_TARGET_DIRECTIVE
         );
@@ -82,7 +82,7 @@ unit raatt;
         '.asciz','.lcomm','.comm','.single','.double','.tfloat','.tcfloat',
         '.data','.text','.init','.fini','.rva',
         '.set','.weak','.section','END',
-        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','lo','hi',
+        'TYPE','SIZEOF','VMTOFFSET','%','<<','>>','!','&','|','^','~','@','reltype',
         'directive');
 
     type
@@ -112,10 +112,7 @@ unit raatt;
          procedure handledollar;virtual;
          procedure HandleTargetDirective;virtual;
        end;
-       tcattreader = class of tattreader;
 
-    var
-      cattreader : tcattreader;
 
   implementation
 
@@ -206,6 +203,7 @@ unit raatt;
         srsym : tsym;
         srsymtable : TSymtable;
       begin
+        c:=scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
         actasmtoken:=AS_NONE;
@@ -215,10 +213,10 @@ unit raatt;
         while c in [' ',#9] do
          c:=current_scanner.asmgetchar;
         { get token pos }
-        if not (c in [#10,#13,'{',';']) then
+        if not (c in [#10,#13,'{',';','/','(']) then
           current_scanner.gettokenpos;
         { Local Label, Label, Directive, Prefix or Opcode }
-        if firsttoken and not(c in [#10,#13,'{',';']) then
+        if firsttoken and not(c in [#10,#13,'{',';','/','(']) then
          begin
            firsttoken:=FALSE;
            len:=0;
@@ -290,12 +288,24 @@ unit raatt;
            end;
 {$endif POWERPC}
 {$if defined(ARM)}
-           { Thumb-2 instructions can have a .W postfix to indicate 32bit instructions
+           {
+             Thumb-2 instructions can have a .W postfix to indicate 32bit instructions,
+             Also in unified syntax sizes and types are indicated with something like a .<dt> prefix for example
            }
            case c of
              '.':
                begin
-                 actasmpattern:=actasmpattern+c;
+                 if len>1 then
+                   begin
+                     while c in ['A'..'Z','a'..'z','0'..'9','_','.'] do
+                       begin
+                         inc(len);
+                         actasmpattern[len]:=c;
+                         c:=current_scanner.asmgetchar;
+                       end;
+                     actasmpattern[0]:=chr(len);
+                   end;
+                 {actasmpattern:=actasmpattern+c;
                  c:=current_scanner.asmgetchar;
 
                  if upcase(c) = 'W' then
@@ -304,10 +314,22 @@ unit raatt;
                      c:=current_scanner.asmgetchar;
                    end
                  else
-                   internalerror(2010122301);
+                   internalerror(2010122301);}
                end
            end;
 {$endif ARM}
+{$ifdef aarch64}
+           { b.cond }
+           case c of
+             '.':
+               begin
+                 repeat
+                   actasmpattern:=actasmpattern+c;
+                   c:=current_scanner.asmgetchar;
+                 until not(c in ['a'..'z','A'..'Z']);
+               end;
+           end;
+{$endif aarch64}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
             Begin
@@ -552,7 +574,6 @@ unit raatt;
 
              '''' : { char }
                begin
-                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    c:=current_scanner.asmgetchar;
@@ -577,13 +598,11 @@ unit raatt;
                  until false;
                  actasmpattern:=EscapeToPascal(actasmpattern);
                  actasmtoken:=AS_STRING;
-                 current_scanner.in_asm_string:=false;
                  exit;
                end;
 
              '"' : { string }
                begin
-                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    c:=current_scanner.asmgetchar;
@@ -608,7 +627,6 @@ unit raatt;
                  until false;
                  actasmpattern:=EscapeToPascal(actasmpattern);
                  actasmtoken:=AS_STRING;
-                 current_scanner.in_asm_string:=false;
                  exit;
                end;
 
@@ -638,15 +656,28 @@ unit raatt;
                  c:=current_scanner.asmgetchar;
                  exit;
                end;
-{$ifdef arm}
-             // the arm assembler uses { ... } for register sets
+
              '{' :
                begin
-                 actasmtoken:=AS_LSBRACKET;
+{$ifdef arm}
+                 // the arm assembler uses { ... } for register sets
+                 // but compiler directives {$... } are still allowed
                  c:=current_scanner.asmgetchar;
+                 if c<>'$' then
+                   actasmtoken:=AS_LSBRACKET
+                 else
+                   begin
+                     current_scanner.skipcomment(false);
+                     GetToken;
+                   end;
+{$else arm}
+                 current_scanner.skipcomment(true);
+                 GetToken;
+{$endif arm}
                  exit;
                end;
 
+{$ifdef arm}
              '}' :
                begin
                  actasmtoken:=AS_RSBRACKET;
@@ -704,8 +735,14 @@ unit raatt;
 
              '(' :
                begin
-                 actasmtoken:=AS_LPAREN;
                  c:=current_scanner.asmgetchar;
+                 if c='*' then
+                   begin
+                     current_scanner.skipoldtpcomment(true);
+                     GetToken;
+                   end
+                 else
+                   actasmtoken:=AS_LPAREN;
                  exit;
                end;
 
@@ -746,8 +783,14 @@ unit raatt;
 
              '/' :
                begin
-                 actasmtoken:=AS_SLASH;
                  c:=current_scanner.asmgetchar;
+                 if c='/' then
+                   begin
+                     current_scanner.skipdelphicomment;
+                     GetToken;
+                   end
+                 else
+                   actasmtoken:=AS_SLASH;
                  exit;
                end;
 
@@ -765,12 +808,17 @@ unit raatt;
                  exit;
                end;
 
-{$ifndef arm}
-             '{',
-{$endif arm}
-             #13,#10,';' :
+             #13,#10:
                begin
-                 { the comment is read by asmgetchar }
+                 current_scanner.linebreak;
+                 c:=current_scanner.asmgetchar;
+                 firsttoken:=TRUE;
+                 actasmtoken:=AS_SEPARATOR;
+                 exit;
+               end;
+
+             ';' :
+               begin
                  c:=current_scanner.asmgetchar;
                  firsttoken:=TRUE;
                  actasmtoken:=AS_SEPARATOR;
@@ -1003,7 +1051,6 @@ unit raatt;
        curlist:=TAsmList.Create;
        lasTSec:=sec_code;
        { start tokenizer }
-       c:=current_scanner.asmgetcharstart;
        gettoken;
        { main loop }
        repeat
@@ -1221,14 +1268,18 @@ unit raatt;
                Consume(AS_COMMA);
                BuildConstSymbolExpression(true,false,false, symofs,symval,symtyp);
 
-               curList.concat(tai_set.create(symname,symval));
+               curList.concat(tai_symbolpair.create(spk_set,symname,symval));
              end;
 
            AS_WEAK:
              begin
                Consume(AS_WEAK);
                BuildConstSymbolExpression(true,false,false, l1,symname,symtyp);
-               curList.concat(tai_weak.create(symname));
+               { ideally, we should look up the symbol here (or later) and
+                 depending on whether it's external or net, generate
+                 asd_weak_reference or asd_weak_definition -- this is different
+                 on some targets) }
+               curList.concat(tai_directive.create(asd_weak_definition,symname));
              end;
 
            AS_SECTION:
@@ -1285,10 +1336,16 @@ unit raatt;
         while (actasmtoken=AS_DOT) do
          begin
            Consume(AS_DOT);
-           if actasmtoken=AS_ID then
-            s:=s+'.'+actasmpattern;
-           if not Consume(AS_ID) then
+
+           { a record field could have the same name as a register }
+           if actasmtoken in [AS_ID,AS_REGISTER] then
+             begin
+               s:=s+'.'+actasmpattern;
+               consume(actasmtoken)
+             end
+           else
             begin
+              Consume(AS_ID);
               RecoverConsume(true);
               break;
             end;

@@ -13,19 +13,21 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libgd');
+    P.ShortName:='lgd';
+    P.Description := 'Interface unit for library libgd - image processing';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.SourcePath.Add('src');
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     T:=P.Targets.AddUnit('gd.pas');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('gdtestcgi.pp');
     P.Targets.AddExampleProgram('gdtest.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -75,10 +75,15 @@ TYPE
 { include /include/asm-<cpu>/posix-types.h                       }
 
 const
+{$ifndef cpux86_64}
   _STAT_VER_LINUX_OLD = 1;
   _STAT_VER_KERNEL = 1;
   _STAT_VER_SVR4 = 2;
   _STAT_VER_LINUX = 3;
+{$else}
+  _STAT_VER_KERNEL = 0;
+  _STAT_VER_LINUX = 1;
+{$endif}
   _STAT_VER = _STAT_VER_LINUX;
 
 type
@@ -285,7 +290,12 @@ CONST
 {$endif not cpumips}
 {$endif not cpusparc}
 
-{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k)}
+    AT_FDCWD = -100;
+    AT_REMOVEDIR = $200;
+    clone_flags_fork = $01200011;
+      { SIGCHLD | CLONE_CHILD_CLEARTID | CLONE_CHILD_SETTID }
+
+{$if defined(cpuarm) or defined(cpualpha) or defined(cpublackfin) or defined(cpum68k) or defined(aarch64)}
     O_LARGEFILE =   $20000;
 {$endif}
 {$if defined(cpusparc) or defined(cpusparc64)}

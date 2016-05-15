@@ -286,7 +286,8 @@ implementation
                 resultreg:=cg.getintregister(current_asmdata.CurrAsmList,size);
               end;
 
-            if right.nodetype=ordconstn then
+            if (right.nodetype=ordconstn) and
+               (CPUARM_HAS_UMULL in cpu_capabilities[current_settings.cputype]) then
               begin
                 if nodetype=divn then
                   genOrdConstNodeDiv
@@ -309,29 +310,11 @@ implementation
 *****************************************************************************}
 
     procedure tarmnotnode.second_boolean;
-      var
-        hl : tasmlabel;
       begin
         { if the location is LOC_JUMP, we do the secondpass after the
           labels are allocated
         }
-        if left.expectloc=LOC_JUMP then
-          begin
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            secondpass(left);
-
-            if left.location.loc<>LOC_JUMP then
-              internalerror(2012081305);
-
-            maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-            hl:=current_procinfo.CurrTrueLabel;
-            current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-            current_procinfo.CurrFalseLabel:=hl;
-            location.loc:=LOC_JUMP;
-          end
-        else
+        if not handle_locjump then
           begin
             secondpass(left);
             case left.location.loc of
@@ -410,7 +393,7 @@ implementation
 
     procedure tarmunaryminusnode.second_float;
       var
-        op: tasmop;
+        pf: TOpPostfix;
       begin
         secondpass(left);
         case current_settings.fputype of
@@ -426,18 +409,21 @@ implementation
             end;
           fpu_vfpv2,
           fpu_vfpv3,
+          fpu_vfpv4,
           fpu_vfpv3_d16:
             begin
               hlcg.location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,left.resultdef,true);
               location:=left.location;
               if (left.location.loc=LOC_CMMREGISTER) then
                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
-              if (location.size=OS_F32) then
-                op:=A_FNEGS
+
+              if (tfloatdef(left.resultdef).floattype=s32real) then
+                pf:=PF_F32
               else
-                op:=A_FNEGD;
-              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
-                location.register,left.location.register));
+                pf:=PF_F64;
+
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_VNEG,
+                location.register,left.location.register), pf));
             end;
           fpu_fpv4_s16:
             begin

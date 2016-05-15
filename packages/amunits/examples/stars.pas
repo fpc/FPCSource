@@ -1,7 +1,7 @@
 PROGRAM Sterne;
 
 
-uses Exec, Graphics, Intuition, Utility, systemvartags;
+uses Exec, AGraphics, Intuition, Utility;
 
 
 
@@ -115,7 +115,7 @@ BEGIN
   Win:=OpenWindowTags(Nil, [
                         WA_Flags, WFLG_BORDERLESS,
                         WA_IDCMP, IDCMP_MOUSEBUTTONS,
-                        WA_CustomScreen, Scr,
+                        WA_CustomScreen, AsTag(Scr),
                         TAG_DONE]);
 
   If Win=Nil Then CleanUp('No window',20);

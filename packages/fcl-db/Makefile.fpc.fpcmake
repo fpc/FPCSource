@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-db
-version=2.7.1
+version=3.1.1
 
 [target]
 dirs=src/sdf src/memds src/sqldb src/base src/sql src/json
@@ -17,6 +17,7 @@ dirs_iphonesim=src/dbase src/sqlite
 dirs_solaris=src/dbase src/sqlite
 dirs_netbsd=src/dbase src/sqlite src/paradox
 dirs_openbsd=src/dbase src/sqlite src/paradox
+dirs_os2=src/dbase src/export
 dirs_win32=src/dbase src/paradox src/sqlite src/export src/datadict src/codegen 
 dirs_win64=src/dbase src/sqlite src/export src/datadict src/codegen
 dirs_wince=src/dbase src/sqlite src/export src/datadict src/codegen

@@ -23,11 +23,13 @@ type
     PINIEntry = ^TINIEntry;
     TINIEntry = object(TObject)
       constructor Init(const ALine: string);
+      constructor Init(const ATag,AValue,AComment: string);
       function    GetText: string;
       function    GetTag: string;
       function    GetComment: string;
       function    GetValue: string;
       procedure   SetValue(const S: string);
+      procedure   SetComment(const S: string);
       destructor  Done; virtual;
     private
       TagHash  : Cardinal;
@@ -44,6 +46,7 @@ type
       constructor Init(const AName: string);
       function    GetName: string;
       function    AddEntry(const S: string): PINIEntry;
+      function    AddEntry(const Tag,Value,Comment: string): PINIEntry;
       function    SearchEntry(Tag: string): PINIEntry; virtual;
       procedure   DeleteEntry(Tag: string);
       procedure   ForEachEntry(EnumProc: pointer); virtual;
@@ -68,6 +71,7 @@ type
       procedure   ForEachEntry(const Section: string; EnumProc: pointer); virtual;
       function    GetEntry(const Section, Tag, Default: string): string; virtual;
       procedure   SetEntry(const Section, Tag, Value: string); virtual;
+      procedure   SetEntry(const Section, Tag, Value,Comment: string); virtual;
       function    GetIntEntry(const Section, Tag: string; Default: longint): longint; virtual;
       procedure   SetIntEntry(const Section, Tag: string; Value: longint); virtual;
       procedure   DeleteSection(const Section: string); virtual;
@@ -83,10 +87,37 @@ const MainSectionName : string[40] = 'MainSection';
       CommentChar     : char = ';';
       ValidStrDelimiters: set of char = ['''','"'];
 
+function EscapeIniText(S : string) : String;
+
 implementation
 
 uses
   WUtils;
+
+function EscapeIniText(S : string) : String;
+var
+  delimiter : char;
+  i: integer;
+begin
+  delimiter:=#0;
+  while delimiter < #255 do
+    begin
+      if (delimiter in ValidStrDelimiters) and
+         (pos(delimiter,S)=0) then
+        break;
+      delimiter:=succ(delimiter);
+    end;
+  if delimiter=#255 then
+    begin
+      { we use " delimiter, but the text also contains double quotes,
+        which need to be escaped, by doubling it }
+      delimiter:='"';
+      for i:=length(s) downto 1 do
+        if (s[i]=delimiter) then
+          s:=copy(s,1,i-1)+delimiter+copy(s,i+1,length(s));
+    end;
+  EscapeIniText:=delimiter+s+delimiter;
+end;
 
 {$IFOPT Q+}
   {$Q-}
@@ -120,6 +151,15 @@ begin
   Split;
 end;
 
+constructor TINIEntry.Init(const ATag,AValue,AComment: string);
+begin
+  inherited Init;
+  Tag:=NewStr(ATag);
+  Value:=NewStr(AValue);
+  Comment:=NewStr(AComment);
+  Text:=NewStr(GetText);
+end;
+
 
 function TINIEntry.GetText: string;
 var S,CoS: string;
@@ -129,7 +169,13 @@ begin
       CoS:=GetComment;
       S:=GetTag+'='+GetValue;
       if Trim(S)='=' then S:=CoS else
-        if CoS<>'' then S:=S+' '+CommentChar+' '+CoS;
+        if CoS<>'' then
+          begin
+            { if Value contains CommentChar, we need to add delimiters }
+            if pos(CommentChar,S)>0 then
+              S:=EscapeIniText(S);
+            S:=S+' '+CommentChar+' '+CoS;
+          end
     end
     else S:=Text^;
   GetText:=S;
@@ -165,6 +211,17 @@ begin
   end;
 end;
 
+procedure TINIEntry.SetComment(const S: string);
+begin
+  if (GetComment<>S) then
+  begin
+    if Text<>nil then DisposeStr(Text); Text:=nil;
+    if Comment<>nil then DisposeStr(Comment);
+    Comment:=NewStr(S);
+    Modified:=true;
+  end;
+end;
+
 
 procedure TINIEntry.Split;
 var S,ValueS: string;
@@ -174,9 +231,11 @@ var S,ValueS: string;
     InString: boolean;
     Delimiter: char;
 begin
-  S:=GetText; Delimiter:=#0;
+  S:=GetText;
+  Delimiter:=#0;
   P:=Pos('=',S); P2:=Pos(CommentChar,S);
-  if (P2<>0) and (P2<P) then P:=0;
+  if (P2<>0) and (P2<P) then
+    P:=0;
   if P<>0 then
     begin
       Tag:=NewStr(copy(S,1,P-1));
@@ -186,15 +245,37 @@ begin
       while (P2<=length(S)) do
         begin
           C:=S[P2];
-          if (P2=StartP) and (C in ValidStrDelimiters) then begin Delimiter:=C; InString:=true; end else
-          if C=Delimiter then InString:=not InString else
-          if (C=CommentChar) and (InString=false) then Break else
-          ValueS:=ValueS+C;
+          if (P2=StartP) and (C in ValidStrDelimiters) then
+            begin
+              Delimiter:=C;
+              InString:=true;
+            end
+          else if (C=Delimiter) then
+            begin
+              { Delimiter inside escaped Value are simply doubled }
+              if (P2+1<length(S)) and (S[P2+1]=Delimiter) then
+                ValueS:=ValueS+Delimiter
+              else
+                InString:=not InString;
+            end
+          else if (C=CommentChar) and (InString=false) then
+            Break
+          else
+            ValueS:=ValueS+C;
           Inc(P2);
         end;
       Value:=NewStr(Trim(ValueS));
       Comment:=NewStr(copy(S,P2+1,High(S)));
-    end else
+      { dispose raw text as special treatment is needed for
+        write }
+      if assigned(Comment) and assigned(Text) and
+         (delimiter<>#0) then
+        begin
+          DisposeStr(Text);
+          Text:=nil;
+        end;
+    end
+  else
     begin
       Tag:=nil;
       TagHash:=0;
@@ -229,10 +310,47 @@ begin
 end;
 
 function TINISection.AddEntry(const S: string): PINIEntry;
+var
+  E: PINIEntry;
+  Tag : String;
+begin
+  if pos('=',S)>0 then
+    begin
+      Tag:=copy(S,1,pos('=',S)-1);
+      E:=SearchEntry(Tag);
+    end
+  else
+    E:=nil;
+  if not assigned(E) then
+    begin
+      New(E, Init(S));
+      Entries^.Insert(E);
+    end
+  else
+    begin
+      if assigned(E^.Text) then
+         DisposeStr(E^.Text);
+      E^.Text:=NewStr(S);
+      E^.Split;
+    end;
+  AddEntry:=E;
+end;
+
+function TINISection.AddEntry(const Tag,Value,Comment: string): PINIEntry;
 var E: PINIEntry;
 begin
-  New(E, Init(S));
-  Entries^.Insert(E);
+  E:=SearchEntry(Tag);
+  if not assigned(E) then
+    begin
+      New(E, Init(Tag,Value,Comment));
+      Entries^.Insert(E);
+    end
+  else
+    begin
+      E^.SetValue(Value);
+      if Comment<>'' then
+        E^.SetComment(Comment);
+    end;
   AddEntry:=E;
 end;
 
@@ -460,7 +578,7 @@ begin
   GetEntry:=S;
 end;
 
-procedure TINIFile.SetEntry(const Section, Tag, Value: string);
+procedure TINIFile.SetEntry(const Section, Tag, Value,Comment: string);
 var E: PINIEntry;
     P: PINISection;
 begin
@@ -474,11 +592,16 @@ begin
           New(P, Init(Section));
           Sections^.Insert(P);
         end;
-      E:=P^.AddEntry(Tag+'='+Value);
+      E:=P^.AddEntry(Tag,Value,Comment);
       E^.Modified:=true;
     end;
   if E<>nil then
     E^.SetValue(Value);
+end;
+
+procedure TINIFile.SetEntry(const Section, Tag, Value: string);
+begin
+  SetEntry(Section,Tag,Value,'');
 end;
 
 function TINIFile.GetIntEntry(const Section, Tag: string; Default: longint): longint;

@@ -1,3 +1,6 @@
+{ %skiptarget=os2,emx }
+(* This test program tries to link in a resource file in MS Windows format *)
+(* which is not supported for the OS2 and EMX targets.                     *)
 program bunzip2test;
 {
     This file is part of the Free Pascal packages.

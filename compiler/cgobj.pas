@@ -85,6 +85,7 @@ unit cgobj;
           function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getmmregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
+          function gettempregister(list:TAsmList):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
@@ -105,7 +106,7 @@ unit cgobj;
           procedure do_register_allocation(list:TAsmList;headertai:tai);virtual;
           procedure translate_register(var reg : tregister);
 
-          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
+          function makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister; virtual;
 
           {# Emit a label to the instruction stream. }
           procedure a_label(list : TAsmList;l : tasmlabel);virtual;
@@ -247,7 +248,7 @@ unit cgobj;
           procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);virtual; abstract;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tcgsize; src, dst: TRegister); virtual; abstract;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister); virtual;
 
           { Multiplication with doubling result size.
             dstlo or dsthi may be NR_NO, in which case corresponding half of result is discarded. }
@@ -346,38 +347,7 @@ unit cgobj;
           }
           procedure optimize_op_const(size: TCGSize; var op: topcg; var a : tcgint);virtual;
 
-         {#
-             This routine is used in exception management nodes. It should
-             save the exception reason currently in the FUNCTION_RETURN_REG. The
-             save should be done either to a temp (pointed to by href).
-             or on the stack (pushing the value on the stack).
 
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_save(list : TAsmList; const href : treference);virtual;
-         {#
-             This routine is used in exception management nodes. It should
-             save the exception reason constant. The
-             save should be done either to a temp (pointed to by href).
-             or on the stack (pushing the value on the stack).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);virtual;
-         {#
-             This routine is used in exception management nodes. It should
-             load the exception reason to the FUNCTION_RETURN_REG. The saved value
-             should either be in the temp. area (pointed to by href , href should
-             *NOT* be freed) or on the stack (the value should be popped).
-
-             The size of the value to save is OS_S32. The default version
-             saves the exception reason to a temp. memory area.
-          }
-         procedure g_exception_reason_load(list : TAsmList; const href : treference);virtual;
-
-          procedure g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
              to destination.
 
@@ -412,7 +382,7 @@ unit cgobj;
 
              @param(size Number of bytes to allocate)
           }
-          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual; abstract;
+          procedure g_stackpointer_alloc(list : TAsmList;size : longint);virtual;
           {# Emits instruction for allocating the locals in entry
              code of a routine. This is one of the first
              routine called in @var(genentrycode).
@@ -446,14 +416,7 @@ unit cgobj;
           }
           procedure g_restore_registers(list:TAsmList);virtual;
 
-          procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);virtual;
-
-          { generate a stub which only purpose is to pass control the given external method,
-          setting up any additional environment before doing so (if required).
-
-          The default implementation issues a jump instruction to the external name. }
-          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
           { initialize the pic/got register }
           procedure g_maybe_got_init(list: TAsmList); virtual;
@@ -671,6 +634,12 @@ implementation
       end;
 
 
+    function tcg.gettempregister(list: TAsmList): Tregister;
+      begin
+        result:=rg[R_TEMPREGISTER].getregister(list,R_SUBWHOLE);
+      end;
+
+
     function Tcg.makeregsize(list:TAsmList;reg:Tregister;size:Tcgsize):Tregister;
       var
         subreg:Tsubregister;
@@ -815,8 +784,15 @@ implementation
 
 
     procedure tcg.translate_register(var reg : tregister);
+      var
+        rt: tregistertype;
       begin
-        rg[getregtype(reg)].translate_register(reg);
+        { Getting here without assigned rg is possible for an "assembler nostackframe"
+          function returning x87 float, compiler tries to translate NR_ST which is used for
+          result.  }
+        rt:=getregtype(reg);
+        if assigned(rg[rt]) then
+          rg[rt].translate_register(reg);
       end;
 
 
@@ -828,7 +804,8 @@ implementation
 
     procedure tcg.a_reg_dealloc(list : TAsmList;r : tregister);
       begin
-         list.concat(tai_regalloc.dealloc(r,nil));
+        if (r<>NR_NO) then
+          list.concat(tai_regalloc.dealloc(r,nil));
       end;
 
 
@@ -857,7 +834,14 @@ implementation
          ref : treference;
          tmpreg : tregister;
       begin
-         cgpara.check_simple_location;
+         if assigned(cgpara.location^.next) then
+           begin
+             tg.gethltemp(list,cgpara.def,cgpara.def.size,tt_persistent,ref);
+             a_load_reg_ref(list,size,size,r,ref);
+             a_load_ref_cgpara(list,size,ref,cgpara);
+             tg.ungettemp(list,ref);
+             exit;
+           end;
          paramanager.alloccgpara(list,cgpara);
          if cgpara.location^.shiftval<0 then
            begin
@@ -1112,8 +1096,12 @@ implementation
                cgsize:=paraloc.size;
                if paraloc.shiftval>0 then
                  a_op_const_reg_reg(list,OP_SHL,OS_INT,paraloc.shiftval,paraloc.register,paraloc.register)
+               { in case the original size was 3 or 5/6/7 bytes, the value was
+                 shifted to the top of the to 4 resp. 8 byte register on the
+                 caller side and needs to be stored with those bytes at the
+                 start of the reference -> don't shift right }
                else if (paraloc.shiftval<0) and
-                       (sizeleft in [1,2,4]) then
+                       ((-paraloc.shiftval) in [1,2,4]) then
                  begin
                    a_op_const_reg_reg(list,OP_SHR,OS_INT,-paraloc.shiftval,paraloc.register,paraloc.register);
                    { convert to a register of 1/2/4 bytes in size, since the
@@ -1199,7 +1187,14 @@ implementation
                end;
              end;
            LOC_FPUREGISTER :
-             a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+             begin
+               case getregtype(reg) of
+                 R_FPUREGISTER:
+                   a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg)
+                 else
+                   internalerror(2015031401);
+                 end;
+             end;
            LOC_REFERENCE :
              begin
                reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
@@ -1325,8 +1320,10 @@ implementation
                       dec(tmpref.offset)
                     else
                       inc(tmpref.offset);
-                    a_load_ref_reg(list,OS_8,OS_16,tmpref,register);
-                    a_op_reg_reg(list,OP_OR,OS_16,tmpreg,register);
+                    tmpreg2:=makeregsize(list,register,OS_16);
+                    a_load_ref_reg(list,OS_8,OS_16,tmpref,tmpreg2);
+                    a_op_reg_reg(list,OP_OR,OS_16,tmpreg,tmpreg2);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg2,register);
                   end;
               OS_32,OS_S32:
                 if ref.alignment=2 then
@@ -1340,8 +1337,10 @@ implementation
                       dec(tmpref.offset,2)
                     else
                       inc(tmpref.offset,2);
-                    a_load_ref_reg(list,OS_16,OS_32,tmpref,register);
-                    a_op_reg_reg(list,OP_OR,OS_32,tmpreg,register);
+                    tmpreg2:=makeregsize(list,register,OS_32);
+                    a_load_ref_reg(list,OS_16,OS_32,tmpref,tmpreg2);
+                    a_op_reg_reg(list,OP_OR,OS_32,tmpreg,tmpreg2);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg2,register);
                   end
                 else
                   begin
@@ -1360,7 +1359,7 @@ implementation
                         a_load_ref_reg(list,OS_8,OS_32,tmpref,tmpreg2);
                         a_op_reg_reg(list,OP_OR,OS_32,tmpreg2,tmpreg);
                       end;
-                    a_load_reg_reg(list,OS_32,OS_32,tmpreg,register);
+                    a_load_reg_reg(list,fromsize,tosize,tmpreg,register);
                   end
               else
                 a_load_ref_reg(list,fromsize,tosize,tmpref,register);
@@ -1625,13 +1624,22 @@ implementation
       var
          href : treference;
          hsize: tcgsize;
+         paraloc: PCGParaLocation;
       begin
          case cgpara.location^.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             begin
-              cgpara.check_simple_location;
               paramanager.alloccgpara(list,cgpara);
-              a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
+              paraloc:=cgpara.location;
+              href:=ref;
+              while assigned(paraloc) do
+                begin
+                  if not(paraloc^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+                    internalerror(2015031501);
+                  a_loadfpu_ref_reg(list,paraloc^.size,paraloc^.size,href,paraloc^.register);
+                  inc(href.offset,tcgsize2size[paraloc^.size]);
+                  paraloc:=paraloc^.next;
+                end;
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
@@ -1756,6 +1764,20 @@ implementation
     procedure Tcg.a_op_const_reg_reg(list:TAsmList;op:Topcg;size:Tcgsize;
                                      a:tcgint;src,dst:Tregister);
     begin
+      optimize_op_const(size, op, a);
+      case op of
+        OP_NONE:
+          begin
+            if src <> dst then
+              a_load_reg_reg(list, size, size, src, dst);
+            exit;
+          end;
+        OP_MOVE:
+          begin
+            a_load_const_reg(list, size, a, dst);
+            exit;
+          end;
+      end;
       a_load_reg_reg(list,size,size,src,dst);
       a_op_const_reg(list,op,size,a,dst);
     end;
@@ -2166,52 +2188,6 @@ implementation
 {$endif cpuflags}
 
 
-    procedure tcg.g_maybe_testvmt(list : TAsmList;reg:tregister;objdef:tobjectdef);
-      var
-        hrefvmt : treference;
-        cgpara1,cgpara2 : TCGPara;
-        pd: tprocdef;
-      begin
-        cgpara1.init;
-        cgpara2.init;
-        if (cs_check_object in current_settings.localswitches) then
-         begin
-           pd:=search_system_proc('fpc_check_object_ext');
-           paramanager.getintparaloc(pd,1,cgpara1);
-           paramanager.getintparaloc(pd,2,cgpara2);
-           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname,AT_DATA),0,sizeof(pint));
-           if pd.is_pushleftright then
-             begin
-               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-             end
-           else
-             begin
-               a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-               a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-             end;
-           paramanager.freecgpara(list,cgpara1);
-           paramanager.freecgpara(list,cgpara2);
-           allocallcpuregisters(list);
-           a_call_name(list,'fpc_check_object_ext',false);
-           deallocallcpuregisters(list);
-         end
-        else
-         if (cs_check_range in current_settings.localswitches) then
-          begin
-            pd:=search_system_proc('fpc_check_object');
-            paramanager.getintparaloc(pd,1,cgpara1);
-            a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-            paramanager.freecgpara(list,cgpara1);
-            allocallcpuregisters(list);
-            a_call_name(list,'fpc_check_object',false);
-            deallocallcpuregisters(list);
-          end;
-        cgpara1.done;
-        cgpara2.done;
-      end;
-
-
 {*****************************************************************************
                             Entry/Exit Code Functions
 *****************************************************************************}
@@ -2357,25 +2333,6 @@ implementation
       end;
 
 
-    procedure tcg.g_exception_reason_save(list : TAsmList; const href : treference);
-      begin
-        a_load_reg_ref(list, OS_INT, OS_INT, NR_FUNCTION_RESULT_REG, href);
-      end;
-
-
-    procedure tcg.g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);
-      begin
-        a_load_const_ref(list, OS_INT, a, href);
-      end;
-
-
-    procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
-      begin
-        a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-        a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
-      end;
-
-
     procedure tcg.g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);
       var
         hsym : tsym;
@@ -2407,12 +2364,6 @@ implementation
               end;
               paraloc:=next;
             end;
-      end;
-
-
-    procedure tcg.g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string);
-      begin
-        a_jmp_name(list,externalname);
       end;
 
 
@@ -2506,6 +2457,18 @@ implementation
       begin
         Result:=TRegister(0);
         internalerror(200807238);
+      end;
+
+
+    procedure tcg.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tcgsize; src, dst: TRegister);
+      begin
+        internalerror(2014070601);
+      end;
+
+
+    procedure tcg.g_stackpointer_alloc(list: TAsmList; size: longint);
+      begin
+        internalerror(2014070602);
       end;
 
 

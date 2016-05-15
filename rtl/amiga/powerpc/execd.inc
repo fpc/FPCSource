@@ -19,9 +19,9 @@
 {include emuld.inc}
 {$include utild1.inc}
 
-{$WARNING Ugly hack, remove this ASAP!}
+{.$WARNING Ugly hack, remove this ASAP!}
 type
-  PInterface = Pointer;
+  POS4Interface = Pointer;
 
 
 { * exec node definitions (V50)
@@ -494,7 +494,7 @@ type
   TMemEntry = packed record
     me_Un: packed record
     case Byte of
-      0 : (meu_Regs: DWord);
+      0 : (meu_Reqs: DWord);
       1 : (meu_Addr: Pointer)
     end;
     me_Length: DWord;
@@ -505,7 +505,7 @@ type
   TMemList = packed record
     ml_Node      : TNode;
     ml_NumEntries: Word;
-    ml_ME        : PMemEntry;
+    ml_ME        : array [0..0] of TMemEntry;
   end;
 
 

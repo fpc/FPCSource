@@ -1,4 +1,4 @@
-Program Bezier;
+Program Bezier2;
 
 
 {  This program draws Bezier curves in the slow, simple, recursive
@@ -26,7 +26,7 @@ Program Bezier;
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, graphics, utility, pastoc, systemvartags;
+uses exec, intuition, agraphics, utility;
 
 type
     PointRec = Record
@@ -72,7 +72,7 @@ end;
 
 Procedure DrawLine;
 begin
-    Move(rp, Points[PointCount].X, Points[PointCount].Y);
+    GfxMove(rp, Points[PointCount].X, Points[PointCount].Y);
     Draw(rp, LastX, LastY);
 end;
 
@@ -133,10 +133,10 @@ var
     end;
 
 begin
-    Move(rp, 252, 30);
-    GText(rp, 'Enter points by pressing the left mouse button', 46);
-    Move(rp, 252, 40);
-    GText(rp, 'Double click on the last point to begin drawing', 47);
+    GfxMove(rp, 252, 30);
+    GfxText(rp, 'Enter points by pressing the left mouse button', 46);
+    GfxMove(rp, 252, 40);
+    GfxText(rp, 'Double click on the last point to begin drawing', 47);
     ModifyIDCMP(w, IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or IDCMP_MOUSEMOVE);
     SetDrMd(rp, COMPLEMENT);
     PointCount := 0;
@@ -223,7 +223,7 @@ begin
     increment := 0.01; { This could be a function of PointCount }
     t := 0.0;
     tprime := 1.0;
-    Move(rp, Trunc(BezierX(Pred(PointCount), 1)),
+    GfxMove(rp, Trunc(BezierX(Pred(PointCount), 1)),
              Trunc(BezierY(Pred(PointCount), 1)));
     t := t + increment;
     tprime := 1.0 - t;
@@ -242,11 +242,12 @@ begin
 end;
 
 begin
-      s := OpenScreenTags(nil,[SA_Pens, @pens,
-      SA_Depth,     2,
-      SA_DisplayID, HIRES_KEY,
-      SA_Title,     'Simple Bezier Curves',
-      TAG_END]);
+      s := OpenScreenTags(nil,[
+        SA_Pens, AsTag(@pens),
+        SA_Depth,     2,
+        SA_DisplayID, HIRES_KEY,
+        SA_Title,     AsTag('Simple Bezier Curves'),
+        TAG_END]);
 
     if s = NIL then CleanUpAndDie;
 
@@ -262,8 +263,8 @@ begin
       WA_ReportMouse,  ltrue,
       WA_SmartRefresh, ltrue,
       WA_Activate,     ltrue,
-      WA_Title,        'Close the Window to Quit',
-      WA_CustomScreen, s,
+      WA_Title,        AsTag('Close the Window to Quit'),
+      WA_CustomScreen, AsTag(s),
       TAG_END]);
 
     IF w=NIL THEN CleanUpAndDie;

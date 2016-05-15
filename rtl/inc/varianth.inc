@@ -125,10 +125,8 @@ type
                      varany :  (vany : pointer);
                      vararray : (varray : pvararray);
                      varbyref : (vpointer : pointer);
-{$ifdef FPC_HASFIXED64BITVARIANT}
                      { unused so far, only to fill up space }
                      varrecord : (vrecord : pointer;precinfo : pointer);
-{$endif FPC_HASFIXED64BITVARIANT}
                 );
                1:
                  (vlongs : array[0..2] of longint);
@@ -204,7 +202,7 @@ type
       varcast : procedure(var dest : variant;const source : variant;vartype : longint);
       varcastole : procedure(var dest : variant; const source : variant;vartype : longint);
 
-      dispinvoke: procedure(dest : pvardata;const source : tvardata;
+      dispinvoke: procedure(dest : pvardata;var source : tvardata;
         calldesc : pcalldesc;params : pointer);cdecl;
 
       vararrayredim : procedure(var a : variant;highbound : SizeInt);
@@ -337,11 +335,6 @@ operator :=(const source : variant) dest : comp;{$ifdef SYSTEMINLINE}inline;{$en
 {$ifndef FPUNONE}
 operator :=(const source : variant) dest : real;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif}
-
-{ done by the compiler now }
-{$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
-operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-{$endif FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 

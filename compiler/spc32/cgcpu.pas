@@ -99,15 +99,12 @@ unit cgcpu;
         procedure fixref(list : TAsmList;var ref : treference);
         function normalize_ref(list : TAsmList;ref : treference) : treference;
 
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
 
         procedure a_adjust_sp(list: TAsmList; value: longint);
 
         procedure call_rtl_mul_const_reg(list:tasmlist;size:tcgsize;a:tcgint;reg:tregister;const name:string);
         procedure call_rtl_mul_reg_reg(list:tasmlist;reg1,reg2:tregister;const name:string);
-
-        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
       end;
 
       tcg64fspc32 = class(tcg64f32)
@@ -843,12 +840,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcgspc32.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
-      begin
-        Comment(V_Error,'tcgspc32.a_bit_scan_reg_reg method not implemented');
-      end;
-
-
     procedure tcgspc32.a_jmp_name(list : TAsmList;const s : string);
       var
         ai : taicpu;
@@ -926,9 +917,9 @@ unit cgcpu;
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pd,1,paraloc1);
-        paramanager.getintparaloc(pd,2,paraloc2);
-        paramanager.getintparaloc(pd,3,paraloc3);
+        paramanager.getintparaloc(list,pd,1,paraloc1);
+        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getintparaloc(list,pd,3,paraloc3);
         a_load_const_cgpara(list,OS_8,0,paraloc3);
         a_load_const_cgpara(list,size,a,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg,paraloc1);
@@ -955,9 +946,9 @@ unit cgcpu;
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pd,1,paraloc1);
-        paramanager.getintparaloc(pd,2,paraloc2);
-        paramanager.getintparaloc(pd,3,paraloc3);
+        paramanager.getintparaloc(list,pd,1,paraloc1);
+        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getintparaloc(list,pd,3,paraloc3);
         a_load_const_cgpara(list,OS_8,0,paraloc3);
         a_load_reg_cgpara(list,OS_32,reg1,paraloc2);
         a_load_reg_cgpara(list,OS_32,reg2,paraloc1);
@@ -1220,9 +1211,9 @@ unit cgcpu;
         paraloc1.init;
         paraloc2.init;
         paraloc3.init;
-        paramanager.getintparaloc(pd,1,paraloc1);
-        paramanager.getintparaloc(pd,2,paraloc2);
-        paramanager.getintparaloc(pd,3,paraloc3);
+        paramanager.getintparaloc(list,pd,1,paraloc1);
+        paramanager.getintparaloc(list,pd,2,paraloc2);
+        paramanager.getintparaloc(list,pd,3,paraloc3);
         a_load_const_cgpara(list,OS_SINT,len,paraloc3);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);
@@ -1376,68 +1367,6 @@ unit cgcpu;
     procedure tcgspc32.g_stackpointer_alloc(list: TAsmList; size: longint);
       begin
         internalerror(201201071);
-      end;
-
-
-    procedure tcgspc32.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      var
-        make_global : boolean;
-        tmpref : treference;
-        l : TAsmLabel;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or
-           create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          list.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          list.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { the wrapper might need aktlocaldata for the additional data to
-          load the constant }
-        current_procinfo:=cprocinfo.create(nil);
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        { case 4 }
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            list.concat(taicpu.op_none(A_NUL));
-            list.concat(taicpu.op_reg(A_LDW,NR_R0));
-            list.concat(taicpu.op_const(A_LDW,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)));
-            list.concat(taicpu.op_const(A_JMP,0));
-          end
-        else
-          begin
-            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
-
-            tmpref.refaddr:=addr_lo16;
-            list.concat(taicpu.op_ref(A_LD,tmpref));
-            tmpref.refaddr:=addr_hi16;
-            list.concat(taicpu.op_ref(A_LDU,tmpref));
-
-            list.concat(taicpu.op_const(A_JMP,0));
-          end;
-        list.concatlist(current_procinfo.aktlocaldata);
-
-        current_procinfo.Free;
-        current_procinfo:=nil;
-
-        list.concat(Tai_symbol_end.Createname(labelname));
       end;
 
 

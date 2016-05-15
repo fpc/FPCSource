@@ -291,6 +291,10 @@ uses
       {# Stack pointer register }
       NR_STACK_POINTER_REG = NR_R1;
       RS_STACK_POINTER_REG = RS_R1;
+      { old stack pointer register used during copying variables from the caller
+        stack frame
+      }
+      NR_OLD_STACK_POINTER_REG = NR_R12;
       {# Frame pointer register }
       NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
       RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
@@ -376,6 +380,7 @@ uses
       LA_LR_SYSV = 4;
       { offset in the linkage area for the saved RTOC register}
       LA_RTOC_AIX = 20;
+      LA_RTOC_ELFV2 = 12;
 
       PARENT_FRAMEPOINTER_OFFSET = 12;
 

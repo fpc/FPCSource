@@ -59,7 +59,7 @@ unit optdfa;
       symconst,symdef,symsym,
       defutil,
       procinfo,
-      nutils,
+      nutils,htypechk,
       nbas,nflw,ncon,ninl,ncal,nset,nld,nadd,
       optbase;
 
@@ -326,8 +326,11 @@ unit optdfa;
                 counteruse_after_loop:=assigned(tfornode(node).left.optinfo) and assigned(node.successor) and
                   DFASetIn(node.successor.optinfo^.life,tfornode(node).left.optinfo^.index);
 
-                { if yes, then we should warn }
-                { !!!!!! }
+                if counteruse_after_loop then
+                  begin
+                    { if yes, then we should warn }
+                    { !!!!!! }
+                  end;
 
                 { first update the dummy node }
 
@@ -517,6 +520,10 @@ unit optdfa;
                   end;
               end;
 
+{$ifdef JVM}
+            { all other platforms except jvm translate raise nodes into call nodes during pass_1 }
+            raisen,
+{$endif JVM}
             asn,
             inlinen,
             calln:
@@ -671,6 +678,27 @@ unit optdfa;
           PSearchNodeInfo(arg)^.warnedfilelocs[high(PSearchNodeInfo(arg)^.warnedfilelocs)]:=f;
         end;
 
+
+      { Checks if the symbol is a candidate for a warning.
+        Emit warning/note for living locals, result and parameters, but only about the current
+        symtables }
+      function SymbolCandidateForWarningOrHint(sym : tabstractnormalvarsym) : Boolean;
+        begin
+          Result:=(((sym.owner=current_procinfo.procdef.localst) and
+                    (current_procinfo.procdef.localst.symtablelevel=sym.owner.symtablelevel)
+                   ) or
+                   ((sym.owner=current_procinfo.procdef.parast) and
+                    (sym.typ=paravarsym) and
+                    (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel) and
+                    { all parameters except out parameters are initialized by the caller }
+                    (tparavarsym(sym).varspez=vs_out)
+                   ) or
+                   ((vo_is_funcret in sym.varoptions) and
+                    (current_procinfo.procdef.parast.symtablelevel=sym.owner.symtablelevel)
+                   )
+                  ) and not(vo_is_external in sym.varoptions)
+        end;
+
       var
         varsym : tabstractnormalvarsym;
         methodpointer,
@@ -688,19 +716,15 @@ unit optdfa;
                   while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn,typeconvn]) do
                     hpt:=tunarynode(hpt).left;
                   if assigned(hpt) and (hpt.nodetype=loadn) and not(WarnedForLocation(hpt.fileinfo)) and
-                    { warn only on the current symtable level }
-                    (((tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner=current_procinfo.procdef.localst) and
-                      (current_procinfo.procdef.localst.symtablelevel=tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner.symtablelevel)
-                     ) or
-                     ((tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner=current_procinfo.procdef.parast) and
-                      (current_procinfo.procdef.parast.symtablelevel=tabstractnormalvarsym(tloadnode(hpt).symtableentry).owner.symtablelevel)
-                     )
-                    ) and
+                    SymbolCandidateForWarningOrHint(tabstractnormalvarsym(tloadnode(hpt).symtableentry)) and
                     PSearchNodeInfo(arg)^.nodetosearch.isequal(hpt) then
                     begin
                       { issue only a hint for var, when encountering the node passed as out, we need only to stop searching }
                       if tcallparanode(n).parasym.varspez=vs_var then
-                        MessagePos1(hpt.fileinfo,sym_h_uninitialized_local_variable,tloadnode(hpt).symtableentry.RealName);
+                        UninitializedVariableMessage(hpt.fileinfo,false,
+                          tloadnode(hpt).symtable.symtabletype=localsymtable,
+                          is_managed_type(tloadnode(hpt).resultdef),
+                          tloadnode(hpt).symtableentry.RealName);
                       AddFilepos(hpt.fileinfo);
                       result:=fen_norecurse_true;
                     end
@@ -758,27 +782,14 @@ unit optdfa;
                 begin
                   varsym:=tabstractnormalvarsym(tloadnode(n).symtableentry);
 
-                  { Give warning/note for living locals, result and parameters, but only about the current
-                    symtables }
-                  if assigned(varsym.owner) and
-                    (((varsym.owner=current_procinfo.procdef.localst) and
-                      (current_procinfo.procdef.localst.symtablelevel=varsym.owner.symtablelevel)
-                     ) or
-                     ((varsym.owner=current_procinfo.procdef.parast) and
-                      (varsym.typ=paravarsym) and
-                      (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel) and
-                      { all parameters except out parameters are initialized by the caller }
-                      (tparavarsym(varsym).varspez=vs_out)
-                     ) or
-                     ((vo_is_funcret in varsym.varoptions) and
-                      (current_procinfo.procdef.parast.symtablelevel=varsym.owner.symtablelevel)
-                     )
-                    ) and
-                    not(vo_is_external in varsym.varoptions) then
+                  if assigned(varsym.owner) and SymbolCandidateForWarningOrHint(varsym) then
                     begin
                       if (vo_is_funcret in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                         begin
-                          MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
+                          if is_managed_type(varsym.vardef) then
+                            MessagePos(n.fileinfo,sym_w_managed_function_result_uninitialized)
+                          else
+                            MessagePos(n.fileinfo,sym_w_function_result_uninitialized);
                           AddFilepos(n.fileinfo);
                           result:=fen_norecurse_true;
                         end
@@ -787,10 +798,7 @@ unit optdfa;
                           { typed consts are initialized, further, warn only once per location }
                           if not (vo_is_typed_const in varsym.varoptions) and not(WarnedForLocation(n.fileinfo)) then
                             begin
-                              if varsym.typ=paravarsym then
-                                MessagePos1(n.fileinfo,sym_w_uninitialized_variable,varsym.realname)
-                              else
-                                MessagePos1(n.fileinfo,sym_w_uninitialized_local_variable,varsym.realname);
+                              UninitializedVariableMessage(n.fileinfo,true,varsym.typ=localvarsym,is_managed_type(varsym.vardef),varsym.realname);
                               AddFilepos(n.fileinfo);
                               result:=fen_norecurse_true;
                             end;
@@ -905,13 +913,20 @@ unit optdfa;
                   { don't warn about constructors }
                   not(current_procinfo.procdef.proctypeoption in [potype_class_constructor,potype_constructor]) then
                   begin
-                    MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
+                    if is_managed_type(current_procinfo.procdef.returndef) then
+                      MessagePos(node.fileinfo,sym_w_managed_function_result_uninitialized)
+                    else
+                      MessagePos(node.fileinfo,sym_w_function_result_uninitialized);
 
                     Setlength(SearchNodeInfo.warnedfilelocs,length(SearchNodeInfo.warnedfilelocs)+1);
                     SearchNodeInfo.warnedfilelocs[high(SearchNodeInfo.warnedfilelocs)]:=node.fileinfo;
                   end
               end;
             { could be the implicitly generated load node for the result }
+{$ifdef JVM}
+            { all other platforms except jvm translate raise nodes into call nodes during pass_1 }
+            raisen,
+{$endif JVM}
             loadn,
             assignn,
             calln,

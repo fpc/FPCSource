@@ -63,9 +63,9 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
          function BuildConstExpression:aint;
-         function BuildRefConstExpression:aint;
+         function BuildRefConstExpression(startingminus:boolean=false):aint;
          procedure BuildReference(oper : tx86operand);
          procedure BuildOperand(oper: tx86operand;istypecast:boolean);
          procedure BuildConstantOperand(oper: tx86operand);
@@ -85,7 +85,7 @@ Unit Rax86int;
        { aasm }
        aasmtai,aasmdata,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symsym,symdef,symtable,
+       symconst,symbase,symtype,symsym,symdef,symtable,symcpu,
        { parser }
        scanner,pbase,
        { register allocator }
@@ -228,6 +228,9 @@ Unit Rax86int;
       begin
         is_register:=false;
         actasmregister:=masm_regnum_search(lower(s));
+        { don't acceps "flags" as register name in an instruction }
+        if actasmregister=NR_FLAGS then
+          actasmregister:=NR_NO;
         if (actasmregister=NR_NO) and
            (current_procinfo.procdef.proccalloption=pocall_register) and
            (po_assembler in current_procinfo.procdef.procoptions) then
@@ -260,6 +263,7 @@ Unit Rax86int;
         srsym : tsym;
         srsymtable : TSymtable;
       begin
+        c:=scanner.c;
         { save old token and reset new token }
         prevasmtoken:=actasmtoken;
         actasmtoken:=AS_NONE;
@@ -270,10 +274,10 @@ Unit Rax86int;
         while (c in [' ',#9]) do
           c:=current_scanner.asmgetchar;
         { get token pos }
-        if not (c in [#10,#13,'{',';']) then
+        if not (c in [#10,#13,'{',';','(','/']) then
           current_scanner.gettokenpos;
       { Local Label, Label, Directive, Prefix or Opcode }
-        if firsttoken and not (c in [#10,#13,'{',';']) then
+        if firsttoken and not (c in [#10,#13,'{',';','(','/']) then
          begin
            firsttoken:=FALSE;
            len:=0;
@@ -349,8 +353,8 @@ Unit Rax86int;
                     c:=current_scanner.asmgetchar;
                   end;
                  uppervar(actasmpattern);
-                 { after prefix we allow also a new opcode }
-                 If is_prefix(actopcode) and is_asmopcode(actasmpattern) then
+                 { after prefix (or segment override) we allow also a new opcode }
+                 If (is_prefix(actopcode) or is_override(actopcode)) and is_asmopcode(actasmpattern) then
                   Begin
                     { if we are not in a constant }
                     { expression than this is an  }
@@ -421,7 +425,6 @@ Unit Rax86int;
              '''' : { string or character }
                begin
                  actasmpattern:='';
-                 current_scanner.in_asm_string:=true;
                  repeat
                    if c = '''' then
                     begin
@@ -463,14 +466,12 @@ Unit Rax86int;
                    else
                     break; { end if }
                  until false;
-                 current_scanner.in_asm_string:=false;
                  actasmtoken:=AS_STRING;
                  exit;
                end;
 
              '"' : { string or character }
                begin
-                 current_scanner.in_asm_string:=true;
                  actasmpattern:='';
                  repeat
                    if c = '"' then
@@ -513,7 +514,6 @@ Unit Rax86int;
                    else
                     break; { end if }
                  until false;
-                 current_scanner.in_asm_string:=false;
                  actasmtoken:=AS_STRING;
                  exit;
                end;
@@ -568,8 +568,14 @@ Unit Rax86int;
 
              '(' :
                begin
-                 actasmtoken:=AS_LPAREN;
                  c:=current_scanner.asmgetchar;
+                 if c='*' then
+                   begin
+                     current_scanner.skipoldtpcomment(true);
+                     GetToken;
+                   end
+                 else
+                   actasmtoken:=AS_LPAREN;
                  exit;
                end;
 
@@ -635,8 +641,14 @@ Unit Rax86int;
 
              '/' :
                begin
-                 actasmtoken:=AS_SLASH;
                  c:=current_scanner.asmgetchar;
+                 if c='/' then
+                   begin
+                     current_scanner.skipdelphicomment;
+                     GetToken;
+                   end
+                 else
+                   actasmtoken:=AS_SLASH;
                  exit;
                end;
 
@@ -688,12 +700,28 @@ Unit Rax86int;
                     end;
                   end;
                end;
-             ';','{',#13,#10 :
+
+             #13,#10:
+               begin
+                 current_scanner.linebreak;
+                 c:=current_scanner.asmgetchar;
+                 firsttoken:=TRUE;
+                 actasmtoken:=AS_SEPARATOR;
+                 exit;
+               end;
+
+             ';':
                begin
                  c:=current_scanner.asmgetchar;
                  firsttoken:=TRUE;
                  actasmtoken:=AS_SEPARATOR;
                  exit;
+               end;
+
+             '{':
+               begin
+                 current_scanner.skipcomment(true);
+                 GetToken;
                end;
 
               else
@@ -762,7 +790,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype;out isseg,is_farproc_entry:boolean);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -781,6 +809,8 @@ Unit Rax86int;
         value:=0;
         asmsym:='';
         asmsymtyp:=AT_DATA;
+        isseg:=false;
+        is_farproc_entry:=FALSE;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
@@ -874,6 +904,15 @@ Unit Rax86int;
                 expr:=expr + actasmpattern;
                 Consume(AS_INTNUM);
               end;
+{$ifdef i8086}
+            AS_SEG:
+              begin
+                isseg:=true;
+                Consume(actasmtoken);
+                if actasmtoken<>AS_ID then
+                 Message(asmr_e_seg_without_identifier);
+              end;
+{$endif i8086}
             AS_VMTOFFSET,
             AS_OFFSET:
               begin
@@ -973,7 +1012,17 @@ Unit Rax86int;
                    is_asmopcode(actasmpattern) then
                   break;
                 consume(AS_ID);
-                if SearchIConstant(tempstr,l) then
+                if (tempstr='@CODE') or (tempstr='@DATA') then
+                 begin
+                   if asmsym='' then
+                     begin
+                       asmsym:=tempstr;
+                       asmsymtyp:=AT_SECTION;
+                     end
+                   else
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                 end
+                else if SearchIConstant(tempstr,l) then
                  begin
                    str(l, tempstr);
                    expr:=expr + tempstr;
@@ -1013,6 +1062,10 @@ Unit Rax86int;
                                if Tprocsym(sym).ProcdefList.Count>1 then
                                 Message(asmr_w_calling_overload_func);
                                hs:=tprocdef(tprocsym(sym).ProcdefList[0]).mangledname;
+{$ifdef i8086}
+                               is_farproc_entry:=is_proc_far(tprocdef(tprocsym(sym).ProcdefList[0]))
+                                    and not (po_interrupt in tprocdef(tprocsym(sym).ProcdefList[0]).procoptions);
+{$endif i8086}
                                hssymtyp:=AT_FUNCTION;
                              end;
                            typesym :
@@ -1058,7 +1111,8 @@ Unit Rax86int;
                     end;
                    if (actasmtoken=AS_DOT) or
                       (assigned(sym) and
-                       (sym.typ = fieldvarsym)) then
+                       (sym.typ = fieldvarsym) and
+                       not(sp_static in sym.symoptions)) then
                      begin
                       BuildRecordOffsetSize(tempstr,l,k,hs,needvmtofs);
                       if hs <> '' then
@@ -1133,21 +1187,25 @@ Unit Rax86int;
         l : aint;
         hs : string;
         hssymtyp : TAsmsymtype;
+        isseg : boolean;
+        is_farproc_entry : boolean;
       begin
-        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp,isseg,is_farproc_entry);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
       end;
 
 
-    Function tx86intreader.BuildRefConstExpression:aint;
+    Function tx86intreader.BuildRefConstExpression(startingminus:boolean):aint;
       var
         l : aint;
         hs : string;
         hssymtyp : TAsmsymtype;
+        isseg : boolean;
+        is_farproc_entry : boolean;
       begin
-        BuildConstSymbolExpression(false,true,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,true,startingminus,l,hs,hssymtyp,isseg,is_farproc_entry);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1165,6 +1223,8 @@ Unit Rax86int;
         GotStar,GotOffset,HadVar,
         GotPlus,Negative : boolean;
         hl : tasmlabel;
+        isseg: boolean;
+        is_farproc_entry : boolean;
       Begin
         Consume(AS_LBRACKET);
         if not(oper.opr.typ in [OPR_LOCAL,OPR_REFERENCE]) then
@@ -1190,7 +1250,8 @@ Unit Rax86int;
                    (SearchIConstant(actasmpattern,l) or
                     SearchRecordType(actasmpattern)) then
                  begin
-                   l:=BuildRefConstExpression;
+                   l:=BuildRefConstExpression(negative);
+                   negative:=false;   { "l" was negated if necessary }
                    GotPlus:=(prevasmtoken=AS_PLUS);
                    GotStar:=(prevasmtoken=AS_STAR);
                    case oper.opr.typ of
@@ -1198,23 +1259,15 @@ Unit Rax86int;
                        begin
                          if GotStar then
                            Message(asmr_e_invalid_reference_syntax);
-                         if negative then
-                           Dec(oper.opr.localsymofs,l)
-                         else
-                           Inc(oper.opr.localsymofs,l);
+                         Inc(oper.opr.localsymofs,l);
                        end;
                      OPR_REFERENCE :
                        begin
                          if GotStar then
                           oper.opr.ref.scalefactor:=l
                          else
-                          begin
-                            if negative then
-                              Dec(oper.opr.ref.offset,l)
-                            else
-                              Inc(oper.opr.ref.offset,l);
-                          end;
-                        end;
+                           Inc(oper.opr.ref.offset,l);
+                       end;
                    end;
                  end
                 else
@@ -1249,6 +1302,10 @@ Unit Rax86int;
                           end
                         else
                           oper.opr.ref.relsymbol:=hl;
+{$ifdef i8086}
+                        if oper.opr.ref.segment=NR_NO then
+                          oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
                       end
                    else
                     if oper.SetupVar(tempstr,GotOffset) then
@@ -1427,6 +1484,11 @@ Unit Rax86int;
                     begin
                       if (oper.opr.localindexreg<>NR_NO) then
                         Message(asmr_e_multiple_index);
+{$ifdef x86_64}
+                      { Locals/parameters cannot be accessed RIP-relative. Need a dedicated error message here? }
+                      if (hreg=NR_RIP) then
+                        Message(asmr_e_no_local_or_para_allowed);
+{$endif x86_64}
                       oper.opr.localindexreg:=hreg;
                       if scale<>0 then
                         begin
@@ -1479,7 +1541,7 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp);
+                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
                 { already handled by BuildConstSymbolExpression(); must be
                   handled there to avoid [reg-1+1] being interpreted as
                   [reg-(1+1)] }
@@ -1490,7 +1552,18 @@ Unit Rax86int;
                    if GotStar then
                     Message(asmr_e_only_add_relocatable_symbol);
                    if not assigned(oper.opr.ref.symbol) then
-                    oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr)
+                     begin
+                       oper.opr.ref.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+{$ifdef i8086}
+                       if isseg then
+                         begin
+                           if not (oper.opr.ref.refaddr in [addr_fardataseg,addr_dgroup]) then
+                             oper.opr.ref.refaddr:=addr_seg;
+                         end
+                       else if (tempsymtyp=AT_FUNCTION) and (oper.opr.ref.segment=NR_NO) then
+                         oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
+                     end
                    else
                     Message(asmr_e_cant_have_multiple_relocatable_symbols);
                  end;
@@ -1558,15 +1631,34 @@ Unit Rax86int;
         l : aint;
         tempstr : string;
         tempsymtyp : tasmsymtype;
+        isseg: boolean;
+        is_farproc_entry : boolean;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp);
+        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp,isseg,is_farproc_entry);
+{$ifdef i8086}
+        if tempstr='@DATA' then
+          begin
+            if not isseg then
+              Message(asmr_e_CODE_or_DATA_without_SEG);
+            oper.SetupData;
+          end
+        else if tempstr='@CODE' then
+          begin
+            if not isseg then
+              Message(asmr_e_CODE_or_DATA_without_SEG);
+            oper.SetupCode;
+          end
+        else
+{$endif i8086}
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
             oper.opr.symofs:=l;
             oper.opr.symbol:=current_asmdata.RefAsmSymbol(tempstr);
+            oper.opr.symseg:=isseg;
+            oper.opr.sym_farproc_entry:=is_farproc_entry;
           end
         else
           if oper.opr.typ=OPR_NONE then
@@ -1593,6 +1685,10 @@ Unit Rax86int;
            begin
              oper.InitRef;
              oper.opr.ref.symbol:=hl;
+{$ifdef i8086}
+             if oper.opr.ref.segment=NR_NO then
+               oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
            end;
         end;
 
@@ -1670,6 +1766,15 @@ Unit Rax86int;
            end;
 
           case actasmtoken of
+{$ifndef i8086}
+            AS_SEG :
+              Begin
+                Message(asmr_e_seg_not_supported);
+                Consume(actasmtoken);
+              end;
+{$else not i8086}
+            AS_SEG,
+{$endif not i8086}
             AS_OFFSET,
             AS_SIZEOF,
             AS_VMTOFFSET,
@@ -1756,7 +1861,11 @@ Unit Rax86int;
                    else
                     if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
                      begin
+{$ifdef i8086}
+                       Message(asmr_e_CODE_or_DATA_without_SEG);
+{$else i8086}
                        Message(asmr_w_CODE_and_DATA_not_supported);
+{$endif i8086}
                        Consume(AS_ID);
                      end
                    else
@@ -1892,12 +2001,6 @@ Unit Rax86int;
                 BuildReference(oper);
               end;
 
-            AS_SEG :
-              Begin
-                Message(asmr_e_seg_not_supported);
-                Consume(actasmtoken);
-              end;
-
             AS_DWORD,
             AS_BYTE,
             AS_WORD,
@@ -1971,6 +2074,14 @@ Unit Rax86int;
         if (oper.typesize<>0) and
            (oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL]) then
           oper.SetSize(oper.typesize,true);
+{$ifdef i8086}
+        { references to a procedure/function entry, without an explicit segment
+          override, are added an CS: override by default (this is Turbo Pascal 7
+          compatible) }
+        if (oper.opr.typ=OPR_REFERENCE) and assigned(oper.opr.ref.symbol) and
+           (oper.opr.ref.symbol.typ=AT_FUNCTION) and (oper.opr.ref.segment=NR_NO) then
+          oper.opr.ref.segment:=NR_CS;
+{$endif i8086}
       end;
 
 
@@ -1978,8 +2089,15 @@ Unit Rax86int;
       var
         PrefixOp,OverrideOp: tasmop;
         operandnum : longint;
+        t: TRegister;
         is_far_const:boolean;
         i:byte;
+        tmp: toperand;
+{$ifdef i8086}
+        hsymbol: TAsmSymbol;
+        hoffset: ASizeInt;
+        href_farproc_entry: Boolean;
+{$endif i8086}
       begin
         PrefixOp:=A_None;
         OverrideOp:=A_None;
@@ -1989,7 +2107,6 @@ Unit Rax86int;
           if is_prefix(actopcode) then
             with instr do
               begin
-                OpOrder:=op_intel;
                 PrefixOp:=ActOpcode;
                 opcode:=ActOpcode;
                 condition:=ActCondition;
@@ -2001,7 +2118,6 @@ Unit Rax86int;
            if is_override(actopcode) then
              with instr do
                begin
-                 OpOrder:=op_intel;
                  OverrideOp:=ActOpcode;
                  opcode:=ActOpcode;
                  condition:=ActCondition;
@@ -2025,7 +2141,6 @@ Unit Rax86int;
         { Fill the instr object with the current state }
         with instr do
           begin
-            OpOrder:=op_intel;
             Opcode:=ActOpcode;
             condition:=ActCondition;
             opsize:=ActOpsize;
@@ -2050,17 +2165,27 @@ Unit Rax86int;
         else if (instr.opcode=A_POPA) then
           instr.opcode:=A_POPAW
 {$endif x86_64}
+{$ifdef i8086}
+        { ret is converted to retn or retf, depending on the call model of the
+          current procedure (BP7 compatible) }
+        else if (instr.opcode=A_RET) then
+          begin
+            if is_proc_far(current_procinfo.procdef) and
+               not (po_interrupt in current_procinfo.procdef.procoptions) then
+              instr.opcode:=A_RETF
+            else
+              instr.opcode:=A_RETN;
+          end
+{$endif i8086}
         ;
         { We are reading operands, so opcode will be an AS_ID }
-        operandnum:=1;
+        { process operands backwards to get them in AT&T order }
+        operandnum:=max_operands;
         is_far_const:=false;
         Consume(AS_OPCODE);
         { Zero operand opcode ?  }
         if actasmtoken in [AS_SEPARATOR,AS_END] then
-         begin
-           operandnum:=0;
-           exit;
-         end;
+          exit;
         { Read Operands }
         repeat
           case actasmtoken of
@@ -2072,10 +2197,13 @@ Unit Rax86int;
             { Operand delimiter }
             AS_COMMA :
               begin
-                if operandnum > Max_Operands then
+                { should have something before the comma }
+                if instr.operands[operandnum].opr.typ=OPR_NONE then
+                  Message(asmr_e_syntax_error);
+                if operandnum <= 1 then
                   Message(asmr_e_too_many_operands)
                 else
-                  Inc(operandnum);
+                  Dec(operandnum);
                 Consume(AS_COMMA);
               end;
 
@@ -2083,10 +2211,10 @@ Unit Rax86int;
             AS_COLON:
               begin
                 is_far_const:=true;
-                if operandnum>1 then
+                if operandnum<max_operands then
                   message(asmr_e_too_many_operands)
                 else
-                  inc(operandnum);
+                  dec(operandnum);
                 consume(AS_COLON);
               end;
 
@@ -2096,12 +2224,16 @@ Unit Rax86int;
               begin
                 if actasmtoken = AS_NEAR then
                   begin
+{$ifndef i8086}
                     Message(asmr_w_near_ignored);
+{$endif not i8086}
                     instr.opsize:=S_NEAR;
                   end
                 else
                   begin
+{$ifndef i8086}
                     Message(asmr_w_far_ignored);
+{$endif not i8086}
                     instr.opsize:=S_FAR;
                   end;
                 Consume(actasmtoken);
@@ -2116,6 +2248,15 @@ Unit Rax86int;
               BuildOperand(instr.Operands[operandnum] as tx86operand,false);
           end; { end case }
         until false;
+
+        { shift operands to start from 1, exchange to make sure they are destroyed correctly }
+        for i:=operandnum to max_operands do
+          begin
+            tmp:=instr.operands[i+1-operandnum];
+            instr.operands[i+1-operandnum]:=instr.operands[i];
+            instr.operands[i]:=tmp;
+          end;
+        operandnum:=(max_operands+1)-operandnum;
         instr.ops:=operandnum;
         { Check operands }
         for i:=1 to operandnum do
@@ -2132,15 +2273,65 @@ Unit Rax86int;
            (instr.operands[1].typesize<>0) then
           instr.operands[1].setsize(instr.operands[1].typesize,false);
 {$ifdef i8086}
-        { convert 'call symbol' to 'call far symbol' for memory models with far code }
         for i:=1 to operandnum do
           with instr.operands[i].opr do
-            if (instr.opcode=A_CALL) and (typ=OPR_SYMBOL) and (symbol<>nil) and (symbol.typ<>AT_DATA) then
-              if current_settings.x86memorymodel in x86_far_code_models then
+            begin
+              { convert 'call/jmp [proc/label]' to 'call/jmp proc/label'. Ugly,
+                but Turbo Pascal 7 compatible. }
+              if (instr.opcode in [A_CALL,A_JMP]) and (typ=OPR_REFERENCE) and
+                 assigned(ref.symbol) and (ref.symbol.typ in [AT_FUNCTION,AT_LABEL,AT_ADDR]) and
+                 (ref.base=NR_NO) and (ref.index=NR_NO) then
                 begin
-                  instr.opsize:=S_FAR;
+                  hsymbol:=ref.symbol;
+                  hoffset:=ref.offset;
+                  href_farproc_entry:=ref_farproc_entry;
+                  typ:=OPR_SYMBOL;
+                  symbol:=hsymbol;
+                  symofs:=hoffset;
+                  symseg:=False;
+                  sym_farproc_entry:=href_farproc_entry;
                 end;
+              { convert 'call/jmp symbol' to 'call/jmp far symbol' for symbols that are an entry point of a far procedure }
+              if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and
+                 (typ=OPR_SYMBOL) and sym_farproc_entry then
+                instr.opsize:=S_FAR;
+              { convert 'call/jmp dword [something]' to 'call/jmp far [something]' (BP7 compatibility) }
+              if (instr.opcode in [A_CALL,A_JMP]) and (instr.opsize=S_NO) and
+                 (typ in [OPR_LOCAL,OPR_REFERENCE]) and (instr.operands[i].size=OS_32) then
+                instr.opsize:=S_FAR;
+            end;
 {$endif i8086}
+        if (MemRefInfo(instr.opcode).ExistsSSEAVX) and
+           (MemRefInfo(instr.opcode).MemRefSize in MemRefSizeInfoVMems) then
+        begin
+          for i:=1 to operandnum do
+          begin
+            if (instr.operands[i].opr.typ = OPR_REFERENCE) and
+               (getregtype(instr.operands[i].opr.ref.base) = R_MMREGISTER) and
+               (instr.operands[i].opr.ref.index = NR_NO) then
+            begin
+              instr.operands[i].opr.ref.index := instr.operands[i].opr.ref.base;
+              instr.operands[i].opr.ref.base  := NR_NO;
+            end
+            else if (instr.operands[i].opr.typ = OPR_REFERENCE) and
+                    (getregtype(instr.operands[i].opr.ref.base) = R_MMREGISTER) and
+                    (getregtype(instr.operands[i].opr.ref.index) = R_INTREGISTER) and
+                    (getsubreg(instr.operands[i].opr.ref.index) = R_SUBADDR) then
+            begin
+              // exchange base- and index-register
+              // e.g. VGATHERDPD  XMM0, [XMM1 + RAX], XMM2 =>> VGATHERDPD  XMM0, [RAX + XMM1], XMM2
+              // e.g. VGATHERDPD  XMM0, [XMM1 + RAX * 2], XMM2 =>> not supported
+              // e.g. VGATHERDPD  XMM0, [XMM1 + RAX + 16], XMM2 =>> VGATHERDPD  XMM0, [RAX + XMM1 + 16]
+              if instr.operands[i].opr.ref.scalefactor > 1 then Message(asmr_e_invalid_reference_syntax)
+              else
+              begin
+                t := instr.operands[i].opr.ref.base;
+                instr.operands[i].opr.ref.base := instr.operands[i].opr.ref.index;
+                instr.operands[i].opr.ref.index := t;
+              end;
+            end;
+          end;
+        end;
       end;
 
 
@@ -2150,6 +2341,8 @@ Unit Rax86int;
         asmsym,
         expr: string;
         value : aint;
+        isseg: boolean;
+        is_farproc_entry : boolean;
       Begin
         Repeat
           Case actasmtoken of
@@ -2178,14 +2371,51 @@ Unit Rax86int;
             AS_LPAREN,
             AS_NOT,
             AS_INTNUM,
+{$ifdef i8086}
+            AS_SEG,
+{$endif i8086}
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp,isseg,is_farproc_entry);
                 if asmsym<>'' then
                  begin
-                   if constsize<>sizeof(pint) then
+                   if (not isseg) and (constsize<>sizeof(pint)) then
                      Message1(asmr_w_const32bit_for_address,asmsym);
-                   ConcatConstSymbol(curlist,asmsym,asmsymtyp,value)
+{$ifdef i8086}
+                   if asmsym='@DATA' then
+                     begin
+                       if not isseg then
+                         Message(asmr_e_CODE_or_DATA_without_SEG);
+                       if constsize<2 then
+                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                       if current_settings.x86memorymodel=mm_huge then
+                         curlist.concat(Tai_const.Create_fardataseg)
+                       else
+                         curlist.concat(Tai_const.Create_dgroup);
+                       if constsize>2 then
+                         ConcatConstant(curlist,0,constsize-2);
+                     end
+                   else if asmsym='@CODE' then
+                     begin
+                       if not isseg then
+                         Message(asmr_e_CODE_or_DATA_without_SEG);
+                       if constsize<2 then
+                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                       curlist.concat(Tai_const.Create_seg_name(current_procinfo.procdef.mangledname));
+                       if constsize>2 then
+                         ConcatConstant(curlist,0,constsize-2);
+                     end
+                   else if isseg then
+                     begin
+                       if constsize<2 then
+                         Message1(asmr_e_const16bit_for_segment,asmsym);
+                       curlist.concat(Tai_const.Create_seg_name(asmsym));
+                       if constsize>2 then
+                         ConcatConstant(curlist,0,constsize-2);
+                     end
+                   else
+{$endif i8086}
+                     ConcatConstSymbol(curlist,asmsym,asmsymtyp,value);
                  end
                 else
                  ConcatConstant(curlist,value,constsize);
@@ -2234,7 +2464,6 @@ Unit Rax86int;
       if not parse_generic then
         current_procinfo.generate_parameter_info;
       { start tokenizer }
-      c:=current_scanner.asmgetcharstart;
       gettoken;
       { main loop }
       repeat
@@ -2303,9 +2532,6 @@ Unit Rax86int;
               BuildOpcode(instr);
               with instr do
                 begin
-                  { We need AT&T style operands }
-                  Swapoperands;
-                  { Must be done with args in ATT order }
                   CheckNonCommutativeOpcodes;
                   AddReferenceSizes;
                   SetInstructionOpsize;

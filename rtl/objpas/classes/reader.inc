@@ -145,13 +145,9 @@ begin
 end;
 
 procedure TBinaryObjectReader.BeginRootComponent;
-var
-  Signature: LongInt;
 begin
   { Read filer signature }
-  Read(Signature, 4);
-  if Signature <> LongInt(unaligned(FilerSignature)) then
-    raise EReadError.Create(SInvalidImage);
+  ReadSignature;
 end;
 
 procedure TBinaryObjectReader.BeginComponent(var Flags: TFilerFlags;
@@ -312,6 +308,15 @@ begin
     SkipSetBody;
     raise;
   end;
+end;
+
+procedure TBinaryObjectReader.ReadSignature;
+var
+  Signature: LongInt;
+begin
+  Read(Signature, 4);
+  if Signature <> LongInt(unaligned(FilerSignature)) then
+    raise EReadError.Create(SInvalidImage);
 end;
 
 function TBinaryObjectReader.ReadStr: String;
@@ -1021,6 +1026,11 @@ begin
     Result := ReadInt64;
 end;
 
+procedure TReader.ReadSignature;
+begin
+  FDriver.ReadSignature;
+end;
+
 function TReader.ReadSingle: Single;
 begin
   if FDriver.NextValue = vaSingle then
@@ -1516,12 +1526,12 @@ begin
     begin
       Result := FDriver.ReadString(StringType);
       if (StringType=vaUTF8String) then
-        Result:=utf8Decode(Result);
+        Result:=string(utf8Decode(Result));
     end
   else if StringType in [vaWString] then
-    Result:= FDriver.ReadWidestring
+    Result:= string(FDriver.ReadWidestring)
   else if StringType in [vaUString] then
-    Result:= FDriver.ReadUnicodeString
+    Result:= string(FDriver.ReadUnicodeString)
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;

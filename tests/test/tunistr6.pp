@@ -2,7 +2,7 @@
 {$codepage utf-8}
 uses
   {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
   {$endif}
   sysutils;
 

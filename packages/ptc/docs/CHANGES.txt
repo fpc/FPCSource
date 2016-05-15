@@ -1,3 +1,8 @@
+0.99.14.1
+ - fixed X11 middle and right mouse button mapping. Previously, the right mouse
+   button and the middle mouse button were swapped, compared to Windows and DOS
+   and contrary to the documentation.
+
 0.99.14
  - added new unit ptcmouse for use with ptcgraph & ptccrt applications. It is
    similar to the winmouse and msmouse units.

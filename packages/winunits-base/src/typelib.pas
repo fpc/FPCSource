@@ -116,7 +116,7 @@ Type
     function TypeToString(TI: ITypeInfo; TD: TYPEDESC): string; virtual;
     function ValidateID(id: string): boolean; virtual;
     function ValidateIDAgainstDeclared(id: string): boolean; virtual;
-    function MakeValidId(id:string;var valid:string): boolean; virtual;
+    function MakeValidId(id:string;out valid:string): boolean; virtual;
     function MakeValidIdAgainstDeclared(id:string;var valid:string): boolean;
     function RemoveTag(typename: string): string;
     // The actual routines that do the work.
@@ -234,6 +234,7 @@ begin
     VT_SAFEARRAY:Result:='PSafeArray';
     VT_LPWSTR:Result:='PWideChar';
     VT_LPSTR:Result:='PChar';
+    VT_DECIMAL:Result:='TDecimal';
   else
     Result := 'Unknown (' + IntToStr(ParamType) + ')';
   end;
@@ -289,7 +290,7 @@ begin
   result:=i<0;
 end;
 
-function TTypeLibImporter.MakeValidId(id:string;var valid:string): boolean;
+function TTypeLibImporter.MakeValidId(id:string;out valid:string): boolean;
 begin
   result:= ValidateID(id);
   if result then
@@ -393,13 +394,16 @@ begin
         if RegQueryValue(Handle,nil,@sRefSrc[1],@il) = ERROR_SUCCESS then
           begin
           SetLength(sRefSrc,il-1);  // includes null terminator
-          if not FDependencies.Find(sRefSrc,i) then
+          i:=FDependencies.Indexof(sRefSrc);
+          if i < 0 Then
             FDependencies.Add(sRefSrc);
           end
         else
           sRefSrc:=GUIDToString(LARef^.GUID);
         RegCloseKey(Handle);
-        end;
+        end
+      else
+        sRefSrc:='DLL not registered in the system';
       AddToHeader('// Dependency: %s v%d.%d (%s)',[BstrName,LARef^.wMajorVerNum,LARef^.wMinorVerNum,sRefSrc]);
       FUses.Add(sl);
       TLRef.ReleaseTLibAttr(LARef);
@@ -451,8 +455,8 @@ var
   RTIT: HREFTYPE;
   TIref: ITypeInfo;
   BstrName,BstrNameRef,BstrDocString : WideString;
-  s,sl,sPropIntfc,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
-  sPropParam,sPropParam2,sPropParam3:string;
+  s,sl,sPropDispIntfc,sType,sConv,sFunc,sPar,sVarName,sMethodName,
+  sPropParam,sPropParam2,sPropParam3,tmp: string;
   sEventSignatures,sEventFunctions,sEventProperties,sEventImplementations:string;
   i,j,k:integer;
   FD: lpFUNCDESC;
@@ -463,6 +467,7 @@ var
   VD: lpVARDESC;
   aPropertyDefs:array of TPropertyDef;
   Propertycnt,iType:integer;
+  Modifier: string;
 
   function findProperty(ireqdispid:integer):integer;
   var i:integer;
@@ -497,13 +502,16 @@ var
 
   function GetName(i:integer):string;  //bug in Office10\MSacc.OLB _WizHook.Key
   begin
-    if i<cnt then
-      result:=BL[i]
-    else
+    result:='';
+    if i<integer(cnt) then
+      result:=BL[i];
+    if result='' then //No name ?
       result:='Param'+inttostr(i);
   end;
 
 begin
+  FillMemory(@TD,Sizeof(TD),0);
+  TD.vt:=VT_ILLEGAL;
   Propertycnt:=0;
   SetLength(aPropertyDefs,TA^.cFuncs+TA^.cVars);   // worst case, all functions getters or all setters
   sEventSignatures:='';
@@ -531,7 +539,6 @@ begin
       s:=format(#13#10'// %s : %s'#13#10#13#10' %sDisp = dispinterface'#13#10,[iname,iDoc,iname])
     else
       s:=format(#13#10'// %s : %s'#13#10#13#10' %s = dispinterface'#13#10,[iname,iDoc,iname]);
-  sPropIntfc:='';
   sPropDispIntfc:='';
   s:=s+format('   [''%s'']'#13#10,[GUIDToString(TA^.GUID)]);
   for j:=0 to TA^.cFuncs-1 do
@@ -540,11 +547,18 @@ begin
     OleCheck(TI.GetNames(FD^.memid,@BL,length(BL),cnt));
     // skip IUnknown and IDispatch methods
     sl:=lowercase(BL[0]);
-    if (sl='queryinterface') or (sl='addref') or (sl='release') then  //IUnknown
+    (*************************
+     * Code portion removed by José Mejuto.
+     * If the interface declaration appears in the TLB it must be imported
+     * or the sequences of functions will be broken and any function below this
+     * point would be called wrongly.
+     *************************
+    if ((sl='queryinterface') or (sl='addref') or (sl='release')) then  //IUnknown
       continue;
     if bIsDispatch and
       ((sl='gettypeinfocount') or (sl='gettypeinfo') or (sl='getidsofnames') or (sl='invoke')) then  //IDispatch
       continue;
+      *)
     // get return type
     if bIsDispatch and ((FD^.invkind=INVOKE_PROPERTYGET) or (FD^.invkind=INVOKE_FUNC)) then
       begin
@@ -756,6 +770,8 @@ begin
           begin
           //getters/setters for interface, insert in interface as they come,
           //store in aPropertyDefs to create properties at the end
+          bParamByRef:=(FD^.lprgelemdescParam[0].tdesc.vt=VT_PTR) and                         // by ref
+          not((FD^.lprgelemdescParam[0].tdesc.lptdesc^.vt=VT_USERDEFINED) and bIsInterface);// but not pointer to interface
           if bPropHasParam then
             begin
             sPropParam2:='('+sPropParam+')';
@@ -780,33 +796,41 @@ begin
             begin
             if not MakeValidId(GetName(1),sVarName) then
               AddToHeader('//  Warning: renamed parameter ''%s'' in %s.Set_%s to ''%s''',[GetName(1),iname,sMethodName,sVarName]);
-            with aPropertyDefs[findProperty(FD^.memid)] do
+            if not bParamByRef then
               begin
-              if FD^.invkind=INVOKE_PROPERTYPUT then
+              with aPropertyDefs[findProperty(FD^.memid)] do
                 begin
-                sptype:=sType;
-                bput:=true;
-                if bputref then                  //disambiguate  multiple setter
-                  sMethodName:=sMethodName+'_';
-                pname:=sMethodName;
-                end
-              else
-                begin
-                sprtype:=sType;
-                bputref:=true;
-                if bput then                     //disambiguate  multiple setter
-                  sMethodName:=sMethodName+'_';
-                prname:=sMethodName;
+                if FD^.invkind=INVOKE_PROPERTYPUT then
+                  begin
+                  sptype:=sType;
+                  bput:=true;
+                  if bputref then                  //disambiguate  multiple setter
+                    sMethodName:=sMethodName+'_';
+                  pname:=sMethodName;
+                  end
+                else
+                  begin
+                  sprtype:=sType;
+                  bputref:=true;
+                  if bput then                     //disambiguate  multiple setter
+                    sMethodName:=sMethodName+'_';
+                  prname:=sMethodName;
+                  end;
+                  sorgname:=BstrName;
+                  sdoc:=BstrDocString;
+                  sParam:=sPropParam;
+                  sDefault:=sl;
                 end;
-              sorgname:=BstrName;
-              sdoc:=BstrDocString;
-              sParam:=sPropParam;
-              sDefault:=sl;
               end;
-            if bPropHasParam then
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sPropParam3,sType,sConv])
+            tmp:='   procedure Set_%s(%s %s:%s); %s;'#13#10;
+            if not bParamByRef then 
+              Modifier:='const'
             else
-              s:=s+format('   procedure Set_%s(const %s:%s); %s;'#13#10,[sMethodName,sVarName,sType,sConv]);
+              Modifier:='var';
+            if bPropHasParam then
+              s:=s+format(tmp,[sMethodName,Modifier,sPropParam3,sType,sConv])
+            else
+              s:=s+format(tmp,[sMethodName,Modifier,sVarName,sType,sConv]);
             end;
           end;
         end;
@@ -1099,7 +1123,7 @@ Procedure TTypeLibImporter.CreateForwards(Const TL : ITypeLib; TICount : Integer
 Var
   i, j: integer;
   BstrName, BstrNameRef : WideString;
-  dwHelpContext: DWORD;
+//  dwHelpContext: DWORD;
   TI, TIref:ITypeInfo;
   TA:LPTYPEATTR;
   TIT: TYPEKIND;
@@ -1323,7 +1347,8 @@ Var
   BstrName, BstrDocString, BstrHelpFile, BstrNameRef : WideString;
   dwHelpContext : DWORD;
   TI,TIref,TIref2 : ITypeInfo;
-  TA,TAref,TAref2 : LPTYPEATTR;
+  TA,TAref: LPTYPEATTR;
+  //TAref2 : LPTYPEATTR;
   TIT : TYPEKIND;
   RTIT : HREFTYPE;
   sl: string;
@@ -1767,6 +1792,7 @@ var
 begin
   Header.Clear;
   InterfaceSection.Clear;
+  TL:=nil;
   OleCheck(LoadTypeLib(PWidechar(InputFileName), TL ));
   OleCheck(TL.GetLibAttr(LA));
   try

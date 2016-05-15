@@ -13,16 +13,17 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-async');
+    P.ShortName:='fcla';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Mostly Sebastian Guenther';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'Asynchonous event management of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.Description := 'Asynchronous event management of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
     P.OSes:=AllUnixOses;
 

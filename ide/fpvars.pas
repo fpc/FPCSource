@@ -90,7 +90,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string = '.'+DirSep;
       IDEDir           : string = '.'+DirSep;
-{$if defined(WINDOWS) or defined(Unix)}
+{$if defined(WINDOWS) or defined(Unix) or defined(Aros)}
       SystemIDEDir     : string = '';
 {$endif defined(WINDOWS) or defined(Unix)}
       INIFileName      : string = ININame;
@@ -121,14 +121,35 @@ const ClipboardWindow  : PClipboardWindow = nil;
 
 {$ifdef SUPPORT_REMOTE}
      RemoteMachine : string = '';
+     RemotePuttySession : string = '';
      RemotePort : string = '2345';
      RemoteConfig : string = '';
      RemoteIdent : string = '';
      RemoteDir : string = '';
-     RemoteSendCommand : string = 'scp $CONFIG $IDENT $LOCALFILE $REMOTEMACHINE:$REMOTEDIR';
+     RemoteGDBServer : string = 'gdbserver';
+{$ifdef Windows}
+     RemoteCopy : string = 'pscp.exe';
+     RemoteShell : string = 'plink.exe';
+{$else not windows}
+     RemoteCopy : string = 'scp';
+     RemoteShell : string = 'ssh';
+{$endif not windows}
+
+     RemoteSendCommand : string =
+       '$REMOTECOPY $CONFIG $IDENT $LOCALFILE $REMOTEMACHINE:$REMOTEDIR';
+     RemoteExecCommand : string =
+       '"cd $REMOTEDIR; chmod u+x ./$LOCALFILENAME;'+
+       ' $REMOTEGDBSERVER :$REMOTEPORT ./$LOCALFILENAME"';
+     RemoteSshExecCommand : string =
+       '$START $REMOTESHELL $CONFIG $IDENT -L $REMOTEPORT:localhost:$REMOTEPORT $REMOTEMACHINE '+
+       '"$REMOTEEXECCOMMAND" $DOITINBACKGROUND';
 {$endif SUPPORT_REMOTE}
 
+{$ifdef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
+     DebuggeeTTY : string = 'on';
+{$else GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
      DebuggeeTTY : string = '';
+{$endif GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,

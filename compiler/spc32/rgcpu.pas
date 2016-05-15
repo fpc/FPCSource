@@ -28,7 +28,7 @@ unit rgcpu;
   interface
 
      uses
-       aasmbase,aasmtai,aasmdata,aasmcpu,
+       aasmbase,aasmtai,aasmsym,aasmdata,aasmcpu,
        cgbase,cgutils,
        cpubase,
        rgobj;
@@ -36,10 +36,10 @@ unit rgcpu;
      type
        trgcpu = class(trgobj)
          procedure add_constraints(reg:tregister);override;
-         function do_spill_replace(list : TAsmList;instr : taicpu;
+         function do_spill_replace(list : TAsmList;instr : tai_cpu_abstract_sym;
            orgreg : tsuperregister;const spilltemp : treference) : boolean;override;
-         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);override;
+         procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister;orgsupreg:tsuperregister);override;
        end;
 
        trgintcpu = class(trgcpu)
@@ -89,7 +89,9 @@ unit rgcpu;
       end;
 
 
-    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgcpu.do_spill_replace(list: TAsmList;
+      instr: tai_cpu_abstract_sym; orgreg: tsuperregister;
+      const spilltemp: treference): boolean;
       var
         b : byte;
       begin
@@ -126,7 +128,9 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+        procedure trgcpu.do_spill_read(list: TAsmList; pos: tai;
+      const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister
+      );
       var
         helpins  : tai;
         tmpref   : treference;
@@ -149,11 +153,13 @@ unit rgcpu;
             helplist.free;
           end
         else}
-          inherited do_spill_read(list,pos,spilltemp,tempreg);
+          inherited do_spill_read(list,pos,spilltemp,tempreg,orgsupreg);
       end;
 
 
-    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+        procedure trgcpu.do_spill_written(list: TAsmList; pos: tai;
+      const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister
+      );
       var
         tmpref   : treference;
         helplist : TAsmList;
@@ -174,7 +180,7 @@ unit rgcpu;
             helplist.free;
           end
         else}
-          inherited do_spill_written(list,pos,spilltemp,tempreg);
+          inherited do_spill_written(list,pos,spilltemp,tempreg,orgsupreg);
     end;
 
 

@@ -20,6 +20,15 @@ unit ports;
   ObjFpc mode is required PM }
 {$Mode ObjFpc}
 
+{$if defined(CPU80386)
+  or defined(CPUPENTIUM)
+  or defined(CPUPENTIUM2)
+  or defined(CPUPENTIUM3)
+  or defined(CPUPENTIUM4)
+  or defined(CPUPENTIUMM)}
+  {$define CPU_IS_386_OR_LATER}
+{$endif}
+
 interface
 
 type
@@ -35,18 +44,22 @@ type
       property pp[w : word] : word read readport write writeport;default;
    end;
 
-{   tportl = class
+{$ifdef CPU_IS_386_OR_LATER}
+   tportl = class
       procedure writeport(p : word;data : longint);
       function  readport(p : word) : longint;
       property pp[w : word] : longint read readport write writeport;default;
-   end;}
+   end;
+{$endif CPU_IS_386_OR_LATER}
 var
 { we don't need to initialize port, because neither member
   variables nor virtual methods are accessed }
    port,
    portb : tport;
    portw : tportw;
-//   portl : tportl;
+{$ifdef CPU_IS_386_OR_LATER}
+   portl : tportl;
+{$endif CPU_IS_386_OR_LATER}
 
   implementation
 
@@ -82,18 +95,22 @@ asm
 end;
 
 
-{procedure tportl.writeport(p : word;data : longint);assembler;
+{$ifdef CPU_IS_386_OR_LATER}
+procedure tportl.writeport(p : word;data : longint);assembler;
 asm
-  movw    p,%dx
-  movl    data,%eax
-  outl    %eax,%dx
+  mov dx, p
+  mov eax, data
+  out dx, eax
 end;
 
 
 function tportl.readport(p : word) : longint;assembler;
 asm
-  movw    p,%dx
-  inl     %dx,%eax
-end;}
+  mov dx, p
+  in eax, dx
+  mov edx, eax
+  shr edx, 16
+end;
+{$endif CPU_IS_386_OR_LATER}
 
 end.

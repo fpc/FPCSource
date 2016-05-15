@@ -305,6 +305,22 @@ begin
 end;
 
 
+function get_rtoc_offset: longint;
+begin
+  result:=0;
+  case target_info.abi of
+    abi_powerpc_aix,
+    abi_powerpc_darwin:
+      result:=LA_RTOC_AIX;
+    abi_powerpc_elfv1:
+      result:=LA_RTOC_SYSV;
+    abi_powerpc_elfv2:
+      result:=LA_RTOC_ELFV2;
+    else
+      internalerror(2015021001);
+  end;
+end;
+
 { calling a procedure by address }
 
 procedure tcgppc.a_call_reg(list: TAsmList; reg: tregister);
@@ -322,7 +338,7 @@ begin
     a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, tempreg);
 
     { save TOC pointer in stackframe }
-    reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
+    reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8);
     a_load_reg_ref(list, OS_ADDR, OS_ADDR, NR_RTOC, tmpref);
 
     { move actual function pointer to CTR register }
@@ -349,7 +365,7 @@ begin
   end;
 
   { we need to load the old RTOC from stackframe because we changed it}
-  reference_reset_base(tmpref, NR_STACK_POINTER_REG, LA_RTOC_SYSV, 8);
+  reference_reset_base(tmpref, NR_STACK_POINTER_REG, get_rtoc_offset, 8);
   a_load_ref_reg(list, OS_ADDR, OS_ADDR, tmpref, NR_RTOC);
 
   include(current_procinfo.flags, pi_do_call);
@@ -1167,7 +1183,33 @@ var
 
 var
   href: treference;
+  lab: tasmlabel;
+  procmangledname: TSymStr;
 begin
+  { In ELFv2 the function is required to initialise the TOC register itself
+    if necessary. Additionally, it has to mark the end of this TOC
+    initialisation code with a .localfunc directive, which will be used as
+    local entry code by the linker (when it knows the TOC value is the same
+    for the caller and callee). It must load the TOC in a PIC-way, which it
+    can do easily because R12 is guaranteed to hold the address of this function
+    on entry. }
+  if (target_info.abi=abi_powerpc_elfv2) and
+     (pi_needs_got in current_procinfo.flags) and
+     not nostackframe then
+    begin
+      current_asmdata.getlabel(lab,alt_addr);
+      getcpuregister(list,NR_R12);
+      getcpuregister(list,NR_R2);
+      cg.a_label(list,lab);
+      reference_reset_symbol(href,current_asmdata.RefAsmSymbol('.TOC.',AT_DATA),0,sizeof(PInt));
+      href.relsymbol:=lab;
+      href.refaddr:=addr_higha;
+      list.concat(taicpu.op_reg_reg_ref(a_addis,NR_R2,NR_R12,href));
+      href.refaddr:=addr_low;
+      list.concat(taicpu.op_reg_reg_ref(a_addi,NR_R2,NR_R2,href));
+      procmangledname:=current_procinfo.procdef.mangledname;
+      list.concat(tai_symbolpair.create(spk_localentry,procmangledname,procmangledname));
+    end;
   calcFirstUsedFPR(firstregfpu, fprcount);
   calcFirstUsedGPR(firstreggpr, gprcount);
 
@@ -1193,10 +1235,8 @@ begin
   save_standard_registers;
 
   { save old stack frame pointer }
-  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then begin
-    a_reg_alloc(list, NR_OLD_STACK_POINTER_REG);
+  if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
     list.concat(taicpu.op_reg_reg(A_MR, NR_OLD_STACK_POINTER_REG, NR_STACK_POINTER_REG));
-  end;
 
   { create stack frame }
   if (not nostackframe) and (localsize > 0) and

@@ -99,6 +99,7 @@ interface
         op : tasmop;
         hreg : tregister;
       begin
+        op:=A_NONE;
         secondpass(left);
         location_reset(location,LOC_MMXREGISTER,OS_NO);
         hreg:=tcgx86(cg).getmmxregister(current_asmdata.CurrAsmList);
@@ -142,6 +143,9 @@ interface
              mmxs32bit,mmxu32bit:
                op:=A_PSUBD;
           end;
+        if op = A_NONE then
+          internalerror(201408202);
+
         emit_reg_reg(op,S_NO,location.register,hreg);
         emit_reg_reg(A_MOVQ,S_NO,hreg,location.register);
       end;
@@ -164,7 +168,7 @@ interface
             { make life of register allocator easier }
             location.register:=cg.getmmregister(current_asmdata.CurrAsmList,def_cgsize(resultdef));
 
-            current_asmdata.getdatalabel(l1);
+            current_asmdata.getglobaldatalabel(l1);
             new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,l1.name,const_align(sizeof(pint)));
             current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
             case def_cgsize(resultdef) of
@@ -226,7 +230,9 @@ interface
     procedure tx86notnode.second_boolean;
       var
          opsize : tcgsize;
+         {$if defined(cpu32bitalu) or defined(cpu16bitalu)}
          hreg: tregister;
+         {$endif}
       begin
         opsize:=def_cgsize(resultdef);
 
@@ -465,6 +471,7 @@ interface
                     d:=tordconstnode(right).value.svalue;
                     if d>=aword(1) shl (left.resultdef.size*8-1) then
                       begin
+                        cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                         if (cgsize in [OS_64,OS_S64]) then
                           begin
                             hreg2:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
@@ -476,6 +483,7 @@ interface
                         location.register:=cg.getintregister(current_asmdata.CurrAsmList,cgsize);
                         emit_const_reg(A_MOV,opsize,0,location.register);
                         emit_const_reg(A_SBB,opsize,-1,location.register);
+                        cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_DEFAULTFLAGS);
                       end
                     else
                       begin
@@ -523,8 +531,8 @@ interface
             else
               emit_reg_reg(A_XOR,opsize,regd,regd);
 
-            {Division depends on the right type.}
-            if is_signed(right.resultdef) then
+            { Division depends on the result type }
+            if is_signed(resultdef) then
               op:=A_IDIV
             else
               op:=A_DIV;

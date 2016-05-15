@@ -188,7 +188,7 @@ const
   SDL_MixerLibName = 'SDL_mixer';
 {$ENDIF}
 
-{$IFDEF MACOS}
+{$IFDEF MORPHOS}
   SDL_MixerLibName = 'powersdl_mixer.library';
 {$ENDIF}
 

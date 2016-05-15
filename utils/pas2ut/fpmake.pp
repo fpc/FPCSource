@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('pas2ut');
+    P:=AddPackage('utils-pas2ut');
+    P.ShortName:='p2ut';
 
     P.Author := 'Free Pascal Team';
     P.License := 'LGPL with modification';
@@ -24,7 +25,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Dependencies.Add('fcl-passrc');
 
     T:=P.Targets.AddProgram('pas2ut.pp');

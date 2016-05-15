@@ -93,9 +93,7 @@ procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : RawByteStrin
 {$endif}
 procedure fpc_ansistr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
 procedure fpc_ansistr_bool(b : boolean;len:sizeint;out s:RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteString{$ifdef FPC_HAS_CPSTRING};cp : TSystemCodePage{$endif FPC_HAS_CPSTRING}); compilerproc;
-{$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
@@ -170,28 +168,29 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : RawByteStri
     {$endif}
     procedure fpc_widestr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:widestring);compilerproc;
     procedure fpc_widestr_bool(b : boolean;len:sizeint;out s:widestring);compilerproc;
-    {$ifdef FPC_HAS_STR_CURRENCY}
     procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
-    {$endif FPC_HAS_STR_CURRENCY}
   {$endif ndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     {$ifndef FPUNONE}
     procedure fpc_UnicodeStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : UnicodeString); compilerproc;
     {$endif}
     procedure fpc_unicodestr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:unicodestring);compilerproc;
     procedure fpc_unicodestr_bool(b : boolean;len:sizeint;out s:unicodestring);compilerproc;
-    {$ifdef FPC_HAS_STR_CURRENCY}
     procedure fpc_UnicodeStr_Currency(c : Currency;len,fr : SizeInt;out s : UnicodeString);compilerproc;
-    {$endif FPC_HAS_STR_CURRENCY}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifndef FPUNONE}
 procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;out a : array of char); compilerproc;
 {$endif}
+{$ifndef CPUAVR}
+{ currently, the avr code generator fails on this procedure, so we disable it, 
+  this is not a good solution but fixing compilation of this procedure for
+  avr is hard, requires significant changes to the register allocator to take
+  care of different register classes }
 procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
+{$endif CPUAVR}
+
 procedure fpc_chararray_bool(b : boolean;len:sizeint;out a : array of char);compilerproc;
-{$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
-{$endif FPC_HAS_STR_CURRENCY}
 
 { Val() support }
 {$ifndef FPUNONE}
@@ -452,9 +451,7 @@ Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValRea
 Procedure fpc_Write_Text_Float_Iso(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
 {$endif}
 procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); compilerproc;
-{$ifdef FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); compilerproc;
-{$endif FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Boolean_Iso(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
@@ -507,7 +504,7 @@ function fpc_variant_to_idispatch(const v : variant) : idispatch;compilerproc;
 function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
 procedure fpc_vararray_get(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
 procedure fpc_vararray_put(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
-procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;
+procedure fpc_dispinvoke_variant(dest : pvardata;var source : tvardata;  calldesc : pcalldesc;params : pointer);compilerproc;
 {$endif FPC_HAS_FEATURE_VARIANTS}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
@@ -561,6 +558,14 @@ function fpc_div_dword(n,z : dword) : dword; compilerproc;
 function fpc_mod_dword(n,z : dword) : dword; compilerproc;
 function fpc_div_longint(n,z : longint) : longint; compilerproc;
 function fpc_mod_longint(n,z : longint) : longint; compilerproc;
+function fpc_div_word(n,z : word) : word; compilerproc;
+function fpc_mod_word(n,z : word) : word; compilerproc;
+function fpc_div_smallint(n,z : smallint) : smallint; compilerproc;
+function fpc_mod_smallint(n,z : smallint) : smallint; compilerproc;
+function fpc_div_byte(n,z : byte) : byte; compilerproc;
+function fpc_mod_byte(n,z : byte) : byte; compilerproc;
+function fpc_div_shortint(n,z : shortint) : shortint; compilerproc;
+function fpc_mod_shortint(n,z : shortint) : shortint; compilerproc;
 {$endif FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
 {$ifdef FPC_INCLUDE_SOFTWARE_MUL}
@@ -704,6 +709,7 @@ procedure fpc_largeset_comp_sets(set1,set2 : pointer;size : longint); compilerpr
 procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compilerproc;
 {$endif LARGESETS}
 
+procedure fpc_objecterror; compilerproc;
 procedure fpc_rangeerror; compilerproc;
 procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
@@ -713,6 +719,8 @@ procedure fpc_stackcheck(stack_size:SizeUInt); compilerproc;
 {$endif}
 
 procedure fpc_InitializeUnits; compilerproc;
+procedure fpc_LibInitializeUnits;compilerproc;
+procedure fpc_do_exit;compilerproc;
 // not generated by compiler, called directly in system unit
 // procedure fpc_FinalizeUnits; compilerproc;
 
@@ -746,3 +754,27 @@ function fpc_longword_to_double(i: longword): double; compilerproc;
 
 function fpc_setjmp(var s : jmp_buf) : {$ifdef CPU16}smallint{$else}longint{$endif}; compilerproc;
 procedure fpc_longjmp(var s : jmp_buf; value : {$ifdef CPU16}smallint{$else}longint{$endif}); compilerproc;
+
+{$ifdef cpui8086}
+{ i8086 huge pointer helpers }
+function fpc_hugeptr_add_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_add_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_sub_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_sub_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;
+function fpc_hugeptr_sub_hugeptr(p1, p2: HugePointer): LongInt; compilerproc;
+procedure fpc_hugeptr_inc_longint(var p: HugePointer; n: LongInt); compilerproc;
+procedure fpc_hugeptr_inc_longint_normalized(var p: HugePointer; n: LongInt); compilerproc;
+procedure fpc_hugeptr_dec_longint(var p: HugePointer; n: LongInt); compilerproc;
+procedure fpc_hugeptr_dec_longint_normalized(var p: HugePointer; n: LongInt); compilerproc;
+
+function fpc_hugeptr_cmp_normalized_e(p1, p2: HugePointer): Boolean; compilerproc;
+function fpc_hugeptr_cmp_normalized_ne(p1, p2: HugePointer): Boolean; compilerproc;
+function fpc_hugeptr_cmp_normalized_b(p1, p2: HugePointer): Boolean; compilerproc;
+function fpc_hugeptr_cmp_normalized_be(p1, p2: HugePointer): Boolean; compilerproc;
+function fpc_hugeptr_cmp_normalized_a(p1, p2: HugePointer): Boolean; compilerproc;
+function fpc_hugeptr_cmp_normalized_ae(p1, p2: HugePointer): Boolean; compilerproc;
+{$endif cpui8086}
+
+{$ifdef cpullvm}
+{$i llvmintr.inc}
+{$endif cpullvm}

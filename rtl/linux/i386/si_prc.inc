@@ -116,10 +116,9 @@ asm
 end;
 
 
-procedure _FPC_proc_haltproc; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_proc_haltproc(e:longint); cdecl; assembler; public name '_haltproc';
 asm
-  addl  $12, %esp  { align stack back to 16 bytes }
-.Lhaltproc:
+  //addl  $12, %esp  { align stack back to 16 bytes }
   {$ifdef FPC_PIC}
         call  fpc_geteipasebxlocal
         addl  $_GLOBAL_OFFSET_TABLE_,%ebx
@@ -134,44 +133,12 @@ asm
 .Lnodlexitproc:
   movl    syscall_nr_exit_group,%eax
 
-{$ifdef FPC_PIC}
-  call    fpc_geteipasebxlocal
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl    ExitCode@GOT(%ebx),%ebx
- {$if sizeof(ExitCode)=2}
-  movzwl  (%ebx),%ebx
- {$else}
-  mov     (%ebx),%ebx
- {$endif}
-{$else FPC_PIC}
- {$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%ebx
- {$else}
-  mov     ExitCode,%ebx
- {$endif}
-{$endif FPC_PIC}
-
+  movl    e,%ebx
   int     $0x80
   movl    syscall_nr_exit,%eax
 
-{$ifdef FPC_PIC}
-  call    fpc_geteipasebxlocal
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl    ExitCode@GOT(%ebx),%ebx
- {$if sizeof(ExitCode)=2}
-  movzwl  (%ebx),%ebx
- {$else}
-  mov     (%ebx),%ebx
- {$endif}
-{$else FPC_PIC}
- {$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%ebx
- {$else}
-  mov     ExitCode,%ebx
- {$endif}
-{$endif FPC_PIC}
-
+  movl    e,%ebx
   int     $0x80
-  jmp     .Lhaltproc
+  jmp     .Lnodlexitproc
 end;
 

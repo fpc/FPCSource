@@ -94,17 +94,6 @@ implementation
 
   procedure TElfExeOutputSpc32.WriteFirstPLTEntry;
     begin
-      {if IsSharedLibrary then
-        // push 4(%ebx);  jmp  *8(%ebx)
-        pltobjsec.writeBytes(#$FF#$B3#$04#$00#$00#$00#$FF#$A3#$08#$00#$00#$00)
-      else
-        begin
-          pltobjsec.writeBytes(#$FF#$35);         // push got+4
-          pltobjsec.writeReloc_internal(gotpltobjsec,sizeof(pint),4,RELOC_ABSOLUTE);
-          pltobjsec.writeBytes(#$FF#$25);         // jmp  *got+8
-          pltobjsec.writeReloc_internal(gotpltobjsec,2*sizeof(pint),4,RELOC_ABSOLUTE);
-        end;
-      pltobjsec.writeBytes(#$90#$90#$90#$90);     // nop}
     end;
 
 
@@ -113,34 +102,6 @@ implementation
       got_offset: aword;
       tmp:pint;
     begin
-      {got_offset:=gotpltobjsec.size;
-      if IsSharedLibrary then
-        begin
-          pltobjsec.writeBytes(#$FF#$A3);   // jmp got+x(%ebx)
-          pltobjsec.write(got_offset,4);
-        end
-      else
-        begin
-          pltobjsec.writeBytes(#$FF#$25);   // jmp *got+x
-          pltobjsec.writeReloc_internal(gotpltobjsec,got_offset,4,RELOC_ABSOLUTE);
-        end;
-      pltobjsec.writeBytes(#$68);           // push  $index
-      tmp:=pltrelocsec.size;
-      pltobjsec.write(tmp,4);
-
-      pltobjsec.writeBytes(#$E9);           // jmp   .plt
-      tmp:=-(4+pltobjsec.Size);
-      pltobjsec.write(tmp,4);
-
-      { write a .got.plt slot pointing back to the 'push' instruction }
-      gotpltobjsec.writeReloc_internal(pltobjsec,pltobjsec.size-(16-6),sizeof(pint),RELOC_ABSOLUTE);
-
-      { write a .rel.plt entry }
-      pltrelocsec.writeReloc_internal(gotpltobjsec,got_offset,sizeof(pint),RELOC_ABSOLUTE);
-      got_offset:=(exesym.dynindex shl 8) or R_386_JUMP_SLOT;
-      pltrelocsec.write(got_offset,sizeof(pint));
-      if ElfTarget.relocs_use_addend then
-        pltrelocsec.writezeros(sizeof(pint));}
     end;
 
 
@@ -157,83 +118,6 @@ implementation
       objreloc:TObjRelocation;
       reltyp:byte;
     begin
-      {objreloc:=TObjRelocation(objsec.ObjRelocations[idx]);
-      if (ObjReloc.flags and rf_raw)=0 then
-        reltyp:=ElfTarget.encodereloc(ObjReloc)
-      else
-        reltyp:=ObjReloc.ftype;
-      case reltyp of
-
-        R_386_PLT32:
-          begin
-            objsym:=objreloc.symbol.exesymbol.ObjSymbol;
-            objsym.refs:=objsym.refs or symref_plt;
-          end;
-
-        R_386_32:
-          if (oso_executable in objsec.SecOptions) or
-            not (oso_write in objsec.SecOptions) then
-            begin
-              if assigned(objreloc.symbol) and assigned(objreloc.symbol.exesymbol) then
-                begin
-                  objsym:=objreloc.symbol.exesymbol.ObjSymbol;
-                  objsym.refs:=objsym.refs or symref_from_text;
-                end;
-            end;
-      end;
-
-      case reltyp of
-
-        R_386_TLS_IE:
-          begin
-
-            AllocGOTSlot(objreloc.symbol);
-          end;
-
-        R_386_GOT32:
-          begin
-            AllocGOTSlot(objreloc.symbol);
-          end;
-
-        R_386_32:
-          begin
-            { TODO: How to handle absolute relocation to *weak* external symbol
-              from executable? See test/tweaklib2, symbol test2, ld handles it
-              differently for PIC and non-PIC code. In non-PIC code it drops
-              dynamic relocation altogether. }
-            if not IsSharedLibrary then
-              exit;
-            if (oso_executable in objsec.SecOptions) or
-               not (oso_write in objsec.SecOptions) then
-              hastextrelocs:=True;
-            dynrelocsec.alloc(dynrelocsec.shentsize);
-            objreloc.flags:=objreloc.flags or rf_dynamic;
-          end;
-
-        R_386_PC32:
-          begin
-            if not IsSharedLibrary then
-              exit;
-            { In shared library PC32 reloc to external symbol cannot be redirected
-              to PLT entry, because PIC PLT relies on ebx register set properly. }
-            if assigned(objreloc.symbol) and
-              (
-                (objreloc.symbol.objsection=nil) or
-                (oso_plt in objreloc.symbol.objsection.SecOptions)
-              ) then
-              begin
-                { Must be a dynamic symbol }
-                if not (assigned(objreloc.symbol.exesymbol) and
-                   (objreloc.symbol.exesymbol.dynindex<>0)) then
-                  InternalError(2012101201);
-                if (oso_executable in objsec.SecOptions) or
-                  not (oso_write in objsec.SecOptions) then
-                  hastextrelocs:=True;
-                dynrelocsec.alloc(dynrelocsec.shentsize);
-                objreloc.flags:=objreloc.flags or rf_dynamic;
-              end;
-          end;
-      end;}
     end;
 
 
@@ -241,29 +125,6 @@ implementation
     var
       gotoff,tmp:aword;
     begin
-      {gotoff:=objsym.exesymbol.gotoffset;
-      if gotoff=0 then
-        InternalError(2012060902);
-
-      { the GOT slot itself, and a dynamic relocation for it }
-      { TODO: only data symbols must get here }
-      if gotoff=gotobjsec.Data.size+sizeof(pint) then
-        begin
-          gotobjsec.write(relocval,sizeof(pint));
-
-          tmp:=gotobjsec.mempos+gotoff-sizeof(pint);
-          if (objsym.exesymbol.dynindex>0) then
-            begin
-              if (reltyp=R_386_TLS_IE) then
-                if IsSharedLibrary then
-                  WriteDynRelocEntry(tmp,R_386_TLS_TPOFF,objsym.exesymbol.dynindex,0)
-                else
-              else
-                WriteDynRelocEntry(tmp,R_386_GLOB_DAT,objsym.exesymbol.dynindex,0)
-            end
-          else if IsSharedLibrary then
-            WriteDynRelocEntry(tmp,R_386_RELATIVE,0,relocval);
-        end;}
     end;
 
 
@@ -401,6 +262,7 @@ implementation
         encodereloc:       @elf_spc32_encodeReloc;
         loadreloc:         @elf_spc32_loadReloc;
         loadsection:       nil;
+        encodeflags:       nil;
       );
 
     as_spc32_elf32_info : tasminfo =

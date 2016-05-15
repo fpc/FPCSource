@@ -62,5 +62,7 @@ const
 function FAT_getAttr(const _file: pcchar): cint; cdecl; external;
 function FAT_setAttr(const _file: pcchar; attr: cint): cint; cdecl; external;
 
+{$define LIBFAT_FEOS_MULTICWD}
+
 {$endif NDS_INTERFACE}
 

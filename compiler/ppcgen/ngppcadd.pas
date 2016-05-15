@@ -193,14 +193,10 @@ implementation
       var
         cgop      : TOpCg;
         cgsize  : TCgSize;
-        cmpop,
-        isjump  : boolean;
-        otl,ofl : tasmlabel;
+        cmpop   : boolean;
       begin
         { calculate the operator which is more difficult }
         firstcomplex(self);
-        otl:=nil;
-        ofl:=nil;
 
         cmpop:=false;
         if (torddef(left.resultdef).ordtype in [pasbool8,bool8bit]) or
@@ -223,43 +219,19 @@ implementation
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
 
-            isjump:=(left.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
             secondpass(left);
+            if (left.expectloc=LOC_JUMP)<>
+               (left.location.loc=LOC_JUMP) then
+              internalerror(2003122901);
             if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(cgsize),false);
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end
-            else if left.location.loc=LOC_JUMP then
-              internalerror(2003122901);
 
-            isjump:=(right.expectloc=LOC_JUMP);
-            if isjump then
-              begin
-                 otl:=current_procinfo.CurrTrueLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-                 ofl:=current_procinfo.CurrFalseLabel;
-                 current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
-              end;
             secondpass(right);
+            if (right.expectloc=LOC_JUMP)<>
+               (right.location.loc=LOC_JUMP) then
+              internalerror(200312292);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
               hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,cgsize_orddef(cgsize),false);
-            if isjump then
-             begin
-               current_procinfo.CurrTrueLabel:=otl;
-               current_procinfo.CurrFalseLabel:=ofl;
-             end
-            else if right.location.loc=LOC_JUMP then
-              internalerror(200312292);
 
             cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
 
@@ -409,6 +381,16 @@ implementation
         opdone,
         cmpop  : boolean;
       begin
+        if target_info.endian=endian_little then
+          begin
+            { this code currently assumes big endian }
+            if (left.nodetype=setelementn) or (right.nodetype=setelementn) then
+              begin
+                inherited second_addsmallsetelement;
+                exit;
+              end
+          end;
+
         cgop:=OP_None;
 
         pass_left_and_right;
@@ -466,9 +448,10 @@ implementation
                       left.location.register,location.register)
                   else
                     begin
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,u32inttype,true);
                       tmpreg := cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
                       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,aint((aword(1) shl (resultdef.size*8-1))),tmpreg);
-                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,right.location,setbase);
+                      register_maybe_adjust_setbase(current_asmdata.CurrAsmList,u32inttype,right.location,setbase);
                       cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,
                         right.location.register,tmpreg);
                       if left.location.loc <> LOC_CONSTANT then

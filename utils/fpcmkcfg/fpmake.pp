@@ -15,17 +15,18 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('fpcmkcfg');
+    P:=AddPackage('utils-fpcmkcfg');
+    P.ShortName:='fcmk';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'An utility to creaty the Free Pascal configuration files.';
+    P.Description := 'A utility to create the Free Pascal configuration files.';
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fpmkunit');
@@ -38,7 +39,6 @@ begin
     p.Commands.AddCommand(caBeforeCompile, Data2IncBin, '-b -s default.cft default.inc fppkg_default','default.inc','default.cft');
 
     T:=P.Targets.AddProgram('fpcmkcfg.pp');
-    T.ResourceStrings:=true;
     T.Dependencies.AddInclude('fpccfg.inc');
     T.Dependencies.AddInclude('fpcfg.inc');
     T.Dependencies.AddInclude('fpini.inc');

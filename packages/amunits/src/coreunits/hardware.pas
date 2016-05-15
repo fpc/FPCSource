@@ -18,6 +18,7 @@
     registers and bits in the Complex Interface Adapter (CIA) chip
 }
 
+{$PACKRECORDS 2}
 unit hardware;
 
 INTERFACE

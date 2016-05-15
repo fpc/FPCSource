@@ -14,69 +14,8 @@
  **********************************************************************}
 
 
-{$ifdef readinterface}
-
-{ ---------------------------------------------------------------------
-    Interface declarations
-  ---------------------------------------------------------------------}
-
-{$define DYNLIBS_SUPPORTS_ORDINAL}
-
-Type
-  TLibHandle = Longint;
-  TOrdinalEntry = word;
-
-Const
-  NilHandle = 0;
-// these are for easier crossplatform construction of dll names in dynloading libs.
-  SharedSuffix = 'dll';
-
-{$else}
-
-{ ---------------------------------------------------------------------
-    Implementation section
-  ---------------------------------------------------------------------}
-
-Uses windows;
-
-Function DoLoadLibrary(const Name : UnicodeString) : TlibHandle;
+procedure InitDynLibs;
 begin
-  Result:=Windows.LoadLibrary(PWideChar(Name));
+  { nothing to do here since Windows DynLibs is done in System }
 end;
 
-Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
-var
-  ws: PWideChar;
-begin
-  ws:=StringToPWideChar(ProcName);
-  Result:=Windows.GetProcAddress(Lib, ws);
-  FreeMem(ws);
-end;
-
-Function GetProcedureAddress(Lib : TLibHandle; Ordinal : TOrdinalEntry) : Pointer;
-begin
-  Result:=Windows.GetProcAddress(Lib, PWideChar(Ordinal));
-end;
-
-Function UnloadLibrary(Lib : TLibHandle) : Boolean;
-begin
-  Result:=Windows.FreeLibrary(Lib);
-end;
-
-Function GetLoadErrorStr: string;
-
-Var
-  rc,c : integer;
-  w : widestring;
-  
-begin  
-  rc := GetLastError;
-  SetLength(w,255);
-  C:=FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM,nil,rc,
-                 MakeLangId(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                 @W[1], 255,nil);
-  SetLength(w,c);
-  Result:=w;
-end;
-
-{$endif}

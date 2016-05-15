@@ -89,6 +89,7 @@ type
     FCreator: TLComponent;
     FSession: TLSession;
     FConnection: TLConnection;
+    FMSGBufferSize: integer;
    protected
     function GetConnected: Boolean; virtual; deprecated;
     function GetConnecting: Boolean; virtual; deprecated;
@@ -156,6 +157,7 @@ type
     property SocketState: TLSocketStates read FSocketState;
     property Creator: TLComponent read FCreator;
     property Session: TLSession read FSession;
+    Property MsgBufferSize : Integer Read FMsgBufferSize Write FMsgBufferSize;
   end;
   TLSocketClass = class of TLSocket;
   
@@ -436,6 +438,7 @@ begin
   FSocketType := SOCK_STREAM;
   FSocketNet := LAF_INET;
   FProtocol := LPROTO_TCP;
+  FMSGBufferSize := 0;
 end;
 
 destructor TLSocket.Destroy;
@@ -715,18 +718,26 @@ begin
         Opt := Integer(not Opt);
       {$endif}
       if fpsetsockopt(FHandle, SOL_SOCKET, Opt, @Arg, Sizeof(Arg)) = SOCKET_ERROR then
-        Exit(Bail('SetSockOpt error', LSocketError));
+        Exit(Bail('SetSockOpt error setting reuseaddr', LSocketError));
     end;
     
     {$ifdef darwin}
     Arg := 1;
     if fpsetsockopt(FHandle, SOL_SOCKET, SO_NOSIGPIPE, @Arg, Sizeof(Arg)) = SOCKET_ERROR then
-      Exit(Bail('SetSockOpt error', LSocketError));
+      Exit(Bail('SetSockOpt error setting nosigpipe', LSocketError));
     {$endif}
     
     FillAddressInfo(FAddress, FSocketNet, Address, aPort);
     FillAddressInfo(FPeerAddress, FSocketNet, LADDR_BR, aPort);
-
+    if FMSGBufferSize>0 then
+      begin
+      if fpsetsockopt(Handle, SOL_SOCKET, SO_RCVBUF, @FMSGBufferSize, Sizeof(integer))
+        = SOCKET_ERROR then
+        Exit(Bail('SetSockOpt error setting rcv buffer size', LSocketError));
+      if fpsetsockopt(Handle, SOL_SOCKET, SO_SNDBUF, @FMSGBufferSize, Sizeof(integer))
+        = SOCKET_ERROR then
+        Exit(Bail('SetSockOpt error setting snd buffer size', LSocketError));
+      end;
     Result  :=  Done;
   end;
 end;
@@ -737,7 +748,7 @@ var
 begin
   if FSocketType = SOCK_STREAM then
     Result := Sockets.fpSend(FHandle, @aData, aSize, LMSG)
-  else
+  else 
     Result := sockets.fpsendto(FHandle, @aData, aSize, LMSG, @FPeerAddress, AddressLength);
 end;
 
@@ -805,6 +816,7 @@ begin
     Bail('Error on bind', LSocketError)
   else
     Result := true;
+
   if (FSocketType = SOCK_STREAM) and Result then
     if fpListen(FHandle, FListenBacklog) = SOCKET_ERROR then
       Result := Bail('Error on Listen', LSocketError)
@@ -836,7 +848,7 @@ begin
   
   if FConnectionStatus <> scNone then
     Disconnect(True);
-    
+
   if SetupSocket(APort, Address) then begin
     fpConnect(FHandle, GetIPAddressPointer, GetIPAddressLength);
     FConnectionStatus := scConnecting;

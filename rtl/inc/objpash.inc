@@ -154,10 +154,10 @@
        tinterfaceentrytype = (etStandard,
          etVirtualMethodResult,
          etStaticMethodResult,
-         etFieldValue, 
+         etFieldValue,
          etVirtualMethodClass,
          etStaticMethodClass,
-         etFieldValueClass           
+         etFieldValueClass
        );
 
        pinterfaceentry = ^tinterfaceentry;
@@ -166,6 +166,7 @@
          VTable      : Pointer;
          IOffset     : sizeuint;
          IIDStr      : pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+{$ifdef VER2_6}
          case boolean of
 {$ifdef ENDIAN_BIG}
            true      : ({$IFDEF CPU64}__pad: longint;{$ENDIF}IType : tinterfaceentrytype);
@@ -173,6 +174,9 @@
            true      : (IType       : tinterfaceentrytype);
 {$endif ENDIAN_BIG}
            false     : (__pad_dummy : sizeint);
+{$else  VER2_6}
+         IType       : tinterfaceentrytype;
+{$endif VER2_6}
        end;
 
        tinterfacetable = record
@@ -376,9 +380,9 @@
       vtInteger       = 0;
       vtBoolean       = 1;
       vtChar          = 2;
-{$ifndef FPUNONE}     
+{$ifndef FPUNONE}
       vtExtended      = 3;
-{$endif}              
+{$endif}
       vtString        = 4;
       vtPointer       = 5;
       vtPChar         = 6;
@@ -399,23 +403,23 @@
       PVarRec = ^TVarRec;
       TVarRec = record
          case VType : sizeint of
-{$ifdef ENDIAN_BIG}        
+{$ifdef ENDIAN_BIG}
            vtInteger       : ({$IFDEF CPU64}integerdummy1 : Longint;{$ENDIF CPU64}VInteger: Longint);
            vtBoolean       : ({$IFDEF CPU64}booldummy : Longint;{$ENDIF CPU64}booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
            vtChar          : ({$IFDEF CPU64}chardummy : Longint;{$ENDIF CPU64}chardummy1,chardummy2,chardummy3: byte; VChar: Char);
            vtWideChar      : ({$IFDEF CPU64}widechardummy : Longint;{$ENDIF CPU64}wchardummy1,VWideChar: WideChar);
-{$else ENDIAN_BIG}         
+{$else ENDIAN_BIG}
            vtInteger       : (VInteger: Longint);
            vtBoolean       : (VBoolean: Boolean);
            vtChar          : (VChar: Char);
            vtWideChar      : (VWideChar: WideChar);
-{$endif ENDIAN_BIG}        
-{$ifndef FPUNONE}          
+{$endif ENDIAN_BIG}
+{$ifndef FPUNONE}
            vtExtended      : (VExtended: PExtended);
-{$endif}                   
+{$endif}
            vtString        : (VString: PShortString);
            vtPointer       : (VPointer: Pointer);
-           vtPChar         : (VPChar: PChar);
+           vtPChar         : (VPChar: PAnsiChar);
            vtObject        : (VObject: TObject);
            vtClass         : (VClass: TClass);
            vtPWideChar     : (VPWideChar: PWideChar);
@@ -435,3 +439,17 @@
   const
     { for safe as operator support }
     IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';
+
+
+{*****************************************************************************
+                              Resourcestring support
+*****************************************************************************}
+
+  type
+    PResourceStringRecord = ^TResourceStringRecord;
+    TResourceStringRecord = Record
+       Name,
+       CurrentValue,
+       DefaultValue : AnsiString;
+       HashValue    : LongWord;
+     end;

@@ -61,6 +61,9 @@ unit cgcpu;
         procedure a_jmp_name(list : TAsmList;const s : string); override;
         procedure a_jmp_always(list : TAsmList;l: tasmlabel); override;
 
+        { 32x32 to 64 bit multiplication }
+        procedure a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister); override;
+
         procedure g_proc_entry(list : TAsmList;localsize : longint;nostackframe:boolean);override;
         procedure g_proc_exit(list : TAsmList;parasize : longint;nostackframe:boolean); override;
         procedure g_save_registers(list:TAsmList); override;
@@ -177,16 +180,16 @@ const
              if target_info.system<>system_powerpc_aix then
                begin
                  if not(weak) then
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s,AT_FUNCTION)))
                  else
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s,AT_FUNCTION)));
                end
              else
                begin
                  if not(weak) then
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s)))
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol('.'+s,AT_FUNCTION)))
                  else
-                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s)));
+                   list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol('.'+s,AT_FUNCTION)));
                end;
 
              if target_info.system in [system_powerpc_macos,system_powerpc_aix] then
@@ -592,7 +595,7 @@ const
 	       if (not (size in [OS_32, OS_S32])) then begin
 	         internalerror(2008091306);
 	       end;
-	       tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	       tmpreg := getintregister(list, OS_INT);
 	       list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
 	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
 	     end;	
@@ -677,6 +680,23 @@ const
          a_jmp(list,A_B,C_None,0,l);
        end;
 
+
+    procedure tcgppc.a_mul_reg_reg_pair(list: TAsmList;size: tcgsize; src1,src2,dstlo,dsthi: tregister);
+      var
+        op: tasmop;
+      begin
+        case size of
+          OS_INT:  op:=A_MULHWU;
+          OS_SINT: op:=A_MULHW;
+        else
+          InternalError(2014061501);
+        end;
+        if (dsthi<>NR_NO) then
+          list.concat(taicpu.op_reg_reg_reg(op,dsthi,src1,src2));
+        { low word is always unsigned }
+        if (dstlo<>NR_NO) then
+          list.concat(taicpu.op_reg_reg_reg(A_MULLW,dstlo,src1,src2));
+      end;
 
 (*
      procedure tcgppc.g_cond2reg(list: TAsmList; const f: TAsmCond; reg: TRegister);
@@ -782,7 +802,8 @@ const
                 list.concat(taicpu.op_reg(A_MFLR,NR_R0));
                 { ... in caller's frame }
                 case target_info.abi of
-                  abi_powerpc_aix:
+                  abi_powerpc_aix,
+                  abi_powerpc_darwin:
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,4);
                   abi_powerpc_sysv:
                     reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV,4);
@@ -794,7 +815,7 @@ const
 
 (*
             { save the CR if necessary in callers frame. }
-            if target_info.abi = abi_powerpc_aix then
+            if target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin]  then
               if false then { Not needed at the moment. }
                 begin
                   a_reg_alloc(list,NR_R0);
@@ -810,11 +831,8 @@ const
             usesgpr := firstregint <> 32;
             usesfpr := firstregfpu <> 32;
 
-             if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
-              begin
-                a_reg_alloc(list,NR_R12);
-                list.concat(taicpu.op_reg_reg(A_MR,NR_R12,NR_STACK_POINTER_REG));
-              end;
+             if tppcprocinfo(current_procinfo).needs_frame_pointer then
+               list.concat(taicpu.op_reg_reg(A_MR,NR_OLD_STACK_POINTER_REG,NR_STACK_POINTER_REG));
           end;
 
         if usesfpr then
@@ -997,7 +1015,8 @@ const
                 if (pi_do_call in current_procinfo.flags) then
                   begin
                     case target_info.abi of
-                      abi_powerpc_aix:
+                      abi_powerpc_aix,
+                      abi_powerpc_darwin:
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_AIX,4);
                       abi_powerpc_sysv:
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_LR_SYSV,4);
@@ -1010,7 +1029,7 @@ const
 
 (*
                   { restore the CR if necessary from callers frame}
-                  if target_info.abi = abi_powerpc_aix then
+                  if target_info.abi in [abi_powerpc_aix,abi_powerpc_darwin] then
                     if false then { Not needed at the moment. }
                       begin
                         reference_reset_base(href,NR_STACK_POINTER_REG,LA_CR_AIX);
@@ -1044,7 +1063,8 @@ const
         begin
             { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
             case target_info.abi of
-              abi_powerpc_aix:
+              abi_powerpc_aix,
+              abi_powerpc_darwin:
                 firstfpureg := RS_F14;
               abi_powerpc_sysv:
                 firstfpureg := RS_F9;
@@ -1127,7 +1147,8 @@ const
         begin
           { FIXME: has to be R_F14 instad of R_F8 for SYSV-64bit }
           case target_info.abi of
-            abi_powerpc_aix:
+            abi_powerpc_aix,
+            abi_powerpc_darwin:
               firstfpureg := RS_F14;
             abi_powerpc_sysv:
               firstfpureg := RS_F9;

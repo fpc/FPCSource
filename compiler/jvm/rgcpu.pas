@@ -181,8 +181,8 @@ implementation
             and remove. We don't have to check that the load/store
             types match, because they have to for this to be
             valid JVM code }
-          dealloc:=nextskipping(p,[ait_comment]);
-          load:=nextskipping(dealloc,[ait_comment]);
+          dealloc:=nextskipping(p,[ait_comment,ait_tempalloc]);
+          load:=nextskipping(dealloc,[ait_comment,ait_tempalloc]);
           reg:=NR_NO;
           if issimpleregstore(p,reg,true) and
              isregallocoftyp(dealloc,ra_dealloc,reg) and
@@ -201,6 +201,71 @@ implementation
         end;
 
 
+     function try_swap_store_x_load(var p: tai): boolean;
+       var
+         insertpos,
+         storex,
+         deallocy,
+         loady,
+         deallocx,
+         loadx: tai;
+         swapxy: taicpu;
+         regx, regy: tregister;
+       begin
+         result:=false;
+         { check for:
+             alloc regx (optional)
+             store regx (p)
+             dealloc regy
+             load regy
+             dealloc regx
+             load regx
+           and change to
+             dealloc regy
+             load regy
+             swap
+             alloc regx (if it existed)
+             store regx
+             dealloc regx
+             load  regx
+
+           This will create opportunities to remove the store/load regx
+           (and possibly also for regy)
+         }
+         regx:=NR_NO;
+         regy:=NR_NO;
+         if not issimpleregstore(p,regx,false) then
+           exit;
+         storex:=p;
+         deallocy:=nextskipping(storex,[ait_comment,ait_tempalloc]);
+         loady:=nextskipping(deallocy,[ait_comment,ait_tempalloc]);
+         deallocx:=nextskipping(loady,[ait_comment,ait_tempalloc]);
+         loadx:=nextskipping(deallocx,[ait_comment,ait_tempalloc]);
+         if not assigned(loadx) then
+           exit;
+         if not issimpleregload(loady,regy,false) then
+           exit;
+         if not issimpleregload(loadx,regx,false) then
+           exit;
+         if not isregallocoftyp(deallocy,ra_dealloc,regy) then
+           exit;
+         if not isregallocoftyp(deallocx,ra_dealloc,regx) then
+           exit;
+         insertpos:=tai(p.previous);
+         if not assigned(insertpos) or
+            not isregallocoftyp(insertpos,ra_alloc,regx) then
+           insertpos:=storex;
+         list.remove(deallocy);
+         list.insertbefore(deallocy,insertpos);
+         list.remove(loady);
+         list.insertbefore(loady,insertpos);
+         swapxy:=taicpu.op_none(a_swap);
+         swapxy.fileinfo:=taicpu(loady).fileinfo;
+         list.insertbefore(swapxy,insertpos);
+         result:=true;
+       end;
+
+
       var
         p,next,nextnext: tai;
         reg: tregister;
@@ -215,7 +280,7 @@ implementation
                 ait_regalloc:
                   begin
                     reg:=NR_NO;
-                    next:=nextskipping(p,[ait_comment]);
+                    next:=nextskipping(p,[ait_comment,ait_tempalloc]);
                     nextnext:=nextskipping(next,[ait_comment,ait_regalloc]);
                     if assigned(nextnext) then
                       begin
@@ -241,26 +306,12 @@ implementation
                   end;
                 ait_instruction:
                   begin
-                    if try_remove_store_dealloc_load(p) then
+                    if try_remove_store_dealloc_load(p) or
+                       try_swap_store_x_load(p) then
                       begin
                         removedsomething:=true;
                         continue;
                       end;
-                    { todo in peephole optimizer:
-                        alloc regx // not double precision
-                        store regx // not double precision
-                        load  regy or memy
-                        dealloc regx
-                        load regx
-                      -> change into
-                        load regy or memy
-                        swap       // can only handle single precision
-
-                      and then
-                        swap
-                        <commutative op>
-                       -> remove swap
-                    }
                   end;
               end;
               p:=tai(p.next);

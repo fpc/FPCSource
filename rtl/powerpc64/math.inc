@@ -74,7 +74,11 @@ asm
   fcfid f0,f0     // convert to fpu int
 end;
 
-{$ifndef aix}
+{ we wouls have to generate the .localfunc directive for ELFv2, and moreover it
+  must appear at the start right after setting up the TOC pointer, but the local
+  variables will cause the code generator to already insert the stack allocation
+  before that... -> disable this routine for ELFv2 }
+{$if not defined(aix) and (not defined(linux) or (defined(_ELF_CALL) and (_ELF_CALL = 1))) }
 
 {$define FPC_SYSTEM_HAS_QWORD_TO_DOUBLE}
 function fpc_qword_to_double(q: qword): double; compilerproc;assembler;

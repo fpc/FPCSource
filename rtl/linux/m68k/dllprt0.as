@@ -21,26 +21,28 @@
 _startlib:
         .globl  FPC_SHARED_LIB_START
         .type   FPC_SHARED_LIB_START,@function
+# This is a normal C function with args (argc,argv,envp)
 FPC_SHARED_LIB_START:
-|
-|       The args and envs are not tested yet
-|
-        move.l   (%sp)+, %d0
-        lea      4(%sp,%d0*4),%a0
-        move.l   %a0, U_SYSLINUX_ENVP
-        move.l   %sp,U_SYSLINUX_ARGV
-        move.l   %d0,U_SYSLINUX_ARGC
+        link.w   %a6,#0
+        move.l   8(%fp),%d0
+        move.l   %d0,operatingsystem_parameter_argc
+        move.l   12(%fp),%d0
+        move.l   %d0,operatingsystem_parameter_argv
+        move.l   16(%fp),%d0
+        move.l   %d0,operatingsystem_parameter_envp
         jsr      PASCALMAIN
+        unlk     %a6
         rts
+.size FPC_SHARED_LIB_START,.-FPC_SHARED_LIB_START
 
         .globl  _haltproc
         .type   _haltproc,@function
-haltproc:
+_haltproc:
         moveq.l   #1,%d0
-        move.w    U_SYSLINUX_EXITCODE,%d1
+        move.w    operatingsystem_result,%d1
         trap      #0
         bra       _haltproc
-
+.size _haltproc,.-_haltproc
 
         .data
 	.align  4
@@ -48,19 +50,22 @@ haltproc:
 ___fpc_brk_addr:
         .long   0
 
-|
-| $Log: dllprt0.as,v $
-| Revision 1.1.2.4  2001/08/01 13:26:17  pierre
-|  * syntax adapted to GNU as
-|
-| Revision 1.1.2.3  2001/07/13 15:13:47  pierre
-|  + add and fix some comments
-|
-| Revision 1.1.2.2  2001/07/13 15:04:35  pierre
-|  * correct assembler error
-|
-| Revision 1.1.2.1  2001/07/13 15:03:02  pierre
-|  + New file converted from i386 version
-|
-|
+        .bss
+        .type   __stkptr,@object
+        .size   __stkptr,4
+        .global __stkptr
+__stkptr:
+        .skip   4
+
+        .type operatingsystem_parameters,@object
+        .size operatingsystem_parameters,12
+operatingsystem_parameters:
+        .skip 3*4
+
+        .global operatingsystem_parameter_envp
+        .global operatingsystem_parameter_argc
+        .global operatingsystem_parameter_argv
+        .set operatingsystem_parameter_envp,operatingsystem_parameters+0
+        .set operatingsystem_parameter_argc,operatingsystem_parameters+4
+        .set operatingsystem_parameter_argv,operatingsystem_parameters+8
 

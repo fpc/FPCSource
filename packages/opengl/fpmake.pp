@@ -13,15 +13,17 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('opengl');
+    P.ShortName:='ogl';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes:=AllUnixOSes+[Win32,Win64]+[MorphOS]-[Android];
 
     P.Dependencies.Add('x11',AllUnixOSes-[darwin,iphonesim]);
     if Defaults.CPU<>arm then
       P.Dependencies.Add('x11',[darwin]);
+    P.Dependencies.Add('morphunits',[morphos]);
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

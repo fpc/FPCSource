@@ -28,18 +28,12 @@
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
-{$mode objfpc}
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
-
 UNIT CYBERGRAPHICS;
 
 INTERFACE
-USES Exec,graphics,utility;
+USES Exec,agraphics,utility;
 
-VAR CyberGfxBase : pLibrary;
+VAR CyberGfxBase : pLibrary = nil;
 
 const
     CYBERGRAPHICSNAME : PChar = 'cybergraphics.library';
@@ -224,428 +218,79 @@ const
      BMB_SPECIALFMT = 7;
      BMF_SPECIALFMT = 1 shl BMB_SPECIALFMT;
 
-FUNCTION AllocCModeListTagList(ModeListTags : pTagItem) : pList;
-FUNCTION BestCModeIDTagList(BestModeIDTags : pTagItem) : longword;
-FUNCTION CModeRequestTagList(ModeRequest : POINTER; ModeRequestTags : pTagItem) : longword;
-PROCEDURE CVideoCtrlTagList(ViewPort : pViewPort; TagList : pTagItem);
-PROCEDURE DoCDrawMethodTagList(Hook : pHook; a1arg : pRastPort; TagList : pTagItem);
-FUNCTION ExtractColor(a0arg : pRastPort; BitMap : pBitMap; Colour : longword; SrcX : longword; SrcY : longword; Width : longword; Height : longword) : longword;
-FUNCTION FillPixelArray(a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; ARGB : longword) : longword;
-PROCEDURE FreeCModeList(ModeList : pList);
-FUNCTION GetCyberIDAttr(CyberIDAttr : longword; CyberDisplayModeID : longword) : longword;
-FUNCTION GetCyberMapAttr(CyberGfxBitmap : pBitMap; CyberAttrTag : longword) : longword;
-FUNCTION InvertPixelArray(a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD) : longword;
-FUNCTION IsCyberModeID(displayID : longword) : BOOLEAN;
-FUNCTION LockBitMapTagList(BitMap : POINTER; TagList : pTagItem) : POINTER;
-FUNCTION MovePixelArray(SrcX : WORD; SrcY : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD) : longword;
-FUNCTION ReadPixelArray(destRect : POINTER; destX : WORD; destY : WORD; destMod : WORD; a1arg : pRastPort; SrcX : WORD; SrcY : WORD; SizeX : WORD; SizeY : WORD; DestFormat : byte) : longword;
-FUNCTION ReadRGBPixel(a1arg : pRastPort; x : WORD; y : WORD) : longword;
-FUNCTION ScalePixelArray(srcRect : POINTER; SrcW : WORD; SrcH : WORD; SrcMod : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; DestW : WORD; DestH : WORD; SrcFormat : byte) : LONGINT;
-PROCEDURE UnLockBitMap(Handle : POINTER);
-PROCEDURE UnLockBitMapTagList(Handle : POINTER; TagList : pTagItem);
-FUNCTION WriteLUTPixelArray(srcRect : POINTER; SrcX : WORD; SrcY : WORD; SrcMod : WORD; a1arg : pRastPort; ColorTab : POINTER; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; CTFormat : byte) : longword;
-FUNCTION WritePixelArray(srcRect : POINTER; SrcX : WORD; SrcY : WORD; SrcMod : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; SrcFormat : byte) : longword;
-FUNCTION WriteRGBPixel(a1arg : pRastPort; x : WORD; y : WORD; argb : longword) : LONGINT;
+FUNCTION AllocCModeListTagList(ModeListTags : pTagItem location 'a1') : pList; syscall CyberGfxBase 072;
+FUNCTION BestCModeIDTagList(BestModeIDTags : pTagItem location 'a0') : longword; syscall CyberGfxBase 060;
+FUNCTION CModeRequestTagList(ModeRequest : POINTER location 'a0'; ModeRequestTags : pTagItem location 'a1') : longword; syscall CyberGfxBase 066;
+PROCEDURE CVideoCtrlTagList(ViewPort : pViewPort location 'a0'; TagList : pTagItem location 'a1'); syscall CyberGfxBase 162;
+PROCEDURE DoCDrawMethodTagList(Hook : pHook location 'a0'; a1arg : pRastPort location 'a1'; TagList : pTagItem location 'a2'); syscall CyberGfxBase 156;
+FUNCTION ExtractColor(a0arg : pRastPort location 'a0'; BitMap : pBitMap location 'a1'; Colour : longword location 'd0'; SrcX : longword location 'd1'; SrcY : longword location 'd2'; Width : longword location 'd3'; Height : longword location 'd4') : longword; syscall CyberGfxBase 186;
+FUNCTION FillPixelArray(a1arg : pRastPort location 'a1'; DestX : WORD location 'd0'; DestY : WORD location 'd1'; SizeX : WORD location 'd2'; SizeY : WORD location 'd3'; ARGB : longword location 'd4') : longword; syscall CyberGfxBase 150;
+PROCEDURE FreeCModeList(ModeList : pList location 'a0'); syscall CyberGfxBase 078;
+FUNCTION GetCyberIDAttr(CyberIDAttr : longword location 'd0'; CyberDisplayModeID : longword location 'd1') : longword; syscall CyberGfxBase 102;
+FUNCTION GetCyberMapAttr(CyberGfxBitmap : pBitMap location 'a0'; CyberAttrTag : longword location 'd0') : longword; syscall CyberGfxBase 096;
+FUNCTION InvertPixelArray(a1arg : pRastPort location 'a1'; DestX : WORD location 'd0'; DestY : WORD location 'd1'; SizeX : WORD location 'd2'; SizeY : WORD location 'd3') : longword; syscall CyberGfxBase 144;
+FUNCTION IsCyberModeID(displayID : longword location 'd0') : wordbool; syscall CyberGfxBase 054;
+FUNCTION LockBitMapTagList(BitMap : POINTER location 'a0'; TagList : pTagItem location 'a1') : POINTER; syscall CyberGfxBase 168;
+FUNCTION MovePixelArray(SrcX : WORD location 'd0'; SrcY : WORD location 'd1'; a1arg : pRastPort location 'a1'; DestX : WORD location 'd2'; DestY : WORD location 'd3'; SizeX : WORD location 'd4'; SizeY : WORD location 'd5') : longword; syscall CyberGfxBase 132;
+FUNCTION ReadPixelArray(destRect : POINTER location 'a0'; destX : WORD location 'd0'; destY : WORD location 'd1'; destMod : WORD location 'd2'; a1arg : pRastPort location 'a1'; SrcX : WORD location 'd3'; SrcY : WORD location 'd4'; SizeX : WORD location 'd5'; SizeY : WORD location 'd6'; DestFormat : byte location 'd7') : longword; syscall CyberGfxBase 120;
+FUNCTION ReadRGBPixel(a1arg : pRastPort location 'a1'; x : WORD location 'd0'; y : WORD location 'd1') : longword; syscall CyberGfxBase 108;
+FUNCTION ScalePixelArray(srcRect : POINTER location 'a0'; SrcW : WORD location 'd0'; SrcH : WORD location 'd1'; SrcMod : WORD location 'd2'; a1arg : pRastPort location 'a1'; DestX : WORD location 'd3'; DestY : WORD location 'd4'; DestW : WORD location 'd5'; DestH : WORD location 'd6'; SrcFormat : byte location 'd7') : LONGINT; syscall CyberGfxBase 090;
+PROCEDURE UnLockBitMap(Handle : POINTER location 'a0'); syscall CyberGfxBase 174;
+PROCEDURE UnLockBitMapTagList(Handle : POINTER location 'a0'; TagList : pTagItem location 'a1'); syscall CyberGfxBase 180;
+FUNCTION WriteLUTPixelArray(srcRect : POINTER location 'a0'; SrcX : WORD location 'd0'; SrcY : WORD location 'd1'; SrcMod : WORD location 'd2'; a1arg : pRastPort location 'a1'; ColorTab : POINTER location 'a2'; DestX : WORD location 'd3'; DestY : WORD location 'd4'; SizeX : WORD location 'd5'; SizeY : WORD location 'd6'; CTFormat : byte location 'd7') : longword; syscall CyberGfxBase 198;
+FUNCTION WritePixelArray(srcRect : POINTER location 'a0'; SrcX : WORD location 'd0'; SrcY : WORD location 'd1'; SrcMod : WORD location 'd2'; a1arg : pRastPort location 'a1'; DestX : WORD location 'd3'; DestY : WORD location 'd4'; SizeX : WORD location 'd5'; SizeY : WORD location 'd6'; SrcFormat : byte location 'd7') : longword; syscall CyberGfxBase 126;
+FUNCTION WriteRGBPixel(a1arg : pRastPort location 'a1'; x : WORD location 'd0'; y : WORD location 'd1'; argb : longword location 'd2') : LONGINT; syscall CyberGfxBase 114;
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AllocCModeListTags(const ModeListTags : Array Of Const) : pList;
-FUNCTION BestCModeIDTags(const BestModeIDTags : Array Of Const) : longword;
-FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : Array Of Const) : longword;
-PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : Array Of Const);
-PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : Array Of Const);
-FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : Array Of Const) : POINTER;
-PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
+FUNCTION AllocCModeListTags(const ModeListTags : array of PtrUInt) : pList;
+FUNCTION BestCModeIDTags(const BestModeIDTags : array of PtrUInt) : longword;
+FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : array of PtrUInt) : longword;
+PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : array of PtrUInt);
+PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : array of PtrUInt);
+FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : array of PtrUInt) : POINTER;
+PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : array of PtrUInt);
 
 function SHIFT_PIXFMT(fmt : longint) : longint;
 
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitCYBERGRAPHICSLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    CYBERGRAPHICSIsCompiledHow : longint;
-
 IMPLEMENTATION
 
-uses
-{$ifndef dont_use_openlib}
-msgbox,
-{$endif dont_use_openlib}
-tagsarray;
-
-FUNCTION AllocCModeListTagList(ModeListTags : pTagItem) : pList;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L ModeListTags,A1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -072(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION BestCModeIDTagList(BestModeIDTags : pTagItem) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L BestModeIDTags,A0
-        MOVEA.L CyberGfxBase,A6
-        JSR     -060(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION CModeRequestTagList(ModeRequest : POINTER; ModeRequestTags : pTagItem) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L ModeRequest,A0
-        MOVEA.L ModeRequestTags,A1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -066(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE CVideoCtrlTagList(ViewPort : pViewPort; TagList : pTagItem);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L ViewPort,A0
-        MOVEA.L TagList,A1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -162(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE DoCDrawMethodTagList(Hook : pHook; a1arg : pRastPort; TagList : pTagItem);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L Hook,A0
-        MOVEA.L a1arg,A1
-        MOVEA.L TagList,A2
-        MOVEA.L CyberGfxBase,A6
-        JSR     -156(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION ExtractColor(a0arg : pRastPort; BitMap : pBitMap; Colour : longword; SrcX : longword; SrcY : longword; Width : longword; Height : longword) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L a0arg,A0
-        MOVEA.L BitMap,A1
-        MOVE.L  Colour,D0
-        MOVE.L  SrcX,D1
-        MOVE.L  SrcY,D2
-        MOVE.L  Width,D3
-        MOVE.L  Height,D4
-        MOVEA.L CyberGfxBase,A6
-        JSR     -186(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION FillPixelArray(a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; ARGB : longword) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L a1arg,A1
-        MOVE.L  DestX,D0
-        MOVE.L  DestY,D1
-        MOVE.L  SizeX,D2
-        MOVE.L  SizeY,D3
-        MOVE.L  ARGB,D4
-        MOVEA.L CyberGfxBase,A6
-        JSR     -150(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE FreeCModeList(ModeList : pList);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L ModeList,A0
-        MOVEA.L CyberGfxBase,A6
-        JSR     -078(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION GetCyberIDAttr(CyberIDAttr : longword; CyberDisplayModeID : longword) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  CyberIDAttr,D0
-        MOVE.L  CyberDisplayModeID,D1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -102(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION GetCyberMapAttr(CyberGfxBitmap : pBitMap; CyberAttrTag : longword) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L CyberGfxBitmap,A0
-        MOVE.L  CyberAttrTag,D0
-        MOVEA.L CyberGfxBase,A6
-        JSR     -096(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION InvertPixelArray(a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L a1arg,A1
-        MOVE.L  DestX,D0
-        MOVE.L  DestY,D1
-        MOVE.L  SizeX,D2
-        MOVE.L  SizeY,D3
-        MOVEA.L CyberGfxBase,A6
-        JSR     -144(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION IsCyberModeID(displayID : longword) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  displayID,D0
-        MOVEA.L CyberGfxBase,A6
-        JSR     -054(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION LockBitMapTagList(BitMap : POINTER; TagList : pTagItem) : POINTER;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L BitMap,A0
-        MOVEA.L TagList,A1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -168(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION MovePixelArray(SrcX : WORD; SrcY : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVE.L  SrcX,D0
-        MOVE.L  SrcY,D1
-        MOVEA.L a1arg,A1
-        MOVE.L  DestX,D2
-        MOVE.L  DestY,D3
-        MOVE.L  SizeX,D4
-        MOVE.L  SizeY,D5
-        MOVEA.L CyberGfxBase,A6
-        JSR     -132(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ReadPixelArray(destRect : POINTER; destX : WORD; destY : WORD; destMod : WORD; a1arg : pRastPort; SrcX : WORD; SrcY : WORD; SizeX : WORD; SizeY : WORD; DestFormat : byte) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L destRect,A0
-        MOVE.L  destX,D0
-        MOVE.L  destY,D1
-        MOVE.L  destMod,D2
-        MOVEA.L a1arg,A1
-        MOVE.L  SrcX,D3
-        MOVE.L  SrcY,D4
-        MOVE.L  SizeX,D5
-        MOVE.L  SizeY,D6
-        MOVE.L  DestFormat,D7
-        MOVEA.L CyberGfxBase,A6
-        JSR     -120(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ReadRGBPixel(a1arg : pRastPort; x : WORD; y : WORD) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L a1arg,A1
-        MOVE.L  x,D0
-        MOVE.L  y,D1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -108(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ScalePixelArray(srcRect : POINTER; SrcW : WORD; SrcH : WORD; SrcMod : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; DestW : WORD; DestH : WORD; SrcFormat : byte) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L srcRect,A0
-        MOVE.L  SrcW,D0
-        MOVE.L  SrcH,D1
-        MOVE.L  SrcMod,D2
-        MOVEA.L a1arg,A1
-        MOVE.L  DestX,D3
-        MOVE.L  DestY,D4
-        MOVE.L  DestW,D5
-        MOVE.L  DestH,D6
-        MOVE.L  SrcFormat,D7
-        MOVEA.L CyberGfxBase,A6
-        JSR     -090(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-PROCEDURE UnLockBitMap(Handle : POINTER);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L Handle,A0
-        MOVEA.L CyberGfxBase,A6
-        JSR     -174(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE UnLockBitMapTagList(Handle : POINTER; TagList : pTagItem);
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L Handle,A0
-        MOVEA.L TagList,A1
-        MOVEA.L CyberGfxBase,A6
-        JSR     -180(A6)
-        MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION WriteLUTPixelArray(srcRect : POINTER; SrcX : WORD; SrcY : WORD; SrcMod : WORD; a1arg : pRastPort; ColorTab : POINTER; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; CTFormat : byte) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L srcRect,A0
-        MOVE.L  SrcX,D0
-        MOVE.L  SrcY,D1
-        MOVE.L  SrcMod,D2
-        MOVEA.L a1arg,A1
-        MOVEA.L ColorTab,A2
-        MOVE.L  DestX,D3
-        MOVE.L  DestY,D4
-        MOVE.L  SizeX,D5
-        MOVE.L  SizeY,D6
-        MOVE.L  CTFormat,D7
-        MOVEA.L CyberGfxBase,A6
-        JSR     -198(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION WritePixelArray(srcRect : POINTER; SrcX : WORD; SrcY : WORD; SrcMod : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; SrcFormat : byte) : longword;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L srcRect,A0
-        MOVE.L  SrcX,D0
-        MOVE.L  SrcY,D1
-        MOVE.L  SrcMod,D2
-        MOVEA.L a1arg,A1
-        MOVE.L  DestX,D3
-        MOVE.L  DestY,D4
-        MOVE.L  SizeX,D5
-        MOVE.L  SizeY,D6
-        MOVE.L  SrcFormat,D7
-        MOVEA.L CyberGfxBase,A6
-        JSR     -126(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION WriteRGBPixel(a1arg : pRastPort; x : WORD; y : WORD; argb : longword) : LONGINT;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L a1arg,A1
-        MOVE.L  x,D0
-        MOVE.L  y,D1
-        MOVE.L  argb,D2
-        MOVEA.L CyberGfxBase,A6
-        JSR     -114(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
 {
- Functions and procedures with array of const go here
+ Functions and procedures with array of PtrUInt go here
 }
-FUNCTION AllocCModeListTags(const ModeListTags : Array Of Const) : pList;
+FUNCTION AllocCModeListTags(const ModeListTags : array of PtrUInt) : pList;
 begin
-    AllocCModeListTags := AllocCModeListTagList(readintags(ModeListTags));
+    AllocCModeListTags := AllocCModeListTagList(@ModeListTags);
 end;
 
-FUNCTION BestCModeIDTags(const BestModeIDTags : Array Of Const) : longword;
+FUNCTION BestCModeIDTags(const BestModeIDTags : array of PtrUInt) : longword;
 begin
-    BestCModeIDTags := BestCModeIDTagList(readintags(BestModeIDTags));
+    BestCModeIDTags := BestCModeIDTagList(@BestModeIDTags);
 end;
 
-FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : Array Of Const) : longword;
+FUNCTION CModeRequestTags(ModeRequest : POINTER; const ModeRequestTags : array of PtrUInt) : longword;
 begin
-    CModeRequestTags := CModeRequestTagList(ModeRequest , readintags(ModeRequestTags));
+    CModeRequestTags := CModeRequestTagList(ModeRequest , @ModeRequestTags);
 end;
 
-PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : Array Of Const);
+PROCEDURE CVideoCtrlTags(ViewPort : pViewPort; const TagList : array of PtrUInt);
 begin
-    CVideoCtrlTagList(ViewPort , readintags(TagList));
+    CVideoCtrlTagList(ViewPort , @TagList);
 end;
 
-PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : Array Of Const);
+PROCEDURE DoCDrawMethodTags(Hook : pHook; a1arg : pRastPort; const TagList : array of PtrUInt);
 begin
-    DoCDrawMethodTagList(Hook , a1arg , readintags(TagList));
+    DoCDrawMethodTagList(Hook , a1arg , @TagList);
 end;
 
-FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : Array Of Const) : POINTER;
+FUNCTION LockBitMapTags(BitMap : POINTER; const TagList : array of PtrUInt) : POINTER;
 begin
-    LockBitMapTags := LockBitMapTagList(BitMap , readintags(TagList));
+    LockBitMapTags := LockBitMapTagList(BitMap , @TagList);
 end;
 
-PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : Array Of Const);
+PROCEDURE UnLockBitMapTags(Handle : POINTER; const TagList : array of PtrUInt);
 begin
-    UnLockBitMapTagList(Handle , readintags(TagList));
+    UnLockBitMapTagList(Handle , @TagList);
 end;
 
 function SHIFT_PIXFMT(fmt : longint) : longint;
@@ -653,89 +298,16 @@ begin
     SHIFT_PIXFMT:=(ULONG(fmt)) shl 24;
 end;
 
-
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of cybergraphics.library}
-  {$Info don't forget to use InitCYBERGRAPHICSLibrary in the beginning of your program}
-
-var
-    cybergraphics_exit : Pointer;
-
-procedure ClosecybergraphicsLibrary;
-begin
-    ExitProc := cybergraphics_exit;
-    if CyberGfxBase <> nil then begin
-        CloseLibrary(CyberGfxBase);
-        CyberGfxBase := nil;
-    end;
-end;
-
-procedure InitCYBERGRAPHICSLibrary;
-begin
-    CyberGfxBase := nil;
-    CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
-    if CyberGfxBase <> nil then begin
-        cybergraphics_exit := ExitProc;
-        ExitProc := @ClosecybergraphicsLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open cybergraphics.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    CYBERGRAPHICSIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of cybergraphics.library}
-
-var
-    cybergraphics_exit : Pointer;
-
-procedure ClosecybergraphicsLibrary;
-begin
-    ExitProc := cybergraphics_exit;
-    if CyberGfxBase <> nil then begin
-        CloseLibrary(CyberGfxBase);
-        CyberGfxBase := nil;
-    end;
-end;
-
-begin
-    CyberGfxBase := nil;
-    CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
-    if CyberGfxBase <> nil then begin
-        cybergraphics_exit := ExitProc;
-        ExitProc := @ClosecybergraphicsLibrary;
-        CYBERGRAPHICSIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open cybergraphics.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    CYBERGRAPHICSIsCompiledHow := 3;
-   {$Warning No autoopening of cybergraphics.library compiled}
-   {$Warning Make sure you open cybergraphics.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  CyberGfxBase := OpenLibrary(CYBERGRAPHICSNAME,LIBVERSION);
+finalization
+  if Assigned(CyberGfxBase) then
+    CloseLibrary(CyberGfxBase);
 END. (* UNIT CYBERGRAPHICS *)
 
 

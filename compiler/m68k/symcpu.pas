@@ -124,6 +124,10 @@ type
   end;
   tcpuunitsymclass = class of tcpuunitsym;
 
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
+
   tcpunamespacesym = class(tnamespacesym)
   end;
   tcpunamespacesymclass = class of tcpunamespacesym;
@@ -186,14 +190,16 @@ implementation
   procedure tcpuprocdef.ppuload_platform(ppufile: tcompilerppufile);
     begin
       inherited;
-      ppufile.getderef(libsymderef);
+      if po_syscall_has_libsym in procoptions then
+        ppufile.getderef(libsymderef);
     end;
 
 
   procedure tcpuprocdef.ppuwrite_platform(ppufile: tcompilerppufile);
     begin
       inherited;
-      ppufile.putderef(libsymderef);
+      if po_syscall_has_libsym in procoptions then
+        ppufile.putderef(libsymderef);
     end;
 
 
@@ -208,14 +214,18 @@ implementation
   procedure tcpuprocdef.buildderef;
     begin
       inherited;
-      libsymderef.build(libsym);
+      if po_syscall_has_libsym in procoptions then
+        libsymderef.build(libsym);
     end;
 
 
   procedure tcpuprocdef.deref;
     begin
       inherited;
-      libsym:=tsym(libsymderef.resolve);
+      if po_syscall_has_libsym in procoptions then
+        libsym:=tsym(libsymderef.resolve)
+      else
+        libsym:=nil;
     end;
 
 begin
@@ -243,6 +253,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

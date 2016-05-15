@@ -807,17 +807,25 @@ BEGIN
     video unit capabilities, the mono modus can't be handled
   }
   Drivers.DetectVideo;
-  if (ScreenMode.Col div ScreenMode.Row<2) then
-    ShadowSize.X := 1
-  else
+{ ScreenMode.Row may be 0 if there's no console on startup }
+  if ScreenMode.Row = 0 then
+   begin
     ShadowSize.X := 2;
-
+    AppPalette := apColor;
+   end
+  else
+   begin
+    if (ScreenMode.Col div ScreenMode.Row<2) then
+     ShadowSize.X := 1
+    else
+     ShadowSize.X := 2;
+    if ScreenMode.color then
+     AppPalette := apColor
+    else
+     AppPalette := apBlackWhite;
+   end;
   ShadowSize.Y := 1;
   ShowMarkers := False;
-  if ScreenMode.color then
-    AppPalette := apColor
-  else
-    AppPalette := apBlackWhite;
   Buffer := Views.PVideoBuf(VideoBuf);
 END;
 
@@ -947,8 +955,14 @@ BEGIN
            Drivers.GetMouseEvent(Event);              { Load mouse event }
            If (Event.What = evNothing) Then
              begin
+{$IFNDEF HASAMIGA}
+               { due to isses with the event handling in FV itself,
+                 we skip this here, and let the IDE to handle it
+                 directly on Amiga-like systems. The FV itself cannot
+                 handle the System Events anyway. (KB) }
                Drivers.GetSystemEvent(Event);         { Load system event }
                If (Event.What = evNothing) Then
+{$ENDIF}
                  Idle;     { Idle if no event }
              end;
          End;

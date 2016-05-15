@@ -10,4 +10,5 @@ begin
   write('Opening 1... '); reset(t1); writeln('done.');
   write('Opening 2... '); reset(t2); writeln('done.');
   close(t2); close(t1);
+  erase(t1);
 end.

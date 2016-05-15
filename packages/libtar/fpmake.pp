@@ -13,17 +13,18 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('libtar');
+    P.ShortName:='ltar';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Stefan Heymann';
     P.License := 'LGPL with modification, ';
     P.HomepageURL := 'http://www.destructor.de/';
     P.Description := 'Library for handling tar-files.';
 
-    P.OSes:=AllOSes-[embedded];
+    P.OSes:=AllOSes-[embedded,win16];
 
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('libtar.pp');

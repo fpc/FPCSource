@@ -13,11 +13,12 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('x11');
+    P.Description := 'Interface units for X Window GUI libraries (X11).';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
-    P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix];
+    P.Version:='3.1.1';
+    P.OSes:=[beos,haiku,freebsd,solaris,netbsd,openbsd,linux,os2,emx,aix,dragonfly];
     // Do not build x11 on iPhone (=arm-darwin)
     if Defaults.CPU<>arm then
       P.OSes := P.OSes + [darwin];
@@ -49,6 +50,35 @@ begin
           AddUnit('xlib');
         end;
     T:=P.Targets.AddUnit('xi.pp');
+    T:=P.Targets.AddUnit('xi2.pp');
+    T:=P.Targets.AddUnit('xinput.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('x');
+          AddUnit('xlib');
+          AddUnit('xi');
+        end;
+    T:=P.Targets.AddUnit('xge.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xfixes.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('x');
+          AddUnit('xlib');
+        end;
+    T:=P.Targets.AddUnit('xinput2.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('x');
+          AddUnit('xlib');
+          AddUnit('xi2');
+          AddUnit('xge');
+          AddUnit('xfixes');
+        end;
     T:=P.Targets.AddUnit('xkblib.pp');
       with T.Dependencies do
         begin

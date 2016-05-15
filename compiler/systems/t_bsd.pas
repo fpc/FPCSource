@@ -192,6 +192,8 @@ begin
       DynamicLinker:='/usr/libexec/ld.so'
      else if target_info.system in systems_netbsd then
       DynamicLinker:='/usr/libexec/ld.elf_so'
+     else if target_info.system=system_x86_64_dragonfly then
+      DynamicLinker:='/libexec/ld-elf.so.2'
      else
        DynamicLinker:='';
    end;
@@ -230,28 +232,49 @@ begin
     begin
       if not(cs_profile in current_settings.moduleswitches) then
         begin
-          { 10.8 and later: no crt1.* }
-          if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
-            exit('');
-          { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
-          { others: crt1.10.5 -> crt1.o }
-{$if defined(i386) or defined(x86_64)}
-          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
-            exit('crt1.10.6.o');
-{$endif}
-          if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
-            exit('crt1.10.5.o');
-{$if defined(arm)}
-          { iOS:
-              iOS 6 and later: nothing
-              iOS 3.1 - 5.x: crt1.3.1.o
-              pre-iOS 3.1: crt1.o
-          }
-          if (CompareVersionStrings(iPhoneOSVersionMin,'6.0')>=0) then
-            exit('');
-          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
-            exit('crt1.3.1.o');
-{$endif}
+          case target_info.system of
+            system_powerpc_darwin,
+            system_powerpc64_darwin,
+            system_i386_darwin,
+            system_x86_64_darwin:
+              begin
+                { 10.8 and later: no crt1.* }
+                if CompareVersionStrings(MacOSXVersionMin,'10.8')>=0 then
+                  exit('');
+                { x86: crt1.10.6.o -> crt1.10.5.o -> crt1.o }
+                { others: crt1.10.5 -> crt1.o }
+                if (target_info.system in [system_i386_darwin,system_x86_64_darwin]) and
+                   (CompareVersionStrings(MacOSXVersionMin,'10.6')>=0) then
+                  exit('crt1.10.6.o');
+                if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+                  exit('crt1.10.5.o');
+              end;
+            system_arm_darwin:
+              begin
+                { iOS:
+                    iOS 6 and later: nothing
+                    iOS 3.1 - 5.x: crt1.3.1.o
+                    pre-iOS 3.1: crt1.o
+                }
+                if (CompareVersionStrings(iPhoneOSVersionMin,'6.0')>=0) then
+                  exit('');
+                if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+                  exit('crt1.3.1.o');
+              end;
+            system_i386_iphonesim,
+            system_x86_64_iphonesim:
+              begin
+                { "recent versions" must not use anything (https://github.com/llvm-mirror/clang/commit/e6d04f3d152a22077022cf9287d4c538a0918ab0 )
+                  What those recent versions could be, is anyone's guess. It
+                  still seems to work with 8.1 and no longer with 8.3, so use
+                  8.1 as a cut-off point }
+                if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
+                  exit('');
+              end;
+            system_aarch64_darwin:
+              { never anything }
+              exit('');
+          end;
           { nothing special -> default }
           result:='crt1.o';
         end
@@ -268,34 +291,68 @@ begin
     begin
       if (apptype=app_bundle) then
         begin
-          { < 10.6: bundle1.o
-            >= 10.6: nothing }
-          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
-            exit('');
-          { iOS: < 3.1: bundle1.o
-                 >= 3.1: nothing }
-{$if defined(arm)}
-          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
-            exit('');
-{$endif}
+          case target_info.system of
+            system_powerpc_darwin,
+            system_powerpc64_darwin,
+            system_i386_darwin,
+            system_x86_64_darwin:
+              begin
+                { < 10.6: bundle1.o
+                  >= 10.6: nothing }
+                if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+                  exit('');
+              end;
+            system_arm_darwin,
+            system_aarch64_darwin:
+              begin
+                { iOS: < 3.1: bundle1.o
+                       >= 3.1: nothing }
+                if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+                  exit('');
+              end;
+            system_i386_iphonesim,
+            system_x86_64_iphonesim:
+              begin
+                { see rule for crt1.o }
+                if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
+                  exit('');
+              end;
+          end;
           result:='bundle1.o';
         end
       else
         begin
-          { >= 10.6: nothing
-            = 10.5: dylib1.10.5.o
-            < 10.5: dylib1.o
-          }
-          if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
-            exit('');
-          if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
-            exit('dylib1.10.5.o');
-          { iOS: < 3.1: dylib1.o
-                 >= 3.1: nothing }
-{$if defined(arm)}
-          if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
-            exit('');
-{$endif}
+          case target_info.system of
+            system_powerpc_darwin,
+            system_powerpc64_darwin,
+            system_i386_darwin,
+            system_x86_64_darwin:
+              begin
+                { >= 10.6: nothing
+                  = 10.5: dylib1.10.5.o
+                  < 10.5: dylib1.o
+                }
+                if CompareVersionStrings(MacOSXVersionMin,'10.6')>=0 then
+                  exit('');
+                if CompareVersionStrings(MacOSXVersionMin,'10.5')>=0 then
+                  exit('dylib1.10.5.o');
+              end;
+            system_arm_darwin,
+            system_aarch64_darwin:
+              begin
+                { iOS: < 3.1: dylib1.o
+                       >= 3.1: nothing }
+                if (CompareVersionStrings(iPhoneOSVersionMin,'3.1')>=0) then
+                  exit('');
+              end;
+            system_i386_iphonesim,
+            system_x86_64_iphonesim:
+              begin
+                { see rule for crt1.o }
+                if (CompareVersionStrings(iPhoneOSVersionMin,'8.1')>0) then
+                  exit('');
+              end;
+          end;
           result:='dylib1.o';
         end;
     end;
@@ -417,12 +474,17 @@ begin
           LinkRes.Add('i386');
         system_powerpc64_darwin:
           LinkRes.Add('ppc64');
-        system_x86_64_darwin:
+        system_x86_64_darwin,
+        system_x86_64_iphonesim:
           LinkRes.Add('x86_64');
         system_arm_darwin:
           { current versions of the linker require the sub-architecture type
             to be specified }
           LinkRes.Add(lower(cputypestr[current_settings.cputype]));
+        system_aarch64_darwin:
+          LinkRes.Add('arm64');
+        else
+          internalerror(2014121801);
       end;
       if MacOSXVersionMin<>'' then
         begin
@@ -695,6 +757,12 @@ begin
     else
      DynLinKStr:=DynLinkStr+' -dynamic'; // one dash!
    end;
+   
+{ Use -nopie on OpenBSD }
+  if (target_info.system in systems_openbsd) and
+     (target_info.system <> system_x86_64_openbsd) then
+    Info.ExtraOptions:=Info.ExtraOptions+' -nopie';
+    
 { Write used files and libraries }
   WriteResponseFile(false);
 
@@ -912,6 +980,9 @@ end;
 initialization
   RegisterLinker(ld_bsd,TLinkerBSD);
 {$ifdef x86_64}
+  RegisterImport(system_x86_64_dragonfly,timportlibbsd);
+  RegisterExport(system_x86_64_dragonfly,texportlibbsd);
+  RegisterTarget(system_x86_64_dragonfly_info);
   RegisterImport(system_x86_64_freebsd,timportlibbsd);
   RegisterExport(system_x86_64_freebsd,texportlibbsd);
   RegisterTarget(system_x86_64_freebsd_info);
@@ -925,6 +996,9 @@ initialization
   RegisterImport(system_x86_64_darwin,timportlibdarwin);
   RegisterExport(system_x86_64_darwin,texportlibdarwin);
   RegisterTarget(system_x86_64_darwin_info);
+  RegisterImport(system_x86_64_iphonesim,timportlibdarwin);
+  RegisterExport(system_x86_64_iphonesim,texportlibdarwin);
+  RegisterTarget(system_x86_64_iphonesim_info);
 {$endif}
 {$ifdef i386}
   RegisterImport(system_i386_freebsd,timportlibbsd);
@@ -967,6 +1041,11 @@ initialization
   RegisterExport(system_arm_darwin,texportlibdarwin);
   RegisterTarget(system_arm_darwin_info);
 {$endif arm}
+{$ifdef aarch64}
+  RegisterImport(system_aarch64_darwin,timportlibdarwin);
+  RegisterExport(system_aarch64_darwin,texportlibdarwin);
+  RegisterTarget(system_aarch64_darwin_info);
+{$endif aarch64}
 
   RegisterRes(res_elf_info,TWinLikeResourceFile);
   RegisterRes(res_macho_info,TWinLikeResourceFile);

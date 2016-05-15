@@ -92,8 +92,16 @@ interface
        PAInt = ^AInt;
 
        { target cpu specific type used to store data sizes }
+{$ifdef cpu16bitaddr}
+       { on small CPUs such as i8086, we use LongInt to support data structures
+         larger than 32767 bytes and up to 65535 bytes in size. Since asizeint
+         must be signed, we use LongInt/LongWord. }
+       ASizeInt = LongInt;
+       ASizeUInt = LongWord;
+{$else cpu16bitaddr}
        ASizeInt = PInt;
        ASizeUInt = PUInt;
+{$endif cpu16bitaddr}
 
        { type used for handling constants etc. in the code generator }
        TCGInt = Int64;
@@ -106,16 +114,16 @@ interface
 {$ifdef i8086}
        TConstPtrUInt = LongWord;  { 32-bit for far pointers support }
 {$else i8086}
-       TConstPtrUInt = AWord;
+       TConstPtrUInt = PUint;
 {$endif i8086}
 
        { Use a variant record to be sure that the array if aligned correctly }
-       tdoublerec=record
+       tcompdoublerec=record
          case byte of
            0 : (bytes:array[0..7] of byte);
            1 : (value:double);
        end;
-       textendedrec=record
+       tcompextendedrec=record
          case byte of
            0 : (bytes:array[0..9] of byte);
            1 : (value:extended);
@@ -133,7 +141,7 @@ interface
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
          cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
-         cs_check_low_addr_load,
+         cs_check_low_addr_load,cs_imported_data,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }
@@ -145,7 +153,9 @@ interface
          cs_check_var_copyout,
          cs_zerobasedstrings,
          { i8086 specific }
-         cs_force_far_calls
+         cs_force_far_calls,
+         cs_hugeptr_arithmetic_normalization,
+         cs_hugeptr_comparison_normalization
        );
        tlocalswitches = set of tlocalswitch;
 
@@ -158,7 +168,8 @@ interface
          cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
-         cs_lineinfo,cs_implicit_exceptions,cs_explicit_codepage,
+         cs_lineinfo,cs_implicit_exceptions,
+         cs_explicit_codepage,cs_system_codepage,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }
@@ -166,7 +177,8 @@ interface
          { target specific }
          cs_executable_stack,
          { i8086 specific }
-         cs_huge_code
+         cs_huge_code,
+         cs_win16_smartcallbacks
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -192,7 +204,9 @@ interface
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,
          cs_link_opt_used_sections,cs_link_separate_dbg_file,
          cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
-	 cs_link_native
+         cs_link_native,
+         cs_link_pre_binutils_2_19,
+         cs_link_vlink
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -245,7 +259,18 @@ interface
            accidental uses of uninitialised values }
          ts_init_locals,
          { emit a CLD instruction before using the x86 string instructions }
-         ts_cld
+         ts_cld,
+         { increment BP before pushing it in the function prologue and decrement
+           it after popping it in the function epilogue, iff the function is
+           going to terminate with a far ret. Thus, the BP value pushed on the
+           stack becomes odd if the function is far and even if the function is
+           near. This allows walking the BP chain on the stack and e.g.
+           obtaining a stack trace even if the program uses a mixture of near
+           and far calls. This is also required for Win16 real mode, because it
+           allows Windows to move code segments around (in order to defragment
+           memory) and then walk through the stacks of all running programs and
+           update the segment values of the segment that has moved. }
+         ts_x86_far_procs_push_odd_bp
        );
        ttargetswitches = set of ttargetswitch;
 
@@ -265,9 +290,9 @@ interface
      type
        { optimizer }
        toptimizerswitch = (cs_opt_none,
-         cs_opt_level1,cs_opt_level2,cs_opt_level3,
+         cs_opt_level1,cs_opt_level2,cs_opt_level3,cs_opt_level4,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
-         cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
+         cs_opt_peephole,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
          cs_opt_nodedfa,cs_opt_loopstrength,cs_opt_scheduler,cs_opt_autoinline,cs_useebp,cs_userbp,
          cs_opt_reorder_fields,cs_opt_fastmath,
          { Allow removing expressions whose result is not used, even when this
@@ -294,26 +319,20 @@ interface
        twpoptimizerswitches = set of twpoptimizerswitch;
 
     type
-       { Used by ARM / AVR / MIPSEL to differentiate between specific microcontrollers }
-       tcontrollerdatatype = record
-          controllertypestr, controllerunitstr: string[20];
-          flashbase, flashsize, srambase, sramsize, eeprombase, eepromsize, bootbase, bootsize: dword;
-       end;
-
        ttargetswitchinfo = record
           name: string[22];
           { target switch can have an arbitratry value, not only on/off }
           hasvalue: boolean;
           { target switch can be used only globally }
           isglobal: boolean;
-          define: string[15];
+          define: string[25];
        end;
 
     const
        OptimizerSwitchStr : array[toptimizerswitch] of string[17] = ('',
-         'LEVEL1','LEVEL2','LEVEL3',
+         'LEVEL1','LEVEL2','LEVEL3','LEVEL4',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
-         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE',
+         'PEEPHOLE','LOOPUNROLL','TAILREC','CSE',
          'DFA','STRENGTH','SCHEDULE','AUTOINLINE','USEEBP','USERBP',
          'ORDERFIELDS','FASTMATH','DEADVALUES','REMOVEEMPTYPROCS',
          'CONSTPROP',
@@ -336,14 +355,15 @@ interface
          (name: 'THUMBINTERWORKING';   hasvalue: false; isglobal: true ; define: ''),
          (name: 'LOWERCASEPROCSTART';  hasvalue: false; isglobal: true ; define: ''),
          (name: 'INITLOCALS';          hasvalue: false; isglobal: true ; define: ''),
-         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD')
+         (name: 'CLD';                 hasvalue: false; isglobal: true ; define: 'FPC_ENABLED_CLD'),
+         (name: 'FARPROCSPUSHODDBP';   hasvalue: false; isglobal: false; define: 'FPC_FAR_PROCS_PUSH_ODD_BP')
        );
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1,cs_opt_peephole];
        genericlevel2optimizerswitches = [cs_opt_level2,cs_opt_remove_emtpy_proc];
        genericlevel3optimizerswitches = [cs_opt_level3,cs_opt_constant_propagate,cs_opt_nodedfa];
-       genericlevel4optimizerswitches = [cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
+       genericlevel4optimizerswitches = [cs_opt_level4,cs_opt_reorder_fields,cs_opt_dead_values,cs_opt_fastmath];
 
        { whole program optimizations whose information generation requires
          information from all loaded units
@@ -362,7 +382,7 @@ interface
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas,
          {$ifdef fpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
@@ -398,13 +418,17 @@ interface
                                   fields in Java) }
          m_default_unicodestring, { makes the default string type in $h+ mode unicodestring rather than
                                     ansistring; similarly, char becomes unicodechar rather than ansichar }
-         m_type_helpers         { allows the declaration of "type helper" (non-Delphi) or "record helper"
+         m_type_helpers,        { allows the declaration of "type helper" (non-Delphi) or "record helper"
                                   (Delphi) for primitive types }
+         m_blocks,              { support for http://en.wikipedia.org/wiki/Blocks_(C_language_extension) }
+         m_isolike_io,          { I/O as it required by an ISO compatible compiler }
+         m_isolike_program_para, { program parameters as it required by an ISO compatible compiler }
+         m_isolike_mod          { mod operation as it is required by an iso compatible compiler }
        );
        tmodeswitches = set of tmodeswitch;
 
     const
-       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso];
+       alllanguagemodes = [m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,m_extpas];
 
     type
        { Application types (platform specific) }
@@ -499,7 +523,10 @@ interface
          { constant records by reference.                            }
          pocall_mwpascal,
          { Special interrupt handler for embedded systems }
-         pocall_interrupt
+         pocall_interrupt,
+         { Directive for arm: pass floating point values in (v)float registers
+           regardless of the actual calling conventions }
+         pocall_hardfloat
        );
        tproccalloptions = set of tproccalloption;
 
@@ -517,7 +544,8 @@ interface
            'StdCall',
            'SoftFloat',
            'MWPascal',
-           'Interrupt'
+           'Interrupt',
+           'HardFloat'
          );
 
        { Default calling convention }
@@ -532,7 +560,7 @@ interface
        cstylearrayofconst = [pocall_cdecl,pocall_cppdecl,pocall_mwpascal];
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('',
-         '','','','','','',
+         '','','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
          'CLASS',
@@ -564,7 +592,12 @@ interface
          'SYSTEMCODEPAGE',
          'FINALFIELDS',
          'UNICODESTRINGS',
-         'TYPEHELPERS');
+         'TYPEHELPERS',
+         'CBLOCKS',
+         'ISOIO',
+         'ISOPROGRAMPARAS',
+         'ISOMOD'
+         );
 
 
      type
@@ -613,7 +646,14 @@ interface
          { allocates memory on stack, so stack is unbalanced on exit }
          pi_has_stack_allocs,
          { set if the stack frame of the procedure is estimated }
-         pi_estimatestacksize
+         pi_estimatestacksize,
+         { the routine calls a C-style varargs function }
+         pi_calls_c_varargs,
+         { the routine has an open array parameter,
+           for i8086 cpu huge memory model,
+           as this changes SP register it requires special handling
+           to restore DS segment register  }
+         pi_has_open_array_parameter
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -703,6 +743,14 @@ interface
 
     type
       tx86memorymodel = (mm_tiny,mm_small,mm_medium,mm_compact,mm_large,mm_huge);
+    const
+      x86memorymodelstr : array[tx86memorymodel] of string[7]=(
+        'TINY',
+        'SMALL',
+        'MEDIUM',
+        'COMPACT',
+        'LARGE',
+        'HUGE');
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const

@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes := AllUnixOSes+AllWindowsOSes-[qnx];
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -34,7 +34,7 @@ begin
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testodbc.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

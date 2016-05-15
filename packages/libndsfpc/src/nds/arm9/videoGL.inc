@@ -32,11 +32,6 @@ function floatto12d3(n: cfloat): fixed12d3; inline;
 const
   GL_MAX_DEPTH     = $7FFF;
 
-function inttof32(n: cint): cint32; inline;
-function f32toint(n: cint32): cint; inline;
-function floattof32(n: cfloat): cint32; inline;  //inlining it makes impossible to pass it to another function :/
-function f32tofloat(n: cint32): cfloat; inline;
-
 type
   t16 = cshort;//cint16?       // text coordinate 12.4 fixed point (or cint?)
 
@@ -296,6 +291,7 @@ type
     matrixMode: GL_MATRIX_MODE_ENUM; // holds the current Matrix Mode
 
     vramBlocks: array [0..1] of ps_vramBlock;		// Two classe instances, one for textures, and one for palettes
+    vramLock: array [0..1] of cint;				// Holds the current lock state of the VRAM banks
     
     // texture globals
     texturePtrs: DynamicArray;		// Pointers to each individual texture
@@ -372,6 +368,10 @@ procedure glBindTexture(target, name: cint); cdecl; external;
 function glGenTextures(n: cint; names: pcint): cint; cdecl; external;
 function glDeleteTextures(n: cint; names: pcint): cint; cdecl; external;
 procedure glResetTextures(); cdecl; external;
+
+function glLockVRAMBank(addr: pcuint16): cint; cdecl; external;
+function glUnlockVRAMBank(addr: pcuint16): cint; cdecl; external;
+
 procedure glTexCoord2f32(u, v: cint32); cdecl; external;
 procedure glMaterialf(mode: GL_MATERIALS_ENUM; color: rgb); cdecl; external;
 procedure glInit_C(); cdecl; external;
@@ -462,27 +462,6 @@ end;
 function floatto12d3(n: cfloat): fixed12d3; inline;
 begin
   floatto12d3 := fixed12d3(trunc( n  * (1 shl 3)));
-end;
-
-function inttof32(n: cint): cint32; inline;
-begin
-  inttof32 := ((n) shl 12);
-end;
-
-function f32toint(n: cint32): cint; inline;
-begin
-  f32toint := ((n) shr 12);
-end;
-
-function floattof32(n: cfloat): cint32; inline;
-begin
-  floattof32 := trunc((n) * (1 shl 12));
-end;
-
-// check it!
-function f32tofloat(n: cint32): cfloat; inline;
-begin
-  f32tofloat := cfloat(n * 1.0) / cfloat((1 shl 12) * 1.0);
 end;
 
 function f32tot16(n: cint32): t16; inline;

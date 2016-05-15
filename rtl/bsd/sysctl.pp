@@ -97,7 +97,7 @@ Uses Syscall;
 {$ENDIF}
 
 {$ifndef FPC_USE_LIBC}
-{$ifdef FreeBSD}
+{$if defined(FreeBSD) or defined(DragonFly)}
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
 

@@ -264,7 +264,10 @@ Begin
       FileRec(f).Handle := _open(p,oflags,438);
     end;
   IF FileRec(f).Handle < 0 THEN
-    Errno2Inoutres
+    begin
+      Errno2Inoutres;
+      FileRec(f).mode:=fmclosed;
+    end
   ELSE
     InOutRes := 0;
 End;

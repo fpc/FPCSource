@@ -22,13 +22,21 @@ uses
   classes, SysUtils, fpcunit, fpcunitreport;
 
 type
+  TTestResultOption = (ttoSkipAddress,ttoSkipExceptionMessage,ttoErrorsOnly);
+  TTestResultOptions = set of TTestResultOption;
+
+  { TPlainResultsWriter }
 
   TPlainResultsWriter = class(TCustomResultsWriter)
   private
+    FTestResultOptions : TTestResultOptions;
     FDoc: TStringList;
     FSuiteHeaderIdx: TFPList;
     FTempFailure: TTestFailure;
+    function TimeFormat(ATiming: TDateTime): String;
   protected
+    procedure SetSkipAddressInfo(AValue: Boolean); override;
+    procedure SetSparse(AValue: Boolean); override;
     procedure WriteTestHeader(ATest: TTest; ALevel: integer; ACount: integer); override;
     procedure WriteTestFooter(ATest: TTest; ALevel: integer; ATiming: TDateTime); override;
     procedure WriteSuiteHeader(ATestSuite: TTestSuite; ALevel: integer); override;
@@ -44,12 +52,14 @@ type
     procedure AddError(ATest: TTest; AError: TTestFailure); override;
   end;
 
-function TestSuiteAsPlain(aSuite:TTestSuite): string;
-function GetSuiteAsPlain(aSuite: TTestSuite): string;
-function TestResultAsPlain(aTestResult: TTestResult): string;
+
+function TestSuiteAsPlain(aSuite:TTestSuite; Options : TTestResultOptions = []): string;
+function GetSuiteAsPlain(aSuite: TTestSuite; Options : TTestResultOptions = []): string;
+function TestResultAsPlain(aTestResult: TTestResult; Options : TTestResultOptions = []): string;
 
 implementation
 
+uses dateutils;
 
 {TPlainResultsWriter}
 
@@ -79,7 +89,7 @@ begin
   system.Assign(f, FileName);
   rewrite(f);
   FDoc.Add('');
-  FDoc.Add(TestResultAsPlain(aResult));
+  FDoc.Add(TestResultAsPlain(aResult,FTestResultOptions));
   writeln(f, FDoc.Text);
   close(f);
 end;
@@ -110,8 +120,9 @@ begin
   inherited;
   S:='  ' + StringOfChar(' ',ALevel*2);
   if Not SkipTiming then
-    S:=S + FormatDateTime('ss.zzz', ATiming) + '  ';
+    S:=S + FormatDateTime(TimeFormat(ATiming), ATiming) + '  ';
   S:=S + ATest.TestName;
+  if Assigned(FTempFailure) or (not Sparse) then
   FDoc.Add(S);
   if Assigned(FTempFailure) then
   begin
@@ -120,10 +131,8 @@ begin
     begin
       FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Error: ' + FTempFailure.ExceptionClassName;
       FDoc.Add(StringOfChar(' ',ALevel*2) + '    Exception:   ' + FTempFailure.ExceptionMessage);
-      FDoc.Add(StringOfChar(' ',ALevel*2) + '    Source unit: ' + FTempFailure.SourceUnitName);
-      FDoc.Add(StringOfChar(' ',ALevel*2) + '    Method name: ' + FTempFailure.FailedMethodName);
-      FDoc.Add(StringOfChar(' ',ALevel*2) + '    Line number: ' 
-        + IntToStr(FTempFailure.LineNumber));
+      FDoc.Add(StringOfChar(' ',ALevel*2) + '    at ' + FTempFailure.LocationInfo);
+      // TODO: Add stack dump output info
     end
     else
       if FTempFailure.IsIgnoredTest then
@@ -132,11 +141,47 @@ begin
            + FTempFailure.ExceptionMessage;
       end
       else
+      begin
         //is a failure
         FDoc[FDoc.Count -1] := FDoc[FDoc.Count -1] + '  Failed: ' 
           + FTempFailure.ExceptionMessage;
+        FDoc.Add(StringOfChar(' ',ALevel*2) + '    Exception:   ' + FTempFailure.ExceptionMessage);
+        FDoc.Add(StringOfChar(' ',ALevel*2) + '    at ' + FTempFailure.LocationInfo);
+      end;
   end;
   FTempFailure := nil;
+end;
+
+function TPlainResultsWriter.TimeFormat(ATiming: TDateTime): String;
+
+Var
+  M : Int64;
+
+begin
+  Result:='ss.zzz';
+  M:=MinutesBetween(ATiming,0);
+  if M>60 then
+    Result:='hh:mm:'+Result
+  else if M>1 then
+   Result:='mm:'+Result;
+end;
+
+procedure TPlainResultsWriter.SetSkipAddressInfo(AValue: Boolean);
+begin
+  inherited SetSkipAddressInfo(AValue);
+  if AValue then
+    Include(FTestResultOptions,ttoSkipAddress)
+  else
+    Exclude(FTestResultOptions,ttoSkipAddress);
+end;
+
+procedure TPlainResultsWriter.SetSparse(AValue: Boolean);
+begin
+  inherited SetSparse(AValue);
+  if AValue then
+    FTestResultOptions:=FTestResultOptions+[ttoSkipExceptionMessage,ttoErrorsOnly]
+  else
+    FTestResultOptions:=FTestResultOptions-[ttoSkipExceptionMessage,ttoErrorsOnly];
 end;
 
 procedure TPlainResultsWriter.WriteSuiteFooter(ATestSuite: TTestSuite; ALevel: integer; 
@@ -149,7 +194,7 @@ begin
   inherited;
   idx := Integer(FSuiteHeaderIdx[FSuiteHeaderIdx.Count -1]);
   if Not SkipTiming then
-    S:= ' Time:'+ FormatDateTime('ss.zzz', ATiming);
+    S:= ' Time:'+ FormatDateTime(TimeFormat(ATiming), ATiming);
   S:=S+ ' N:'+ IntToStr(ANumRuns)+ ' E:'+ IntToStr(ANumErrors)+ ' F:'+ IntToStr(ANumFailures)+
     ' I:'+ IntToStr(ANumIgnores) ;
   FDoc[idx] := FDoc[idx]+S;
@@ -163,28 +208,50 @@ begin
   FSuiteHeaderIdx.Add(Pointer(FDoc.Count - 1));
 end;
 
-function TestSuiteAsPlain(aSuite:TTestSuite): string;
+function DoTestSuiteAsPlain(aSuite:TTestSuite; Prefix : String; Options : TTestResultOptions = []): string;
 var
   i: integer;
+  p : string;
 begin
-  Result := '';
-  for i := 0 to aSuite.Tests.Count - 1 do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsPlain(TTestSuite(aSuite.Tests.Items[i]))
-    else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        Result := Result + '  ' + ASuite.TestName+'.' + TTestcase(aSuite.Tests.Items[i]).TestName + System.sLineBreak;
+  Result := Prefix+ASuite.TestName+System.sLineBreak;
+  for i := 0 to aSuite.ChildTestCount - 1 do
+    if aSuite.Test[i] is TTestSuite then
+      begin
+      P:=Prefix;
+      if (ASuite.TestName<>'') then
+        P:=P+'  ';
+      Result := Result + DoTestSuiteAsPlain(TTestSuite(aSuite.Test[i]),P,Options);
+      end
+    else if aSuite.Test[i] is TTestCase then
+      Result := Result + Prefix+'  ' + ASuite.TestName+'.' + TTestcase(aSuite.Test[i]).TestName + System.sLineBreak;
 end;
 
-function GetSuiteAsPlain(aSuite: TTestSuite): string;
+function TestSuiteAsPlain(aSuite:TTestSuite; Options : TTestResultOptions = []): string;
+
+begin
+  Result:=DoTestSuiteAsPLain(ASuite,'',Options);
+end;
+
+function GetSuiteAsPlain(aSuite: TTestSuite; Options : TTestResultOptions = []): string;
 begin
   Result := '';
-
   if aSuite <> nil then
-    Result := 'TestSuites: ' + System.sLineBreak + TestSuiteAsPlain(aSuite);
+    Result := 'TestSuites: ' + System.sLineBreak + TestSuiteAsPlain(aSuite,Options);
 end;
 
-function TestResultAsPlain(aTestResult: TTestResult): string;
+function TestResultAsPlain(aTestResult: TTestResult; Options : TTestResultOptions = []): string;
+
+  Procedure WriteFailure(F : TTestFailure; SkipAddress : Boolean = False );
+
+  begin
+    Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
+    Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
+    if not (ttoSkipExceptionMessage in options) then
+      Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
+    if not (SkipAddress or (ttoSkipAddress in options) )then
+      Result := Result + '        at ' + f.LocationInfo + System.sLineBreak;
+  end;
+
 var
   i: longint;
   f: TTestFailure;
@@ -203,13 +270,7 @@ begin
       begin
         Result := Result + System.sLineBreak;
         Result := Result + '  Error: ' + System.sLineBreak;
-        f := TTestFailure(Errors.Items[i]);
-        Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
-        Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
-        Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
-        Result := Result + '    Source unitname:   ' + f.SourceUnitName + System.sLineBreak;
-        Result := Result + '    Line number:       ' + IntToStr(f.LineNumber) + System.sLineBreak;
-        Result := Result + '    Failed methodname: ' + f.FailedMethodName + System.sLineBreak;
+        WriteFailure(TTestFailure(Errors.Items[i]));
       end;
     end;
     if NumberOfFailures <> 0 then
@@ -220,10 +281,7 @@ begin
       for i := 0 to Failures.Count - 1 do
       begin
         Result := Result + '  Failure: ' + System.sLineBreak;
-        f := TTestFailure(Failures.Items[i]);
-        Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
-        Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
-        Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
+        WriteFailure(TTestFailure(Failures.Items[i]));
       end;
     end;
    if NumberOfIgnoredTests <> 0 then
@@ -234,10 +292,7 @@ begin
       for i := 0 to IgnoredTests.Count - 1 do
       begin
         Result := Result + '  Ignored test: ' + System.sLineBreak;
-        f := TTestFailure(IgnoredTests.Items[i]);
-        Result := Result + '    Message:           ' + f.AsString + System.sLineBreak;
-        Result := Result + '    Exception class:   ' + f.ExceptionClassName + System.sLineBreak;
-        Result := Result + '    Exception message: ' + f.ExceptionMessage + System.sLineBreak;
+        WriteFailure(TTestFailure(IgnoredTests.Items[i]),True);
       end;
     end;
   end;

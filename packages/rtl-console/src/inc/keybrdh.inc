@@ -20,8 +20,13 @@ const
 type
   TKeyEvent = Cardinal;
   TKeyRecord = packed record
+{$IFDEF ENDIAN_LITTLE}
     KeyCode : Word;
     ShiftState, Flags : Byte;
+{$ELSE}
+    Flags, ShiftState : Byte;
+    KeyCode : Word;
+{$ENDIF}
   end;
 
 { The structure of a TKeyEvent follows in LSB-MSB order:

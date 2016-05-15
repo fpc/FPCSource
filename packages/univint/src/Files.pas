@@ -7,8 +7,6 @@
  
      Copyright:  © 1985-2011 Apple, Inc. All rights reserved
 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -63,6 +61,11 @@ interface
 {$elsec}
 	{$setc __arm__ := 0}
 {$endc}
+{$ifc not defined __arm64__ and defined CPUAARCH64}
+  {$setc __arm64__ := 1}
+{$elsec}
+  {$setc __arm64__ := 0}
+{$endc}
 
 {$ifc defined cpu64}
   {$setc __LP64__ := 1}
@@ -81,6 +84,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -91,6 +95,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -101,6 +106,7 @@ interface
 	{$setc TARGET_CPU_X86 := TRUE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 {$ifc defined(iphonesim)}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
@@ -117,9 +123,16 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
+{$elsec}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$endc}
 	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
@@ -127,13 +140,26 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elifc defined __arm64__ and __arm64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := TRUE}
 	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
-	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
 
 {$ifc defined __LP64__ and __LP64__ }
@@ -175,7 +201,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,MixedMode,OSUtils,TextCommon,UTCUtils,Finder,MacOSXPosix,DADisk,CFBase,CFDate,CFDictionary,CFRunLoop,CFUUID;
+uses acl,MacTypes,MixedMode,OSUtils,TextCommon,UTCUtils,Finder,MacOSXPosix,DADisk,CFBase,CFDate,CFDictionary,CFRunLoop,CFUUID;
 {$endc} {not MACOSALLINCLUDE}
 
 
@@ -200,12 +226,15 @@ type
 	DirIDTypePtr = ^DirIDType;
 	DirIDType = SInt32;
 
+const kFSFileSecurityRemoveACL = acl_t(1);
+
 {
     File Permissions
 
-    Do not mix and match the following two sets of constants
-    see DTS Technote FL 37 "You Want Permission To Do What?!!"
-    <http://developer.apple.com/technotes/fl/fl_37.html>
+    Do not mix and match the following two sets of File Manager permission
+    constants (original model  and AFP model).
+    See the Retired Technote FL 37 "You Want Permission To Do What?!!"
+    <https://developer.apple.com/legacy/mac/library/#technotes/fl/fl_37.html#//apple_ref/doc/uid/DTS10002463>
     for a detailed discussion of the two separate models
     and how they are related.
 }
@@ -1403,7 +1432,7 @@ const
 	kFSCatInfoCreateDate = $00000020;
 	kFSCatInfoContentMod = $00000040;
 	kFSCatInfoAttrMod = $00000080;
-	kFSCatInfoAccessDate = $00000100;
+	kFSCatInfoAccessDate = $00000100; { Note: although included in kFSCatInfoSettableInfo, attempts to set kFSCatInfoAccessDate will do nothing but will not cause an error }
 	kFSCatInfoBackupDate = $00000200;
 	kFSCatInfoPermissions = $00000400;
 	kFSCatInfoFinderInfo = $00000800;
@@ -8771,7 +8800,7 @@ function PBCatSearchAsync( paramBlock: CSParamPtr ): OSErr; external name '_PBCa
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function UnmountVol( volName: ConstStringPtr { can be NULL }; vRefNum: FSVolumeRefNum ): OSErr; external name '_UnmountVol';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_4, __IPHONE_NA, __IPHONE_NA) *)
 
 
 { This function is deprecated in Mac OS X 10.4. The routines which use the default volume concept have been deprecated.}

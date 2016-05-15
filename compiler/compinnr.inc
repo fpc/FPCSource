@@ -88,6 +88,7 @@ const
    in_unbox_x_y         = 78; { manage platforms: extract from class instance }
    in_popcnt_x          = 79;
    in_aligned_x         = 80;
+   in_setstring_x_y_z   = 81;
 
 { Internal constant functions }
    in_const_sqr        = 100;

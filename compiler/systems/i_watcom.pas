@@ -89,6 +89,7 @@ unit i_watcom;
             stacksize    : 16384;
             stackalign   : 4;
             abi          : abi_default;
+            llvmdatalayout : 'todo';
           );
 
   implementation

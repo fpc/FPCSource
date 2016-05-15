@@ -31,16 +31,19 @@ interface
     type
 
 
-      tm68knotnode = class(tnotnode)
-         procedure pass_generate_code;override;
+      tm68knotnode = class(tcgnotnode)
+         procedure second_boolean;override;
       end;
 
       tm68kmoddivnode = class(tcgmoddivnode)
-      private
-        procedure call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
       public
-         procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
-         procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
+        function first_moddivint: tnode;override;
+        procedure emit_div_reg_reg(signed: boolean;denum,num : tregister);override;
+        procedure emit_mod_reg_reg(signed: boolean;denum,num : tregister);override;
+      end;
+
+      tm68kunaryminusnode = class(tcgunaryminusnode)
+        procedure second_float;override;
       end;
 
       tm68kshlshrnode = class(tshlshrnode)
@@ -68,113 +71,77 @@ implementation
                                TM68KNOTNODE
 *****************************************************************************}
 
-    procedure tm68knotnode.pass_generate_code;
+    procedure tm68knotnode.second_boolean;
       var
-         hl : tasmlabel;
-         opsize : tcgsize;
-         loc : tcgloc;
+        hreg: tregister;
+        opsize : tcgsize;
       begin
-         opsize:=def_cgsize(resultdef);
-         if is_boolean(resultdef) then
+        if not handle_locjump then
           begin
-            { the second pass could change the location of left }
-            { if it is a register variable, so we've to do      }
-            { this before the case statement                    }
-            if left.expectloc<>LOC_JUMP then
-              begin
-                secondpass(left);
-                loc:=left.location.loc;
-              end
-            else
-              loc:=LOC_JUMP;
-
-            case loc of
-              LOC_JUMP :
-                begin
-                  location_reset(location,LOC_JUMP,OS_NO);
-                  hl:=current_procinfo.CurrTrueLabel;
-                  current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-                  current_procinfo.CurrFalseLabel:=hl;
-                  secondpass(left);
-                  maketojumpbool(current_asmdata.CurrAsmList,left,lr_load_regvars);
-                  hl:=current_procinfo.CurrTrueLabel;
-                  current_procinfo.CurrTrueLabel:=current_procinfo.CurrFalseLabel;
-                  current_procinfo.CurrFalseLabel:=hl;
-                end;
+            secondpass(left);
+            opsize:=def_cgsize(resultdef);
+            case left.location.loc of
               LOC_FLAGS :
                 begin
                   location_copy(location,left.location);
-//                  location_release(current_asmdata.CurrAsmList,left.location);
                   inverse_flags(location.resflags);
                 end;
-              LOC_CONSTANT,
+              LOC_REFERENCE,
+              LOC_CREFERENCE:
+                begin
+                  tcg68k(cg).fixref(current_asmdata.CurrAsmList,left.location.reference,false);
+                  if is_64bit(resultdef) then
+                   begin
+                     hreg:=cg.GetIntRegister(current_asmdata.CurrAsmList,OS_32);
+                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                     inc(left.location.reference.offset,4);
+                     cg.a_op_ref_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.reference,hreg);
+                   end
+                 else
+                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_TST,tcgsize2opsize[opsize],left.location.reference));
+                   location_reset(location,LOC_FLAGS,OS_NO);
+                   location.resflags:=F_E;
+                end;
               LOC_REGISTER,
               LOC_CREGISTER,
-              LOC_REFERENCE,
-              LOC_CREFERENCE,
               LOC_SUBSETREG,
               LOC_CSUBSETREG,
               LOC_SUBSETREF,
               LOC_CSUBSETREF:
                 begin
-                  hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
-//                  location_release(current_asmdata.CurrAsmList,left.location);
+                  if is_64bit(resultdef) then
+                    begin
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,false);
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_OR,S_L,left.location.register64.reghi,left.location.register64.reglo));
+                    end
+                  else
+                    begin
+                      hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,resultdef,true);
+                      current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_TST,tcgsize2opsize[opsize],left.location.register));
+                    end;
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
                 end;
-             else
-                internalerror(200203223);
+            else
+              internalerror(200203223);
             end;
-          end
-         else if is_64bitint(left.resultdef) then
-           begin
-              secondpass(left);
-              location_copy(location,left.location);
-              hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,u64inttype,false);
-              cg64.a_op64_loc_reg(current_asmdata.CurrAsmList,OP_NOT,OS_64,location,
-                joinreg64(location.register64.reglo,location.register64.reghi));
-           end
-         else
-          begin
-             secondpass(left);
-             hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
-             location_copy(location,left.location);
-             if location.loc=LOC_CREGISTER then
-              location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
-             { perform the NOT operation }
-             cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NOT,opsize,location.register,left.location.register);
           end;
       end;
 
-  procedure tm68kmoddivnode.call_rtl_divmod_reg_reg(denum,num:tregister;const name:string);
-    var
-      paraloc1,paraloc2 : tcgpara;
-      pd : tprocdef;
-    begin
-      pd:=search_system_proc(name);
-      paraloc1.init;
-      paraloc2.init;
-      paramanager.getintparaloc(pd,1,paraloc1);
-      paramanager.getintparaloc(pd,2,paraloc2);
-      cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,num,paraloc2);
-      cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_32,denum,paraloc1);
-      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
-      paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
-      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pd.proccalloption));
-      cg.alloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
-      cg.a_call_name(current_asmdata.CurrAsmList,name,false);
-      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_INTREGISTER,paramanager.get_volatile_registers_int(pd.proccalloption));
-      cg.dealloccpuregisters(current_asmdata.CurrAsmList,R_ADDRESSREGISTER,paramanager.get_volatile_registers_address(pd.proccalloption));
-      cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-      cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,NR_FUNCTION_RESULT_REG,num);
-      paraloc2.done;
-      paraloc1.done;
-    end;
 
 {*****************************************************************************
                                TM68KMODDIVNODE
 *****************************************************************************}
+
+  function tm68kmoddivnode.first_moddivint: tnode;
+    begin
+      if current_settings.cputype=cpu_MC68020 then
+        result:=nil
+      else
+        result:=inherited first_moddivint;
+    end;
+
+
   procedure tm68kmoddivnode.emit_div_reg_reg(signed: boolean;denum,num : tregister);
    begin
      if current_settings.cputype=cpu_MC68020 then
@@ -185,21 +152,13 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVU,S_L,denum,num));
        end
      else
-       begin
-         { On MC68000/68010/Coldfire we must pass through RTL routines }
-         if signed then
-           call_rtl_divmod_reg_reg(denum,num,'fpc_div_longint')
-         else
-           call_rtl_divmod_reg_reg(denum,num,'fpc_div_dword');
-       end;
+       InternalError(2014062801);
    end;
 
 
   procedure tm68kmoddivnode.emit_mod_reg_reg(signed: boolean;denum,num : tregister);
-      var tmpreg : tregister;
-          continuelabel : tasmlabel;
-          signlabel : tasmlabel;
-          reg_d0,reg_d1 : tregister;
+    var
+      tmpreg : tregister;
     begin
      if current_settings.cputype=cpu_MC68020 then
        begin
@@ -213,14 +172,45 @@ implementation
            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_DIVUL,S_L,denum,num,tmpreg));
        end
      else
-       begin
-         { On MC68000/68010/coldfire we must pass through RTL routines }
-         if signed then
-           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_longint')
-         else
-           call_rtl_divmod_reg_reg(denum,num,'fpc_mod_dword');
-       end;
+       InternalError(2014062802);
     end;
+
+
+{*****************************************************************************
+                          TM68KUNARYMINUSNODE
+*****************************************************************************}
+
+    procedure tm68kunaryminusnode.second_float;
+      var
+        href: treference;
+      begin
+        secondpass(left);
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
+        //current_asmdata.CurrAsmList.concat(tai_comment.create(strpnew('unaryminus second_float called!')));
+
+        case left.location.loc of
+          LOC_REFERENCE,
+          LOC_CREFERENCE :
+            begin
+              location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+              href:=left.location.reference;
+              tcg68k(cg).fixref(current_asmdata.CurrAsmList,href,current_settings.fputype = fpu_coldfire);
+              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_FNEG,tcgsize2opsize[left.location.size],href,location.register));
+            end;
+          LOC_FPUREGISTER:
+            begin
+              location.register:=left.location.register;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_FNEG,fpuregopsize,location.register));
+            end;
+          LOC_CFPUREGISTER:
+            begin
+               location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_FNEG,fpuregopsize,left.location.register,location.register));
+            end;
+          else
+            internalerror(200306021);
+        end;
+      end;
 
 
 {*****************************************************************************
@@ -258,7 +248,7 @@ implementation
             hreg64lo:=left.location.register64.reglo;
 
             shiftval := tordconstnode(right).value.svalue;
-	    shiftval := shiftval and 63;
+            shiftval := shiftval and 63;
             if shiftval > 31 then
               begin
                 if nodetype = shln then
@@ -335,5 +325,6 @@ implementation
 begin
    cnotnode:=tm68knotnode;
    cmoddivnode:=tm68kmoddivnode;
+   cunaryminusnode:=tm68kunaryminusnode;
    cshlshrnode:=tm68kshlshrnode;
 end.

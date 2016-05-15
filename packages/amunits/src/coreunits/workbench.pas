@@ -58,25 +58,20 @@
 
     nils.sjoholm@mailbox.swipnet.se
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 unit workbench;
 
 INTERFACE
 
-uses exec,amigados,utility, intuition,graphics;
-
+uses exec,amigados,utility,intuition,agraphics;
 
 
 Type
 
     pWBArg = ^tWBArg;
     tWBArg = record
-        wa_Lock         : longint;      { a lock descriptor }
+        wa_Lock         : BPTR;      { a lock descriptor }
         wa_Name         : STRPTR;       { a string relative to that lock }
     end;
 
@@ -853,399 +848,104 @@ type
     WORKBENCHNAME : PChar  = 'workbench.library';
 
 VAR
-    WorkbenchBase : pLibrary;
+    WorkbenchBase : pLibrary = nil;
 
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
-FUNCTION AddAppWindowA(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort;const taglist : pTagItem) : pAppWindow;
-FUNCTION RemoveAppIcon(appIcon : pAppIcon) : BOOLEAN;
-FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem) : BOOLEAN;
-FUNCTION RemoveAppWindow(appWindow : pAppWindow) : BOOLEAN;
-PROCEDURE WBInfo(lock : BPTR; name : pCHAR; screen : pScreen);
+FUNCTION AddAppIconA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; lock : BPTR location 'a2'; diskobj : pDiskObject location 'a3'; const taglist : pTagItem location 'a4') : pAppIcon; syscall WorkbenchBase 060;
+FUNCTION AddAppMenuItemA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; text_ : pCHAR location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppMenuItem; syscall WorkbenchBase 072;
+FUNCTION AddAppWindowA(id : ULONG location 'd0'; userdata : ULONG location 'd1'; window : pWindow location 'a0'; msgport : pMsgPort location 'a1'; const taglist : pTagItem location 'a2') : pAppWindow; syscall WorkbenchBase 042;
+FUNCTION RemoveAppIcon(appIcon : pAppIcon location 'a0') : longbool; syscall WorkbenchBase 066;
+FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem location 'a0') : longbool; syscall WorkbenchBase 078;
+FUNCTION RemoveAppWindow(appWindow : pAppWindow location 'a0') : longbool; syscall WorkbenchBase 054;
+PROCEDURE WBInfo(lock : BPTR location 'a0'; name : pCHAR location 'a1'; screen : pScreen location 'a2'); syscall WorkbenchBase 090;
 
-FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
-FUNCTION ChangeWorkbenchSelectionA(name : pCHAR; hook : pHook;const tags : pTagItem) : BOOLEAN;
-FUNCTION CloseWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-FUNCTION OpenWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-FUNCTION RemoveAppWindowDropZone(aw : pAppWindow; dropZone : pAppWindowDropZone) : BOOLEAN;
-FUNCTION WorkbenchControlA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
+FUNCTION AddAppWindowDropZoneA(aw : pAppWindow location 'a0'; id : longword location 'd0'; userdata : longword location 'd1'; const tags : pTagItem location 'a1') : pAppWindowDropZone; syscall WorkbenchBase 114;
+FUNCTION ChangeWorkbenchSelectionA(name : pCHAR location 'a0'; hook : pHook location 'a1'; const tags : pTagItem location 'a2') : longbool; syscall WorkbenchBase 126;
+FUNCTION CloseWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 102;
+FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 132;
+FUNCTION OpenWorkbenchObjectA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 096;
+FUNCTION RemoveAppWindowDropZone(aw : pAppWindow location 'a0'; dropZone : pAppWindowDropZone location 'a1') : longbool; syscall WorkbenchBase 120;
+FUNCTION WorkbenchControlA(name : pCHAR location 'a0'; const tags : pTagItem location 'a1') : longbool; syscall WorkbenchBase 108;
+
+function AddAppIcon(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock: BPTR; diskobj : pDiskObject; const taglist : array of PtrUInt) : pAppIcon;
+function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
+function AddAppWindow(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppWindow;
 
 { overlays }
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
-PROCEDURE WBInfo(lock : BPTR; name : string; screen : pScreen);
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : BPTR; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
+PROCEDURE WBInfo(lock : BPTR; const name : RawByteString; screen : pScreen);
 
-FUNCTION ChangeWorkbenchSelectionA(name : string; hook : pHook;const tags : pTagItem) : BOOLEAN;
-FUNCTION CloseWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
-FUNCTION MakeWorkbenchObjectVisibleA(name : string;const tags : pTagItem) : BOOLEAN;
-FUNCTION OpenWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
-FUNCTION WorkbenchControlA(name : string;const tags : pTagItem) : BOOLEAN;
-
-{Here we read how to compile this unit}
-{You can remove this include and use a define instead}
-{$I useautoopenlib.inc}
-{$ifdef use_init_openlib}
-procedure InitWBLibrary;
-{$endif use_init_openlib}
-
-{This is a variable that knows how the unit is compiled}
-var
-    WBIsCompiledHow : longint;
+FUNCTION ChangeWorkbenchSelectionA(const name : RawByteString; hook : pHook; const tags : pTagItem) : BOOLEAN;
+FUNCTION CloseWorkbenchObjectA(const name : RawByteString; const tags : pTagItem) : BOOLEAN;
+FUNCTION MakeWorkbenchObjectVisibleA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+FUNCTION OpenWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 
 IMPLEMENTATION
 
-uses
-{$ifndef dont_use_openlib}
-msgbox,
-{$endif dont_use_openlib}
-pastoc;
-
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  id,D0
-    MOVE.L  userdata,D1
-    MOVEA.L text_,A0
-    MOVEA.L msgport,A1
-    MOVEA.L lock,A2
-    MOVEA.L diskobj,A3
-    MOVEA.L taglist,A4
-    MOVEA.L WorkbenchBase,A6
-    JSR -060(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  id,D0
-    MOVE.L  userdata,D1
-    MOVEA.L text_,A0
-    MOVEA.L msgport,A1
-    MOVEA.L taglist,A2
-    MOVEA.L WorkbenchBase,A6
-    JSR -072(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddAppWindowA(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort;const taglist : pTagItem) : pAppWindow;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVE.L  id,D0
-    MOVE.L  userdata,D1
-    MOVEA.L window,A0
-    MOVEA.L msgport,A1
-    MOVEA.L taglist,A2
-    MOVEA.L WorkbenchBase,A6
-    JSR -048(A6)
-    MOVEA.L (A7)+,A6
-    MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION RemoveAppIcon(appIcon : pAppIcon) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L appIcon,A0
-    MOVEA.L WorkbenchBase,A6
-    JSR -066(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION RemoveAppMenuItem(appMenuItem : pAppMenuItem) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L appMenuItem,A0
-    MOVEA.L WorkbenchBase,A6
-    JSR -078(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION RemoveAppWindow(appWindow : pAppWindow) : BOOLEAN;
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L appWindow,A0
-    MOVEA.L WorkbenchBase,A6
-    JSR -054(A6)
-    MOVEA.L (A7)+,A6
-    TST.W   D0
-    BEQ.B   @end
-    MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-PROCEDURE WBInfo(lock : BPTR; name : pCHAR; screen : pScreen);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L lock,A0
-    MOVEA.L name,A1
-    MOVEA.L screen,A2
-    MOVEA.L WorkbenchBase,A6
-    JSR -090(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L aw,A0
-        MOVE.L  id,D0
-        MOVE.L  userdata,D1
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -114(A6)
-        MOVEA.L (A7)+,A6
-        MOVE.L  D0,@RESULT
-  END;
-END;
-
-FUNCTION ChangeWorkbenchSelectionA(name : pCHAR; hook : pHook;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L hook,A1
-        MOVEA.L tags,A2
-        MOVEA.L WorkbenchBase,A6
-        JSR     -126(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION CloseWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -102(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -132(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION OpenWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -096(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-
-FUNCTION RemoveAppWindowDropZone(aw : pAppWindow; dropZone : pAppWindowDropZone) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L aw,A0
-        MOVEA.L dropZone,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -120(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION WorkbenchControlA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
-BEGIN
-  ASM
-        MOVE.L  A6,-(A7)
-        MOVEA.L name,A0
-        MOVEA.L tags,A1
-        MOVEA.L WorkbenchBase,A6
-        JSR     -108(A6)
-        MOVEA.L (A7)+,A6
-        TST.W   D0
-        BEQ.B   @end
-        MOVEQ   #1,D0
-  @end: MOVE.B  D0,@RESULT
-  END;
-END;
-
-FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort; lock : pFileLock; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
+function AddAppIcon(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; lock: BPTR; diskobj : pDiskObject; const taglist : array of PtrUInt) : pAppIcon;
 begin
-       AddAppIconA := AddAppIconA(id,userdata,pas2c(text_),msgport,lock,diskobj,taglist);
+  AddAppIcon := AddAppIconA(id, userdata, text_, msgport, lock, diskobj, @taglist);
 end;
 
-FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; text_ : string; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
+function AddAppMenuItem(id : ULONG; userdata : ULONG; text_ : pCHAR; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppMenuItem;
 begin
-       AddAppMenuItemA := AddAppMenuItemA(id,userdata,pas2c(text_),msgport,taglist);
+    AddAppMenuItem := AddAppMenuItemA(id,userdata,text_,msgport,@argv);
 end;
 
-PROCEDURE WBInfo(lock : BPTR; name : string; screen : pScreen);
+function AddAppWindow(id : ULONG; userdata : ULONG; window : pWindow; msgport : pMsgPort; Const argv : array of PtrUInt) : pAppWindow;
 begin
-       WBInfo(lock,pas2c(name),screen);
+    AddAppWindow := AddAppWindowA(id,userdata,window,msgport,@argv);
 end;
 
-FUNCTION ChangeWorkbenchSelectionA(name : string; hook : pHook;const tags : pTagItem) : BOOLEAN;
+FUNCTION AddAppIconA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort; lock : BPTR; diskobj : pDiskObject;const taglist : pTagItem) : pAppIcon;
 begin
-       ChangeWorkbenchSelectionA := ChangeWorkbenchSelectionA(pas2c(name),hook,tags);
+       AddAppIconA := AddAppIconA(id,userdata,PChar(text_),msgport,lock,diskobj,taglist);
 end;
 
-FUNCTION CloseWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION AddAppMenuItemA(id : ULONG; userdata : ULONG; const text_ : RawByteString; msgport : pMsgPort;const taglist : pTagItem) : pAppMenuItem;
 begin
-       CloseWorkbenchObjectA := CloseWorkbenchObjectA(pas2c(name),tags);
+       AddAppMenuItemA := AddAppMenuItemA(id,userdata,PChar(text_),msgport,taglist);
 end;
 
-FUNCTION MakeWorkbenchObjectVisibleA(name : string;const tags : pTagItem) : BOOLEAN;
+PROCEDURE WBInfo(lock : BPTR; const name : RawByteString; screen : pScreen);
 begin
-       MakeWorkbenchObjectVisibleA := MakeWorkbenchObjectVisibleA(pas2c(name),tags);
+       WBInfo(lock,PChar(name),screen);
 end;
 
-FUNCTION OpenWorkbenchObjectA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION ChangeWorkbenchSelectionA(const name : RawByteString; hook : pHook;const tags : pTagItem) : BOOLEAN;
 begin
-       OpenWorkbenchObjectA := OpenWorkbenchObjectA(pas2c(name),tags);
+       ChangeWorkbenchSelectionA := ChangeWorkbenchSelectionA(PChar(name),hook,tags);
 end;
 
-FUNCTION WorkbenchControlA(name : string;const tags : pTagItem) : BOOLEAN;
+FUNCTION CloseWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
 begin
-       WorkbenchControlA := WorkbenchControlA(pas2c(name),tags);
+       CloseWorkbenchObjectA := CloseWorkbenchObjectA(PChar(name),tags);
+end;
+
+FUNCTION MakeWorkbenchObjectVisibleA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+begin
+       MakeWorkbenchObjectVisibleA := MakeWorkbenchObjectVisibleA(PChar(name),tags);
+end;
+
+FUNCTION OpenWorkbenchObjectA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+begin
+       OpenWorkbenchObjectA := OpenWorkbenchObjectA(PChar(name),tags);
+end;
+
+FUNCTION WorkbenchControlA(const name : RawByteString;const tags : pTagItem) : BOOLEAN;
+begin
+       WorkbenchControlA := WorkbenchControlA(PChar(name),tags);
 end;
 
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-{$ifdef use_init_openlib}
-  {$Info Compiling initopening of workbench.library}
-  {$Info don't forget to use InitWBLibrary in the beginning of your program}
-
-var
-    wb_exit : Pointer;
-
-procedure ClosewbLibrary;
-begin
-    ExitProc := wb_exit;
-    if WorkbenchBase <> nil then begin
-        CloseLibrary(WorkbenchBase);
-        WorkbenchBase := nil;
-    end;
-end;
-
-procedure InitWBLibrary;
-begin
-    WorkbenchBase := nil;
-    WorkbenchBase := OpenLibrary(WORKBENCHNAME,LIBVERSION);
-    if WorkbenchBase <> nil then begin
-        wb_exit := ExitProc;
-        ExitProc := @ClosewbLibrary;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open workbench.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-end;
-
-begin
-    WBIsCompiledHow := 2;
-{$endif use_init_openlib}
-
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of workbench.library}
-
-var
-    wb_exit : Pointer;
-
-procedure ClosewbLibrary;
-begin
-    ExitProc := wb_exit;
-    if WorkbenchBase <> nil then begin
-        CloseLibrary(WorkbenchBase);
-        WorkbenchBase := nil;
-    end;
-end;
-
-begin
-    WorkbenchBase := nil;
-    WorkbenchBase := OpenLibrary(WORKBENCHNAME,LIBVERSION);
-    if WorkbenchBase <> nil then begin
-        wb_exit := ExitProc;
-        ExitProc := @ClosewbLibrary;
-        WBIsCompiledHow := 1;
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open workbench.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$endif use_auto_openlib}
-
-{$ifdef dont_use_openlib}
-begin
-    WBIsCompiledHow := 3;
-   {$Warning No autoopening of workbench.library compiled}
-   {$Warning Make sure you open workbench.library yourself}
-{$endif dont_use_openlib}
-
-
+initialization
+  WorkbenchBase := OpenLibrary(WORKBENCHNAME,LIBVERSION);
+finalization
+  if Assigned(WorkbenchBase) then
+    CloseLibrary(WorkbenchBase);
 END. (* UNIT WB *)
-
-
-
-

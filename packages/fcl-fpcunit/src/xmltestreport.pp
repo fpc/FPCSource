@@ -21,7 +21,7 @@
     is valid XML, with reserved characters correctly escaped.
     This allows the XML document to be further processed with XSLT etc without
     any issues.
-		
+
   Notes:
     Specify 'null' as the filename if you don't want to output to file (e.g.
     used by the GUI test runner which instead reads the Document property).
@@ -101,13 +101,27 @@ end;
 function TestSuiteAsXML(n: TDOMElement; FDoc: TXMLDocument; aSuite:TTestSuite): string;
 var
   i: integer;
+  E,T : TDomElement;
+  
 begin
-  for i := 0 to Pred(aSuite.Tests.Count) do
-    if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      TestSuiteAsXML(n, FDoc, TTestSuite(aSuite.Tests.Items[i]))
+  if aSuite.TestName<>'' then
+    begin
+    E:=FDoc.CreateElement('Suite');
+    E['Name']:=aSuite.TestName;
+    N.AppendChild(E);
+    end
+  else
+    E:=N;
+  for i:=0 to Pred(aSuite.ChildTestCount) do
+    if TTest(aSuite.Test[i]) is TTestSuite then
+      TestSuiteAsXML(E, FDoc, TTestSuite(aSuite.Test[i]))
     else
-      if TTest(aSuite.Tests.Items[i]) is TTestCase then
-        n.AppendChild(FDoc.CreateTextNode(TTestcase(aSuite.Tests.Items[i]).TestName + ' '));
+      if TTest(aSuite.Test[i]) is TTestCase then
+        begin
+        T:=FDoc.CreateElement('Test');
+        T['name']:=TTestCase(aSuite.Test[i]).TestName;
+        E.AppendChild(T);
+        end;
 end;
 
 
@@ -194,7 +208,7 @@ begin
   inherited;
   FResults := FDoc.CreateElement('TestResults');
   FResults.AppendChild(FDoc.CreateComment(' Generated using FPCUnit on '
-    + FormatDateTime('yyyy-mm-dd hh:mm:ss', Now) ));
+    + FormatDateTime('yyyy-mm-dd hh:nn:ss', Now) ));
   FDoc.AppendChild(FResults);
   FListing := FDoc.CreateElement('TestListing');
   FResults.AppendChild(FListing);
@@ -283,7 +297,7 @@ begin
 
   { Summary of ISO 8601  http://www.cl.cam.ac.uk/~mgk25/iso-time.html }
   n := FDoc.CreateElement('DateTimeRan');
-  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('yyyy-mm-dd hh:mm:ss', Now)));
+  n.AppendChild(FDoc.CreateTextNode(FormatDateTime('yyyy-mm-dd hh:nn:ss', Now)));
   lResults.AppendChild(n);
 
   // This is so that the GUI Test Runner doesn't output text as well.

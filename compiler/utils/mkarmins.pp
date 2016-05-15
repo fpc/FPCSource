@@ -186,7 +186,7 @@ var
    opcode,
    codes,
    flags   : string;
-   optypes : array[1..4] of string;
+   optypes : array[1..6] of string;
 begin
    writeln('Narm Instruction Table Converter Version ',Version);
    insns:=0;
@@ -298,6 +298,8 @@ begin
         optypes[2]:='';
         optypes[3]:='';
         optypes[4]:='';
+        optypes[5]:='';
+        optypes[6]:='';
         codes:='';
         flags:='';
         skip:=false;
@@ -324,8 +326,8 @@ begin
           else
             break;
         until false;
-        for j:=1 to 4-ops do
-          optypes[4-j+1]:='ot_none';
+        for j:=1 to 6-ops do
+          optypes[6-j+1]:='ot_none';
         { codes }
         skipspace;
         j:=0;
@@ -385,7 +387,7 @@ begin
             writeln(insfile,'  (');
             writeln(insfile,'    opcode  : ',opcode,';');
             writeln(insfile,'    ops     : ',ops,';');
-            writeln(insfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],',',optypes[4],');');
+            writeln(insfile,'    optypes : (',optypes[1],',',optypes[2],',',optypes[3],',',optypes[4],',',optypes[5],',',optypes[6],');');
             writeln(insfile,'    code    : ',codes,';');
             writeln(insfile,'    flags   : ',flags);
             write(insfile,'  )');

@@ -128,6 +128,9 @@ rm16|32|64,imm        \320\2\x0F\xBA\205\25           386,SB
 ; Compiler emits CALL/JMP with opsize=S_NO which matches any size,
 ; and will match the first entry in sequence.
 ; Therefore rm16 must be placed after rm32/rm64
+; However, on i8086, rm16 must be first, so it's repeated in the beginning
+; with a 16BITONLY flag
+rm16                  \324\1\xFF\202                  8086,16BITONLY
 rm32                  \325\1\xFF\202                  386,NOX86_64
 rm64                  \335\1\xFF\202                  X86_64
 rm16                  \324\1\xFF\202                  8086
@@ -279,12 +282,12 @@ void                  \2\xDE\xC1                      8086,FPU
 fpureg                \1\xDE\10\xC0                   8086,FPU
 fpureg,fpu0           \1\xDE\10\xC0                   8086,FPU
 
-[FBLD,fbldF]
+[FBLD,fbld]
 (Ch_Rop1, Ch_FPU, Ch_None)
 mem80                 \1\xDF\204                      8086,FPU
 mem                   \1\xDF\204                      8086,FPU
 
-[FBSTP,fbstpF]
+[FBSTP,fbstp]
 (Ch_Wop1, Ch_FPU, Ch_None)
 mem80                 \1\xDF\206                      8086,FPU
 mem                   \1\xDF\206                      8086,FPU
@@ -787,15 +790,15 @@ rm8                   \1\xF6\207                      8086
 (Ch_RWEAX, Ch_WEDX, Ch_WFlags)
 reg16|32|64,regmem    \320\2\x0F\xAF\110              386,SM
 rm16|32|64            \320\1\xF7\205                  8086
-reg32|64,regmem,imm8  \320\1\x6B\110\16               286,SM
-reg32|64,regmem,imm   \320\1\x69\110\42               286,SM,SD,AR2
-reg32|64,imm8         \320\1\x6B\100\15               286
-reg32,imm             \325\1\x69\100\41               286,SD
+reg32|64,regmem,imm8  \320\1\x6B\110\16               386,SM
+reg32|64,regmem,imm   \320\1\x69\110\42               386,SM,SD,AR2
+reg32|64,imm8         \320\1\x6B\100\15               386
+reg32,imm             \325\1\x69\100\41               386,SD
 reg64,imm             \326\1\x69\100\255              X86_64
-reg16,regmem,imm8     \324\1\x6B\110\16               286,SM
-reg16,regmem,imm      \324\1\x69\110\32               286,SM,SW,AR2
-reg16,imm8            \324\1\x6B\100\15               286
-reg16,imm             \324\1\x69\100\31               286,SW
+reg16,regmem,imm8     \324\1\x6B\110\16               186,SM
+reg16,regmem,imm      \324\1\x69\110\32               186,SM,SW,AR2
+reg16,imm8            \324\1\x6B\100\15               186
+reg16,imm             \324\1\x69\100\31               186,SW
 rm8                   \1\xF6\205                      8086
 
 ; 64-bit variant does not exist
@@ -887,8 +890,11 @@ imm                   \1\xE3\50                       X86_64
 [JMP,jmpX]
 (Ch_ROp1, Ch_None, Ch_None)
 ; rm16 should be after rm32/rm64, see comments for CALL.
+; However, on i8086, rm16 must be first, so it's repeated in the beginning
+; with a 16BITONLY flag
 imm8                  \1\xEB\50                       8086,PASS2
 imm16|32              \320\1\xE9\64                   8086,PASS2
+rm16                  \324\1\xFF\204                  8086,16BITONLY
 rm32                  \325\1\xFF\204                  386,NOX86_64
 rm64                  \335\1\xFF\204                  X86_64
 rm16                  \324\1\xFF\204                  8086
@@ -1439,7 +1445,7 @@ void                  \324\1\x61                      186,NOX86_64
 
 [POPF]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \327\1\x9D                      186,NOX86_64
+void                  \327\1\x9D                      8086,NOX86_64
 void                  \326\1\x9D                      X86_64
 
 [POPFD,popfl]
@@ -1448,7 +1454,7 @@ void                  \325\1\x9D                      386,NOX86_64
 
 [POPFW]
 (Ch_RWESP, Ch_WFLAGS, Ch_None)
-void                  \324\1\x9D                      186,NOX86_64
+void                  \324\1\x9D                      8086,NOX86_64
 void                  \1\x9D                          X86_64
 
 [POPFQ]
@@ -1607,8 +1613,8 @@ rm16                  \324\1\xFF\206                  8086
 rm32                  \325\1\xFF\206                  386,NOX86_64
 rm64                  \335\1\xFF\206                  X86_64
 imm32                 \325\1\x68\40\335               386
-imm16                 \324\1\x68\30\335               286
-imm8                  \1\x6A\14\335                   286
+imm16                 \324\1\x68\30\335               186
+imm8                  \1\x6A\14\335                   186
 reg_fsgs              \1\x0F\7\335                    386,NOX86_64
 reg_sreg              \6                              8086,NOX86_64
 
@@ -1626,7 +1632,7 @@ void                  \324\1\x60                      186,NOX86_64
 
 [PUSHF]
 (Ch_RWESP, Ch_RFlags, Ch_None)
-void                  \327\1\x9C                      186
+void                  \327\1\x9C                      8086
 
 [PUSHFD,pushfl]
 (Ch_RWESP, Ch_RFlags, Ch_None)
@@ -1634,7 +1640,7 @@ void                  \325\1\x9C                      386,NOX86_64
 
 [PUSHFW]
 (Ch_RWESP, Ch_RFLAGS, Ch_None)
-void                  \324\1\x9C                      186
+void                  \324\1\x9C                      8086
 
 [PUSHFQ]
 (Ch_RWESP, Ch_RFlags, Ch_None)
@@ -1649,7 +1655,7 @@ xmmreg,xmmrm          \361\2\x0F\xEF\110              WILLAMETTE,SSE2,SM
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
 rm16|32|64,unity      \320\1\xD1\202                  8086
 rm16|32|64,reg_cl     \320\1\xD3\202                  8086
-rm16|32|64,imm        \320\1\xC1\202\25               8086,SB
+rm16|32|64,imm        \320\1\xC1\202\25               186,SB
 rm8,unity             \1\xD0\202                      8086
 rm8,reg_cl            \1\xD2\202                      8086
 rm8,imm               \1\xC0\202\25                   186,SB
@@ -1658,7 +1664,7 @@ rm8,imm               \1\xC0\202\25                   186,SB
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
 rm16|32|64,unity      \320\1\xD1\203                  8086
 rm16|32|64,reg_cl     \320\1\xD3\203                  8086
-rm16|32|64,imm        \320\1\xC1\203\25               8086,SB
+rm16|32|64,imm        \320\1\xC1\203\25               186,SB
 rm8,unity             \1\xD0\203                      8086
 rm8,reg_cl            \1\xD2\203                      8086
 rm8,imm               \1\xC0\203\25                   186,SB
@@ -1718,7 +1724,7 @@ imm                   \1\xC2\30                       8086,SW
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
 rm16|32|64,unity      \320\1\xD1\200                  8086
 rm16|32|64,reg_cl     \320\1\xD3\200                  8086
-rm16|32|64,imm        \320\1\xC1\200\25               8086,SB
+rm16|32|64,imm        \320\1\xC1\200\25               186,SB
 rm8,unity             \1\xD0\200                      8086
 rm8,reg_cl            \1\xD2\200                      8086
 rm8,imm               \1\xC0\200\25                   186,SB
@@ -1727,7 +1733,7 @@ rm8,imm               \1\xC0\200\25                   186,SB
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
 rm16|32|64,unity      \320\1\xD1\201                  8086
 rm16|32|64,reg_cl     \320\1\xD3\201                  8086
-rm16|32|64,imm        \320\1\xC1\201\25               8086,SB
+rm16|32|64,imm        \320\1\xC1\201\25               186,SB
 rm8,unity             \1\xD0\201                      8086
 rm8,reg_cl            \1\xD2\201                      8086
 rm8,imm               \1\xC0\201\25                   186,SB
@@ -1753,7 +1759,7 @@ void                  \1\x9E                          8086
 (Ch_Mop2, Ch_Rop1, Ch_RWFlags)
 rm16|32|64,unity      \320\1\xD1\204                  8086,ND
 rm16|32|64,reg_cl     \320\1\xD3\204                  8086,ND
-rm16|32|64,imm        \320\1\xC1\204\25               8086,ND,SB
+rm16|32|64,imm        \320\1\xC1\204\25               186,ND,SB
 rm8,unity             \1\xD0\204                      8086,ND
 rm8,reg_cl            \1\xD2\204                      8086,ND
 rm8,imm               \1\xC0\204\25                   186,ND,SB
@@ -1766,7 +1772,7 @@ void                  \1\xD6                          8086,UNDOC,NOX86_64
 (Ch_Mop2, Ch_Rop1, Ch_WFlags)
 rm16|32|64,unity      \320\1\xD1\207                  8086
 rm16|32|64,reg_cl     \320\1\xD3\207                  8086
-rm16|32|64,imm        \320\1\xC1\207\25               8086,SB
+rm16|32|64,imm        \320\1\xC1\207\25               186,SB
 rm8,unity             \1\xD0\207                      8086
 rm8,reg_cl            \1\xD2\207                      8086
 rm8,imm               \1\xC0\207\25                   186,SB
@@ -1817,11 +1823,11 @@ void                  \1\x26                          8086,PRE
 
 [SEGFS,fs]
 (Ch_None, Ch_None, Ch_None)
-void                  \1\x64                          8086,PRE
+void                  \1\x64                          386,PRE
 
 [SEGGS,gs]
 (Ch_None, Ch_None, Ch_None)
-void                  \1\x65                          8086,PRE
+void                  \1\x65                          386,PRE
 
 [SEGSS,ss]
 (Ch_None, Ch_None, Ch_None)
@@ -2099,8 +2105,10 @@ reg16|32|64,regmem    \320\1\x0F\13\x40\110          P6,SM
 (Ch_RFLAGS, Ch_None, Ch_None)
 imm8                  \13\x70\50                     8086
 imm16|32              \320\1\x0F\13\x80\64           386,PASS2
+imm16                 \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
 imm|short             \13\x70\50                     8086
 imm|near              \320\1\x0F\13\x80\64           386,PASS2
+imm16|near            \23\x70\1\x03\1\xE9\60         8086,PASS2,16BITONLY
 
 [SETcc,setCCX]
 (Ch_RFLAGS, Ch_WOp1, Ch_None)
@@ -3003,19 +3011,19 @@ void                  \3\x0F\x01\xDE                  386,SVM,PRIV,PROT
 void                  \3\x0F\x01\xDF                  386,SVM,PRIV,PROT
 
 ;
-; Centaur
+; VIA (Centaur)
 ;
 [MONTMUL]
 (Ch_All, Ch_None, Ch_None)
-void                  \333\3\x0F\xA6\xC0              CENTAUR
+void                  \333\3\x0F\xA6\xC0              P6,CYRIX
 
 [XSHA1]
 (Ch_All, Ch_None, Ch_None)
-void                  \333\3\x0F\xA6\xC8              CENTAUR
+void                  \333\3\x0F\xA6\xC8              P6,CYRIX
 
 [XSHA256]
 (Ch_All, Ch_None, Ch_None)
-void                  \333\3\x0F\xA6\xD0              CENTAUR
+void                  \333\3\x0F\xA6\xD0              P6,CYRIX
 
 ;
 ; Geode
@@ -3434,6 +3442,14 @@ xmmreg,xmmrm,imm      \361\3\x0F\x3A\xDF\110\26            SSE4,SB,AR2
 ;*******************************************************************************
 ;*******************************************************************************
 ;*******************************************************************************
+;Use SSE4, but actually a special flag would be needed
+[RDTSCP]
+(Ch_WEAX, Ch_WEDX, Ch_None)
+void                  \3\x0F\x01\xf9                       SSE4,SM
+
+;*******************************************************************************
+;*******************************************************************************
+;*******************************************************************************
 [STOSQ]
 (Ch_RRAX, Ch_WMemEDI, Ch_RWRDI)
 void                   \326\1\xAB                                    X86_64
@@ -3506,22 +3522,22 @@ xmmreg,xmmrm                         \361\362\371\1\xDB\110               AVX,SA
 xmmreg,xmmrm,imm8                    \361\362\372\1\xDF\110\26            AVX,SANDYBRIDGE
 
 [VANDNPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x55\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x55\75\120        AVX,SANDYBRIDGE
 
 [VANDNPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x55\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x55\75\120            AVX,SANDYBRIDGE
 
 [VANDPD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\370\1\x54\75\120            AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \361\362\364\370\1\x54\75\120        AVX,SANDYBRIDGE
 
 [VANDPS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \362\370\1\x54\75\120                AVX,SANDYBRIDGE
 ymmreg,ymmreg,ymmrm                  \362\364\370\1\x54\75\120            AVX,SANDYBRIDGE
 
@@ -3592,91 +3608,91 @@ xmmreg,mem32                         \362\370\1\x2F\110                   AVX,SA
 xmmreg,xmmreg                        \362\370\1\x2F\110                   AVX,SANDYBRIDGE
 
 [VCVTDQ2PD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,mem64                         \333\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \333\362\370\1\xE6\110               AVX,SANDYBRIDGE
 ymmreg,xmmreg                        \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 ymmreg,mem128                        \333\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTDQ2PS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \362\370\1\x5B\110                   AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \362\364\370\1\x5B\110               AVX,SANDYBRIDGE
 
 [VCVTPD2DQ,vcvtpd2dqM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \334\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,ymmrm                         \334\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTPD2PS,vcvtpd2psM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \361\362\370\1\x5A\110               AVX,SANDYBRIDGE
 xmmreg,ymmrm                         \361\362\364\370\1\x5A\110           AVX,SANDYBRIDGE
 
 [VCVTPS2DQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \361\362\370\1\x5B\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \361\362\364\370\1\x5B\110           AVX,SANDYBRIDGE
 
 [VCVTPS2PD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,mem64                         \362\370\1\x5A\110                   AVX,SANDYBRIDGE
 xmmreg,xmmreg                        \362\370\1\x5A\110                   AVX,SANDYBRIDGE
 ymmreg,xmmrm                         \362\364\370\1\x5A\110               AVX,SANDYBRIDGE
 
 [VCVTSD2SI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 reg32,mem64                          \334\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \334\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg64,mem64                          \334\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \334\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 
 [VCVTSD2SS]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,mem64                  \334\362\370\1\x5A\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x5A\75\120            AVX,SANDYBRIDGE
 
 [VCVTSI2SD,vcvtsi2sdM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,rm32                   \334\362\370\1\x2A\75\120            AVX,SANDYBRIDGE,SD
 xmmreg,xmmreg,rm64                   \334\362\363\370\1\x2A\75\120        AVX,SANDYBRIDGE
 
 [VCVTSI2SS,vcvtsi2ssM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,rm32                   \333\362\370\1\x2A\75\120            AVX,SANDYBRIDGE,SD
 xmmreg,xmmreg,rm64                   \333\362\363\370\1\x2A\75\120        AVX,SANDYBRIDGE
 
 [VCVTSS2SD]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,mem32                  \333\362\370\1\x5A\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \333\362\370\1\x5A\75\120            AVX,SANDYBRIDGE
 
 [VCVTSS2SI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 reg32,mem32                          \333\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \333\362\370\1\x2D\110               AVX,SANDYBRIDGE
 reg64,mem32                          \333\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \333\362\363\370\1\x2D\110           AVX,SANDYBRIDGE
 
 [VCVTTPD2DQ,vcvttpd2dqM]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \361\362\370\1\xE6\110               AVX,SANDYBRIDGE
 xmmreg,ymmrm                         \361\362\364\370\1\xE6\110           AVX,SANDYBRIDGE
 
 [VCVTTPS2DQ]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 xmmreg,xmmrm                         \333\362\370\1\x5B\110               AVX,SANDYBRIDGE
 ymmreg,ymmrm                         \333\362\364\370\1\x5B\110           AVX,SANDYBRIDGE
 
 [VCVTTSD2SI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 reg32,mem64                          \334\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \334\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg64,mem64                          \334\362\363\370\1\x2C\110           AVX,SANDYBRIDGE
 reg64,xmmreg                         \334\362\363\370\1\x2C\110           AVX,SANDYBRIDGE
 
 [VCVTTSS2SI]
-(Ch_All, Ch_None, Ch_None)
+(Ch_Wop2, Ch_Rop1, Ch_None)
 reg32,mem32                          \333\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg32,xmmreg                         \333\362\370\1\x2C\110               AVX,SANDYBRIDGE
 reg64,mem32                          \333\362\363\370\1\x2C\110           AVX,SANDYBRIDGE
@@ -4714,7 +4730,7 @@ xmmreg,xmmrm                         \362\370\1\x51\110                   AVX,SA
 ymmreg,ymmrm                         \362\364\370\1\x51\110               AVX,SANDYBRIDGE
 
 [VSQRTSD]
-(Ch_Wop2, Ch_Rop1, Ch_None)
+(Ch_Wop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,mem64                  \334\362\370\1\x51\75\120            AVX,SANDYBRIDGE
 xmmreg,xmmreg,xmmreg                 \334\362\370\1\x51\75\120            AVX,SANDYBRIDGE
 
@@ -4956,6 +4972,46 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\x45\75\120            AVX2
 ymmreg,ymmreg,ymmrm                  \361\362\363\364\371\1\x45\75\120    AVX2
 xmmreg,xmmreg,xmmrm                  \361\362\363\371\1\x45\75\120        AVX2
 
+[VGATHERDPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x92\76\110        AVX2
+ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x92\76\110    AVX2
+
+[VGATHERDPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x92\76\110            AVX2
+ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x92\76\110        AVX2
+
+[VGATHERQPD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x93\76\110        AVX2
+ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x93\76\110    AVX2
+
+[VGATHERQPS]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x93\76\110            AVX2
+xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x93\76\110        AVX2
+
+[VPGATHERDD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x90\76\110            AVX2
+ymmreg,ymem32,ymmreg                 \361\362\364\371\1\x90\76\110        AVX2
+
+[VPGATHERDQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x90\76\110        AVX2
+ymmreg,xmem64,ymmreg                 \361\362\363\364\371\1\x90\76\110    AVX2
+
+[VPGATHERQD]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem32,xmmreg                 \361\362\371\1\x91\76\110            AVX2
+xmmreg,ymem32,xmmreg                 \361\362\364\371\1\x91\76\110        AVX2
+
+[VPGATHERQQ]
+(Ch_All, Ch_None, Ch_None)
+xmmreg,xmem64,xmmreg                 \361\362\363\371\1\x91\76\110        AVX2
+ymmreg,ymem64,ymmreg                 \361\362\363\364\371\1\x91\76\110    AVX2
+
 ;*******************************************************************************
 ;********** NEC V20/V30 ********************************************************
 ;*******************************************************************************
@@ -4972,8 +5028,8 @@ imm                                   \2\x0F\xFF\24                       NEC,SB
 (Ch_Mop2, Ch_Rop1, Ch_None)
 rm8,reg_cl                            \2\x0F\x12\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x13\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x1A\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x1B\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x1A\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x1B\200\25                   NEC,SW,IMM4,16BITONLY
 
 [CMP4S]
 (Ch_All, Ch_None, Ch_None)
@@ -4982,21 +5038,21 @@ void                                  \2\x0F\x26                          NEC,16
 [EXT]
 (Ch_All, Ch_None, Ch_None)
 reg8,reg8                             \2\x0F\x33\101                      NEC,16BITONLY
-reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB,16BITONLY
+reg8,imm                              \2\x0F\x3B\200\25                   NEC,SB,IMM4,16BITONLY
 
 ;[FPO2]
 
 [INS]
 (Ch_All, Ch_None, Ch_None)
 reg8,reg8                             \2\x0F\x31\101                      NEC,16BITONLY
-reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,16BITONLY
+reg8,imm                              \2\x0F\x39\200\25                   NEC,SB,IMM4,16BITONLY
 
 [NOT1]
 (Ch_Mop2, Ch_Rop1, Ch_None)
 rm8,reg_cl                            \2\x0F\x16\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x17\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x1E\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x1F\200\25                   NEC,SW,IMM4,16BITONLY
 
 [REPC]
 (Ch_RWECX, Ch_RWFlags, Ch_None)
@@ -5018,8 +5074,8 @@ rm8                                   \2\x0F\x2A\200                      NEC,16
 (Ch_Mop2, Ch_Rop1, Ch_None)
 rm8,reg_cl                            \2\x0F\x14\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x15\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x1C\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x1D\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x1C\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x1D\200\25                   NEC,SW,IMM4,16BITONLY
 
 [SUB4S]
 (Ch_All, Ch_None, Ch_None)
@@ -5029,8 +5085,8 @@ void                                  \2\x0F\x22                          NEC,16
 (Ch_WFlags, Ch_Rop1, Ch_Rop2)
 rm8,reg_cl                            \2\x0F\x10\200                      NEC,16BITONLY
 rm16,reg_cl                           \2\x0F\x11\200                      NEC,16BITONLY
-rm8,imm                               \2\x0F\x18\200\25                   NEC,SB,16BITONLY
-rm16,imm                              \2\x0F\x19\200\25                   NEC,SW,16BITONLY
+rm8,imm                               \2\x0F\x18\200\25                   NEC,SB,IMM3,16BITONLY
+rm16,imm                              \2\x0F\x19\200\25                   NEC,SW,IMM4,16BITONLY
 
 ;*******************************************************************************
 ;********** FMA ****************************************************************
@@ -5315,4 +5371,50 @@ xmmreg,xmmreg,xmmrm                  \361\362\371\1\xAF\75\120            FMA
 [VFNMSUB231SS]
 (Ch_Mop3, Ch_Rop2, Ch_Rop1)
 xmmreg,xmmreg,xmmrm                  \361\362\371\1\xBF\75\120            FMA
+
+;*******************************************************************************
+;********** TSX ****************************************************************
+;*******************************************************************************
+[XACQUIRE]
+(Ch_None, Ch_None, Ch_None)
+void                                 \1\xF2                               TSX
+
+[XRELEASE]
+(Ch_None, Ch_None, Ch_None)
+void                                 \1\xF3                               TSX
+
+[XBEGIN,xbeginX]
+(Ch_None, Ch_None, Ch_None)
+mem                                  \320\2\xC7\xF8\64                    TSX
+; mem|short                           \324\2\xC7\xF8\64                     TSX - Make correct xbeginW opcode and offset, but offset is 4 bytes long (need 2 bytes)
+
+[XABORT]
+(Ch_All, Ch_None, Ch_None)
+imm                                  \2\xC6\xF8\24                        TSX,SB
+
+[XEND]
+(Ch_None, Ch_None, Ch_None)
+void                                 \3\x0F\x01\xD5                       TSX
+
+[XTEST]
+(Ch_WFlags, Ch_None, Ch_None)
+void                                 \3\x0F\x01\xD6                       TSX
+
+;*******************************************************************************
+;********** RAND ***************************************************************
+;*******************************************************************************
+[RDRAND]
+(Ch_Wop1, Ch_WFlags, CH_None)
+reg16|32|64                          \320\2\x0F\xC7\206                   RAND
+
+[RDSEED]
+(Ch_Wop1, Ch_WFlags, CH_None)
+reg16|32|64                          \320\2\x0F\xC7\207                   RAND
+
+;*******************************************************************************
+;********** XSAVE **************************************************************
+;*******************************************************************************
+[XGETBV]
+(Ch_WEAX, Ch_WEDX, Ch_RECX)
+void                  \3\x0F\x01\xD0                                      XSAVE
 

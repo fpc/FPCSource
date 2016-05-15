@@ -29,19 +29,15 @@ program fpc;
 {$ifdef UNIX}
     exeext='';
 {$else UNIX}
-  {$ifdef AMIGA}
+  {$ifdef HASAMIGA}
     exeext='';
   {$else}
-    {$ifdef MORPHOS}
-      exeext='';
-    {$else}
-      {$ifdef NETWARE}
+    {$ifdef NETWARE}
       exeext='.nlm';
-      {$else}
+    {$else}
       exeext='.exe';
-      {$endif NETWARE}
-    {$endif MORPHOS}
-  {$endif AMIGA}
+    {$endif NETWARE}
+  {$endif HASAMIGA}
 {$endif UNIX}
 
 
@@ -147,6 +143,10 @@ program fpc;
      ppcbin:='ppcarm';
      processorname:='arm';
 {$endif arm}
+{$ifdef aarch64}
+     ppcbin:='ppca64';
+     processorname:='aarch64';
+{$endif arm}
 {$ifdef sparc}
      ppcbin:='ppcsparc';
      processorname:='sparc';
@@ -210,7 +210,9 @@ program fpc;
                      else
                        if processorstr <> processorname then
                          begin
-                           if processorstr='arm' then
+                           if processorstr='aarch64' then
+                             cpusuffix:='a64'
+                           else if processorstr='arm' then
                              cpusuffix:='arm'
                            else if processorstr='i386' then
                              cpusuffix:='386'

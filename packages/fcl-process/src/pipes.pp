@@ -120,6 +120,7 @@ end;
 function TOutputPipeStream.Seek(const Offset: int64; Origin: TSeekOrigin): int64;
 
 begin
+  Result:=0; { to silence warning mostly }
   InvalidSeek;
 end;
 

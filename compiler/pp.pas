@@ -32,7 +32,6 @@ program pp;
   SPARC               generate a compiler for SPARC
   POWERPC             generate a compiler for the PowerPC
   POWERPC64           generate a compiler for the PowerPC64 architecture
-  VIS                 generate a compile for the VIS
   DEBUG               version with debug code is generated
   EXTDEBUG            some extra debug code is executed
   SUPPORT_MMX         only i386: releases the compiler switch
@@ -87,18 +86,6 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif M68K}
-{$ifdef vis}
-  {$ifdef CPUDEFINED}
-    {$fatal ONLY one of the switches for the CPU type must be defined}
-  {$endif CPUDEFINED}
-  {$define CPUDEFINED}
-{$endif}
-{$ifdef iA64}
-  {$ifdef CPUDEFINED}
-    {$fatal ONLY one of the switches for the CPU type must be defined}
-  {$endif CPUDEFINED}
-  {$define CPUDEFINED}
-{$endif iA64}
 {$ifdef POWERPC}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}
@@ -111,12 +98,6 @@ program pp;
   {$endif CPUDEFINED}
   {$define CPUDEFINED}
 {$endif POWERPC64}
-{$ifdef ALPHA}
-  {$ifdef CPUDEFINED}
-    {$fatal ONLY one of the switches for the CPU type must be defined}
-  {$endif CPUDEFINED}
-  {$define CPUDEFINED}
-{$endif ALPHA}
 {$ifdef SPARC}
   {$ifdef CPUDEFINED}
     {$fatal ONLY one of the switches for the CPU type must be defined}

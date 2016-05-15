@@ -62,9 +62,9 @@ begin
 
   with saddr do
     begin
-      family:=af_inet;
-      port:=ntobe(word(6667));
-      addr:=0;
+      sin_family:=af_inet;
+      sin_port:=ntobe(word(6667));
+      sin_addr:=NoAddress;
    end;
 
   if  fpbind(lsock,@saddr,sizeof(saddr))<>0 then

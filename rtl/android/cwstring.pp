@@ -98,7 +98,7 @@ begin
     exit;
   end;
   InitThreadData;
-  if (cp = DefaultSystemCodePage) or (cp = CP_ACP) then
+  if (cp = CP_UTF8) or (cp = CP_ACP) then
     Result:=DefConv
   else begin
     if cp <> LastCP then begin
@@ -121,7 +121,8 @@ begin
     exit;
   end;
   conv:=GetConverter(cp);
-  if conv = nil then begin
+  if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
+    // fallback implementation
     DefaultUnicode2AnsiMove(source,dest,DefaultSystemCodePage,len);
     exit;
   end;
@@ -129,12 +130,23 @@ begin
   len2:=len*3;
   SetLength(dest, len2);
   err:=0;
-  len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+  if conv <> nil then
+    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
+  else begin
+    // Use UTF-8 conversion from RTL
+    cp:=CP_UTF8;
+    len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
+  end;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
-    len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err);
+    if conv <> nil then
+      len2:=ucnv_fromUChars(conv, PAnsiChar(dest), len2, source, len, err)
+    else
+      len2:=UnicodeToUtf8(PAnsiChar(dest), len2, source, len) - 1;
   end;
+  if len2 < 0 then
+    len2:=0;
   SetLength(dest, len2);
   SetCodePage(dest, cp, False);
 end;
@@ -150,7 +162,8 @@ begin
     exit;
   end;
   conv:=GetConverter(cp);
-  if conv = nil then begin
+  if (conv = nil) and not ( (cp = CP_UTF8) or (cp = CP_ACP) ) then begin
+    // fallback implementation
     DefaultAnsi2UnicodeMove(source,DefaultSystemCodePage,dest,len);
     exit;
   end;
@@ -158,12 +171,21 @@ begin
   len2:=len;
   SetLength(dest, len2);
   err:=0;
-  len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+  if conv <> nil then
+    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
+  else
+    // Use UTF-8 conversion from RTL
+    len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
   if len2 > Length(dest) then begin
     SetLength(dest, len2);
     err:=0;
-    len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err);
+    if conv <> nil then
+      len2:=ucnv_toUChars(conv, PUnicodeChar(dest), len2, source, len, err)
+    else
+      len2:=Utf8ToUnicode(PUnicodeChar(dest), len2, source, len) - 1;
   end;
+  if len2 < 0 then
+    len2:=0;
   SetLength(dest, len2);
 end;
 
@@ -231,21 +253,7 @@ begin
     result:=Count1 - Count2;
 end;
 
-function CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
-begin
-  if hlibICU = 0 then begin
-    // fallback implementation
-    Result:=_CompareStr(s1, s2);
-    exit;
-  end;
-  InitThreadData;
-  if DefColl <> nil then
-    Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
-  else
-    Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
-end;
-
-function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
+function CompareUnicodeString(const s1, s2 : UnicodeString; Options : TCompareOptions) : PtrInt;
 const
   U_COMPARE_CODE_POINT_ORDER = $8000;
 var
@@ -253,11 +261,20 @@ var
 begin
   if hlibICU = 0 then begin
     // fallback implementation
-    Result:=_CompareStr(UpperUnicodeString(s1), UpperUnicodeString(s2));
+    Result:=_CompareStr(s1, s2);
     exit;
   end;
-  err:=0;
-  Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+  if (coIgnoreCase in Options) then begin
+    err:=0;
+    Result:=u_strCaseCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), U_COMPARE_CODE_POINT_ORDER, err);
+  end
+  else begin
+    InitThreadData;
+    if DefColl <> nil then
+      Result:=ucol_strcoll(DefColl, PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2))
+    else
+      Result:=u_strCompare(PUnicodeChar(s1), Length(s1), PUnicodeChar(s2), Length(s2), True);
+  end;
 end;
 
 function UpperAnsiString(const s : AnsiString) : AnsiString;
@@ -272,22 +289,22 @@ end;
 
 function CompareStrAnsiString(const s1, s2: ansistring): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
 function StrCompAnsi(s1,s2 : PChar): PtrInt;
 begin
-  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), []);
 end;
 
 function AnsiCompareText(const S1, S2: ansistring): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
 function AnsiStrIComp(S1, S2: PChar): PtrInt;
 begin
-  Result:=CompareTextUnicodeString(UnicodeString(s1), UnicodeString(s2));
+  Result:=CompareUnicodeString(UnicodeString(s1), UnicodeString(s2), [coIgnoreCase]);
 end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -296,7 +313,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2));
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), []);
 end;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: PtrUInt): PtrInt;
@@ -305,7 +322,7 @@ var
 begin
   SetString(as1, S1, MaxLen);
   SetString(as2, S2, MaxLen);
-  Result:=CompareTextUnicodeString(UnicodeString(as1), UnicodeString(as2));
+  Result:=CompareUnicodeString(UnicodeString(as1), UnicodeString(as2), [coIgnoreCase]);
 end;
 
 function AnsiStrLower(Str: PChar): PChar;
@@ -396,14 +413,9 @@ begin
   Result:=LowerUnicodeString(s);
 end;
 
-function CompareWideString(const s1, s2 : WideString) : PtrInt;
+function CompareWideString(const s1, s2 : WideString; Options : TCompareOptions) : PtrInt;
 begin
-  Result:=CompareUnicodeString(s1, s2);
-end;
-
-function CompareTextWideString(const s1, s2 : WideString): PtrInt;
-begin
-  Result:=CompareTextUnicodeString(s1, s2);
+  Result:=CompareUnicodeString(s1, s2, Options);
 end;
 
 Procedure SetCWideStringManager;
@@ -418,7 +430,6 @@ begin
       UpperWideStringProc:=@UpperWideString;
       LowerWideStringProc:=@LowerWideString;
       CompareWideStringProc:=@CompareWideString;
-      CompareTextWideStringProc:=@CompareTextWideString;
 
       UpperAnsiStringProc:=@UpperAnsiString;
       LowerAnsiStringProc:=@LowerAnsiString;
@@ -436,7 +447,6 @@ begin
       UpperUnicodeStringProc:=@UpperUnicodeString;
       LowerUnicodeStringProc:=@LowerUnicodeString;
       CompareUnicodeStringProc:=@CompareUnicodeString;
-      CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
 
       GetStandardCodePageProc:=@GetStandardCodePage;
       CodePointLengthProc:=@CodePointLength;
@@ -485,7 +495,7 @@ var
   end;
 
 const
-  ICUver: array [1..5] of ansistring = ('3_8', '4_2', '44', '46', '48');
+  ICUver: array [1..9] of ansistring = ('3_8', '4_2', '44', '46', '48', '50', '51', '53', '55');
   TestProcName = 'ucnv_open';
 
 var
@@ -511,7 +521,7 @@ begin
     // Finding unknown ICU version
     Val(ICUver[High(ICUver)], i);
     repeat
-      Inc(i, 2);
+      Inc(i);
       Str(i, s);
       s:='_'  + s;
       if GetProcedureAddress(hlibICU, TestProcName + s) <> nil then begin

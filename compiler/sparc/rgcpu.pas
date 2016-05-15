@@ -26,7 +26,7 @@ unit rgcpu;
   interface
 
     uses
-      aasmbase,aasmcpu,aasmtai,aasmdata,
+      aasmbase,aasmcpu,aasmtai,aasmsym,aasmdata,
       cgbase,cgutils,
       cpubase,
       rgobj;
@@ -35,9 +35,9 @@ unit rgcpu;
       trgcpu=class(trgobj)
         procedure add_constraints(reg:tregister);override;
         function get_spill_subreg(r : tregister) : tsubregister;override;
-        procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-        procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
-        function do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
+        procedure do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+        procedure do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister); override;
+        function  do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean; override;
       end;
 
 
@@ -88,7 +88,7 @@ implementation
       end;
 
 
-    procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_read(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         helpins  : tai;
         tmpref   : treference;
@@ -121,11 +121,11 @@ implementation
             helplist.free;
           end
         else
-          inherited do_spill_read(list,pos,spilltemp,tempreg);
+          inherited;
       end;
 
 
-    procedure trgcpu.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+    procedure trgcpu.do_spill_written(list: TAsmList; pos: tai; const spilltemp: treference; tempreg: tregister; orgsupreg: tsuperregister);
       var
         tmpref   : treference;
         helplist : TAsmList;
@@ -159,11 +159,11 @@ implementation
             helplist.free;
           end
         else
-          inherited do_spill_written(list,pos,spilltemp,tempreg);
+          inherited;
     end;
 
 
-    function trgcpu.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgcpu.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
       var
         opidx: longint;
       begin

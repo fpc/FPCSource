@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Andrew Haines';
     P.License := 'LGPL with modification, ';
@@ -25,13 +25,14 @@ begin
     P.Email := '';
     P.Description := 'Standalone CHM reader and writer library';
     P.NeedLibC:= false;
-    P.OSes := P.OSes - [embedded,nativent,msdos];
+    P.OSes := P.OSes - [embedded,nativent,msdos,win16];
 
     D:=P.Dependencies.Add('fcl-xml');
     D:=P.Dependencies.Add('fcl-base');
-    D.Version:='2.7.1';
+    D.Version:='3.1.1';
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('chmbase.pas');
     T:=P.Targets.AddUnit('chmfilewriter.pas');
@@ -75,6 +76,7 @@ begin
           AddUnit('chmspecialfiles');
           AddUnit('paslzxcomp');
           AddUnit('chmfiftimain');
+          AddInclude('chmobjinstconst.inc');
         end;
     T:=P.Targets.AddUnit('lzxcompressthread.pas');
       with T.Dependencies do

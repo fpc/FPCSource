@@ -371,7 +371,10 @@ implementation
                 end;
             end;
           procvardef :
-            encodedstr:=encodedstr+'^?';
+            if not(po_is_block in tprocvardef(def).procoptions) then
+              encodedstr:=encodedstr+'^?'
+            else
+              encodedstr:=encodedstr+'@?';
           objectdef :
             case tobjectdef(def).objecttype of
               odt_helper,

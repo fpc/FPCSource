@@ -81,15 +81,18 @@ $(SYSTEMUNIT)$(PPUEXT) : $(RTL)/java/$(SYSTEMUNIT).pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(RTL)/java/$(SYSTEMUNIT).pp $(REDIR)
 
 uuchar$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) $(INC)/uuchar.pp
+	$(COMPILER) $(INC)/uuchar.pp
 
 objpas$(PPUEXT): $(RTL)/java/objpas.pp
         $(COMPILER) $(RTL)/java/objpas.pp $(REDIR)
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
-                   $(SYSTEMUNIT)$(PPUEXT)
+	$(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+        $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/strings.pp
 
 androidr14$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) androidr14.pas androidr14.inc
+	$(COMPILER) androidr14.pas
 
 #
 # System Dependent Units
@@ -105,10 +108,12 @@ androidr14$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) androidr14.pas andro
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
                $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) dos.pp
 
 #crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
 objects$(PPUEXT) : $(INC)/objects.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/objects.pp
 
 #printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMUNIT)$(PPUEXT)
 
@@ -163,8 +168,10 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 
 ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/ucomplex.pp
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(INC)/getopts.pp
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
@@ -172,3 +179,4 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 #lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/charset.pp

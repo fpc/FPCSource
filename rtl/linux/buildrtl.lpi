@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
     <Version Value="9"/>
@@ -36,7 +36,6 @@
       <Unit0>
         <Filename Value="buildrtl.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="buildrtl"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -58,7 +57,6 @@
         <ShowNotes Value="False"/>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
       <ExecuteBefore>
         <Command Value="cmd.exe /c &quot;if not exist ../units/$(TargetCPU)-linux mkdir ../units/$(TargetCPU)-linux&quot;"/>
         <ShowAllMessages Value="True"/>

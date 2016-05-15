@@ -40,10 +40,14 @@ interface
 
     { Encode a method's parameters and result type into the format used by the
       run time (for generating protocol and class rtti).  }
-    function objcencodemethod(pd: tprocdef): ansistring;
+    function objcencodemethod(pd: tabstractprocdef): ansistring;
 
     { Exports all assembler symbols related to the obj-c class }
     procedure exportobjcclass(def: tobjectdef);
+
+    { loads a field of an Objective-C root class (such as ISA) }
+    function objcloadbasefield(n: tnode; const fieldname: string): tnode;
+
 
 implementation
 
@@ -112,12 +116,23 @@ end;
       var
         vs         : tsym;
       begin
-        result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
         vs:=tsym(tabstractrecorddef(objc_objecttype).symtable.Find(fieldname));
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
           internalerror(200911301);
-        result:=csubscriptnode.create(vs,result);
+        if fieldname='ISA' then
+          result:=ctypeconvnode.create_internal(
+            cderefnode.create(
+              ctypeconvnode.create_internal(n,
+                cpointerdef.getreusable(cpointerdef.getreusable(voidpointertype))
+              )
+            ),tfieldvarsym(vs).vardef
+          )
+        else
+          begin
+            result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
+            result:=csubscriptnode.create(vs,result);
+          end;
       end;
 
 
@@ -138,16 +153,16 @@ end;
                 { in case we are in a category method, we need the metaclass of the
                   superclass class extended by this category (= metaclass of superclass of superclass)
                   for the fragile abi, and the metaclass of the superclass for the non-fragile ABI }
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
                 { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
                     (but also on all iPhone SDK revisions we support) }
                 if (target_info.system in systems_objc_nfabi) then
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof))
                 else
-{$endif onlymacosx10_6 or arm}
+{$endif onlymacosx10_6 or arm aarch64}
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
                 tloadvmtaddrnode(result).forcall:=true;
-                result:=objcloadbasefield(result,'ISA');
+                result:=cloadvmtaddrnode.create(result);
                 typecheckpass(result);
                 { we're done }
                 exit;
@@ -168,14 +183,14 @@ end;
             tloadvmtaddrnode(result).forcall:=true;
           end;
 
-{$if defined(onlymacosx10_6) or defined(arm) }
+{$if defined(onlymacosx10_6) or defined(arm) or defined(aarch64)}
         { For the non-fragile ABI, the superclass send2 method itself loads the
           superclass. For the fragile ABI, we have to do this ourselves.
 
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
             (but also on all iPhone SDK revisions we support) }
         if not(target_info.system in systems_objc_nfabi) then
-{$endif onlymacosx10_6 or arm}
+{$endif onlymacosx10_6 or arm or aarch64}
           result:=objcloadbasefield(result,'SUPERCLASS');
         typecheckpass(result);
       end;
@@ -196,7 +211,7 @@ end;
       end;
 
 
-    function objcencodemethod(pd: tprocdef): ansistring;
+    function objcencodemethod(pd: tabstractprocdef): ansistring;
       var
         parasize,
         totalsize: aint;
@@ -230,7 +245,11 @@ end;
                (vs.varspez in [vs_var,vs_out,vs_constref]) then
               result:=result+'^';
             { Add the parameter type.  }
-            if not objcaddencodedtype(vs.vardef,ris_initial,false,result,founderror) then
+            if (vo_is_parentfp in vs.varoptions) and
+               (po_is_block in pd.procoptions) then
+              { special case: self parameter of block procvars has to be @? }
+              result:=result+'@?'
+            else if not objcaddencodedtype(vs.vardef,ris_initial,false,result,founderror) then
               { should be checked earlier on }
               internalerror(2009081701);
             { And the total size of the parameters coming before this one
@@ -268,7 +287,7 @@ end;
             { TODO: package visibility (private_extern) -- must not be exported
                either}
             if not(vf.visibility in [vis_private,vis_strictprivate]) then
-              exportname(prefix+vf.RealName,0);
+              exportname(prefix+vf.RealName,[]);
           end;
     end;
 
@@ -278,15 +297,15 @@ end;
         if (target_info.system in systems_objc_nfabi) then
           begin
             { export class and metaclass symbols }
-            exportname(def.rtti_mangledname(objcclassrtti),0);
-            exportname(def.rtti_mangledname(objcmetartti),0);
+            exportname(def.rtti_mangledname(objcclassrtti),[]);
+            exportname(def.rtti_mangledname(objcmetartti),[]);
             { export public/protected instance variable offset symbols }
             exportobjcclassfields(def);
           end
         else
           begin
              { export the class symbol }
-             exportname('.objc_class_name_'+def.objextname^,0);
+             exportname('.objc_class_name_'+def.objextname^,[]);
           end;
       end;
 

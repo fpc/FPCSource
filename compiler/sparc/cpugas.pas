@@ -26,13 +26,13 @@ unit cpugas;
 interface
 
     uses
-      cpubase,
+      cpubase,systems,
       aasmtai,aasmdata,aasmcpu,assemble,aggas,
       cgutils,globtype;
 
     type
       TGasSPARC=class(TGnuAssembler)
-        constructor create(smart: boolean); override;
+        constructor create(info: pasminfo; smart: boolean); override;
         {# Constructs the command line for calling the assembler }
         function MakeCmdLine: TCmdStr; override;
       end;
@@ -46,7 +46,7 @@ interface
 implementation
 
     uses
-      cutils,systems,globals,cpuinfo,procinfo,
+      cutils,globals,cpuinfo,procinfo,
       verbose,itcpugas,cgbase;
 
 
@@ -54,9 +54,9 @@ implementation
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-    constructor TGasSPARC.create(smart: boolean);
+    constructor TGasSPARC.create(info: pasminfo; smart: boolean);
       begin
-        inherited create(smart);
+        inherited;
         InstrWriter := TSPARCInstrWriter.create(self);
       end;
 
@@ -168,11 +168,11 @@ implementation
              (taicpu(hp).oper[1]^.typ<>top_reg) then
             internalerror(200401045);
           { Fxxxs %f<even>,%f<even> }
-          owner.AsmWriteln(#9+std_op2str[opc]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          owner.writer.AsmWriteln(#9+std_op2str[opc]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
           { FMOVs %f<odd>,%f<odd> }
           inc(taicpu(hp).oper[0]^.reg);
           inc(taicpu(hp).oper[1]^.reg);
-          owner.AsmWriteln(#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
+          owner.writer.AsmWriteln(#9+std_op2str[A_FMOVs]+#9+getopstr(taicpu(hp).oper[0]^)+','+getopstr(taicpu(hp).oper[1]^));
           dec(taicpu(hp).oper[0]^.reg);
           dec(taicpu(hp).oper[1]^.reg);
         end;
@@ -211,7 +211,7 @@ implementation
                   for i:=1 to taicpu(hp).ops-1 do
                     s:=s+','+getopstr(taicpu(hp).oper[i]^);
                 end;
-              owner.AsmWriteLn(s);
+              owner.writer.AsmWriteLn(s);
             end;
         end;
       end;

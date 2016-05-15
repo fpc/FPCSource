@@ -17,6 +17,7 @@ unit System;
 
 interface
 
+{$define FPC_IS_SYSTEM}
 {$ifdef SYSTEMDEBUG}
   {$define SYSTEMEXCEPTIONDEBUG}
 {$endif SYSTEMDEBUG}
@@ -26,6 +27,9 @@ interface
 {$define HAS_CMDLINE}
 {$define HAS_MEMORYMANAGER}  // comment this line to switch from wincemm to fpcmm
 {$define HAS_WIDESTRINGMANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
+{$define FPC_SYSTEM_HAS_SYSDLH}
+
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -101,8 +105,6 @@ function CreateFileW(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DW
 
 
 {$ifdef CPUARM}
-{ the external directive isn't really necessary here because it is overridden by external (FK) }
-
 function addd(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__addd';
 
@@ -278,22 +280,22 @@ end;
 
 function adds(s1,s2 : single) : single;
 begin
-  adds := addd(s1, s2);
+  adds := double(s1) + double(s2);
 end;
 
 function subs(s1,s2 : single) : single;
 begin
-  subs := subd(s1, s2);
+  subs := double(s1) - double(s2);
 end;
 
 function muls(s1,s2 : single) : single;
 begin
-  muls := muld(s1, s2);
+  muls := double(s1) * double(s2);
 end;
 
 function divs(s1,s2 : single) : single;
 begin
-  divs := divd(s1, s2);
+  divs := double(s1) / double(s2);
 end;
 
 {$endif CPUARM}
@@ -1769,7 +1771,7 @@ initialization
   ProcessID := GetCurrentProcessID;
   { threading }
   InitSystemThreads;
-  initvariantmanager;
+  InitSystemDynLibs;
   DispCallByIDProc:=@DoDispCallByIDError;
 
 finalization

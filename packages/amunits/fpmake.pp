@@ -16,13 +16,13 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Nils Sjoholm';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'A set of units for Amiga OS. 68k only?';
+    P.Description := 'A set of units for classic AmigaOS. (68k only)';
     P.NeedLibC:= false;
 
     P.CPUs:=[m68k];
@@ -33,24 +33,22 @@ begin
     P.SourcePath.Add('src/utilunits');
     P.IncludePath.Add('src');
 
-    T:=P.Targets.AddUnit('msgbox.pas');
+    T:=P.Targets.AddUnit('amsgbox.pas');
     T:=P.Targets.AddUnit('amigautils.pas');
     T:=P.Targets.AddUnit('wbargs.pas');
     T:=P.Targets.AddUnit('vartags.pas');
     T:=P.Targets.AddUnit('pastoc.pas');
     T:=P.Targets.AddUnit('tagsarray.pas');
-    T:=P.Targets.AddUnit('systemvartags.pas');
     T:=P.Targets.AddUnit('deadkeys.pas');
     T:=P.Targets.AddUnit('consoleio.pas');
-    T:=P.Targets.AddUnit('pcq.pas');
-    T:=P.Targets.AddUnit('longarray.pas');
     T:=P.Targets.AddUnit('linklist.pas');
     T:=P.Targets.AddUnit('hisoft.pas');
     T:=P.Targets.AddUnit('timerutils.pas');
     T:=P.Targets.AddUnit('easyasl.pas');
     T:=P.Targets.AddUnit('doublebuffer.pas');
+    T:=P.Targets.AddUnit('exec.pas');
     T:=P.Targets.AddUnit('intuition.pas');
-    T:=P.Targets.AddUnit('graphics.pas');
+    T:=P.Targets.AddUnit('agraphics.pas');
     T:=P.Targets.AddUnit('amigalib.pas');
     T:=P.Targets.AddUnit('nonvolatile.pas');
     T:=P.Targets.AddUnit('iffparse.pas');
@@ -60,7 +58,7 @@ begin
     T:=P.Targets.AddUnit('conunit.pas');
     T:=P.Targets.AddUnit('amigados.pas');
     T:=P.Targets.AddUnit('configvars.pas');
-    T:=P.Targets.AddUnit('keyboard.pas');
+    T:=P.Targets.AddUnit('akeyboard.pas');
     T:=P.Targets.AddUnit('bootblock.pas');
     T:=P.Targets.AddUnit('icon.pas');
     T:=P.Targets.AddUnit('cd.pas');

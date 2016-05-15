@@ -81,8 +81,12 @@ Procedure DoAssign(var t : TypedFile);
 const
   start : dword = 0;
 Begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   Assign(t,'fpc_'+HexStr(start,8)+'.tmp');
   inc(start);
+{$endif EXCLUDE_COMPLEX_PROCS}
 End;
 {$endif FPC_HAS_FEATURE_RANDOM}
 
@@ -146,8 +150,6 @@ End;
 
 
 Procedure fpc_typed_read_iso(TypeSize : Longint;var f : TypedFile;out Buf);[IOCheck, Public, Alias :'FPC_TYPED_READ_ISO']; compilerproc;
-var
-  Result : Longint;
 Begin
   move((pbyte(@f)+sizeof(TypedFile))^,Buf,TypeSize);
   if not(eof(f)) then

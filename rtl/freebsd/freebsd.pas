@@ -207,6 +207,33 @@ function kernproc_getgenvalue(pid:pid_t;kernproc_variable:cint;var s:ansistring)
 function kernproc_getargs(pid:pid_t;var fn:ansistring):cint;
 function kernproc_getpath(pid:pid_t;var fn:ansistring):cint;
 
+
+// Taken from /usr/include/time.h
+const
+  CLOCK_REALTIME = 0;
+  CLOCK_VIRTUAL = 1;
+  CLOCK_PROF = 2;
+  CLOCK_MONOTONIC = 4;
+  // FreeBSD specific
+  CLOCK_UPTIME = 5;
+  CLOCK_UPTIME_PRECISE = 7;
+  CLOCK_UPTIME_FAST = 8;
+  CLOCK_REALTIME_PRECISE = 9;
+  CLOCK_REALTIME_FAST = 10;
+  CLOCK_MONOTONIC_PRECISE = 11;
+  CLOCK_MONOTONIC_FAST = 12;
+  CLOCK_SECOND = 13;
+  CLOCK_THREAD_CPUTIME_ID = 14;
+  CLOCK_PROCESS_CPUTIME_ID = 15;
+
+Type
+  clockid_t = cint;
+
+function clock_getres(clk_id: clockid_t; res: ptimespec): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_getres'; {$ENDIF}
+function clock_gettime(clk_id: clockid_t; tp: ptimespec): cint;  {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_gettime'; {$ENDIF}
+function clock_settime(clk_id: clockid_t; tp: ptimespec): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clock_settime'; {$ENDIF}
+
+
 implementation
 
 Uses Sysctl,
@@ -307,6 +334,22 @@ function fpgetfsstat(buf:pstatfs;bufsize:clong;flags:cint):cint;
 begin
   fpgetfsstat:=do_syscall(syscall_nr_getfsstat,TSysParam(buf),TSysParam(Bufsize),TSysParam(Flags));
 end;
+
+function clock_getres(clk_id: clockid_t; res: ptimespec): cint;
+begin
+  clock_getres := do_SysCall(syscall_nr_clock_getres,tsysparam(clk_id),tsysparam(res));
+end;
+
+function clock_gettime(clk_id: clockid_t; tp: ptimespec): cint;
+begin
+  clock_gettime := do_SysCall(syscall_nr_clock_gettime,tsysparam(clk_id),tsysparam(tp));
+end;
+
+function clock_settime(clk_id: clockid_t; tp: ptimespec): cint;
+begin
+  clock_settime := do_SysCall(syscall_nr_clock_settime,tsysparam(clk_id),tsysparam(tp));
+end;
+
 {$ENDIF}
 
 function kernproc_getgenvalue(pid:pid_t;kernproc_variable:cint;var s:ansistring):cint;

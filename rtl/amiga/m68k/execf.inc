@@ -1,8 +1,8 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2006 Karoly Balogh
+    Copyright (c) 2014 Free Pascal Development team
 
-    exec functions (V40) for Amiga/PowerPC
+    exec functions (V40) for Amiga/m68k
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -414,20 +414,6 @@ SysCall AOS_ExecBase 726;
 procedure StackSwap(newStack: PStackSwapStruct location 'a0');
 SysCall AOS_ExecBase 732;
 
-function NewGetTaskAttrsA(Task    : PTask    location 'a0';
-                          Data    : Pointer  location 'a1';
-                          DataSize: Cardinal location 'd0';
-                          TType   : Cardinal location 'd1';
-                          Tags    : PTagItem location 'a2'): Cardinal;
-SysCall AOS_ExecBase 738;
-
-function NewSetTaskAttrsA(Task    : PTask    location 'a0';
-                          Data    : Pointer  location 'a1';
-                          DataSize: Cardinal location 'd0';
-                          TType   : Cardinal location 'd1';
-                          Tags    : PTagItem location 'a2'): Cardinal;
-SysCall AOS_ExecBase 744;
-
 function CachePreDMA(address   : Pointer  location 'a0';
                      var length: Cardinal location 'a1';
                      flags     : Cardinal location 'd0'): Pointer;
@@ -447,91 +433,4 @@ SysCall AOS_ExecBase 780;
 function ObtainQuickVector(interruptCode: Pointer location 'a0'): Cardinal;
 SysCall AOS_ExecBase 786;
 
-function NewSetFunction(libHandle  : PLibrary location 'a0';
-                        newfunction: Pointer  location 'a1';
-                        offset     : LongInt  location 'd0';
-                        tags       : PTagItem location 'a2'): Pointer;
-SysCall AOS_ExecBase 792;
-
-function NewCreateLibrary(tags: PTagItem location 'a0'): PLibrary;
-SysCall AOS_ExecBase 798;
-
-function TaggedOpenLibrary(d0arg: LongInt location 'd0'): Pointer;
-SysCall AOS_ExecBase 810;
-
-function ReadGayle: Cardinal;
-SysCall AOS_ExecBase 816;
-
-procedure CacheFlushDataArea(Address: Pointer  location 'a0';
-                             Size   : Cardinal location 'd0');
-SysCall AOS_ExecBase 828;
-
-procedure CacheInvalidInstArea(Address: Pointer  location 'a0';
-                               Size   : Cardinal location 'd0');
-SysCall AOS_ExecBase 834;
-
-procedure CacheInvalidDataArea(Address: Pointer  location 'a0';
-                               Size   : Cardinal location 'd0');
-SysCall AOS_ExecBase 840;
-
-procedure CacheFlushDataInstArea(Address: Pointer  location 'a0';
-                                 Size   : Cardinal location 'd0');
-SysCall AOS_ExecBase 846;
-
-procedure CacheTrashCacheArea(Address: Pointer  location 'a0';
-                              Size   : Cardinal location 'd0');
-SysCall AOS_ExecBase 852;
-
-function AllocTaskPooled(Size: Cardinal location 'd0'): Pointer;
-SysCall AOS_ExecBase 858;
-
-procedure FreeTaskPooled(Address: Pointer  location 'a1';
-                         Size   : Cardinal location 'd0');
-SysCall AOS_ExecBase 864;
-
-function AllocVecTaskPooled(Size: Cardinal location 'd0'): Pointer;
-SysCall AOS_ExecBase 870;
-
-procedure FreeVecTaskPooled(Address: Pointer location 'a1');
-SysCall AOS_ExecBase 876;
-
-procedure FlushPool(poolHeader: Pointer location 'a0');
-SysCall AOS_ExecBase 882;
-
-procedure FlushTaskPool;
-SysCall AOS_ExecBase 888;
-
-function AllocVecPooled(poolHeader: Pointer  location 'a0';
-                        memSize   : Cardinal location 'd0'): Pointer;
-SysCall AOS_ExecBase 894;
-
-function NewGetSystemAttrsA(Data    : Pointer  location 'a0';
-                            DataSize: Cardinal location 'd0';
-                            TType   : Cardinal location 'd1';
-                            Tags    : PTagItem location 'a1'): Cardinal;
-SysCall AOS_ExecBase 906;
-
-function NewSetSystemAttrsA(Data    : Pointer  location 'a0';
-                            DataSize: Cardinal location 'd0';
-                            TType   : Cardinal location 'd1';
-                            Tags    : PTagItem location 'a1'): Cardinal;
-SysCall AOS_ExecBase 912;
-
-function NewCreateTaskA(Tags: PTagItem location 'a0'): PTask;
-SysCall AOS_ExecBase 918;
-
-
-function FindExecNode(ttype: Cardinal location 'd0';
-                      name : PChar    location 'a0'): PNode;
-SysCall AOS_ExecBase 960;
-
-function AddExecNodeA(innode  : Pointer  location 'a0';
-                      TagItems: PTagItem location 'a1'): Pointer;
-SysCall AOS_ExecBase 966;
-
-function AllocVecDMA(byteSize    : Cardinal location 'd0';
-                     requirements: Cardinal location 'd1'): Pointer;
-SysCall AOS_ExecBase 972;
-
-procedure FreeVecDMA(memoryBlock: Pointer location 'a1');
-SysCall AOS_ExecBase 978;
+{ TODO: v45 functions (OS3.9) }

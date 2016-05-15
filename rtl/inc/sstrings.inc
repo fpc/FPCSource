@@ -125,17 +125,17 @@ end;
 
 {$ifndef FPC_HAS_SHORTSTR_POS_SHORTSTR}
 {$define FPC_HAS_SHORTSTR_POS_SHORTSTR}
-function pos(const substr : shortstring;const s : shortstring):SizeInt;
+function pos(const substr : shortstring;const s : shortstring; Offset : Sizeint = 1):SizeInt;
 var
   i,MaxLen : SizeInt;
   pc : pchar;
 begin
   Pos:=0;
-  if Length(SubStr)>0 then
+  if (Length(SubStr)>0) and (Offset>0) and (Offset<=Length(S)) then
    begin
      MaxLen:=sizeint(Length(s))-Length(SubStr);
-     i:=0;
-     pc:=@s[1];
+     i:=Offset-1;
+     pc:=@s[Offset];
      while (i<=MaxLen) do
       begin
         inc(i);
@@ -155,13 +155,16 @@ end;
 {$ifndef FPC_HAS_SHORTSTR_POS_CHAR}
 {$define FPC_HAS_SHORTSTR_POS_CHAR}
 {Faster when looking for a single char...}
-function pos(c:char;const s:shortstring):SizeInt;
+function pos(c:char;const s:shortstring; Offset : Sizeint = 1 ):SizeInt;
 var
   i : SizeInt;
   pc : pchar;
 begin
-  pc:=@s[1];
-  for i:=1 to length(s) do
+  Pos:=0;
+  if (Offset<1) or (Offset>Length(S)) then
+    exit;
+  pc:=@s[Offset];
+  for i:=Offset to length(s) do
    begin
      if pc^=c then
       begin
@@ -183,9 +186,9 @@ begin
    fpc_char_Copy:='';
 end;
 
-function pos(const substr : shortstring;c:char): SizeInt;
+function pos(const substr : shortstring;c:char;  Offset : Sizeint = 1): SizeInt;
 begin
-  if (length(substr)=1) and (substr[1]=c) then
+  if (length(substr)=1) and (substr[1]=c) and (Offset=1) then
    Pos:=1
   else
    Pos:=0;
@@ -873,6 +876,11 @@ end;
 {$ifndef CPU64}
 
 procedure fpc_chararray_qword(v : qword;len : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -886,9 +894,15 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 procedure fpc_chararray_int64(v : int64;len : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(219);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -902,6 +916,7 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 {$endif CPU64}
 
@@ -990,17 +1005,25 @@ end;
 {$endif}
 
 {$ifndef FPC_STR_ENUM_INTERN}
+{ currently, the avr code generator fails on this procedure, so we disable it,
+  this is not a good solution but fixing compilation of this procedure for
+  avr is hard, requires significant changes to the register allocator to take
+  care of different register classes }
 procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
 var
   ss : shortstring;
   maxlen : SizeInt;
 begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+  runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
   fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
   if length(ss)<high(a)+1 then
     maxlen:=length(ss)
   else
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
+{$endif EXCLUDE_COMPLEX_PROCS}
 end;
 {$endif not FPC_STR_ENUM_INTERN}
 
@@ -1021,6 +1044,11 @@ end;
 {$ifndef FPC_HAS_CHARARRAY_CURRENCY}
 {$define FPC_HAS_CHARARRAY_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 var
   ss : shortstring;
   maxlen : SizeInt;
@@ -1032,7 +1060,8 @@ begin
     maxlen:=high(a)+1;
   fpc_shortstr_chararray_intern_charmove(ss,a,maxlen);
 end;
-{$endif FPC_HAS_STR_CURRENCY}
+{$endif EXCLUDE_COMPLEX_PROCS}
+{$endif FPC_HAS_CHARARRAY_CURRENCY}
 
 {*****************************************************************************
                            Val() Functions
@@ -1214,6 +1243,9 @@ end;
         maxqword=qword($ffffffffffffffff);
 
   begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+    runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
     fpc_val_int64_shortstr := 0;
     Temp:=0;
     Code:=InitVal(s,negative,base);
@@ -1257,6 +1289,7 @@ end;
     fpc_val_int64_shortstr:=int64(Temp);
     If Negative Then
       fpc_val_int64_shortstr:=-fpc_val_int64_shortstr;
+{$endif EXCLUDE_COMPLEX_PROCS}
   end;
 
 
@@ -1944,10 +1977,14 @@ function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code
 {$endif FPC_STR_ENUM_INTERN}
 
 function fpc_Val_Currency_ShortStr(const s : shortstring; out Code : ValSInt): currency; [public, alias:'FPC_VAL_CURRENCY_SHORTSTR']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+begin
+  runerror(217);
+end;
+{$else EXCLUDE_COMPLEX_PROCS}
 const
-  MaxInt64 : Int64  = $7FFFFFFFFFFFFFFF;
-  Int64Edge : Int64 = ($7FFFFFFFFFFFFFFF - 10) div 10;
-  Int64Edge2 : Int64 = $7FFFFFFFFFFFFFFF div 10;
+  MinInt64 : Int64  =-$8000000000000000;
+  MinInt64Edge : Int64 = (-$8000000000000000 + 10) div 10;
 var
   { to enable taking the address on the JVM target }
   res : array[0..0] of Int64;
@@ -1958,7 +1995,7 @@ begin
   res[0]:=0;
   len:=Length(s);
   Code:=1;
-  sign:=1;
+  sign:=-1;
   power:=0;
   while True do
     if Code > len then
@@ -1970,10 +2007,12 @@ begin
         break;
   { Read sign }
   case s[Code] of
-   '+' : Inc(Code);
+   '+' : begin
+           Inc(Code);
+         end;
    '-' : begin
-           sign:=-1;
-           inc(code);
+           sign:=+1;
+           Inc(Code);
          end;
   end;
   { Read digits }
@@ -1986,9 +2025,9 @@ begin
           begin
             j:=Ord(s[code])-Ord('0');
             { check overflow }
-            if (res[0] <= Int64Edge) or (res[0] <= (MaxInt64 - j) div 10) then
+            if (res[0] >= MinInt64Edge) or (res[0] >= (MinInt64 + j) div 10) then
               begin
-                res[0]:=res[0]*10 + j;
+                res[0]:=res[0]*10 - j;
                 Inc(i);
               end
             else
@@ -1997,9 +2036,9 @@ begin
                 exit
               else
                 begin
-                  if not FracOverflow and (j >= 5) and (res[0] < MaxInt64) then
+                  if not FracOverflow and (j >= 5) and (res[0] > MinInt64) then
                     { round if first digit of fractional part overflow }
-                    Inc(res[0]);
+                    Dec(res[0]);
                   FracOverflow:=True;
                 end;
           end;
@@ -2060,7 +2099,7 @@ begin
   if power > 0 then
     begin
       for i:=1 to power do
-        if res[0] <= Int64Edge2 then
+        if res[0] >= MinInt64 div 10 then
           res[0]:=res[0]*10
         else
           exit;
@@ -2068,19 +2107,26 @@ begin
   else
     for i:=1 to -power do
       begin
-        if res[0] <= MaxInt64 - 5 then
-          Inc(res[0], 5);
+        if res[0] >= MinInt64 + 5 then
+          Dec(res[0], 5);
         res[0]:=res[0] div 10;
       end;
-  res[0]:=res[0]*sign;
+
+  if sign <> 1 then
+    if res[0] > MinInt64 then
+      res[0]:=res[0]*sign
+    else
+      exit;
+
   fpc_Val_Currency_ShortStr:=PCurrency(@res[0])^;
   Code:=0;
 end;
+{$endif EXCLUDE_COMPLEX_PROCS}
 
 
 {$ifndef FPC_HAS_SETSTRING_SHORTSTR}
 {$define FPC_HAS_SETSTRING_SHORTSTR}
-Procedure SetString (Out S : Shortstring; Buf : PChar; Len : SizeInt);
+Procedure {$ifdef FPC_HAS_CPSTRING}fpc_setstring_shortstr{$else}SetString{$endif}(Out S : Shortstring; Buf : PChar; Len : SizeInt); {$ifdef FPC_HAS_CPSTRING} compilerproc; {$endif FPC_HAS_CPSTRING}
 begin
   If Len > High(S) then
     Len := High(S);

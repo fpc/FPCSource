@@ -207,7 +207,12 @@ type
 
   { TUC_Prop }
 
-  TUC_Prop = packed record
+  { On alignment-sensitive targets, at least some of them, assembler uses to forcibly align data >1 byte.
+    This breaks intended layout of initialized constants/variables.
+    A proper solution is to patch compiler to emit always unaligned directives for words/dwords/etc,
+    but for now just declare this record as "unpacked". This causes bloat, but it's better than having
+    entire unit not working at all. }
+  TUC_Prop = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif} record
   private
     function GetCategory : Byte;inline;
     procedure SetCategory(AValue : Byte);
@@ -322,7 +327,7 @@ type
   TCollationName = string[128];
 
   PUCA_DataBook = ^TUCA_DataBook;
-  TUCA_DataBook = packed record
+  TUCA_DataBook = record
   public
     Base               : PUCA_DataBook;
     Version            : TCollationName;
@@ -377,6 +382,8 @@ const
 
   function NormalizeNFD(const AString : UnicodeString) : UnicodeString;inline;overload;
   function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;overload;
+  function DecomposeCanonical(const AString : UnicodeString) : UnicodeString;inline;overload;
+  function DecomposeCanonical(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;overload;
   procedure CanonicalOrder(var AString : UnicodeString);inline;overload;
   procedure CanonicalOrder(AStr : PUnicodeChar; const ALength : SizeInt);overload;
 
@@ -1418,13 +1425,12 @@ begin
   end;
 end;
 
-//Canonical Decomposition
-function NormalizeNFD(const AString : UnicodeString) : UnicodeString;
+function DecomposeCanonical(const AString : UnicodeString) : UnicodeString;
 begin
-  Result := NormalizeNFD(@AString[1],Length(AString));
+  Result := DecomposeCanonical(@AString[1],Length(AString));
 end;
 
-function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
+function DecomposeCanonical(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
 const MAX_EXPAND = 3;
 var
   i, c, kc, k : SizeInt;
@@ -1502,6 +1508,20 @@ begin
     SetLength(Result,i);
     CanonicalOrder(@Result[1],Length(Result));
   end;
+end;
+
+function NormalizeNFD(const AStr : PUnicodeChar; ALength : SizeInt) : UnicodeString;
+begin
+  if (ALength < 1) then
+    exit('');
+  Result := DecomposeCanonical(AStr,ALength);
+  CanonicalOrder(@Result[1],Length(Result));
+end;
+
+//Canonical Decomposition + _ordering_
+function NormalizeNFD(const AString : UnicodeString) : UnicodeString;
+begin
+  Result := NormalizeNFD(@AString[1],Length(AString));
 end;
 
 { TUCA_PropItemContextTreeNodeRec }

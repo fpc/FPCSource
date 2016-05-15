@@ -9,9 +9,23 @@ var
   FS, DFS: TFormatSettings;
   bcd: TBCD;
 
+procedure testBCDSubtract(bcd1,bcd2,bcd3: TBCD);
+var bcdsub: TBCD;
+begin
+  bcdsub:=0;
+  BCDSubtract(bcd1,bcd2,bcdsub);
+  if (BCDCompare(bcd3,bcdsub) <> 0) or
+     (bcdtostr(bcd3) <> bcdtostr(bcdsub)) then
+  begin
+    writeln(bcdtostr(bcd1), ' - ', bcdtostr(bcd2), ' = ', bcdtostr(bcdsub), ' but expected ', bcdtostr(bcd3));
+    inc(ErrorCount);
+  end;
+end;
+
 procedure testBCDMultiply(bcd1,bcd2,bcd3: TBCD);
 var bcdmul: TBCD;
 begin
+  bcdmul:=0;
   BCDMultiply(bcd1,bcd2,bcdmul);
   if (BCDCompare(bcd3,bcdmul) <> 0) or
      (bcdtostr(bcd3) <> bcdtostr(bcdmul)) then
@@ -25,6 +39,7 @@ end;
 procedure testBCDDivide(bcd1,bcd2,bcd3: TBCD);
 var bcddiv: TBCD;
 begin
+  bcddiv:=0;
   BCDDivide(bcd1,bcd2,bcddiv);
   if (BCDCompare(bcd3,bcddiv) <> 0) or
      (bcdtostr(bcd3) <> bcdtostr(bcddiv)) then
@@ -96,17 +111,34 @@ begin
 end;
 
 procedure testBCDCompare(bcd1,bcd2: TBCD; res: integer);
+var ret: integer;
 begin
-  if (BCDCompare(bcd1,bcd2) <> res) then
+  ret := BCDCompare(bcd1,bcd2);
+  if ret <> res then
   begin
-    writeln('BCDCompare failed; bcd1:', bcdtostr(bcd1), ' bcd2:', bcdtostr(bcd2));
+    writeln('BCDCompare failed; bcd1:', bcdtostr(bcd1), ' bcd2:', bcdtostr(bcd2), ' returned ', ret, ' but expected ', res);
+    inc(ErrorCount);
+  end;
+end;
+
+procedure testNormalizeBCD(const input, expected: string; Precision,Places: integer; res: boolean);
+var outBcd: TBCD;
+begin
+  outBcd:=0;
+  if NormalizeBCD(StrToBCD(input,FS), outBcd, Precision, Places) <> res then
+  begin
+    writeln('NormalizeBCD for ', input, ' returned ', not res, ' but expected ', res);
+    inc(ErrorCount);
+  end;
+  if StrToBCD(expected,FS) <> outBcd then
+  begin
+    writeln('NormalizeBCD for ', input, ' returned ', BCDToStr(outBcd,FS), ' but expected ', expected);
     inc(ErrorCount);
   end;
 end;
 
 procedure testVariantOp(v1, v2: variant);
 var v: variant;
-    i: integer;
     d: double;
     s1: shortstring;
     s2: ansistring;
@@ -231,11 +263,14 @@ begin
   testBCDPrecScale('1001.1001', 8, 4);
 
   // test BCDToCurr:
-  testBCDToCurr( '922337203685477.5807', MaxCurrency); // test boundary values
-  testBCDToCurr('-922337203685477.5807', MinCurrency);
+  testBCDToCurr( '922337203685477.5807',  922337203685477.5807); // boundary values
+  testBCDToCurr('-922337203685477.5807', -922337203685477.5807);
   testBCDToCurr('-922337203685477.5808', StrToCurr('-922337203685477.5808'));
   testBCDToCurr( '922337203685477.5808', 0); // out-of-range values
   testBCDToCurr('-922337203685477.5809', 0);
+
+  // test BCDSubtract:
+  testBCDSubtract(CurrToBCD(0), CurrToBCD(-0.1), 0.1);
 
   DefaultFormatSettings := DFS;
 
@@ -264,6 +299,13 @@ begin
   testBCDCompare(-100.1, 100.1, -1);
   testBCDCompare(-100.1, -100.2, 1);
   testBCDCompare(100, 100.1, -1);
+  testBCDCompare(CurrToBcd(0.01), CurrToBcd(0.001), 1); // BCD values with Precision<Scale
+  testBCDCompare(CurrToBcd(0.01), 0.01, 0);
+
+  // test NormalizeBCD:
+  testNormalizeBCD('100.17', '100.17', 5, 3, True);
+  testNormalizeBCD('100.17', '100.17', 5, 2, True);
+  testNormalizeBCD('100.17', '100.1' , 5, 1, False); // truncate, not round
 
   // test Variant support:
   testVariantOp(varFmtBcdCreate(100), varFmtBcdCreate(-100));
@@ -272,7 +314,6 @@ begin
   testVariantOp(varFmtBcdCreate(-100), shortstring(floattostr(10.2)));
   testVariantOp(varFmtBcdCreate(-100), ansistring(floattostr(0.2)));
   testVariantOp(varFmtBcdCreate(-100), unicodestring(floattostr(-0.2)));
-
 
   if ErrorCount<>0 then
   begin

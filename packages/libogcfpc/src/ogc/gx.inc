@@ -1702,7 +1702,7 @@ procedure GX_PokeARGB(x, y: cuint16; color: GXColor); cdecl; external;
  * \return none
   *)
 
-procedure GX_PeekARGB(x, y: cuint16; color: PGXColor); cdecl; external;
+procedure GX_PeekARGB(x, y: cuint16; var color: GXColor); cdecl; external;
 
 
 (*!
@@ -1741,7 +1741,7 @@ procedure GX_PokeZ(x, y: cuint16; z: cuint32); cdecl; external;
  * \return none
   *)
 
-procedure GX_PeekZ(x, y: cuint16; z: pcuint32); cdecl; external;
+procedure GX_PeekZ(x, y: cuint16; var z: cuint32); cdecl; external;
 
 
 (*!
@@ -1799,6 +1799,82 @@ function GX_GetTexObjMipMap(obj: PGXTexObj): cuint32; cdecl; external;
 
 
 function GX_GetTexObjUserData(obj: PGXTexObj): pointer; cdecl; external;
+
+
+(*!
+ * \fn void* GX_GetTexObjData(GXTexObj *obj)
+ * \brief Used to get a pointer to texture data from the \ref GXTexObj structure.
+ *
+ * \note The returned pointer is a physical address.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return Physical pointer to texture data.
+ *)
+function GX_GetTexObjData(obj: PGXTexObj): pointer; cdecl; external;
+
+(*!
+ * \fn u8 GX_GetTexObjWrapS(GXTexObj* obj)
+ * \brief Returns the texture wrap s mode described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap s mode.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return wrap s mode
+ *)
+function GX_GetTexObjWrapS(obj: PGXTexObj): cuint8; cdecl; external;
+
+(*!
+ * \fn u8 GX_GetTexObjWrapT(GXTexObj* obj)
+ * \brief Returns the texture wrap t mode described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture wrap t mode.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return wrap t mode
+ *)
+function GX_GetTexObjWrapT(obj: PGXTexObj): cuint8; cdecl; external;
+
+(*!
+ * \fn u16 GX_GetTexObjHeight(GXTexObj* obj)
+ * \brief Returns the texture height described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture height.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return texture height
+ *)
+function GX_GetTexObjHeight(obj: PGXTexObj): cuint16; cdecl; external;
+
+(*!
+ * \fn u16 GX_GetTexObjWidth(GXTexObj* obj)
+ * \brief Returns the texture width described by texture object \a obj.
+ *
+ * \note Use GX_InitTexObj() or GX_InitTexObjCI() to initialize the texture width.
+ *
+ * \param[in] obj ptr to a texture object
+ *
+ * \return texture width
+ *)
+function GX_GetTexObjWidth(obj: PGXTexObj): cuint16; cdecl; external;
+
+(*!
+ * \fn void GX_GetTexObjAll(GXTexObj* obj, void** image_ptr, u16* width, u16* height, u8* format, u8* wrap_s, u8* wrap_t, u8* mipmap);
+ * \brief Returns the parameters described by a texture object. Texture objects are used to describe all the parameters associated with a texture, including size, format, wrap modes, filter modes, etc. Texture objects are initialized using either GX_InitTexObj() or, for color index format textures, GX_InitTexObjCI().
+ *
+ * \param[in] obj ptr to a texture object
+ * \param[out] image_ptr Returns a physical pointer to the image data for a texture.
+ * \param[out] width Returns the width of the texture or LOD 0 for mipmaps
+ * \param[out] height Returns the height of the texture or LOD 0 for mipmaps
+ * \param[out] format Returns the texel format
+ * \param[out] mipmap Returns the mipmap enable flag.
+ *
+ * \return none
+ *)
+procedure GX_GetTexObjAll(obj: PGXTexObj; var image_ptr: Pointer; var width: cuint16; var height: cuint16; var format: cuint8; var wrap_s: cuint8; var wrap_t: cuint8; var mipmap: cuint8); cdecl; external;
 
 
 (*!
@@ -2741,7 +2817,7 @@ procedure GX_InitXfRasMetric; cdecl; external;
  * \return none
   *)
 
-procedure GX_ReadXfRasMetric(xfwaitin, xfwaitout, rasbusy, clks: pcuint32); cdecl; external;
+procedure GX_ReadXfRasMetric(var xfwaitin: cuint32; var xfwaitout: cuint32; var rasbusy: cuint32; var clks: cuint32); cdecl; external;
 
 
 (*!
@@ -2774,7 +2850,7 @@ procedure GX_ClearVCacheMetric; cdecl; external;
  * \return none
   *)
 
-procedure GX_ReadVCacheMetric(check, miss, stall: pcuint32); cdecl; external;
+procedure GX_ReadVCacheMetric(var check: cuint32; var miss: cuint32; var stall: cuint32); cdecl; external;
 
 
 (*!
@@ -2812,7 +2888,7 @@ procedure GX_SetVCacheMetric(attr: cuint32); cdecl; external;
  * \return none
   *)
 
-procedure GX_GetGPStatus(overhi, underlow, readIdle, cmdIdle, brkpt: pcuint8); cdecl; external;
+procedure GX_GetGPStatus(var overhi: cuint32; var underlow: cuint8; var readIdle: cuint8; var cmdIdle: cuint8; var brkpt: cuint8); cdecl; external;
 
 
 (*!
@@ -2834,7 +2910,7 @@ procedure GX_GetGPStatus(overhi, underlow, readIdle, cmdIdle, brkpt: pcuint8); c
  * \return none
   *)
 
-procedure GX_ReadGPMetric(cnt0, cnt1: pcuint32); cdecl; external;
+procedure GX_ReadGPMetric(var cnt0: cuint32; var cnt1: cuint32); cdecl; external;
 
 
 (*!
@@ -2855,7 +2931,7 @@ procedure GX_ReadGPMetric(cnt0, cnt1: pcuint32); cdecl; external;
  * \return none
   *)
 
-procedure GX_ReadBoundingBox(top, bottom, left, right: pcuint16); cdecl; external;
+procedure GX_ReadBoundingBox(var top: cuint16; var bottom: cuint16; var left: cuint16; var right: cuint16); cdecl; external;
 
 
 (*!

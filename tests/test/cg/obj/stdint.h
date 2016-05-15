@@ -596,7 +596,7 @@ typedef uint_least32_t uint_fast32_t;
  *  type limits.
  */
 
-#if defined(__WATCOMC__) || defined(_MSC_VER) || defined (__GNUC__)
+#if defined(__WATCOMC__) || defined(_MSC_VER) || defined (__GNUC__) && !defined (__EMX__)
 # include <wchar.h>
 # ifndef WCHAR_MIN
 #  define WCHAR_MIN 0

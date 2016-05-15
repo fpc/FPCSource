@@ -17,29 +17,6 @@
 ****************************************************************************}
 
 
-Const
-  { Type of exception. Currently only one. }
-  FPC_EXCEPTION   = 1;
-
-  { types of frames for the exception address stack }
-  cExceptionFrame = 1;
-  cFinalizeFrame  = 2;
-
-Type
-  PExceptAddr = ^TExceptAddr;
-  TExceptAddr = record
-    buf       : pjmp_buf;
-    next      : PExceptAddr;
-{$ifdef CPU16}
-    frametype : Smallint;
-{$else CPU16}
-    frametype : Longint;
-{$endif CPU16}
-  end;
-
-Const
-  CatchAllExceptions = PtrInt(-1);
-
 {$ifdef FPC_HAS_FEATURE_THREADING}
 ThreadVar
 {$else FPC_HAS_FEATURE_THREADING}

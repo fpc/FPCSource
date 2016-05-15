@@ -9,6 +9,8 @@ interface
 
 uses
   Windows;
+type
+  INT = WINT;
 const
   { GetCurrentPlatform constants }
   pfAll = %11111111;
@@ -337,7 +339,7 @@ begin
         end;
       if link^.vtbl^.QueryInterface (link, IID_IShellLinkDataList, DL) = S_OK then
         begin
-          flags:=-1;
+          flags:= DWORD(-1);
           if DL^.vtbl^.GetFlags(DL,flags)=S_OK then
             begin
               writeln('Link flag is ',hexstr(flags,8));

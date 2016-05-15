@@ -210,10 +210,18 @@ type
    ESafecallException = class(Exception);
    ENoThreadSupport = Class(Exception);
    ENoWideStringSupport = Class(Exception);
+   ENoDynLibsSupport = class(Exception);
    ENotImplemented = class(Exception);
 
    EArgumentException = class(Exception);
    EArgumentOutOfRangeException = class(EArgumentException);
+   EArgumentNilException = class(EArgumentException);
+
+   EPathTooLongException = class(Exception);
+   ENotSupportedException = class(Exception);
+   EDirectoryNotFoundException = class(Exception);
+   EFileNotFoundException = class(Exception);
+   EPathNotFoundException = class(Exception);
 
    ENoConstructException = class(Exception);
 
@@ -254,7 +262,7 @@ type
 
 Var
    OnShowException : Procedure (Msg : ShortString);
-
+   
 Const
    HexDisplayPrefix : string = '$';
 
@@ -307,7 +315,13 @@ Type
   { read thread handling }
   {$i systhrdh.inc}
 
+  { Type Helpers}
+  {$IFNDEF VER2_6}
+  {$i syshelph.inc}
+  {$ENDIF}
+  
   procedure FreeAndNil(var obj);
+  procedure FreeMemAndNil(var p);
 
   { interface handling }
   {$i intfh.inc}

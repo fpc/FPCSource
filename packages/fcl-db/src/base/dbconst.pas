@@ -22,7 +22,7 @@ Resourcestring
   SActiveDataset           = 'Operation cannot be performed on an active dataset';
   SBadParamFieldType       = 'Bad fieldtype for parameter "%s".';
   SCantSetAutoIncFields    = 'AutoInc Fields are read-only';
-  SConnected               = 'Operation cannot be performed on an connected database';
+  SConnected               = 'Operation cannot be performed on a connected database';
   SDatasetReadOnly         = 'Dataset is read-only.';
   SDatasetRegistered       = 'Dataset already registered : "%s"';
   SDuplicateFieldName      = 'Duplicate fieldname : "%s"';
@@ -83,6 +83,7 @@ Resourcestring
   SLookupInfoError         = 'Lookup information for field ''%s'' is incomplete';
   SUnsupportedFieldType    = 'Fieldtype %s is not supported';
   SInvPacketRecordsValue   = 'PacketRecords has to be larger then 0';
+  SInvPacketRecordsValueFieldNames = 'PacketRecords must be -1 if IndexFieldNames is set';
   SInvalidSearchFieldType  = 'Searching in fields of type %s is not supported';
   SDatasetEmpty            = 'The dataset is empty';
   SFieldIsNull             = 'The field is null';
@@ -100,18 +101,29 @@ Resourcestring
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
   SNoFieldIndexes          = 'No index currently active';
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
-  SErrUnknownConnectorType = 'Unknown connector type';
+  SErrUnknownConnectorType = 'Unknown connector type: "%s"';
   SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
   SStreamNotRecognised     = 'The data-stream format is not recognized';
   SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
-  SCommitting              = 'Committing transaction';
-  SRollingBack             = 'Rolling back transaction';
-  SCommitRetaining         = 'Commit and retaining transaction';
-  SRollBackRetaining       = 'Rollback and retaining transaction';
-  SErrNoFieldsDefined      = 'Can not create a dataset when there are no fielddefinitions or fields defined';
-  SErrApplyUpdBeforeRefresh= 'Must apply updates before refreshing data';
-  SErrNoDataset            = 'Missing (compatible) underlying dataset, can not open';
+  SCommitting               = 'Committing transaction';
+  SRollingBack              = 'Rolling back transaction';
+  SCommitRetaining          = 'Commit and retaining transaction';
+  SRollBackRetaining        = 'Rollback and retaining transaction';
+  SErrNoFieldsDefined       = 'Can not create a dataset when there are no fielddefinitions or fields defined';
+  SErrApplyUpdBeforeRefresh = 'Must apply updates before refreshing data';
+  SErrNoDataset             = 'Missing (compatible) underlying dataset, can not open';
+  SErrDisconnectedPacketRecords = 'For disconnected TSQLQuery instances, packetrecords must be -1';
+  SErrImplicitNoRollBack      = 'Implicit use of transactions does not allow rollback.';
+  SErrNoImplicitTransaction   = 'Connection %s does not allow implicit transactions.';
+  SErrImplictTransactionStart = 'Error: attempt to implicitly start a transaction on Connection "%s", transaction "%s".';
+  SErrImplicitConnect         = 'Error: attempt to implicitly activate connection "%s".';
+  SErrFailedToUpdateRecord    = 'Failed to apply record updates: %d rows updated.';
+  SErrRefreshNotSingleton     = 'Refresh SQL resulted in multiple records: %d.';
+  SErrRefreshEmptyResult      = 'Refresh SQL resulted in empty result set.';
+  SErrNoKeyFieldForRefreshClause = 'No key field found to construct refresh SQL WHERE clause';
+  SErrFailedToFetchReturningResult = 'Failed to fetch returning result';
+  SLogParamValue              = 'Parameter "%s" value : "%s"';
 
 Implementation
 

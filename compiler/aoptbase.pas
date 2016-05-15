@@ -95,6 +95,16 @@ unit aoptbase;
 
         { returns true if reg is modified by any instruction between p1 and p2 }
         function RegModifiedBetween(reg: TRegister; p1, p2: tai): Boolean;
+
+        { returns true if reg is loaded with a new value by hp }
+        function RegLoadedWithNewValue(reg: tregister; hp: tai): boolean; Virtual;
+
+        { returns true if hp loads a value from reg }
+        function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; Virtual;
+
+        { compares reg1 and reg2 having the same type and being the same super registers
+          so the register size is neglected }
+        function SuperRegistersEqual(reg1,reg2 : TRegister) : Boolean;
     end;
 
     function labelCanBeSkipped(p: tai_label): boolean;
@@ -102,7 +112,7 @@ unit aoptbase;
   implementation
 
     uses
-      globtype,globals,aoptcpub;
+      verbose,globtype,globals,aoptcpub;
 
   constructor taoptbase.create;
     begin
@@ -284,6 +294,26 @@ unit aoptbase;
         end;
   end;
 
+
+  function TAoptBase.RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean;
+    begin
+      result:=false;
+      internalerror(2016012401);
+    end;
+
+
+  function TAoptBase.InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean;
+    begin
+      { save approximation }
+      Result:=true;
+    end;
+
+
+  function TAOptBase.SuperRegistersEqual(reg1,reg2 : TRegister) : Boolean;
+  Begin
+    Result:=(getregtype(reg1) = getregtype(reg2)) and
+            (getsupreg(reg1) = getsupreg(Reg2));
+  end;
 
   { ******************* Processor dependent stuff *************************** }
 

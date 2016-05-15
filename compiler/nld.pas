@@ -174,7 +174,7 @@ implementation
 
     uses
       verbose,globtype,globals,systems,constexp,
-      symnot,symtable,
+      symtable,
       defutil,defcmp,
       htypechk,pass_1,procinfo,paramgr,
       cpuinfo,
@@ -326,34 +326,26 @@ implementation
                  begin
                    if assigned(left) then
                      internalerror(200309289);
-                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                   left:=cloadparentfpnode.create(tprocdef(symtable.defowner),lpf_forload);
                    { we can't inline the referenced parent procedure }
                    exclude(tprocdef(symtable.defowner).procoptions,po_inline);
                    { reference in nested procedures, variable needs to be in memory }
                    { and behaves as if its address escapes its parent block         }
                    make_not_regable(self,[ra_addr_taken]);
                  end;
-               { fix self type which is declared as voidpointer in the
-                 definition }
-               if vo_is_self in tabstractvarsym(symtableentry).varoptions then
+               resultdef:=tabstractvarsym(symtableentry).vardef;
+               { self for objects is passed as var-parameter on the caller
+                 side, but on the callee-side we use it as a pointer ->
+                 adjust }
+               if (vo_is_self in tabstractvarsym(symtableentry).varoptions) then
                  begin
-                   resultdef:=tprocdef(symtableentry.owner.defowner).struct;
-                   if is_objectpascal_helper(resultdef) then
-                     resultdef:=tobjectdef(resultdef).extendeddef;
-                   if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
-                      (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
-                     resultdef:=cclassrefdef.create(resultdef)
-                   else if (is_object(resultdef) or is_record(resultdef)) and
-                           (loadnf_load_self_pointer in loadnodeflags) then
-                     resultdef:=getpointerdef(resultdef);
+                   if (is_object(resultdef) or is_record(resultdef)) and
+                      (loadnf_load_self_pointer in loadnodeflags) then
+                     resultdef:=cpointerdef.getreusable(resultdef)
+                   else if (resultdef=objc_idtype) and
+                      (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                     resultdef:=cclassrefdef.create(tprocdef(symtableentry.owner.defowner).struct)
                  end
-               else if vo_is_vmt in tabstractvarsym(symtableentry).varoptions then
-                 begin
-                   resultdef:=tprocdef(symtableentry.owner.defowner).struct;
-                   resultdef:=cclassrefdef.create(resultdef);
-                 end
-               else
-                 resultdef:=tabstractvarsym(symtableentry).vardef;
              end;
            procsym :
              begin
@@ -425,10 +417,6 @@ implementation
                 { call to get address of threadvar }
                 if (vo_is_thread_var in tabstractvarsym(symtableentry).varoptions) then
                   include(current_procinfo.flags,pi_do_call);
-                if nf_write in flags then
-                  Tabstractvarsym(symtableentry).trigger_notifications(vn_onwrite)
-                else
-                  Tabstractvarsym(symtableentry).trigger_notifications(vn_onread);
               end;
             procsym :
                 begin
@@ -488,7 +476,7 @@ implementation
               begin
                 { parent frame pointer pointer as "self" }
                 left.free;
-                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner));
+                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner),lpf_forpara);
               end;
           end
         { we should never go from nested to non-nested }
@@ -705,12 +693,14 @@ implementation
 {$endif}
         then
           begin
-            check_ranges(fileinfo,right,left.resultdef);
+            if not(nf_internal in flags) then
+              check_ranges(fileinfo,right,left.resultdef);
           end
         else
           begin
             { check if the assignment may cause a range check error }
-            check_ranges(fileinfo,right,left.resultdef);
+            if not(nf_internal in flags) then
+              check_ranges(fileinfo,right,left.resultdef);
 
             { beginners might be confused about an error message like
               Incompatible types: got "untyped" expected "LongInt"
@@ -719,6 +709,8 @@ implementation
             if (left.resultdef.typ<>procvardef) and
               (right.nodetype=calln) and is_void(right.resultdef) then
               CGMessage(type_e_procedures_return_no_value)
+            else if nf_internal in flags then
+              inserttypeconv_internal(right,left.resultdef)
             else
               inserttypeconv(right,left.resultdef);
           end;
@@ -1151,9 +1143,8 @@ implementation
                 hp:=tarrayconstructornode(hp.right);
               end;
           end;
-        { set the elementdef to the correct type in case of a managed
-          variant array }
-        if do_managed_variant then
+        { set the elementdef to the correct type in case of a variant array }
+        if do_variant then
           tarraydef(resultdef).elementdef:=search_system_type('TVARREC').typedef;
         expectloc:=LOC_CREFERENCE;
       end;

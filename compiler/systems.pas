@@ -69,8 +69,8 @@ interface
        tasminfo = record
           id          : tasm;
           idtxt       : string[12];
-          asmbin      : string[8];
-          asmcmd      : string[50];
+          asmbin      : string[16];
+          asmcmd      : string[70];
           supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
@@ -83,6 +83,8 @@ interface
        parinfo = ^tarinfo;
        tarinfo = record
           id          : tar;
+          addfilecmd  : string[10];
+          arfirstcmd  : string[50];
           arcmd       : string[50];
           arfinishcmd : string[10];
        end;
@@ -144,7 +146,12 @@ interface
               this is usefull for architectures which require a small code footprint }
             tf_no_objectfiles_when_smartlinking,
             { indicates that the default value of the ts_cld target switch is 'on' for this target }
-            tf_cld
+            tf_cld,
+            { indicates that the default value of the ts_x86_far_procs_push_odd_bp target switch is 'on' for this target }
+            tf_x86_far_procs_push_odd_bp,
+            { indicates that this target can use dynamic packages otherwise an
+              error will be generated if a package file is compiled }
+            tf_supports_packages
        );
 
        psysteminfo = ^tsysteminfo;
@@ -201,6 +208,12 @@ interface
           { stack alignment }
           stackalign   : byte;
           abi          : tabi;
+          { llvm -- varies wildly in length and is empty for many targets ->
+            ansistring instead of shortstring; tsysteminfo records aren't
+            copied very often anyway. These strings come from the file
+            lib/Basic/Targets.cpp in the clang (cfe 3.3) source tree, sometimes
+            adapted to match our (custom) stack alignment requirements }
+          llvmdatalayout: ansistring;
        end;
 
     tabiinfo = record
@@ -215,8 +228,9 @@ interface
        systems_wince = [system_arm_wince,system_i386_wince];
        systems_android = [system_arm_android, system_i386_android, system_mipsel_android];
        systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
-                       system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux];
+                       system_arm_linux,system_sparc_linux,system_m68k_linux,
+                       system_x86_6432_linux,system_mipseb_linux,system_mipsel_linux,system_aarch64_linux];
+       systems_dragonfly = [system_x86_64_dragonfly];
        systems_freebsd = [system_i386_freebsd,
                           system_x86_64_freebsd];
        systems_netbsd  = [system_i386_netbsd,
@@ -227,21 +241,23 @@ interface
                           system_m68k_openbsd,
                           system_x86_64_openbsd];
 
-       systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd;
+       systems_bsd = systems_freebsd + systems_netbsd + systems_openbsd + systems_dragonfly;
 
        systems_aix = [system_powerpc_aix,system_powerpc64_aix];
 
-       { all real windows systems, no cripple ones like wince, wdosx et. al. }
-       systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+       { all real windows systems, no cripple ones like win16, wince, wdosx et. al. }
+       systems_windows = [system_i386_win32,system_x86_64_win64];
 
        { all windows systems }
-       systems_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
-                             system_arm_wince,system_i386_wince];
+       systems_all_windows = [system_i386_win32,system_x86_64_win64,
+                             system_arm_wince,system_i386_wince,
+                             system_i8086_win16];
 
        { all darwin systems }
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
-                         system_arm_darwin,system_i386_iphonesim];
+                         system_arm_darwin,system_i386_iphonesim,
+                         system_aarch64_darwin,system_x86_64_iphonesim];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
@@ -249,7 +265,7 @@ interface
 
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
-                           system_alpha_embedded,system_powerpc_embedded,
+                           system_powerpc_embedded,
                            system_sparc_embedded,system_vm_embedded,
                            system_iA64_embedded,system_x86_64_embedded,
                            system_mips_embedded,system_arm_embedded,
@@ -284,7 +300,10 @@ interface
        systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim,system_aarch64_darwin,system_x86_64_iphonesim];
+
+       { systems supporting "blocks" }
+       systems_blocks_supported = systems_darwin;
 
        { all systems supporting exports from programs or units }
        systems_unit_program_exports = [system_i386_win32,
@@ -293,12 +312,16 @@ interface
                                          system_i386_netwlibc,
                                          system_arm_wince,
                                          system_x86_64_win64,
-                                         system_ia64_win64]+systems_linux+systems_android;
+                                         system_i8086_win16]+systems_linux+systems_android;
+
+       { all systems that reference symbols in other binaries using indirect imports }
+       systems_indirect_var_imports = systems_all_windows+[system_i386_nativent];
 
        { all systems for which weak linking has been tested/is supported }
        systems_weak_linking = systems_darwin + systems_solaris + systems_linux + systems_android;
 
-       systems_internal_sysinit = [system_i386_linux,system_i386_win32];
+       systems_internal_sysinit = [system_i386_linux,system_i386_win32,
+                                   system_powerpc64_linux];
 
        { all systems that use garbage collection for reference-counted types }
        systems_garbage_collected_managed_types = [
@@ -330,9 +353,17 @@ interface
          variables, but emulate it by wrapping nested variables in records
          whose address is passed around }
        systems_fpnestedstruct = [
+{$ifndef llvm}
          system_jvm_java32,
          system_jvm_android32
+{$else not llvm}
+         low(tsystem)..high(tsystem)
+{$endif not llvm}
        ];
+
+       { all systems where a value parameter passed by reference must be copied
+         on the caller side rather than on the callee side }
+       systems_caller_copy_addr_value_para = [system_aarch64_darwin,system_aarch64_linux];
 
        { pointer checking (requires special code in FPC_CHECKPOINTER,
          and can never work for libc-based targets or any other program
@@ -347,16 +378,20 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086', 'spc32');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel','jvm', 'i8086',
+             'aarch64','spc32');
 
        abiinfo : array[tabi] of tabiinfo = (
          (name: 'DEFAULT'; supported: true),
          (name: 'SYSV'   ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
          (name: 'AIX'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'DARWIN'    ; supported:{$if defined(powerpc) or defined(powerpc64)}true{$else}false{$endif}),
+         (name: 'ELFV2'  ; supported:{$if defined(powerpc64)}true{$else}false{$endif}),
          (name: 'EABI'   ; supported:{$ifdef FPC_ARMEL}true{$else}false{$endif}),
          (name: 'ARMEB'  ; supported:{$ifdef FPC_ARMEB}true{$else}false{$endif}),
          (name: 'EABIHF' ; supported:{$ifdef FPC_ARMHF}true{$else}false{$endif}),
-         (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif})
+         (name: 'OLDWIN32GNU'; supported:{$ifdef I386}true{$else}false{$endif}),
+         (name: 'AARCH64IOS'; supported:{$ifdef aarch64}true{$else}false{$endif})
        );
 
     var
@@ -627,7 +662,7 @@ begin
   if assigned(targetinfos[t]) then
    writeln('Warning: Target is already registered!')
   else
-   Getmem(targetinfos[t],sizeof(tsysteminfo));
+   new(targetinfos[t]);
   targetinfos[t]^:=r;
 end;
 
@@ -638,7 +673,7 @@ var
 begin
   t:=r.id;
   if not assigned(resinfos[t]) then
-    Getmem(resinfos[t],sizeof(tresinfo));
+    new(resinfos[t]);
   resinfos[t]^:=r;
   resinfos[t]^.resourcefileclass:=rcf;
 end;
@@ -652,7 +687,7 @@ begin
   if assigned(arinfos[t]) then
     writeln('Warning: ar is already registered!')
   else
-    Getmem(arinfos[t],sizeof(tarinfo));
+    new(arinfos[t]);
   arinfos[t]^:=r;
 end;
 
@@ -750,6 +785,10 @@ begin
     {$define default_target_set}
     default_target(system_i386_android);
    {$endif}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_i386_solaris);
+   {$endif}
   {$endif cpui386}
   { default is linux }
   {$ifndef default_target_set}
@@ -768,6 +807,10 @@ begin
    {$endif}
    {$ifdef linux}
     default_target(system_x86_64_linux);
+    {$define default_target_set}
+   {$endif}
+   {$ifdef dragonfly}
+    default_target(system_x86_64_dragonfly);
     {$define default_target_set}
    {$endif}
    {$ifdef freebsd}
@@ -805,16 +848,8 @@ begin
   {$endif cpu68}
 {$endif m68k}
 
-{$ifdef alpha}
-  {$ifdef cpualpha}
-    default_target(source_info.system);
-  {$else cpualpha}
-    default_target(system_alpha_linux);
-  {$endif cpualpha}
-{$endif alpha}
-
 {$ifdef powerpc}
-  {$ifdef cpupowerpc}
+  {$ifdef cpupowerpc32}
     default_target(source_info.system);
     {$define default_target_set}
   {$else cpupowerpc}
@@ -864,7 +899,13 @@ begin
   {$ifdef cpusparc}
     default_target(source_info.system);
   {$else cpusparc}
+   {$ifdef solaris}
+    {$define default_target_set}
+    default_target(system_sparc_solaris);
+   {$endif}
+    {$ifndef default_target_set}
     default_target(system_sparc_linux);
+    {$endif ndef default_target_set}
   {$endif cpusparc}
 {$endif sparc}
 
@@ -918,6 +959,21 @@ begin
 {$ifdef i8086}
   default_target(system_i8086_msdos);
 {$endif i8086}
+
+{$ifdef aarch64}
+  {$ifdef cpuaarch64}
+    default_target(source_info.system);
+  {$else cpuaarch64}
+    {$ifdef darwin}
+      {$define default_target_set}
+      default_target(system_aarch64_darwin);
+    {$endif darwin}
+    {$ifndef default_target_set}
+      default_target(system_aarch64_linux);
+      {$define default_target_set}
+    {$endif}
+  {$endif cpuaarch64}
+{$endif aarch64}
 
 {$ifdef spc32}
   default_target(system_spc32_embedded);

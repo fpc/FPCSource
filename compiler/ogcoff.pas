@@ -243,11 +243,11 @@ interface
        TObjSectionArray = array[0..high(smallint)] of TObjSection;
 
        TDJCoffAssembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
        TPECoffassembler = class(tinternalassembler)
-         constructor create(smart:boolean);override;
+         constructor create(info: pasminfo; smart:boolean);override;
        end;
 
 
@@ -261,9 +261,9 @@ interface
        TLSDIR_SIZE      = $18;
 {$endif i386}
 {$ifdef arm}
-       COFF_MAGIC       = $1c0;
        COFF_OPT_MAGIC   = $10b;
        TLSDIR_SIZE      = $18;
+       function COFF_MAGIC: word;
 {$endif arm}
 {$ifdef x86_64}
        COFF_MAGIC       = $8664;
@@ -282,6 +282,7 @@ implementation
        cutils,verbose,globals,
        fmodule,aasmtai,aasmdata,
        ogmap,
+       owar,
        version
        ;
 
@@ -422,6 +423,11 @@ implementation
        IMAGE_REL_ARM_BLX11         = $0009;
        IMAGE_REL_ARM_SECTION       = $000E;     { Section table index }
        IMAGE_REL_ARM_SECREL        = $000F;     { Offset within section }
+       IMAGE_REL_ARM_MOV32A        = $0010;     { 32-bit VA applied to MOVW+MOVT pair, added to existing imm (ARM) }
+       IMAGE_REL_ARM_MOV32T        = $0011;     { 32-bit VA applied to MOVW+MOVT pair, added to existing imm (THUMB) }
+       IMAGE_REL_ARM_BRANCH20T     = $0012;     { Thumb: 20 most significant bits of 32 bit B cond instruction }
+       IMAGE_REL_ARM_BRANCH24T     = $0014;     { Thumb: 24 most significant bits of 32 bit B uncond instruction }
+       IMAGE_REL_ARM_BLX23T        = $0015;     { 23 most significant bits of 32 bit BL/BLX instruction. Transformed to BLX if target is Thumb }
 {$endif arm}
 
 {$ifdef i386}
@@ -501,7 +507,7 @@ implementation
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
-          '.debug_frame','.debug_info','.debug_line','.debug_abbrev',
+          '.debug_frame','.debug_info','.debug_line','.debug_abbrev','.debug_aranges','.debug_ranges',
           '.fpc',
           '',
           '.init',
@@ -540,7 +546,8 @@ implementation
           '.objc_catlist',
           '.obcj_nlcatlist',
           '.objc_protolist',
-          '.stack'
+          '.stack',
+          '.heap'
         );
 
 const go32v2stub : array[0..2047] of byte=(
@@ -829,6 +836,9 @@ const pemagic : array[0..3] of byte = (
         objreloc : TObjRelocation;
         address,
         relocval : aint;
+{$ifdef arm}
+        addend   : aint;
+{$endif arm}
         relocsec : TObjSection;
 {$ifdef cpu64bitaddr}
         s        : string;
@@ -904,11 +914,23 @@ const pemagic : array[0..3] of byte = (
                     inc(address,relocval);
                   end;
 {$ifdef arm}
-                RELOC_RELATIVE_24:
+                RELOC_RELATIVE_24,
+                RELOC_RELATIVE_CALL:
                   begin
-                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset) shr 2 - 2;
-                    address:=address or (relocval and $ffffff);
+                    addend:=sarlongint(((address and $ffffff) shl 8),6); // Sign-extend while shifting left twice
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 2;
+                    address:=(address and $ff000000) or (relocval and $ffffff);
                     relocval:=relocval shr 24;
+                    if (relocval<>$3f) and (relocval<>0) then
+                      internalerror(200606085);  { offset overflow }
+                  end;
+                RELOC_RELATIVE_24_THUMB,
+                RELOC_RELATIVE_CALL_THUMB:
+                  begin
+                    addend:=sarlongint(((address and $ffffff) shl 8),6); // Sign-extend while shifting left twice, the assembler never sets the H bit
+                    relocval:=longint(relocval - objsec.mempos - objreloc.dataoffset + addend) shr 1;
+                    address:=(address and $ff000000) or ((relocval shr 1) and $ffffff) or ((relocval and 1) shl 24);
+                    relocval:=relocval shr 25;
                     if (relocval<>$3f) and (relocval<>0) then
                       internalerror(200606085);  { offset overflow }
                   end;
@@ -1008,10 +1030,9 @@ const pemagic : array[0..3] of byte = (
           result:=aname
         else
           begin
-            { non-PECOFF targets lack rodata support.
-              TODO: WinCE likely supports it, but needs testing. }
+            { non-PECOFF targets lack rodata support }
             if (atype in [sec_rodata,sec_rodata_norel]) and
-               not (target_info.system in systems_windows) then
+               not (target_info.system in systems_all_windows) then
               atype:=sec_data;
             secname:=coffsecnames[atype];
             if create_smartlink_sections and
@@ -1037,8 +1058,7 @@ const pemagic : array[0..3] of byte = (
       begin
         if (aType in [sec_rodata,sec_rodata_norel]) then
           begin
-            { TODO: WinCE needs testing }
-            if (target_info.system in systems_windows) then
+            if (target_info.system in systems_all_windows) then
               aType:=sec_rodata_norel
             else
               aType:=sec_data;
@@ -1101,6 +1121,13 @@ const pemagic : array[0..3] of byte = (
                       //inc(data,symaddr-len-CurrObjSec.Size);
                       data:=data+symaddr-len-CurrObjSec.Size;
                     end;
+{$ifdef ARM}
+                  RELOC_RELATIVE_24,
+                  RELOC_RELATIVE_CALL:
+                    begin
+                      data:=(data and $ff000000) or (((((data and $ffffff) shl 2)+(symaddr-CurrObjSec.Size)) shr 2) and $FFFFFF); // TODO: Check overflow
+                    end;
+{$endif ARM}
                   RELOC_RVA,
                   RELOC_SECREL32 :
                     begin
@@ -1278,6 +1305,12 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_ARM_ADDR32NB;
               RELOC_SECREL32 :
                 rel.reloctype:=IMAGE_REL_ARM_SECREL;
+              RELOC_RELATIVE_24 :
+                rel.reloctype:=IMAGE_REL_ARM_BRANCH24;
+              RELOC_RELATIVE_CALL :
+                rel.reloctype:=IMAGE_REL_ARM_BLX24;
+              RELOC_RELATIVE_24_THUMB:
+                rel.reloctype:=IMAGE_REL_ARM_BLX23T;
 {$endif arm}
 {$ifdef i386}
               RELOC_RELATIVE :
@@ -1594,8 +1627,12 @@ const pemagic : array[0..3] of byte = (
                rel_type:=RELOC_RVA;
              IMAGE_REL_ARM_BRANCH24:
                rel_type:=RELOC_RELATIVE_24;
+             IMAGE_REL_ARM_BLX24:
+               rel_type:=RELOC_RELATIVE_CALL;
              IMAGE_REL_ARM_SECREL:
                rel_type:=RELOC_SECREL32;
+             IMAGE_REL_ARM_BLX23T:
+               rel_type:=RELOC_RELATIVE_24_THUMB;
 {$endif arm}
 {$ifdef i386}
              IMAGE_REL_I386_PCRLONG :
@@ -1664,6 +1701,13 @@ const pemagic : array[0..3] of byte = (
         strname   : string;
         auxrec    : array[0..17] of byte;
         objsec    : TObjSection;
+
+        { keeps string manipulations out of main routine }
+        procedure UnsupportedSymbolType;
+          begin
+            Comment(V_Fatal,'Unsupported COFF symbol type '+tostr(sym.typ)+' at index '+tostr(symidx)+' while reading '+InputFileName);
+          end;
+
       begin
         with TCoffObjData(objdata) do
          begin
@@ -1737,8 +1781,7 @@ const pemagic : array[0..3] of byte = (
                   end;
                 COFF_SYM_SECTION :
                   begin
-                    if sym.section=0 then
-                      InputError('Failed reading coff file, illegal section');
+                    { GetSection checks that index is in range }
                     objsec:=GetSection(sym.section);
                     if assigned(objsec) then
                       begin
@@ -1756,7 +1799,7 @@ const pemagic : array[0..3] of byte = (
                 COFF_SYM_FILE :
                   ;
                 else
-                  internalerror(200602232);
+                  UnsupportedSymbolType;
               end;
               FSymTbl^[symidx]:=objsym;
               { read aux records }
@@ -2152,9 +2195,7 @@ const pemagic : array[0..3] of byte = (
         textExeSec,
         dataExeSec,
         bssExeSec,
-        idataExeSec,
-        tlsExeSec : TExeSection;
-        tlsdir : TlsDirectory;
+        idataExeSec : TExeSection;
         hassymbols,
         writeDbgStrings : boolean;
 
@@ -2219,7 +2260,7 @@ const pemagic : array[0..3] of byte = (
           tlsexesymbol: TExeSymbol;
           tlssymbol: TObjSymbol;
           callbackexesymbol: TExeSymbol;
-          callbacksymbol: TObjSymbol;
+          //callbacksymbol: TObjSymbol;
         begin
           { according to GNU ld,
             the callback routines should be placed into .CRT$XL*
@@ -2245,7 +2286,7 @@ const pemagic : array[0..3] of byte = (
                                         '__FPC_tls_callbacks'));
                   if assigned (callbackexesymbol) then
                     begin
-                      callbacksymbol:=callbackexesymbol.ObjSymbol;
+                      //callbacksymbol:=callbackexesymbol.ObjSymbol;
 
                     end;
                 end;
@@ -2259,7 +2300,6 @@ const pemagic : array[0..3] of byte = (
         textExeSec:=FindExeSection('.text');
         dataExeSec:=FindExeSection('.data');
         bssExeSec:=FindExeSection('.bss');
-        tlsExeSec:=FindExeSection('.tls');
         if not assigned(TextExeSec) or
            not assigned(DataExeSec) then
           internalerror(200602231);
@@ -2474,7 +2514,6 @@ const pemagic : array[0..3] of byte = (
       var
         exesec:TExeSection;
         objsec,textsec:TObjSection;
-        objsym:TObjSymbol;
         objreloc:TObjRelocation;
         i,j:longint;
       begin
@@ -2813,10 +2852,11 @@ const pemagic : array[0..3] of byte = (
                                  TDJCoffAssembler
 ****************************************************************************}
 
-    constructor TDJCoffAssembler.Create(smart:boolean);
+    constructor TDJCoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TDJCoffObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
 
@@ -2824,10 +2864,11 @@ const pemagic : array[0..3] of byte = (
                                TPECoffAssembler
 ****************************************************************************}
 
-    constructor TPECoffAssembler.Create(smart:boolean);
+    constructor TPECoffAssembler.Create(info: pasminfo; smart:boolean);
       begin
-        inherited Create(smart);
+        inherited;
         CObjOutput:=TPECoffObjOutput;
+        CInternalAr:=tarobjectwriter;
       end;
 
 
@@ -2955,6 +2996,15 @@ const pemagic : array[0..3] of byte = (
         DLLReader.Free;
       end;
 
+{$ifdef arm}
+    function COFF_MAGIC: word;
+      begin
+        if GenerateThumb2Code and (current_settings.cputype>=cpu_armv7) then
+          COFF_MAGIC:=$1c4 // IMAGE_FILE_MACHINE_ARMNT
+        else
+          COFF_MAGIC:=$1c0; // IMAGE_FILE_MACHINE_ARM
+      end;
+{$endif arm}
 
 {*****************************************************************************
                                   Initialize
@@ -3038,7 +3088,7 @@ const pemagic : array[0..3] of byte = (
             asmbin : '';
             asmcmd : '';
             supported_targets : [system_arm_wince];
-            flags : [af_outputbinary];
+            flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
             dollarsign: '$';

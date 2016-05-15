@@ -331,18 +331,13 @@ interface
     { returns true of def is a methodpointer }
     function is_methodpointer(def : tdef) : boolean;
 
-{$ifdef i8086}
-    {# Returns true if p is a far pointer def }
-    function is_farpointer(p : tdef) : boolean;
-
-    {# Returns true if p is a huge pointer def }
-    function is_hugepointer(p : tdef) : boolean;
-{$endif i8086}
+    { returns true if def is a C "block" }
+    function is_block(def: tdef): boolean;
 
 implementation
 
     uses
-       verbose,cutils,symcpu;
+       verbose,cutils;
 
     { returns true, if def uses FPU }
     function is_fpu(def : tdef) : boolean;
@@ -685,10 +680,10 @@ implementation
     { true, if p points to an open array def }
     function is_open_array(p : tdef) : boolean;
       begin
-         { check for s32inttype is needed, because for u32bit the high
+         { check for ptrsinttype is needed, because for unsigned the high
            range is also -1 ! (PFV) }
          result:=(p.typ=arraydef) and
-                 (tarraydef(p).rangedef=s32inttype) and
+                 (tarraydef(p).rangedef=ptrsinttype) and
                  (tarraydef(p).lowrange=0) and
                  (tarraydef(p).highrange=-1) and
                  ((tarraydef(p).arrayoptions * [ado_IsVariant,ado_IsArrayOfConst,ado_IsConstructor,ado_IsDynamicArray])=[]);
@@ -1213,21 +1208,10 @@ implementation
           classrefdef,
           pointerdef:
             begin
-{$ifdef x86}
-              if (def.typ=pointerdef) and
-                 (tcpupointerdef(def).x86pointertyp in [x86pt_far,x86pt_huge]) then
-                begin
-                  {$if defined(i8086)}
-                    result := OS_32;
-                  {$elseif defined(i386)}
-                    internalerror(2013052201);  { there's no OS_48 }
-                  {$elseif defined(x86_64)}
-                    internalerror(2013052202);  { there's no OS_80 }
-                  {$endif}
-                end
-              else
-{$endif x86}
-                result := int_cgsize(def.size);
+              result:=int_cgsize(def.size);
+              { can happen for far/huge pointers on non-i8086 }
+              if result=OS_NO then
+                internalerror(2013052201);
             end;
           formaldef:
             result := int_cgsize(voidpointertype.size);
@@ -1433,18 +1417,10 @@ implementation
         result:=(def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions);
       end;
 
-{$ifdef i8086}
-    { true if p is a far pointer def }
-    function is_farpointer(p : tdef) : boolean;
-      begin
-        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
-      end;
 
-    { true if p is a huge pointer def }
-    function is_hugepointer(p : tdef) : boolean;
+    function is_block(def: tdef): boolean;
       begin
-        result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
+        result:=(def.typ=procvardef) and (po_is_block in tprocvardef(def).procoptions)
       end;
-{$endif i8086}
 
 end.

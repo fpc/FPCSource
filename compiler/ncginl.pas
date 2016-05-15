@@ -68,7 +68,7 @@ implementation
     uses
       globtype,systems,constexp,
       cutils,verbose,globals,
-      symconst,symdef,defutil,symsym,
+      symconst,symtype,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmdata,aasmcpu,parabase,
       cgbase,pass_1,pass_2,
       cpuinfo,cpubase,paramgr,procinfo,
@@ -208,74 +208,9 @@ implementation
 
     { second_handle_ the sizeof and typeof routines }
     procedure tcginlinenode.second_SizeOfTypeOf;
-      var
-         href,
-         hrefvmt   : treference;
-         hregister : tregister;
       begin
-        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
-        { for both cases load vmt }
-        if left.nodetype=typen then
-          begin
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname,AT_DATA),0,voidpointertype.size);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,href,hregister);
-          end
-        else
-          begin
-            secondpass(left);
-            hregister:=hlcg.getaddressregister(current_asmdata.CurrAsmList,voidpointertype);
-
-            { handle self inside a method of a class }
-            case left.location.loc of
-              LOC_CREGISTER,
-              LOC_REGISTER :
-                begin
-                  if (left.resultdef.typ=classrefdef) or
-                     (po_staticmethod in current_procinfo.procdef.procoptions) then
-                    hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,left.location.register,hregister)
-                  else
-                   begin
-                     { load VMT pointer }
-                     hlcg.reference_reset_base(hrefvmt,voidpointertype,left.location.register,tobjectdef(left.resultdef).vmt_offset,voidpointertype.size);
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hrefvmt,hregister);
-                   end
-                end;
-              LOC_REFERENCE,
-              LOC_CREFERENCE :
-                begin
-                  if is_class(left.resultdef) then
-                   begin
-                     { deref class }
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,left.location.reference,hregister);
-                     hlcg.g_maybe_testself(current_asmdata.CurrAsmList,left.resultdef,hregister);
-                     { load VMT pointer }
-                     hlcg.reference_reset_base(hrefvmt,voidpointertype,hregister,tobjectdef(left.resultdef).vmt_offset,voidpointertype.size);
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,hrefvmt,hregister);
-                   end
-                  else
-                   begin
-                     { load VMT pointer, but not for classrefdefs }
-                     if (left.resultdef.typ=objectdef) then
-                       begin
-                         inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
-                         left.location.reference.alignment:=newalignment(left.location.reference.alignment,tobjectdef(left.resultdef).vmt_offset);
-                       end;
-                     hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,voidpointertype,voidpointertype,left.location.reference,hregister);
-                   end;
-                end;
-              else
-                internalerror(200301301);
-            end;
-          end;
-        { in sizeof load size }
-        if inlinenumber=in_sizeof_x then
-           begin
-             hlcg.reference_reset_base(href,voidpointertype,hregister,0,voidpointertype.size);
-             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
-           end;
-        location.register:=hregister;
+        { handled in pass 1 }
+        internalerror(2015122701);
      end;
 
 
@@ -287,6 +222,7 @@ implementation
       var
         lengthlab : tasmlabel;
         hregister : tregister;
+        lendef : tdef;
         href : treference;
       begin
         secondpass(left);
@@ -301,24 +237,28 @@ implementation
            hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
            current_asmdata.getjumplabel(lengthlab);
            hlcg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,left.resultdef,OC_EQ,0,left.location.register,lengthlab);
-           if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
-             begin
-               hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizeof(dword),sizeof(dword));
-               hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
-               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_INT,href,hregister);
-             end
-           else
-             begin
-               hlcg.reference_reset_base(href,left.resultdef,left.location.register,-sizeof(pint),sizeof(pint));
-               hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
-               cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
-             end;
+           { the length of a widestring is a 32 bit unsigned int. Since every
+             character occupies 2 bytes, on a 32 bit platform you can express
+             the maximum length using 31 bits. On a 64 bit platform, it may be
+             32 bits. This means that regardless of the platform, a location
+             with size OS_SINT/ossinttype can hold the length without
+             overflowing (this code returns an ossinttype value) }
            if is_widestring(left.resultdef) then
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,1,hregister);
+             lendef:=u32inttype
+           else
+             lendef:=ossinttype;
+           hlcg.reference_reset_base(href,left.resultdef,left.location.register,-lendef.size,lendef.alignment);
+           { if the string pointer is nil, the length is 0 -> reuse the register
+             that originally held the string pointer for the length, so that we
+             can keep the original nil/0 as length in that case }
+           hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,def_cgsize(resultdef));
+           hlcg.a_load_ref_reg(current_asmdata.CurrAsmList,lendef,resultdef,href,hregister);
+           if is_widestring(left.resultdef) then
+             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,resultdef,1,hregister);
 
            { Dynamic arrays do not have their length attached but their maximum index }
            if is_dynamic_array(left.resultdef) then
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,OS_INT,1,hregister);
+             hlcg.a_op_const_reg(current_asmdata.CurrAsmList,OP_ADD,resultdef,1,hregister);
 
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
@@ -505,7 +445,7 @@ implementation
           else
             begin
               hlcg.location_force_reg(current_asmdata.CurrAsmList,elepara.location,elepara.resultdef,u32inttype,true);
-              register_maybe_adjust_setbase(current_asmdata.CurrAsmList,elepara.location,tsetdef(setpara.resultdef).setbase);
+              register_maybe_adjust_setbase(current_asmdata.CurrAsmList,u32inttype,elepara.location,tsetdef(setpara.resultdef).setbase);
               hlcg.a_bit_set_reg_loc(current_asmdata.CurrAsmList,(inlinenumber=in_include_x_y),
                 u32inttype,setpara.resultdef,elepara.location.register,setpara.location);
             end;
@@ -749,16 +689,12 @@ implementation
       secondpass(left);
 
       opsize:=tcgsize2unsigned[left.location.size];
-      if opsize < OS_32 then
-        opsize:=OS_32;
-
-      if (left.location.loc <> LOC_REGISTER) or
-         (left.location.size <> opsize) then
+      if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
         hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,cgsize_orddef(opsize),true);
 
-      location_reset(location,LOC_REGISTER,opsize);
-      location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
-      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,left.location.register,location.register);
+      location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+      location.register:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
+      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,location.size,left.location.register,location.register);
     end;
 
 

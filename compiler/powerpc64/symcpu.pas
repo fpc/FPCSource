@@ -59,6 +59,10 @@ type
   tcpupointerdefclass = class of tcpupointerdef;
 
   tcpurecorddef = class(trecorddef)
+    { returns whether the record's elements (including arrays) all have
+      the same floating point or vector type; returns that type in the "def"
+      parameter if so }
+    function has_single_type_elfv2(out def: tdef): boolean;
   end;
   tcpurecorddefclass = class of tcpurecorddef;
 
@@ -75,6 +79,8 @@ type
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
   tcpuarraydef = class(tarraydef)
+    { see tcpurecorddef.has_single_type_elfv2 }
+    function has_single_type_elfv2(out def: tdef): boolean;
   end;
   tcpuarraydefclass = class of tcpuarraydef;
 
@@ -114,6 +120,10 @@ type
   tcpuunitsym = class(tunitsym)
   end;
   tcpuunitsymclass = class of tcpuunitsym;
+
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
 
   tcpunamespacesym = class(tnamespacesym)
   end;
@@ -170,6 +180,78 @@ const
 
 implementation
 
+  uses
+    symconst, defutil, defcmp;
+
+{ tcpurecorddef }
+
+  function tcpurecorddef.has_single_type_elfv2(out def: tdef): boolean;
+    var
+      i: longint;
+      checkdef, tmpdef: tdef;
+    begin
+      def:=nil;
+      tmpdef:=nil;
+      result:=false;
+      for i:=0 to symtable.SymList.Count-1 do
+        begin
+          if (tsym(symtable.symlist[i]).typ=fieldvarsym) and
+             not(sp_static in tsym(symtable.symlist[i]).symoptions) then
+            begin
+              checkdef:=tfieldvarsym(symtable.symlist[i]).vardef;
+              repeat
+                case checkdef.typ of
+                  floatdef:
+                    ;
+                  arraydef:
+                    if not is_special_array(checkdef) then
+                      checkdef:=tarraydef(checkdef).elementdef
+                    else
+                      exit;
+                  recorddef:
+                    if not tcpurecorddef(checkdef).has_single_type_elfv2(checkdef) then
+                      exit;
+                  else
+                    exit;
+                  end;
+              until checkdef.typ=floatdef;
+              if not assigned(def) then
+                def:=checkdef
+              else if not equal_defs(def,checkdef) then
+                exit;
+            end;
+        end;
+      if assigned(def) then
+        result:=true;
+    end;
+
+
+  { tcpuarraydef }
+
+  function tcpuarraydef.has_single_type_elfv2(out def: tdef): boolean;
+    var
+      checkdef: tdef;
+    begin
+      result:=false;
+      checkdef:=self;
+      while (checkdef.typ=arraydef) and
+            not is_special_array(checkdef) do
+        checkdef:=tarraydef(checkdef).elementdef;
+      case checkdef.typ of
+        recorddef:
+          result:=tcpurecorddef(checkdef).has_single_type_elfv2(def);
+        floatdef:
+          begin
+            def:=checkdef;
+            result:=true;
+            exit;
+          end;
+        else
+          exit;
+        end;
+    end;
+
+
 begin
   { used tdef classes }
   cfiledef:=tcpufiledef;
@@ -195,6 +277,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

@@ -194,12 +194,8 @@ begin
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
-var
-  Is_Mouse_Vis: boolean;
 begin
-  Is_Mouse_Vis := MouseIsVisible;     {MouseIsVisible is from Mouse unit}
-  if Is_Mouse_Vis then
-   HideMouse;
+  HideMouse;
   if not force then
    begin
      asm
@@ -221,8 +217,7 @@ begin
      dosmemput(videoseg,0,videobuf^,VideoBufSize);
      move(videobuf^,oldvideobuf^,VideoBufSize);
    end;
-  if Is_Mouse_Vis then
-   ShowMouse;
+  ShowMouse;
 end;
 
 Procedure DoSetVideoMode(Params: Longint);
@@ -283,14 +278,14 @@ begin
       Dec(I);
   If SysSetVideoMode then
     begin
-    If (I<SysVideoModeCount-1) then
-      DoSetVideoMode(I)
-    else
-      SetVideo8x8;
-    ScreenWidth:=SysVMD[I].Col;
-    ScreenHeight:=SysVMD[I].Row;
-    ScreenColor:=SysVMD[I].Color;
-    DoCustomMouse(false);
+      If (I<SysVideoModeCount-1) then
+        DoSetVideoMode(I)
+      else
+        SetVideo8x8;
+      ScreenWidth:=SysVMD[I].Col;
+      ScreenHeight:=SysVMD[I].Row;
+      ScreenColor:=SysVMD[I].Color;
+      DoCustomMouse(false);
     end;
 end;
 

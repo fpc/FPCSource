@@ -91,12 +91,7 @@ unit cgcpu;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
 
-        procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
-        procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);override;
-        procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
-
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: tcgint);override;
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         procedure get_32bit_ops(op: TOpCG; out op1,op2: TAsmOp);
 
@@ -1665,55 +1660,124 @@ unit cgcpu;
         hl_skip: TAsmLabel;
         invf: TResFlags;
         tmpsize: TCgSize;
+        tmpopsize: topsize;
       begin
-        invf := f;
-        inverse_flags(invf);
-
-        case size of
-          OS_8,OS_S8:
-            begin
-              tmpsize:=OS_8;
-              list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+        { optimized case for the carry flag, using ADC/RCL }
+        if f in [F_C,F_B,F_FB] then
+          begin
+            case size of
+              OS_8,OS_S8:
+                begin
+                  tmpsize:=OS_8;
+                  tmpopsize:=S_B;
+                end;
+              OS_16,OS_S16,OS_32,OS_S32:
+                begin
+                  tmpsize:=OS_16;
+                  tmpopsize:=S_W;
+                end;
+              else
+                internalerror(2013123101);
             end;
-          OS_16,OS_S16,OS_32,OS_S32:
-            begin
-              tmpsize:=OS_16;
-              list.concat(Taicpu.op_const_reg(A_MOV, S_W, 0, reg));
+            list.concat(Taicpu.op_const_reg(A_MOV, tmpopsize, 0, reg));
+            hl_skip:=nil;
+            if f=F_FB then
+              begin
+                current_asmdata.getjumplabel(hl_skip);
+                ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
+                ai.SetCondition(C_P);
+                ai.is_jmp:=true;
+                list.concat(ai);
+              end;
+            { RCL is faster than ADC on 8086/8088. On the 80286, it is
+              equally fast and it also has the same size. In these cases,
+              we still prefer it over ADC, because it's a better choice in
+              case the register is spilled. }
+            if (cs_opt_size in current_settings.optimizerswitches) or
+               (current_settings.optimizecputype<=cpu_286) then
+              list.concat(Taicpu.op_const_reg(A_RCL, tmpopsize, 1, reg))
+            else
+              { ADC is much faster on the 386. }
+              list.concat(Taicpu.op_reg_reg(A_ADC, tmpopsize, reg, reg));
+            if f=F_FB then
+              a_label(list,hl_skip);
+            a_load_reg_reg(list,tmpsize,size,reg,reg);
+          end
+        { optimized case for the inverted carry flag, using SBB }
+        else if f in [F_NC,F_AE,F_FAE] then
+          begin
+            case size of
+              OS_8,OS_S8:
+                begin
+                  tmpsize:=OS_8;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_B, 1, reg));
+                  list.concat(Taicpu.op_const_reg(A_SBB, S_B, 0, reg));
+                end;
+              OS_16,OS_S16,OS_32,OS_S32:
+                begin
+                  tmpsize:=OS_16;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_W, 1, reg));
+                  list.concat(Taicpu.op_const_reg(A_SBB, S_W, 0, reg));
+                end;
+              else
+                internalerror(2013123101);
             end;
-          else
-            internalerror(2013123101);
-        end;
+            a_load_reg_reg(list,tmpsize,size,reg,reg);
+          end
+        else
+          begin
+            invf := f;
+            inverse_flags(invf);
 
-        current_asmdata.getjumplabel(hl_skip);
-        { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
-          in the case of NaNs:
-           not(F_FA )<>F_FBE
-           not(F_FAE)<>F_FB
-           not(F_FB )<>F_FAE
-           not(F_FBE)<>F_FA
-        }
-        case f of
-          F_FA,F_FAE:
-            invf:=FPUFlags2Flags[invf];
-          F_FB,F_FBE:
-            begin
-              ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
-              ai.SetCondition(C_P);
-              ai.is_jmp:=true;
-              list.concat(ai);
-              invf:=FPUFlags2Flags[invf];
+            case size of
+              OS_8,OS_S8:
+                begin
+                  tmpsize:=OS_8;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_B, 0, reg));
+                end;
+              OS_16,OS_S16,OS_32,OS_S32:
+                begin
+                  tmpsize:=OS_16;
+                  list.concat(Taicpu.op_const_reg(A_MOV, S_W, 0, reg));
+                end;
+              else
+                internalerror(2013123101);
             end;
-        end;
-        a_jmp_flags(list,invf,hl_skip);
 
-        { 16-bit INC is shorter than 8-bit }
-        hreg16:=makeregsize(list,reg,OS_16);
-        list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
-        makeregsize(list,hreg16,tmpsize);
+            current_asmdata.getjumplabel(hl_skip);
+            { we can't just forward invf to a_jmp_flags for FA,FAE,FB and FBE, because
+              in the case of NaNs:
+               not(F_FA )<>F_FBE
+               not(F_FAE)<>F_FB
+               not(F_FB )<>F_FAE
+               not(F_FBE)<>F_FA
+            }
+            case f of
+              F_FA:
+                invf:=FPUFlags2Flags[invf];
+              F_FAE,F_FB:
+                { F_FAE and F_FB are handled above, using ADC/RCL/SBB }
+                internalerror(2015102101);
+              F_FBE:
+                begin
+                  ai:=Taicpu.op_sym(A_Jcc,S_NO,hl_skip);
+                  ai.SetCondition(C_P);
+                  ai.is_jmp:=true;
+                  list.concat(ai);
+                  invf:=FPUFlags2Flags[invf];
+                end;
+            end;
+            a_jmp_flags(list,invf,hl_skip);
 
-        a_label(list,hl_skip);
+            { 16-bit INC is shorter than 8-bit }
+            hreg16:=makeregsize(list,reg,OS_16);
+            list.concat(Taicpu.op_reg(A_INC, S_W, hreg16));
+            makeregsize(list,hreg16,tmpsize);
 
-        a_load_reg_reg(list,tmpsize,size,reg,reg);
+            a_label(list,hl_skip);
+
+            a_load_reg_reg(list,tmpsize,size,reg,reg);
+          end;
       end;
 
 
@@ -1754,6 +1818,24 @@ unit cgcpu;
       var
         stacksize : longint;
         ret_instr: TAsmOp;
+        sp_moved : boolean;
+
+      procedure maybe_move_sp;
+        var
+          ref : treference;
+        begin
+          if sp_moved then 
+            exit;
+          if not(pi_has_open_array_parameter in current_procinfo.flags) then
+            exit;
+          { Restore SP position before SP change }
+          if current_settings.x86memorymodel=mm_huge then
+            stacksize:=stacksize + 2;
+          reference_reset_base(ref,NR_BP,-stacksize,2);
+          list.concat(Taicpu.op_ref_reg(A_LEA,S_W,ref,NR_SP));
+          sp_moved:=true;
+        end;
+
       begin
         if is_proc_far(current_procinfo.procdef) then
           ret_instr:=A_RETF
@@ -1764,31 +1846,46 @@ unit cgcpu;
            (rg[R_MMXREGISTER].uses_registers) then
           list.concat(Taicpu.op_none(A_EMMS,S_NO));
 
+        sp_moved:=false;
         { remove stackframe }
         if not nostackframe then
           begin
+            stacksize:=current_procinfo.calc_stackframe_size;
+            if (target_info.stackalign>4) and
+               ((stacksize <> 0) or
+                (pi_do_call in current_procinfo.flags) or
+                { can't detect if a call in this case -> use nostackframe }
+                { if you (think you) know what you are doing              }
+                (po_assembler in current_procinfo.procdef.procoptions)) then
+              stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
+            if (po_exports in current_procinfo.procdef.procoptions) and
+               (target_info.system=system_i8086_win16) then
+              begin
+                maybe_move_sp;
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DI));
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_SI));
+              end;
+            if ((current_settings.x86memorymodel=mm_huge) and
+                not (po_interrupt in current_procinfo.procdef.procoptions)) or
+               ((po_exports in current_procinfo.procdef.procoptions) and
+                (target_info.system=system_i8086_win16)) then
+              begin
+                maybe_move_sp;
+                list.concat(Taicpu.Op_reg(A_POP,S_W,NR_DS));
+              end;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
-                stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.stackalign>4) and
-                   ((stacksize <> 0) or
-                    (pi_do_call in current_procinfo.flags) or
-                    { can't detect if a call in this case -> use nostackframe }
-                    { if you (think you) know what you are doing              }
-                    (po_assembler in current_procinfo.procdef.procoptions)) then
-                  stacksize := align(stacksize+sizeof(aint),target_info.stackalign) - sizeof(aint);
                 if (stacksize<>0) then
                   cg.a_op_const_reg(list,OP_ADD,OS_ADDR,stacksize,current_procinfo.framepointer);
               end
             else
               begin
-                if current_settings.cputype < cpu_186 then
-                  begin
-                    list.concat(Taicpu.op_reg_reg(A_MOV, S_W, NR_BP, NR_SP));
-                    list.concat(Taicpu.op_reg(A_POP, S_W, NR_BP));
-                  end
-                else
-                  list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+                generate_leave(list);
+                if ((ts_x86_far_procs_push_odd_bp in current_settings.targetswitches) or
+                    ((po_exports in current_procinfo.procdef.procoptions) and
+                     (target_info.system=system_i8086_win16))) and
+                    is_proc_far(current_procinfo.procdef) then
+                  cg.a_op_const_reg(list,OP_SUB,OS_ADDR,1,current_procinfo.framepointer);
               end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
@@ -1847,6 +1944,8 @@ unit cgcpu;
         a_load_loc_reg(list,OS_INT,lenloc,NR_DI);
         list.concat(Taicpu.op_reg(A_INC,S_W,NR_DI));
         { Now DI contains (high+1). }
+	
+        include(current_procinfo.flags, pi_has_open_array_parameter);
 
         { special case handling for elesize=2:
           set CX = (high+1) instead of CX = (high+1)*elesize.
@@ -1960,37 +2059,7 @@ unit cgcpu;
 
     procedure tcg8086.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
       begin
-        { Nothing to release }
-      end;
-
-
-    procedure tcg8086.g_exception_reason_save(list : TAsmList; const href : treference);
-      begin
-        if not paramanager.use_fixed_stack then
-          list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
-        else
-         inherited g_exception_reason_save(list,href);
-      end;
-
-
-    procedure tcg8086.g_exception_reason_save_const(list : TAsmList;const href : treference; a: tcgint);
-      begin
-        if not paramanager.use_fixed_stack then
-          push_const(list,OS_INT,a)
-        else
-          inherited g_exception_reason_save_const(list,href,a);
-      end;
-
-
-    procedure tcg8086.g_exception_reason_load(list : TAsmList; const href : treference);
-      begin
-        if not paramanager.use_fixed_stack then
-          begin
-            cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-            list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
-          end
-        else
-          inherited g_exception_reason_load(list,href);
+        { Nothing to do }
       end;
 
 
@@ -2147,208 +2216,6 @@ unit cgcpu;
             end;
             paraloc:=next;
           end;
-      end;
-
-
-    procedure tcg8086.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      {
-      possible calling conventions:
-                    default stdcall cdecl pascal register
-      default(0):      OK     OK    OK     OK       OK
-      virtual(1):      OK     OK    OK     OK       OK(2)
-
-      (0):
-          set self parameter to correct value
-          jmp mangledname
-
-      (1): The wrapper code use %eax to reach the virtual method address
-           set self to correct value
-           move self,%bx
-           mov  0(%bx),%bx ; load vmt
-           jmp  vmtoffs(%bx) ; method offs
-
-      (2): Virtual use values pushed on stack to reach the method address
-           so the following code be generated:
-           set self to correct value
-           push %bx ; allocate space for function address
-           push %bx
-           push %di
-           mov  self,%bx
-           mov  0(%bx),%bx ; load vmt
-           mov  vmtoffs(%bx),bx ; method offs
-           mov  %sp,%di
-           mov  %bx,4(%di)
-           pop  %di
-           pop  %bx
-           ret  0; jmp the address
-
-      }
-
-      procedure getselftobx(offs: longint);
-        var
-          href : treference;
-          selfoffsetfromsp : longint;
-        begin
-          { "mov offset(%sp),%bx" }
-          if (procdef.proccalloption<>pocall_register) then
-            begin
-              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
-              { framepointer is pushed for nested procs }
-              if procdef.parast.symtablelevel>normal_function_level then
-                selfoffsetfromsp:=2*sizeof(aint)
-              else
-                selfoffsetfromsp:=sizeof(aint);
-              if current_settings.x86memorymodel in x86_far_code_models then
-                inc(selfoffsetfromsp,2);
-              list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
-              reference_reset_base(href,NR_DI,selfoffsetfromsp+offs+2,2);
-              if not segment_regs_equal(NR_SS,NR_DS) then
-                href.segment:=NR_SS;
-              if current_settings.x86memorymodel in x86_near_data_models then
-                cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX)
-              else
-                list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
-              list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
-            end
-          else
-            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_BX,NR_BX);
-        end;
-
-
-      procedure loadvmttobx;
-        var
-          href : treference;
-        begin
-          { mov  0(%bx),%bx ; load vmt}
-          if current_settings.x86memorymodel in x86_near_data_models then
-            begin
-              reference_reset_base(href,NR_BX,0,2);
-              cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
-            end
-          else
-            begin
-              reference_reset_base(href,NR_BX,0,2);
-              href.segment:=NR_ES;
-              list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
-            end;
-        end;
-
-
-      procedure loadmethodoffstobx;
-        var
-          href : treference;
-          srcseg: TRegister;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          if current_settings.x86memorymodel in x86_far_data_models then
-            srcseg:=NR_ES
-          else
-            srcseg:=NR_NO;
-          if current_settings.x86memorymodel in x86_far_code_models then
-            begin
-              { mov vmtseg(%bx),%si ; method seg }
-              reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,2);
-              href.segment:=srcseg;
-              cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_SI);
-            end;
-          { mov vmtoffs(%bx),%bx ; method offs }
-          reference_reset_base(href,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),2);
-          href.segment:=srcseg;
-          cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
-        end;
-
-
-      var
-        lab : tasmsymbol;
-        make_global : boolean;
-        href : treference;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or
-           create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            { case 1 & case 2 }
-            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX)); { allocate space for address}
-            if current_settings.x86memorymodel in x86_far_code_models then
-              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
-            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
-            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
-            if current_settings.x86memorymodel in x86_far_code_models then
-              list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SI));
-            if current_settings.x86memorymodel in x86_far_code_models then
-              getselftobx(10)
-            else
-              getselftobx(6);
-            loadvmttobx;
-            loadmethodoffstobx;
-            { set target address
-              "mov %bx,4(%sp)" }
-            if current_settings.x86memorymodel in x86_far_code_models then
-              reference_reset_base(href,NR_DI,6,2)
-            else
-              reference_reset_base(href,NR_DI,4,2);
-            if not segment_regs_equal(NR_DS,NR_SS) then
-              href.segment:=NR_SS;
-            list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
-            list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
-            if current_settings.x86memorymodel in x86_far_code_models then
-              begin
-                inc(href.offset,2);
-                list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_SI,href));
-              end;
-
-            { load ax? }
-            if procdef.proccalloption=pocall_register then
-              list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BX,NR_AX));
-
-            { restore register
-              pop  %di,bx }
-            if current_settings.x86memorymodel in x86_far_code_models then
-              list.concat(taicpu.op_reg(A_POP,S_W,NR_SI));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
-            list.concat(taicpu.op_reg(A_POP,S_W,NR_BX));
-
-            { ret  ; jump to the address }
-            if current_settings.x86memorymodel in x86_far_code_models then
-              list.concat(taicpu.op_none(A_RETF,S_W))
-            else
-              list.concat(taicpu.op_none(A_RET,S_W));
-          end
-        { case 0 }
-        else
-          begin
-            lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-
-            if current_settings.x86memorymodel in x86_far_code_models then
-              list.concat(taicpu.op_sym(A_JMP,S_FAR,lab))
-            else
-              list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
-          end;
-
-        List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
 

@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Nikolay Nikolov, Glenn Fiedler, Christian Nentwich';
     P.License := 'LGPL with modification, ';
@@ -235,7 +235,7 @@ begin
     P.Targets.AddExampleProgram('tunnel3d.pp');
     P.Targets.AddExampleProgram('ptcgl.pp', AllUnixOSes + [win32, win64]);
     P.Targets.AddExampleProgram('ptcgl2.pp', AllUnixOSes + [win32, win64]);
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

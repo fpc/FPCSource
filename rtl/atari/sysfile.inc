@@ -324,7 +324,10 @@ begin
       move.w  d0,i        { get handle as SIGNED VALUE...     }
     end;
   if errno <> 0 then
+    begin
      Error2InOut;
+     FileRec(f).mode:=fmclosed;
+    end;
   filerec(f).handle:=i;
   if ((flags and $100) <> 0) and
        (FileRec (F).Handle <> UnusedHandle) then

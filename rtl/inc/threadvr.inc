@@ -23,7 +23,7 @@
 type
   pltvInitEntry = ^ltvInitEntry;
   ltvInitEntry = packed record
-     varaddr : pdword;
+     varaddr : {$ifdef cpu16}pword{$else}pdword{$endif};
      size    : longint;
   end;
 
@@ -113,7 +113,9 @@ begin
    fpc_threadvar_relocate_proc:=RelocProc;
 {$ifdef FPC_HAS_FEATURE_HEAP}
 {$ifndef HAS_MEMORYMANAGER}
+{$ifndef FPC_NO_DEFAULT_HEAP}
    RelocateHeap;
+{$endif ndef FPC_NO_DEFAULT_HEAP}
 {$endif HAS_MEMORYMANAGER}
 {$endif}
 end;

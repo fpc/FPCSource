@@ -19,11 +19,11 @@
 {$endif}
 unit objpas;
 
-  interface
+interface
 
-    { first, in object pascal, the integer type must be redefined }
+  { first, in object pascal, the integer type must be redefined }
 {$ifdef CPU16}
-    const
+   const
        MaxInt  = MaxSmallint;
     type
        Integer  = smallint;
@@ -57,7 +57,15 @@ unit objpas;
        TBoundArray = array of integer;
 
 
+
 {$if FPC_FULLVERSION >= 20701}
+
+      { Generic array type. 
+        Slightly Less useful in FPC, since dyn array compatibility is at the element level. 
+        But still useful for generic methods and of course Delphi compatibility}
+      
+      Generic TArray<T> = Array of T;
+      
       { Generic support for enumerator interfaces. These are added here, because
         mode (Obj)FPC does currently not allow the overloading of types with
         generic types (this will need a modeswitch...) }
@@ -93,8 +101,12 @@ Var
     { Untyped file support }
      Procedure AssignFile(out f:File;p:pchar);
      Procedure AssignFile(out f:File;c:char);
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out f:File;const Name:UnicodeString);
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out f:File;const Name:RawByteString);
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure CloseFile(var f:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -102,8 +114,12 @@ Var
      { Text file support }
      Procedure AssignFile(out t:Text;p:pchar);
      Procedure AssignFile(out t:Text;c:char);
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out t:Text;const Name:UnicodeString);
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out t:Text;const Name:RawByteString);
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure CloseFile(Var t:Text);
 {$endif FPC_HAS_FEATURE_TEXTIO}
 
@@ -111,8 +127,12 @@ Var
      { Typed file supoort }
      Procedure AssignFile(out f:TypedFile;p:pchar);
      Procedure AssignFile(out f:TypedFile;c:char);
+  {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
      Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
+  {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
      Procedure AssignFile(out f:TypedFile;const Name:RawByteString);
+  {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -133,15 +153,6 @@ Var
    Procedure FinalizeResourceTables;
    Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
    Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
-{$ifndef RESSTRSECTIONS}
-   Function ResourceStringTableCount : Longint;
-   Function ResourceStringCount(TableIndex : longint) : longint;
-   Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
-   Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
-   Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
-   Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
-   Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
-{$endif RESSTRSECTIONS}
 
    { Delphi compatibility }
    type
@@ -170,15 +181,19 @@ begin
   System.Assign (F,c);
 end;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure AssignFile(out f:File;const Name:RawBytestring);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure AssignFile(out f:File;const Name:UnicodeString);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 Procedure CloseFile(Var f:File); [IOCheck];
 
@@ -201,15 +216,19 @@ begin
   System.Assign (T,c);
 end;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure AssignFile(out t:Text;const Name:RawBytestring);
 begin
   System.Assign (T,Name);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure AssignFile(out t:Text;const Name:UnicodeString);
 begin
   System.Assign (T,Name);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 Procedure CloseFile(Var t:Text); [IOCheck];
 
@@ -232,15 +251,19 @@ begin
   System.Assign (F,c);
 end;
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure AssignFile(out f:TypedFile;const Name:RawBytestring);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure AssignFile(out f:TypedFile;const Name:UnicodeString);
 begin
   System.Assign (F,Name);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
@@ -289,19 +312,7 @@ begin
      Hash:=TheHash;
 end;
 
-{$ifdef RESSTRSECTIONS}
 Type
-  PResourceStringRecord = ^TResourceStringRecord;
-  TResourceStringRecord = Packed Record
-     Name,
-     CurrentValue,
-     DefaultValue : AnsiString;
-     HashValue    : LongWord;
-{$ifdef cpu64}
-     Dummy        : LongWord; // alignment
-{$endif cpu64}
-   end;
-
    TResourceStringTableList = Packed Record
      Count : sizeint;
      Tables : Array[{$ifdef cpu16}Byte{$else cpu16}Word{$endif cpu16}] of record
@@ -309,6 +320,7 @@ Type
        TableEnd   : PResourceStringRecord;
      end;
    end;
+   PResourceStringTableList = ^TResourceStringTableList;
 
 { Support for string constants initialized with resourcestrings }
 {$ifdef FPC_HAS_RESSTRINITS}
@@ -322,18 +334,19 @@ Type
      Count: {$ifdef VER2_6}longint{$else}sizeint{$endif};
      Tables: packed array[1..{$ifdef cpu16}8191{$else cpu16}32767{$endif cpu16}] of PResStrInitEntry;
    end;
+   PResStrInitTable = ^TResStrInitTable;
 
 var
-  ResStrInitTable : TResStrInitTable; external name 'FPC_RESSTRINITTABLES';
+  ResStrInitTable : PResStrInitTable; external name '_FPC_ResStrInitTables';
 
 procedure UpdateResourceStringRefs;
 var
   i: integer;
   ptable: PResStrInitEntry;
 begin
-  for i:=1 to ResStrInitTable.Count do
+  for i:=1 to ResStrInitTable^.Count do
     begin
-      ptable:=ResStrInitTable.Tables[i];
+      ptable:=ResStrInitTable^.Tables[i];
       while Assigned(ptable^.Addr) do
         begin
           AnsiString(ptable^.Addr^):=ptable^.Data^.CurrentValue;
@@ -344,7 +357,7 @@ end;
 {$endif FPC_HAS_RESSTRINITS}
 
 Var
-  ResourceStringTable : TResourceStringTableList; External Name 'FPC_RESOURCESTRINGTABLES';
+  ResourceStringTable : PResourceStringTableList; External Name '_FPC_ResourceStringTables';
 
 Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
 Var
@@ -352,7 +365,7 @@ Var
   i      : integer;
   s      : AnsiString;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -381,7 +394,7 @@ Var
   s,
   UpUnitName : AnsiString;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       UpUnitName:=UpCase(UnitName);
       For i:=0 to Count-1 do
@@ -413,7 +426,7 @@ Var
   ResStr : PResourceStringRecord;
   i      : integer;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -435,7 +448,7 @@ Var
   ResStr : PResourceStringRecord;
   i      : integer;
 begin
-  With ResourceStringTable do
+  With ResourceStringTable^ do
     begin
       For i:=0 to Count-1 do
         begin
@@ -451,157 +464,6 @@ begin
     end;
 end;
 
-{$else RESSTRSECTIONS}
-
-Type
-  PResourceStringRecord = ^TResourceStringRecord;
-  TResourceStringRecord = Packed Record
-     DefaultValue,
-     CurrentValue : AnsiString;
-     HashValue    : LongWord;
-     Name         : AnsiString;
-   end;
-
-   TResourceStringTable = Packed Record
-     Count : longint;
-     Resrec : Array[Word] of TResourceStringRecord;
-   end;
-   PResourceStringTable = ^TResourceStringTable;
-
-   TResourceTableList = Packed Record
-     Count : longint;
-     Tables : Array[Word] of PResourceStringTable;
-     end;
-
-Var
-  ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
-
-Function GetResourceString(Const TheTable: TResourceStringTable;Index : longint) : AnsiString;[Public,Alias : 'FPC_GETRESOURCESTRING'];
-begin
-  If (Index>=0) and (Index<TheTAble.Count) then
-     Result:=TheTable.ResRec[Index].CurrentValue
-  else
-     Result:='';
-end;
-
-
-Procedure SetResourceStrings (SetFunction :  TResourceIterator;arg:pointer);
-
-Var I,J : longint;
-
-begin
-  With ResourceStringTable do
-    For I:=0 to Count-1 do
-      With Tables[I]^ do
-         For J:=0 to Count-1 do
-           With ResRec[J] do
-             CurrentValue:=SetFunction(Name,DefaultValue,Longint(HashValue),arg);
-end;
-
-
-Procedure SetUnitResourceStrings (const UnitName:string;SetFunction :  TResourceIterator;arg:pointer);
-begin
-  SetResourceStrings (SetFunction,arg);
-end;
-
-
-Procedure ResetResourceTables;
-
-Var I,J : longint;
-
-begin
-  With ResourceStringTable do
-  For I:=0 to Count-1 do
-    With Tables[I]^ do
-        For J:=0 to Count-1 do
-          With ResRec[J] do
-            CurrentValue:=DefaultValue;
-end;
-
-Procedure FinalizeResourceTables;
-
-Var I,J : longint;
-
-begin
-  With ResourceStringTable do
-  For I:=0 to Count-1 do
-    With Tables[I]^ do
-        For J:=0 to Count-1 do
-          With ResRec[J] do
-            CurrentValue:='';
-end;
-
-Function ResourceStringTableCount : Longint;
-
-begin
-  Result:=ResourceStringTable.Count;
-end;
-
-Function CheckTableIndex (Index: longint) : Boolean;
-begin
-  Result:=(Index<ResourceStringTable.Count) and (Index>=0)
-end;
-
-Function CheckStringIndex (TableIndex,Index: longint) : Boolean;
-begin
-  Result:=(TableIndex<ResourceStringTable.Count) and (TableIndex>=0) and
-          (Index<ResourceStringTable.Tables[TableIndex]^.Count) and (Index>=0)
-end;
-
-Function ResourceStringCount(TableIndex : longint) : longint;
-
-begin
-  If not CheckTableIndex(TableIndex) then
-     Result:=-1
-  else
-    Result:=ResourceStringTable.Tables[TableIndex]^.Count;
-end;
-
-Function GetResourceStringName(TableIndex,StringIndex : Longint) : Ansistring;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=''
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].Name;
-end;
-
-Function GetResourceStringHash(TableIndex,StringIndex : Longint) : Longint;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=0
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].HashValue;
-end;
-
-Function GetResourceStringDefaultValue(TableIndex,StringIndex : Longint) : AnsiString;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=''
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].DefaultValue;
-end;
-
-Function GetResourceStringCurrentValue(TableIndex,StringIndex : Longint) : AnsiString;
-
-begin
-  If not CheckStringIndex(Tableindex,StringIndex) then
-    Result:=''
-  else
-    result:=ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue;
-end;
-
-Function SetResourceStringValue(TableIndex,StringIndex : longint; Value : Ansistring) : Boolean;
-
-begin
-  Result:=CheckStringIndex(Tableindex,StringIndex);
-  If Result then
-   ResourceStringTable.Tables[TableIndex]^.ResRec[StringIndex].CurrentValue:=Value;
-end;
-
-{$endif RESSTRSECTIONS}
 
 Function LoadResString(p:PResStringRec):AnsiString;
 begin

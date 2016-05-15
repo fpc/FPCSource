@@ -29,8 +29,59 @@
 {****************************************************************************}
 
 
+{               68881/2 FPCR Encodings
+   Rounding Mode                 Rounding Precision
+    (RND Field)        Encoding    (PREC Field)
+ To Nearest (RN)         0 0        Extend (X)
+ To Zero (RZ)            0 1        Single (S)
+ To Minus Infinity (RM)  1 0        Double (D)
+ To Plus Infinity (RP)   1 1        Undefined
+}
+
+{ 68881/2 FPCR layout }
+{ Exception Enable Byte: }
+{ 15 - BSUN  - Branch/Set on Unordered }
+{ 14 - SNAN  - Signal Not A Number }
+{ 13 - OPERR - Operand Error }
+{ 12 - OVFL  - Overflow }
+{ 11 - UNFL  - Underflow }
+{ 10 - DZ    - Divide by Zero }
+{ 09 - INEX2 - Inexact Operation }
+{ 08 - INEX1 - Inexact Decimal Input }
+{ Mode Control Byte: }
+{ 07 - PREC  - Rounding Precision }
+{ 06 - PREC  - Rounding Precision }
+{ 05 - RND   - Rounding Mode }
+{ 04 - RND   - Rounding Mode }
+{ 03 - 0     - Reserved, Set to zero }
+{ 02 - 0     - Reserved, Set to zero }
+{ 01 - 0     - Reserved, Set to zero }
+{ 00 - 0     - Reserved, Set to zero }
+
+
+{$IFDEF FPU68881}
+{$DEFINE FPC_SYSTEM_HAS_SYSRESETFPU}
+procedure SysResetFPU; assembler;
+asm
+  clr.l    d0
+  fmove.l  d0,fpcr
+end;
+
+{$DEFINE FPC_SYSTEM_HAS_SYSINITFPU}
+procedure SysInitFPU; assembler;
+asm
+  clr.l   d0
+  // FIX ME:
+  // move.w 0,d0 // enable a sane set of exception flags here
+  fmove.l d0,fpcr
+end;
+{$ENDIF}
+
 procedure fpc_cpuinit;
   begin
+    SysResetFPU;
+    if (not IsLibrary) then
+      SysInitFPU;
   end;
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
@@ -91,14 +142,14 @@ procedure FillChar(var x; count : longint; value : byte); assembler;
 asm
   move.l x, a0          { destination                   }
   move.l count, d1      { number of bytes to fill       }
-{ FIXME: this should be move.b, but everything is pushed as long on
-         the stack ATM (KB) }
-  move.l value, d0      { fill data                     }
+  move.b value, d0      { fill data                     }
   tst.l  d1             { anything to fill at all?      }
   ble    @LMEMSET5
 {$ifdef CPUM68K_HAS_DBRA}
 { FIXME: Any reason why not always just use DBRA mode on
-         CPUs which support it? (KB) }
+         CPUs which support it? (KB)
+         - DBRA does only 16-bit decrements, so handling more than 65535 bytes
+         requires additional code anyway (Sergei) }
   cmpi.l #65535, d1     { check, if this is a word move }
   ble    @LMEMSET3      { use fast dbra mode            }
 {$endif CPUM68K_HAS_DBRA}
@@ -321,9 +372,7 @@ procedure FillWord(var x; count : longint; value : word); assembler;
 asm
   move.l x, a0         { destination              }
   move.l count, d1     { number of bytes to fill  }
-{ FIXME: this should be move.w, but everything is pushed as long on
-         the stack ATM (KB) }
-  move.l value, d0     { fill data                }
+  move.w value, d0     { fill data                }
   tst.l  d1            { anything to fill at all? }
   ble @LMEMSET3
   bra @LMEMSET21
@@ -335,7 +384,7 @@ asm
 @LMEMSET3:
 end;
 
-
+{$IFNDEF HASAMIGA}
 function InterLockedDecrement (var Target: longint) : longint;
   begin
   {$warning FIX ME}
@@ -375,3 +424,177 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
     if Target = Comperand then
       Target := NewValue;
   end;
+{$ENDIF HASAMIGA}
+
+{$if defined(CPUM68K_HAS_BYTEREV) or defined(CPUM68K_HAS_ROLROR)}
+{ Disabled for now, because not all cases below were tested. (KB) }
+{.$define FPC_SYSTEM_HAS_SWAPENDIAN}
+{$endif}
+
+{$if defined(FPC_SYSTEM_HAS_SWAPENDIAN)}
+function SwapEndian(const AValue: SmallInt): SmallInt; assembler; nostackframe;
+asm
+{$if defined(CPUM68K_HAS_ROLROR)}
+    move.w   avalue, d0
+    ror.w    #8, d0
+{$elseif defined(CPUM68K_HAS_BYTEREV)}
+    move.w   avalue, d0
+    byterev  d0
+    swap     d0
+{$else}
+    // only ISA A/B ColdFire can end in this branch, so use long ops everywhere
+    clr.l    d0
+    move.w   avalue, d0
+    move.w   d0, d1
+    lsr.l    #8, d0
+    lsl.l    #8, d1
+    or.l     d1, d0
+{$endif}
+end;
+
+
+function SwapEndian(const AValue: Word): Word; assembler; nostackframe;
+asm
+{$if defined(CPUM68K_HAS_ROLROR)}
+    move.w   avalue, d0
+    ror.w    #8, d0
+{$elseif defined(CPUM68K_HAS_BYTEREV)}
+    move.w   avalue, d0
+    byterev  d0
+    swap     d0
+{$else}
+    // only ISA A/B ColdFire can end in this branch, so use long ops everywhere
+    clr.l    d0
+    move.w   avalue, d0
+    move.w   d0, d1
+    lsr.l    #8, d0
+    lsl.l    #8, d1
+    or.l     d1, d0
+{$endif}
+end;
+
+
+function SwapEndian(const AValue: LongInt): LongInt; assembler; nostackframe;
+asm
+{$if defined(CPUM68K_HAS_ROLROR)}
+    move.l   avalue, d0
+    ror.w    #8, d0
+    swap     d0
+    ror.w    #8, d0
+{$elseif defined(CPUM68K_HAS_BYTEREV)}
+    move.l   avalue, d0
+    byterev  d0
+{$else}
+    // only ISA A/B ColdFire can end in this branch, so use long ops everywhere
+    move.l   avalue, d0
+    move.l   d0, d1
+    andi.l   #$ff00ff00, d0
+    andi.l   #$00ff00ff, d1
+    lsr.l    #8, d0
+    lsl.l    #8, d1
+    or.l     d1, d0
+    swap     d0
+{$endif}
+end;
+
+function SwapEndian(const AValue: DWord): DWord; assembler; nostackframe;
+asm
+{$if defined(CPUM68K_HAS_ROLROR)}
+    move.l   avalue, d0
+    ror.w    #8, d0
+    swap     d0
+    ror.w    #8, d0
+{$elseif defined(CPUM68K_HAS_BYTEREV)}
+    move.l   avalue, d0
+    byterev  d0
+{$else}
+    // only ISA A/B ColdFire can end in this branch, so use long ops everywhere
+    move.l   avalue, d0
+    move.l   d0, d1
+    andi.l   #$ff00ff00, d0
+    andi.l   #$00ff00ff, d1
+    lsr.l    #8, d0
+    lsl.l    #8, d1
+    or.l     d1, d0
+    swap     d0
+{$endif}
+end;
+
+function SwapEndian(const AValue: Int64): Int64; assembler; nostackframe;
+asm
+{$if defined(CPUM68K_HAS_ROLROR)}
+    move.l   avalue+4, d0
+    ror.w    #8, d0
+    swap     d0
+    ror.w    #8, d0
+    move.l   avalue, d1
+    ror.w    #8, d1
+    swap     d1
+    ror.w    #8, d1
+{$elseif defined(CPUM68K_HAS_BYTEREV)}
+    move.l   avalue+4, d0
+    move.l   avalue, d1
+    byterev  d0
+    byterev  d1
+{$else}
+    // only ISA A/B ColdFire can end in this branch, so use long ops everywhere
+    move.l   d2, -(sp)
+    move.l   avalue+4, d0
+    move.l   d0, d1
+    andi.l   #$ff00ff00, d0
+    andi.l   #$00ff00ff, d1
+    lsr.l    #8, d0
+    lsl.l    #8, d1
+    or.l     d1, d0
+    swap     d0
+    move.l   avalue, d1
+    move.l   d1, d2
+    andi.l   #$ff00ff00, d1
+    andi.l   #$00ff00ff, d2
+    lsr.l    #8, d1
+    lsl.l    #8, d2
+    or.l     d2, d1
+    swap     d1
+    move.l   (sp)+, d2
+{$endif}
+end;
+
+function SwapEndian(const AValue: QWord): QWord; assembler; nostackframe;
+asm
+{$if defined(CPUM68K_HAS_ROLROR)}
+    move.l   avalue+4, d0
+    ror.w    #8, d0
+    swap     d0
+    ror.w    #8, d0
+    move.l   avalue, d1
+    ror.w    #8, d1
+    swap     d1
+    ror.w    #8, d1
+{$elseif defined(CPUM68K_HAS_BYTEREV)}
+    move.l   avalue+4, d0
+    move.l   avalue, d1
+    byterev  d0
+    byterev  d1
+{$else}
+    // only ISA A/B ColdFire can end in this branch, so use long ops everywhere
+    move.l   d2, -(sp)
+    move.l   avalue+4, d0
+    move.l   d0, d1
+    andi.l   #$ff00ff00, d0
+    andi.l   #$00ff00ff, d1
+    lsr.l    #8, d0
+    lsl.l    #8, d1
+    or.l     d1, d0
+    swap     d0
+    move.l   avalue, d1
+    move.l   d1, d2
+    andi.l   #$ff00ff00, d1
+    andi.l   #$00ff00ff, d2
+    lsr.l    #8, d1
+    lsl.l    #8, d2
+    or.l     d2, d1
+    swap     d1
+    move.l   (sp)+, d2
+{$endif}
+end;
+{$endif FPC_SYSTEM_HAS_SWAPENDIAN}

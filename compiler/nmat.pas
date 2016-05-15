@@ -133,6 +133,16 @@ implementation
                 { recover }
                 tordconstnode(right).value := 1;
               end;
+            { the following simplification is also required for correctness
+              on x86, as its transformation of divisions by constants to
+              multiplications and shifts does not handle -1 correctly }
+            if (rv=-1) and
+               (nodetype=divn) then
+              begin
+                result:=cunaryminusnode.create(left);
+                left:=nil;
+                exit;
+              end;
             if (nf_isomod in flags) and
               (rv<=0) then
                begin
@@ -361,7 +371,7 @@ implementation
              result_data:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,true);
 
              { right <=0? }
-             addstatement(statements,cifnode.create(caddnode.create(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
+             addstatement(statements,cifnode.create_internal(caddnode.create_internal(lten,right.getcopy,cordconstnode.create(0,resultdef,false)),
                { then: result:=left mod right }
                ccallnode.createintern('fpc_divbyzero',nil),
                nil
@@ -371,17 +381,17 @@ implementation
              { result:=(-left) mod right }
              addstatement(else_statements,cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,cunaryminusnode.create(left.getcopy),right.getcopy)));
              { result<>0? }
-             addstatement(else_statements,cifnode.create(caddnode.create(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
+             addstatement(else_statements,cifnode.create_internal(caddnode.create_internal(unequaln,ctemprefnode.create(result_data),cordconstnode.create(0,resultdef,false)),
                { then: result:=right-result }
-               cassignmentnode.create(ctemprefnode.create(result_data),caddnode.create(subn,right.getcopy,ctemprefnode.create(result_data))),
+               cassignmentnode.create_internal(ctemprefnode.create(result_data),caddnode.create_internal(subn,right.getcopy,ctemprefnode.create(result_data))),
                nil
                ));
 
              addstatement(statements,result_data);
              { if left>=0 }
-             addstatement(statements,cifnode.create(caddnode.create(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
+             addstatement(statements,cifnode.create_internal(caddnode.create_internal(gten,left.getcopy,cordconstnode.create(0,resultdef,false)),
                { then: result:=left mod right }
-               cassignmentnode.create(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
+               cassignmentnode.create_internal(ctemprefnode.create(result_data),cmoddivnode.create(modn,left.getcopy,right.getcopy)),
                { else block }
                else_block
                ));
@@ -393,7 +403,7 @@ implementation
 
 
     function tmoddivnode.first_moddivint: tnode;
-{$ifdef cpuneedsdiv32helper}
+{$ifdef cpuneedsdivhelper}
       var
         procname: string[31];
       begin
@@ -404,12 +414,25 @@ implementation
           procname := 'fpc_div_'
         else
           procname := 'fpc_mod_';
+
         { only qword needs the unsigned code, the
           signed code is also used for currency }
-        if is_signed(resultdef) then
-          procname := procname + 'longint'
-        else
-          procname := procname + 'dword';
+        case torddef(resultdef).ordtype of
+          u8bit:
+            procname := procname + 'byte';
+          s8bit:
+            procname := procname + 'shortint';
+          u16bit:
+            procname := procname + 'word';
+          s16bit:
+            procname := procname + 'smallint';
+          u32bit:
+            procname := procname + 'dword';
+          s32bit:
+            procname := procname + 'longint'
+          else
+            internalerror(2015070501);
+        end;
 
         result := ccallnode.createintern(procname,ccallparanode.create(left,
           ccallparanode.create(right,nil)));
@@ -424,7 +447,7 @@ implementation
         if torddef(result.resultdef).ordtype <> torddef(resultdef).ordtype then
           inserttypeconv(result,resultdef);
       end;
-{$else cpuneedsdiv32helper}
+{$else cpuneedsdivhelper}
       begin
         result:=nil;
       end;
@@ -835,8 +858,13 @@ implementation
         if is_constrealnode(left) then
           begin
              trealconstnode(left).value_real:=-trealconstnode(left).value_real;
+             { Avoid integer overflow on x86_64 CPU for currency value }
+             { i386 uses fildll/fchs/fistll instructions which never seem
+               to raise any coprocessor flags .. }
+             {$push}{$Q-}
              trealconstnode(left).value_currency:=-trealconstnode(left).value_currency;
              result:=left;
+             {$pop}
              left:=nil;
              exit;
           end;
@@ -920,7 +948,6 @@ implementation
     function tunaryminusnode.pass_1 : tnode;
       var
         procname: string[31];
-        fdef : tdef;
       begin
         result:=nil;
         firstpass(left);
@@ -931,34 +958,16 @@ implementation
           begin
             if not(target_info.system in systems_wince) then
               begin
-                case tfloatdef(resultdef).floattype of
-                  s32real:
-                    begin
-                      procname:='float32_sub';
-                      fdef:=search_system_type('FLOAT32REC').typedef;
-                    end;
-                  s64real:
-                    begin
-                      procname:='float64_sub';
-                      fdef:=search_system_type('FLOAT64').typedef;
-                    end;
-                  {!!! not yet implemented
-                  s128real:
-                  }
-                  else
-                    internalerror(2005082801);
-                end;
-                result:=ctypeconvnode.create_internal(ccallnode.createintern(procname,ccallparanode.create(
-                  ctypeconvnode.create_internal(left,fDef),
-                  ccallparanode.create(ctypeconvnode.create_internal(crealconstnode.create(0,resultdef),fdef),nil))),resultdef);
+                expectloc:=LOC_REGISTER;
+                exit;
               end
             else
               begin
                 case tfloatdef(resultdef).floattype of
                   s32real:
-                    procname:='NEGS';
+                    procname:='negs';
                   s64real:
-                    procname:='NEGD';
+                    procname:='negd';
                   {!!! not yet implemented
                   s128real:
                   }

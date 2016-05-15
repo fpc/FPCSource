@@ -31,14 +31,22 @@ const
 function getFPSCR : DWord; assembler; nostackframe;
 asm
   mffs f0
-  stfd f0, -12(r1)
-  lwz r3, -8(r1)
+  stfd f0, -16(r1)
+{$ifdef FPC_BIG_ENDIAN}
+  lwz r3, -12(r1)
+{$else}
+  lwz r3, -16(r1)
+{$endif}
 end;
 
 procedure setFPSCR(newFPSCR : DWord); assembler; nostackframe;
 asm
-  stw r3, -8(r1)
-  lfd f0, -12(r1)
+{$ifdef FPC_BIG_ENDIAN}
+  stw r3, -12(r1)
+{$else}
+  stw r3, -16(r1)
+{$endif}
+  lfd f0, -16(r1)
   mtfsf 255, f0
 end;
 

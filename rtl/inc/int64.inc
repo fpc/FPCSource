@@ -122,6 +122,12 @@
          shift,lzz,lzn : longint;
 
       begin
+         { Use the usually faster 32-bit division if possible }
+	 if (hi(z) = 0) and (hi(n) = 0) then
+	 begin
+	   fpc_div_qword := Dword(z) div Dword(n);
+	   exit;
+	 end;
          fpc_div_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
@@ -134,6 +140,7 @@
          { then d is greater than the n           }
          if lzn>lzz then
            exit;
+
          shift:=lzz-lzn;
          n:=n shl shift;
          for shift:=shift downto 0 do
@@ -156,6 +163,12 @@
          shift,lzz,lzn : longint;
 
       begin
+         { Use the usually faster 32-bit mod if possible }
+	 if (hi(z) = 0) and (hi(n) = 0) then
+	 begin
+	   fpc_mod_qword := Dword(z) mod Dword(n);
+	   exit;
+	 end;
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorAddrFrameInd(200,get_pc_addr,get_frame);
@@ -310,6 +323,9 @@
          q1,q2,q3 : qword;
 
       begin
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+         runerror(219);
+{$else EXCLUDE_COMPLEX_PROCS}
         { there's no difference between signed and unsigned multiplication,
           when the destination size is equal to the source size and overflow
           checking is off }
@@ -350,6 +366,7 @@
             else
               fpc_mul_int64:=q3;
           end;
+{$endif EXCLUDE_COMPLEX_PROCS}
       end;
 {$endif FPC_SYSTEM_HAS_MUL_INT64}
 
@@ -358,8 +375,15 @@
     function fpc_mul_int64_compilerproc(f1,f2 : int64;checkoverflow : longbool) : int64; external name 'FPC_MUL_INT64';
 
     function fpc_mul_longint_to_int64(f1,f2 : longint) : int64;[public,alias: 'FPC_MUL_LONGINT_TO_INT64']; compilerproc;
+{$ifdef EXCLUDE_COMPLEX_PROCS}
+      begin
+        runerror(217);
+      end;
+{$else EXCLUDE_COMPLEX_PROCS}
       begin
         fpc_mul_longint_to_int64:=fpc_mul_int64_compilerproc(f1,f2,false);
       end;
+{$endif EXCLUDE_COMPLEX_PROCS}
+
 {$endif FPC_SYSTEM_HAS_MUL_LONGINT_TO_INT64}
 

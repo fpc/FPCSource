@@ -238,6 +238,9 @@ begin
     Add('  stub PT_LOAD FLAGS(5);');
     Add('  text PT_LOAD FLAGS(5);');
     Add('  data PT_LOAD FLAGS(6);');
+    Add('  bss1 PT_LOAD;');
+    Add('  bss2 PT_LOAD;');
+    Add('');
     Add('}');
     Add('');
     Add('SECTIONS');
@@ -431,7 +434,7 @@ begin
     Add('		PROVIDE (___sbss_end = .);');
     Add('		. = ALIGN(32);   /* REQUIRED. LD is flaky without it. */');
     Add('		__sbss_end = .;');
-    Add('	}');
+    Add('	} :bss1');
     Add('');
     Add('	.bss       :');
     Add('	{');
@@ -450,7 +453,7 @@ begin
     Add('');
     Add('		PROVIDE (__bss_end = .);');
     Add('		__bss_end = .;');
-    Add('	}');
+    Add('	} :bss2');
     Add('');
     Add('	_end = .;');
     Add('	PROVIDE(end = .);');

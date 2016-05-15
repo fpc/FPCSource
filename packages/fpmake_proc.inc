@@ -4,10 +4,22 @@ begin
 {$include a52/fpmake.pp}
 end;
 
+procedure add_ami_extra(const ADirectory: string);
+begin
+  with Installer do
+{$include ami-extra/fpmake.pp}
+end;
+
 procedure add_amunits(const ADirectory: string);
 begin
   with Installer do
 {$include amunits/fpmake.pp}
+end;
+
+procedure add_arosunits(const ADirectory: string);
+begin
+  with Installer do
+{$include arosunits/fpmake.pp}
 end;
 
 procedure add_aspell(const ADirectory: string);
@@ -391,6 +403,11 @@ begin
   with Installer do
 {$include libvlc/fpmake.pp}
 end;
+procedure add_libmicrohttpd(const ADirectory: string);
+begin
+  with Installer do
+{$include libmicrohttpd/fpmake.pp}
+end;
 
 procedure add_libxml(const ADirectory: string);
 begin
@@ -414,6 +431,12 @@ procedure add_modplug(const ADirectory: string);
 begin
   with Installer do
 {$include modplug/fpmake.pp}
+end;
+
+procedure add_morphunits(const ADirectory: string);
+begin
+  with Installer do
+{$include morphunits/fpmake.pp}
 end;
 
 procedure add_mysql(const ADirectory: string);
@@ -504,6 +527,12 @@ procedure add_os2units(const ADirectory: string);
 begin
   with Installer do
 {$include os2units/fpmake.pp}
+end;
+
+procedure add_os4units(const ADirectory: string);
+begin
+  with Installer do
+{$include os4units/fpmake.pp}
 end;
 
 procedure add_palmunits(const ADirectory: string);
@@ -688,9 +717,22 @@ begin
 {$include zlib/fpmake.pp}
 end;
 
+procedure add_libenet(const ADirectory: string);
+begin
+  with Installer do
+{$include libenet/fpmake.pp}
+end;
+
 procedure add_zorba(const ADirectory: string);
 begin
   with Installer do
 {$include zorba/fpmake.pp}
 end;
 
+{$include googleapi/fpmake.pp}
+
+procedure add_fcl_pdf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-pdf/fpmake.pp}
+end;

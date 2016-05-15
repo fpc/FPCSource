@@ -110,17 +110,13 @@ end;
 
 
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
-
-Var
-  D : String;
-
 begin
   inherited Create(AOWner);
   FFileName:=Owner.ServerID;
   If (Owner.ServerInstance<>'') then
     FFileName:=FFileName+'-'+Owner.ServerInstance;
-  D:='/tmp/'; // Change to something better later
-  FFileName:=D+FFileName;
+  if FFileName[1]<>'/' then
+    FFileName:=GetTempDir(true)+FFileName;
 end;
 
 
@@ -200,17 +196,13 @@ Type
   end;
 
 constructor TPipeServerComm.Create(AOWner: TSimpleIPCServer);
-
-Var
-  D : String;
-
 begin
   inherited Create(AOWner);
   FFileName:=Owner.ServerID;
   If Not Owner.Global then
     FFileName:=FFileName+'-'+IntToStr(fpGetPID);
-  D:='/tmp/'; // Change to something better later
-  FFileName:=D+FFileName;
+  if FFileName[1]<>'/' then
+    FFileName:=GetTempDir(Owner.Global)+FFileName;
 end;
 
 
@@ -261,6 +253,7 @@ begin
   M:=MsgData;
   if count > 0 then
     begin
+    M.Size:=0;
     M.Seek(0,soFrombeginning);
     M.CopyFrom(FStream,Count);
     end

@@ -195,6 +195,7 @@ Type
   { TFPOrderingOperation }
 
   TFPOrderingOperation = Class(TFPBooleanResultOperation)
+  Public
     Procedure Check; override;
   end;
 
@@ -242,9 +243,9 @@ Type
     FCondition: TFPExprNode;
   protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
+  Public
     Procedure Check; override;
     Function NodeType : TResultType; override;
-  Public
     Constructor Create(ACondition,ALeft,ARight : TFPExprNode);
     Destructor destroy; override;
     Function AsString : string ; override;
@@ -259,9 +260,9 @@ Type
     FCondition: TFPExprNode;
   protected
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
+  Public
     Procedure Check; override;
     Function NodeType : TResultType; override;
-  Public
     Constructor Create(Args : TExprArgumentArray);
     Destructor destroy; override;
     Function AsString : string ; override;
@@ -271,7 +272,7 @@ Type
   { TMathOperation }
 
   TMathOperation = Class(TFPBinaryOperation)
-  protected
+  Public
     Procedure Check; override;
     Function NodeType : TResultType; override;
   end;
@@ -288,19 +289,17 @@ Type
   { TFPSubtractOperation }
 
   TFPSubtractOperation = Class(TMathOperation)
-  Protected
-    Procedure check; override;
-    Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   Public
+    Procedure Check; override;
+    Procedure GetNodeValue(var Result : TFPExpressionResult); override;
     Function AsString : string ; override;
   end;
 
   { TFPMultiplyOperation }
 
   TFPMultiplyOperation = Class(TMathOperation)
-  Protected
-    Procedure check; override;
   Public
+    Procedure check; override;
     Function AsString : string ; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
   end;
@@ -308,9 +307,8 @@ Type
   { TFPDivideOperation }
 
   TFPDivideOperation = Class(TMathOperation)
-  Protected
-    Procedure check; override;
   Public
+    Procedure Check; override;
     Function AsString : string ; override;
     Function NodeType : TResultType; override;
     Procedure GetNodeValue(var Result : TFPExpressionResult); override;
@@ -337,16 +335,15 @@ Type
   { TFPNotNode }
 
   TFPNotNode = Class(TFPUnaryOperator)
-  Protected
-    Procedure Check; override;
   Public
+    Procedure Check; override;
     Function NodeType : TResultType;  override;
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
     Function AsString : String; override;
   end;
 
   TIntConvertNode = Class(TFPConvertNode)
-  Protected
+  Public
     Procedure Check; override;
   end;
 
@@ -368,9 +365,8 @@ Type
   { TFloatToDateTimeNode }
 
   TFloatToDateTimeNode = Class(TFPConvertNode)
-  Protected
-    Procedure Check; override;
   Public
+    Procedure Check; override;
     Function NodeType : TResultType;  override;
     Procedure GetNodeValue(var Result : TFPExpressionResult);  override;
   end;
@@ -526,8 +522,8 @@ Type
     FargumentParams : TExprParameterArray;
   Protected
     Procedure CalcParams;
-    Procedure Check; override;
   Public
+    Procedure Check; override;
     Constructor CreateFunction(AID : TFPExprIdentifierDef; Const Args : TExprArgumentArray); virtual;
     Destructor Destroy; override;
     Property ArgumentNodes : TExprArgumentArray Read FArgumentNodes;
@@ -601,7 +597,7 @@ Type
   public
     Constructor Create(AOwner :TComponent); override;
     Destructor Destroy; override;
-    Function IdentifierByName(AName : ShortString) : TFPExprIdentifierDef;
+    Function IdentifierByName(const AName : ShortString) : TFPExprIdentifierDef; virtual;
     Procedure Clear;
     Procedure EvaluateExpression(Var Result : TFPExpressionResult);
     Function Evaluate : TFPExpressionResult;
@@ -1047,7 +1043,7 @@ begin
   FDirty:=False;
 end;
 
-function TFPExpressionParser.IdentifierByName(AName: ShortString): TFPExprIdentifierDef;
+function TFPExpressionParser.IdentifierByName(const AName: ShortString): TFPExprIdentifierDef;
 begin
   If FDirty then
     CreateHashList;
@@ -3161,24 +3157,24 @@ end;
 Procedure BuiltInShortDayName(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 
 begin
-  Result.resString:=ShortDayNames[Args[0].resInteger];
+  Result.resString:=DefaultFormatSettings.ShortDayNames[Args[0].resInteger];
 end;
 
 Procedure BuiltInShortMonthName(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 
 begin
-  Result.resString:=ShortMonthNames[Args[0].resInteger];
+  Result.resString:=DefaultFormatSettings.ShortMonthNames[Args[0].resInteger];
 end;
 Procedure BuiltInLongDayName(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 
 begin
-  Result.resString:=LongDayNames[Args[0].resInteger];
+  Result.resString:=DefaultFormatSettings.LongDayNames[Args[0].resInteger];
 end;
 
 Procedure BuiltInLongMonthName(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
 
 begin
-  Result.resString:=LongMonthNames[Args[0].resInteger];
+  Result.resString:=DefaultFormatSettings.LongMonthNames[Args[0].resInteger];
 end;
 
 Procedure BuiltInFormatDateTime(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);

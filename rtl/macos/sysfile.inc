@@ -289,7 +289,10 @@ begin
           InOutRes:= MacOSErr2RTEerr(err);
         end;
       if InOutRes <> 0 then
-        exit;
+        begin
+          FileRec(f).mode:=fmclosed;
+          exit;
+        end;
 
       p:= PChar(fullPath);
     end;
@@ -319,8 +322,10 @@ begin
       filerec(f).handle:= fh;
     end
   else
-    filerec(f).handle:= UnusedHandle;
-
+    begin
+      filerec(f).handle:= UnusedHandle;
+      FileRec(f).mode:=fmclosed;
+    end;
   {$else}
 
   InOutRes:=1;
@@ -343,6 +348,7 @@ begin
 
   if (filerec(f).handle=UnusedHandle) then
     begin
+      FileRec(f).mode:=fmclosed;
       //errno:=GetLastError;
       //Errno2InoutRes;
     end;

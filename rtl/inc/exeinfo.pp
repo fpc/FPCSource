@@ -16,6 +16,9 @@
   This unit should not be compiled in objfpc mode, since this would make it
   dependent on objpas unit.
 }
+
+{$mode objfpc}
+
 unit exeinfo;
 interface
 
@@ -99,7 +102,11 @@ uses
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
       baseaddr:= nil;
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
       filename:=ParamStr(0);
+{$else FPC_HAS_FEATURE_COMMANDARGS}
+      filename:='';
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
     end;
 
 {$endif windows}
@@ -109,11 +116,13 @@ uses
                              Executable Loaders
 ****************************************************************************}
 
-{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos) or defined(android)}
+{$if defined(freebsd) or defined(netbsd) or defined (openbsd) or defined(linux) or defined(sunos) or defined(android) or defined(dragonfly)}
   {$ifdef cpu64}
     {$define ELF64}
+    {$define FIND_BASEADDR_ELF}
   {$else}
     {$define ELF32}
+    {$define FIND_BASEADDR_ELF}
   {$endif}
 {$endif}
 
@@ -180,7 +189,7 @@ function getByte(var f:file):byte;
   begin
     for i := 1 to bytes do getbyte(f);
   end;
-  
+
   function get0String (var f:file) : string;
   var c : char;
   begin
@@ -192,7 +201,7 @@ function getByte(var f:file):byte;
       c := char (getbyte(f));
     end;
   end;
-  
+
   function getint32 (var f:file): longint;
   begin
     blockread (F, getint32, 4);
@@ -209,7 +218,7 @@ var valid : boolean;
     hdrLength,
     dataOffset,
     dataLength : longint;
-  
+
 
   function getLString : String;
   var Res:string;
@@ -235,12 +244,12 @@ var valid : boolean;
     blockread (e.F, getword, 2);
   end;
 
-  
+
 
 begin
   e.sechdrofs := 0;
   openNetwareNLM:=false;
-  
+
   // read and check header
   Skip (e.f,SIZE_OF_NLM_INTERNAL_FIXED_HEADER);
   getLString;  // NLM Description
@@ -728,6 +737,16 @@ type
       sh_addralign      : longword;
       sh_entsize        : longword;
     end;
+  telfproghdr=packed record
+    p_type            : longword;
+    p_offset          : longword;
+    p_vaddr           : longword;
+    p_paddr           : longword;
+    p_filesz          : longword;
+    p_memsz           : longword;
+    p_flags           : longword;
+    p_align           : longword;
+  end;
 {$endif ELF32 or BEOS}
 {$ifdef ELF64}
 type
@@ -764,14 +783,140 @@ type
       sh_addralign      : int64;
       sh_entsize        : int64;
     end;
+
+  telfproghdr=packed record
+    p_type            : longword;
+    p_flags           : longword;
+    p_offset          : qword;
+    p_vaddr           : qword;
+    p_paddr           : qword;
+    p_filesz          : qword;
+    p_memsz           : qword;
+    p_align           : qword;
+  end;
 {$endif ELF64}
 
 
 {$if defined(ELF32) or defined(ELF64) or defined(BEOS)}
+
+{$ifdef FIND_BASEADDR_ELF}
+{$ifndef SOLARIS}
+  { Solaris has envp variable in system unit interface,
+    so we directly use system envp variable in that case }
+var
+  envp : ppchar external name 'operatingsystem_parameter_envp';
+{$endif not SOLARIS}
+var
+  LocalJmpBuf : Jmp_Buf;  
+procedure LocalError;
+begin
+  Longjmp(LocalJmpBuf,1);
+end;
+
+procedure GetExeInMemoryBaseAddr(addr : pointer; var BaseAddr : pointer;
+                                 var filename : openstring);
+type
+  AT_HDR = record
+    typ : ptruint;
+    value : ptruint;
+  end;
+  P_AT_HDR = ^AT_HDR;
+
+{ Values taken from /usr/include/linux/auxvec.h }
+const
+  AT_HDR_COUNT = 5;{ AT_PHNUM }
+  AT_HDR_SIZE = 4; { AT_PHENT }
+  AT_HDR_Addr = 3; { AT_PHDR }
+  AT_EXE_FN = 31;  {AT_EXECFN }
+
+var
+  pc : ppchar;
+  pat_hdr : P_AT_HDR;
+  i, phdr_count : ptrint;
+  phdr_size : ptruint;
+  phdr :  ^telfproghdr;
+  found_addr : ptruint;
+  SavedExitProc : pointer;
+begin
+  filename:=ParamStr(0);
+  SavedExitProc:=ExitProc;
+  ExitProc:=@LocalError;
+  if SetJmp(LocalJmpBuf)=0 then
+  begin
+  { Try, avoided in order to remove exception installation }
+    pc:=envp;
+    phdr_count:=-1;
+    phdr_size:=0;
+    phdr:=nil;
+    found_addr:=ptruint(-1);
+    while (assigned(pc^)) do
+      inc (pointer(pc), sizeof(ptruint));
+    inc(pointer(pc), sizeof(ptruint));
+    pat_hdr:=P_AT_HDR(pc);
+    while assigned(pat_hdr) do
+      begin
+        if (pat_hdr^.typ=0) and (pat_hdr^.value=0) then
+          break;
+        if pat_hdr^.typ = AT_HDR_COUNT then
+          phdr_count:=pat_hdr^.value;
+        if pat_hdr^.typ = AT_HDR_SIZE then
+          phdr_size:=pat_hdr^.value;
+        if pat_hdr^.typ = AT_HDR_Addr then
+          phdr := pointer(pat_hdr^.value);
+        if pat_hdr^.typ = AT_EXE_FN then
+          filename:=strpas(pchar(pat_hdr^.value));
+        inc (pointer(pat_hdr),sizeof(AT_HDR));
+      end;
+    if (phdr_count>0) and (phdr_size = sizeof (telfproghdr))
+       and  assigned(phdr) then
+      begin
+        for i:=0 to phdr_count -1 do
+          begin
+            if (phdr^.p_type = 1 {PT_LOAD}) and (ptruint(phdr^.p_vaddr) < found_addr) then
+              found_addr:=phdr^.p_vaddr;
+            inc(pointer(phdr), phdr_size);
+          end;
+      {$ifdef DEBUG}
+      end
+    else
+      begin
+        if (phdr_count=-1) then
+           writeln(stderr,'AUX entry AT_PHNUM not found');
+        if (phdr_size=0) then
+           writeln(stderr,'AUX entry AT_PHENT not found');
+        if (phdr=nil) then
+           writeln(stderr,'AUX entry AT_PHDR not found');
+      {$endif DEBUG}
+      end;
+
+     if found_addr<>ptruint(-1) then
+       begin
+          {$ifdef DEBUG}
+          Writeln(stderr,'Found addr = $',hexstr(found_addr,2 * sizeof(ptruint)));
+          {$endif}
+          BaseAddr:=pointer(found_addr);
+       end
+  {$ifdef DEBUG}
+     else
+    writeln(stderr,'Error parsing stack');
+  {$endif DEBUG}
+  end
+  else
+  begin
+  {$ifdef DEBUG}
+    writeln(stderr,'Exception parsing stack');
+  {$endif DEBUG}
+  end;
+  ExitProc:=SavedExitProc;
+end;
+{$endif FIND_BASEADDR_ELF}
+
 function OpenElf(var e:TExeFile):boolean;
 var
   elfheader : telfheader;
   elfsec    : telfsechdr;
+  phdr      : telfproghdr;
+  i         : longint;
 begin
   OpenElf:=false;
   { read and check header }
@@ -788,6 +933,20 @@ begin
   e.secstrofs:=elfsec.sh_offset;
   e.sechdrofs:=elfheader.e_shoff;
   e.nsects:=elfheader.e_shnum;
+
+  { scan program headers to find the image base address }
+  e.processaddress:=High(e.processaddress);
+  seek(e.f,elfheader.e_phoff);
+  for i:=1 to elfheader.e_phnum do
+    begin
+      blockread(e.f,phdr,sizeof(phdr));
+      if (phdr.p_type = 1 {PT_LOAD}) and (ptruint(phdr.p_vaddr) < e.processaddress) then
+        e.processaddress:=phdr.p_vaddr;
+    end;
+
+  if e.processaddress = High(e.processaddress) then
+    e.processaddress:=0;
+
   OpenElf:=true;
 end;
 
@@ -840,7 +999,7 @@ const
    B_ADD_ON_IMAGE  = 3;
    B_SYSTEM_IMAGE  = 4;
    B_OK = 0;
-   
+
 type
     image_info = packed record
      id      : image_id;
@@ -1199,4 +1358,8 @@ begin
 end;
 
 
+begin
+{$ifdef FIND_BASEADDR_ELF}
+  UnixGetModuleByAddrHook:=@GetExeInMemoryBaseAddr;
+{$endif FIND_BASEADDR_ELF}
 end.

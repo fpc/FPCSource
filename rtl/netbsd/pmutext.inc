@@ -35,6 +35,9 @@ struct	__pthread_mutex_st {
 {$ifdef I386}
   {$define __CPU_SIMPLE_LOCK_PAD}
 {$endif}
+{$ifdef X86_64}
+  {$define __CPU_SIMPLE_LOCK_PAD}
+{$endif}
   record
     ptm_magic : dword { should be cuint};
     ptm_errorcheck : char { should be pthread_spin_t};

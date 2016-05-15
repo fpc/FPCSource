@@ -132,7 +132,7 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 begin
 end;
 
-{$elseif defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV3_d16)}
+{$elseif defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3) or defined(FPUVFPV4) or defined(FPUVFPV3_d16) or defined(FPUFPV4_s16)}
 
 const
   _VFP_ENABLE_IM  =  1 shl 8;         { invalid operation      }
@@ -450,8 +450,10 @@ function GetExceptionMask: TFPUExceptionMask;
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+{$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
   var
     cw : dword;
+{$endif}
   begin
 {$if not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
     cw:=FPU_GetCW;

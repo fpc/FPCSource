@@ -960,7 +960,7 @@ var
   ofs: Word;
   Ch, Ch2: Char;
 begin
-  dos_env_seg := PFarWord(Ptr(dos_psp, $2C))^;
+  dos_env_seg := PFarWord(Ptr(PrefixSeg, $2C))^;
   GetEnvStr := 1;
   OutEnvStr := '';
   ofs := 0;
@@ -1061,7 +1061,7 @@ end;
 
 Procedure Keep(exitcode: word); assembler;
 asm
-  mov bx, dos_psp
+  mov bx, PrefixSeg
   dec bx
   mov es, bx
   mov dx, es:[3]

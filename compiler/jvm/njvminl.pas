@@ -87,13 +87,13 @@ implementation
 
     function tjvminlinenode.typecheck_length(var handled: boolean): tnode;
       begin
+        result:=nil;
         typecheckpass(left);
         if is_open_array(left.resultdef) or
            is_dynamic_array(left.resultdef) or
            is_array_of_const(left.resultdef) then
           begin
             resultdef:=s32inttype;
-            result:=nil;
             handled:=true;
           end;
       end;
@@ -101,6 +101,7 @@ implementation
 
     function tjvminlinenode.typecheck_high(var handled: boolean): tnode;
       begin
+        result:=nil;
         typecheckpass(left);
         if is_dynamic_array(left.resultdef) or
            is_open_array(left.resultdef) or
@@ -120,6 +121,7 @@ implementation
         para: tcallparanode;
         elemdef: tdef;
       begin
+        result:=nil;
         { normally never exists; used by the JVM backend to create new
           arrays because it requires special opcodes }
         tcallparanode(left).get_paratype;
@@ -150,7 +152,6 @@ implementation
                 para:=tcallparanode(para.right);
                 elemdef:=tarraydef(elemdef).elementdef;
               end;
-            result:=nil;
             resultdef:=left.resultdef;
             handled:=true;
           end;
@@ -289,6 +290,7 @@ implementation
       var
         handled: boolean;
       begin
+         result:=nil;
          handled:=false;
          case inlinenumber of
            in_length_x:
@@ -302,6 +304,12 @@ implementation
            in_new_x:
              begin
                result:=typecheck_new(handled);
+             end;
+           in_sizeof_x:
+             begin
+               { can't get the size of the data of a class/object }
+               if left.resultdef.typ in [objectdef,classrefdef] then
+                 Message(parser_e_illegal_expression);
              end;
          end;
         if not handled then
@@ -593,7 +601,7 @@ implementation
               internalerror(2011031403);
             stringnonnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
-              ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[]));
+              ccallnode.create(nil,tprocsym(psym),psym.owner,stringtemp,[],nil));
             { else-path: length is 0 }
             stringnull:=cassignmentnode.create(
               ctemprefnode.create(lentemp),
@@ -616,7 +624,7 @@ implementation
               internalerror(2011052402);
             result:=
               ccallnode.create(nil,tprocsym(psym),psym.owner,
-                ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[]);
+                ctypeconvnode.create_explicit(caddrnode.create_internal(left),java_shortstring),[],nil);
             { reused }
             left:=nil;
           end

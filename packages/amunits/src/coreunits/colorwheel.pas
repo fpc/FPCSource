@@ -26,11 +26,7 @@
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-
-{$I useamigasmartlink.inc}
-{$ifdef use_amiga_smartlink}
-   {$smartlink on}
-{$endif use_amiga_smartlink}
+{$PACKRECORDS 2}
 
 UNIT colorwheel;
 
@@ -79,83 +75,26 @@ const
 
 {--- functions in V39 or higher (Release 3) ---}
 
-VAR ColorWheelBase : pLibrary;
+VAR ColorWheelBase : pLibrary = nil;
 
 const
     COLORWHEELNAME : Pchar = 'colorwheel.library';
 
-PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB; rgb : pColorWheelRGB);
-PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB; hsb : pColorWheelHSB);
+PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB location 'a0'; rgb : pColorWheelRGB location 'a1'); syscall ColorWheelBase 030;
+PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB location 'a0'; hsb : pColorWheelHSB location 'a1'); syscall ColorWheelBase 036;
 
 IMPLEMENTATION
 
-uses msgbox;
-
-PROCEDURE ConvertHSBToRGB(hsb : pColorWheelHSB; rgb : pColorWheelRGB);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L hsb,A0
-    MOVEA.L rgb,A1
-    MOVEA.L ColorWheelBase,A6
-    JSR -030(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-PROCEDURE ConvertRGBToHSB(rgb : pColorWheelRGB; hsb : pColorWheelHSB);
-BEGIN
-  ASM
-    MOVE.L  A6,-(A7)
-    MOVEA.L rgb,A0
-    MOVEA.L hsb,A1
-    MOVEA.L ColorWheelBase,A6
-    JSR -036(A6)
-    MOVEA.L (A7)+,A6
-  END;
-END;
-
-{$I useautoopenlib.inc}
-{$ifdef use_auto_openlib}
-  {$Info Compiling autoopening of colorwheel.library}
-
-var
-    colorwheel_exit : Pointer;
-
-procedure ClosecolorwheelLibrary;
-begin
-    ExitProc := colorwheel_exit;
-    if ColorWheelBase <> nil then begin
-        CloseLibrary(ColorWheelBase);
-        ColorWheelBase := nil;
-    end;
-end;
-
 const
     { Change VERSION and LIBVERSION to proper values }
-
     VERSION : string[2] = '0';
     LIBVERSION : longword = 0;
 
-begin
-    ColorWheelBase := nil;
-    ColorWheelBase := OpenLibrary(COLORWHEELNAME,LIBVERSION);
-    if ColorWheelBase <> nil then begin
-        colorwheel_exit := ExitProc;
-        ExitProc := @ClosecolorwheelLibrary
-    end else begin
-        MessageBox('FPC Pascal Error',
-        'Can''t open colorwheel.library version ' + VERSION + #10 +
-        'Deallocating resources and closing down',
-        'Oops');
-        halt(20);
-    end;
-
-{$else}
-   {$Warning No autoopening of colorwheel.library compiled}
-   {$Info Make sure you open colorwheel.library yourself}
-{$endif use_auto_openlib}
-
+initialization
+  ColorWheelBase := OpenLibrary(COLORWHEELNAME,LIBVERSION);
+finalization
+  if Assigned(ColorWheelBase) then
+    CloseLibrary(ColorWheelBase);
 END. (* UNIT COLORWHEEL *)
 
 

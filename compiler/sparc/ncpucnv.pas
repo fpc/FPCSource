@@ -152,7 +152,7 @@ implementation
           end
         else
           begin
-            current_asmdata.getdatalabel(l1);
+            current_asmdata.getglobaldatalabel(l1);
             current_asmdata.getjumplabel(l2);
             reference_reset_symbol(href,l1,0,8);
             hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
@@ -233,13 +233,9 @@ implementation
         hreg1,hreg2 : tregister;
         resflags : tresflags;
         opsize   : tcgsize;
-        hlabel,oldTrueLabel,oldFalseLabel : tasmlabel;
+        hlabel   : tasmlabel;
         newsize  : tcgsize;
       begin
-        oldTrueLabel:=current_procinfo.CurrTrueLabel;
-        oldFalseLabel:=current_procinfo.CurrFalseLabel;
-        current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
-        current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
         secondpass(left);
         if codegenerror then
           exit;
@@ -257,13 +253,15 @@ implementation
                 hlcg.location_force_reg(current_asmdata.CurrAsmList,location,left.resultdef,resultdef,true)
               else
                 location.size:=newsize;
-              current_procinfo.CurrTrueLabel:=oldTrueLabel;
-              current_procinfo.CurrFalseLabel:=oldFalseLabel;
               exit;
            end;
 
         location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
         opsize:=def_cgsize(left.resultdef);
+
+        if (left.location.loc in [LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+          hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,true);
+
         case left.location.loc of
           LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
             begin
@@ -316,13 +314,13 @@ implementation
             begin
               hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
               current_asmdata.getjumplabel(hlabel);
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrTrueLabel);
+              cg.a_label(current_asmdata.CurrAsmList,left.location.truelabel);
               if not(is_cbool(resultdef)) then
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,1,hreg1)
               else
                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,-1,hreg1);
               cg.a_jmp_always(current_asmdata.CurrAsmList,hlabel);
-              cg.a_label(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+              cg.a_label(current_asmdata.CurrAsmList,left.location.falselabel);
               cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,0,hreg1);
               cg.a_label(current_asmdata.CurrAsmList,hlabel);
             end;
@@ -344,9 +342,6 @@ implementation
          else
 {$endif not cpu64bitalu}
            location.register:=hreg1;
-
-        current_procinfo.CurrTrueLabel:=oldTrueLabel;
-        current_procinfo.CurrFalseLabel:=oldFalseLabel;
       end;
 
 

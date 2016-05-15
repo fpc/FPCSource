@@ -90,4 +90,12 @@ Uses Sysctl;
 {$i osmacro.inc}        { macro implenenations }
 {$i bunxovl.inc}        { redefs and overloads implementation }
 
+{$ifdef FPC_HAS_SETSYSNR_INC}
+{$I setsysnr.inc}
+{$endif FPC_HAS_SETSYSNR_INC}
+
+{$ifdef FPC_HAS_SETSYSNR_INC}
+begin
+  SetSyscallNumbers;
+{$endif FPC_HAS_SETSYSNR_INC}
 end.

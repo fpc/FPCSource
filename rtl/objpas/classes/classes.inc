@@ -83,6 +83,9 @@ var
   { this list holds all instances of external threads that need to be freed at
     the end of the program }
   ExternalThreads: TThreadList;
+  { this list signals that the ExternalThreads list is cleared and thus the
+    thread instances don't need to remove themselves }
+  ExternalThreadsCleanup: Boolean = False;
 
   { this must be a global var, otherwise unwanted optimizations might happen in
     TThread.SpinWait() }
@@ -135,6 +138,7 @@ type
     procedure Execute; override;
   public
     constructor Create;
+    destructor Destroy; override;
   end;
 
 
@@ -149,6 +153,25 @@ begin
   FExternalThread := True;
   { the parameter is unimportant if FExternalThread is True }
   inherited Create(False);
+  with ExternalThreads.LockList do
+    try
+      Add(Self);
+    finally
+      ExternalThreads.UnlockList;
+    end;
+end;
+
+
+destructor TExternalThread.Destroy;
+begin
+  inherited;
+  if not ExternalThreadsCleanup then
+    with ExternalThreads.LockList do
+      try
+        Extract(Self);
+      finally
+        ExternalThreads.UnlockList;
+      end;
 end;
 
 
@@ -236,7 +259,7 @@ begin
 // enable for all platforms once http://bugs.freepascal.org/view.php?id=16884
 // is fixed for all platforms (in case the fix for non-unix platforms also
 // requires this field at least)
-{$if defined(unix) or defined(windows)}
+{$if defined(unix) or defined(windows) or defined(os2) or defined(hasamiga)}
   if not FExternalThread and not FInitialSuspended then
     Resume;
 {$endif}
@@ -334,68 +357,72 @@ procedure TThread.Synchronize(AMethod: TThreadMethod);
     TThread.Synchronize(self,AMethod);
   end;
 
+Function PopThreadQueueHead : TThread.PThreadQueueEntry;
+
+begin
+  Result:=ThreadQueueHead;
+  if (Result<>Nil) then
+    begin
+    System.EnterCriticalSection(ThreadQueueLock);
+    try
+      Result:=ThreadQueueHead;
+      if Result<>Nil then
+        ThreadQueueHead:=ThreadQueueHead^.Next;
+      if Not Assigned(ThreadQueueHead) then
+        ThreadQueueTail := Nil;
+    finally
+      System.LeaveCriticalSection(ThreadQueueLock);
+    end;
+    end;
+end;
 
 function CheckSynchronize(timeout : longint=0) : boolean;
-  { assumes being called from GUI thread }
-  var
-    exceptobj: Exception;
-    tmpentry: TThread.PThreadQueueEntry;
-  begin
-    result:=false;
-    { first sanity check }
-    if Not IsMultiThread then
-      Exit
-    { second sanity check }
-    else if GetCurrentThreadID<>MainThreadID then
-      raise EThread.CreateFmt(SCheckSynchronizeError,[GetCurrentThreadID])
+
+{ assumes being called from GUI thread }
+var
+  ExceptObj: Exception;
+  tmpentry: TThread.PThreadQueueEntry;
+
+begin
+  result:=false;
+  { first sanity check }
+  if Not IsMultiThread then
+    Exit
+  { second sanity check }
+  else if GetCurrentThreadID<>MainThreadID then
+    raise EThread.CreateFmt(SCheckSynchronizeError,[GetCurrentThreadID]);
+  if timeout>0 then
+    RtlEventWaitFor(SynchronizeTimeoutEvent,timeout)
+  else
+    RtlEventResetEvent(SynchronizeTimeoutEvent);
+  tmpentry := PopThreadQueueHead;
+  while Assigned(tmpentry) do
+    begin
+    { step 2: execute the method }
+    exceptobj := Nil;
+    try
+      ExecuteThreadQueueEntry(tmpentry);
+    except
+      exceptobj := Exception(AcquireExceptionObject);
+    end;
+    { step 3: error handling and cleanup }
+    if Assigned(tmpentry^.SyncEvent) then
+      begin
+      { for Synchronize entries we pass back the Exception and trigger
+        the event that Synchronize waits in }
+      tmpentry^.Exception := exceptobj;
+      RtlEventSetEvent(tmpentry^.SyncEvent)
+      end
     else
       begin
-        if timeout>0 then
-          begin
-            RtlEventWaitFor(SynchronizeTimeoutEvent,timeout);
-          end
-         else
-           RtlEventResetEvent(SynchronizeTimeoutEvent);
-
-        System.EnterCriticalSection(ThreadQueueLock);
-        try
-          { Note: we don't need to pay attention to recursive calls to
-                  Synchronize as those calls will be executed in the context of
-                  the GUI thread and thus will be executed immediatly instead of
-                  queuing them }
-          while Assigned(ThreadQueueHead) do begin
-            { step 1: update the list }
-            tmpentry := ThreadQueueHead;
-            ThreadQueueHead := ThreadQueueHead^.Next;
-            if not Assigned(ThreadQueueHead) then
-              ThreadQueueTail := Nil;
-
-            { step 2: execute the method }
-            exceptobj := Nil;
-            try
-              ExecuteThreadQueueEntry(tmpentry);
-            except
-              exceptobj := Exception(AcquireExceptionObject);
-            end;
-
-            { step 3: error handling and cleanup }
-            if Assigned(tmpentry^.SyncEvent) then begin
-              { for Synchronize entries we pass back the Exception and trigger
-                the event that Synchronize waits in }
-              tmpentry^.Exception := exceptobj;
-              RtlEventSetEvent(tmpentry^.SyncEvent)
-            end else begin
-              { for Queue entries we dispose the entry and raise the exception }
-              Dispose(tmpentry);
-              if Assigned(exceptobj) then
-                raise exceptobj;
-            end;
-          end;
-        finally
-          System.LeaveCriticalSection(ThreadQueueLock);
-        end;
+      { for Queue entries we dispose the entry and raise the exception }
+      Dispose(tmpentry);
+      if Assigned(exceptobj) then
+        raise exceptobj;
       end;
-  end;
+    tmpentry := PopThreadQueueHead;
+    end;
+end;
 
 
 class function TThread.GetCurrentThread: TThread;
@@ -617,6 +644,202 @@ begin
   Result := SysUtils.GetTickCount64;
 end;
 
+{ TSimpleThread allows objects to create a threading method without defining 
+  a new thread class }
+
+Type
+  TSimpleThread = class(TThread)
+  private
+    FExecuteMethod: TThreadExecuteHandler;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(ExecuteMethod: TThreadExecuteHandler; AOnterminate : TNotifyEvent);
+  end;
+
+  TSimpleStatusThread = class(TThread)
+  private
+    FExecuteMethod: TThreadExecuteStatusHandler;
+    FStatus : String;
+    FOnStatus : TThreadStatusNotifyEvent;
+  protected
+    procedure Execute; override;
+    Procedure DoStatus;
+    Procedure SetStatus(Const AStatus : String);
+  public
+    constructor Create(ExecuteMethod: TThreadExecuteStatusHandler; AOnStatus : TThreadStatusNotifyEvent; AOnterminate : TNotifyEvent);
+  end;
+
+  TSimpleProcThread = class(TThread)
+  private
+    FExecuteMethod: TThreadExecuteCallBack;
+    FCallOnTerminate : TNotifyCallBack;
+    FData : Pointer;
+  protected
+    Procedure TerminateCallBack(Sender : TObject);
+    procedure Execute; override;
+  public
+    constructor Create(ExecuteMethod: TThreadExecuteCallBack; AData : Pointer; AOnterminate : TNotifyCallBack);
+  end;
+
+  TSimpleStatusProcThread = class(TThread)
+  private
+    FExecuteMethod: TThreadExecuteStatusCallBack;
+    FCallOnTerminate : TNotifyCallBack;
+    FStatus : String;
+    FOnStatus : TThreadStatusNotifyCallBack;
+    FData : Pointer;
+  protected
+    procedure Execute; override;
+    Procedure DoStatus;
+    Procedure SetStatus(Const AStatus : String);
+    Procedure TerminateCallBack(Sender : TObject);
+  public
+    constructor Create(ExecuteMethod: TThreadExecuteStatusCallBack; AData : Pointer; AOnStatus : TThreadStatusNotifyCallBack; AOnterminate : TNotifyCallBack);
+  end;
+
+
+{ TSimpleThread }
+ 
+constructor TSimpleThread.Create(ExecuteMethod: TThreadExecuteHandler; AOnTerminate: TNotifyEvent);
+begin
+  FExecuteMethod := ExecuteMethod;
+  OnTerminate := AOnTerminate;
+  inherited Create(False);
+end;
+
+procedure TSimpleThread.Execute;
+begin
+  FreeOnTerminate := True;
+  FExecuteMethod;
+end;
+
+{ TSimpleStatusThread }
+ 
+constructor TSimpleStatusThread.Create(ExecuteMethod: TThreadExecuteStatusHandler;AOnStatus : TThreadStatusNotifyEvent; AOnTerminate: TNotifyEvent);
+begin
+  FExecuteMethod := ExecuteMethod;
+  OnTerminate := AOnTerminate;
+  FOnStatus:=AOnStatus;
+  FStatus:='';
+  inherited Create(False);
+end;
+
+procedure TSimpleStatusThread.Execute;
+begin
+  FreeOnTerminate := True;
+  FExecuteMethod(@SetStatus);
+end;
+
+procedure TSimpleStatusThread.SetStatus(Const AStatus : String);
+begin
+  If (AStatus=FStatus) then 
+    exit;
+  FStatus:=AStatus;
+  If Assigned(FOnStatus) then  
+    Synchronize(@DoStatus);  
+end;
+
+procedure TSimpleStatusThread.DoStatus;
+begin
+   FOnStatus(Self,FStatus);
+end;
+
+
+{ TSimpleProcThread }
+ 
+constructor TSimpleProcThread.Create(ExecuteMethod: TThreadExecuteCallBack; AData : Pointer; AOnTerminate: TNotifyCallBack);
+begin
+  FExecuteMethod := ExecuteMethod;
+  FCallOnTerminate := AOnTerminate;
+  FData:=AData;
+  If Assigned(FCallOnTerminate) then
+    OnTerminate:=@TerminateCallBack;
+  inherited Create(False);
+end;
+
+procedure TSimpleProcThread.Execute;
+begin
+  FreeOnTerminate := True;
+  FExecuteMethod(FData);
+end;
+
+procedure TSimpleProcThread.TerminateCallBack(Sender : TObject);
+
+begin
+  if Assigned(FCallOnTerminate) then
+    FCallOnTerminate(Sender,FData);  
+end;
+
+{ TSimpleStatusProcThread }
+ 
+constructor TSimpleStatusProcThread.Create(ExecuteMethod: TThreadExecuteStatusCallback; AData : Pointer; AOnStatus : TThreadStatusNotifyCallBack; AOnTerminate: TNotifyCallBack);
+begin
+  FExecuteMethod := ExecuteMethod;
+  FCallOnTerminate := AOnTerminate;
+  FData:=AData;
+  If Assigned(FCallOnTerminate) then
+    OnTerminate:=@TerminateCallBack;
+  FOnStatus:=AOnStatus;
+  FStatus:='';
+  inherited Create(False);
+end;
+
+procedure TSimpleStatusProcThread.Execute;
+begin
+  FreeOnTerminate := True;
+  FExecuteMethod(FData,@SetStatus);
+end;
+
+procedure TSimpleStatusProcThread.SetStatus(Const AStatus : String);
+begin
+  If (AStatus=FStatus) then 
+    exit;
+  FStatus:=AStatus;
+  If Assigned(FOnStatus) then  
+    Synchronize(@DoStatus);  
+end;
+
+procedure TSimpleStatusProcThread.DoStatus;
+begin
+   FOnStatus(Self,FData,FStatus);
+end;
+
+procedure TSimpleStatusProcThread.TerminateCallBack(Sender : TObject);
+
+begin
+  if Assigned(FCallOnTerminate) then
+    FCallOnTerminate(Sender,FData);  
+end;
+
+
+Class Function TThread.ExecuteInThread(AMethod : TThreadExecuteHandler; AOnTerminate : TNotifyEvent = Nil) : TThread;
+
+begin
+  Result:=TSimpleThread.Create(AMethod,AOnTerminate);
+end;
+
+Class Function TThread.ExecuteInThread(AMethod : TThreadExecuteCallback; AData : Pointer; AOnTerminate : TNotifyCallback = Nil) : TThread;
+
+begin
+  Result:=TSimpleProcThread.Create(AMethod,AData,AOnTerminate);
+end;
+
+Class Function TThread.ExecuteInThread(AMethod : TThreadExecuteStatusHandler; AOnStatus : TThreadStatusNotifyEvent; AOnTerminate : TNotifyEvent = Nil) : TThread;
+
+begin
+  If Not Assigned(AOnStatus) then 
+    Raise EThread.Create(SErrStatusCallBackRequired);
+  Result:=TSimpleStatusThread.Create(AMethod,AOnStatus,AOnTerminate);
+end;
+
+Class Function TThread.ExecuteInThread(AMethod : TThreadExecuteStatusCallback; AOnStatus : TThreadStatusNotifyCallback;AData : Pointer = Nil;  AOnTerminate : TNotifyCallBack = Nil) : TThread;
+
+begin
+  If Not Assigned(AOnStatus) then 
+    Raise EThread.Create(SErrStatusCallBackRequired);
+  Result:=TSimpleStatusProcThread.Create(AMethod,AData,AOnStatus,AOnTerminate);
+end;
 
 { TPersistent implementation }
 {$i persist.inc }
@@ -850,7 +1073,7 @@ begin
   end;
 end;
 
-function IdentToInt(const Ident: String; var Int: LongInt;
+function IdentToInt(const Ident: String; out Int: LongInt;
   const Map: array of TIdentMapEntry): Boolean;
 var
   i: Integer;
@@ -1889,7 +2112,7 @@ var
             case parser.Token of
               toString  : s:=s+parser.TokenString;
               toWString : begin
-                            ProcessWideString(s);
+                            ProcessWideString(WideString(s));
                             exit;
                           end
               else parser.CheckToken(toString);
@@ -2180,6 +2403,7 @@ begin
   InitHandlerList:=Nil;
   FindGlobalComponentList.Free;
   FindGlobalComponentList:=nil;
+  ExternalThreadsCleanup:=True;
   with ExternalThreads.LockList do
     try
       for i := 0 to Count - 1 do

@@ -90,13 +90,17 @@ var
 
 type
 { windows isn't defined in 2.0.2 (FK) }
-{$if not(defined(windows)) and not(defined(win32))}
+{$if defined(windows) or defined(win32)}
    { Win32 reuses the struct from the Windows unit }
+{$DEFINE HAS_SYSTEMTIME}
+{$endif windows}
+
+{$IFNDEF HAS_SYSTEMTIME}
    TSystemTime = record
-      Year, Month, Day: word;
+      Year, Month, Day, DayOfWeek: word;
       Hour, Minute, Second, MilliSecond: word;
    end ;
-{$endif windows}
+{$ENDIF}
 
    TTimeStamp = record
       Time: longint;   { Number of milliseconds since midnight }
@@ -129,8 +133,8 @@ function DateToStr(Date: TDateTime): string;
 function DateToStr(Date: TDateTime; const FormatSettings: TFormatSettings): string;
 function TimeToStr(Time: TDateTime): string;
 function TimeToStr(Time: TDateTime; const FormatSettings: TFormatSettings): string;
-function DateTimeToStr(DateTime: TDateTime): string;
-function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+function DateTimeToStr(DateTime: TDateTime; ForceTimeIfZero : Boolean = False): string;
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings; ForceTimeIfZero : Boolean = False): string;
 function StrToDate(const S: ShortString): TDateTime;                  {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}

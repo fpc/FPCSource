@@ -1,9 +1,6 @@
 {	CFXMLParser.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
-{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{	  Pascal Translation Updated:  Jonas Maebe <jonas@freepascal.org>, September 2012 }
 {
     Modified for use with Free Pascal
     Version 308
@@ -58,6 +55,11 @@ interface
 {$elsec}
 	{$setc __arm__ := 0}
 {$endc}
+{$ifc not defined __arm64__ and defined CPUAARCH64}
+  {$setc __arm64__ := 1}
+{$elsec}
+  {$setc __arm64__ := 0}
+{$endc}
 
 {$ifc defined cpu64}
   {$setc __LP64__ := 1}
@@ -76,6 +78,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -86,6 +89,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -96,6 +100,7 @@ interface
 	{$setc TARGET_CPU_X86 := TRUE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 {$ifc defined(iphonesim)}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
@@ -112,9 +117,16 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
+{$elsec}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$endc}
 	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
@@ -122,13 +134,26 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elifc defined __arm64__ and __arm64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := TRUE}
 	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
-	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
 
 {$ifc defined __LP64__ and __LP64__ }
@@ -318,7 +343,7 @@ type
 	end;
 
 function CFXMLParserGetTypeID: CFTypeID; external name '_CFXMLParserGetTypeID';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Creates a parser which will parse the given data with the given options.  xmlData may not be NULL. 
    dataSource should be the URL from which the data came, and may be NULL; it is used to resolve any
@@ -328,48 +353,48 @@ function CFXMLParserGetTypeID: CFTypeID; external name '_CFXMLParserGetTypeID';
    callBacks->endXMLStructure must all be non-NULL.  context determines what if any info pointer is
    passed to the callbacks as the parse progresses; context may be NULL.  }
 function CFXMLParserCreate( allocator: CFAllocatorRef; xmlData: CFDataRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex; var callBacks: CFXMLParserCallBacks; var context: CFXMLParserContext ): CFXMLParserRef; external name '_CFXMLParserCreate';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Arguments as above, except that the data to be parsed is loaded directly 
    from dataSource.  dataSource may not be NULL.  }
 function CFXMLParserCreateWithDataFromURL( allocator: CFAllocatorRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex; var callBacks: CFXMLParserCallBacks; var context: CFXMLParserContext ): CFXMLParserRef; external name '_CFXMLParserCreateWithDataFromURL';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 procedure CFXMLParserGetContext( parser: CFXMLParserRef; var context: CFXMLParserContext ); external name '_CFXMLParserGetContext';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 procedure CFXMLParserGetCallBacks( parser: CFXMLParserRef; var callBacks: CFXMLParserCallBacks ); external name '_CFXMLParserGetCallBacks';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 function CFXMLParserGetSourceURL( parser: CFXMLParserRef ): CFURLRef; external name '_CFXMLParserGetSourceURL';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Returns the character index of the current parse location }
 function CFXMLParserGetLocation( parser: CFXMLParserRef ): CFIndex; external name '_CFXMLParserGetLocation';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Returns the line number of the current parse location }
 function CFXMLParserGetLineNumber( parser: CFXMLParserRef ): CFIndex; external name '_CFXMLParserGetLineNumber';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Returns the top-most object returned by the createXMLStructure callback }
 function CFXMLParserGetDocument( parser: CFXMLParserRef ): UnivPtr; external name '_CFXMLParserGetDocument';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Get the status code or a user-readable description of the last error that occurred in a parse.
    If no error has occurred, a null description string is returned.  See the enum above for
    possible status returns }
 function CFXMLParserGetStatusCode( parser: CFXMLParserRef ): CFXMLParserStatusCode; external name '_CFXMLParserGetStatusCode';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 function CFXMLParserCopyErrorDescription( parser: CFXMLParserRef ): CFStringRef; external name '_CFXMLParserCopyErrorDescription';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Cause any in-progress parse to abort with the given error code and description.  errorCode
    must be positive, and errorDescription may not be NULL.  Cannot be called asynchronously
    (i.e. must be called from within a parser callback) }
 procedure CFXMLParserAbort( parser: CFXMLParserRef; errorCode: CFXMLParserStatusCode; errorDescription: CFStringRef ); external name '_CFXMLParserAbort';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Starts a parse of the data the parser was created with; returns success or failure.
    Upon success, use CFXMLParserGetDocument() to get the product of the parse.  Upon
@@ -377,7 +402,7 @@ procedure CFXMLParserAbort( parser: CFXMLParserRef; errorCode: CFXMLParserStatus
    information about the error.  It is an error to call CFXMLParserParse() while a
    parse is already underway. }
 function CFXMLParserParse( parser: CFXMLParserRef ): Boolean; external name '_CFXMLParserParse';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { These functions provide a higher-level interface.  The XML data is parsed to a
    special CFTree (an CFXMLTree) with known contexts and callbacks.  See CFXMLNode.h
@@ -386,17 +411,17 @@ function CFXMLParserParse( parser: CFXMLParserRef ): Boolean; external name '_CF
 { Parse to an CFXMLTreeRef.  parseOptions are as above. versionOfNodes determines
    what version CFXMLNodes are used to populate the tree.  }
 function CFXMLTreeCreateFromData( allocator: CFAllocatorRef; xmlData: CFDataRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex ): CFXMLTreeRef; external name '_CFXMLTreeCreateFromData';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { As above, with the additional by-reference pass of a CFDictionaryRef containing
    various error information (see below). The caller is responsible for releasing the
    returned dictionary. If the error dictionary is not desired, pass NULL. }
 function CFXMLTreeCreateFromDataWithError( allocator: CFAllocatorRef; xmlData: CFDataRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex; var errorDict: CFDictionaryRef ): CFXMLTreeRef; external name '_CFXMLTreeCreateFromDataWithError';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_3, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Loads the data to be parsed directly from dataSource.  Arguments as above. }
 function CFXMLTreeCreateWithDataFromURL( allocator: CFAllocatorRef; dataSource: CFURLRef; parseOptions: CFOptionFlags; versionOfNodes: CFIndex ): CFXMLTreeRef; external name '_CFXMLTreeCreateWithDataFromURL';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Generate the XMLData (ready to be written to whatever permanent storage is to be
    used) from an CFXMLTree.  Will NOT regenerate entity references (except those
@@ -404,7 +429,7 @@ function CFXMLTreeCreateWithDataFromURL( allocator: CFAllocatorRef; dataSource: 
    clients that wish this should walk the tree and re-insert any entity references
    that should appear in the final output file. }
 function CFXMLTreeCreateXMLData( allocator: CFAllocatorRef; xmlTree: CFXMLTreeRef ): CFDataRef; external name '_CFXMLTreeCreateXMLData';
-(* CF_AVAILABLE_BUT_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
+(* CF_DEPRECATED(10_0, 10_8, 2_0, 6_0) *)
 
 { Escaping and unescaping XML entities in CFStrings. The standard XML entities
    are always replaced.  }

@@ -1,6 +1,6 @@
 PROGRAM AslTest;
 
-uses Exec, Utility, Asl, msgbox, systemvartags;
+uses Exec, Utility, Asl, amsgbox;
 
 
 {
@@ -26,9 +26,9 @@ VAR
 BEGIN
 
     fr := AllocAslRequestTags(ASL_FileRequest,[
-                          ASLFR_InitialPattern,'#?',
-                          ASLFR_TitleText,'Test av ASL-Requester by NS',
-                          ASLFR_DoPatterns,ltrue,
+                          ASLFR_InitialPattern, AsTag('#?'),
+                          ASLFR_TitleText, AsTag('Test av ASL-Requester by NS'),
+                          ASLFR_DoPatterns, LTrue,
                           TAG_DONE]);
 
     IF fr <> nil THEN BEGIN

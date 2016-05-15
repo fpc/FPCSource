@@ -57,6 +57,9 @@ type
 
   tcpupointerdef = class(tx86pointerdef)
     class function default_x86_data_pointer_type: tx86pointertyp; override;
+    function alignment:shortint;override;
+    function pointer_arithmetic_int_type:tdef; override;
+    function pointer_subtraction_result_type:tdef; override;
   end;
   tcpupointerdefclass = class of tcpupointerdef;
 
@@ -73,10 +76,23 @@ type
   tcpuobjectdefclass = class of tcpuobjectdef;
 
   tcpuclassrefdef = class(tclassrefdef)
+    function alignment:shortint;override;
   end;
   tcpuclassrefdefclass = class of tcpuclassrefdef;
 
+  { tcpuarraydef }
+
   tcpuarraydef = class(tarraydef)
+   private
+    huge: Boolean;
+   protected
+    procedure ppuload_platform(ppufile: tcompilerppufile); override;
+    procedure ppuwrite_platform(ppufile: tcompilerppufile); override;
+   public
+    constructor create_from_pointer(def:tpointerdef);override;
+    function getcopy: tstoreddef; override;
+    function GetTypeName:string;override;
+    property is_huge: Boolean read huge write huge;
   end;
   tcpuarraydefclass = class of tcpuarraydef;
 
@@ -107,8 +123,9 @@ type
       - it is compiled in a $F- state }
     function default_far:boolean;
    public
-    constructor create(level:byte);override;
+    constructor create(level:byte;doregister:boolean);override;
     function address_type:tdef;override;
+    function size:asizeint;override;
     procedure declared_far;override;
     procedure declared_near;override;
     function is_far:boolean;
@@ -135,6 +152,10 @@ type
   tcpuunitsym = class(tunitsym)
   end;
   tcpuunitsymclass = class of tcpuunitsym;
+
+  tcpuprogramparasym = class(tprogramparasym)
+  end;
+  tcpuprogramparasymclass = class(tprogramparasym);
 
   tcpunamespacesym = class(tnamespacesym)
   end;
@@ -196,11 +217,19 @@ const
 
   function is_proc_far(p: tabstractprocdef): boolean;
 
+  {# Returns true if p is a far proc var }
+  function is_farprocvar(p : tdef): boolean;
+
+  {# Returns true if p is a far pointer def }
+  function is_farpointer(p : tdef) : boolean;
+
+  {# Returns true if p is a huge pointer def }
+  function is_hugepointer(p : tdef) : boolean;
 
 implementation
 
   uses
-    globals, cpuinfo, verbose;
+    globals, cpuinfo, verbose, fmodule;
 
 
   function is_proc_far(p: tabstractprocdef): boolean;
@@ -213,14 +242,91 @@ implementation
       internalerror(2014041301);
   end;
 
+  { true if p is a far proc var }
+  function is_farprocvar(p : tdef): boolean;
+    begin
+      result:=(p.typ=procvardef) and tcpuprocvardef(p).is_far;
+    end;
+
+  { true if p is a far pointer def }
+  function is_farpointer(p : tdef) : boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_far);
+    end;
+
+  { true if p is a huge pointer def }
+  function is_hugepointer(p : tdef) : boolean;
+    begin
+      result:=(p.typ=pointerdef) and (tcpupointerdef(p).x86pointertyp=x86pt_huge);
+    end;
+
+{****************************************************************************
+                               tcpuclassrefdef
+****************************************************************************}
+
+  function tcpuclassrefdef.alignment:shortint;
+    begin
+      Result:=2;
+    end;
+
+{****************************************************************************
+                               tcpuarraydef
+****************************************************************************}
+
+  constructor tcpuarraydef.create_from_pointer(def: tpointerdef);
+    begin
+      if tcpupointerdef(def).x86pointertyp=x86pt_huge then
+        begin
+          huge:=true;
+          { use -1 so that the elecount will not overflow }
+          self.create(0,high(asizeint)-1,s32inttype);
+          arrayoptions:=[ado_IsConvertedPointer];
+          setelementdef(def.pointeddef);
+        end
+      else
+        begin
+          huge:=false;
+          inherited create_from_pointer(def);
+        end;
+    end;
+
+
+  function tcpuarraydef.getcopy: tstoreddef;
+    begin
+      result:=inherited;
+      tcpuarraydef(result).huge:=huge;
+    end;
+
+
+  function tcpuarraydef.GetTypeName: string;
+    begin
+      Result:=inherited;
+      if is_huge then
+        Result:='Huge '+Result;
+    end;
+
+
+  procedure tcpuarraydef.ppuload_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      huge:=(ppufile.getbyte<>0);
+    end;
+
+
+  procedure tcpuarraydef.ppuwrite_platform(ppufile: tcompilerppufile);
+    begin
+      inherited;
+      ppufile.putbyte(byte(huge));
+    end;
+
 
 {****************************************************************************
                              tcpuprocdef
 ****************************************************************************}
 
-  constructor tcpuprocdef.create(level: byte);
+  constructor tcpuprocdef.create(level: byte;doregister:boolean);
     begin
-      inherited create(level);
+      inherited create(level,doregister);
       if (current_settings.x86memorymodel in x86_far_code_models) and
          ((cs_huge_code in current_settings.moduleswitches) or
           (cs_force_far_calls in current_settings.localswitches)) then
@@ -234,6 +340,12 @@ implementation
         result:=voidfarpointertype
       else
         result:=voidnearpointertype;
+    end;
+
+
+  function tcpuprocdef.size: asizeint;
+    begin
+      result:=address_type.size;
     end;
 
 
@@ -275,8 +387,8 @@ implementation
 
   function tcpuprocdef.is_far: boolean;
     begin
-      result:=(current_settings.x86memorymodel in x86_far_code_models) and
-        ((po_far in procoptions) or default_far);
+      result:=(po_exports in procoptions) or
+              ((current_settings.x86memorymodel in x86_far_code_models) and ((po_far in procoptions) or default_far));
     end;
 
 {****************************************************************************
@@ -308,6 +420,36 @@ implementation
           result:=x86pt_far
         else
           result:=inherited;
+      end;
+
+
+    function tcpupointerdef.alignment:shortint;
+      begin
+        { on i8086, we use 16-bit alignment for all pointer types, even far and
+          huge (which are 4 bytes long) }
+        result:=2;
+      end;
+
+
+    function tcpupointerdef.pointer_arithmetic_int_type:tdef;
+      begin
+        if x86pointertyp=x86pt_huge then
+          result:=s32inttype
+        else
+          result:=inherited;
+      end;
+
+
+    function tcpupointerdef.pointer_subtraction_result_type:tdef;
+      begin
+        case x86pointertyp of
+          x86pt_huge:
+            result:=s32inttype;
+          x86pt_far:
+            result:=u16inttype;
+          else
+            result:=inherited;
+        end;
       end;
 
 
@@ -355,6 +497,7 @@ begin
   { used tsym classes }
   clabelsym:=tcpulabelsym;
   cunitsym:=tcpuunitsym;
+  cprogramparasym:=tcpuprogramparasym;
   cnamespacesym:=tcpunamespacesym;
   cprocsym:=tcpuprocsym;
   ctypesym:=tcputypesym;

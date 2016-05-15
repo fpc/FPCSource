@@ -1,4 +1,4 @@
-{%skiptarget=wince}
+{%skiptarget=wince,os2,emx}
 {%delfiles=blockwritetest.tmp}
 var
   f:file;

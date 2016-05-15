@@ -1,11 +1,6 @@
 {	CFBase.h
-	Copyright (c) 1998-2012, Apple Inc. All rights reserved.
+	Copyright (c) 1998-2013, Apple Inc. All rights reserved.
 }
-{       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
-{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
-{ 		Pascal Translation Updated: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
-{       Pascal Translation Updated: Jonas Maebe <jonas@freepascal.org>, September 2012 }
-
 {
     Modified for use with Free Pascal
     Version 308
@@ -60,6 +55,11 @@ interface
 {$elsec}
 	{$setc __arm__ := 0}
 {$endc}
+{$ifc not defined __arm64__ and defined CPUAARCH64}
+  {$setc __arm64__ := 1}
+{$elsec}
+  {$setc __arm64__ := 0}
+{$endc}
 
 {$ifc defined cpu64}
   {$setc __LP64__ := 1}
@@ -78,6 +78,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -88,6 +89,7 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
@@ -98,6 +100,7 @@ interface
 	{$setc TARGET_CPU_X86 := TRUE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
 {$ifc defined(iphonesim)}
  	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
@@ -114,9 +117,16 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := TRUE}
 	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
+{$elsec}
 	{$setc TARGET_OS_MAC := TRUE}
 	{$setc TARGET_OS_IPHONE := FALSE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$endc}
 	{$setc TARGET_OS_EMBEDDED := FALSE}
 {$elifc defined __arm__ and __arm__}
 	{$setc TARGET_CPU_PPC := FALSE}
@@ -124,13 +134,26 @@ interface
 	{$setc TARGET_CPU_X86 := FALSE}
 	{$setc TARGET_CPU_X86_64 := FALSE}
 	{$setc TARGET_CPU_ARM := TRUE}
+	{$setc TARGET_CPU_ARM64 := FALSE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+	{$setc TARGET_OS_EMBEDDED := TRUE}
+{$elifc defined __arm64__ and __arm64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_CPU_ARM64 := TRUE}
 	{ will require compiler define when/if other Apple devices with ARM cpus ship }
 	{$setc TARGET_OS_MAC := FALSE}
 	{$setc TARGET_OS_IPHONE := TRUE}
 	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 	{$setc TARGET_OS_EMBEDDED := TRUE}
 {$elsec}
-	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ nor __arm64__ is defined.}
 {$endc}
 
 {$ifc defined __LP64__ and __LP64__ }
@@ -314,6 +337,18 @@ const
 	kCFCoreFoundationVersionNumber10_7_3 = 635.19;
 const
 	kCFCoreFoundationVersionNumber10_7_4 = 635.21;
+const
+	kCFCoreFoundationVersionNumber10_7_5 = 635.21;
+const
+	kCFCoreFoundationVersionNumber10_8 = 744.00;
+const
+	kCFCoreFoundationVersionNumber10_8_1 = 744.00;
+const
+	kCFCoreFoundationVersionNumber10_8_2 = 744.12;
+const
+	kCFCoreFoundationVersionNumber10_8_3 = 744.18;
+const
+	kCFCoreFoundationVersionNumber10_8_4 = 744.19;
 {$endc}
 
 {$ifc TARGET_OS_IPHONE}
@@ -338,9 +373,13 @@ const
 const
 	kCFCoreFoundationVersionNumber_iOS_4_3 = 550.52;
 const
-	kCFCoreFoundationVersionNumber_iOS_5_0 = 675;
+	kCFCoreFoundationVersionNumber_iOS_5_0 = 675.00;
 const
-	kCFCoreFoundationVersionNumber_iOS_5_1 = 690.1;
+	kCFCoreFoundationVersionNumber_iOS_5_1 = 690.10;
+const
+	kCFCoreFoundationVersionNumber_iOS_6_0 = 793.00;
+const
+	kCFCoreFoundationVersionNumber_iOS_6_1 = 793.00;
 {$endc}
 
 type
@@ -534,12 +573,10 @@ function CFRetain( cf: CFTypeRef ): CFTypeRef; external name '_CFRetain';
 
 procedure CFRelease( cf: CFTypeRef ); external name '_CFRelease';
 
-function CFGetRetainCount( cf: CFTypeRef ): CFIndex; external name '_CFGetRetainCount';
+function CFAutorelease( arg: CFTypeRef {CF_RELEASES_ARGUMENT} ): CFTypeRef; external name '_CFAutorelease';
+(* CF_AVAILABLE_STARTING(10_9, 7_0) *)
 
-// This function is unavailable in ARC mode. Use CFBridgingRelease instead.
-{ CF_AUTOMATED_REFCOUNT_UNAVAILABLE }
-function CFMakeCollectable( cf: CFTypeRef ): CFTypeRef; external name '_CFMakeCollectable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) 
+function CFGetRetainCount( cf: CFTypeRef ): CFIndex; external name '_CFGetRetainCount';
 
 function CFEqual( cf1: CFTypeRef; cf2: CFTypeRef ): Boolean; external name '_CFEqual';
 
@@ -548,6 +585,11 @@ function CFHash( cf: CFTypeRef ): CFHashCode; external name '_CFHash';
 function CFCopyDescription( cf: CFTypeRef ): CFStringRef; external name '_CFCopyDescription';
 
 function CFGetAllocator( cf: CFTypeRef ): CFAllocatorRef; external name '_CFGetAllocator';
+
+// This function is unavailable in ARC mode. Use CFBridgingRelease instead.
+{ CF_AUTOMATED_REFCOUNT_UNAVAILABLE }
+function CFMakeCollectable( cf: CFTypeRef ): CFTypeRef; external name '_CFMakeCollectable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *) 
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 

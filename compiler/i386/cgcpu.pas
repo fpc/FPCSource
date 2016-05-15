@@ -36,7 +36,6 @@ unit cgcpu;
     type
       tcg386 = class(tcgx86)
         procedure init_register_allocators;override;
-        procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         { passing parameter using push instead of mov }
         procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
@@ -48,10 +47,6 @@ unit cgcpu;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:tcgint;destreg:tregister);
         procedure g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
 
-        procedure g_exception_reason_save(list : TAsmList; const href : treference);override;
-        procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: tcgint);override;
-        procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
-        procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_maybe_got_init(list: TAsmList); override;
      end;
 
@@ -85,27 +80,13 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-           (cs_create_pic in current_settings.moduleswitches) then
-          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
+        if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
         else
-          if (cs_useebp in current_settings.optimizerswitches) and assigned(current_procinfo) and (current_procinfo.framepointer<>NR_EBP) then
-            rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI,RS_EBP],first_int_imreg,[])
-          else
-            rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+          rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
         rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBWHOLE,[RS_XMM0,RS_XMM1,RS_XMM2,RS_XMM3,RS_XMM4,RS_XMM5,RS_XMM6,RS_XMM7],first_mm_imreg,[]);
         rgfpu:=Trgx86fpu.create;
-      end;
-
-    procedure tcg386.do_register_allocation(list:TAsmList;headertai:tai);
-      begin
-        if (pi_needs_got in current_procinfo.flags) then
-          begin
-            if getsupreg(current_procinfo.got) < first_int_imreg then
-              include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
-          end;
-        inherited do_register_allocation(list,headertai);
       end;
 
 
@@ -228,7 +209,11 @@ unit cgcpu;
               end
           end
         else
-          inherited a_load_ref_cgpara(list,size,r,cgpara);
+          begin
+            href:=r;
+            make_simple_ref(list,href);
+            inherited a_load_ref_cgpara(list,size,href,cgpara);
+          end;
       end;
 
 
@@ -236,9 +221,15 @@ unit cgcpu;
       var
         tmpreg : tregister;
         opsize : topsize;
-        tmpref : treference;
+        tmpref,dirref : treference;
       begin
-        with r do
+        dirref:=r;
+
+        { this could probably done in a more optimized way, but for now this
+          is sufficent }
+        make_direct_ref(list,dirref);
+
+        with dirref do
           begin
             if use_push(cgpara) then
               begin
@@ -249,11 +240,11 @@ unit cgcpu;
                     if assigned(symbol) then
                       begin
                         if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
-                           ((r.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
+                           ((dirref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                             (cs_create_pic in current_settings.moduleswitches)) then
                           begin
                             tmpreg:=getaddressregister(list);
-                            a_loadaddr_ref_reg(list,r,tmpreg);
+                            a_loadaddr_ref_reg(list,dirref,tmpreg);
                             list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                           end
                         else if cs_create_pic in current_settings.moduleswitches then
@@ -261,12 +252,12 @@ unit cgcpu;
                             if offset<>0 then
                               begin
                                 tmpreg:=getaddressregister(list);
-                                a_loadaddr_ref_reg(list,r,tmpreg);
+                                a_loadaddr_ref_reg(list,dirref,tmpreg);
                                 list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                               end
                             else
                               begin
-                                reference_reset_symbol(tmpref,r.symbol,0,r.alignment);
+                                reference_reset_symbol(tmpref,dirref.symbol,0,dirref.alignment);
                                 tmpref.refaddr:=addr_pic;
                                 tmpref.base:=current_procinfo.got;
 {$ifdef EXTDEBUG}
@@ -292,12 +283,12 @@ unit cgcpu;
                 else
                   begin
                     tmpreg:=getaddressregister(list);
-                    a_loadaddr_ref_reg(list,r,tmpreg);
+                    a_loadaddr_ref_reg(list,dirref,tmpreg);
                     list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                   end;
               end
             else
-              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,dirref,cgpara);
           end;
       end;
 
@@ -336,7 +327,7 @@ unit cgcpu;
               begin
                 if (not paramanager.use_fixed_stack) then
                   internal_restore_regs(list,not (pi_has_stack_allocs in current_procinfo.flags));
-                list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+                generate_leave(list);
               end;
             list.concat(tai_regalloc.dealloc(current_procinfo.framepointer,nil));
           end;
@@ -543,58 +534,51 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_exception_reason_save(list : TAsmList; const href : treference);
-      begin
-        if not paramanager.use_fixed_stack then
-          list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
-        else
-         inherited g_exception_reason_save(list,href);
-      end;
-
-
-    procedure tcg386.g_exception_reason_save_const(list : TAsmList;const href : treference; a: tcgint);
-      begin
-        if not paramanager.use_fixed_stack then
-          list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a))
-        else
-          inherited g_exception_reason_save_const(list,href,a);
-      end;
-
-
-    procedure tcg386.g_exception_reason_load(list : TAsmList; const href : treference);
-      begin
-        if not paramanager.use_fixed_stack then
-          begin
-            a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
-            list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
-          end
-        else
-          inherited g_exception_reason_load(list,href);
-      end;
-
-
     procedure tcg386.g_maybe_got_init(list: TAsmList);
       var
-        notdarwin: boolean;
+        i: longint;
+        tmpreg: TRegister;
       begin
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
            (pi_needs_got in current_procinfo.flags) then
           begin
-            notdarwin:=not(target_info.system in [system_i386_darwin,system_i386_iphonesim]);
-            { on darwin, the got register is virtual (and allocated earlier
-              already) }
-            if notdarwin then
-              { ecx could be used in leaf procedures that don't use ecx to pass
-                aparameter }
-              current_procinfo.got:=NR_EBX;
-            if notdarwin { needs testing before it can be enabled for non-darwin platforms
-                and
-               (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
+            if not (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
               begin
-                current_module.requires_ebx_pic_helper:=true;
-                a_call_name_static(list,'fpc_geteipasebx');
+                { Use ECX as a temp register by default }
+                tmpreg:=NR_ECX;
+                { Allocate registers used for parameters to make sure they
+                  never allocated during this PIC init code }
+                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                    if Loc in [LOC_REGISTER, LOC_CREGISTER] then begin
+                      a_reg_alloc(list, register);
+                      { If ECX is used for a parameter, use EBX as temp }
+                      if getsupreg(register) = RS_ECX then
+                        tmpreg:=NR_EBX;
+                    end;
+
+                if tmpreg = NR_EBX then
+                  begin
+                    { Mark EBX as used in the proc }
+                    include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
+                    current_module.requires_ebx_pic_helper:=true;
+                    a_call_name_static(list,'fpc_geteipasebx');
+                  end
+                else
+                  begin
+                    current_module.requires_ecx_pic_helper:=true;
+                    a_call_name_static(list,'fpc_geteipasecx');
+                  end;
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,tmpreg));
+                list.concat(taicpu.op_reg_reg(A_MOV,S_L,tmpreg,current_procinfo.got));
+
+                { Deallocate parameter registers }
+                for i:=0 to current_procinfo.procdef.paras.Count - 1 do
+                  with tparavarsym(current_procinfo.procdef.paras[i]).paraloc[calleeside].Location^ do
+                    if Loc in [LOC_REGISTER, LOC_CREGISTER] then
+                      a_reg_dealloc(list, register);
               end
             else
               begin
@@ -606,189 +590,7 @@ unit cgcpu;
                 a_label(list,current_procinfo.CurrGotLabel);
                 list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
               end;
-            if notdarwin then
-              begin
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-              end;
           end;
-      end;
-
-
-    procedure tcg386.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-      {
-      possible calling conventions:
-                    default stdcall cdecl pascal register
-      default(0):      OK     OK    OK     OK       OK
-      virtual(1):      OK     OK    OK     OK       OK(2 or 1)
-
-      (0):
-          set self parameter to correct value
-          jmp mangledname
-
-      (1): The wrapper code use %ecx to reach the virtual method address
-           set self to correct value
-           move self,%eax
-           mov  0(%eax),%ecx ; load vmt
-           jmp  vmtoffs(%ecx) ; method offs
-
-      (2): Virtual use values pushed on stack to reach the method address
-           so the following code be generated:
-           set self to correct value
-           push %ebx ; allocate space for function address
-           push %eax
-           mov  self,%eax
-           mov  0(%eax),%eax ; load vmt
-           mov  vmtoffs(%eax),eax ; method offs
-           mov  %eax,4(%esp)
-           pop  %eax
-           ret  0; jmp the address
-
-      }
-
-      { returns whether ECX is used (either as a parameter or is nonvolatile and shouldn't be changed) }
-      function is_ecx_used: boolean;
-        var
-          i: Integer;
-          hp: tparavarsym;
-          paraloc: PCGParaLocation;
-        begin
-          if not (RS_ECX in paramanager.get_volatile_registers_int(procdef.proccalloption)) then
-            exit(true);
-          for i:=0 to procdef.paras.count-1 do
-           begin
-             hp:=tparavarsym(procdef.paras[i]);
-             procdef.init_paraloc_info(calleeside);
-             paraloc:=hp.paraloc[calleeside].Location;
-             while paraloc<>nil do
-               begin
-                 if (paraloc^.Loc=LOC_REGISTER) and (getsupreg(paraloc^.register)=RS_ECX) then
-                   exit(true);
-                 paraloc:=paraloc^.Next;
-               end;
-           end;
-          Result:=false;
-        end;
-
-      procedure getselftoeax(offs: longint);
-        var
-          href : treference;
-          selfoffsetfromsp : longint;
-        begin
-          { mov offset(%esp),%eax }
-          if (procdef.proccalloption<>pocall_register) then
-            begin
-              { framepointer is pushed for nested procs }
-              if procdef.parast.symtablelevel>normal_function_level then
-                selfoffsetfromsp:=2*sizeof(aint)
-              else
-                selfoffsetfromsp:=sizeof(aint);
-              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs,4);
-              a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
-            end;
-        end;
-
-      procedure loadvmtto(reg: tregister);
-        var
-          href : treference;
-        begin
-          { mov  0(%eax),%reg ; load vmt}
-          reference_reset_base(href,NR_EAX,0,4);
-          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
-        end;
-
-      procedure op_onregmethodaddr(op: TAsmOp; reg: tregister);
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { call/jmp  vmtoffs(%reg) ; method offs }
-          reference_reset_base(href,reg,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          list.concat(taicpu.op_ref(op,S_L,href));
-        end;
-
-
-      procedure loadmethodoffstoeax;
-        var
-          href : treference;
-        begin
-          if (procdef.extnumber=$ffff) then
-            Internalerror(200006139);
-          { mov vmtoffs(%eax),%eax ; method offs }
-          reference_reset_base(href,NR_EAX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),4);
-          a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
-        end;
-
-
-      var
-        lab : tasmsymbol;
-        make_global : boolean;
-        href : treference;
-      begin
-        if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
-          Internalerror(200006137);
-        if not assigned(procdef.struct) or
-           (procdef.procoptions*[po_classmethod, po_staticmethod,
-             po_methodpointer, po_interrupt, po_iocheck]<>[]) then
-          Internalerror(200006138);
-        if procdef.owner.symtabletype<>ObjectSymtable then
-          Internalerror(200109191);
-
-        make_global:=false;
-        if (not current_module.is_unit) or
-           create_smartlink or
-           (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
-          make_global:=true;
-
-        if make_global then
-          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
-        else
-          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
-
-        { set param1 interface to self  }
-        g_adjust_self_value(list,procdef,ioffset);
-
-        if (po_virtualmethod in procdef.procoptions) and
-            not is_objectpascal_helper(procdef.struct) then
-          begin
-            if (procdef.proccalloption=pocall_register) and is_ecx_used then
-              begin
-                { case 2 }
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
-                list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
-                getselftoeax(8);
-                loadvmtto(NR_EAX);
-                loadmethodoffstoeax;
-                { mov %eax,4(%esp) }
-                reference_reset_base(href,NR_ESP,4,4);
-                list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
-                { pop  %eax }
-                list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));
-                { ret  ; jump to the address }
-                list.concat(taicpu.op_none(A_RET,S_L));
-              end
-            else
-              begin
-                { case 1 }
-                getselftoeax(0);
-                loadvmtto(NR_ECX);
-                op_onregmethodaddr(A_JMP,NR_ECX);
-              end;
-          end
-        { case 0 }
-        else
-          begin
-            if (target_info.system <> system_i386_darwin) then
-              begin
-                lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-                list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
-              end
-            else
-              list.concat(taicpu.op_sym(A_JMP,S_NO,get_darwin_call_stub(procdef.mangledname,false)))
-          end;
-
-        List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
 
@@ -838,9 +640,13 @@ unit cgcpu;
             get_64bit_ops(op,op1,op2);
             tempref:=ref;
             tcgx86(cg).make_simple_ref(list,tempref);
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
             list.concat(taicpu.op_ref_reg(op1,S_L,tempref,reg.reglo));
             inc(tempref.offset,4);
             list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
+            if op in [OP_ADD,OP_SUB] then
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
           end
         else
           begin
@@ -860,8 +666,10 @@ unit cgcpu;
               if (regsrc.reglo<>regdst.reglo) then
                 a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,-1,regdst.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
               exit;
             end;
           OP_NOT :
@@ -874,8 +682,12 @@ unit cgcpu;
             end;
         end;
         get_64bit_ops(op,op1,op2);
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
         list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
         list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
+        if op in [OP_ADD,OP_SUB] then
+          cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
       end;
 
 
@@ -893,8 +705,10 @@ unit cgcpu;
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_reg(op1,S_L,aint(lo(value)),reg.reglo));
               list.concat(taicpu.op_const_reg(op2,S_L,aint(hi(value)),reg.reghi));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200204021);
@@ -920,9 +734,11 @@ unit cgcpu;
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
+              cg.a_reg_alloc(list,NR_DEFAULTFLAGS);
               list.concat(taicpu.op_const_ref(op1,S_L,aint(lo(value)),tempref));
               inc(tempref.offset,4);
               list.concat(taicpu.op_const_ref(op2,S_L,aint(hi(value)),tempref));
+              cg.a_reg_dealloc(list,NR_DEFAULTFLAGS);
             end;
           else
             internalerror(200204022);

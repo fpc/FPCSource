@@ -2,7 +2,7 @@ unit TestSpecificTBufDataset;
 
 {
   Unit tests which are specific to stand-alone TBufDataset-datasets. (So not
-  for derrived datasets like TQuery )
+  for derived datasets like TQuery )
 }
 
 {$IFDEF FPC}
@@ -13,7 +13,7 @@ interface
 
 uses
 {$IFDEF FPC}
-  fpcunit, testutils, testregistry, testdecorator, BufDataset,
+  fpcunit, testregistry, BufDataset,
 {$ELSE FPC}
   TestFramework,
 {$ENDIF FPC}
@@ -23,7 +23,7 @@ type
 
   { TTestSpecificTBufDataset }
 
-  TTestSpecificTBufDataset = class(TTestCase)
+  TTestSpecificTBufDataset = class(TDBBasicsTestCase)
   private
     procedure TestDataset(ABufDataset: TBufDataset; AutoInc: boolean = false);
     function GetAutoIncDataset: TBufDataset;
@@ -39,6 +39,10 @@ type
     procedure TestAutoIncField;
     procedure TestAutoIncFieldStreaming;
     procedure TestAutoIncFieldStreamingXML;
+    Procedure TestRecordCount;
+    Procedure TestClear;
+    procedure TestCopyFromDataset; //is copied dataset identical to original?
+    procedure TestCopyFromDatasetMoved; //move record then copy. Is copy identical? Has record position changed?
   end;
 
 implementation
@@ -48,7 +52,6 @@ uses
 //
 {$endif fpc}
   variants,
-  strutils,
   FmtBCD;
 
 { TTestSpecificTBufDataset }
@@ -246,6 +249,88 @@ end;
 procedure TTestSpecificTBufDataset.TestAutoIncFieldStreamingXML;
 begin
   IntTestAutoIncFieldStreaming(true);
+end;
+
+procedure TTestSpecificTBufDataset.TestRecordCount;
+var
+  BDS:TBufDataSet;
+
+begin
+  BDS:=TBufDataSet.Create(nil);
+  BDS.FieldDefs.Add('ID',ftLargeint);
+  BDS.CreateDataSet;
+  BDS.AppendRecord([1]);
+  BDS.AppendRecord([2]);
+  BDS.AppendRecord([3]);
+  BDS.Close;
+  AssertEquals('IsEmpty: ',True,BDS.IsEmpty);
+  AssertEquals('RecordCount: ',0,BDS.RecordCount);
+end;
+
+procedure TTestSpecificTBufDataset.TestClear;
+
+const
+  testValuesCount=3;
+var
+  i: integer;
+begin
+  with DBConnector.GetNDataset(10) as TBufDataset do
+    begin
+    Open;
+    Clear;
+    AssertTrue('Dataset Closed',Not Active);
+    AssertEquals('No fields',0,Fields.Count);
+    AssertEquals('No fielddefs',0,FieldDefs.Count);
+    // test after FieldDefs are Cleared, if internal structures are updated properly
+    // create other FieldDefs
+    FieldDefs.Add('Fs', ftString, 20);
+    FieldDefs.Add('Fi', ftInteger);
+    FieldDefs.Add('Fi2', ftInteger);
+    // use only Open without CreateTable
+    CreateDataset;
+    AssertTrue('Empty dataset',IsEmpty);
+    // add some data
+    for i:=1 to testValuesCount do
+      AppendRecord([TestStringValues[i], TestIntValues[i], TestIntValues[i]]);
+    // check data
+    AssertEquals('Record count',testValuesCount, RecordCount);
+    First;
+    for i:=1 to testValuesCount do
+    begin
+      AssertEquals('Field FS, Record '+InttoStr(i),TestStringValues[i], FieldByName('Fs').AsString);
+      AssertEquals('Field Fi2, Record '+InttoStr(i),TestIntValues[i], FieldByName('Fi2').AsInteger);
+      Next;
+    end;
+    CheckTrue(Eof);
+  end;
+end;
+
+procedure TTestSpecificTBufDataset.TestCopyFromDataset;
+var bufds1, bufds2: TBufDataset;
+begin
+  bufds1:=DBConnector.GetFieldDataset as TBufDataset;
+  bufds2:=DBConnector.GetNDataset(0) as TBufDataset;
+
+  bufds1.Open;
+  bufds2.CopyFromDataset(bufds1);
+  CheckFieldDatasetValues(bufds2);
+end;
+
+procedure TTestSpecificTBufDataset.TestCopyFromDatasetMoved;
+var
+  bufds1, bufds2: TBufDataset;
+  CurrentID,NewID: integer;
+begin
+  bufds1:=DBConnector.GetFieldDataset as TBufDataset;
+  bufds2:=DBConnector.GetNDataset(0) as TBufDataset;
+
+  bufds1.Open;
+  bufds1.Next; //this should not influence the copydataset step.
+  CurrentID:=bufds1.FieldByName('ID').AsInteger;
+  bufds2.CopyFromDataset(bufds1);
+  CheckFieldDatasetValues(bufds2);
+  NewID:=bufds1.FieldByName('ID').AsInteger;
+  AssertEquals('Mismatch between ID field contents - the record has moved.',CurrentID,NewID);
 end;
 
 initialization

@@ -5,7 +5,7 @@
 
 uses
 {$ifdef unix}
-  cthreads, cwstring,
+  cthreads, {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
   Classes, SysUtils;
 

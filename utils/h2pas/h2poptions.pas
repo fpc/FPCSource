@@ -16,7 +16,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
+
 unit h2poptions;
+{$H+}
 interface
 
 const
@@ -138,7 +140,7 @@ end;
 
 Procedure ProcessOptions;
 Var
-  cp : string;
+  cp : string[255];   {because of cp[3] indexing}
   I : longint;
 
   Function GetNextParam (const Opt,Name : String) : string;

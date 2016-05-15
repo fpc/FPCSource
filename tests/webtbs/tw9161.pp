@@ -1,6 +1,6 @@
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
   variants,sysutils;
 var a:variant;

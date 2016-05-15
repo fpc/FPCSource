@@ -114,13 +114,18 @@ interface
     created staticvarsym that is responsible for allocating the global storage }
   function make_field_static(recst: tsymtable; fieldvs: tfieldvarsym): tstaticvarsym;
 
+  { create a new procdef with the signature of orgpd and (mangled) name
+    newname, and change the implementation of orgpd so that it calls through
+    to this new procedure }
+  procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
+
 
 implementation
 
   uses
     cutils,cclasses,globals,verbose,systems,comphook,fmodule,
     symtable,defutil,
-    pbase,pdecobj,pdecsub,psub,ptconst,
+    pbase,pdecobj,pdecsub,psub,ptconst,pparautl,
 {$ifdef jvm}
     pjvm,jvmdef,
 {$endif jvm}
@@ -202,9 +207,9 @@ implementation
           pd:=destructor_head;
         else if assigned(astruct) and
            (astruct.typ=recorddef) then
-          pd:=parse_record_method_dec(astruct,is_classdef)
+          pd:=parse_record_method_dec(astruct,is_classdef,false)
         else
-          pd:=method_dec(astruct,is_classdef);
+          pd:=method_dec(astruct,is_classdef,false);
       end;
       if assigned(pd) then
         result:=true;
@@ -242,7 +247,7 @@ implementation
       current_scanner.substitutemacro('meth_impl_macro',@str[1],length(str),current_scanner.line_no,current_scanner.inputfile.ref_index);
       current_scanner.readtoken(false);
       { and parse it... }
-      read_proc(is_classdef,usefwpd);
+      read_proc(is_classdef,usefwpd,false);
       parse_only:=oldparse_only;
       { remove the temporary macro input file again }
       current_scanner.closeinputfile;
@@ -817,7 +822,7 @@ implementation
       callpd: tprocdef;
     begin
       callpd:=tprocdef(pd.skpara);
-      str:='var pv: __fpc_virtualclassmethod_pv_t'+tostr(pd.defid)+'; begin '
+      str:='var pv: __fpc_virtualclassmethod_pv_t'+pd.unique_id_str+'; begin '
         + 'pv:=@'+callpd.procsym.RealName+';';
       if (pd.proctypeoption<>potype_constructor) and
          not is_void(pd.returndef) then
@@ -916,6 +921,46 @@ implementation
     end;
 
 
+  procedure implement_block_invoke_procvar(pd: tprocdef);
+    var
+      str: ansistring;
+    begin
+      str:='';
+      str:='begin ';
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+'__FPC_BLOCK_INVOKE_PV_TYPE(PFPC_Block_literal_complex_procvar(FPC_Block_Self)^.pv)(';
+      addvisibibleparameters(str,pd);
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,false);
+    end;
+
+
+  procedure implement_interface_wrapper(pd: tprocdef);
+    var
+      wrapperinfo: pskpara_interface_wrapper;
+      callthroughpd: tprocdef;
+      str: ansistring;
+    begin
+      wrapperinfo:=pskpara_interface_wrapper(pd.skpara);
+      if not assigned(wrapperinfo) then
+        internalerror(2015090801);
+      callthroughpd:=tprocdef(wrapperinfo^.pd);
+      str:='begin ';
+      { self right now points to the VMT of interface inside the instance ->
+        adjust so it points to the start of the instance }
+      str:=str+'pointer(self):=pointer(self) - '+tostr(wrapperinfo^.offset)+';';
+      { now call through to the actual method }
+      if pd.returndef<>voidtype then
+        str:=str+'result:=';
+      str:=str+callthroughpd.procsym.realname+'(';
+      addvisibibleparameters(str,callthroughpd);
+      str:=str+') end;';
+      str_parse_method_impl(str,pd,false);
+      dispose(wrapperinfo);
+      pd.skpara:=nil;
+    end;
+
   procedure add_synthetic_method_implementations_for_st(st: tsymtable);
     var
       i   : longint;
@@ -986,6 +1031,10 @@ implementation
               implement_field_getter(pd);
             tsk_field_setter:
               implement_field_setter(pd);
+            tsk_block_invoke_procvar:
+              implement_block_invoke_procvar(pd);
+            tsk_interface_wrapper:
+              implement_interface_wrapper(pd);
             else
               internalerror(2011032801);
           end;
@@ -999,9 +1048,6 @@ implementation
       def: tdef;
       sstate: tscannerstate;
     begin
-      { only necessary for the JVM target currently }
-      if not (target_info.system in systems_jvm) then
-        exit;
       { skip if any errors have occurred, since then this can only cause more
         errors }
       if ErrorCount<>0 then
@@ -1037,7 +1083,8 @@ implementation
       i: longint;
     begin
       { add generic flag if required }
-      if df_generic in newstruct.defoptions then
+      if assigned(newstruct) and
+         (df_generic in newstruct.defoptions) then
         include(pd.defoptions,df_generic);
       { associate the procdef with a procsym in the owner }
       if not(pd.proctypeoption in [potype_class_constructor,potype_class_destructor]) then
@@ -1104,7 +1151,8 @@ implementation
       { create struct to hold local variables and parameters that are
         accessed from within nested routines (start with extra dollar to prevent
         the JVM from thinking this is a nested class in the unit) }
-      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+tostr(pd.defid),current_settings.alignment.localalignmax);
+      nestedvarsst:=trecordsymtable.create('$'+current_module.realmodulename^+'$$_fpc_nestedvars$'+pd.unique_id_str,
+        current_settings.alignment.localalignmax,current_settings.alignment.localalignmin,current_settings.alignment.maxCrecordalign);
       nestedvarsdef:=crecorddef.create(nestedvarsst.name^,nestedvarsst);
 {$ifdef jvm}
       maybe_guarantee_record_typesym(nestedvarsdef,nestedvarsdef.owner);
@@ -1117,14 +1165,17 @@ implementation
 {$endif}
       symtablestack.free;
       symtablestack:=old_symtablestack.getcopyuntil(pd.localst);
-      pnestedvarsdef:=getpointerdef(nestedvarsdef);
-      nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[]);
-      pd.localst.insert(nestedvars);
-      pd.parentfpstruct:=nestedvars;
+      pnestedvarsdef:=cpointerdef.getreusable(nestedvarsdef);
+      if not(po_assembler in pd.procoptions) then
+        begin
+          nestedvars:=clocalvarsym.create('$nestedvars',vs_var,nestedvarsdef,[],true);
+          pd.localst.insert(nestedvars);
+          pd.parentfpstruct:=nestedvars;
+          pd.parentfpinitblock:=cblocknode.create(nil);
+        end;
+      symtablestack.free;
       pd.parentfpstructptrtype:=pnestedvarsdef;
 
-      pd.parentfpinitblock:=cblocknode.create(nil);
-      symtablestack.free;
       symtablestack:=old_symtablestack;
     end;
 
@@ -1136,9 +1187,23 @@ implementation
       nestedvarsst: tsymtable;
       initcode: tnode;
       old_filepos: tfileposinfo;
+      symname,
+      symrealname: TSymStr;
     begin
       nestedvarsdef:=tlocalvarsym(pd.parentfpstruct).vardef;
-      result:=search_struct_member(trecorddef(nestedvarsdef),sym.name);
+      { redirect all aliases for the function result also to the function
+        result }
+      if vo_is_funcret in tabstractvarsym(sym).varoptions then
+        begin
+          symname:='result';
+          symrealname:='$result'
+        end
+      else
+        begin
+          symname:=sym.name;
+          symrealname:=sym.realname;
+        end;
+      result:=search_struct_member(trecorddef(nestedvarsdef),symname);
       if not assigned(result) then
         begin
           { mark that this symbol is mirrored in the parentfpstruct }
@@ -1148,10 +1213,10 @@ implementation
           nestedvarsst:=trecorddef(nestedvarsdef).symtable;
           { indicate whether or not this is a var/out/constref/... parameter }
           if addrparam then
-            fieldvardef:=getpointerdef(vardef)
+            fieldvardef:=cpointerdef.getreusable(vardef)
           else
             fieldvardef:=vardef;
-          result:=cfieldvarsym.create(sym.realname,vs_value,fieldvardef,[]);
+          result:=cfieldvarsym.create(symrealname,vs_value,fieldvardef,[],true);
           if nestedvarsst.symlist.count=0 then
             include(tfieldvarsym(result).varoptions,vo_is_first_field);
           nestedvarsst.insert(result);
@@ -1250,7 +1315,7 @@ implementation
          (def.typ=recorddef) and
          not assigned(def.typesym) then
         begin
-          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def);
+          ts:=ctypesym.create(trecorddef(def).symtable.realname^,def,true);
           st.insert(ts);
           ts.visibility:=vis_strictprivate;
           { this typesym can't be used by any Pascal code, so make sure we don't
@@ -1307,6 +1372,40 @@ implementation
       tmp:=cabsolutevarsym.create_ref('$'+static_name,fieldvs.vardef,sl);
       recst.insert(tmp);
       result:=hstaticvs;
+    end;
+
+
+  procedure call_through_new_name(orgpd: tprocdef; const newname: TSymStr);
+    var
+      newpd: tprocdef;
+    begin
+      { we have a forward declaration like
+         procedure test; (in the unit interface or "forward")
+        and then an implementation like
+         procedure test; external name 'something';
+
+        To solve this, we create a new external procdef for the
+        implementation, and then generate a procedure body for the original
+        one that calls through to the external procdef. This is necessary
+        because there may already be references to the mangled name for the
+        non-external "test".
+      }
+      newpd:=tprocdef(orgpd.getcopyas(procdef,pc_bareproc));
+      insert_funcret_para(newpd);
+      newpd.procoptions:=newpd.procoptions+orgpd.procoptions*[po_external,po_has_importname,po_has_importdll];
+      newpd.import_name:=orgpd.import_name;
+      orgpd.import_name:=nil;
+      newpd.import_dll:=orgpd.import_dll;
+      orgpd.import_dll:=nil;
+      newpd.import_nr:=orgpd.import_nr;
+      orgpd.import_nr:=0;
+      newpd.setmangledname(newname);
+      finish_copied_procdef(newpd,'__FPC_IMPL_EXTERNAL_REDIRECT_'+newname,current_module.localsymtable,nil);
+      newpd.forwarddef:=false;
+      orgpd.skpara:=newpd;
+      orgpd.synthetickind:=tsk_callthrough;
+      orgpd.procoptions:=orgpd.procoptions-[po_external,po_has_importname,po_has_importdll];
+      orgpd.forwarddef:=true;
     end;
 
 end.

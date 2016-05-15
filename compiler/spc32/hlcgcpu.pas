@@ -28,17 +28,34 @@ unit hlcgcpu;
 
 interface
 
+  uses
+    symtype,
+    aasmdata,
+    symdef,
+    cgbase,cgutils,
+    hlcgobj, hlcg2ll;
+
+  type
+    thlcgspc32 = class(thlcg2ll)
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint); override;
+    end;
+
   procedure create_hlcodegen;
 
 implementation
 
   uses
-    hlcgobj, hlcg2ll,
-    cgcpu;
+    cgcpu,
+    verbose;
+
+  procedure thlcgspc32.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    begin
+      internalerror(2016051501);
+    end;
 
   procedure create_hlcodegen;
     begin
-      hlcg:=thlcg2ll.create;
+      hlcg:=thlcgspc32.create;
       create_codegen;
     end;
 

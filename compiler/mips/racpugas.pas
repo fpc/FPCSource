@@ -26,16 +26,16 @@ Unit racpugas;
 Interface
 
   uses
+    cgbase,
     rautils,
     raatt;
 
   type
     tMipsReader = class(tattreader)
+      actrel: trefaddr;
       function is_asmopcode(const s: string):boolean;override;
       procedure BuildOperand(oper : TOperand);
       procedure BuildOpCode(instr : TInstruction);
-      procedure ReadSym(oper : TOperand);
-      procedure ConvertCalljmp(instr : TInstruction);
       procedure handlepercent;override;
       procedure handledollar;override;
       procedure handleopcode;override;
@@ -60,68 +60,29 @@ Interface
       rabase,
       rgbase,
       itcpugas,
-      cgbase,cgobj
+      cgobj
       ;
-
-    procedure TMipsReader.ReadSym(oper : TOperand);
-      var
-         tempstr, mangledname : string;
-         typesize,l,k : aint;
-      begin
-        tempstr:=actasmpattern;
-        Consume(AS_ID);
-        { typecasting? }
-        if (actasmtoken=AS_LPAREN) and
-           SearchType(tempstr,typesize) then
-          begin
-            oper.hastype:=true;
-            Consume(AS_LPAREN);
-            BuildOperand(oper);
-            Consume(AS_RPAREN);
-            if oper.opr.typ in [OPR_REFERENCE,OPR_LOCAL] then
-              oper.SetSize(typesize,true);
-          end
-        else
-          if not oper.SetupVar(tempstr,false) then
-            Message1(sym_e_unknown_id,tempstr);
-        { record.field ? }
-        if actasmtoken=AS_DOT then
-          begin
-            BuildRecordOffsetSize(tempstr,l,k,mangledname,false);
-           if (mangledname<>'') then
-             Message(asmr_e_invalid_reference_syntax);
-            inc(oper.opr.ref.offset,l);
-          end;
-      end;
 
 
     procedure TMipsReader.handledollar;
+      var
+        len: longint;
       begin
-        Inherited handledollar;
-        if (c in ['0'..'9','a'..'z']) then
+        len:=1;
+        actasmpattern[len]:='$';
+        c:=current_scanner.asmgetchar;
+        while c in ['A'..'Z','a'..'z','0'..'9'] do
           begin
-            Consume(AS_DOLLAR);
-            if (actasmtoken=AS_INTNUM) or (actasmtoken=AS_ID) then
-              begin
-                { Try to convert to std register }
-                if actasmtoken=AS_INTNUM then
-                  actasmregister:=gas_regnum_search('$'+actasmpattern)
-                else
-                  begin
-                    { AS_ID is uppercased by default but register names
-                      are lowercase }
-                    actasmpattern:=lower(actasmpattern);
-                    actasmregister:=gas_regnum_search(actasmpattern);
-                    if actasmregister=NR_NO then
-                      actasmregister:=std_regnum_search(actasmpattern);
-                  end;
-                if actasmregister<>NR_NO then
-                  begin
-                    // Consume(actasmtoken);
-                    actasmtoken:=AS_REGISTER;
-                  end;
-              end;
+            inc(len);
+            actasmpattern[len]:=c;
+            c:=current_scanner.asmgetchar;
           end;
+        actasmpattern[0]:=chr(len);
+        actasmpattern:=lower(actasmpattern);
+        actasmregister:=gas_regnum_search(actasmpattern);
+        if actasmregister=NR_NO then
+          actasmregister:=std_regnum_search(copy(actasmpattern,2,maxint));
+        actasmtoken:=AS_REGISTER;
       end;
 
 
@@ -132,7 +93,6 @@ Interface
         len:=1;
         actasmpattern[len]:='%';
         c:=current_scanner.asmgetchar;
-        { to be a register there must be a letter and not a number }
         while c in ['a'..'z','A'..'Z','0'..'9'] do
           Begin
             inc(len);
@@ -141,12 +101,15 @@ Interface
           end;
          actasmpattern[0]:=chr(len);
          uppervar(actasmpattern);
+         actrel:=addr_no;
          if (actasmpattern='%HI') then
-           actasmtoken:=AS_HI
+           actrel:=addr_high
          else if (actasmpattern='%LO')then
-           actasmtoken:=AS_LO
+           actrel:=addr_low
          else
            Message(asmr_e_invalid_reference_syntax);
+         if actrel<>addr_no then
+           actasmtoken:=AS_RELTYPE;
       end;
 
 
@@ -255,18 +218,28 @@ Interface
                 gotplus:=true;
               end;
 
-            AS_INTNUM,
-            AS_MOD:
+            AS_INTNUM:
               Begin
                 if not gotplus then
                   Message(asmr_e_invalid_reference_syntax);
                 l:=BuildConstExpression(True,False);
                 if negative then
                   l:=-l;
-                { Constant memory offset }
-                oper.InitRef;
-                oper.opr.ref.refaddr:=addr_full;
-                oper.opr.ref.offset:=l;
+                case oper.opr.typ of
+                  OPR_NONE:
+                    begin
+                      oper.opr.typ:=OPR_CONSTANT;
+                      oper.opr.val:=l;
+                    end;
+                  OPR_CONSTANT :
+                    inc(oper.opr.val,l);
+                  OPR_REFERENCE:
+                    inc(oper.opr.ref.offset,l);
+                  OPR_LOCAL:
+                    inc(oper.opr.localsymofs,l);
+                else
+                  InternalError(12345);
+                end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
                          (prevasmtoken=AS_MINUS);
                 if GotPlus then
@@ -284,16 +257,12 @@ Interface
                 gotplus:=false;
               end;
 
-            AS_HI,
-            AS_LO:
+            AS_RELTYPE:
               begin
                 { Low or High part of a constant (or constant
                   memory location) }
                 oper.InitRef;
-                if actasmtoken=AS_LO then
-                  oper.opr.ref.refaddr:=addr_low
-                else
-                  oper.opr.ref.refaddr:=addr_high;
+                oper.opr.ref.refaddr:=actrel;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
                 BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
@@ -501,14 +470,13 @@ Interface
     function TMipsReader.is_asmopcode(const s: string):boolean;
       var
         cond:TAsmCond;
+        hs:string;
       Begin
-        { making s a value parameter would break other assembler readers }
         is_asmopcode:=false;
 
-        { clear op code }
+        { clear op code and condition }
         actopcode:=A_None;
-        { clear condition }
-        fillchar(actcondition,sizeof(actcondition),0);
+        actcondition:=C_None;
 
          { Search opcodes }
          actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
@@ -525,33 +493,15 @@ Interface
             { we can search here without an extra table which is sorted by string length
               because we take the whole remaining string without the leading B }
             actopcode := A_BC;
+            hs:=lower(copy(s,2,maxint));
             for cond:=low(TAsmCond) to high(TAsmCond) do
-              if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
+              if (hs=Cond2Str[cond]) then
                 begin
                   actasmtoken:=AS_OPCODE;
                   actcondition:=cond;
                   is_asmopcode:=true;
                 end;
           end;
-      end;
-
-
-    procedure TMipsReader.ConvertCalljmp(instr : TInstruction);
-      var
-        newopr : toprrec;
-      begin
-        if instr.Operands[1].opr.typ=OPR_REFERENCE then
-          with newopr do
-            begin
-              typ:=OPR_SYMBOL;
-              symbol:=instr.Operands[1].opr.ref.symbol;
-              symofs:=instr.Operands[1].opr.ref.offset;
-              if (instr.Operands[1].opr.ref.base<>NR_NO) or
-                (instr.Operands[1].opr.ref.index<>NR_NO) or
-                (instr.Operands[1].opr.ref.refaddr<>addr_full) then
-                Message(asmr_e_syn_operand);
-              instr.Operands[1].opr:=newopr;
-            end;
       end;
 
 
@@ -564,10 +514,12 @@ Interface
         with instr do
           begin
             condition := actcondition;
-            if is_calljmp(opcode) then
-              ConvertCalljmp(instr);
-            if (opcode in [A_MTC0,A_MFC0]) then
+            { Coprocessor-related instructions have operands referring to both coprocessor registers
+              and general-purpose ones. The input representation "$<number>" is the same for both,
+              but symbolic names must not be used for non-GPRs on output. }
+            if (opcode in [A_MTC0,A_MFC0,A_CFC1,A_CTC1{,A_CFC2,A_CTC2}]) then
               begin
+                { operands are 1-based here }
                 if (ops<2) or (operands[2].opr.typ<>OPR_REGISTER) then
                   message(asmr_e_syn_operand);
                 operands[2].opr.reg:=newreg(R_SPECIALREGISTER,getsupreg(operands[2].opr.reg),R_SUBNONE);

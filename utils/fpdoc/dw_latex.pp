@@ -23,6 +23,7 @@ uses DOM, dGlobals, PasTree;
 
 const
   LateXHighLight : Boolean = False;
+  MaxVerbatimLength : Integer = 65;
   TexExtension   : String = '.tex';
 
 Procedure CreateLaTeXDocForPackage(APackage: TPasPackage; AEngine: TFPDocEngine);
@@ -75,7 +76,7 @@ Type
     procedure StartSubSection(SubSectionName : String);override;
     procedure StartSubSubSection(SubSubSectionName : String);override;
     procedure StartChapter(ChapterName : String); override;
-    procedure StartOverview(WithAccess : Boolean); override;
+    procedure StartOverview(Const What : String; WithAccess : Boolean); override;
     procedure EndOverview; override;
     procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
     procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
@@ -130,8 +131,10 @@ Type
     // TFPDocWriter class methods
     Property ImageDir : String Read FImageDir Write FImageDir;
   public
+    Function SplitLine (ALine : String): String; virtual;
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
     Class Function FileNameExtension : String; override;
+    class procedure Usage(List: TStrings); override;
   end;
 
 
@@ -153,15 +156,75 @@ begin
       Result[i] := ':';
 end;
 
+Function TLaTeXWriter.SplitLine (ALine : String): String;
 
-Function TLatexWriter.EscapeText(S : String) : String;
+  Function FindLastSplit(S : String) : Integer;
+
+  Const
+    NonSplit = ['a'..'z','A'..'Z','0'..'9','_'];
+   
+   Var
+     L,I : integer;
+     C : PChar;
+     InString : Boolean;
+    
+  begin
+     Result:=0;
+     L:=Length(S);
+     if (L>MaxVerbatimLength) then
+       begin
+       InString:=False;
+       Result:=0;
+       I:=1;
+       C:=@S[1];
+       While (I<=L) and (Result<=MaxVerbatimLength) do
+         begin
+         If C^='''' then
+           InString:=Not Instring
+         else if Not InString then
+           begin
+           if Not (C^ in NonSplit) then
+             Result:=I;
+           end;
+         Inc(I);
+         Inc(C);
+         end;
+       end;
+     If (Result=0) or (Result=1) then
+       Result:=L+1;
+   end;
+   
+Var
+  SP : Integer;   
+  L : String;
+   
+begin
+  Result:='';
+  While (Aline<>'') do
+    begin
+    SP:=FindLastSplit(Aline);
+    L:=Copy(ALine,1,SP-1);
+    Delete(ALine,1,SP-1);
+    If (Result<>'') then
+      Result:=Result+sLineBreak+'  ';
+    Result:=Result+Trim(L);
+    end;
+end;
+
+function TLaTeXWriter.EscapeText(S: String): String;
+
 
 var
   i: Integer;
 
 begin
   if FInVerBatim=True then
-    Result:=S
+    begin
+    if (MaxVerbatimLength=0) or (length(S)<=MaxVerbatimLength) then
+      Result:=S
+    else 
+      Result:=SplitLine(S);
+    end
   else
     begin
     SetLength(Result, 0);
@@ -179,7 +242,7 @@ begin
     end;
 end;
 
-Function TLatexWriter.StripText(S : String) : String;
+function TLaTeXWriter.StripText(S: String): String;
 
 var
   I: Integer;
@@ -476,12 +539,12 @@ begin
   // Do nothing
 end;
 
-procedure TLaTeXWriter.WriteLabel(const s: String);
+procedure TLaTeXWriter.WriteLabel(const S: String);
 begin
   WriteLnF('\label{%s}', [LowerCase(StripText(s))]);
 end;
 
-procedure TLaTeXWriter.WriteIndex(const s : String);
+procedure TLaTeXWriter.WriteIndex(const S: String);
 begin
   Write('\index{');
   Write(EscapeText(s));
@@ -512,7 +575,7 @@ begin
     Writeln('\end{verbatim}')
 end;
 
-procedure TLatexWriter.WriteCommentLine;
+procedure TLaTeXWriter.WriteCommentLine;
 const
   CommentLine =
     '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%';
@@ -520,13 +583,13 @@ begin
   Writeln(CommentLine);
 end;
 
-procedure TLatexWriter.WriteComment(Comment : String);
+procedure TLaTeXWriter.WriteComment(Comment: String);
 begin
   Write('% ');
   Writeln(Comment);
 end;
 
-procedure TLatexWriter.StartChapter(ChapterName : String);
+procedure TLaTeXWriter.StartChapter(ChapterName: String);
 begin
   WriteCommentLine;
   WriteComment(ChapterName);
@@ -534,20 +597,20 @@ begin
   Writeln('\chapter{'+EscapeText(ChapterName)+'}');
 end;
 
-procedure TLatexWriter.StartSection(SectionName : String);
+procedure TLaTeXWriter.StartSection(SectionName: String);
 begin
   WriteCommentLine;
   WriteComment(SectionName);
   Writeln('\section{'+EscapeText(SectionName)+'}');
 end;
 
-procedure TLatexWriter.StartSubSection(SubSectionName : String);
+procedure TLaTeXWriter.StartSubSection(SubSectionName: String);
 begin
   WriteComment(SubSectionName);
   Writeln('\subsection{'+EscapeText(SubSectionName)+'}');
 end;
 
-procedure TLatexWriter.StartSubSubSection(SubSubSectionName : String);
+procedure TLaTeXWriter.StartSubSubSection(SubSubSectionName: String);
 begin
   Writeln('\subsubsection{'+EscapeText(SubSubSectionName)+'}');
 end;
@@ -564,38 +627,38 @@ begin
   end;
 end;
 
-Procedure TLatexWriter.StartProcedure;
+procedure TLaTeXWriter.StartProcedure;
 
 begin
   Writeln('\begin{FPCList}');
   InList:=True;
 end;
 
-Procedure TLatexWriter.StartSynopsis;
+procedure TLaTeXWriter.StartSynopsis;
 
 begin
   Writeln('\Synopsis');
 end;
 
-Procedure TLatexWriter.StartDeclaration;
+procedure TLaTeXWriter.StartDeclaration;
 
 begin
   Writeln('\Declaration ');
 end;
 
-Procedure TLatexWriter.StartVisibility;
+procedure TLaTeXWriter.StartVisibility;
 
 begin
   Writeln('\Visibility');
 end;
 
-Procedure TLatexWriter.StartDescription;
+procedure TLaTeXWriter.StartDescription;
 
 begin
   Writeln('\Description');
 end;
 
-Procedure TLatexWriter.StartErrors;
+procedure TLaTeXWriter.StartErrors;
 
 begin
   Writeln('\Errors');
@@ -606,68 +669,69 @@ begin
   Writeln('\VersionInfo');
 end;
 
-Procedure TLatexWriter.StartAccess;
+procedure TLaTeXWriter.StartAccess;
 
 begin
   Writeln('\Access')
 end;
 
-Procedure TLatexWriter.EndProcedure;
+procedure TLaTeXWriter.EndProcedure;
 
 begin
   InList:=False;
   Writeln('\end{FPCList}');
 end;
-Procedure TLatexWriter.StartProperty;
+procedure TLaTeXWriter.StartProperty;
 
 begin
   Writeln('\begin{FPCList}');
   InList:=True;
 end;
 
-Procedure TLatexWriter.EndProperty;
+procedure TLaTeXWriter.EndProperty;
 
 begin
   InList:=False;
   Writeln('\end{FPCList}');
 end;
 
-procedure TLateXWriter.WriteExampleFile(FN : String);
+procedure TLaTeXWriter.WriteExampleFile(FN: String);
 
 begin
   If (FN<>'') then
     WritelnF('\FPCexample{%s}', [ChangeFileExt(FN,'')]);
 end;
 
-procedure TLatexWriter.StartOverview(WithAccess : Boolean);
+procedure TLaTeXWriter.StartOverview(const What: String; WithAccess: Boolean);
 
 begin
   If WithAccess then
     begin
     WriteLn('\begin{tabularx}{\textwidth}{lllX}');
-    WriteLnF('%s & %s & %s & %s \\ \hline',[EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocAccess), EscapeText(SDocDescription)])
+    WriteLnF('%s & %s & %s & %s \\ \hline',[EscapeText(SDocPage), EscapeText(What), EscapeText(SDocAccess), EscapeText(SDocDescription)])
     end
   else
     begin
     WriteLn('\begin{tabularx}{\textwidth}{llX}');
-    WriteLnF('%s & %s & %s  \\ \hline',[EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocDescription)])
+    WriteLnF('%s & %s & %s  \\ \hline',[EscapeText(SDocPage), EscapeText(What), EscapeText(SDocDescription)])
     end;
 end;
 
-procedure TLatexWriter.EndOverview;
+procedure TLaTeXWriter.EndOverview;
 
 begin
   WriteLn('\hline');
   WriteLn('\end{tabularx}');
 end;
 
-procedure TLatexWriter.WriteOverviewMember(const ALabel,AName,Access,ADescr : String);
+procedure TLaTeXWriter.WriteOverviewMember(const ALabel, AName, Access,
+  ADescr: String);
 
 begin
   WriteLnF('\pageref{%s} & %s & %s & %s \\',[ALabel,EscapeText(AName),Access,ADescr]);
 end;
 
-procedure TLatexWriter.WriteOverviewMember(const ALabel,AName,ADescr : String);
+procedure TLaTeXWriter.WriteOverviewMember(const ALabel, AName, ADescr: String);
 
 begin
   WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,EscapeText(AName),ADescr]);
@@ -678,7 +742,7 @@ begin
   Result:=TexExtension;
 end;
 
-Procedure TLatexWriter.StartSeeAlso;
+procedure TLaTeXWriter.StartSeealso;
 
 begin
   If not InList then
@@ -695,7 +759,7 @@ begin
     Writeln('\end{FPCList}');
 end;
 
-procedure TLatexWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
+procedure TLaTeXWriter.StartUnitOverview(AModuleName, AModuleLabel: String);
 
 begin
   WriteLnF('\begin{FPCltable}{lr}{%s}{%s:0units}',
@@ -703,20 +767,20 @@ begin
   WriteLn('Name & Page \\ \hline');
 end;
 
-procedure TLatexWriter.WriteUnitEntry(UnitRef : TPasType);
+procedure TLaTeXWriter.WriteUnitEntry(UnitRef: TPasType);
 
 begin
   WriteLnF('%s\index{unit!%s} & \pageref{%s} \\',
      [EscapeText(UnitRef.Name), EscapeText(UnitRef.Name), StripText(GetLabel(UnitRef))]);
 end;
 
-procedure TLatexWriter.EndUnitOverview;
+procedure TLaTeXWriter.EndUnitOverview;
 
 begin
   WriteLn('\end{FPCltable}');
 end;
 
-Function TLatexWriter.InterPretOption(Const Cmd,Arg : String) : boolean;
+function TLaTeXWriter.InterPretOption(const Cmd, Arg: String): boolean;
 
 begin
   Result:=True;
@@ -724,10 +788,32 @@ begin
     LatexHighLight:=True
   else if Cmd = '--latex-extension' then
      TexExtension:=Arg
+  else if Cmd = '--latex--verbatim-length' then
+     MaxVerbatimLength:=StrToInt(Arg)
   else if Cmd = '--image-dir' then
      ImageDir:=Arg
   else
     Result:=False;
+end;
+
+Resourcestring
+  SLatexHighlightDocs = 'Use the syntax highlighter for declarations.';
+  SLatexExtensionDocs = 'Specify the extension for the latex files.';
+  SLatexVerbatimLengthDocs = 'Specify maximum line length for verbatim environments (default 64).';
+  SLatexImageDirDocs = 'Specify the directory where the images are stored.';
+
+class procedure TLaTeXWriter.Usage(List: TStrings); 
+
+begin
+  Inherited;
+  List.Add('--latex-highlight');
+  List.Add(SLatexHighlightDocs);
+  List.Add('--latex-extension=ext');
+  List.Add(SLatexExtensionDocs);
+  List.Add('--latex-verbatim-length=len');
+  List.Add(SLatexVerbatimLengthDocs);
+  List.Add('--image-dir=dir');
+  List.Add(SLatexImageDirDocs);
 end;
 
 initialization

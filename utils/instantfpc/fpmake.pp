@@ -14,7 +14,8 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('instantfpc');
+    P:=AddPackage('utils-instantfpc');
+    P.ShortName:='instantfpc';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
@@ -24,7 +25,7 @@ begin
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Dependencies.Add('fcl-process');
     P.Options.Add('-S2h');

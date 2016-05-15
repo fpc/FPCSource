@@ -28,7 +28,8 @@ procedure do_close(h : thandle);
 begin
   if do_isdevice(h) then
    exit;
-  CloseHandle(h);
+  if CloseHandle(h)=0 then
+    Errno2InOutRes(GetLastError);
 end;
 
 
@@ -312,6 +313,7 @@ begin
   if (filerec(f).handle=0) or (filerec(f).handle=UnusedHandle) then
     begin
       Errno2InoutRes(GetLastError);
+      FileRec(f).mode:=fmclosed;
     end;
   if oldp<>p then
     freemem(p);

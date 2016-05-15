@@ -9,6 +9,9 @@ program ExecStack;
 {$if defined(cpupowerpc) or defined(cpupowerpc64)}
     ret: longint;
 {$endif}
+{$if defined(cpuaarch64)}
+    ret: longint;
+{$endif}
 {$if defined(cpui386) or defined(cpux86_64)}
     ret: Byte;
 {$endif}
@@ -17,6 +20,9 @@ program ExecStack;
 {$endif}
 {$ifdef cpumips}
     ret: array[0..1] of longword;
+{$endif}
+{$ifdef cpum68k}
+    ret: word;
 {$endif}
     DoNothing: proc;
 
@@ -37,6 +43,11 @@ program ExecStack;
     DoNothing;
 {$endif}
 {$endif}
+{$if defined(cpuaarch64)}
+    ret := $d65f03c0;
+    DoNothing := proc(@ret);
+    DoNothing;
+{$endif}
 {$if defined(cpui386) or defined(cpux86_64)}
     ret := $C3;
     DoNothing := proc(@ret);
@@ -51,7 +62,13 @@ program ExecStack;
     ret[1]:=0;                   { delay slot }
     DoNothing:=proc(@ret);
     DoNothing;
-{$endif}
+{$endif cpumips}
+{$ifdef cpum68k}
+    ret:=$4E75;
+    DoNothing:=proc(@ret);
+    DoNothing;
+{$endif cpum68k}
+
   end;
 begin
   DoIt;

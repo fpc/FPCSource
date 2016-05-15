@@ -116,21 +116,47 @@ implementation
 
          { target specific stuff }
          case target_info.system of
-           system_powerpc_amiga:
-             include(supported_calling_conventions,pocall_syscall);
-           system_powerpc_morphos:
-             include(supported_calling_conventions,pocall_syscall);
-           system_m68k_amiga:
+           system_powerpc_amiga,
+           system_powerpc_morphos,
+           system_m68k_amiga,
+           system_i386_aros,
+           system_x86_64_aros:
              include(supported_calling_conventions,pocall_syscall);
 {$ifdef i8086}
            system_i8086_msdos:
-             if stacksize=0 then
-               begin
-                 if init_settings.x86memorymodel in x86_far_data_models then
-                   stacksize:=16384
-                 else
-                   stacksize:=4096;
-               end;
+             begin
+               if stacksize=0 then
+                 begin
+                   if init_settings.x86memorymodel in x86_far_data_models then
+                     stacksize:=16384
+                   else
+                     stacksize:=4096;
+                 end;
+               if maxheapsize=0 then
+                 begin
+                   if init_settings.x86memorymodel in x86_far_data_models then
+                     maxheapsize:=655360
+                   else
+                     maxheapsize:=65520;
+                 end;
+             end;
+           system_i8086_win16:
+             begin
+               if stacksize=0 then
+                 begin
+                   if init_settings.x86memorymodel in x86_far_data_models then
+                     stacksize:=8192
+                   else
+                     stacksize:=5120;
+                 end;
+               if heapsize=0 then
+                 begin
+                   if init_settings.x86memorymodel in x86_far_data_models then
+                     heapsize:=8192
+                   else
+                     heapsize:=4096;
+                 end;
+             end;
 {$endif i8086}
          end;
       end;
@@ -368,10 +394,14 @@ implementation
                raise;
              on Exception do
                begin
-                 { Increase errorcounter to prevent some
-                   checks during cleanup,
-                   but use GenerateError procedure for this. }
-                 GenerateError;
+                 { Generate exception_raised message,
+                   but avoid multiple messages by
+                   guarding with exception_raised global variable }
+                 if not exception_raised then
+                   begin
+                     exception_raised:=true;
+                     Message(general_e_exception_raised);
+                   end;
                  raise;
                end;
            end;

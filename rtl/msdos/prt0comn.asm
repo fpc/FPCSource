@@ -36,10 +36,10 @@
 
         cpu 8086
 
-        segment text use16 class=code
+        segment _TEXT use16 class=CODE
 
         extern PASCALMAIN
-        extern dos_psp
+        extern __fpc_PrefixSeg
         extern dos_version
         extern __Test8086
 
@@ -52,6 +52,12 @@
 
         extern __nearheap_start
         extern __nearheap_end
+
+        extern ___heap
+
+%ifdef __NEAR_DATA__
+        extern __fpc_stackplusmaxheap_in_para
+%endif
 
 %ifndef __TINY__
     %ifdef __FAR_DATA__
@@ -70,35 +76,42 @@
         resb 0100h
 %endif
 ..start:
+%ifndef __HUGE__
 %ifdef __TINY__
         mov bx, cs
 %else
-        mov bx, dgroup
+        mov bx, DGROUP
     %ifdef __NEAR_DATA__
         ; init the stack
         mov ss, bx
-        mov sp, ___stacktop wrt dgroup
+        mov sp, ___stacktop wrt DGROUP
     %endif
 %endif
 
         ; zero fill the BSS section
         mov es, bx
-        mov di, _edata wrt dgroup
-        mov cx, _end wrt dgroup
+        mov di, _edata wrt DGROUP
+        mov cx, _end wrt DGROUP
         sub cx, di
         xor al, al
         cld
         rep stosb
+%endif ; not __HUGE__
 
         ; save the Program Segment Prefix
         push ds
 
         ; init DS
+%ifdef __HUGE__
+        mov bx, SYSTEM_DATA
         mov ds, bx
+%else
+        mov ds, bx
+%endif
 
-        ; pop the PSP from stack and store it in the pascal variable dos_psp
+        ; pop the PSP from stack and store it in the pascal variable PrefixSeg
         pop ax
-        mov word [dos_psp], ax
+        mov word [__fpc_PrefixSeg], ax
 
         ; get DOS version and save it in the pascal variable dos_version
         mov ax, 3000h
@@ -143,18 +156,27 @@ cpu_detect_done:
 ; ****************************************************************************
 
         ; allocate max heap
-        ; TODO: also support user specified heap size
-        ; try to resize our main DOS memory block until the end of the data segment
+        ; first we determine in paragraphs ax:=min(64kb, data+bss+stack+maxheap)
+        mov ax, _end wrt DGROUP
+        add ax, 15
+        mov cl, 4
+        shr ax, cl
+        add ax, word [__fpc_stackplusmaxheap_in_para]
+        cmp ax, 1000h  ; 1000h = 64k in paragraphs
+        jbe data_with_maxheap_less_than_64k
+        mov ax, 1000h
+data_with_maxheap_less_than_64k:
+
+        ; try to resize our main DOS memory block until the end of the data segment (or even smaller, if maxheap is small)
+        mov cx, word [__fpc_PrefixSeg]
 %ifdef __TINY__
-        mov cx, cs
-        mov dx, 1000h  ; 64kb in paragraphs
+        mov dx, cs
 %else
-        mov dx, word [dos_psp]
-        mov cx, dx
-        sub dx, dgroup
-        neg dx  ; dx = (ds - psp) in paragraphs
-        add dx, 1000h  ; 64kb in paragraphs
+        mov dx, DGROUP
 %endif
+        sub dx, cx  ; dx = (ds - psp) in paragraphs
+        push dx  ; save (ds - psp)
+        add dx, 1000h  ; 64kb in paragraphs
 
          ; get our MCB size in paragraphs
         dec cx
@@ -175,10 +197,8 @@ cpu_detect_done:
 skip_mem_realloc:
 
         ; bx = the new size in paragraphs
-%ifndef __TINY__
-        add bx, word [dos_psp]
-        sub bx, dgroup
-%endif
+        pop cx  ; cx = (ds - psp)
+        sub bx, cx
         mov cl, 4
         shl bx, cl
         sub bx, 2
@@ -190,13 +210,15 @@ skip_mem_realloc:
         and bl, 0FEh
         mov word [__stkbottom], bx
 
-        cmp bx, _end wrt dgroup
+        mov ax, _end wrt DGROUP
+        cmp bx, ax
         jb not_enough_mem
 
-        ; heap is between [ds:_end wrt dgroup] and [ds:__stkbottom - 1]
-        mov word [__nearheap_start], _end wrt dgroup
-        mov bx, word [__stkbottom]
-        dec bx
+        ; heap is between [ds:_end wrt DGROUP] and [ds:__stkbottom - 1]
+        add ax, 3
+        and al, 0FCh
+        mov word [__nearheap_start], ax
+        and bl, 0FCh
         mov word [__nearheap_end], bx
 
 ; ****************************************************************************
@@ -218,9 +240,18 @@ skip_mem_realloc:
         shr dx, cl
         add ax, dx
         mov word [__nearheap_start], 0
-        mov word [__nearheap_end], 0FFF0h
         mov word [__nearheap_start + 2], ax
-        mov word [__nearheap_end   + 2], ax
+
+       ; get our MCB size in paragraphs
+        mov cx, word [__fpc_PrefixSeg]
+        dec cx
+        mov es, cx
+        mov bx, word [es:3]
+        add bx, cx
+        inc bx
+        ; __nearheap_end := end_of_dos_memory_block
+        mov word [__nearheap_end], 0
+        mov word [__nearheap_end + 2], bx
 %endif
 
 %ifdef __FAR_CODE__
@@ -229,54 +260,64 @@ skip_mem_realloc:
         jmp PASCALMAIN
 %endif
 
+%ifdef __NEAR_DATA__
 not_enough_mem:
         mov dx, not_enough_mem_msg
         jmp error_msg
 
 mem_realloc_err:
+        ; at this point there's still (ds-psp) pushed on the stack, but we won't
+        ; bother popping it, because we exit to DOS with an error message here
         mov dx, mem_realloc_err_msg
 error_msg:
         mov ah, 9
         int 21h
         mov ax, 4CFFh
         int 21h
+%endif
 
 FPC_INT00_HANDLER:
         sub sp, 4  ; reserve space on the stack for the retf
 
-        push bx
         push cx
         push ds
+        push bp
 
         ; init ds
 %ifdef __TINY__
-        mov bx, cs
+        mov bp, cs
+%elifdef __HUGE__
+        mov bp, SYSTEM_DATA
 %else
-        mov bx, dgroup
+        mov bp, DGROUP
 %endif
-        mov ds, bx
+        mov ds, bp
 
+%ifdef __NEAR_DATA__
+        ; in memory models, where SS=DS, also
         ; check whether we're running on the same stack
         mov cx, ss
-        cmp bx, cx
+        cmp bp, cx
         jne .call_previous_handler
+%endif
 
 %ifndef __FAR_CODE__
         ; check whether we're coming from the same code segment
-        mov bx, sp
-        mov cx, [bx + 3*2 + 6]  ; get caller segment
-        mov bx, cs
-        cmp bx, cx
+        mov bp, sp
+        mov cx, [bp + 3*2 + 6]  ; get caller segment
+        mov bp, cs
+        cmp bp, cx
         jne .call_previous_handler
 %endif
 
         ; runerror 200
-        mov bx, sp
-        mov cx, [bx + 3*2 + 4]  ; get caller offset
+        mov bp, sp
+        mov cx, [bp + 3*2 + 4]  ; get caller offset
 %ifdef __FAR_CODE__
-        mov dx, [bx + 3*2 + 6]  ; get caller segment
+        mov dx, [bp + 3*2 + 6]  ; get caller segment
 %endif
-        add sp, 3*2 + 4 + 6
+        pop bp
+        add sp, 2*2 + 4 + 6
         xor ax, ax
         push ax
         mov ax, 200
@@ -293,14 +334,14 @@ FPC_INT00_HANDLER:
 %endif
 
 .call_previous_handler:
-        mov bx, sp
+        mov bp, sp
         mov cx, [__SaveInt00]
-        mov [ss:bx + 3*2], cx
+        mov [bp + 3*2], cx
         mov cx, [__SaveInt00+2]
-        mov [ss:bx + 3*2 + 2], cx
+        mov [bp + 3*2 + 2], cx
+        pop bp
         pop ds
         pop cx
-        pop bx
         retf  ; jumps to the previous handler with all registers and stack intact
 
 
@@ -308,6 +349,11 @@ FPC_INT00_HANDLER:
         global FPC_INSTALL_INTERRUPT_HANDLERS
 FPC_INSTALL_INTERRUPT_HANDLERS:
         push ds
+
+%ifdef __HUGE__
+        mov ax, SYSTEM_DATA
+        mov ds, ax
+%endif
 
         ; save old int 00 handler
         mov ax, 3500h
@@ -336,6 +382,11 @@ FPC_INSTALL_INTERRUPT_HANDLERS:
         global FPC_RESTORE_INTERRUPT_HANDLERS
 FPC_RESTORE_INTERRUPT_HANDLERS:
         push ds
+
+%ifdef __HUGE__
+        mov ax, SYSTEM_DATA
+        mov ds, ax
+%endif
 
         mov ax, 2500h
         lds dx, [__SaveInt00]
@@ -432,19 +483,21 @@ int_number:
         pop ds
         pop bp
 %ifdef __FAR_CODE__
-        retf 4
+        retf 4 + extra_data_offset
 %else
-        ret 4
+        ret 4 + extra_data_offset
 %endif
 
+%ifndef __TINY__
         global FPC_CHECK_NULLAREA
 FPC_CHECK_NULLAREA:
-%ifdef __TINY__
-        ; tiny model has no nil pointer assignment checking; always return true.
-        mov al, 1
+%ifdef __HUGE__
+        mov ax, DGROUP
+        mov es, ax
 %else
         push ds
         pop es
+%endif
         xor di, di
         mov cx, 32
         mov al, 1
@@ -453,20 +506,30 @@ FPC_CHECK_NULLAREA:
         je .skip
         dec ax   ; 1 byte shorter than dec al
 .skip:
-%endif
-%ifdef __FAR_CODE__
+    %ifdef __FAR_CODE__
         retf
-%else
+    %else
         ret
+    %endif
 %endif
 
-        segment data class=data
+%ifdef __HUGE__
+        ; reference the system unit's data segment
+        segment SYSTEM_DATA use16 class=FAR_DATA align=2
+%endif
+
+        segment data class=DATA align=2
+%ifdef __NEAR_DATA__
 mem_realloc_err_msg:
         db 'Memory allocation error', 13, 10, '$'
 not_enough_mem_msg:
         db 'Not enough memory', 13, 10, '$'
+%endif
+        ; add reference to the beginning of the minimal heap, so the object
+        ; module, containing the heap segment doesn't get smartlinked away
+        dw ___heap
 
-        segment bss class=bss
+        segment bss class=BSS align=2
 
 %ifndef __TINY__
         segment _NULL align=16 class=BEGDATA
@@ -479,21 +542,21 @@ __nullarea:
         dw 0
 
     %ifdef __NEAR_DATA__
-        segment stack stack class=stack
+        segment stack stack class=STACK align=16
     %else
         segment data
         ; add reference to the beginning of stack, so the object module,
         ; containing the stack segment doesn't get smartlinked away
-        dd ___stack
+        dw ___stack
     %endif
 %endif
 
 %ifdef __TINY__
-        group dgroup text data bss
+        group DGROUP _TEXT data bss
 %else
     %ifdef __NEAR_DATA__
-        group dgroup _NULL _AFTERNULL data bss stack
+        group DGROUP _NULL _AFTERNULL data bss stack
     %else
-        group dgroup _NULL _AFTERNULL data bss
+        group DGROUP _NULL _AFTERNULL data bss
     %endif
 %endif

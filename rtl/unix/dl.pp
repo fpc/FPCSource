@@ -27,7 +27,7 @@ const
   {$endif}
 {$endif}
 
-{$if defined(linux) or defined(freebsd) or defined(openbsd)}
+{$if defined(linux) or defined(freebsd) or defined(openbsd) or defined(dragonfly)}
   {$define ELF} // ELF symbol versioning.
 {$endif}
 
@@ -92,7 +92,7 @@ function dlerror() : Pchar; cdecl; external libdl;
 { overloaded for compatibility with hmodule }
 function dlsym(Lib : PtrInt; Name : Pchar) : Pointer; cdecl; external Libdl;
 function dlclose(Lib : PtrInt) : Longint; cdecl; external libdl;
-function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$ifndef aix}external;{$endif}
+function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; {$if not defined(aix) and not defined(android)} external; {$endif}
 
 implementation
 
@@ -125,17 +125,20 @@ uses
       dladdr(addr, @dlinfo);
       baseaddr:=dlinfo.dli_fbase;
       filename:=String(dlinfo.dli_fname);
+    {$ifdef darwin}
       if SimpleExtractFilename(filename)=SimpleExtractFilename(ParamStr(0)) then
         baseaddr:=nil;
+    {$endif darwin}
     end;
 
 {$ifdef aix}
 {$i dlaix.inc}
 {$endif}
 
+{$ifdef android}
+{$i dlandroid.inc}
+{$endif}
 
 begin
-{$ifndef android}
   UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;
-{$endif android}
 end.

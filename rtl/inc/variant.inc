@@ -142,7 +142,7 @@ function fpc_idispatch_to_variant(const i : idispatch) : variant;compilerproc;
   end;
 
 
-procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;
+procedure fpc_dispinvoke_variant(dest : pvardata;var source : tvardata;
   calldesc : pcalldesc;params : pointer); compilerproc;
   begin
   	variantmanager.dispinvoke(dest,source,calldesc,params);
@@ -542,13 +542,6 @@ operator :=(const source : variant) dest : tdatetime;{$ifdef SYSTEMINLINE}inline
     dest:=variantmanager.vartotdatetime(source);
   end;
 {$endif}
-
-{$ifndef FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
-operator :=(const source : olevariant) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    tvardata(result):=tvardata(source);
-  end;
-{$endif FPC_HASINTERNALOLEVARIANT2VARIANTCAST}
 
 operator :=(const source : variant) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
@@ -1093,9 +1086,6 @@ begin
   VariantManager:=VarMgr;
 end;
 
-procedure initvariantmanager;
-  begin
-  end;
 
 Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin

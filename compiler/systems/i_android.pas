@@ -36,7 +36,8 @@ unit i_android;
             shortname    : 'Android';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment, tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_pic_uses_got, tf_pic_default,
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX;CPUARMEL';
@@ -90,7 +91,8 @@ unit i_android;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 8;
-            abi : abi_eabi
+            abi : abi_eabi;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:64:128-a0:0:64-n32-S64';
           );
 
        system_i386_android_info : tsysteminfo =
@@ -98,10 +100,10 @@ unit i_android;
             system       : system_i386_ANDROID;
             name         : 'Android for i386';
             shortname    : 'Android';
-            flags        : [tf_needs_symbol_size,tf_pic_uses_got,tf_smartlink_sections,
-                            tf_needs_symbol_type,tf_files_case_sensitive,
-                            tf_smartlink_library,tf_needs_dwarf_cfi,tf_has_winlike_resources,
-                            tf_safecall_exceptions, tf_safecall_clearstack];
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_needs_dwarf_cfi,tf_has_winlike_resources,
+                            tf_pic_uses_got, tf_pic_default, tf_smartlink_sections,
+                            tf_safecall_exceptions];
             cpu          : cpu_i386;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -155,7 +157,8 @@ unit i_android;
             first_parm_offset : 8;
             stacksize    : 8*1024*1024;
             stackalign   : 16;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S128';
           );
 
        system_mipsel_android_info : tsysteminfo =
@@ -165,7 +168,7 @@ unit i_android;
             shortname    : 'Android';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_requires_proper_alignment,tf_pic_default,tf_safecall_exceptions,
-                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+                            tf_smartlink_sections,tf_has_winlike_resources];
             cpu          : cpu_mipsel;
             unit_env     : 'ANDROIDUNITS';
             extradefines : 'UNIX;HASUNIX';
@@ -219,7 +222,8 @@ unit i_android;
             first_parm_offset : 0;
             stacksize    : 32*1024*1024;
             stackalign   : 8;
-            abi : abi_default
+            abi : abi_default;
+            llvmdatalayout : 'e-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64';
           );
 
 implementation

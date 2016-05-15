@@ -12,12 +12,18 @@
 
  **********************************************************************}
 {$mode objfpc}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 {$H+}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 unit sysconst;
 
 interface
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 resourcestring
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+const
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 { from old str*.inc files }
 
@@ -80,6 +86,7 @@ resourcestring
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
   SNoError               = 'No error.';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
+  SNoDynLibsSupport      = 'Dynamic libraries not supported. Recompile program with dynamic library driver.';
   SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
   SSigQuit               = 'SIGQUIT signal received.';
   SObjectCheckError      = 'Object reference is Nil';
@@ -228,6 +235,7 @@ begin
      231 : Result:=SExceptionStack;
      232 : Result:=SNoThreadSupport;
      233 : Result:=SMissingWStringManager;
+     235 : Result:=SNoDynLibsSupport;
 
      255 : Result:=SFallbackError;
 

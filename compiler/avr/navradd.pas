@@ -51,7 +51,8 @@ interface
       cpuinfo,pass_1,pass_2,regvars,procinfo,
       cpupara,
       ncon,nset,nadd,
-      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
+      ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32,
+      hlcgobj;
 
 {*****************************************************************************
                                TAVRAddNode
@@ -77,6 +78,8 @@ interface
                       GetResFlags:=F_LT;
                     gten:
                       GetResFlags:=F_NotPossible;
+                    else
+                      internalerror(2014082020);
                   end
                 else
                   case NodeType of
@@ -88,6 +91,8 @@ interface
                       GetResFlags:=F_NotPossible;
                     gten:
                       GetResFlags:=F_GE;
+                    else
+                      internalerror(2014082021);
                   end;
               end
             else
@@ -97,22 +102,26 @@ interface
                     ltn:
                       GetResFlags:=F_NotPossible;
                     lten:
-                      GetResFlags:=F_CS;
+                      GetResFlags:=F_SH;
                     gtn:
-                      GetResFlags:=F_CC;
+                      GetResFlags:=F_LO;
                     gten:
                       GetResFlags:=F_NotPossible;
+                    else
+                      internalerror(2014082022);
                   end
                 else
                   case NodeType of
                     ltn:
-                      GetResFlags:=F_CC;
+                      GetResFlags:=F_LO;
                     lten:
                       GetResFlags:=F_NotPossible;
                     gtn:
                       GetResFlags:=F_NotPossible;
                     gten:
-                      GetResFlags:=F_CS;
+                      GetResFlags:=F_SH;
+                    else
+                      internalerror(2014082023);
                   end;
               end;
         end;
@@ -179,15 +188,34 @@ interface
         i : longint;
       begin
         pass_left_right;
-        force_reg_left_right(true,false);
+        force_reg_left_right(true,true);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
         if getresflags(unsigned)=F_NotPossible then
-          swapleftright;
+          begin
+            swapleftright;
+            { if we have to swap back and left is a constant, force it to a register because we cannot generate
+              the needed code using a constant }
+            if (left.location.loc=LOC_CONSTANT) and (left.location.value<>0) then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+          end;
 
-        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+        if right.location.loc=LOC_CONSTANT then
+          begin
+            { decrease register pressure on registers >= r16 }
+            if (right.location.value and $ff)=0 then
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,NR_R1))
+            else
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CPI,left.location.register,right.location.value and $ff))
+          end
+        { on the left side, we allow only a constant if it is 0 }
+        else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,NR_R1,right.location.register))
+        else
+          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+
         tmpreg1:=left.location.register;
         tmpreg2:=right.location.register;
 
@@ -195,15 +223,35 @@ interface
           begin
             if i=5 then
               begin
-                tmpreg1:=left.location.registerhi;
-                tmpreg2:=right.location.registerhi;
+                if left.location.loc<>LOC_CONSTANT then
+                  tmpreg1:=left.location.registerhi;
+                if right.location.loc<>LOC_CONSTANT then
+                  tmpreg2:=right.location.registerhi;
               end
             else
               begin
-                tmpreg1:=GetNextReg(tmpreg1);
-                tmpreg2:=GetNextReg(tmpreg2);
+                if left.location.loc<>LOC_CONSTANT then
+                  tmpreg1:=GetNextReg(tmpreg1);
+                if right.location.loc<>LOC_CONSTANT then
+                  tmpreg2:=GetNextReg(tmpreg2);
               end;
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+            if right.location.loc=LOC_CONSTANT then
+              begin
+                { just use R1? }
+                if ((right.location.value64 shr ((i-1)*8)) and $ff)=0 then
+                  current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,NR_R1))
+                else
+                  begin
+                    tmpreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_8);
+                    cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_8,(right.location.value64 shr ((i-1)*8)) and $ff,tmpreg2);
+                    current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
+                  end;
+              end
+            { above it is checked, if left=0, then a constant is allowed }
+            else if (left.location.loc=LOC_CONSTANT) and (left.location.value=0) then
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,NR_R1,tmpreg2))
+            else
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
 
         location_reset(location,LOC_FLAGS,OS_NO);
@@ -220,7 +268,7 @@ interface
     function tavraddnode.pass_1 : tnode;
       begin
         result:=inherited pass_1;
-{
+{$ifdef dummy}
         if not(assigned(result)) then
           begin
             unsigned:=not(is_signed(left.resultdef)) or
@@ -240,7 +288,7 @@ interface
              is_dynamic_array(left.resultdef)
            ) then
           expectloc:=LOC_FLAGS;
-}
+{$endif dummy}
       end;
 
 

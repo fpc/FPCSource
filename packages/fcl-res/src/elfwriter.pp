@@ -155,7 +155,7 @@ type
 
 type
   TElfRelocInfo = record
-    RelocType : byte;
+    RelocType : longword;
     SectionType : integer;
   end;
 (*
@@ -548,9 +548,11 @@ begin
     emti386   : begin fMachineTypeInt:=EM_386; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtm68k   : begin fMachineTypeInt:=EM_68K; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
     emtppc    : begin fMachineTypeInt:=EM_PPC; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
-    emtppc64  : begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64; fOrder:=ELFDATA2MSB; end;
+    emtppc64  : begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64;fOrder:=ELFDATA2MSB; end;
+    emtppc64le: begin fMachineTypeInt:=EM_PPC64; fBits:=ELFCLASS64;fOrder:=ELFDATA2LSB; end;
     emtarm    : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2LSB; end;
     emtarmeb  : begin fMachineTypeInt:=EM_ARM; fBits:=ELFCLASS32; fOrder:=ELFDATA2MSB; end;
+    emtaarch64: begin fMachineTypeInt:=EM_AARCH64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtalpha  : begin fMachineTypeInt:=EM_ALPHA; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtia64   : begin fMachineTypeInt:=EM_IA_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;
     emtx86_64 : begin fMachineTypeInt:=EM_X86_64; fBits:=ELFCLASS64; fOrder:=ELFDATA2LSB; end;

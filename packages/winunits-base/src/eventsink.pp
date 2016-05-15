@@ -81,6 +81,7 @@ type
   constructor Create(AOwner: TComponent); override;
   destructor Destroy; override;
   procedure Connect(AnAppDispatch: IDispatch; const AnAppDispIntfIID: TGUID);
+  procedure Disconnect;
  published
   property OnInvoke: TInvokeEvent read FOnInvoke write FOnInvoke;
  end;
@@ -180,6 +181,11 @@ procedure TEventSink.Connect(AnAppDispatch: IDispatch;
  const AnAppDispIntfIID: TGUID);
 begin
  FSink.Connect(AnAppDispatch, AnAppDispIntfIID);
+end;
+
+procedure TEventSink.Disconnect;
+begin
+  FSink.Disconnect;
 end;
 
 constructor TEventSink.Create(AOwner: TComponent);

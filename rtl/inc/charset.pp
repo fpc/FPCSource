@@ -73,15 +73,15 @@ unit charset;
     ) : punicodemap;overload;
     procedure registermapping(p : punicodemap);
     function registerbinarymapping(const directory,cpname : string):Boolean;
-    function getmap(const s : string) : punicodemap; 
-    function getmap(cp : word) : punicodemap;   
+    function getmap(const s : string) : punicodemap;
+    function getmap(cp : word) : punicodemap;
     function mappingavailable(const s : string) : boolean;inline;
     function mappingavailable(cp :word) : boolean;inline;
     function getunicode(c : char;p : punicodemap) : tunicodechar;inline;
     function getunicode(
       AAnsiStr : pansichar;
       AAnsiLen : LongInt;
-      AMap     : punicodemap; 
+      AMap     : punicodemap;
       ADest    : tunicodestring
     ) : LongInt;
     function getascii(c : tunicodechar;p : punicodemap) : string;
@@ -421,10 +421,7 @@ unit charset;
         Assign(f,filename);
         Reset(f);
         if (IOResult<>0) then
-          begin
-            Close(f);
-            exit;
-          end;
+          exit;
         locSize:=FileSize(f);
         if (locSize<SizeOf(TSerializedMapHeader)) then
           begin
@@ -624,7 +621,7 @@ unit charset;
     function getunicode(
       AAnsiStr : pansichar;
       AAnsiLen : LongInt;
-      AMap     : punicodemap; 
+      AMap     : punicodemap;
       ADest    : tunicodestring
     ) : LongInt;
 
@@ -632,11 +629,11 @@ unit charset;
          i, c, k, destLen : longint;
          ps : pansichar;
          pd : ^tunicodechar;
-         
+
       begin
         if (AAnsiStr=nil) or (AAnsiLen<=0) then
           exit(0);
-        ps:=AAnsiStr;   
+        ps:=AAnsiStr;
         if (ADest=nil) then
           begin
             c:=AAnsiLen-1;
@@ -651,12 +648,12 @@ unit charset;
                         Inc(ps);
                         i:=i+1;
                       end;
-                  end;  
-                i:=i+1;  
+                  end;
+                i:=i+1;
                 Inc(ps);
                 destLen:=destLen+1;
-              end; 
-            exit(destLen);  
+              end;
+            exit(destLen);
           end;
 
         pd:=ADest;
@@ -668,7 +665,7 @@ unit charset;
               begin
                 if (AMap^.map[ord(ps^)].flag=umf_leadbyte) then
                   begin
-                    if (i<c) then 
+                    if (i<c) then
                       begin
                         k:=(Ord(ps^)*256);
                         Inc(ps);
@@ -681,16 +678,16 @@ unit charset;
                       end
                     else
                       pd^:=UNKNOW_CHAR_W;
-                  end                       
-                else   
+                  end
+                else
                   pd^:=AMap^.map[ord(ps^)].unicode
-              end  
+              end
             else
               pd^:=UNKNOW_CHAR_W;
-            i:=i+1;  
+            i:=i+1;
             Inc(ps);
             Inc(pd);
-          end; 
+          end;
         result:=((PtrUInt(pd)-PtrUInt(ADest)) div SizeOf(tunicodechar));
       end;
 

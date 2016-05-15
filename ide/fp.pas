@@ -63,7 +63,11 @@ uses
   Dos,Objects,
   BrowCol,Version,
 {$ifndef NODEBUG}
-  gdbint,
+  {$ifdef GDBMI}
+    gdbmiint,
+  {$else GDBMI}
+    gdbint,
+  {$endif GDBMI}
 {$endif NODEBUG}
   FVConsts,
   Drivers,Views,App,Dialogs,HistList,
@@ -79,6 +83,9 @@ uses
   FPTools,
 {$ifndef NODEBUG}
   FPDebug,FPRegs,
+{$ifdef GDBMI}
+  gdbmiproc,
+{$endif GDBMI}
 {$endif}
   FPTemplt,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp,
@@ -196,6 +203,16 @@ begin
                 Delete(Param,1,1); { eat optional separator }
               IniFileName:=Param;
             end;
+{$ifdef GDBMI}
+          'G' : { custom GDB exec file (GDBMI mode only) }
+           if BeforeINI then
+            begin
+              delete(param,1,1); // delete C
+              if (length(Param)>=1) and (Param[1] in['=',':']) then
+                Delete(Param,1,1); { eat optional separator }
+              GDBProgramName:=Param;
+            end;
+{$endif def GDBMI}
           'R' : { enter the directory last exited from (BP comp.) }
             begin
               Param:=copy(Param,2,255);
@@ -328,15 +345,23 @@ procedure InitCompilerSwitches;
     default_settings.localswitches:=[cs_typed_const_writable];
   end;
 
-
+{$IFDEF HASAMIGA}
+procedure SetAmigaWindowTitle;
+begin
+  { window title first, then screen title, shown when the window is active }
+  Video.SetWindowTitle(
+     'Free Pascal IDE',
+     'Free Pascal IDE '+VersionStr+' ['+{$i %date%}+'] - Compiler '+Full_Version_String);
+end;
+{$ENDIF}
 {The square bullet needs an MS-DOS code page. On Unix it is for sure the code
  page is not available before video is initialized. (And only in certain
  circumstances after that, so, use a plain ascii character as bullet on Unix.)}
 
-{$if defined(unix) or defined(amiga) or defined(morphos)}
+{$if defined(unix) or defined(HASAMIGA)}
 const bullet='*';
 {$else}
-const bullet='þ';
+const bullet=#254;
 {$endif}
 
 BEGIN
@@ -351,17 +376,25 @@ BEGIN
   { Startup info }
   writeln(bullet+' Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
   writeln(bullet+' Compiler Version '+Full_Version_String);
+
+  { Process params before printing GDB version because of /G option }
+  ProcessParams(true);
+
 {$ifndef NODEBUG}
   writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
   {$ifndef USE_MINGW_GDB}
-   writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
-   CheckCygwinVersion;
+   {$ifdef GDBMI}
+   { No reason to talk about cygwin DLL if we don't use it }
+   if using_cygwin_gdb then
+   {$endif GDBMI}
+     begin
+       writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
+       CheckCygwinVersion;
+     end;
   {$endif}
  {$endif Windows}
 {$endif NODEBUG}
-
-  ProcessParams(true);
 
 {$ifdef DEBUG}
   StartTime:=getrealtime;
@@ -423,6 +456,10 @@ BEGIN
     to be able to find location of error in last compilation
     from command line PM }
   ParseUserScreen;
+
+{$IFDEF HASAMIGA}
+  SetAmigaWindowTitle;
+{$ENDIF}
 
   { Update IDE }
   IDEApp.Update;

@@ -13,10 +13,11 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('postgres');
+    P.ShortName:='pgr';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.SourcePath.Add('src');
     P.OSes := AllUnixOSes-[qnx]+AllWindowsOSes;
 
@@ -56,7 +57,7 @@ begin
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('testpg2.pp');
     P.Targets.AddExampleProgram('testpg1.pp');
-    P.Sources.AddExampleFiles('examples/*',false,'.');
+    P.Sources.AddExampleFiles('examples/*',P.Directory,false,'.');
 
 {$ifndef ALLPACKAGES}
     Run;

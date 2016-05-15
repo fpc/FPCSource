@@ -72,7 +72,11 @@ Type
     Sec   : word;
   End;
 
+{$ifdef FPC_HAS_FEATURE_THREADING}
 threadvar
+{$else FPC_HAS_FEATURE_THREADING}
+var
+{$endif FPC_HAS_FEATURE_THREADING}
   DosError : integer;
 
 {$ifdef cpui386}
@@ -125,8 +129,8 @@ Procedure SetVerify(verify: boolean);
 
 {Do Nothing Functions}
 Procedure SwapVectors;
-Procedure GetIntVec(intno: byte; var vector: {$ifdef i8086}farpointer{$else}pointer{$endif});
-Procedure SetIntVec(intno: byte; vector: {$ifdef i8086}farpointer{$else}pointer{$endif});
+Procedure GetIntVec(intno: byte; var vector: {$ifdef cpui8086}farpointer{$else}pointer{$endif});
+Procedure SetIntVec(intno: byte; vector: {$ifdef cpui8086}farpointer{$else}pointer{$endif});
 Procedure Keep(exitcode: word);
 
 {Additional (non-TP) function for quick access to system timer - for FV etc.}

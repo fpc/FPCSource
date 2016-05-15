@@ -69,13 +69,22 @@ interface
 
       procedure reference_reset_base(var ref: treference; regsize: tdef; reg: tregister; offset, alignment: longint); override;
 
-      function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
+      function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;override;
 
       procedure a_load_loc_ref(list : TAsmList;fromsize, tosize: tdef; const loc: tlocation; const ref : treference);override;
       procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
+      procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister); override;
+
       procedure g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister); override;
       procedure g_releasevaluepara_openarray(list: TAsmList; arrdef: tarraydef; const l: tlocation); override;
+
+      procedure g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference); override;
+      procedure g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference); override;
+      procedure g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister); override;
+      procedure g_exception_reason_discard(list: TAsmList; size: tdef; href: treference); override;
+
+      procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
       procedure location_force_mem(list:TAsmList;var l:tlocation;size:tdef);override;
     end;
@@ -87,7 +96,8 @@ implementation
   uses
     verbose,
     paramgr,
-    cpubase,cpuinfo,tgobj,cgobj,cgcpu,
+    aasmbase,aasmtai,
+    cpubase,cpuinfo,tgobj,cgobj,cgx86,cgcpu,
     defutil,
     symconst,symcpu,
     procinfo,fmodule,
@@ -235,8 +245,18 @@ implementation
     begin
       { implicit pointer types on i8086 follow the default data pointer size for
         the current memory model }
-      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
+      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) or
+         (size.typ=classrefdef) then
         size:=voidpointertype;
+
+      { procvars follow the default code pointer size for the current memory model }
+      if size.typ=procvardef then
+        if ((po_methodpointer in tprocvardef(size).procoptions) or
+            is_nested_pd(tprocvardef(size))) and
+           not(po_addressonly in tprocvardef(size).procoptions) then
+          internalerror(2015120101)
+        else
+          size:=voidcodepointertype;
 
       if is_farpointer(size) or is_hugepointer(size) then
         Result:=cg.getintregister(list,OS_32)
@@ -279,7 +299,7 @@ implementation
     end;
 
 
-  function thlcgcpu.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
+  function thlcgcpu.a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       if is_proc_far(pd) then
         begin
@@ -345,7 +365,8 @@ implementation
       cg.a_loadaddr_ref_reg(list, tmpref, r);
 
       { step 2: if destination is a far pointer, we have to pass a segment as well }
-      if is_farpointer(tosize) or is_hugepointer(tosize) then
+      if is_farpointer(tosize) or is_hugepointer(tosize) or is_farprocvar(tosize) or
+         ((tosize.typ=classrefdef) and (tosize.size=4)) then
         begin
           { if a segment register is specified in ref, we use that }
           if ref.segment<>NR_NO then
@@ -371,6 +392,22 @@ implementation
     end;
 
 
+  procedure thlcgcpu.a_op_const_reg(list: TAsmList; Op: TOpCG; size: tdef; a: tcgint; reg: TRegister);
+    begin
+      { implicit pointer types on i8086 follow the default data pointer size for
+        the current memory model }
+      if is_implicit_pointer_object_type(size) or is_implicit_array_pointer(size) then
+        size:=voidpointertype;
+
+      if is_hugepointer(size) then
+        internalerror(2015111201)
+      else if is_farpointer(size) then
+        cg.a_op_const_reg(list,Op,OS_16,a,reg)
+      else
+        inherited a_op_const_reg(list,Op,size,a,reg);
+    end;
+
+
   procedure thlcgcpu.g_copyvaluepara_openarray(list: TAsmList; const ref: treference; const lenloc: tlocation; arrdef: tarraydef; destreg: tregister);
     begin
       if paramanager.use_fixed_stack then
@@ -390,6 +427,246 @@ implementation
           exit;
         end;
       tcg8086(cg).g_releasevaluepara_openarray(list,l);
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_save(list: TAsmList; fromsize, tosize: tdef; reg: tregister; const href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[def_cgsize(tosize)],reg))
+      else
+        inherited
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_save_const(list: TAsmList; size: tdef; a: tcgint; const href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        tcg8086(cg).push_const(list,def_cgsize(size),a)
+      else
+        inherited;
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_load(list: TAsmList; fromsize, tosize: tdef; const href: treference; reg: tregister);
+    begin
+      if not paramanager.use_fixed_stack then
+        list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(tosize)],reg))
+      else
+        inherited;
+    end;
+
+
+  procedure thlcgcpu.g_exception_reason_discard(list: TAsmList; size: tdef; href: treference);
+    begin
+      if not paramanager.use_fixed_stack then
+        begin
+          getcpuregister(list,NR_FUNCTION_RESULT_REG);
+          list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[def_cgsize(size)],NR_FUNCTION_RESULT_REG));
+          ungetcpuregister(list,NR_FUNCTION_RESULT_REG);
+        end;
+    end;
+
+
+  procedure thlcgcpu.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
+    {
+    possible calling conventions:
+                  default stdcall cdecl pascal register
+    default(0):      OK     OK    OK     OK       OK
+    virtual(1):      OK     OK    OK     OK       OK(2)
+
+    (0):
+        set self parameter to correct value
+        jmp mangledname
+
+    (1): The wrapper code use %eax to reach the virtual method address
+         set self to correct value
+         move self,%bx
+         mov  0(%bx),%bx ; load vmt
+         jmp  vmtoffs(%bx) ; method offs
+
+    (2): Virtual use values pushed on stack to reach the method address
+         so the following code be generated:
+         set self to correct value
+         push %bx ; allocate space for function address
+         push %bx
+         push %di
+         mov  self,%bx
+         mov  0(%bx),%bx ; load vmt
+         mov  vmtoffs(%bx),bx ; method offs
+         mov  %sp,%di
+         mov  %bx,4(%di)
+         pop  %di
+         pop  %bx
+         ret  0; jmp the address
+
+    }
+
+    procedure getselftobx(offs: longint);
+      var
+        href : treference;
+        selfoffsetfromsp : longint;
+      begin
+        { "mov offset(%sp),%bx" }
+        if (procdef.proccalloption<>pocall_register) then
+          begin
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
+            { framepointer is pushed for nested procs }
+            if procdef.parast.symtablelevel>normal_function_level then
+              selfoffsetfromsp:=2*sizeof(aint)
+            else
+              selfoffsetfromsp:=sizeof(aint);
+            if current_settings.x86memorymodel in x86_far_code_models then
+              inc(selfoffsetfromsp,2);
+            list.concat(taicpu.op_reg_reg(A_mov,S_W,NR_SP,NR_DI));
+            reference_reset_base(href,voidnearpointertype,NR_DI,selfoffsetfromsp+offs+2,2);
+            if not segment_regs_equal(NR_SS,NR_DS) then
+              href.segment:=NR_SS;
+            if current_settings.x86memorymodel in x86_near_data_models then
+              cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX)
+            else
+              list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
+          end
+        else
+          cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_BX,NR_BX);
+      end;
+
+
+    procedure loadvmttobx;
+      var
+        href : treference;
+      begin
+        { mov  0(%bx),%bx ; load vmt}
+        if current_settings.x86memorymodel in x86_near_data_models then
+          begin
+            reference_reset_base(href,voidnearpointertype,NR_BX,0,2);
+            cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
+          end
+        else
+          begin
+            reference_reset_base(href,voidnearpointertype,NR_BX,0,2);
+            href.segment:=NR_ES;
+            list.concat(taicpu.op_ref_reg(A_LES,S_W,href,NR_BX));
+          end;
+      end;
+
+
+    procedure loadmethodoffstobx;
+      var
+        href : treference;
+        srcseg: TRegister;
+      begin
+        if (procdef.extnumber=$ffff) then
+          Internalerror(200006139);
+        if current_settings.x86memorymodel in x86_far_data_models then
+          srcseg:=NR_ES
+        else
+          srcseg:=NR_NO;
+        if current_settings.x86memorymodel in x86_far_code_models then
+          begin
+            { mov vmtseg(%bx),%si ; method seg }
+            reference_reset_base(href,voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber)+2,2);
+            href.segment:=srcseg;
+            cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_SI);
+          end;
+        { mov vmtoffs(%bx),%bx ; method offs }
+        reference_reset_base(href,voidnearpointertype,NR_BX,tobjectdef(procdef.struct).vmtmethodoffset(procdef.extnumber),2);
+        href.segment:=srcseg;
+        cg.a_load_ref_reg(list,OS_16,OS_16,href,NR_BX);
+      end;
+
+
+    var
+      lab : tasmsymbol;
+      make_global : boolean;
+      href : treference;
+    begin
+      if not(procdef.proctypeoption in [potype_function,potype_procedure]) then
+        Internalerror(200006137);
+      if not assigned(procdef.struct) or
+         (procdef.procoptions*[po_classmethod, po_staticmethod,
+           po_methodpointer, po_interrupt, po_iocheck]<>[]) then
+        Internalerror(200006138);
+      if procdef.owner.symtabletype<>ObjectSymtable then
+        Internalerror(200109191);
+
+      make_global:=false;
+      if (not current_module.is_unit) or
+         create_smartlink or
+         (procdef.owner.defowner.owner.symtabletype=globalsymtable) then
+        make_global:=true;
+
+      if make_global then
+        List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+      else
+        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+
+      { set param1 interface to self  }
+      g_adjust_self_value(list,procdef,ioffset);
+
+      if (po_virtualmethod in procdef.procoptions) and
+          not is_objectpascal_helper(procdef.struct) then
+        begin
+          { case 1 & case 2 }
+          list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX)); { allocate space for address}
+          if current_settings.x86memorymodel in x86_far_code_models then
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
+          list.concat(taicpu.op_reg(A_PUSH,S_W,NR_BX));
+          list.concat(taicpu.op_reg(A_PUSH,S_W,NR_DI));
+          if current_settings.x86memorymodel in x86_far_code_models then
+            list.concat(taicpu.op_reg(A_PUSH,S_W,NR_SI));
+          if current_settings.x86memorymodel in x86_far_code_models then
+            getselftobx(10)
+          else
+            getselftobx(6);
+          loadvmttobx;
+          loadmethodoffstobx;
+          { set target address
+            "mov %bx,4(%sp)" }
+          if current_settings.x86memorymodel in x86_far_code_models then
+            reference_reset_base(href,voidnearpointertype,NR_DI,6,2)
+          else
+            reference_reset_base(href,voidnearpointertype,NR_DI,4,2);
+          if not segment_regs_equal(NR_DS,NR_SS) then
+            href.segment:=NR_SS;
+          list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_SP,NR_DI));
+          list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_BX,href));
+          if current_settings.x86memorymodel in x86_far_code_models then
+            begin
+              inc(href.offset,2);
+              list.concat(taicpu.op_reg_ref(A_MOV,S_W,NR_SI,href));
+            end;
+
+          { load ax? }
+          if procdef.proccalloption=pocall_register then
+            list.concat(taicpu.op_reg_reg(A_MOV,S_W,NR_BX,NR_AX));
+
+          { restore register
+            pop  %di,bx }
+          if current_settings.x86memorymodel in x86_far_code_models then
+            list.concat(taicpu.op_reg(A_POP,S_W,NR_SI));
+          list.concat(taicpu.op_reg(A_POP,S_W,NR_DI));
+          list.concat(taicpu.op_reg(A_POP,S_W,NR_BX));
+
+          { ret  ; jump to the address }
+          if current_settings.x86memorymodel in x86_far_code_models then
+            list.concat(taicpu.op_none(A_RETF,S_W))
+          else
+            list.concat(taicpu.op_none(A_RET,S_W));
+        end
+      { case 0 }
+      else
+        begin
+          lab:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+
+          if current_settings.x86memorymodel in x86_far_code_models then
+            list.concat(taicpu.op_sym(A_JMP,S_FAR,lab))
+          else
+            list.concat(taicpu.op_sym(A_JMP,S_NO,lab));
+        end;
+
+      List.concat(Tai_symbol_end.Createname(labelname));
     end;
 
 
@@ -442,5 +719,6 @@ implementation
     end;
 
 
-
+begin
+  chlcgobj:=thlcgcpu;
 end.

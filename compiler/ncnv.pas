@@ -65,6 +65,10 @@ interface
             replace this explicit type conversion with a different node, or to
             reject it after all }
           function target_specific_explicit_typeconv: boolean;virtual;
+
+          { called when inserttypeconv is used to convert to a def that is equal
+            according to compare_defs() }
+          class function target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean; virtual;
        protected
           function typecheck_int_to_int : tnode; virtual;
           function typecheck_cord_to_pointer : tnode; virtual;
@@ -296,7 +300,7 @@ implementation
       symconst,symdef,symsym,symcpu,symtable,
       ncon,ncal,nset,nadd,nmem,nmat,nbas,nutils,ninl,
       cgbase,procinfo,
-      htypechk,pass_1,cpuinfo;
+      htypechk,blockutl,pass_1,cpuinfo;
 
 
 {*****************************************************************************
@@ -326,7 +330,8 @@ implementation
           still expects the resultdef of the node to be a stringdef) }
         if equal_defs(p.resultdef,def) and
            (p.resultdef.typ=def.typ) and
-           not is_bitpacked_access(p) then
+           not is_bitpacked_access(p) and
+           not ctypeconvnode.target_specific_need_equal_typeconv(p.resultdef,def) then
           begin
             { don't replace encoded string constants to rawbytestring encoding.
               preserve the codepage }
@@ -643,7 +648,7 @@ implementation
            p.free;
          end;
         { set the initial set type }
-        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue);
+        constp.resultdef:=csetdef.create(hdef,constsetlo.svalue,constsethi.svalue,true);
         { determine the resultdef for the tree }
         typecheckpass(buildp);
         { set the new tree }
@@ -1087,9 +1092,6 @@ implementation
         para : tcallparanode;
         hp : tstringconstnode;
         ws : pcompilerwidestring;
-        newblock : tblocknode;
-        newstat  : tstatementnode;
-        restemp  : ttempcreatenode;
         sa : ansistring;
         cw : tcompilerwidechar;
         l : SizeUInt;
@@ -1429,6 +1431,8 @@ implementation
         else
           begin
             result:=cinlinenode.create(in_round_real,false,left);
+            { Internal type cast to currency }
+            result:=ctypeconvnode.create_internal(result,s64currencytype);
             left:=nil;
           end;
       end;
@@ -1989,9 +1993,17 @@ implementation
       end;
 
 
+    class function ttypeconvnode.target_specific_need_equal_typeconv(fromdef, todef: tdef): boolean;
+      begin
+        result:=false;
+      end;
+
+
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
+        copytype : tproccopytyp;
+        source: pnode;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
@@ -2002,20 +2014,49 @@ implementation
           real procvartype that we are converting to) }
         if assigned(totypedef) and
            (totypedef.typ=procvardef) then
-          resultdef:=totypedef
+          begin
+            { have to do this in typecheckpass so that it's triggered for
+              typed constant declarations }
+            if po_is_block in tprocvardef(totypedef).procoptions then
+              begin
+                { can only convert from procdef to procvardef, but in the mean
+                  time other type conversions may have been inserted (pointers,
+                  proc2procvar, ...) }
+                source:=actualtargetnode(@left);
+                while (source^.nodetype=typeconvn) and
+                      (ttypeconvnode(source^).convtype=tc_proc_2_procvar) and
+                      (is_void(source^.resultdef) or
+                       (source^.resultdef.typ=procvardef)) do
+                  begin
+                    { won't skip proc2procvar }
+                    source:=actualtargetnode(@ttypeconvnode(source^).left);
+                  end;
+                if (source^.nodetype=loadn) and
+                   (source^.resultdef.typ=procdef) and
+                   not is_nested_pd(tprocdef(source^.resultdef)) and
+                   not is_objcclass(tdef(source^.resultdef.owner.defowner)) then
+                  begin
+                    result:=generate_block_for_procaddr(tloadnode(source^));
+                    exit;
+                  end
+                else
+                  CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
+              end;
+            resultdef:=totypedef;
+          end
         else
          begin
-           resultdef:=pd.getcopyas(procvardef,pc_normal);
            { only need the address of the method? this is needed
              for @tobject.create. In this case there will be a loadn without
              a methodpointer. }
            if (left.nodetype=loadn) and
               not assigned(tloadnode(left).left) and
               (not(m_nested_procvars in current_settings.modeswitches) or
-               not is_nested_pd(tprocvardef(resultdef))) then
-             include(tprocvardef(resultdef).procoptions,po_addressonly);
-           { calculate parameter list & order }
-           tprocvardef(resultdef).calcparas;
+               not is_nested_pd(tabstractprocdef(tloadnode(left).resultdef))) then
+             copytype:=pc_address_only
+           else
+             copytype:=pc_normal;
+           resultdef:=pd.getcopyas(procvardef,copytype);
          end;
       end;
 
@@ -2137,7 +2178,8 @@ implementation
             cdoptions:=[cdo_allow_variant,cdo_warn_incompatible_univ];
             { overloaded operators require calls, which is not possible inside
               a constant declaration }
-            if block_type<>bt_const then
+            if (block_type<>bt_const) and
+               not(nf_internal in flags) then
               include(cdoptions,cdo_check_operator);
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
@@ -2168,11 +2210,19 @@ implementation
                        to different kinds of refcounting helpers }
                       (resultdef=left.resultdef)) then
                    begin
+{$ifndef llvm}
                      left.resultdef:=resultdef;
                      if (nf_explicit in flags) and (left.nodetype = addrn) then
                        include(left.flags, nf_typedaddr);
                      result:=left;
                      left:=nil;
+{$else llvm}
+                     { we still may have to insert a type conversion at the
+                       llvm level }
+                     if (nf_explicit in flags) and (left.nodetype = addrn) then
+                       include(flags, nf_typedaddr);
+                     result:=nil;
+{$endif llvm}
                      exit;
                    end;
                 end;
@@ -2190,7 +2240,7 @@ implementation
                 begin
                   include(current_procinfo.flags,pi_do_call);
                   addsymref(aprocdef.procsym);
-                  hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[]);
+                  hp:=ccallnode.create(ccallparanode.create(left,nil),Tprocsym(aprocdef.procsym),nil,nil,[],nil);
                   { tell explicitly which def we must use !! (PM) }
                   tcallnode(hp).procdefinition:=aprocdef;
                   left:=nil;
@@ -2241,7 +2291,9 @@ implementation
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
                         (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible) then
-                       IncompatibleTypes(left.resultdef,resultdef);
+                       IncompatibleTypes(left.resultdef,resultdef)
+                     else
+                       result:=typecheck_call_helper(convtype);
                      exit;
                    end
                   else if maybe_global_proc_to_nested(left,resultdef) then
@@ -2361,6 +2413,10 @@ implementation
                                   (left.resultdef.typ=objectdef))) or
 {$endif}
                                 (
+                                 is_void(left.resultdef)  and
+                                 (left.nodetype=derefn)
+                                ) or
+                                (
                                  not(is_open_array(left.resultdef)) and
                                  not(is_array_constructor(left.resultdef)) and
                                  not(is_array_of_const(left.resultdef)) and
@@ -2374,10 +2430,6 @@ implementation
                                    { the softfloat code generates casts <const. float> to record }
                                    (nf_internal in flags)
                                  ))
-                                ) or
-                                (
-                                 is_void(left.resultdef)  and
-                                 (left.nodetype=derefn)
                                 )
                                ) then
                            CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename)
@@ -2439,43 +2491,47 @@ implementation
   this applies is powerpc64
 }
 {$ifndef CPUNO32BITOPS}
-    { checks whether we can safely remove 64 bit typeconversions
+    { checks whether we can safely remove typeconversions to bigger types
       in case range and overflow checking are off, and in case
       the result of this node tree is downcasted again to a
-      8/16/32 bit value afterwards
+      smaller type value afterwards,
+
+      the smaller types being allowed are described by validints, ordinal constants must fit into l..h
 
       We do this on 64 bit CPUs as well, they benefit from it as well }
-    function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
+
+    function checkremovebiginttypeconvs(n: tnode; out gotsint: boolean;validints : tordtypeset;l,h : Tconstexprint): boolean;
       var
         gotdivmod: boolean;
 
-      { checks whether a node is either an u32bit, or originally }
-      { was one but was implicitly converted to s64bit           }
-      function wasoriginallyint32(n: tnode): boolean;
+      { checks whether a node has an accepted resultdef, or originally
+        had one but was implicitly converted to s64bit                 }
+      function wasoriginallysmallerint(n: tnode): boolean;
         begin
           if (n.resultdef.typ<>orddef) then
             exit(false);
-          if (torddef(n.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit]) then
+          if (torddef(n.resultdef).ordtype in validints) then
             begin
-              if (torddef(n.resultdef).ordtype in [s8bit,s16bit,s32bit]) then
+              if is_signed(n.resultdef) then
                 gotsint:=true;
               exit(true);
             end;
-          if (torddef(n.resultdef).ordtype in [u64bit,s64bit]) and
+          { type conv to a bigger int, we do not like to use? }
+          if (torddef(n.resultdef).ordtype in ([s8bit,u8bit,s16bit,u16bit,s32bit,u32bit,s64bit,u64bit]-validints)) and
              { nf_explicit is also set for explicitly typecasted }
              { ordconstn's                                       }
              ([nf_internal,nf_explicit]*n.flags=[]) and
-             { either a typeconversion node coming from u32bit }
+             { either a typeconversion node coming from a smaller type }
              (((n.nodetype=typeconvn) and
                (ttypeconvnode(n).left.resultdef.typ=orddef) and
-               (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,u8bit,s16bit,u16bit,s32bit,u32bit])) or
-             { or an ordconstnode which was/is a valid cardinal }
+               (torddef(ttypeconvnode(n).left.resultdef).ordtype in validints)) or
+             { or an ordconstnode which has a smaller type}
               ((n.nodetype=ordconstn) and
-               (tordconstnode(n).value>=int64(low(longint))) and
-               (tordconstnode(n).value<=high(cardinal)))) then
+               (tordconstnode(n).value>=l) and
+               (tordconstnode(n).value<=h))) then
             begin
               if ((n.nodetype=typeconvn) and
-                  (torddef(ttypeconvnode(n).left.resultdef).ordtype in [s8bit,s16bit,s32bit])) or
+                  is_signed(ttypeconvnode(n).left.resultdef)) or
                  ((n.nodetype=ordconstn) and
                   (tordconstnode(n).value<0)) then
                 gotsint:=true;
@@ -2485,41 +2541,33 @@ implementation
         end;
 
 
-      function docheckremove64bittypeconvs(n: tnode): boolean;
+      function docheckremoveinttypeconvs(n: tnode): boolean;
         begin
           result:=false;
-          if wasoriginallyint32(n) then
+          if wasoriginallysmallerint(n) then
             exit(true);
           case n.nodetype of
             subn,orn,xorn:
               begin
-                { nf_internal is set by taddnode.typecheckpass in  }
-                { case the arguments of this subn were u32bit, but }
-                { upcasted to s64bit for calculation correctness   }
-                { (normally only needed when range checking, but   }
-                {  also done otherwise so there is no difference   }
-                {  in overload choosing etc between $r+ and $r-)   }
-                if (nf_internal in n.flags) then
-                  begin
-                    result:=true;
-                    { the result could become negative in this case }
-                    if n.nodetype=subn then
-                      gotsint:=true
-                  end
-                else
-                  result:=
-                    docheckremove64bittypeconvs(tbinarynode(n).left) and
-                    docheckremove64bittypeconvs(tbinarynode(n).right);
+                { the result could become negative in this case }
+                if n.nodetype=subn then
+                  gotsint:=true;
+                result:=
+                  docheckremoveinttypeconvs(tbinarynode(n).left) and
+                  docheckremoveinttypeconvs(tbinarynode(n).right);
               end;
             addn,muln,divn,modn,andn:
               begin
                 if n.nodetype in [divn,modn] then
                   gotdivmod:=true;
                 result:=
-                  (docheckremove64bittypeconvs(tbinarynode(n).left) and
-                   docheckremove64bittypeconvs(tbinarynode(n).right)) or
-                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).left)) or
-                  ((n.nodetype=andn) and wasoriginallyint32(tbinarynode(n).right));
+                  (docheckremoveinttypeconvs(tbinarynode(n).left) and
+                   docheckremoveinttypeconvs(tbinarynode(n).right)) or
+                  { in case of div/mod, the result of that division/modulo can
+                    usually be different in 32 and 64 bit }
+                  (not gotdivmod and
+                   (((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).left)) or
+                    ((n.nodetype=andn) and wasoriginallysmallerint(tbinarynode(n).right))));
               end;
           end;
         end;
@@ -2528,12 +2576,13 @@ implementation
         gotdivmod:=false;
         gotsint:=false;
         result:=
-          docheckremove64bittypeconvs(n) and
+          docheckremoveinttypeconvs(n) and
           not(gotdivmod and gotsint);
       end;
 
 
-    procedure doremove64bittypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean);
+    { remove int type conversions and set the result to the given type }
+    procedure doremoveinttypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean; signedtype,unsignedtype : tdef);
       begin
         case n.nodetype of
           subn,addn,muln,divn,modn,xorn,andn,orn:
@@ -2542,15 +2591,15 @@ implementation
               if not forceunsigned and
                  is_signed(n.resultdef) then
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype,false);
-                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype,false);
-                  n.resultdef:=s32inttype
+                  doremoveinttypeconvs(tbinarynode(n).left,signedtype,false,signedtype,unsignedtype);
+                  doremoveinttypeconvs(tbinarynode(n).right,signedtype,false,signedtype,unsignedtype);
+                  n.resultdef:=signedtype;
                 end
               else
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype,forceunsigned);
-                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
-                  n.resultdef:=u32inttype
+                  doremoveinttypeconvs(tbinarynode(n).left,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  doremoveinttypeconvs(tbinarynode(n).right,unsignedtype,forceunsigned,signedtype,unsignedtype);
+                  n.resultdef:=unsignedtype;
                 end;
               //if ((n.nodetype=andn) and (tbinarynode(n).left.nodetype=ordconstn) and
               //    ((tordconstnode(tbinarynode(n).left).value and $7fffffff)=tordconstnode(tbinarynode(n).left).value)
@@ -2562,14 +2611,39 @@ implementation
             end;
           typeconvn:
             begin
-              n.resultdef:=todef;
               ttypeconvnode(n).totypedef:=todef;
+              { may change the type conversion, e.g. if the old conversion was
+                from 64 bit to a 64 bit, and now becomes 64 bit to 32 bit }
+              n.resultdef:=nil;
+              ttypeconvnode(n).convtype:=tc_none;
+              typecheckpass(n);
             end;
           else
             inserttypeconv_internal(n,todef);
         end;
       end;
 {$endif not CPUNO32BITOPS}
+
+    procedure swap_const_value (var val : TConstExprInt; size : longint);
+      begin
+        case size of
+          1 : {do nothing };
+          2 : if val.signed then
+                val.svalue:=swapendian(smallint(val.svalue))
+              else
+                val.uvalue:=swapendian(word(val.uvalue));
+          4 : if val.signed then
+                val.svalue:=swapendian(longint(val.svalue))
+              else
+                val.uvalue:=swapendian(qword(val.uvalue));
+          8 : if val.signed then
+                val.svalue:=swapendian(int64(val.svalue))
+              else
+                val.uvalue:=swapendian(qword(val.uvalue));
+	  else
+            internalerror(2014111201);
+        end;
+      end;
 
     function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
@@ -2583,14 +2657,17 @@ implementation
           remove the typeconv node }
         case left.nodetype of
           stringconstn :
-            if (convtype=tc_string_2_string) and
-               (resultdef.typ=stringdef) and
-              (
-                ((not is_widechararray(left.resultdef) and
-                  not is_wide_or_unicode_string(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+            if (resultdef.typ=stringdef) and
+               ((convtype=tc_equal) or
+                ((convtype=tc_string_2_string) and
+                 (
+                  ((not is_widechararray(left.resultdef) and
+                    not is_wide_or_unicode_string(left.resultdef)) or
+                   (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring,st_ansistring])
+                  )
+                 )
                 )
-              ) then
+               ) then
               begin
                 { output string consts in local ansistring encoding }
                 if is_ansistring(resultdef) and ((tstringdef(resultdef).encoding=0)or(tstringdef(resultdef).encoding=globals.CP_NONE)) then
@@ -2686,7 +2763,7 @@ implementation
                       not(convtype=tc_char_2_char) then
                 begin
                    { replace the resultdef and recheck the range }
-                   if ([nf_explicit,nf_internal] * flags <> []) then
+                   if ([nf_explicit,nf_absolute, nf_internal] * flags <> []) then
                      include(left.flags, nf_explicit)
                    else
                      { no longer an ordconst with an explicit typecast }
@@ -2705,7 +2782,16 @@ implementation
                          tordconstnode(left).value:=-ord(tordconstnode(left).value<>0);
                      end
                    else
-                     testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
+                     begin
+                       { for constant values on absolute variables, swaping is required }
+                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
+                         swap_const_value(tordconstnode(left).value,tordconstnode(left).resultdef.size);
+                       testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags)
+                                 or (nf_absolute in flags),false);
+                       { swap value back, but according to new type }
+                       if (target_info.endian = endian_big) and (nf_absolute in flags) then
+                         swap_const_value(tordconstnode(left).value,resultdef.size);
+                     end;
                    left.resultdef:=resultdef;
                    tordconstnode(left).typedef:=resultdef;
                    if is_signed(resultdef) then
@@ -2752,15 +2838,22 @@ implementation
           tc_int_2_int:
             begin
               if (localswitches * [cs_check_range,cs_check_overflow] = []) and
-                 (resultdef.typ in [pointerdef,orddef,enumdef]) and
-                 (resultdef.size <= 4) and
-                 is_64bitint(left.resultdef) and
-                 (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
-                 checkremove64bittypeconvs(left,foundsint) then
+                 (resultdef.typ in [pointerdef,orddef,enumdef]) then
                 begin
-                  { avoid unnecessary widening of intermediary calculations }
-                  { to 64 bit                                               }
-                  doremove64bittypeconvs(left,generrordef,not foundsint);
+                  { avoid unnecessary widening of intermediary calculations
+                    to 64 bit                                               }
+                  if (resultdef.size <= 4) and
+                    is_64bitint(left.resultdef) and
+                    (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                    checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit,s16bit,u16bit,s32bit,u32bit],int64(low(longint)),high(cardinal)) then
+                    doremoveinttypeconvs(left,generrordef,not foundsint,s32inttype,u32inttype);
+{$if defined(cpu8bitalu)}
+                 if (resultdef.size<left.resultdef.size) and
+                  is_integer(left.resultdef) and
+                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
+                  checkremovebiginttypeconvs(left,foundsint,[s8bit,u8bit],int64(low(shortint)),high(byte)) then
+                    doremoveinttypeconvs(left,generrordef,not foundsint,s8inttype,u8inttype);
+{$endif defined(cpu8bitalu)}
                 end;
             end;
         end;
@@ -2882,23 +2975,23 @@ implementation
                 if is_currency(left.resultdef) then
                   left.resultdef := s64inttype;
                 if is_signed(left.resultdef) then
-                  fname:='I64TO'
+                  fname:='i64to'
                 else
-                  fname:='UI64TO';
+                  fname:='ui64to';
               end
             else
               { other integers are supposed to be 32 bit }
               begin
                 if is_signed(left.resultdef) then
-                  fname:='ITO'
+                  fname:='ito'
                 else
-                  fname:='UTO';
+                  fname:='uto';
                 firstpass(left);
               end;
             if tfloatdef(resultdef).floattype=s64real then
-              fname:=fname+'D'
+              fname:=fname+'d'
             else
-              fname:=fname+'S';
+              fname:=fname+'s';
             result:=ccallnode.createintern(fname,ccallparanode.create(
               left,nil));
             left:=nil;
@@ -2954,7 +3047,7 @@ implementation
                   s32real:
                     case tfloatdef(resultdef).floattype of
                       s64real:
-                        result:=ccallnode.createintern('STOD',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('stod',ccallparanode.create(left,nil));
                       s32real:
                         begin
                           result:=left;
@@ -2966,7 +3059,7 @@ implementation
                   s64real:
                     case tfloatdef(resultdef).floattype of
                       s32real:
-                        result:=ccallnode.createintern('DTOS',ccallparanode.create(left,nil));
+                        result:=ccallnode.createintern('dtos',ccallparanode.create(left,nil));
                       s64real:
                         begin
                           result:=left;
@@ -3056,7 +3149,10 @@ implementation
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           exit;
+           begin
+             expectloc:=left.expectloc;
+             exit;
+           end;
          expectloc:=LOC_REGISTER;
       end;
 
@@ -3070,10 +3166,20 @@ implementation
          if (nf_explicit in flags) and
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
-           exit;
+           begin
+             expectloc:=left.expectloc;
+             exit;
+           end;
          { when converting 64bit int to C-ctyle boolean, first convert to an int32 and then }
          { convert to a boolean (only necessary for 32bit processors) }
-         if (left.resultdef.size > sizeof(aint)) and (left.resultdef.size<>resultdef.size)
+         { note: not if left is already a bool (qwordbool that is true, even if
+             only because the highest bit is set, must remain true if it is
+             --implicitly, unlike integers-- converted to another type of bool),
+             Left can already be a bool because this routine can also be called
+             from first_bool_to_bool }
+         if not is_boolean(left.resultdef) and
+            (left.resultdef.size > sizeof(aint)) and
+            (left.resultdef.size<>resultdef.size)
             and is_cbool(resultdef) then
            begin
              left:=ctypeconvnode.create_internal(left,s32inttype);
@@ -3090,8 +3196,13 @@ implementation
          if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) and
             not is_cbool(resultdef) then
            expectloc := left.expectloc
+         { the following cases use the code generation for bool_to_int/
+           int_to_bool -> also set their expectlocs }
+         else if (resultdef.size=left.resultdef.size) and
+            (is_cbool(resultdef)=is_cbool(left.resultdef)) then
+           result:=first_bool_to_int
          else
-           expectloc:=LOC_REGISTER;
+           result:=first_int_to_bool
       end;
 
 
@@ -3267,7 +3378,7 @@ implementation
                          { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
                          result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
                            tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
-                           left,[]);
+                           left,[],nil);
                          addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
                          { if it is a class, process it further in a similar way }
                          if not is_interface(result.resultdef) then
@@ -4020,8 +4131,13 @@ implementation
         result:=nil;
         { Passing a class type to an "as" expression cannot result in a class
           of that type to be constructed.
+
+          We could put this inside the if-block below, but this way it is
+          safe for sure even if the code below changes
         }
-        include(right.flags,nf_ignore_for_wpo);
+        if assigned(right) then
+          include(right.flags,nf_ignore_for_wpo);
+
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and

@@ -2,7 +2,7 @@
 // test "fpc_AnsiStr_Concat_multi" with a same type(same encoding) 
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif unix}
   SysUtils;
   

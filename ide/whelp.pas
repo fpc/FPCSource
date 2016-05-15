@@ -192,6 +192,9 @@ uses
 {$ifdef netware_clib}
   nwserv,
 {$endif}
+{$ifdef HASAMIGA}
+  dos,
+{$endif}
   Strings,
   WConsts;
 
@@ -201,6 +204,11 @@ type
     function At(Index: sw_Integer): PHelpFileType;
     procedure FreeItem(Item: Pointer); virtual;
   end;
+
+{$ifdef HASAMIGA}
+var
+  StartupTicks: Int64;
+{$endif}
 
 const
   HelpFileTypes : PHelpFileTypeCollection = nil;
@@ -306,14 +314,9 @@ begin
   GetDosTicks := Nwserv.GetCurrentTicks;
 end;
 {$endif}
-{$ifdef amiga}
+{$ifdef HASAMIGA}
 begin
-  GetDosTicks := -1;
-end;
-{$endif}
-{$ifdef morphos}
-begin
-  GetDosTicks := -1;
+  GetDosTicks := ((dos.GetMsCount div 55) - StartupTicks) and $7FFFFFFF;
 end;
 {$endif}
 
@@ -991,5 +994,10 @@ begin
   inherited Done;
   Dispose(HelpFiles, Done);
 end;
+
+{$ifdef HASAMIGA}
+INITIALIZATION
+  StartupTicks := dos.GetMsCount div 55;
+{$endif}
 
 END.

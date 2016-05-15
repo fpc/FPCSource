@@ -23,57 +23,7 @@ Interface
 uses
   CustApp,Classes,SysUtils, httpdefs, fphttp, eventlog;
 
-Const
-  CGIVarCount = 37;
-
 Type
-  TCGIVarArray = Array[1..CGIVarCount] of String;
-
-Const
-  CgiVarNames : TCGIVarArray =
-   ({ 1  } 'AUTH_TYPE',
-    { 2  } 'CONTENT_LENGTH',
-    { 3  } 'CONTENT_TYPE',
-    { 4  } 'GATEWAY_INTERFACE',
-    { 5  } 'PATH_INFO',
-    { 6  } 'PATH_TRANSLATED',
-    { 7  } 'QUERY_STRING',
-    { 8  } 'REMOTE_ADDR',
-    { 9  } 'REMOTE_HOST',
-    { 10 } 'REMOTE_IDENT',
-    { 11 } 'REMOTE_USER',
-    { 12 } 'REQUEST_METHOD',
-    { 13 } 'SCRIPT_NAME',
-    { 14 } 'SERVER_NAME',
-    { 15 } 'SERVER_PORT',
-    { 16 } 'SERVER_PROTOCOL',
-    { 17 } 'SERVER_SOFTWARE',
-    { 18 } 'HTTP_ACCEPT',
-    { 19 } 'HTTP_ACCEPT_CHARSET',
-    { 20 } 'HTTP_ACCEPT_ENCODING',
-    { 21 } 'HTTP_IF_MODIFIED_SINCE',
-    { 22 } 'HTTP_REFERER',
-    { 23 } 'HTTP_USER_AGENT',
-    { 24 } 'HTTP_COOKIE',
-
-     // Additional Apache vars
-    { 25 } 'HTTP_CONNECTION',
-    { 26 } 'HTTP_ACCEPT_LANGUAGE',
-    { 27 } 'HTTP_HOST',
-    { 28 } 'SERVER_SIGNATURE',
-    { 29 } 'SERVER_ADDR',
-    { 30 } 'DOCUMENT_ROOT',
-    { 31 } 'SERVER_ADMIN',
-    { 32 } 'SCRIPT_FILENAME',
-    { 33 } 'REMOTE_PORT',
-    { 34 } 'REQUEST_URI',
-    { 35 } 'CONTENT',
-    { 36 } 'HTTP_X_REQUESTED_WITH',
-    { 37 } 'HTTP_AUTHORIZATION'
-    );
-
-Type
-
   { TCustomWebApplication }
 
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
@@ -106,6 +56,8 @@ Type
     FOnLog : TLogEvent;
     FPreferModuleName : Boolean;
   protected
+    Class Procedure DoError(Msg : String; AStatusCode : Integer = 0; AStatusText : String = '');
+    Class Procedure DoError(Fmt : String; Const Args : Array of const;AStatusCode : Integer = 0; AStatusText : String = '');
     procedure Terminate; virtual;
     Function GetModuleName(Arequest : TRequest) : string;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
@@ -205,7 +157,7 @@ Type
     Property PreferModuleName : Boolean Read GetPreferModuleName Write SetPreferModuleName;
   end;
 
-  EFPWebError = Class(Exception);
+  EFPWebError = Class(EFPHTTPError);
 
 procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
 
@@ -254,7 +206,7 @@ begin
     end;
 end;
 
-procedure TWebHandler.Run;
+Procedure TWebHandler.Run;
 var ARequest : TRequest;
     AResponse : TResponse;
 begin
@@ -267,16 +219,29 @@ begin
     end;
 end;
 
-procedure TWebHandler.Log(EventType: TEventType; const Msg: String);
+Procedure TWebHandler.Log(EventType: TEventType; Const Msg: String);
 begin
   If Assigned(FOnLog) then
     FOnLog(EventType,Msg);
 end;
 
 procedure TWebHandler.ShowRequestException(R: TResponse; E: Exception);
+
+  Function GetStatusCode : integer;
+
+  begin
+    if (E is EHTTP) then
+      Result:=EHTTP(E).StatusCode
+    else
+      Result:=E.HelpContext;
+    if (Result=0) then
+      Result:=500;
+  end;
+
 Var
- S : TStrings;
- handled: boolean;
+  S : TStrings;
+  handled: boolean;
+  CT : String;
 
 begin
   if R.ContentSent then exit;
@@ -294,8 +259,14 @@ begin
     end;
   If (not R.HeadersSent) then
     begin
-    R.Code:=500;
-    R.CodeText:='Application error '+E.ClassName;
+    R.Code:=GetStatusCode;
+    if (E is EHTTP) Then
+      CT:=EHTTP(E).StatusText
+    else
+      CT:='';
+    if (CT='') then
+      CT:='Application error '+E.ClassName;;
+    R.CodeText:=CT;
     R.ContentType:='text/html';
     end;
   If (R.ContentType='text/html') then
@@ -311,27 +282,27 @@ begin
     end;
 end;
 
-procedure TWebHandler.InitRequest(ARequest: TRequest);
+Procedure TWebHandler.InitRequest(ARequest: TRequest);
 begin
   ARequest.OnUnknownEncoding:=Self.OnUnknownRequestEncoding;
 end;
 
-procedure TWebHandler.InitResponse(AResponse: TResponse);
+Procedure TWebHandler.InitResponse(AResponse: TResponse);
 begin
   // Do nothing
 end;
 
-function TWebHandler.GetEmail: String;
+Function TWebHandler.GetEmail: String;
 begin
   Result := FEmail;
 end;
 
-function TWebHandler.GetAdministrator: String;
+Function TWebHandler.GetAdministrator: String;
 begin
   Result := FAdministrator;
 end;
 
-procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+Procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 Var
   MC : TCustomHTTPModuleClass;
   M  : TCustomHTTPModule;
@@ -350,7 +321,7 @@ begin
       MN:=GetModuleName(ARequest);
       MI:=ModuleFactory.FindModule(MN);
       if (MI=Nil) then
-        Raise EFPWebError.CreateFmt(SErrNoModuleForRequest,[MN]);
+        DoError(SErrNoModuleForRequest,[MN],400,'Not found');
       MC:=MI.ModuleClass;
       end;
     M:=FindModule(MC); // Check if a module exists already
@@ -386,6 +357,24 @@ begin
     Result:=ARequest.ScriptName;
 end;
 
+Class Procedure TWebHandler.DoError(Msg : String;AStatusCode : Integer = 0; AStatusText : String = '');
+
+Var
+  E : EFPWebError;
+
+begin
+  E:=EFPWebError.Create(Msg);
+  E.StatusCode:=AStatusCode;
+  E.StatusText:=AStatusText;
+  Raise E;
+end;
+
+Class Procedure TWebHandler.DoError(Fmt: String; Const Args: Array of const;
+  AStatusCode: Integer = 0; AStatusText: String = '');
+begin
+  DoError(Format(Fmt,Args),AStatusCode,AStatusText);
+end;
+
 procedure TWebHandler.Terminate;
 begin
   FTerminated := true;
@@ -393,7 +382,7 @@ begin
     FOnTerminate(Self);
 end;
 
-function TWebHandler.GetModuleName(Arequest: TRequest): string;
+Function TWebHandler.GetModuleName(Arequest: TRequest): string;
 
    Function GetDefaultModuleName : String;
 
@@ -426,7 +415,7 @@ begin
   If (Result='') then
     begin
     if Not AllowDefaultModule then
-      Raise EFPWebError.Create(SErrNoModuleNameForRequest);
+      DoError(SErrNoModuleNameForRequest,400,'Not found');
     Result:=GetDefaultModuleName
     end;
 end;
@@ -450,8 +439,8 @@ begin
     Result:=Nil;
 end;
 
-procedure TWebHandler.SetBaseURL(AModule: TCustomHTTPModule;
-  Const AModuleName : String; ARequest: TRequest);
+Procedure TWebHandler.SetBaseURL(AModule: TCustomHTTPModule;
+  Const AModuleName: String; ARequest: TRequest);
 
 Var
   S,P : String;
@@ -469,7 +458,7 @@ begin
   AModule.BaseURL:=S+P;
 end;
 
-procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
+Procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   Try
     HandleRequest(ARequest,AResponse);

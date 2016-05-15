@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Author := 'Library: ImageMagick Studio LLC , header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Imagemagick license, header: LGPL with modification, ';
@@ -42,6 +42,7 @@ begin
           AddInclude('magick_type.inc');
           AddInclude('type.inc');
           AddInclude('cache_view.inc');
+          AddInclude('cache.inc');
           AddInclude('compare.inc');
           AddInclude('constitute.inc');
           AddInclude('draw.inc');

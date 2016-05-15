@@ -14,13 +14,14 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-xml');
+    P.ShortName:='fclx';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.Options.Add('-S2h');
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='2.7.1';
+      D.Version:='3.1.1';
     D:=P.Dependencies.Add('iconvenc',[linux,darwin,iphonesim,freebsd,haiku,beos,aix]);
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
@@ -29,7 +30,7 @@ begin
     P.Email := '';
     P.Description := 'XML and DOM parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
-    P.OSes:=AllOSes-[embedded,msdos];
+    P.OSes:=AllOSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

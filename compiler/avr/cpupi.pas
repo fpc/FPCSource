@@ -56,7 +56,9 @@ unit cpupi;
     procedure tavrprocinfo.set_first_temp_offset;
       begin
         if tg.direction = -1 then
-          tg.setfirsttemp(0)
+          tg.setfirsttemp(-1)
+        else if not (po_nostackframe in procdef.procoptions) then
+          tg.setfirsttemp(maxpushedparasize+1)
         else
           tg.setfirsttemp(maxpushedparasize);
       end;
@@ -64,8 +66,13 @@ unit cpupi;
 
     function tavrprocinfo.calc_stackframe_size:longint;
       begin
-        maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
-        result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize;
+        if tg.lasttemp=2 then
+          { correct that lasttemp is 2 in case of an empty stack due to the post-decrement pushing and an additional correction
+            in tgobj.setfirsttemp.
+          }
+          result:=maxpushedparasize
+        else
+          result:=tg.direction*tg.lasttemp+maxpushedparasize;
       end;
 
 

@@ -149,11 +149,11 @@ unit hlcg2ll;
           }
           procedure a_loadaddr_ref_cgpara(list : TAsmList;fromsize : tdef;const r : treference;const cgpara : TCGPara);override;
 
-          function a_call_name(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef; weak: boolean): tcgpara;override;
-          procedure a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister);override;
+          function a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara; override;
+          function a_call_reg(list : TAsmList;pd : tabstractprocdef;reg : tregister; const paras: array of pcgpara): tcgpara;override;
           { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
-          function a_call_name_static(list : TAsmList;pd : tprocdef;const s : TSymStr; forceresdef: tdef): tcgpara;override;
+          function a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara; override;
 
           { move instructions }
           procedure a_load_const_reg(list : TAsmList;tosize : tdef;a : tcgint;register : tregister);override;
@@ -171,7 +171,7 @@ unit hlcg2ll;
           procedure a_loadaddr_ref_reg(list : TAsmList;fromsize, tosize : tdef;const ref : treference;r : tregister);override;
 
           { bit scan instructions }
-          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister); override;
+          procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister); override;
 
           { fpu move instructions }
           procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister); override;
@@ -296,14 +296,7 @@ unit hlcg2ll;
           }
           procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
 
-          procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);override;
-
-          { generate a stub which only purpose is to pass control the given external method,
-          setting up any additional environment before doing so (if required).
-
-          The default implementation issues a jump instruction to the external name. }
-//          procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); override;
 
           { Generate code to exit an unwind-protected region. The default implementation
             produces a simple jump to destination label. }
@@ -314,7 +307,7 @@ unit hlcg2ll;
           procedure location_force_mmregscalar(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 //          procedure location_force_mmreg(list:TAsmList;var l: tlocation;size:tdef;maybeconst:boolean);override;
 
-          procedure maketojumpbool(list:TAsmList; p : tnode);override;
+          procedure maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel); override;
 
           procedure gen_load_para_value(list:TAsmList);override;
          protected
@@ -449,18 +442,19 @@ implementation
       cg.a_loadaddr_ref_cgpara(list,r,cgpara);
     end;
 
-  function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef; weak: boolean): tcgpara;
+  function thlcg2ll.a_call_name(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef; weak: boolean): tcgpara;
     begin
       cg.a_call_name(list,s,weak);
       result:=get_call_result_cgpara(pd,forceresdef);
     end;
 
-  procedure thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister);
+  function thlcg2ll.a_call_reg(list: TAsmList; pd: tabstractprocdef; reg: tregister; const paras: array of pcgpara): tcgpara;
     begin
       cg.a_call_reg(list,reg);
+      result:=get_call_result_cgpara(pd,nil);
     end;
 
-  function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; forceresdef: tdef): tcgpara;
+  function thlcg2ll.a_call_name_static(list: TAsmList; pd: tprocdef; const s: TSymStr; const paras: array of pcgpara; forceresdef: tdef): tcgpara;
     begin
       cg.a_call_name_static(list,s);
       result:=get_call_result_cgpara(pd,forceresdef);
@@ -586,9 +580,9 @@ implementation
       cg.a_loadaddr_ref_reg(list,ref,r);
     end;
 
-  procedure thlcg2ll.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: tdef; src, dst: tregister);
+  procedure thlcg2ll.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; srcsize, dstsize: tdef; src, dst: tregister);
     begin
-      cg.a_bit_scan_reg_reg(list,reverse,def_cgsize(size),src,dst);
+      cg.a_bit_scan_reg_reg(list,reverse,def_cgsize(srcsize),def_cgsize(dstsize),src,dst);
     end;
 
   procedure thlcg2ll.a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tdef; reg1, reg2: tregister);
@@ -656,6 +650,7 @@ implementation
         internalerror(2012071226);
       tocgsize:=getintmmcgsize(reg,def_cgmmsize(tosize));
       case loc.loc of
+        LOC_CONSTANT,
         LOC_SUBSETREG,LOC_CSUBSETREG,
         LOC_SUBSETREF,LOC_CSUBSETREF:
           begin
@@ -945,6 +940,7 @@ implementation
     begin
       cg.g_flags2ref(list,def_cgsize(size),f,ref);
     end;
+
 {$endif cpuflags}
 
   procedure thlcg2ll.g_concatcopy(list: TAsmList; size: tdef; const source, dest: treference);
@@ -985,11 +981,6 @@ implementation
   procedure thlcg2ll.g_proc_exit(list: TAsmList; parasize: longint; nostackframe: boolean);
     begin
       cg.g_proc_exit(list,parasize,nostackframe);
-    end;
-
-  procedure thlcg2ll.g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);
-    begin
-      cg.g_intf_wrapper(list,procdef,labelname,ioffset);
     end;
 
   procedure thlcg2ll.g_adjust_self_value(list: TAsmList; procdef: tprocdef; ioffset: aint);
@@ -1035,7 +1026,6 @@ implementation
 {$else}
                hregister:=cg.makeregsize(list,l.register64.reglo,OS_32);
 {$endif}
-               cg.a_load_reg_reg(list,l.size,OS_32,l.register64.reglo,hregister);
              end
             else
              hregister:=cg.getintregister(list,OS_32);
@@ -1050,11 +1040,11 @@ implementation
 {$endif cpuflags}
               LOC_JUMP :
                 begin
-                  cg.a_label(list,current_procinfo.CurrTrueLabel);
+                  cg.a_label(list,l.truelabel);
                   cg.a_load_const_reg(list,OS_INT,1,hregister);
                   current_asmdata.getjumplabel(hl);
                   cg.a_jmp_always(list,hl);
-                  cg.a_label(list,current_procinfo.CurrFalseLabel);
+                  cg.a_label(list,l.falselabel);
                   cg.a_load_const_reg(list,OS_INT,0,hregister);
                   cg.a_label(list,hl);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
@@ -1131,7 +1121,7 @@ implementation
              ((l.size = dst_cgsize) or
               (TCGSize2Size[l.size] = sizeof(aint)));
           if not const_location then
-            hregister:=cg.getintregister(list,dst_cgsize)
+            hregister:=hlcg.getregisterfordef(list,dst_size)
           else
             hregister := l.register;
           { load value in new register }
@@ -1150,11 +1140,11 @@ implementation
                 if TCGSize2Size[dst_cgsize]>TCGSize2Size[OS_INT] then
                   tmpsize:=OS_INT;
 {$endif}
-                cg.a_label(list,current_procinfo.CurrTrueLabel);
+                cg.a_label(list,l.truelabel);
                 cg.a_load_const_reg(list,tmpsize,1,hregister);
                 current_asmdata.getjumplabel(hl);
                 cg.a_jmp_always(list,hl);
-                cg.a_label(list,current_procinfo.CurrFalseLabel);
+                cg.a_label(list,l.falselabel);
                 cg.a_load_const_reg(list,tmpsize,0,hregister);
                 cg.a_label(list,hl);
 {$if defined(cpu8bitalu) or defined(cpu16bitalu)}
@@ -1320,11 +1310,11 @@ implementation
       ncgutil.location_force_mmreg(list,l,maybeconst);
     end;
 *)
-  procedure thlcg2ll.maketojumpbool(list: TAsmList; p: tnode);
+  procedure thlcg2ll.maketojumpboollabels(list: TAsmList; p: tnode; truelabel, falselabel: tasmlabel);
     begin
       { loadregvars parameter is no longer used, should be removed from
          ncgutil version as well }
-      ncgutil.maketojumpbool(list,p,lr_dont_load_regvars);
+      ncgutil.maketojumpboollabels(list,p,truelabel,falselabel);
     end;
 
   procedure thlcg2ll.gen_load_para_value(list: TAsmList);
@@ -1410,14 +1400,37 @@ implementation
                by typecasting an int64 constant to a record of 8 bytes }
              if locsize = OS_F64 then
                begin
-                 tmploc:=l;
-                 location_force_mem(list,tmploc,size);
-                 cg.a_load_loc_cgpara(list,tmploc,cgpara);
-                 location_freetemp(list,tmploc);
+                 if (cgpara.Location^.Next=nil) and (l.size in [OS_64,OS_S64]) and
+                   (cgpara.size in [OS_64,OS_S64]) then
+                   cg64.a_load64_reg_cgpara(list,l.register64,cgpara)
+                 else
+                   begin
+                     tmploc:=l;
+                     location_force_mem(list,tmploc,size);
+                     cg.a_load_loc_cgpara(list,tmploc,cgpara);
+                     location_freetemp(list,tmploc);
+                   end;
                end
              else
 {$endif not cpu64bitalu}
-               cg.a_load_loc_cgpara(list,l,cgpara);
+             case cgpara.location^.loc of
+               LOC_FPUREGISTER,
+               LOC_CFPUREGISTER:
+                 begin
+                   tmploc:=l;
+                   location_force_mem(list,tmploc,size);
+                   cg.a_loadfpu_ref_cgpara(list,locsize,tmploc.reference,cgpara);
+                 end;
+               LOC_MMREGISTER,
+               LOC_CMMREGISTER:
+                 begin
+                   tmploc:=l;
+                   location_force_mem(list,tmploc,size);
+                   cg.a_loadmm_ref_cgpara(list,locsize,tmploc.reference,cgpara,mms_movescalar);
+                 end;
+               else
+                 cg.a_load_loc_cgpara(list,l,cgpara);
+             end;
           end;
         else
           internalerror(2002042432);

@@ -49,8 +49,17 @@ unit iso7185;
 
 {$i-}
     procedure DoAssign(var t : Text);
+{$ifndef FPC_HAS_FEATURE_RANDOM}
+      const
+        NextIndex : Word = 1;
+{$endif FPC_HAS_FEATURE_RANDOM}
       begin
+{$ifdef FPC_HAS_FEATURE_RANDOM}
         Assign(t,'fpc_'+HexStr(random(1000000000),8)+'.tmp');
+{$else FPC_HAS_FEATURE_RANDOM}
+        Assign(t,'fpc_'+HexStr(NextIndex,4)+'.tmp');
+        Inc(NextIndex);
+{$endif FPC_HAS_FEATURE_RANDOM}
       end;
 
 
@@ -172,7 +181,9 @@ unit iso7185;
 begin
   { we shouldn't do this because it might confuse user programs, but for now it
     is good enough to get pretty unique tmp file names }
+{$ifdef FPC_HAS_FEATURE_RANDOM}
   Randomize;
+{$endif FPC_HAS_FEATURE_RANDOM}
   { reset opens with read-only }
   Filemode:=0;
 end.

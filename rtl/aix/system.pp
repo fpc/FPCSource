@@ -39,7 +39,7 @@ implementation
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-procedure pascalmain;cdecl;external name 'PASCALMAIN';
+procedure pascalmain;external name 'PASCALMAIN';
 
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
 
@@ -292,7 +292,7 @@ Begin
 { Arguments }
   SetupCmdLine;
   InitSystemThreads;
-  initvariantmanager;
+  InitSystemDynLibs;
   { restore original signal handlers in case this is a library }
   if IsLibrary then
     RestoreOldSignalHandlers;

@@ -100,7 +100,7 @@ procedure ti386onnode.pass_generate_code;
     location_reset(location,LOC_VOID,OS_NO);
 
     oldflowcontrol:=flowcontrol;
-    flowcontrol:=flowcontrol*[fc_unwind]+[fc_inflowcontrol];
+    flowcontrol:=[fc_inflowcontrol];
 
     { RTL will put exceptobject into EAX when jumping here }
     cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
@@ -241,7 +241,7 @@ function ti386tryfinallynode.simplify(forinline: boolean): tnode;
       begin
         finalizepi.code:=right;
         foreachnodestatic(right,@copy_parasize,finalizepi);
-        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[]);
+        right:=ccallnode.create(nil,tprocsym(finalizepi.procdef.procsym),nil,nil,[],nil);
         firstpass(right);
         { For implicit frames, no actual code is available at this time,
           it is added later in assembler form. So store the nested procinfo
@@ -316,6 +316,7 @@ procedure ti386tryfinallynode.pass_generate_code;
     breakfinallylabel:=nil;
     exceptlabel:=nil;
     safecalllabel:=nil;
+    hreg:=NR_NO;
     is_safecall:=implicitframe and (current_procinfo.procdef.proccalloption=pocall_safecall);
 
     { check if child nodes do a break/continue/exit }
@@ -489,6 +490,12 @@ procedure ti386tryexceptnode.pass_generate_code;
       end;
     location_reset(location,LOC_VOID,OS_NO);
 
+    exceptflowcontrol:=[];
+    breakexceptlabel:=nil;
+    continueexceptlabel:=nil;
+    breaktrylabel:=nil;
+    continuetrylabel:=nil;
+
     oldflowcontrol:=flowcontrol;
     flowcontrol:=[fc_inflowcontrol];
     { this can be called recursivly }
@@ -528,7 +535,7 @@ procedure ti386tryexceptnode.pass_generate_code;
     { start of scope }
     if assigned(right) then
       begin
-        current_asmdata.getdatalabel(filterlabel);
+        current_asmdata.getaddrlabel(filterlabel);
         emit_scope_start(
           current_asmdata.RefAsmSymbol('__FPC_on_handler'),
           filterlabel);
@@ -602,8 +609,7 @@ procedure ti386tryexceptnode.pass_generate_code;
           begin
             if hnode.nodetype<>onn then
               InternalError(2011103101);
-            { TODO: make it done without using global label }
-            current_asmdata.getglobaljumplabel(onlabel);
+            current_asmdata.getjumplabel(onlabel);
             hlist.concat(tai_const.create_sym(current_asmdata.RefAsmSymbol(tonnode(hnode).excepttype.vmt_mangledname,AT_DATA)));
             hlist.concat(tai_const.create_sym(onlabel));
             cg.a_label(current_asmdata.CurrAsmList,onlabel);
@@ -619,8 +625,7 @@ procedure ti386tryexceptnode.pass_generate_code;
             inc(onnodecount.value);
           end;
         { now move filter table to permanent list all at once }
-        maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-        current_asmdata.asmlists[al_typedconsts].concatlist(hlist);
+        current_procinfo.aktlocaldata.concatlist(hlist);
         hlist.free;
       end;
 

@@ -50,6 +50,8 @@ interface
       class procedure InsertWideInits; override;
       class procedure InsertResourceTablesTable; override;
       class procedure InsertResourceInfo(ResourcesUsed : boolean); override;
+      class procedure InsertResStrTablesTable; override;
+      class procedure InsertResStrInits; override;
       class procedure InsertMemorySizes; override;
      strict protected
        class procedure add_main_procdef_paras(pd: tdef); override;
@@ -75,6 +77,9 @@ implementation
       paras: tcallparanode;
       proc: string;
     begin
+      result:=nil;
+      proc:='';
+      temp:=nil;
       if not assigned(p.resultdef) then
         typecheckpass(p);
       if ((p.resultdef.typ=stringdef) and
@@ -199,7 +204,7 @@ implementation
         begin
           vs:=cstaticvarsym.create(sym.realname+'$threadvar',sym.varspez,
             jvmgetthreadvardef(sym.vardef),
-            sym.varoptions - [vo_is_thread_var]);
+            sym.varoptions - [vo_is_thread_var],true);
           sym.owner.insert(vs);
           { make sure that the new sym does not get allocated (we will allocate
             it when encountering the original sym, because only then we know
@@ -449,6 +454,18 @@ implementation
 
 
   class procedure tjvmnodeutils.InsertResourceInfo(ResourcesUsed: boolean);
+    begin
+      { not supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertResStrTablesTable;
+    begin
+      { not supported }
+    end;
+
+
+  class procedure tjvmnodeutils.InsertResStrInits;
     begin
       { not supported }
     end;

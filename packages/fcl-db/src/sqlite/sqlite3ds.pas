@@ -51,7 +51,7 @@ type
     procedure InternalCloseHandle; override;
     function InternalGetHandle: Pointer; override;
     procedure RetrieveFieldDefs; override;
-    function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
+    function SqliteExec(ASQL: PAnsiChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
     function QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String; override;
@@ -101,7 +101,7 @@ begin
   end;
 end;
 
-function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): Integer; cdecl;
+function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPAnsiChar; ColumnNames: PPAnsiChar): Integer; cdecl;
 var
   CodeError, TempInt: Integer;
 begin
@@ -118,7 +118,7 @@ end;
 
 { TSqlite3Dataset }
 
-function TSqlite3Dataset.SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
+function TSqlite3Dataset.SqliteExec(ASQL: PAnsiChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
 begin
   Result := sqlite3_exec(FSqliteHandle, ASQL, ACallback, Data, nil);
 end;
@@ -138,10 +138,10 @@ var
   vm: Pointer;
   ErrorStr: String;
 begin
-  sqlite3_open(PChar(FFileName), @Result);
+  sqlite3_open(PAnsiChar(FFileName), @Result);
   //sqlite3_open returns SQLITE_OK even for invalid files
   //do additional check here
-  FReturnCode := sqlite3_prepare(Result, CheckFileSql, -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(Result, CheckFileSql, -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
   begin
     ErrorStr := SqliteCode2Str(FReturnCode) + ' - ' + sqlite3_errmsg(Result);
@@ -163,7 +163,7 @@ begin
   {$endif}
   FAutoIncFieldNo := -1;
   FieldDefs.Clear;
-  FReturnCode := sqlite3_prepare(FSqliteHandle, PChar(FEffectiveSQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle, PAnsiChar(FEffectiveSQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   sqlite3_step(vm);
@@ -227,22 +227,26 @@ begin
         SQLITE_FLOAT:
           AType := ftFloat;
       else
-	    begin
+        begin
           AType := ftString;
-		  DataSize := DefaultStringSize;
-		end;  		
+          DataSize := DefaultStringSize;
+        end;
       end;
     end else
     begin
       AType := ftString;
-	  DataSize := DefaultStringSize;
+      DataSize := DefaultStringSize;
     end;
-    FieldDefs.Add(String(sqlite3_column_name(vm, i)), AType, DataSize);
+    FieldDefs.Add(FieldDefs.MakeNameUnique(String(sqlite3_column_name(vm, i))), AType, DataSize);
     //Set the pchar2sql function
-    if AType in [ftString, ftMemo] then
-      FGetSqlStr[i] := @Char2SQLStr
+    case AType of
+      ftString:
+        FGetSqlStr[i] := @Char2SQLStr;
+      ftMemo:
+        FGetSqlStr[i] := @Memo2SQLStr;
     else
       FGetSqlStr[i] := @Num2SQLStr;
+    end;
     {$ifdef DEBUG_SQLITEDS}
     WriteLn('  Field[', i, '] Name: ', sqlite3_column_name(vm, i));
     WriteLn('  Field[', i, '] Type: ', sqlite3_column_decltype(vm, i));
@@ -263,7 +267,7 @@ procedure TSqlite3Dataset.ExecuteDirect(const ASQL: String);
 var
   vm: Pointer;
 begin
-  FReturnCode := sqlite3_prepare(FSqliteHandle, Pchar(ASQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle, PAnsiChar(ASQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   FReturnCode := sqlite3_step(vm);
@@ -278,10 +282,10 @@ var
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
-    sqlite3_exec(FSqliteHandle, PChar('Select Max(' + FieldDefs[FAutoIncFieldNo].Name +
+    sqlite3_exec(FSqliteHandle, PAnsiChar('Select Max(' + FieldDefs[FAutoIncFieldNo].Name +
       ') from ' + FTableName), @GetAutoIncValue, @FNextAutoInc, nil);
 
-  FReturnCode := sqlite3_prepare(FSqliteHandle, PChar(FEffectiveSQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle, PAnsiChar(FEffectiveSQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
 
@@ -294,7 +298,7 @@ begin
   //add extra rows for calculated fields
   if FCalcFieldList <> nil then
     Inc(FRowCount, FCalcFieldList.Count);
-  FRowBufferSize := (SizeOf(PPChar) * FRowCount);
+  FRowBufferSize := (SizeOf(PPAnsiChar) * FRowCount);
   FReturnCode := sqlite3_step(vm);
   while FReturnCode = SQLITE_ROW do
   begin
@@ -304,7 +308,7 @@ begin
     TempItem := TempItem^.Next;
     GetMem(TempItem^.Row, FRowBufferSize);
     for Counter := 0 to ColumnCount - 1 do
-      TempItem^.Row[Counter] := StrNew(sqlite3_column_text(vm, Counter));
+      TempItem^.Row[Counter] := StrBufNew(sqlite3_column_text(vm, Counter), sqlite3_column_bytes(vm, Counter) + 1);
     //initialize calculated fields with nil
     for Counter := ColumnCount to FRowCount - 1 do
       TempItem^.Row[Counter] := nil;
@@ -316,10 +320,10 @@ begin
   TempItem^.Next := FEndItem;
   FEndItem^.Previous := TempItem;
 
-  // Alloc temporary item used in append/insert
-  GetMem(FCacheItem^.Row, FRowBufferSize);
+  // Alloc temporary item used in edit
+  GetMem(FSavedEditItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
-    FCacheItem^.Row[Counter] := nil;
+    FSavedEditItem^.Row[Counter] := nil;
   // Fill FBeginItem.Row with nil -> necessary for avoid exceptions in empty datasets
   GetMem(FBeginItem^.Row, FRowBufferSize);
   //Todo: see if is better to nullif using FillDWord
@@ -367,7 +371,7 @@ begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
   Result := '';
-  FReturnCode := sqlite3_prepare(FSqliteHandle,Pchar(ASQL), -1, @vm, nil);
+  FReturnCode := sqlite3_prepare_v2(FSqliteHandle,PAnsiChar(ASQL), -1, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
     

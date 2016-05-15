@@ -21,7 +21,7 @@ Program Moire;
       nils.sjoholm@mailbox.swipnet.se
 }
 
-uses Exec, Intuition, Graphics, Utility, systemvartags;
+uses Exec, Intuition, AGraphics, Utility;
 
 
 const
@@ -47,7 +47,7 @@ begin
         while x < Pred(Width - BorderRight - BorderLeft) do begin
         Stop := Pred(Width - BorderRight);
         SetAPen(RP, Pen);
-        Move(RP, Succ(x + BorderLeft), BorderTop);
+        GfxMove(RP, Succ(x + BorderLeft), BorderTop);
         Draw(RP, Stop - x, Pred(Height - BorderBottom));
         Pen := (Pen + 1) mod 4;
         Inc(x);
@@ -59,7 +59,7 @@ begin
         while x < Pred(Height - BorderBottom - BorderTop) do begin
         Stop := Pred(Height - BorderBottom);
         SetAPen(RP, Pen);
-        Move(RP, Pred(Width - BorderRight), Succ(x + BorderTop));
+        GfxMove(RP, Pred(Width - BorderRight), Succ(x + BorderTop));
         Draw(RP, Succ(BorderLeft), Stop - x);
         Pen := (Pen + 1) mod 4;
         Inc(x);
@@ -81,10 +81,10 @@ begin
 
 
     s := OpenScreenTags(NIL, [
-    SA_Pens,      @pens,
+    SA_Pens,      AsTag(@pens),
     SA_Depth,     2,
     SA_DisplayID, HIRES_KEY,
-    SA_Title,     'Close the Window to End This Demonstration',
+    SA_Title,     AsTag('Close the Window to End This Demonstration'),
     TAG_END]);
 
     if s <> NIL then begin
@@ -105,8 +105,8 @@ begin
     WA_SizeGadget,   -1,
     WA_SmartRefresh, -1,
     WA_Activate,     -1,
-    WA_Title,        'Feel Free to Re-Size the Window',
-    WA_CustomScreen, s,
+    WA_Title,        AsTag('Feel Free to Re-Size the Window'),
+    WA_CustomScreen, AsTag(s),
     TAG_END]);
 
     IF w <> NIL THEN begin

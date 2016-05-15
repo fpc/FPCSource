@@ -103,6 +103,7 @@ interface
        exponent value is returned in power.
     }
     function ispowerof2(value : int64;out power : longint) : boolean;
+    function ispowerof2(value : Tconstexprint;out power : longint) : boolean;
     function nextpowerof2(value : int64; out power: longint) : int64;
 {$ifdef VER2_6}  { only 2.7.1+ has a popcnt function in the system unit }
     function PopCnt(AValue : Byte): Byte;
@@ -866,6 +867,22 @@ implementation
       end;
 
 
+    function ispowerof2(value: Tconstexprint; out power: longint): boolean;
+      begin
+        if value.signed or
+           (value.uvalue<=high(int64)) then
+          result:=ispowerof2(value.svalue,power)
+        else if not value.signed and
+            (value.svalue=low(int64)) then
+          begin
+            result:=true;
+            power:=63;
+          end
+        else
+          result:=false;
+      end;
+
+
     function nextpowerof2(value : int64; out power: longint) : int64;
     {
       returns the power of 2 >= value
@@ -895,8 +912,6 @@ implementation
       PopCntData : array[0..15] of byte = (0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4);
 
     function PopCnt(AValue : Byte): Byte;
-      var
-        i : SizeInt;
       begin
         Result:=PopCntData[AValue and $f]+PopCntData[(AValue shr 4) and $f];
       end;

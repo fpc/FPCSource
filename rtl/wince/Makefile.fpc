@@ -6,14 +6,15 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 strings \
+units=$(SYSTEMUNIT) uuchar fpintres ctypes objpas macpas iso7185 extpas strings \
       lineinfo heaptrc \
       windows messages dynlibs \
       dos \
       rtlconsts sysconst sysutils \
       typinfo types fgl classes \
-      math \
+      math fpwidestring \
       charset cpall getopts \
+      unicodedata  unicodenumtable character \
       cmem sharemem
 #    initc  signals \
 #    crt graph \
@@ -109,6 +110,9 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
 
 iso7185$(PPUEXT) : $(INC)/iso7185.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/iso7185.pp
+
+extpas$(PPUEXT) : $(INC)/extpas.pp dos$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(INC)/extpas.pp
 
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
@@ -234,6 +238,18 @@ ucomplex$(PPUEXT) : $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 fpintres$(PPUEXT) : $(INC)/fpintres.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(INC)/fpintres.pp
+
+fpwidestring$(PPUEXT): $(OBJPASDIR)/fpwidestring.pp unicodedata$(PPUEXT) charset$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/fpwidestring.pp
+
+unicodedata$(PPUEXT): $(OBJPASDIR)/unicodedata.pas
+        $(COMPILER) $(OBJPASDIR)/unicodedata.pas
+
+unicodenumtable$(PPUEXT): $(OBJPASDIR)/unicodenumtable.pas
+        $(COMPILER) $(OBJPASDIR)/unicodenumtable.pas
+
+character$(PPUEXT): $(OBJPASDIR)/character.pas
+        $(COMPILER) $(OBJPASDIR)/character.pas
 
 #
 # Other system-dependent RTL Units

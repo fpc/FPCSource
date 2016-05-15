@@ -29,6 +29,7 @@ begin
     begin
       InOutRes := Rc;
       Errno2Inoutres;
+      OSErrorWatch (RC);
     end;
 end;
 
@@ -47,6 +48,7 @@ begin
     begin
       InOutRes := Rc;
       Errno2Inoutres;
+      OSErrorWatch (RC);
     end;
 end;
 
@@ -63,7 +65,10 @@ begin
   begin
     RC := DosSetDefaultDisk ((Ord (S [1]) and not ($20)) - $40);
     if RC <> 0 then
-      InOutRes := RC
+     begin
+      InOutRes := RC;
+      OSErrorWatch (RC);
+     end
     else
       if Len > 2 then
       begin
@@ -75,6 +80,7 @@ begin
         begin
           InOutRes := RC;
           Errno2InOutRes;
+          OSErrorWatch (RC);
         end;
       end;
   end else begin
@@ -86,6 +92,7 @@ begin
     begin
       InOutRes:= RC;
       Errno2InOutRes;
+      OSErrorWatch (RC);
     end;
   end;
 end;
@@ -97,6 +104,7 @@ procedure do_GetDir (DriveNr: byte; var Dir: RawByteString);
 var sof: Pchar;
     i:byte;
     l,l2:cardinal;
+    RC: cardinal;
 begin
     setlength(Dir,255);
     Dir [4] := #0;
@@ -109,7 +117,13 @@ begin
     { TODO: if max path length is > 255, increase the setlength parameter above and
       the 255 below }
     l:=255-3;
-    InOutRes:=longint (DosQueryCurrentDir(DriveNr, sof^, l));
+    RC := DosQueryCurrentDir(DriveNr, sof^, l);
+    if RC <> 0 then
+     begin
+      InOutRes := longint (RC);
+      Errno2Inoutres;
+      OSErrorWatch (RC);
+     end;
 {$WARNING Result code should be translated in some cases!}
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }

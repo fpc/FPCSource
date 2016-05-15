@@ -45,9 +45,9 @@ var
 
   ImmAssociateContextEx: function (wnd: HWND; imc: HIMC; dwFlags: DWORD): LongBool; stdcall = nil;
   ImmGetCompositionStringA: function (imc: HIMC; dwIndex: DWORD;
-    lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall = nil;
+    lpBuf: LPVOID; dwBufLen: DWORD): LONG; stdcall = nil;
   ImmGetCompositionStringW: function (imc: HIMC; dwIndex: DWORD;
-    lpBuf: LPVOID; dwBufLen: DWORD): Longword; stdcall = nil;
+    lpBuf: LPVOID; dwBufLen: DWORD): LONG; stdcall = nil;
 
   ImmSetCompositionStringA: function (imc: HIMC; dwIndex: DWORD; lpComp: LPVOID;
     dwCompLen: DWORD; lpRead: LPVOID; dwReadLen: DWORD): LongBool; stdcall = nil;

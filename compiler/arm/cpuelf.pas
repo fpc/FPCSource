@@ -325,8 +325,19 @@ implementation
           result:=R_ARM_ABS32;
         RELOC_RELATIVE:
           result:=R_ARM_REL32;
+        RELOC_RELATIVE_24:
+          result:=R_ARM_JUMP24;
+        RELOC_RELATIVE_CALL:
+          result:=R_ARM_CALL;
+        RELOC_RELATIVE_24_THUMB:
+          result:=R_ARM_CALL;
+        RELOC_RELATIVE_CALL_THUMB:
+          result:=R_ARM_THM_CALL;
+        RELOC_GOT32:
+          result:=R_ARM_GOT_BREL;
       else
         result:=0;
+        writeln(objrel.typ);
         InternalError(2012110602);
       end;
     end;
@@ -561,6 +572,7 @@ implementation
     rotation:longint;
     residual,g_n:longword;
     curloc: aword;
+    bit_S,bit_I1,bit_I2: aint;
   begin
     data:=objsec.data;
     for i:=0 to objsec.ObjRelocations.Count-1 do
@@ -660,7 +672,21 @@ implementation
                   2) when target is unresolved weak symbol, CALL must be changed to NOP,
                   while JUMP24 behavior is unspecified. }
                 tmp:=sarlongint((address and $00FFFFFF) shl 8,6);
-                tmp:=tmp+relocval-curloc;
+                tmp:=tmp+relocval;
+                if odd(tmp) then    { dest is Thumb? }
+                  begin
+                    if (reltyp=R_ARM_CALL) then
+                      { change BL to BLX, dest bit 1 goes to instruction bit 24 }
+                      address:=(address and $FE000000) or (((tmp-curloc) and 2) shl 23) or $F0000000
+                    else
+                      InternalError(2014092001);
+                  end
+                else if (address and $FF000000)=$FA000000 then
+                  begin
+                    { Change BLX to BL }
+                    address:=(address and $EA000000) or $01000000;
+                  end;
+                tmp:=tmp-curloc;
                 // TODO: check overflow
                 address:=(address and $FF000000) or ((tmp and $3FFFFFE) shr 2);
               end;
@@ -829,6 +855,38 @@ implementation
                   address:=address or (1 shl 23);
               end;
 
+            R_ARM_THM_CALL:
+              begin
+                if (not ElfTarget.relocs_use_addend) then
+                  begin
+                    address:=((address and $ffff) shl 16) or word(address shr 16);
+                    bit_S:=(address shr 26) and 1;
+                    bit_I1:=(bit_S xor ((address shr 13) and 1)) xor 1;
+                    bit_I2:=(bit_S xor ((address shr 11) and 1)) xor 1;
+                    tmp:=((-bit_S) shl 24) or (bit_I1 shl 23) or (bit_I2 shl 22) or (((address shr 16) and $3ff) shl 12) or ((address and $7ff) shl 1);
+                  end
+                else  { TODO: must read the instruction anyway }
+                  tmp:=address;
+                tmp:=tmp+relocval;       { dest address }
+                if odd(tmp) then         { if it's Thumb code, change possible BLX to BL }
+                  address:=address or $1800;
+                tmp:=tmp-curloc;         { now take PC-relative }
+                { TODO: overflow check, different limit for Thumb and Thumb-2 }
+
+                { now encode this mess back }
+                if (address and $5000)=$4000 then
+                  tmp:=(tmp+2) and (not 3);
+
+                bit_S:=(tmp shr 31) and 1;
+                address:=(address and $F800D000) or
+                  (bit_S shl 26) or
+                  (((tmp shr 12) and $3ff) shl 16) or
+                  ((tmp shr 1) and $7FF) or
+                  ((((tmp shr 23) and 1) xor 1 xor bit_S) shl 13) or
+                  ((((tmp shr 22) and 1) xor 1 xor bit_S) shl 11);
+                address:=((address and $ffff) shl 16) or word(address shr 16);
+              end;
+
             R_ARM_TLS_IE32:
               begin
                 relocval:=relocval-tlsseg.mempos+align_aword(TCB_SIZE,tlsseg.align);
@@ -860,6 +918,11 @@ implementation
     end;
 
 
+  function elf_arm_encodeflags: longword;
+    begin
+      result:=EF_ARM_EABI_VER5;
+    end;
+
 {*****************************************************************************
                                     Initialize
 *****************************************************************************}
@@ -882,9 +945,26 @@ implementation
         encodereloc:       @elf_arm_encodeReloc;
         loadreloc:         @elf_arm_loadReloc;
         loadsection:       @elf_arm_loadSection;
+        encodeflags:       @elf_arm_encodeflags;
       );
 
+    as_arm_elf32_info : tasminfo =
+       (
+         id     : as_arm_elf32;
+         idtxt  : 'ELF';
+         asmbin : '';
+         asmcmd : '';
+         supported_targets : [system_arm_embedded,system_arm_darwin,
+                              system_arm_linux,system_arm_gba,
+                              system_arm_nds];
+         flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
+         labelprefix : '.L';
+         comment : '';
+         dollarsign: '$';
+       );
+
 initialization
+  RegisterAssembler(as_arm_elf32_info,TElfAssembler);
   ElfTarget:=elf_target_arm;
   ElfExeOutputClass:=TElfExeOutputARM;
 

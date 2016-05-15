@@ -1,6 +1,6 @@
-{ %skiptarget=win32,win64,wince }
+{ %skiptarget=win32,win64,wince,os2,emx }
 { This test is only useful if the local codepage is utf-8 which
-  usually not the case on windows
+  usually not the case on windows (and never can be the case on OS/2)
 }
 {$codepage utf-8}
 
@@ -8,7 +8,7 @@
 
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif}
   SysUtils;
 

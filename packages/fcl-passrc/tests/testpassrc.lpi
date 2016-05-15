@@ -30,92 +30,74 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="--suite=TTestClassType.TestConstProtected"/>
-        <LaunchingApplication Use="True"/>
+        <CommandLineParams Value="--suite=TTestProcedureFunction.TestOperatorTokens"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="1">
       <Item1>
-        <PackageName Value="FPCUnitConsoleRunner"/>
-      </Item1>
-      <Item2>
         <PackageName Value="FCL"/>
-      </Item2>
+      </Item1>
     </RequiredPackages>
     <Units Count="12">
       <Unit0>
         <Filename Value="testpassrc.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="testpassrc"/>
       </Unit0>
       <Unit1>
         <Filename Value="tcscanner.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcscanner"/>
       </Unit1>
       <Unit2>
         <Filename Value="tctypeparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tctypeparser"/>
       </Unit2>
       <Unit3>
         <Filename Value="tcstatements.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcstatements"/>
       </Unit3>
       <Unit4>
         <Filename Value="tcbaseparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcbaseparser"/>
       </Unit4>
       <Unit5>
         <Filename Value="tcmoduleparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcmoduleparser"/>
       </Unit5>
       <Unit6>
         <Filename Value="tconstparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tconstparser"/>
       </Unit6>
       <Unit7>
         <Filename Value="tcvarparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcvarparser"/>
       </Unit7>
       <Unit8>
         <Filename Value="tcclasstype.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcclasstype"/>
       </Unit8>
       <Unit9>
         <Filename Value="tcexprparser.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcexprparser"/>
       </Unit9>
       <Unit10>
         <Filename Value="tcprocfunc.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcprocfunc"/>
       </Unit10>
       <Unit11>
         <Filename Value="tcpassrcutil.pas"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="tcpassrcutil"/>
       </Unit11>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
+    <Target>
+      <Filename Value="testpassrc"/>
+    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="../src"/>
     </SearchPaths>
-    <Other>
-      <CompilerMessages>
-        <UseMsgFile Value="True"/>
-      </CompilerMessages>
-      <CompilerPath Value="$(CompPath)"/>
-    </Other>
   </CompilerOptions>
   <Debugging>
     <Exceptions Count="3">

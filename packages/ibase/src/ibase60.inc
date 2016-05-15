@@ -4,6 +4,7 @@
 {$MODE objfpc}
 {$MACRO on}
 
+
 interface
 
 {$IFDEF LinkDynamically}
@@ -91,6 +92,7 @@ Type
    ISC_INT64     = int64;
    ISC_UINT64    = qword;
    ISC_LONG      = Longint;
+   ISC_ULONG     = dword;
 
    PISC_USHORT = ^ISC_USHORT;
    PISC_STATUS = ^ISC_STATUS;
@@ -154,7 +156,7 @@ Type
 
    GDS_QUAD = record
       gds_quad_high : ISC_LONG;
-      gds_quad_low : ISC_LONG;
+      gds_quad_low : ISC_ULONG;
    end;
    TGDS_QUAD = GDS_QUAD;
    PGDS_QUAD = ^GDS_QUAD;
@@ -804,6 +806,8 @@ type
      isc_tpb_no_rec_version = 18;
      isc_tpb_restart_requests = 19;
      isc_tpb_no_auto_undo = 20;
+     isc_tpb_lock_timeout = 21;
+
   {                       }
   { Blob Parameter Block  }
   {                       }
@@ -1192,6 +1196,8 @@ type
      isc_spb_res_page_size = 10;
      isc_spb_res_length = 11;
      isc_spb_res_access_mode = 12;
+     isc_spb_res_fix_fss_data = 13;
+     isc_spb_res_fix_fss_metadata = 14;
      isc_spb_res_deactivate_idx = $0100;
      isc_spb_res_no_shadow = $0200;
      isc_spb_res_no_validity = $0400;
@@ -1823,6 +1829,9 @@ type
 
   function isc_sqlcode(_para1:PISC_STATUS):ISC_LONG; extdecl; external gdslib;
 
+  // Available in Firebird 2.5+
+  function fb_sqlstate(_para1: PAnsiChar;_para2:PISC_STATUS): ISC_STATUS ; extdecl;  external gdslib;
+
   procedure isc_sql_interprete(_para1:smallint; _para2:Pchar; _para3:smallint); extdecl; external gdslib;
 
   function isc_transaction_info(_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint;
@@ -2037,6 +2046,19 @@ type
   function isc_service_start(_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar):ISC_STATUS; extdecl; external gdslib;
 
   {                              }
+  { Shutdown and cancel          }
+  {                              }
+  // Available in Firebird 2.5+
+  function fb_shutdown(_para1: UINT;  _para2: integer): int; extdecl; external gdslib;
+
+  // Available in Firebird 2.5+
+  //function fb_shutdown_callback{!!!3 unknown typedef}: ISC_EXPORT{ISC_STATUS}{<= !!!4 unknown type};
+
+  // Available in Firebird 2.5+
+  //function fb_cancel_operation{!!!3 unknown typedef}: ISC_EXPORT{ISC_STATUS}{<= !!!4 unknown type};
+
+
+  {                              }
   { Forms functions              }
   {                              }
 {$IFDEF Unix}
@@ -2082,6 +2104,12 @@ type
 
   function isc_suspend_window(_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl; external gdslib;
 {$ENDIF}
+
+  // Available in Firebird 2.5+
+  function fb_shutdown:int; extdecl; external gdslib;
+
+  // Available in Firebird 2.5+  
+  function fb_sqlstate:ISC_STATUS; extdecl;external gdslib; 
 
   function isc_attach_database:ISC_STATUS; extdecl; external gdslib;
 
@@ -2331,6 +2359,8 @@ var
   isc_start_multiple : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:pointer):ISC_STATUS; extdecl;
   isc_start_transaction : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; args:array of const):ISC_STATUS; cdecl;
   isc_sqlcode : function (_para1:PISC_STATUS):ISC_LONG; extdecl;
+  // Available in Firebird 2.5+
+  fb_sqlstate : function(_para1: PAnsiChar;_para2:PISC_STATUS):ISC_STATUS; extdecl; 
   isc_sql_interprete : procedure (_para1:smallint; _para2:Pchar; _para3:smallint); extdecl;
   isc_transaction_info : function (_para1:PISC_STATUS; _para2:Pisc_tr_handle; _para3:smallint; _para4:Pchar; _para5:smallint;_para6:Pchar):ISC_STATUS; extdecl;
   isc_transact_request : function (_para1:PISC_STATUS; _para2:Pisc_db_handle; _para3:Pisc_tr_handle; _para4:word; _para5:Pchar;_para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl;
@@ -2441,6 +2471,14 @@ var
   isc_service_detach : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle):ISC_STATUS; extdecl;
   isc_service_query : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar;_para6:word; _para7:Pchar; _para8:word; _para9:Pchar):ISC_STATUS; extdecl;
   isc_service_start : function (_para1:PISC_STATUS; _para2:Pisc_svc_handle; _para3:Pisc_resv_handle; _para4:word; _para5:Pchar):ISC_STATUS; extdecl;
+
+
+{                              }
+{ Shutdown and cancel          }
+{                              }
+  // Available in Firebird 2.5+
+  fb_shutdown : function(_para1: UINT; _para2: integer):int; extdecl;
+
 {                              }
 { Forms functions              }
 {                              }
@@ -2511,6 +2549,10 @@ begin
       Exit;
     inc(RefCount);
     LoadedLibrary:=LibraryName;
+    // Available in Firebird 2.5+
+    pointer(fb_shutdown) := GetProcedureAddress(IBaseLibraryHandle,'fb_shutdown');
+    // Available in Firebird 2.5+    
+    pointer(fb_sqlstate) := GetProcedureAddress(IBaseLibraryHandle,'fb_sqlstate');
     pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
     pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
     pointer(isc_array_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_get_slice');
@@ -2728,11 +2770,20 @@ Procedure ReleaseIBase60;
 begin
   if RefCount>1 then
     Dec(RefCount)
-  else if UnloadLibrary(LibHandle) then 
+  else
     begin
-    Dec(RefCount);
-    LibHandle := NilHandle;
-    LoadedLibrary:='';
+    // Shutdown embedded subsystem with timeout 300ms (Firebird 2.5+)
+    // Required before unloading library; has no effect on non-embedded client
+    if (pointer(fb_shutdown)<>nil) and (fb_shutdown(300,1)<>0) then
+      begin
+      //todo: log error; still try to unload library below as the timeout may have been insufficient
+      end;
+    if UnloadLibrary(LibHandle) then
+      begin
+      Dec(RefCount);
+      LibHandle := NilHandle;
+      LoadedLibrary:='';
+      end;
     end;
 end;
 

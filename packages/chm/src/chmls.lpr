@@ -1045,7 +1045,9 @@ begin
                      end;
                    end;
       cmdextractall: begin
-                      if length(localparams)=2 then
+                      if length(localparams)=1 then //extract into current directory
+                        ExtractFileAll(localparams[0],GetCurrentDir)
+                      else if length(localparams)=2 then //extract into specified dir
                         ExtractFileall(localparams[0],localparams[1])
                       else
                         WrongNrParam(cmdnames[cmd],length(localparams));

@@ -52,7 +52,7 @@ const
 
 function findreg_by_gasname(const s: string): tregisterindex;
 var
-  i, p: tregisterindex;
+  p: tregisterindex;
 begin
   for p := low(tregisterindex) to high(tregisterindex) do
   begin

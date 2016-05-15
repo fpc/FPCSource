@@ -145,6 +145,9 @@ begin
   // Bracketed comment
   AssertEquals(     'select * from table where id=/*comment :c*/$1-$2',
     Params.ParseSQL('select * from table where id=/*comment :c*/:a-:b', True, True, True, psPostgreSQL));
+  // Consecutive comments, with quote in second comment
+  AssertEquals(     '--c1'#10'--c'''#10'select '':a'' from table where id=$1',
+    Params.ParseSQL('--c1'#10'--c'''#10'select '':a'' from table where id=:id', True, True, True, psPostgreSQL));
 
   Params.Free;
 end;

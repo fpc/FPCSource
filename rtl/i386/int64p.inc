@@ -15,6 +15,203 @@
 {$Q- no overflow checking }
 {$R- no range checking }
 
+{$define FPC_SYSTEM_HAS_DIV_INT64}
+    function fpc_div_int64(n,z : int64) : int64;assembler;[public,alias: 'FPC_DIV_INT64']; compilerproc;
+      var
+         saveebx,saveedi,saveesi : longint;
+      asm
+            movl %ebx,saveebx
+            movl %esi,saveesi
+            movl %edi,saveedi
+            { the following piece of code is taken from the     }
+            { AMD Athlon Processor x86 Code Optimization manual }
+            movl n+4,%ecx
+            movl n,%ebx
+            movl %ecx,%eax
+            orl %ebx,%eax
+            jnz .Lnodivzero
+            movl  %ebp,%edx
+            movl  $200,%eax
+            call HandleErrorFrame
+            jmp .Lexit
+.Lnodivzero:
+            movl z+4,%edx
+            movl z,%eax
+            movl %ecx,%esi
+            xorl %edx,%esi
+            sarl $31,%esi
+            movl %edx,%edi
+            sarl $31,%edi
+            xorl %edi,%eax
+            xorl %edi,%edx
+            subl %edi,%eax
+            sbbl %edi,%edx
+            movl %ecx,%edi
+            sarl $31,%edi
+            xorl %edi,%ebx
+            xorl %edi,%ecx
+            subl %edi,%ebx
+            sbbl %edi,%ecx
+            jnz .Lbigdivisor
+            cmpl %ebx,%edx
+            jae .Ltwo_divs
+            divl %ebx
+            movl %ecx,%edx
+            xorl %esi,%eax
+            xorl %esi,%edx
+            subl %esi,%eax
+            sbbl %esi,%edx
+            jmp .Lexit
+.Ltwo_divs:
+            movl %eax,%ecx
+            movl %edx,%eax
+            xorl %edx,%edx
+            divl %ebx
+            xchgl %ecx,%eax
+            divl %ebx
+            movl %ecx,%edx
+            jmp .Lexit
+.Lbigdivisor:
+            subl $12,%esp
+            movl %eax,(%esp)
+            movl %ebx,4(%esp)
+            movl %edx,8(%esp)
+            movl %ecx,%edi
+            shrl $1,%edx
+            rcrl $1,%eax
+            rorl $1,%edi
+            rcrl $1,%ebx
+            bsrl %ecx,%ecx
+            shrdl %cl,%edi,%ebx
+            shrdl %cl,%edx,%eax
+            shrl %cl,%edx
+            roll $1,%edi
+            divl %ebx
+            movl (%esp),%ebx
+            movl %eax,%ecx
+            imull %eax,%edi
+            mull 4(%esp)
+            addl %edi,%edx
+            subl %eax,%ebx
+            movl %ecx,%eax
+            movl 8(%esp),%ecx
+            sbbl %edx,%ecx
+            sbbl $0,%eax
+            xorl %edx,%edx
+            addl $12,%esp
+.Lmake_sign:
+            xorl %esi,%eax
+            xorl %esi,%edx
+            subl %esi,%eax
+            sbbl %esi,%edx
+.Lexit:
+            movl saveebx,%ebx
+            movl saveesi,%esi
+            movl saveedi,%edi
+      end;
+
+{$define FPC_SYSTEM_HAS_MOD_INT64}
+    function fpc_mod_int64(n,z : int64) : int64;assembler;[public,alias: 'FPC_MOD_INT64']; compilerproc;
+      var
+         saveebx,saveedi,saveesi : longint;
+      asm
+            movl %ebx,saveebx
+            movl %esi,saveesi
+            movl %edi,saveedi
+            { the following piece of code is taken from the     }
+            { AMD Athlon Processor x86 Code Optimization manual }
+            movl n+4,%ecx
+            movl n,%ebx
+            movl %ecx,%eax
+            orl %ebx,%eax
+            jnz .Lnodivzero
+            movl  %ebp,%edx
+            movl  $200,%eax
+            call HandleErrorFrame
+            jmp .Lexit
+.Lnodivzero:
+            movl z+4,%edx
+            movl z,%eax
+            movl %edx,%esi
+            sarl $31,%esi
+            movl %edx,%edi
+            sarl $31,%edi
+            xorl %edi,%eax
+            xorl %edi,%edx
+            subl %edi,%eax
+            sbbl %edi,%edx
+            movl %ecx,%edi
+            sarl $31,%edi
+            xorl %edi,%ebx
+            xorl %edi,%ecx
+            subl %edi,%ebx
+            sbbl %edi,%ecx
+            jnz .Lbig_divisor
+            cmpl %ebx,%edx
+            jae .Ltwo_divs
+            divl %ebx
+            movl %edx,%eax
+            movl %ecx,%edx
+            xorl %esi,%eax
+            xorl %esi,%edx
+            subl %esi,%eax
+            sbbl %esi,%edx
+            jmp .Lexit
+.Ltwo_divs:
+            movl %eax,%ecx
+            movl %edx,%eax
+            xorl %edx,%edx
+            divl %ebx
+            movl %ecx,%eax
+            divl %ebx
+            movl %edx,%eax
+            xorl %edx,%edx
+            jmp .Lmake_sign
+.Lbig_divisor:
+            subl $16,%esp
+            movl %eax,(%esp)
+            movl %ebx,4(%esp)
+            movl %edx,8(%esp)
+            movl %ecx,12(%esp)
+            movl %ecx,%edi
+            shrl $1,%edx
+            rcrl $1,%eax
+            rorl $1,%edi
+            rcrl $1,%ebx
+            bsrl %ecx,%ecx
+            shrdl %cl,%edi,%ebx
+            shrdl %cl,%edx,%eax
+            shrl %cl,%edx
+            roll $1,%edi
+            divl %ebx
+            movl (%esp),%ebx
+            movl %eax,%ecx
+            imull %eax,%edi
+            mull 4(%esp)
+            addl %edi,%edx
+            subl %eax,%ebx
+            movl 8(%esp),%ecx
+            sbbl %edx,%ecx
+            sbbl %eax,%eax
+            movl 12(%esp),%edx
+            andl %eax,%edx
+            andl 4(%esp),%eax
+            addl %ebx,%eax
+            addl %ecx,%edx
+            addl $16,%esp
+
+.Lmake_sign:
+            xorl %esi,%eax
+            xorl %esi,%edx
+            subl %esi,%eax
+            sbbl %esi,%edx
+
+.Lexit:
+            movl saveebx,%ebx
+            movl saveesi,%esi
+            movl saveedi,%edi
+      end;
+
 {$define FPC_SYSTEM_HAS_DIV_QWORD}
     function fpc_div_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_DIV_QWORD']; compilerproc;
       var

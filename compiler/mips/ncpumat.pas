@@ -28,6 +28,7 @@ unit ncpumat;
 interface
 
 uses
+  symtype,
   node, nmat, ncgmat, cgbase;
 
 type

@@ -2,7 +2,7 @@
 Const
   GraphDir = 'inc/graph/';
   SysUtilsDir = 'objpas/sysutils/';
-  Unixes = [darwin,freebsd,linux,netbsd,openbsd];
+  Unixes = [darwin,dragonfly,freebsd,linux,netbsd,openbsd];
 
 
 Function CurrentOS : String;

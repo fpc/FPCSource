@@ -24,7 +24,10 @@ type
     procedure TestSQLFieldType(ADatatype: TFieldType; ASQLTypeDecl: string;
       ADataSize: integer; AGetSQLTextProc: TGetSQLTextProc;
       ACheckFieldValueProc: TCheckFieldValueProc);
-    procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
+    procedure TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+      ParamValuesCount : integer); overload;
+    procedure TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+      ParamValuesCount : integer; const ParamValues: array of string; Cross : boolean = False); overload;
     procedure TestSetBlobAsParam(asWhat : integer);
   protected
     procedure SetUp; override;
@@ -83,6 +86,7 @@ type
     procedure TestTimeParamQuery;
     procedure TestDateTimeParamQuery;
     procedure TestFmtBCDParamQuery;
+    Procedure TestFmtBCDParamQuery2; // Bug 27077
     procedure TestFloatParamQuery;
     procedure TestCurrencyParamQuery;
     procedure TestBCDParamQuery;
@@ -207,7 +211,7 @@ begin
     SQL.Add('select * from FPDEV2');
     Open;
     AssertEquals(1,FieldCount);
-    AssertTrue(CompareText('FT',fields[0].FieldName)=0);
+    AssertTrue(SameText('FT',Fields[0].FieldName));
     AssertEquals('DataSize', ADataSize, Fields[0].DataSize);
     AssertEquals('DataType', ord(ADatatype), ord(Fields[0].DataType));
     Close;
@@ -257,6 +261,11 @@ begin
       begin
       datatype  := 'TINYINT UNSIGNED';
       fieldtype := ftWord;
+      end;
+    ssOracle:
+      begin
+      datatype  := 'NUMBER(3)';
+      fieldtype := ftSmallint;
       end;
     ssSQLite:
       begin
@@ -440,9 +449,10 @@ begin
     for i := 0 to testValuesCount-1 do
       begin
       AssertEquals(testValues[i], Fields[0].AsString);
+      AssertEquals('IsNull', False, Fields[0].IsNull); // '' is not NULL
       Next;
       end;
-    close;
+    Close;
     end;
 end;
 
@@ -479,7 +489,7 @@ var
   i             : byte;
 
 begin
-  if SQLServerType<>ssPostgreSQL then Ignore('This test does only apply to Postgres, since others don''t support varchars without length given');
+  if SQLServerType<>ssPostgreSQL then Ignore('This test only applies to Postgres, since others don''t support varchars without length given');
 
   CreateTableWithFieldType(ftString,'VARCHAR');
   TestFieldDeclaration(ftString,dsMaxStringSize+1);
@@ -824,7 +834,7 @@ begin
       begin
       datatype:='INTEGER PRIMARY KEY';
       values:='DEFAULT VALUES';
-      fieldtype:=ftInteger;
+      fieldtype:=ftAutoInc;
       updatable:=true;
       end;
     ssPostgreSQL:
@@ -908,6 +918,8 @@ begin
     ssFirebird, ssInterbase,
     ssMySQL:
       datatype:='FLOAT';
+    ssOracle:
+      datatype:='BINARY_FLOAT';
     else
       datatype:='REAL';
   end;
@@ -1223,7 +1235,7 @@ procedure TTestFieldTypes.TestClearUpdateableStatus;
 // Test if CanModify is correctly disabled in case of a select query without
 // a from-statement.
 begin
-  if not (SQLServerType in [ssMySQL]) then Ignore('This test does only apply to MySQL because the used SQL-statement is MySQL only.');
+  if not (SQLServerType in [ssMySQL]) then Ignore('This test only applies to MySQL because the used SQL-statement is MySQL only.');
   with TSQLDBConnector(DBConnector) do
     begin
     with (GetNDataset(false,5) as TSQLQuery) do
@@ -1481,7 +1493,14 @@ end;
 
 procedure TTestFieldTypes.TestFmtBCDParamQuery;
 begin
-  TestXXParamQuery(ftFMTBcd,FieldtypeDefinitions[ftFMTBcd],testValuesCount);
+  TestXXParamQuery(ftFMTBcd, FieldtypeDefinitions[ftFMTBcd], testValuesCount, testFmtBCDValues);
+end;
+
+Procedure TTestFieldTypes.TestFmtBCDParamQuery2;
+begin
+  // This test tests FmtBCD params with smaller precision, which fits into INT32
+  // TestFmtBCDParamQuery tests FmtBCD params with bigger precision, which fits into INT64
+  TestXXParamQuery(ftFMTBcd, 'NUMERIC(9,5)', 2, ['1234','1234.56781']);
 end;
 
 procedure TTestFieldTypes.TestDateParamQuery;
@@ -1491,7 +1510,7 @@ end;
 
 procedure TTestFieldTypes.TestCrossStringDateParam;
 begin
-  TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount,True);
+  TestXXParamQuery(ftDate,FieldtypeDefinitions[ftDate],testDateValuesCount,[],True);
 end;
 
 procedure TTestFieldTypes.TestTimeParamQuery;
@@ -1522,12 +1541,12 @@ end;
 
 procedure TTestFieldTypes.TestBytesParamQuery;
 begin
-  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, true);
+  TestXXParamQuery(ftBytes, FieldtypeDefinitions[ftBytes], testBytesValuesCount, [], True);
 end;
 
 procedure TTestFieldTypes.TestVarBytesParamQuery;
 begin
-  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, not(SQLServerType in [ssMSSQL, ssSybase]));
+  TestXXParamQuery(ftVarBytes, FieldtypeDefinitions[ftVarBytes], testVarBytesValuesCount, [], not(SQLServerType in [ssMSSQL, ssSybase]));
 end;
 
 procedure TTestFieldTypes.TestBooleanParamQuery;
@@ -1541,7 +1560,6 @@ begin
 end;
 
 procedure TTestFieldTypes.TestStringParamQuery;
-
 begin
   TestXXParamQuery(ftString,'VARCHAR(10)',testValuesCount);
 end;
@@ -1551,8 +1569,14 @@ begin
   TestXXParamQuery(ftFixedChar,'CHAR(10)',testValuesCount);
 end;
 
+procedure TTestFieldTypes.TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+  ParamValuesCount : integer);
+begin
+  TestXXParamQuery(ADataType, ASQLTypeDecl, ParamValuesCount, [], False);
+end;
 
-procedure TTestFieldTypes.TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuesCount : integer; Cross : boolean = false);
+procedure TTestFieldTypes.TestXXParamQuery(ADataType : TFieldType; ASQLTypeDecl : string;
+  ParamValuesCount : integer; const ParamValues: array of string; Cross : boolean = False);
 
 var i : integer;
 
@@ -1574,7 +1598,7 @@ begin
     if ADataType=ftFixedChar then
       Params.ParamByName('field1').DataType := ftFixedChar;
 
-    for i := 0 to testValuesCount -1 do
+    for i := 0 to ParamValuesCount-1 do
       begin
       Params.ParamByName('id').AsInteger := i;
       case ADataType of
@@ -1593,7 +1617,7 @@ begin
                    else
                       Params.ParamByName('field1').AsDate := StrToDate(testDateValues[i],'yyyy/mm/dd','-');
         ftDateTime: Params.ParamByName('field1').AsDateTime := StrToDateTime(testValues[ADataType,i], DBConnector.FormatSettings);
-        ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(testFmtBCDValues[i], DBConnector.FormatSettings);
+        ftFMTBcd  : Params.ParamByName('field1').AsFMTBCD := StrToBCD(ParamValues[i], DBConnector.FormatSettings);
         ftBlob    : Params.ParamByName('field1').AsBlob := testBlobValues[i];
         ftBytes   : if cross then
                       Params.ParamByName('field1').Value := StringToByteArray(testBytesValues[i])
@@ -1609,7 +1633,7 @@ begin
       ExecSQL;
       end;
     // test NULL parameter value
-    Params.ParamByName('id').AsInteger := testValuesCount;
+    Params.ParamByName('id').AsInteger := ParamValuesCount;
     Params.ParamByName('field1').Clear;
     ExecSQL;
 
@@ -1619,7 +1643,7 @@ begin
     sql.append('select * from FPDEV2 order by ID');
     open;
 
-    for i := 0 to testValuesCount -1 do
+    for i := 0 to ParamValuesCount-1 do
       begin
       AssertEquals(i,FieldByName('ID').AsInteger);
       case ADataType of
@@ -1635,13 +1659,14 @@ begin
         ftTime     : AssertEquals(testTimeValues[i],DateTimeToTimeString(FieldByName('FIELD1').AsDateTime));
         ftDate     : AssertEquals(testDateValues[i],DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
         ftDateTime : AssertEquals(testValues[ADataType,i], DateTimeToStr(FieldByName('FIELD1').AsDateTime, DBConnector.FormatSettings));
-        ftFMTBcd   : AssertEquals(testFmtBCDValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
+        ftFMTBcd   : AssertEquals(ParamValues[i], BCDToStr(FieldByName('FIELD1').AsBCD, DBConnector.FormatSettings));
         ftBlob     : AssertEquals(testBlobValues[i], FieldByName('FIELD1').AsString);
         ftVarBytes,
         ftBytes    : AssertEquals(testBytesValues[i], shortstring(FieldByName('FIELD1').AsString));
       else
         AssertTrue('no test for paramtype available',False);
       end;
+      AssertEquals('IsNull', False, FieldByName('FIELD1').IsNull);
       Next;
       end;
     AssertTrue('Expected IsNull', FieldByName('FIELD1').IsNull);
@@ -2299,7 +2324,7 @@ begin
   with TSQLDBConnector(DBConnector).Query do
     begin
     SQL.Clear;
-    if SQLServerType in [ssFirebird, ssInterbase] then
+    if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
       // Global temporary table: introduced in Firebird 2.1
       // has persistent metadata; data is per transaction (default) or per connection
       SQL.Add('CREATE GLOBAL TEMPORARY TABLE FPDEV_TEMP (id int)')
@@ -2318,7 +2343,7 @@ begin
       Close;
     finally
       // For Firebird/Interbase, we need to explicitly delete the table as well (it's active within the transaction)
-      if SQLServerType in [ssFirebird, ssInterbase] then
+      if SQLServerType in [ssFirebird, ssInterbase, ssOracle] then
         begin
         SQL.Text := 'DROP TABLE FPDEV_TEMP';
         ExecSQL;

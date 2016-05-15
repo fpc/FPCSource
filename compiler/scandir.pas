@@ -118,6 +118,21 @@ unit scandir;
       end;
 
 
+    procedure do_moduleflagswitch(flag:cardinal;optional:boolean);
+      var
+        state : char;
+      begin
+        if optional then
+          state:=current_scanner.readoptionalstate('+')
+        else
+          state:=current_scanner.readstate;
+        if state='-' then
+          current_module.flags:=current_module.flags and not flag
+        else
+          current_module.flags:=current_module.flags or flag;
+      end;
+
+
     procedure do_message(w:integer);
       begin
         current_scanner.skipspace;
@@ -193,6 +208,35 @@ unit scandir;
     procedure dir_a8;
       begin
         current_settings.packrecords:=8;
+      end;
+
+    procedure dir_asmcpu;
+      var
+        s : string;
+        cpu: tcputype;
+        found: Boolean;
+      begin
+        current_scanner.skipspace;
+        s:=current_scanner.readid;
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
+        if s='ANY' then
+          current_settings.asmcputype:=cpu_none
+        else if s='CURRENT' then
+          current_settings.asmcputype:=current_settings.cputype
+        else
+          begin
+            found:=false;
+            for cpu:=succ(low(tcputype)) to high(tcputype) do
+              if s=cputypestr[cpu] then
+                begin
+                  found:=true;
+                  current_settings.asmcputype:=cpu;
+                  break;
+                end;
+            if not found then
+              Message1(scan_e_illegal_asmcpu_specifier,s);
+          end;
       end;
 
     procedure dir_asmmode;
@@ -338,6 +382,11 @@ unit scandir;
         do_delphiswitch('D');
       end;
 
+    procedure dir_denypackageunit;
+      begin
+        do_moduleflagswitch(uf_package_deny,true);
+      end;
+
     procedure dir_description;
       begin
         if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
@@ -459,6 +508,11 @@ unit scandir;
     procedure dir_implicitexceptions;
       begin
         do_moduleswitch(cs_implicit_exceptions);
+      end;
+
+    procedure dir_importeddata;
+      begin
+        do_delphiswitch('G');
       end;
 
     procedure dir_includepath;
@@ -703,7 +757,27 @@ unit scandir;
     procedure dir_memory;
       var
         l : longint;
+        heapsize_limit: longint;
+        maxheapsize_limit: longint;
       begin
+{$if defined(i8086)}
+        if current_settings.x86memorymodel in x86_far_data_models then
+          begin
+            heapsize_limit:=655360;
+            maxheapsize_limit:=655360;
+          end
+        else
+          begin
+            heapsize_limit:=65520;
+            maxheapsize_limit:=65520;
+          end;
+{$elseif defined(cpu16bitaddr)}
+        heapsize_limit:=65520;
+        maxheapsize_limit:=65520;
+{$else}
+        heapsize_limit:=high(heapsize);
+        maxheapsize_limit:=high(maxheapsize);
+{$endif}
         current_scanner.skipspace;
         l:=current_scanner.readval;
         if (l>=1024)
@@ -722,8 +796,18 @@ unit scandir;
             current_scanner.readchar;
             current_scanner.skipspace;
             l:=current_scanner.readval;
-            if l>1024 then
-              heapsize:=l;
+            if l>=1024 then
+              heapsize:=min(l,heapsize_limit);
+            if c=',' then
+              begin
+                current_scanner.readchar;
+                current_scanner.skipspace;
+                l:=current_scanner.readval;
+                if l>=heapsize then
+                  maxheapsize:=min(l,maxheapsize_limit)
+                else
+                  Message(scan_w_heapmax_lessthan_heapmin);
+              end;
           end;
       end;
 
@@ -1173,7 +1257,7 @@ unit scandir;
     procedure dir_smartlink;
       begin
         do_moduleswitch(cs_create_smart);
-        if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
+        if (target_dbg.id in [dbg_dwarf2,dbg_dwarf3]) and
             not(target_info.system in (systems_darwin+[system_i8086_msdos])) and
             { smart linking does not yet work with DWARF debug info on most targets }
             (cs_create_smart in current_settings.moduleswitches) and
@@ -1249,6 +1333,11 @@ unit scandir;
             current_scanner.readid;
             value:=orgpattern;
             UpdateTargetSwitchStr(name+'='+value,current_settings.targetswitches,current_module.in_global);
+          end
+        else if c='-' then
+          begin
+            current_scanner.readchar;
+            UpdateTargetSwitchStr(name+'-',current_settings.targetswitches,current_module.in_global);
           end
         else
           UpdateTargetSwitchStr(name,current_settings.targetswitches,current_module.in_global);
@@ -1411,7 +1500,10 @@ unit scandir;
         end;
 
         if ident='CONSTRUCTING_ABSTRACT' then
-          recordpendingmessagestate(type_w_instance_with_abstract, msgstate)
+          begin
+            recordpendingmessagestate(type_w_instance_with_abstract, msgstate);
+            recordpendingmessagestate(type_w_instance_abstract_class, msgstate);
+          end
         else
         if ident='IMPLICIT_VARIANTS' then
           recordpendingmessagestate(parser_w_implicit_uses_of_variants_unit, msgstate)
@@ -1493,6 +1585,13 @@ unit scandir;
         do_setverbose('W');
       end;
 
+    procedure dir_weakpackageunit;
+      begin
+        { old Delphi versions seem to use merely $WEAKPACKAGEUNIT while newer
+          Delphis have $WEAPACKAGEUNIT ON... :/ }
+        do_moduleflagswitch(uf_package_weak, true);
+      end;
+
     procedure dir_writeableconst;
       begin
         do_delphiswitch('J');
@@ -1539,8 +1638,56 @@ unit scandir;
         do_moduleswitch(cs_huge_code);
       end;
 
-    procedure dir_weakpackageunit;
+    procedure dir_hugepointernormalization;
+      var
+        hs : string;
       begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERNORMALIZATION');
+            exit;
+          end;
+        current_scanner.skipspace;
+        hs:=current_scanner.readid;
+        case hs of
+          'BORLANDC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'+');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          'MICROSOFTC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'-');
+             end;
+          'WATCOMC':
+             begin
+               recordpendinglocalswitch(cs_hugeptr_arithmetic_normalization,'-');
+               recordpendinglocalswitch(cs_hugeptr_comparison_normalization,'+');
+             end;
+          else
+            Message(scan_e_illegal_hugepointernormalization);
+        end;
+      end;
+
+    procedure dir_hugepointerarithmeticnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERARITHMETICNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_arithmetic_normalization);
+      end;
+
+    procedure dir_hugepointercomparisonnormalization;
+      begin
+        if target_info.system<>system_i8086_msdos then
+          begin
+            Message1(scanner_w_directive_ignored_on_target, 'HUGEPOINTERCOMPARISONNORMALIZATION');
+            exit;
+          end;
+        do_localswitch(cs_hugeptr_comparison_normalization);
       end;
 
     procedure dir_codealign;
@@ -1569,6 +1716,9 @@ unit scandir;
               Message1(option_code_page_not_available,s)
             else
               current_settings.sourcecodepage:=codepagebyname(s);
+            { we're not using the system code page now }
+            exclude(current_settings.modeswitches,m_systemcodepage);
+            exclude(current_settings.moduleswitches,cs_system_codepage);
             include(current_settings.moduleswitches,cs_explicit_codepage);
           end;
       end;
@@ -1614,6 +1764,7 @@ unit scandir;
         AddDirective('APPNAME',directive_all, @dir_appname);
 {$endif m68k}
         AddDirective('APPTYPE',directive_all, @dir_apptype);
+        AddDirective('ASMCPU',directive_all, @dir_asmcpu);
         AddDirective('ASMMODE',directive_all, @dir_asmmode);
         AddDirective('ASSERTIONS',directive_all, @dir_assertions);
         AddDirective('BOOLEVAL',directive_all, @dir_booleval);
@@ -1627,6 +1778,7 @@ unit scandir;
         AddDirective('COPYRIGHT',directive_all, @dir_copyright);
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
+        AddDirective('DENYPACKAGEUNIT',directive_all,@dir_denypackageunit);
         AddDirective('DESCRIPTION',directive_all, @dir_description);
         AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
@@ -1642,10 +1794,14 @@ unit scandir;
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
         AddDirective('HUGECODE',directive_all, @dir_hugecode);
+        AddDirective('HUGEPOINTERNORMALIZATION',directive_all,@dir_hugepointernormalization);
+        AddDirective('HUGEPOINTERARITHMETICNORMALIZATION',directive_all,@dir_hugepointerarithmeticnormalization);
+        AddDirective('HUGEPOINTERCOMPARISONNORMALIZATION',directive_all,@dir_hugepointercomparisonnormalization);
         AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
+        AddDirective('IMPORTEDDATA',directive_all, @dir_importeddata);
         AddDirective('INCLUDEPATH',directive_all, @dir_includepath);
         AddDirective('INFO',directive_all, @dir_info);
         AddDirective('INLINE',directive_all, @dir_inline);

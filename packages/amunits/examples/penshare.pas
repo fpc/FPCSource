@@ -32,7 +32,7 @@ Program PenShare;
   nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, graphics, intuition, utility,systemvartags;
+uses exec, agraphics, intuition, utility;
 
 VAR RP : pRastPort;
     Win : pWindow;
@@ -58,7 +58,7 @@ Begin
 
   Win:=OpenWindowTags(nil,[WA_Width,150,
                         WA_Height,100,
-                        WA_Title,'PenShare',
+                        WA_Title,AsTag('PenShare'),
                         WA_Flags,WFLG_CLOSEGADGET+WFLG_DRAGBAR,
                         WA_IDCMP,IDCMP_CLOSEWINDOW,
                         TAG_END]);
@@ -87,16 +87,16 @@ Begin
   CleanExit('Please set more colors for Workbench.',10);
 
  SetAPen(RP,Colors[0]);
- Move(RP,40,40);
- GText(RP,'Red',3);
+ GfxMove(RP,40,40);
+ GfxText(RP,'Red',3);
 
  SetAPen(RP,Colors[1]);
- Move(RP,40,60);
- GText(RP,'Green',5);
+ GfxMove(RP,40,60);
+ GfxText(RP,'Green',5);
 
  SetAPen(RP,Colors[2]);
- Move(RP,40,80);
- GText(RP,'Blue',4);
+ GfxMove(RP,40,80);
+ GfxText(RP,'Blue',4);
 
  Msg:=WaitPort(Win^.UserPort);
  Msg:=GetMsg(Win^.UserPort);

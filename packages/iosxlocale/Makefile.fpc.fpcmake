@@ -4,10 +4,10 @@
 
 [package]
 name=univint
-version=2.7.1
+version=3.1.1
 
 [target]
-units=iosxlocale
+units=iosxlocale iosxwstr
 
 [libs]
 libversion=2.0.0

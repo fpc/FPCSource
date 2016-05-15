@@ -27,6 +27,7 @@ procedure fpc_longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Pub
     lw    $s7,jmp_buf.s7($a0)
     lw    $fp,jmp_buf.fp($a0)
     lw    $gp,jmp_buf.gp($a0)
+{$if defined(FPUMIPS2) or defined(FPUMIPS3)}
     lw    $v0,jmp_buf._fcsr($a0)
     ctc1  $v0,$31
     lwc1  $f20,jmp_buf.f20($a0)
@@ -41,7 +42,7 @@ procedure fpc_longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Pub
     lwc1  $f29,jmp_buf.f29($a0)
     lwc1  $f30,jmp_buf.f30($a0)
     lwc1  $f31,jmp_buf.f31($a0)
-    
+{$endif FPUMIPS2 or FPUMIPS3}
     // Put value into register $2 as in setjmp
     move  $v0,$a1
     bne   $a1,$zero,.L1
@@ -65,6 +66,7 @@ function fpc_setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:
     sw    $s7,jmp_buf.s7($a0)
     sw    $fp,jmp_buf.fp($a0)
     sw    $gp,jmp_buf.gp($a0)
+{$if defined(FPUMIPS2) or defined(FPUMIPS3)}
     cfc1  $v0,$31
     sw    $v0,jmp_buf._fcsr($a0)
     swc1  $f20,jmp_buf.f20($a0)
@@ -79,5 +81,6 @@ function fpc_setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:
     swc1  $f29,jmp_buf.f29($a0)
     swc1  $f30,jmp_buf.f30($a0)
     swc1  $f31,jmp_buf.f31($a0)
+{$endif FPUMIPS2 or FPUMIPS3}
     move  $v0,$zero
   end;

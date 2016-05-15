@@ -30,7 +30,7 @@ interface
     uses
       symdef,
       cgutils,
-      ncgcal;
+      ncgcal,parabase;
 
     type
 
@@ -41,15 +41,16 @@ interface
          procedure do_release_unused_return_value;override;
          procedure set_result_location(realresdef: tstoreddef);override;
          function can_call_ref(var ref: treference):boolean;override;
-         procedure do_call_ref(ref: treference);override;
+         function do_call_ref(ref: treference): tcgpara;override;
        end;
 
 
 implementation
 
     uses
-      cgobj,
-      cgbase,cpubase,cgx86,cga,aasmdata,aasmcpu;
+      globtype,cgobj,
+      cgbase,cpubase,cgx86,cga,aasmdata,aasmcpu,
+      hlcgobj;
 
 
 {*****************************************************************************
@@ -87,13 +88,17 @@ implementation
   function tx86callnode.can_call_ref(var ref: treference): boolean;
     begin
       tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,ref);
-      result:=true;
+      { do not use a ref. for calling conventions which allocate all registers, the reg. allocator cannot handle this, see
+        also issue #28639, I were not able to create a simple example though to cause the resulting endless spilling }
+      result:=((getsupreg(ref.base)<first_int_imreg) and (getsupreg(ref.index)<first_int_imreg)) or
+              not(procdefinition.proccalloption in [pocall_far16,pocall_pascal,pocall_oldfpccall]);
     end;
 
 
-  procedure tx86callnode.do_call_ref(ref: treference);
+  function tx86callnode.do_call_ref(ref: treference): tcgpara;
     begin
       current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_CALL,S_NO,ref));
+      result:=hlcg.get_call_result_cgpara(procdefinition,typedef)
     end;
 
 end.

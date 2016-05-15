@@ -1,6 +1,5 @@
-
 unit h2pLexLib;
-
+{$H+}
 (* Standard Lex library unit for TP Lex Version 3.0.
    2-11-91 AG *)
 
@@ -25,7 +24,8 @@ interface
 
 (* Variables:
 
-   The variable yytext contains the current match, yyleng its length.
+   The variable yytext contains the current match, yyleng(was removed because of
+   $H+) its length.
    The variable yyline contains the current input line, and yylineno and
    yycolno denote the current input position (line, column). These values
    are often used in giving error diagnostics (however, they will only be
@@ -43,8 +43,6 @@ yyinput, yyoutput : Text;        (* input and output file *)
 yyline,yyprevline : String;      (* current and previous input line *)
 yylineno, yycolno : Integer;     (* current input position *)
 yytext            : String;      (* matched text (should be considered r/o) *)
-yyleng            : Byte         (* length of matched text *)
-  absolute yytext;
 
 (* I/O routines:
 
@@ -256,14 +254,14 @@ yysstate, yylstate : Integer;
 yymatches          : Integer;
 yystack            : array [1..max_matches] of Integer;
 yypos              : array [1..max_rules] of Integer;
-yysleng            : Byte;
+yysleng            : Longint;
 
 (* Utilities: *)
 
 procedure echo;
   var i : Integer;
   begin
-    for i := 1 to yyleng do
+    for i := 1 to Length(yytext) do
       put_char(yytext[i])
   end(*echo*);
 
@@ -275,16 +273,16 @@ procedure yymore;
 procedure yyless ( n : Integer );
   var i : Integer;
   begin
-    for i := yyleng downto n+1 do
+    for i := Length(yytext) downto n+1 do
       unget_char(yytext[i]);
-    yyleng := n;
+    SetLength(yytext,n);
   end(*yyless*);
 
 procedure reject;
   var i : Integer;
   begin
     yyreject := true;
-    for i := yyleng+1 to yysleng do
+    for i := Length(yytext)+1 to yysleng do
       yytext := yytext+get_char;
     dec(yymatches);
   end(*reject*);
@@ -333,16 +331,14 @@ procedure yynew;
 
 procedure yyscan;
   begin
-    if yyleng=255 then fatal('yytext overflow');
     yyactchar := get_char;
-    inc(yyleng);
-    yytext[yyleng] := yyactchar;
+    yytext:=yytext+yyactchar;
   end(*yyscan*);
 
 procedure yymark ( n : Integer );
   begin
     if n>max_rules then fatal('too many rules');
-    yypos[n] := yyleng;
+    yypos[n] := Length(yytext);
   end(*yymark*);
 
 procedure yymatch ( n : Integer );
@@ -359,12 +355,12 @@ function yyfind ( var n : Integer ) : Boolean;
       dec(yymatches);
     if yymatches>0 then
       begin
-        yysleng := yyleng;
+        yysleng := Length(yytext);
         n       := yystack[yymatches];
         yyless(yypos[n]);
         yypos[n] := 0;
-        if yyleng>0 then
-          yylastchar := yytext[yyleng]
+        if Length(yytext)>0 then
+          yylastchar := yytext[Length(yytext)]
         else
           yylastchar := #0;
         yyfind := true;

@@ -1,7 +1,7 @@
 ﻿{$mode objfpc} {$H+}
 uses
 {$ifdef unix}
-  cwstring,
+  {$ifdef darwin}iosxwstr{$else}cwstring{$endif},
 {$endif unix}
   sysutils;
   

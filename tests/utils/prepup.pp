@@ -22,6 +22,9 @@ uses
 
 const
   use_longlog : boolean = false;
+  has_file_errors : boolean = false;
+  MAX_RETRY = 5;
+  RETRY_WAIT_TIME = 1000; { One second wait time before trying again }
 
 var
   tarwriter : ttarwriter;
@@ -33,6 +36,8 @@ procedure dosearch(const dir : string);
     Var
       Info : TSearchRec;
       hs : string;
+      tries : longint;
+      write_ok : boolean;
     begin
       If FindFirst (dir+DirectorySeparator+s,faAnyFile,Info)=0 then
         begin
@@ -42,7 +47,25 @@ procedure dosearch(const dir : string);
               hs:=dir+DirectorySeparator+Name;
               { strip leading ./ }
               delete(hs,1,2);
-              tarwriter.addfile(hs);
+              if not tarwriter.addfile(hs) then
+                begin
+                  tries:=1;
+                  write_ok:=false;
+                  while tries<MAX_RETRY do
+                    begin
+                      sleep(RETRY_WAIT_TIME);
+                      inc(tries);
+                      if tarwriter.addfile(hs) then
+                        begin
+                          write_ok:=true;
+                          tries:=MAX_RETRY;
+                        end;
+                    end;
+                  has_file_errors:=(write_ok=false);
+                  if not write_ok then
+                    tarwriter.addstring('###File Open failed###',
+                      ConvertFileName(hs),Info.Time);
+                end;
             end;
         Until FindNext(info)<>0;
         end;
@@ -69,6 +92,8 @@ End;
 
 var
   index : longint;
+const
+  has_errors : boolean = false;
 begin
   index:=1;
   if paramcount<>1 then
@@ -89,12 +114,19 @@ begin
     TarWriter := TTarWriter.Create (C);
   if not use_longlog then
     dosearch('.');
-  TarWriter.AddFile('dbdigest.cfg');
-  TarWriter.AddFile('log');
+  if not TarWriter.AddFile('dbdigest.cfg') then
+    has_errors:=true;
+  if not TarWriter.AddFile('log') then
+    has_errors:=true;
   if use_longlog then
-    TarWriter.AddFile('longlog');
+    if not TarWriter.AddFile('longlog') then
+      has_errors:=true;
   TarWriter.free;
   c.free;
+  if has_file_errors then
+    writeln(stderr,'Prepup error: some files were not copied');
+  if has_errors then
+    halt(2);
 end.
 
 

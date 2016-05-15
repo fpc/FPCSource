@@ -284,7 +284,7 @@
   Enumerations
 }
 
-     ACL_INFORMATION_CLASS = (AclRevisionInformation := 1,AclSizeInformation
+     ACL_INFORMATION_CLASS = (AclRevisionInformation = 1,AclSizeInformation
        );
 
      _ACL_INFORMATION_CLASS = ACL_INFORMATION_CLASS;
@@ -302,7 +302,7 @@
 
   type
 
-     RASCONNSTATE = (RASCS_OpenPort := 0,RASCS_PortOpened,
+     RASCONNSTATE = (RASCS_OpenPort = 0,RASCS_PortOpened,
        RASCS_ConnectDevice,RASCS_DeviceConnected,
        RASCS_AllDevicesConnected,RASCS_Authenticate,
        RASCS_AuthNotify,RASCS_AuthRetry,RASCS_AuthCallback,
@@ -312,15 +312,15 @@
        RASCS_WaitForModemReset,RASCS_WaitForCallback,
        RASCS_Projected,RASCS_StartAuthentication,
        RASCS_CallbackComplete,RASCS_LogonNetwork,
-       RASCS_Interactive := RASCS_PAUSED,RASCS_RetryAuthentication,
+       RASCS_Interactive = RASCS_PAUSED,RASCS_RetryAuthentication,
        RASCS_CallbackSetByCaller,RASCS_PasswordExpired,
-       RASCS_Connected := RASCS_DONE,RASCS_Disconnected
+       RASCS_Connected = RASCS_DONE,RASCS_Disconnected
        );
 
      _RASCONNSTATE = RASCONNSTATE;
 
-     RASPROJECTION = (RASP_PppIp := $8021, RASP_PppIpx := $802B, RASP_PppNbf := $803F,
-       RASP_Amb := $10000);
+     RASPROJECTION = (RASP_PppIp = $8021, RASP_PppIpx = $802B, RASP_PppNbf = $803F,
+       RASP_Amb = $10000);
 
      _RASPROJECTION = RASPROJECTION;
 
@@ -330,7 +330,7 @@
 
      _SECURITY_IMPERSONATION_LEVEL = SECURITY_IMPERSONATION_LEVEL;
 
-     SID_NAME_USE = (SidTypeUser := 1,SidTypeGroup,SidTypeDomain,
+     SID_NAME_USE = (SidTypeUser = 1,SidTypeGroup,SidTypeDomain,
        SidTypeAlias,SidTypeWellKnownGroup,SidTypeDeletedAccount,
        SidTypeInvalid,SidTypeUnknown);
 
@@ -404,7 +404,7 @@
     FINDEX_SEARCH_OPS   = _FINDEX_SEARCH_OPS;
     PFINDEX_SEARCH_OPS  = ^TFINDEX_SEARCH_OPS;
 
-    PARTITION_STYLE     = (PARTITION_STYLE_MBR:=0,PARTITION_STYLE_GPT,PARTITION_STYLE_RAW);
+    PARTITION_STYLE     = (PARTITION_STYLE_MBR=0,PARTITION_STYLE_GPT,PARTITION_STYLE_RAW);
     TPARTITION_STYLE    = PARTITION_STYLE;
     PPARTITION_STYLE    = ^TPARTITION_STYLE;
 
@@ -593,6 +593,21 @@
   #endif
    }
 
+
+  function IMAGE_ORDINAL64(Ordinal : uint64) : uint64; inline;
+  function IMAGE_ORDINAL32(Ordinal : cardinal) : cardinal;inline;
+  function IMAGE_SNAP_BY_ORDINAL64(Ordinal : uint64) : boolean;  inline;
+  function IMAGE_SNAP_BY_ORDINAL32(Ordinal : cardinal) : boolean; inline;
+  {$ifdef WIN64}
+    function IMAGE_ORDINAL(Ordinal : uint64) : uint64; inline;
+    function IMAGE_SNAP_BY_ORDINAL(Ordinal : uint64) : boolean; inline;
+  {$else}
+    function IMAGE_ORDINAL(Ordinal : cardinal) : cardinal; inline;
+    function IMAGE_SNAP_BY_ORDINAL(Ordinal : cardinal) : boolean; inline;
+  {$endif}
+ 
+
+
  {
     Definitions for callback procedures
  }
@@ -609,7 +624,7 @@
 
      LPTHREAD_START_ROUTINE = PTHREAD_START_ROUTINE;
 
-     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:LONG):DWORD;stdcall;
+     EDITSTREAMCALLBACK = function (_para1:DWORD_PTR; _para2:LPBYTE; _para3:LONG; _para4:PLONG):DWORD;stdcall;
 
      LPFRHOOKPROC = function (_para1:HWND; _para2:UINT; _para3:WPARAM; _para4:LPARAM):UINT_PTR;stdcall;
 
@@ -623,7 +638,9 @@
 
      PFNPROPSHEETCALLBACK = function (_para1:HWND; _para2:UINT; _para3:LPARAM):longint;stdcall;
 
-     LPSERVICE_MAIN_FUNCTION = procedure (_para1:DWORD; _para2:LPPTSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTION  = procedure (_para1:DWORD; _para2:LPPTSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTIONA = procedure (_para1:DWORD; _para2:LPPSTR);stdcall;
+     LPSERVICE_MAIN_FUNCTIONW = procedure (_para1:DWORD; _para2:LPPWSTR);stdcall;
 
      PFNTVCOMPARE = function (_para1:LPARAM; _para2:LPARAM; _para3:LPARAM):longint;stdcall;
 
@@ -638,16 +655,23 @@
      PROC = FARPROC;
 
      ENUMRESTYPEPROC = function (hModule:HMODULE; lpszType:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESTYPEPROCA = function (hModule:HMODULE; lpszType:LPSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESTYPEPROCW = function (hModule:HMODULE; lpszType:LPWSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
      ENUMRESNAMEPROC = function (hModule:HMODULE; lpszType:LPCTSTR; lpszName:LPTSTR; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESNAMEPROCA= function (hModule:HMODULE; lpszType:LPCSTR;  lpszName:LPSTR;  lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESNAMEPROCW= function (hModule:HMODULE; lpszType:LPCWSTR; lpszName:LPWSTR; lParam:LONG_PTR):WINBOOL;stdcall;
 
      ENUMRESLANGPROC = function (hModule:HMODULE; lpszType:LPCTSTR; lpszName:LPCTSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
-
+     ENUMRESLANGPROCA= function (hModule:HMODULE; lpszType:LPCSTR;  lpszName:LPCSTR;  wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
+     ENUMRESLANGPROCW= function (hModule:HMODULE; lpszType:LPCWSTR; lpszName:LPCWSTR; wIDLanguage:WORD; lParam:LONG_PTR):WINBOOL;stdcall;
      DESKTOPENUMPROC = FARPROC;
 
      ENUMWINDOWSPROC = function (_para1:HWND; _para2:LPARAM):WINBOOL;stdcall;
 
      ENUMWINDOWSTATIONPROC = function (_para1:LPTSTR; _para2:LPARAM):WINBOOL;stdcall;
+     ENUMWINDOWSTATIONPROCA = function (_para1:LPSTR; _para2:LPARAM):WINBOOL;stdcall;
+     ENUMWINDOWSTATIONPROCW = function (_para1:LPWSTR; _para2:LPARAM):WINBOOL;stdcall;
 
      SENDASYNCPROC = procedure (_para1:HWND; _para2:UINT; _para3:ULONG_PTR; _para4:LRESULT);stdcall;
 
@@ -657,9 +681,9 @@
 
      DRAWSTATEPROC = function (_para1:HDC; _para2:LPARAM; _para3:WPARAM; _para4:longint; _para5:longint):WINBOOL;stdcall;
 
-     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
-     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
-     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:DWORD_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEXW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
+     PROPENUMPROCEX  = function (_para1:HWND; _para2:LPCTSTR; _para3:HANDLE; _para4:ULONG_PTR):WINBOOL;stdcall;
 
      PROPENUMPROCA = function (_para1:HWND; _para2:LPCSTR;  _para3:HANDLE):WINBOOL;stdcall;
      PROPENUMPROCW = function (_para1:HWND; _para2:LPCWSTR; _para3:HANDLE):WINBOOL;stdcall;
@@ -1057,5 +1081,49 @@ type
        PALETTERGB:=$02000000 or (RGB(r,g,b));
     end;
 
+  function IMAGE_ORDINAL64(Ordinal : uint64) : uint64;
+  begin
+    IMAGE_ORDINAL64:=Ordinal and $ffff;
+  end;
+
+  function IMAGE_ORDINAL32(Ordinal : cardinal) : cardinal;
+  begin
+    IMAGE_ORDINAL32:=Ordinal and $ffff;
+  end;
+
+  function IMAGE_SNAP_BY_ORDINAL64(Ordinal : uint64) : boolean;
+  begin
+    IMAGE_SNAP_BY_ORDINAL64:=(Ordinal and IMAGE_ORDINAL_FLAG64)<>0;
+  end;
+
+  function IMAGE_SNAP_BY_ORDINAL32(Ordinal : cardinal) : boolean;
+  begin
+    IMAGE_SNAP_BY_ORDINAL32:=(Ordinal and IMAGE_ORDINAL_FLAG32)<>0;
+  end;
+
+  {$ifdef win64}
+  function IMAGE_ORDINAL(Ordinal : uint64) : uint64;
+  begin
+    IMAGE_ORDINAL:=IMAGE_ORDINAL64(Ordinal);
+  end;
+
+
+  function IMAGE_SNAP_BY_ORDINAL(Ordinal : uint64) : boolean;
+  begin
+    IMAGE_SNAP_BY_ORDINAL:=IMAGE_SNAP_BY_ORDINAL64(Ordinal);
+  end;
+
+  {$else}
+
+  function IMAGE_ORDINAL(Ordinal : cardinal) : cardinal;
+  begin
+    IMAGE_ORDINAL:=IMAGE_ORDINAL32(Ordinal);
+  end;
+
+  function IMAGE_SNAP_BY_ORDINAL(Ordinal : cardinal) : boolean;
+  begin
+    IMAGE_SNAP_BY_ORDINAL:=IMAGE_SNAP_BY_ORDINAL32(Ordinal);
+  end;
+ {$endif}
 {$endif read_implementation}
 

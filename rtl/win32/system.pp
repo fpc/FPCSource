@@ -28,6 +28,8 @@ interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
 {$define HAS_WIDESTRINGMANAGER}
+{$define DISABLE_NO_DYNLIBS_MANAGER}
+{$define FPC_SYSTEM_HAS_SYSDLH}
 
 {$ifdef FPC_USE_WIN32_SEH}
   {$define FPC_SYSTEM_HAS_RAISEEXCEPTION}
@@ -109,19 +111,10 @@ Const
 implementation
 
 var
-  SysInstance : Longint;public name '_FPC_SysInstance';
-  InitFinalTable : record end; external name 'INITFINAL';
-  ThreadvarTablesTable : record end; external name 'FPC_THREADVARTABLES';
-  procedure PascalMain;stdcall;external name 'PASCALMAIN';
-  procedure asm_exit;stdcall;external name 'asm_exit';
-const
-  EntryInformation : TEntryInformation = (
-    InitFinalTable : @InitFinalTable;
-    ThreadvarTablesTable : @ThreadvarTablesTable;
-    asm_exit : @asm_exit;
-    PascalMain : @PascalMain;
-    valgrind_used : false;
-    );
+  FPCSysInstance : PLongint;public name '_FPC_SysInstance';
+
+{$define FPC_SYSTEM_HAS_OSSETUPENTRYINFORMATION}
+procedure OsSetupEntryInformation(const info: TEntryInformation); forward;
 
 {$ifdef FPC_USE_WIN32_SEH}
 function main_wrapper(arg: Pointer; proc: Pointer): ptrint; forward;
@@ -140,6 +133,12 @@ end;
 { include code common with win64 }
 {$I syswin.inc}
 
+procedure OsSetupEntryInformation(const info: TEntryInformation);
+begin
+  TlsKey := info.OS.TlsKeyAddr;
+  FPCSysInstance := info.OS.SysInstance;
+  WStrInitTablesTable := info.OS.WideInitTables;
+end;
 
 {*****************************************************************************
                          System Dependent Exit code
@@ -181,7 +180,7 @@ begin
 {$endif FPC_USE_WIN32_SEH}
 
   { do cleanup required by the startup code }
-  EntryInformation.asm_exit();
+  EntryInformation.OS.asm_exit();
 
   { call exitprocess, with cleanup as required }
   ExitProcess(exitcode);
@@ -196,7 +195,7 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
   var
     xframe: TEXCEPTION_FRAME;
   begin
-     EntryInformation:=info;
+     SetupEntryInformation(info);
      IsLibrary:=false;
      { install the handlers for exe only ?
        or should we install them for DLL also ? (PM) }
@@ -653,9 +652,9 @@ begin
   GetStartupInfo(@startupinfo);
   { some misc Win32 stuff }
   if not IsLibrary then
-    SysInstance:=getmodulehandle(nil);
+    FPCSysInstance^:=getmodulehandle(nil);
 
-  MainInstance:=SysInstance;
+  MainInstance:=FPCSysInstance^;
 
   { pass dummy value }
   StackLength := CheckInitialStkLen($1000000);
@@ -671,15 +670,14 @@ begin
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
-  initwidestringmanager;
   initunicodestringmanager;
   InitWin32Widestrings;
   SysInitStdIO;
   { Arguments }
   setup_arguments;
+  InitSystemDynLibs;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
-  initvariantmanager;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

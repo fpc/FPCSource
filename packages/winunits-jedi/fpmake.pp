@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
     P.OSes:=[win32,win64];
     P.Options.Add('-Ur');
     P.Author := 'Marcel van Brakel, Jedi-apilib team';
@@ -257,6 +257,9 @@ begin
     // Build unit depending on all implicit units
     TBuild:=P.Targets.AddUnit('buildjwa.pp');
       TBuild.Install:=False;
+      TBuild.Dependencies.AddInclude('src/jediapilib.inc');
+      TBuild.Dependencies.AddInclude('src/jedi.inc');
+      TBuild.Dependencies.AddInclude('src/ModuleLoader.pas');
       For I:=0 to P.Targets.Count-1 do
         begin
           T:=P.Targets.TargetItems[I];

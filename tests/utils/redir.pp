@@ -30,10 +30,11 @@ Interface
 {$define implemented}
 {$endif}
 {$ifdef OS2}
-{$define shell_implemented}
+{$define implemented}
 {$endif}
 {$ifdef windows}
 {$define implemented}
+{$define USES_UNIT_PROCESS}
 {$endif}
 {$ifdef linux}
 {$define implemented}
@@ -104,6 +105,11 @@ Uses
 {$ifdef windows}
   windows,
 {$endif windows}
+{$IFDEF OS2}
+ {$IFNDEF EMX}
+  DosCalls,
+ {$ENDIF EMX}
+{$ENDIF OS2}
 {$ifdef unix}
     baseunix,
     unix,
@@ -113,6 +119,9 @@ Uses
 
 {$endif}
 
+{$ifdef USES_UNIT_PROCESS}
+  process,
+{$endif USES_UNIT_PROCESS}
 
 {$ifdef usedos}
   dos;
@@ -259,10 +268,12 @@ begin
     end;
 end;
 {$else}
+{$ifndef USES_UNIT_PROCESS}
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 begin
     result:=ExecuteProcess(path,comline);
 end;
+{$endif ndef USES_UNIT_PROCESS}
 {$endif}
 {$ifend}
 {$endif}
@@ -328,13 +339,78 @@ begin
 end;
 {$endif}
 
-{$ifdef os2}
-Function fpclose (Handle : Longint) : boolean;
-begin
-  { Do we need this ?? }
-  fpclose:=true;
+{$IFDEF OS2}
+ {$IFDEF EMX}
+{$ASMMODE INTEL}
+function fpDup (FH: longint): longint; assembler;
+asm
+  mov ebx, eax
+  mov ah, 45h
+  call syscall
+  jnc @fpdup_end
+  mov eax, -1
+@fpdup_end:
 end;
-{$endif}
+
+function fpDup2 (FH, NH: longint): longint; assembler;
+asm
+  cmp eax, edx
+  jnz @fpdup2_go
+  mov eax, 0
+  jmp @fpdup2_end
+@fpdup2_go:
+  push ebx
+  mov ebx, eax
+  mov ecx, edx
+  mov ah, 46h
+  call syscall
+  pop ebx
+  jnc @fpdup2_end
+  mov eax, -1
+@fpdup2_end:
+end;
+
+function fpClose (Handle: longint): boolean; assembler;
+asm
+  push ebx
+  mov ebx, eax
+  mov ah, 3Eh
+  call syscall
+  pop ebx
+  mov eax, 1
+  jnc @fpclose_end
+  dec eax
+end;
+
+{$ASMMODE DEFAULT}
+ {$ELSE EMX}
+
+function fpDup (FH: longint): longint;
+var
+  NH: THandle;
+begin
+  NH := THandle (-1);
+  if DosDupHandle (THandle (FH), NH) = 0 then
+   fpDup := longint (NH)
+  else
+   fpDup := -1;
+end;
+
+function fpDup2 (FH, NH: longint): longint;
+begin
+  if FH = NH then
+   fpDup2 := 0
+  else
+   if DosDupHandle (THandle (FH), THandle (NH)) <> 0 then
+    fpDup2 := -1;
+end;
+
+function fpClose (Handle: longint): boolean;
+begin
+  fpClose := DosClose (THandle (Handle)) = 0;
+end;
+ {$ENDIF EMX}
+{$ENDIF OS2}
 
 
 {$I-}
@@ -989,6 +1065,67 @@ begin
    TransformfpSystemToShell:=s;
 end;
 {$endif def UNIX}
+
+
+
+{****************************************************************************
+                                Helpers
+****************************************************************************}
+
+{$ifdef USES_UNIT_PROCESS}
+const
+  max_count = 60000; { should be 60 seconds }
+
+function ExecuteProcess(const Path: string; const ComLine: string; Flags:TExecuteFlags=[]): integer;
+var
+  P: TProcess;
+  counter : longint;
+  TerminateSentCount : longint;
+
+begin
+  result := -1;
+  TerminateSentCount:=0;
+
+  P := TProcess.Create(nil);
+  try
+    P.CommandLine := Path + ' ' + ComLine;
+
+    P.InheritHandles:=(execinheritshandles in flags);
+
+    P.Execute;
+{$if FPC_FULLVERSION < 30100}
+{$ifdef Windows}
+    WaitForSingleObject(P.ProcessHandle,max_count);
+    counter:=max_count;
+{$else not Windows}
+    counter:=0;
+{$endif not Windows}
+{$else}
+    P.WaitOnExit(max_count);
+    counter:=max_count;
+{$endif}
+
+    while P.Running do
+      begin
+        if counter>max_count then
+          begin
+            P.Terminate(255);
+            if TerminateSentCount=0 then
+              Writeln(stderr,'Terminate requested for ',Path);
+            Inc(TerminateSentCount);
+          end;
+
+        Sleep(1);
+        inc(counter);
+      end;
+
+    result := P.ExitStatus;
+  finally
+    P.Free;
+  end;
+end;
+{$endif HAS_UNIT_PROCESS}
+
 
   procedure DosExecute(ProgName, ComLine : String);
 

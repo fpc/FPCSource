@@ -7,7 +7,7 @@ loaders=
 programs=playmp3
 
 [require]
-packages=libogcfpc
+packages=libogcfpc mad
 tools=bin2s rmdir gxtexconv
 nortl=y
 

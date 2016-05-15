@@ -13,11 +13,13 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('pasjpeg');
+    P.ShortName:='pjp';
+    P.Description := 'Pascal port of JPEG (.JPG) image format handling library from IJG.';
 {$ifdef ALLPACKAGES}
     P.Directory:=ADirectory;
 {$endif ALLPACKAGES}
-    P.Version:='2.7.1';
-    P.OSes:=P.OSes-[embedded,msdos];
+    P.Version:='3.1.1';
+    P.OSes:=P.OSes-[embedded,msdos,win16];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

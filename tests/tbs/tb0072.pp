@@ -59,6 +59,13 @@ asm
   move $t2,y
 end;
 {$endif CPUMIPS}
+{$ifdef CPUAARCH64}
+{$define SUPPORTED}
+asm
+  mov w2, x
+  mov w3, y
+end;
+{$endif CPUAARCH64}
 {$ifndef SUPPORTED}
 asm
 end;

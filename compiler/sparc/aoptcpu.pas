@@ -38,6 +38,8 @@ unit aoptcpu;
         function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
         function RegUsedAfterInstruction(reg: Tregister; p: tai;
           var AllUsedRegs: TAllUsedRegs): Boolean;
+        function RegLoadedWithNewValue(reg : tregister; hp : tai) : boolean; override;
+        function InstructionLoadsFromReg(const reg : TRegister; const hp : tai) : boolean; override;
       End;
 
   Implementation
@@ -69,30 +71,7 @@ unit aoptcpu;
     end;
 
 
-  function regLoadedWithNewValue(reg: tregister; hp: tai): boolean;
-    var
-      p: taicpu;
-    begin
-      p:=taicpu(hp);
-      result:=false;
-      if not ((assigned(hp)) and (hp.typ=ait_instruction)) then
-        exit;
-
-      case p.opcode of
-        { These instructions do not write into a register at all }
-        A_NOP,
-        A_FCMPs,A_FCMPd,A_FCMPq,A_CMP,
-        A_BA,A_Bxx,A_FBA,A_FBxx,
-        A_STB,A_STH,A_ST,A_STF,A_STDF:
-          exit;
-      end;
-
-      result:=(p.ops>0) and (p.oper[p.ops-1]^.typ=top_reg) and
-        (p.oper[p.ops-1]^.reg=reg);
-    end;
-
-
-  function instructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
+  function TCpuAsmOptimizer.InstructionLoadsFromReg(const reg: TRegister; const hp: tai): boolean;
     var
       p: taicpu;
       i: longint;
@@ -119,6 +98,29 @@ unit aoptcpu;
     end;
 
 
+  function TCpuAsmOptimizer.RegLoadedWithNewValue(reg: tregister; hp: tai): boolean;
+    var
+      p: taicpu;
+    begin
+      p:=taicpu(hp);
+      result:=false;
+      if not ((assigned(hp)) and (hp.typ=ait_instruction)) then
+        exit;
+
+      case p.opcode of
+        { These instructions do not write into a register at all }
+        A_NOP,
+        A_FCMPs,A_FCMPd,A_FCMPq,A_CMP,
+        A_BA,A_Bxx,A_FBA,A_FBxx,
+        A_STB,A_STH,A_ST,A_STF,A_STDF:
+          exit;
+      end;
+
+      result:=(p.ops>0) and (p.oper[p.ops-1]^.typ=top_reg) and
+        (p.oper[p.ops-1]^.reg=reg);
+    end;
+
+
   function TCpuAsmOptimizer.GetNextInstructionUsingReg(Current: tai;
     var Next: tai; reg: TRegister): Boolean;
     begin
@@ -127,7 +129,7 @@ unit aoptcpu;
         Result:=GetNextInstruction(Next,Next);
       until {not(cs_opt_level3 in current_settings.optimizerswitches) or} not(Result) or (Next.typ<>ait_instruction) or (RegInInstruction(reg,Next)) or
         (is_calljmp(taicpu(Next).opcode));
-      if is_calljmp(taicpu(next).opcode) then
+      if result and (next.typ=ait_instruction) and is_calljmp(taicpu(next).opcode) then
         begin
           result:=false;
           next:=nil;

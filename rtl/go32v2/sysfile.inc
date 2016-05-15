@@ -400,6 +400,7 @@ begin
       GetInOutRes(lo(regs.realeax));
       if oldp<>p then
         freemem(p);
+      FileRec(f).mode:=fmclosed;
       exit;
     end
   else

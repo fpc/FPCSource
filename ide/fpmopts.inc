@@ -547,6 +547,10 @@ begin
     else
       L:=0;
     CB2^.SetData(L);
+{$ifdef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
+    { EnableMask type is longint, avoid range check error here }
+    CB2^.EnableMask := CB2^.EnableMask and longint($7ffffffe);
+{$endif GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_redirection, CB2)));
 {$endif Windows}
@@ -557,7 +561,7 @@ begin
     Insert(IL);
     R2.Move(0,-1);
     Insert(New(PLabel, Init(R2,label_debugger_useanothertty, IL)));
-{$endif Windows}
+{$endif Unix}
   end;
   InsertButtons(D);
   RB^.Select;
@@ -584,10 +588,11 @@ end;
 procedure TIDEApp.DoRemote;
 
 var R,R2: TRect;
-    IL1,IL2,IL3,IL4,IL5,IL6: PEditorInputLine;
+    IL1,IL2,IL3,IL4,IL5,IL6,IL7,IL8: PEditorInputLine;
+    IL9,IL10,IL11 : PEditorInputLine;
     D: PCenterDialog;
 const
-  FieldLines = 6;
+  FieldLines = 11;
 begin
 {
      RemoteMachine : string = '';
@@ -641,13 +646,48 @@ begin
       Insert(IL5);
       R2.Move(0,-1);
       Insert(New(PLabel, Init(R2,label_remote_ident, IL5)));
-      { remote machine command  }
+      { remote machine send command  }
       R2.Move(0,3);
       New(IL6, Init(R2, 255));
       IL6^.Data^:=RemoteSendCommand;
       Insert(IL6);
       R2.Move(0,-1);
-      Insert(New(PLabel, Init(R2,label_remote_command, IL6)));
+      Insert(New(PLabel, Init(R2,label_remote_send_command, IL6)));
+      { remote machine exec command  }
+      R2.Move(0,3);
+      New(IL7, Init(R2, 255));
+      IL7^.Data^:=RemoteExecCommand;
+      Insert(IL7);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_exec_command, IL7)));
+      { remote machine exec command using ssh  }
+      R2.Move(0,3);
+      New(IL8, Init(R2, 255));
+      IL8^.Data^:=RemoteSshExecCommand;
+      Insert(IL8);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_ssh_exec_command, IL8)));
+      { Remote shell executable }
+      R2.Move(0,3);
+      New(IL9, Init(R2, 255));
+      IL9^.Data^:=RemoteShell;
+      Insert(IL9);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_shell, IL9)));
+      { Remote copy executable }
+      R2.Move(0,3);
+      New(IL10, Init(R2, 255));
+      IL10^.Data^:=RemoteCopy;
+      Insert(IL10);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_copy, IL10)));
+      R2.Move(0,3);
+      { Remote gdbserver }
+      New(IL11, Init(R2, 255));
+      IL11^.Data^:=RemoteGdbServer;
+      Insert(IL11);
+      R2.Move(0,-1);
+      Insert(New(PLabel, Init(R2,label_remote_gdbserver, IL11)));
     end;
   InsertButtons(D);
   if Desktop^.ExecView(D)=cmOK then
@@ -658,6 +698,11 @@ begin
     RemoteConfig:=IL4^.Data^;
     RemoteIdent:=IL5^.Data^;
     RemoteSendCommand:=IL6^.Data^;
+    RemoteExecCommand:=IL7^.Data^;
+    RemoteSshExecCommand:=IL8^.Data^;
+    RemoteShell:=IL9^.Data^;
+    RemoteCopy:=IL10^.Data^;
+    RemoteGdbServer:=IL11^.Data^;
   end;
   Dispose(D, Done);
 end;

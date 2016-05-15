@@ -33,7 +33,7 @@ end;
 
 { this routine is only called when the halt() routine of the RTL embedded in
   the shared library is called }
-procedure _FPC_shared_lib_haltproc(e:longint); cdecl; assembler; nostackframe; public name '_haltproc';
+procedure _FPC_shared_lib_haltproc(e:longint); cdecl; assembler; public name '_haltproc';
 asm
 .Lhaltproc:
   movl    e,%ebx

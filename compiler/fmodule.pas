@@ -43,8 +43,8 @@ interface
 
     uses
        cutils,cclasses,cfileutl,
-       globtype,finput,ogbase,
-       symbase,symsym,
+       globtype,finput,ogbase,fpkg,
+       symbase,symconst,symsym,
        wpobase,
        aasmbase,aasmtai,aasmdata;
 
@@ -144,6 +144,10 @@ interface
         symlist       : TFPObjectList;
         ptrdefs       : THashSet; { list of pointerdefs created in this module so we can reuse them (not saved/restored) }
         arraydefs     : THashSet; { list of single-element-arraydefs created in this module so we can reuse them (not saved/restored) }
+        procaddrdefs  : THashSet; { list of procvardefs created when getting the address of a procdef (not saved/restored) }
+{$ifdef llvm}
+        llvmdefs      : THashSet; { defs added for llvm-specific reasons (not saved/restored) }
+{$endif llvm}
         ansistrdef    : tobject; { an ansistring def redefined for the current module }
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
@@ -154,6 +158,7 @@ interface
         procinfo      : TObject;  { current procedure being compiled }
         asmdata       : TObject;  { Assembler data }
         asmprefix     : pshortstring;  { prefix for the smartlink asmfiles }
+        unitimportsyms : tfpobjectlist; { list of symbols that are imported from other units }
         debuginfo     : TObject;
         loaded_from   : tmodule;
         _exports      : tlinkedlist;
@@ -167,6 +172,7 @@ interface
         linkotherstaticlibs,
         linkotherframeworks  : tlinkcontainer;
         mainname      : pshortstring; { alternate name for "main" procedure }
+        package       : tpackage;
 
         used_units           : tlinkedlist;
         dependent_units      : tlinkedlist;
@@ -219,6 +225,7 @@ interface
         procedure reset;virtual;
         procedure adddependency(callermodule:tmodule);
         procedure flagdependent(callermodule:tmodule);
+        procedure addimportedsym(sym:TSymEntry);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
         function  derefidx_unit(id:longint):longint;
@@ -569,6 +576,10 @@ implementation
         symlist:=TFPObjectList.Create(false);
         ptrdefs:=THashSet.Create(64,true,false);
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs:=THashSet.Create(64,true,false);
+{$ifdef llvm}
+        llvmdefs:=THashSet.Create(64,true,false);
+{$endif llvm}
         ansistrdef:=nil;
         wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
@@ -602,6 +613,7 @@ implementation
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=casmdata.create(modulename);
+        unitimportsyms:=TFPObjectList.Create(false);
         InitDebugInfo(self,false);
       end;
 
@@ -661,6 +673,7 @@ implementation
         linkothersharedlibs.Free;
         linkotherframeworks.Free;
         stringdispose(mainname);
+        unitimportsyms.Free;
         FImportLibraryList.Free;
         extendeddefs.Free;
         genericdummysyms.free;
@@ -683,6 +696,10 @@ implementation
         symlist.free;
         ptrdefs.free;
         arraydefs.free;
+        procaddrdefs.free;
+{$ifdef llvm}
+        llvmdefs.free;
+{$endif llvm}
         ansistrdef:=nil;
         wpoinfo.free;
         checkforwarddefs.free;
@@ -747,10 +764,18 @@ implementation
         ptrdefs:=THashSet.Create(64,true,false);
         arraydefs.free;
         arraydefs:=THashSet.Create(64,true,false);
+        procaddrdefs.free;
+        procaddrdefs:=THashSet.Create(64,true,false);
+{$ifdef llvm}
+        llvmdefs.free;
+        llvmdefs:=THashSet.Create(64,true,false);
+{$endif llvm}
         wpoinfo.free;
         wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
+        unitimportsyms.free;
+        unitimportsyms:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then
@@ -868,6 +893,12 @@ implementation
       end;
 
 
+    procedure tmodule.addimportedsym(sym:TSymEntry);
+      begin
+        if unitimportsyms.IndexOf(sym)<0 then
+          unitimportsyms.Add(sym);
+      end;
+
     function tmodule.addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
       var
         pu : tused_unit;
@@ -983,6 +1014,7 @@ implementation
                 { Give a note when the unit is not referenced, skip
                   this is for units with an initialization/finalization }
                 if (unitmap[pu.u.moduleid].refs=0) and
+                   pu.in_uses and
                    ((pu.u.flags and (uf_init or uf_finalize))=0) then
                   CGMessagePos2(pu.unitsym.fileinfo,sym_n_unit_not_used,pu.u.realmodulename^,realmodulename^);
               end;
@@ -1019,6 +1051,38 @@ implementation
             macrosymtablestack.free;
             macrosymtablestack:=nil;
           end;
+        extendeddefs.free;
+        extendeddefs:=nil;
+        genericdummysyms.free;
+        genericdummysyms:=nil;
+        waitingforunit.free;
+        waitingforunit:=nil;
+        localmacrosymtable.free;
+        localmacrosymtable:=nil;
+        ptrdefs.free;
+        ptrdefs:=nil;
+        arraydefs.free;
+        arraydefs:=nil;
+        procaddrdefs.free;
+        procaddrdefs:=nil;
+{$ifdef llvm}
+        llvmdefs.free;
+        llvmdefs:=nil;
+{$endif llvm}
+        checkforwarddefs.free;
+        checkforwarddefs:=nil;
+        tcinitcode.free;
+        tcinitcode:=nil;
+        localunitsearchpath.free;
+        localunitsearchpath:=nil;
+        localobjectsearchpath.free;
+        localobjectsearchpath:=nil;
+        localincludesearchpath.free;
+        localincludesearchpath:=nil;
+        locallibrarysearchpath.free;
+        locallibrarysearchpath:=nil;
+        localframeworksearchpath.free;
+        localframeworksearchpath:=nil;
       end;
 
 

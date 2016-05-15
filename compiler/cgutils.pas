@@ -63,6 +63,12 @@ unit cgutils;
          addressmode : taddressmode;
          shiftmode   : tshiftmode;
 {$endif arm}
+{$ifdef aarch64}
+         symboldata  : tlinkedlistitem;
+         shiftimm    : byte;
+         addressmode : taddressmode;
+         shiftmode   : tshiftmode;
+{$endif aarch64}
 {$ifdef avr}
          addressmode : taddressmode;
 {$endif avr}
@@ -135,9 +141,9 @@ unit cgutils;
                 { overlay a 64 Bit register type }
                 2 : (register64 : tregister64);
 {$endif cpu64bitalu}
-{$ifdef avr}
+{$ifdef cpu8bitalu}
                 3 : (registers : array[0..3] of tregister);
-{$endif avr}
+{$endif cpu8bitalu}
               );
             LOC_SUBSETREG,
             LOC_CSUBSETREG : (
@@ -145,7 +151,10 @@ unit cgutils;
             );
             LOC_SUBSETREF : (
               sref: tsubsetreference;
-            )
+            );
+            LOC_JUMP : (
+              truelabel, falselabel: tasmlabel;
+            );
       end;
 
 
@@ -169,6 +178,8 @@ unit cgutils;
     procedure location_reset(var l : tlocation;lt:TCGNonRefLoc;lsize:TCGSize);
     { for loc_(c)reference }
     procedure location_reset_ref(var l : tlocation;lt:TCGRefLoc;lsize:TCGSize; alignment: longint);
+    { for loc_jump }
+    procedure location_reset_jump(out l: tlocation; truelab, falselab: tasmlabel);
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
     procedure location_swap(var destloc,sourceloc : tlocation);
     function location_reg2string(const locreg: tlocation): string;
@@ -241,8 +252,8 @@ uses
         FillChar(l,sizeof(tlocation),0);
         l.loc:=lt;
         l.size:=lsize;
-        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-          { call location_reset_ref instead }
+        if l.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_JUMP] then
+          { call location_reset_ref/jump instead }
           internalerror(2009020705);
       end;
 
@@ -257,6 +268,16 @@ uses
 {$endif arm}
       l.reference.alignment:=alignment;
     end;
+
+
+    procedure location_reset_jump(out l: tlocation; truelab, falselab: tasmlabel);
+      begin
+        FillChar(l,sizeof(tlocation),0);
+        l.loc:=LOC_JUMP;
+        l.size:=OS_NO;
+        l.truelabel:=truelab;
+        l.falselabel:=falselab;
+      end;
 
 
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
@@ -295,25 +316,38 @@ uses
 {$elseif defined(cpu16bitalu)}
               OS_64,OS_S64:
                 if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:'+std_regname(locreg.registerhi)+':??:'+std_regname(locreg.register)
+                  result:='??:'+std_regname(locreg.registerhi)
+                          +':??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(locreg.registerhi))+':'+std_regname(locreg.registerhi)+':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(GetNextReg(locreg.registerhi))+':'+std_regname(locreg.registerhi)
+                          +':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
               OS_32,OS_S32:
                 if getsupreg(locreg.register)<first_int_imreg then
                   result:='??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(GetNextReg(locreg.register))
+                          +':'+std_regname(locreg.register);
 {$elseif defined(cpu8bitalu)}
               OS_64,OS_S64:
                 if getsupreg(locreg.register)<first_int_imreg then
-                  result:='??:??:??:'+std_regname(locreg.registerhi)+':??:??:??:'+std_regname(locreg.register)
+                  result:='??:??:??:'+std_regname(locreg.registerhi)
+                          +':??:??:??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.registerhi))))+':'+std_regname(GetNextReg(GetNextReg(locreg.registerhi)))+':'+std_regname(GetNextReg(locreg.registerhi))+':'+std_regname(locreg.registerhi)+':'+std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.register))))+':'+std_regname(GetNextReg(GetNextReg(locreg.register)))+':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.registerhi))))
+                          +':'+std_regname(GetNextReg(GetNextReg(locreg.registerhi)))
+                          +':'+std_regname(GetNextReg(locreg.registerhi))
+                          +':'+std_regname(locreg.registerhi)
+                          +':'+std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.register))))
+                          +':'+std_regname(GetNextReg(GetNextReg(locreg.register)))
+                          +':'+std_regname(GetNextReg(locreg.register))
+                          +':'+std_regname(locreg.register);
               OS_32,OS_S32:
                 if getsupreg(locreg.register)<first_int_imreg then
                   result:='??:??:??:'+std_regname(locreg.register)
                 else
-                  result:=std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.register))))+':'+std_regname(GetNextReg(GetNextReg(locreg.register)))+':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
+                  result:=std_regname(GetNextReg(GetNextReg(GetNextReg(locreg.register))))
+                          +':'+std_regname(GetNextReg(GetNextReg(locreg.register)))
+                          +':'+std_regname(GetNextReg(locreg.register))+':'+std_regname(locreg.register);
               OS_16,OS_S16:
                 if getsupreg(locreg.register)<first_int_imreg then
                   result:='??:'+std_regname(locreg.register)
@@ -388,7 +422,7 @@ uses
         magic_add:=false;
 {$push}
 {$warnings off }
-        mask:=aWord(not 0) shr (64-N);
+        mask:=aWord(not 0) shr ((64-N) and (sizeof(aWord)*8-1));
         nc:=(mask-(-d) mod aInt(d));
 {$pop}
         p:=N-1;                       { initialize p }

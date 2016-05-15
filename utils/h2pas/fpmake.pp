@@ -14,17 +14,18 @@ Var
 begin
   With Installer do
     begin
-    P:=AddPackage('h2pas');
+    P:=AddPackage('utils-h2pas');
+    P.ShortName:='h2pas';
 
     P.Author := '<various>';
     P.License := 'LGPL with modification';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'An utility to create Pascal header files from c header files.';
+    P.Description := 'A utility to create Pascal header files from c header files.';
     P.NeedLibC:= false;
 
     P.Directory:=ADirectory;
-    P.Version:='2.7.1';
+    P.Version:='3.1.1';
 
     P.Options.Add('-Sg');
 

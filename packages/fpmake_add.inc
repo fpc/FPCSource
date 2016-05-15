@@ -1,5 +1,7 @@
   add_a52(ADirectory+IncludeTrailingPathDelimiter('a52'));
+  add_ami_extra(ADirectory+IncludeTrailingPathDelimiter('ami-extra'));
   add_amunits(ADirectory+IncludeTrailingPathDelimiter('amunits'));
+  add_arosunits(ADirectory+IncludeTrailingPathDelimiter('arosunits'));
   add_aspell(ADirectory+IncludeTrailingPathDelimiter('aspell'));
   add_bfd(ADirectory+IncludeTrailingPathDelimiter('bfd'));
   add_bzip2(ADirectory+IncludeTrailingPathDelimiter('bzip2'));
@@ -58,6 +60,7 @@
   add_ldap(ADirectory+IncludeTrailingPathDelimiter('ldap'));
   add_libc(ADirectory+IncludeTrailingPathDelimiter('libc'));
   add_libcurl(ADirectory+IncludeTrailingPathDelimiter('libcurl'));
+  add_libmicrohttpd(ADirectory+IncludeTrailingPathDelimiter('libmicrohttpd'));
   add_libgbafpc(ADirectory+IncludeTrailingPathDelimiter('libgbafpc'));
   add_libgd(ADirectory+IncludeTrailingPathDelimiter('libgd'));
   add_libndsfpc(ADirectory+IncludeTrailingPathDelimiter('libndsfpc'));
@@ -71,6 +74,7 @@
   add_lua(ADirectory+IncludeTrailingPathDelimiter('lua'));
   add_mad(ADirectory+IncludeTrailingPathDelimiter('mad'));
   add_modplug(ADirectory+IncludeTrailingPathDelimiter('modplug'));
+  add_morphunits(ADirectory+IncludeTrailingPathDelimiter('morphunits'));
   add_mysql(ADirectory+IncludeTrailingPathDelimiter('mysql'));
   add_ncurses(ADirectory+IncludeTrailingPathDelimiter('ncurses'));
   add_newt(ADirectory+IncludeTrailingPathDelimiter('newt'));
@@ -86,6 +90,7 @@
   add_openssl(ADirectory+IncludeTrailingPathDelimiter('openssl'));
   add_oracle(ADirectory+IncludeTrailingPathDelimiter('oracle'));
   add_os2units(ADirectory+IncludeTrailingPathDelimiter('os2units'));
+  add_os4units(ADirectory+IncludeTrailingPathDelimiter('os4units'));
   add_palmunits(ADirectory+IncludeTrailingPathDelimiter('palmunits'));
   add_pasjpeg(ADirectory+IncludeTrailingPathDelimiter('pasjpeg'));
   add_paszlib(ADirectory+IncludeTrailingPathDelimiter('paszlib'));
@@ -119,4 +124,7 @@
   add_x11(ADirectory+IncludeTrailingPathDelimiter('x11'));
   add_xforms(ADirectory+IncludeTrailingPathDelimiter('xforms'));
   add_zlib(ADirectory+IncludeTrailingPathDelimiter('zlib'));
+  add_libenet(ADirectory+IncludeTrailingPathDelimiter('libenet'));
   add_zorba(ADirectory+IncludeTrailingPathDelimiter('zorba'));
+  add_Google(ADirectory+IncludeTrailingPathDelimiter('googleapi'));
+  add_fcl_pdf(ADirectory+IncludeTrailingPathDelimiter('fcl-pdf'));

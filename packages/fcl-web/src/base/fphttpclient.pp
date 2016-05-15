@@ -54,6 +54,7 @@ Type
     FOnPassword: TPasswordEvent;
     FOnRedirect: TRedirectEvent;
     FPassword: String;
+    FIOTimeout: Integer;
     FSentCookies,
     FCookies: TStrings;
     FHTTPVersion: String;
@@ -73,6 +74,7 @@ Type
     Procedure ResetResponse;
     Procedure SetCookies(const AValue: TStrings);
     Procedure SetRequestHeaders(const AValue: TStrings);
+    procedure SetIOTimeout(AValue: Integer);
   protected
     // Called whenever data is read.
     Procedure DoDataRead; virtual;
@@ -202,9 +204,17 @@ Type
     Class function SimpleFormPost(const URL: string; FormData : TStrings): String;
     // Post a file
     Procedure FileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
+    // Post form with a file
+    Procedure FileFormPost(const AURL: string; FormData: TStrings; AFieldName, AFileName: string; const Response: TStream);
+    // Post a stream
+    Procedure StreamFormPost(const AURL, AFieldName, AFileName: string; const AStream: TStream; const Response: TStream);
+    // Post form with a stream
+    Procedure StreamFormPost(const AURL: string; FormData: TStrings; const AFieldName, AFileName: string; const AStream: TStream; const Response: TStream);
     // Simple form of Posting a file
     Class Procedure SimpleFileFormPost(const AURL, AFieldName, AFileName: string; const Response: TStream);
   Protected
+    // Timeouts
+    Property IOTimeout : Integer read FIOTimeout write SetIOTimeout;
     // Before request properties.
     // Additional headers for request. Host; and Authentication are automatically added.
     Property RequestHeaders : TStrings Read FRequestHeaders Write SetRequestHeaders;
@@ -250,6 +260,7 @@ Type
 
   TFPHTTPClient = Class(TFPCustomHTTPClient)
   Public
+    Property IOTimeout;
     Property RequestHeaders;
     Property RequestBody;
     Property ResponseHeaders;
@@ -268,14 +279,16 @@ Type
     Property OnHeaders;
     Property OnGetSocketHandler;
   end;
-  EHTTPClient = Class(Exception);
+
+  EHTTPClient = Class(EHTTP);
 
 Function EncodeURLElement(S : String) : String;
 Function DecodeURLElement(Const S : String) : String;
 
 implementation
-
+{$if not defined(hasamiga)}
 uses sslsockets;
+{$endif}
 
 resourcestring
   SErrInvalidProtocol = 'Invalid protocol : "%s"';
@@ -376,6 +389,14 @@ begin
   FRequestHeaders.Assign(AValue);
 end;
 
+procedure TFPCustomHTTPClient.SetIOTimeout(AValue: Integer);
+begin
+  if AValue=FIOTimeout then exit;
+  FIOTimeout:=AValue;
+  if Assigned(FSocket) then
+    FSocket.IOTimeout:=AValue;
+end;
+
 procedure TFPCustomHTTPClient.DoDataRead;
 begin
   If Assigned(FOnDataReceived) Then
@@ -418,16 +439,18 @@ begin
     Result:=Result+'?'+URI.Params;
 end;
 
-Function TFPCustomHTTPClient.GetSocketHandler(Const UseSSL : Boolean) : TSocketHandler;
+function TFPCustomHTTPClient.GetSocketHandler(const UseSSL: Boolean): TSocketHandler;
 
 begin
   Result:=Nil;
   if Assigned(FonGetSocketHandler) then
     FOnGetSocketHandler(Self,UseSSL,Result);
-  if (Result=Nil) then  
+  if (Result=Nil) then
+  {$if not defined(HASAMIGA)}
     If UseSSL then
       Result:=TSSLSocketHandler.Create
     else
+  {$endif}  
       Result:=TSocketHandler.Create;
 end;
 
@@ -446,7 +469,14 @@ begin
       Aport:=80;
   G:=GetSocketHandler(UseSSL);    
   FSocket:=TInetSocket.Create(AHost,APort,G);
-  FSocket.Connect;
+  try
+    if FIOTimeout<>0 then
+      FSocket.IOTimeout:=FIOTimeout;
+    FSocket.Connect;
+  except
+    FreeAndNil(FSocket);
+    Raise;
+  end;
 end;
 
 procedure TFPCustomHTTPClient.DisconnectFromServer;
@@ -941,6 +971,8 @@ end;
 constructor TFPCustomHTTPClient.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  // Infinite timeout on most platforms
+  FIOTimeout:=0;
   FRequestHeaders:=TStringList.Create;
   FResponseHeaders:=TStringList.Create;
   FHTTPVersion:='1.1';
@@ -1704,34 +1736,65 @@ end;
 
 procedure TFPCustomHTTPClient.FileFormPost(const AURL, AFieldName,
   AFileName: string; const Response: TStream);
+begin
+  FileFormPost(AURL, nil, AFieldName, AFileName, Response);
+end;
 
+procedure TFPCustomHTTPClient.FileFormPost(const AURL: string;
+  FormData: TStrings; AFieldName, AFileName: string; const Response: TStream);
+var
+  F: TFileStream;
+begin
+  F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
+  try
+    StreamFormPost(AURL, FormData, AFieldName, ExtractFileName(AFileName), F, Response);
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TFPCustomHTTPClient.StreamFormPost(const AURL, AFieldName,
+  AFileName: string; const AStream: TStream; const Response: TStream);
+begin
+  StreamFormPost(AURL, nil, AFieldName, AFileName, AStream, Response);
+end;
+
+procedure TFPCustomHTTPClient.StreamFormPost(const AURL: string;
+  FormData: TStrings; const AFieldName, AFileName: string;
+  const AStream: TStream; const Response: TStream);
 Var
   S, Sep : string;
   SS : TStringStream;
-  F : TFileStream;
+  I: Integer;
+  N,V: String;
 begin
   Sep:=Format('%.8x_multipart_boundary',[Random($ffffff)]);
   AddHeader('Content-Type','multipart/form-data; boundary='+Sep);
-  S:='--'+Sep+CRLF;
-  s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
-  s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
-  SS:=TStringStream.Create(s);
+  SS:=TStringStream.Create('');
   try
-    SS.Seek(0,soFromEnd);
-    F:=TFileStream.Create(AFileName,fmOpenRead or fmShareDenyWrite);
-    try
-      SS.CopyFrom(F,F.Size);
-    finally
-      F.Free;
-    end;
+    if (FormData<>Nil) then
+      for I:=0 to FormData.Count -1 do
+        begin
+        // not url encoded
+        FormData.GetNameValue(I,N,V);
+        S :='--'+Sep+CRLF;
+        S:=S+Format('Content-Disposition: form-data; name="%s"'+CRLF+CRLF+'%s'+CRLF,[N, V]);
+        SS.WriteBuffer(S[1],Length(S));
+        end;
+    S:='--'+Sep+CRLF;
+    s:=s+Format('Content-Disposition: form-data; name="%s"; filename="%s"'+CRLF,[AFieldName,ExtractFileName(AFileName)]);
+    s:=s+'Content-Type: application/octet-string'+CRLF+CRLF;
+    SS.WriteBuffer(S[1],Length(S));
+    AStream.Seek(0, soFromBeginning);
+    SS.CopyFrom(AStream,AStream.Size);
     S:=CRLF+'--'+Sep+'--'+CRLF;
     SS.WriteBuffer(S[1],Length(S));
     SS.Position:=0;
     RequestBody:=SS;
     Post(AURL,Response);
   finally
-   RequestBody:=Nil;
-   SS.Free;
+    RequestBody:=Nil;
+    SS.Free;
   end;
 end;
 

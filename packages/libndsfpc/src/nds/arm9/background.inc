@@ -42,6 +42,22 @@ const
   TILE_FLIP_H = (1 shl 10);
   TILE_FLIP_V = (1 shl 11);
 
+
+type
+  TileMapEntry8 = record
+    index: cuint8;
+  end;
+  TTileMapEntry8 = TileMapEntry8;
+  PTileMapEntry8 = ^TileMapEntry8;
+
+  TileMapEntry16 = bitpacked record
+    index: 0..10;
+    hflip: 0..1;
+    vflip: 0..1;
+    palette: 0..4;
+  end;
+
+
 type
   BackgroundControl = cint;
 const

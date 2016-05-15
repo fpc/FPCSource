@@ -2,7 +2,7 @@
     This file is part of the Free Pascal test suite.
     Copyright (c) 2002 by the Free Pascal development team.
 
-    This program iupdates TESTCONFIG anf TESTRUNHISTORY tables
+    This program updates TESTCONFIG anf TESTRUNHISTORY tables
     with the last tests run.
 
     See the file COPYING.FPC, included in this distribution,
@@ -24,7 +24,7 @@ program dbconfig;
 
 uses
   sysutils,teststr,testu,tresults,
-  mysql55dyn,dbtests;
+  sqldb,dbtests;
 
 
 Var
@@ -451,7 +451,7 @@ var
   qry : string;
   firstRunID, lastRunID,PrevRunID : Integer;
   RunCount : Integer;
-  res : TQueryResult;
+  res : TSQLQuery;
   AddCount : boolean;
 begin
   AddCount:=false;
@@ -463,7 +463,7 @@ begin
       Verbose(V_Warning,format('FirstRunID changed from %d to %d',[FirstRunID,TestRunID]));
       qry:=format('UPDATE TESTCONFIG SET TCONF_FIRST_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
+      if OpenQuery(qry,res,false) then
         FreeQueryResult(res)
       else
         Verbose(V_Warning,'Update of LastRunID failed');
@@ -474,7 +474,7 @@ begin
     begin
       qry:=format('UPDATE TESTCONFIG SET TCONF_LAST_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
+      if OpenQuery(qry,res,false) then
         FreeQueryResult(res)
       else
         Verbose(V_Warning,'Update of LastRunID failed');
@@ -487,7 +487,7 @@ begin
     begin
       qry:=format('UPDATE TESTCONFIG SET TCONF_NEW_RUN_FK=%d WHERE TCONF_ID=%d',
                   [TestRunID,ConfigID]);
-      if RunQuery(qry,res) then
+      if OpenQuery(qry,res,false) then
         FreeQueryResult(res)
       else
         Verbose(V_Warning,'Update of LastRunID failed');
@@ -504,7 +504,7 @@ begin
       Inc(RunCount);
       qry:=format('UPDATE TESTCONFIG SET TCONF_COUNT_RUNS=%d WHERE TCONF_ID=%d',
                   [RunCount,ConfigID]);
-      if RunQuery(qry,res) then
+      if OpenQuery(qry,res,false) then
         FreeQueryResult(res)
       else
         Verbose(V_Warning,'Update of TU_COUNT_RUNS failed');
@@ -536,7 +536,7 @@ begin
   AddTestHistoryEntry(TestRunID,0);
 end;
 
-Procedure InsertRunsIntoConfigAndHistory(var GlobalRes : TQueryResult);
+Procedure InsertRunsIntoConfigAndHistory(var GlobalRes : TSQLQuery);
 
 var
   i,fid, num_fields : Integer;
@@ -544,9 +544,10 @@ var
   s : string;
   runid,previd : Integer;
 begin
-  with GlobalRes^ do
+  with GlobalRes do
     begin
-      num_fields:=mysql_num_fields(GlobalRes);
+      num_fields:=FieldCount;
+      First;
       Writeln('Row count=',row_count);
       for i:=0 to row_count-1 do
         begin
@@ -571,20 +572,20 @@ begin
     end;
 end;
 
-Procedure GetAllTestRuns(var GlobalRes : TQueryResult);
+Procedure GetAllTestRuns(var GlobalRes : TSQLQuery);
 var
   qry : string;
 begin
   qry:='SELECT * FROM TESTRUN ORDER BY TU_ID';
   if OffsetString<>'' then
     qry:=qry+' LIMIT 1000 OFFSET '+OffsetString;
-  if not RunQuery(qry,GlobalRes) then
+  if not OpenQuery(qry,GlobalRes,false) then
     Verbose(V_Warning,'Failed to fetch testrun content');
 end;
 
 
 var
-  GlobalRes : TQueryResult;
+  GlobalRes : TSQLQuery;
 
 begin
   ProcessConfigFile('dbdigest.cfg');

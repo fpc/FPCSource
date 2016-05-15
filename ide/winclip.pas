@@ -46,6 +46,12 @@ implementation
     strings,windows;
 {$endif Windows}
 
+{$ifdef HASAMIGA}
+  uses
+    clipboard,cliputils;
+{$endif}
+
+
 {$ifdef DOS}
 function WinClipboardSupported : boolean;
 var
@@ -129,6 +135,36 @@ begin
 end;
 {$endif Windows}
 
+{$ifdef HASAMIGA}
+function WinClipboardSupported: Boolean;
+begin
+  WinClipboardSupported := True;
+end;
+
+function OpenWinClipboard: boolean;
+begin
+  OpenWinClipboard := True;
+end;
+
+function EmptyWinClipboard: boolean;
+begin
+  EmptyWinClipboard := GetTextFromClip(PRIMARY_CLIP) = '';
+end;
+
+function CloseWinClipboard : boolean;
+begin
+  CloseWinClipboard:= True;
+end;
+
+function InternGetDataSize: LongInt;
+var
+  Text: string;
+begin
+  Text := GetTextFromClip(PRIMARY_CLIP);
+  InternGetDataSize := Length(Text);
+end;
+{$endif HASAMIGA}
+
 
 function GetTextWinClipboardSize : longint;
 begin
@@ -147,6 +183,10 @@ var
   h : HGlobal;
   pp : pchar;
 {$endif Windows}
+{$ifdef HASAMIGA}
+  Text: AnsiString;
+  pp: PChar;
+{$endif HASAMIGA}
 begin
   p:=nil;
   GetTextWinClipBoardData:=False;
@@ -181,6 +221,14 @@ begin
     end;
   GetTextWinClipBoardData:=h<>0;
 {$endif Windows}
+{$ifdef HASAMIGA}
+  Text := GetTextFromClip(0) + #0;
+  PP := @Text[1];
+  l := Length(Text);
+  GetMem(p,l);
+  Move(pp^,p^,l);
+  GetTextWinClipBoardData := True;
+{$endif HASAMIGA}
   CloseWinClipBoard;
 {$ifdef DOS}
   M.MoveDataFrom(l,P^);
@@ -199,6 +247,10 @@ var
   pp : pchar;
   res : boolean;
 {$endif Windows}
+{$ifdef HASAMIGA}
+  pp: PChar;
+  Test: AnsiString;
+{$endif HASAMIGA}
 begin
   SetTextWinClipBoardData:=False;
   if (l=0) or (l>65520) then
@@ -239,6 +291,9 @@ begin
   GlobalUnlock(h);
   SetTextWinClipBoardData:=res;
 {$endif Windows}
+{$ifdef HASAMIGA}
+  PutTextToClip(0, AnsiString(p));
+{$endif HASAMIGA}
   CloseWinClipBoard;
 end;
 

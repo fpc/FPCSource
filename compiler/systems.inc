@@ -50,7 +50,8 @@
              cpu_mipsel,                   { 13 }
              cpu_jvm,                      { 14 }
              cpu_i8086,                    { 15 }
-             cpu_spc32                     { 16 }
+             cpu_aarch64,                  { 16 }
+             cpu_spc32                     { 17 }
        );
 
        tasmmode= (asmmode_none
@@ -69,6 +70,7 @@
             ,asmmode_avr_gas
             ,asmmode_i8086_intel
             ,asmmode_i8086_att
+            ,asmmode_arm_gas_unified
        );
 
      (* IMPORTANT NOTE:
@@ -164,8 +166,14 @@
              system_mipsel_android,     { 80 }
              system_mipseb_embedded,    { 81 }
              system_mipsel_embedded,    { 82 }
-             system_spc32_embedded      { 83 }
-       );
+             system_i386_aros,          { 83 }
+             system_x86_64_aros,        { 84 }
+             system_x86_64_dragonfly,   { 85 }
+             system_aarch64_darwin,     { 86 }
+             system_x86_64_iphonesim,   { 87 }
+             system_aarch64_linux,      { 88 }
+             system_i8086_win16,        { 89 }
+             system_spc32_embedded      { 90 }       );
 
      type
        tasm = (as_none
@@ -210,12 +218,17 @@
              ,as_i8086_nasm
              ,as_i8086_nasmobj
              ,as_gas_powerpc_xcoff
-             ,as_spc32_elf32
-       );
+             ,as_arm_elf32
+             ,as_i8086_omf
+             ,as_llvm
+             ,as_clang
+             ,as_solaris_as
+             ,as_spc32_elf32       );
 
        tlink = (ld_none,
              ld_aix,           { external linkers (one per OS, handles all CPUs) }
              ld_amiga,
+             ld_aros,
              ld_atari,
              ld_android,
              ld_beos,
@@ -240,11 +253,13 @@
              ld_wdosx,
              ld_wii,
              ld_windows,
+             ld_win16,
              ld_int_go32v2,    { implemented internal linkers }
              ld_int_linux,
              ld_int_nativent,
              ld_int_netware,
              ld_int_windows,
+             ld_int_msdos,
              ld_int_embedded
        );
 
@@ -274,13 +289,18 @@
 
        tscripttype = (script_none
             ,script_dos,script_unix,script_amiga,
-            script_mpw
+            script_mpw,
+            script_fpcres
        );
 
        tabi = (abi_default
-            ,abi_powerpc_sysv,abi_powerpc_aix
+            ,abi_powerpc_sysv,abi_powerpc_aix,abi_powerpc_darwin,abi_powerpc_elfv2
             ,abi_eabi,abi_armeb,abi_eabihf
             ,abi_old_win32_gnu
+            ,abi_aarch64_darwin
        );
+
+     const
+       abi_powerpc_elfv1 = abi_powerpc_sysv;
 
 

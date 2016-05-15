@@ -26,9 +26,10 @@ unit htypechk;
 interface
 
     uses
-      cclasses,tokens,cpuinfo,
+      cclasses,cmsgs,tokens,cpuinfo,
       node,globtype,
-      symconst,symtype,symdef,symsym,symbase;
+      symconst,symtype,symdef,symsym,symbase,
+      pgentype;
 
     type
       Ttok2nodeRec=record
@@ -69,12 +70,13 @@ interface
         FParaNode   : tnode;
         FParaLength : smallint;
         FAllowVariant : boolean;
-        procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean);
-        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
-        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+        procedure collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
+        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean;spezcontext:tspecializationcontext);
+        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         function  proc_add(st:tsymtable;pd:tprocdef;objcidcall: boolean):pcandidate;
+        function  maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
         constructor create_operator(op:ttoken;ppn:tnode);
         destructor destroy;override;
         procedure list(all:boolean);
@@ -178,6 +180,8 @@ interface
       arrays, records and objects are checked recursively }
     function is_valid_for_default(def:tdef):boolean;
 
+    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
+
 implementation
 
     uses
@@ -185,7 +189,8 @@ implementation
        cutils,verbose,
        symtable,
        defutil,defcmp,
-       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo
+       nbas,ncnv,nld,nmem,ncal,nmat,ninl,nutils,procinfo,
+       pgenutil
        ;
 
     type
@@ -774,7 +779,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[]);
+        t:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.pass_typecheck }
@@ -953,7 +958,7 @@ implementation
 
         { the nil as symtable signs firstcalln that this is
           an overloaded operator }
-        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[]);
+        ht:=ccallnode.create(ppn,Tprocsym(operpd.procsym),nil,nil,[],nil);
 
         { we already know the procdef to use, so it can
           skip the overload choosing in callnode.pass_typecheck }
@@ -1092,6 +1097,23 @@ implementation
       end;
 
 
+    procedure UninitializedVariableMessage(pos : tfileposinfo;warning,local,managed : boolean;name : TMsgStr);
+      const
+        msg : array[false..true,false..true,false..true] of dword = (
+            (
+              (sym_h_uninitialized_variable,sym_h_uninitialized_managed_variable),
+              (sym_h_uninitialized_local_variable,sym_h_uninitialized_managed_local_variable)
+            ),
+            (
+              (sym_w_uninitialized_variable,sym_w_uninitialized_managed_variable),
+              (sym_w_uninitialized_local_variable,sym_w_uninitialized_managed_local_variable)
+            )
+          );
+      begin
+        CGMessagePos1(pos,msg[warning,local,managed],name);
+      end;
+
+
     procedure set_varstate(p:tnode;newstate:tvarstate;varstateflags:tvarstateflags);
       const
         vstrans: array[tvarstate,tvarstate] of tvarstate = (
@@ -1197,32 +1219,29 @@ implementation
                                  if (vo_is_funcret in hsym.varoptions) then
                                    begin
                                      if (vsf_use_hints in varstateflags) then
-                                       CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                     else
-                                       CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                                   end
-                                 else
-                                   begin
-                                     if tloadnode(p).symtable.symtabletype=localsymtable then
                                        begin
-                                         { on the JVM, an uninitialized var-parameter
-                                           is just as fatal as a nil pointer dereference }
-                                         if (vsf_use_hints in varstateflags) and
-                                            not(target_info.system in systems_jvm) then
-                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                         if is_managed_type(hsym.vardef) then
+                                           CGMessagePos(p.fileinfo,sym_h_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                           CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized);
                                        end
                                      else
                                        begin
-                                         { on the JVM, an uninitialized var-parameter
-                                           is just as fatal as a nil pointer dereference }
-                                         if (vsf_use_hints in varstateflags) and
-                                            not(target_info.system in systems_jvm) then
-                                           CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                         if is_managed_type(hsym.vardef) then
+                                           CGMessagePos(p.fileinfo,sym_w_managed_function_result_uninitialized)
                                          else
-                                           CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                          CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized);
                                        end;
+                                   end
+                                 else
+                                   begin
+                                     UninitializedVariableMessage(p.fileinfo,
+                                       { on the JVM, an uninitialized var-parameter
+                                         is just as fatal as a nil pointer dereference }
+                                       not((vsf_use_hints in varstateflags) and not(target_info.system in systems_jvm)),
+                                       tloadnode(p).symtable.symtabletype=localsymtable,
+                                       is_managed_type(tloadnode(p).resultdef),
+                                       hsym.realname);
                                    end;
                                end;
                            end
@@ -1484,17 +1503,25 @@ implementation
                         is_open_array(fromdef) or
                         is_open_array(todef) or
                         ((fromdef.typ=pointerdef) and (todef.typ=arraydef)) or
-                        (def_is_related(fromdef,todef))) and
-                    (fromdef.size<>todef.size) then
+                        (def_is_related(fromdef,todef))) then
                   begin
-                    { in TP it is allowed to typecast to smaller types. But the variable can't
-                      be in a register }
-                    if (m_tp7 in current_settings.modeswitches) or
-                       (todef.size<fromdef.size) then
-                      make_not_regable(hp,[ra_addr_regable])
+                    if (fromdef.size<>todef.size) then
+                      begin
+                        { in TP it is allowed to typecast to smaller types. But the variable can't
+                          be in a register }
+                        if (m_tp7 in current_settings.modeswitches) or
+                           (todef.size<fromdef.size) then
+                          make_not_regable(hp,[ra_addr_regable])
+                        else
+                          if report_errors then
+                            CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                      end
+{$ifdef llvm}
+                    { we can never typecast a non-memory value on the assignment
+                      side in llvm }
                     else
-                      if report_errors then
-                        CGMessagePos2(hp.fileinfo,type_e_typecast_wrong_size_for_assignment,tostr(fromdef.size),tostr(todef.size));
+                      make_not_regable(hp,[ra_addr_regable])
+{$endif llvm}
                   end;
 
                  { don't allow assignments to typeconvs that need special code }
@@ -2086,7 +2113,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -2095,7 +2122,7 @@ implementation
         FProcsymtable:=st;
         FParanode:=ppn;
         FIgnoredCandidateProcs:=tfpobjectlist.create(false);
-        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited);
+        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited,spezcontext);
       end;
 
 
@@ -2106,7 +2133,7 @@ implementation
         FProcsymtable:=nil;
         FParanode:=ppn;
         FIgnoredCandidateProcs:=tfpobjectlist.create(false);
-        create_candidate_list(false,false,false,false,false,false);
+        create_candidate_list(false,false,false,false,false,false,nil);
       end;
 
 
@@ -2120,13 +2147,16 @@ implementation
         while assigned(hp) do
          begin
            hpnext:=hp^.next;
+           { free those procdef specializations that are not owned (thus were discarded) }
+           if hp^.data.is_specialization and not hp^.data.is_registered then
+             hp^.data.free;
            dispose(hp);
            hp:=hpnext;
          end;
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean);
+    procedure tcallcandidates.collect_overloads_in_struct(structdef:tabstractrecorddef;ProcdefOverloadList:TFPObjectList;searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
 
       function processprocsym(srsym:tprocsym; out foundanything: boolean):boolean;
         var
@@ -2139,6 +2169,8 @@ implementation
           for j:=0 to srsym.ProcdefList.Count-1 do
             begin
               pd:=tprocdef(srsym.ProcdefList[j]);
+              if not maybe_specialize(pd,spezcontext) then
+                continue;
               if (po_ignore_for_overload_resolution in pd.procoptions) then
                 begin
                   FIgnoredCandidateProcs.add(pd);
@@ -2170,7 +2202,7 @@ implementation
                 FProcsym:=tprocsym(srsym);
               if po_overload in pd.procoptions then
                 result:=true;
-              ProcdefOverloadList.Add(srsym.ProcdefList[j]);
+              ProcdefOverloadList.Add(pd);
             end;
         end;
 
@@ -2227,7 +2259,7 @@ implementation
                  break;
              end;
            if is_objectpascal_helper(structdef) and
-              (tobjectdef(structdef).typ in [recorddef,objectdef]) then
+              (tobjectdef(structdef).extendeddef.typ in [recorddef,objectdef]) then
              begin
                { search methods in the extended type as well }
                srsym:=tprocsym(tabstractrecorddef(tobjectdef(structdef).extendeddef).symtable.FindWithHash(hashedid));
@@ -2251,7 +2283,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
+    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean;spezcontext:tspecializationcontext);
       var
         j          : integer;
         pd         : tprocdef;
@@ -2308,6 +2340,8 @@ implementation
                     for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
                       begin
                         pd:=tprocdef(tprocsym(srsym).ProcdefList[j]);
+                        if not maybe_specialize(pd,spezcontext) then
+                          continue;
                         if (po_ignore_for_overload_resolution in pd.procoptions) then
                           begin
                             FIgnoredCandidateProcs.add(pd);
@@ -2318,7 +2352,7 @@ implementation
                           FProcsym:=tprocsym(srsym);
                         if po_overload in pd.procoptions then
                           hasoverload:=true;
-                        ProcdefOverloadList.Add(tprocsym(srsym).ProcdefList[j]);
+                        ProcdefOverloadList.Add(pd);
                       end;
                     { when there is no explicit overload we stop searching,
                       except for Objective-C methods called via id }
@@ -2332,13 +2366,14 @@ implementation
       end;
 
 
-    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean);
+    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit,searchhelpers,anoninherited:boolean;spezcontext:tspecializationcontext);
       var
         j     : integer;
         pd    : tprocdef;
         hp    : pcandidate;
         pt    : tcallparanode;
-        found : boolean;
+        found,
+        added : boolean;
         st    : TSymtable;
         contextstructdef : tabstractrecorddef;
         ProcdefOverloadList : TFPObjectList;
@@ -2351,7 +2386,7 @@ implementation
         if not objcidcall and
            (FOperator=NOTOKEN) and
            (FProcsym.owner.symtabletype in [objectsymtable,recordsymtable]) then
-          collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList,searchhelpers,anoninherited)
+          collect_overloads_in_struct(tabstractrecorddef(FProcsym.owner.defowner),ProcdefOverloadList,searchhelpers,anoninherited,spezcontext)
         else
         if (FOperator<>NOTOKEN) then
           begin
@@ -2361,14 +2396,14 @@ implementation
             while assigned(pt) do
               begin
                 if (pt.resultdef.typ=recorddef) and
-                    (sto_has_operator in tabstractrecorddef(pt.resultdef).owner.tableoptions) then
-                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList,searchhelpers,anoninherited);
+                    (sto_has_operator in tabstractrecorddef(pt.resultdef).symtable.tableoptions) then
+                  collect_overloads_in_struct(tabstractrecorddef(pt.resultdef),ProcdefOverloadList,searchhelpers,anoninherited,spezcontext);
                 pt:=tcallparanode(pt.right);
               end;
-            collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
+            collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit,spezcontext);
           end
         else
-          collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
+          collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit,spezcontext);
 
         { determine length of parameter list.
           for operators also enable the variant-operators if
@@ -2409,6 +2444,7 @@ implementation
         for j:=0 to ProcdefOverloadList.Count-1 do
           begin
             pd:=tprocdef(ProcdefOverloadList[j]);
+            added:=false;
 
             { only when the # of parameter are supported by the procedure and
               it is visible }
@@ -2428,8 +2464,20 @@ implementation
                ) and
                (
                 ignorevisibility or
-                not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                is_visible_for_object(pd,contextstructdef)
+                (
+                  pd.is_specialization and not assigned(pd.owner) and
+                  (
+                    not (pd.genericdef.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                    is_visible_for_object(tprocdef(pd.genericdef),contextstructdef)
+                  )
+                ) or
+                (
+                  assigned(pd.owner) and
+                  (
+                    not (pd.owner.symtabletype in [objectsymtable,recordsymtable]) or
+                    is_visible_for_object(pd,contextstructdef)
+                  )
+                )
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }
@@ -2452,7 +2500,20 @@ implementation
                     hp:=hp^.next;
                   end;
                 if not found then
-                  proc_add(st,pd,objcidcall);
+                  begin
+                    proc_add(st,pd,objcidcall);
+                    added:=true;
+                  end;
+              end;
+
+            { we need to remove all specializations that were not used from their
+              procsyms as no code must be generated for them (if they are used
+              later on they'll be added like the ones that were used now) }
+            if not added and assigned(spezcontext) and not pd.is_registered then
+              begin
+                if tprocsym(pd.procsym).procdeflist.extract(pd)<>pd then
+                  internalerror(20150828);
+                pd.free;
               end;
           end;
 
@@ -2500,6 +2561,33 @@ implementation
           result^.ordinal_distance:=result^.ordinal_distance+1.0;
       end;
 
+
+    function tcallcandidates.maybe_specialize(var pd:tprocdef;spezcontext:tspecializationcontext):boolean;
+      var
+        def : tdef;
+      begin
+        result:=false;
+        if assigned(spezcontext) then
+          begin
+            if not (df_generic in pd.defoptions) then
+              internalerror(2015060301);
+            { check whether the given parameters are compatible
+              to the def's constraints }
+            if not check_generic_constraints(pd,spezcontext.genericdeflist,spezcontext.poslist) then
+              exit;
+            def:=generate_specialization_phase2(spezcontext,pd,false,'');
+            case def.typ of
+              errordef:
+                { do nothing }
+                ;
+              procdef:
+                pd:=tprocdef(def);
+              else
+                internalerror(2015070303);
+            end;
+          end;
+        result:=true;
+      end;
 
     procedure tcallcandidates.list(all:boolean);
       var
@@ -2578,12 +2666,14 @@ implementation
         paraidx  : integer;
         currparanr : byte;
         rfh,rth  : double;
-        objdef   : tobjectdef;
+        obj_from,
+        obj_to   : tobjectdef;
         def_from,
         def_to   : tdef;
         currpt,
         pt       : tcallparanode;
-        eq       : tequaltype;
+        eq,
+        mineq    : tequaltype;
         convtype : tconverttype;
         pdtemp,
         pdoper   : tprocdef;
@@ -2743,13 +2833,15 @@ implementation
                   def_is_related(tobjectdef(def_from),tobjectdef(def_to)) then
                  begin
                    eq:=te_convert_l1;
-                   objdef:=tobjectdef(def_from);
-                   while assigned(objdef) do
+                   { resolve anonymous external class definitions }
+                   obj_from:=find_real_class_definition(tobjectdef(def_from),false);
+                   obj_to:=find_real_class_definition(tobjectdef(def_to),false);
+                   while assigned(obj_from) do
                      begin
-                       if objdef=def_to then
+                       if obj_from=obj_to then
                          break;
                        hp^.ordinal_distance:=hp^.ordinal_distance+1;
-                       objdef:=objdef.childof;
+                       obj_from:=obj_from.childof;
                      end;
                  end
                { compare_defs_ext compares sets and array constructors very poorly because
@@ -2763,6 +2855,30 @@ implementation
                    eq:=compare_defs_ext(n.resultdef,def_to,n.nodetype,convtype,pdoper,cdoptions);
                    n.free;
                  end
+              else if is_open_array(def_to) and
+                      is_class_or_interface_or_dispinterface_or_objc_or_java(tarraydef(def_to).elementdef) and
+                      is_array_constructor(currpt.left.resultdef) and
+                      assigned(tarrayconstructornode(currpt.left).left) then
+                begin
+                  { ensure that [nil] can be converted to "array of tobject",
+                    because if we just try to convert "array of pointer" to
+                    "array of tobject", we get type conversion errors in
+                    non-Delphi modes }
+                  n:=currpt.left;
+                  mineq:=te_exact;
+                  repeat
+                    if tarrayconstructornode(n).left.nodetype=arrayconstructorrangen then
+                      eq:=te_incompatible
+                    else
+                      eq:=compare_defs_ext(tarrayconstructornode(n).left.resultdef,tarraydef(def_to).elementdef,tarrayconstructornode(n).left.nodetype,convtype,pdoper,cdoptions);
+                    if eq<mineq then
+                      mineq:=eq;
+                    if eq=te_incompatible then
+                      break;
+                    n:=tarrayconstructornode(n).right;
+                  until not assigned(n);
+                  eq:=mineq;
+                end
               else
               { generic type comparision }
                begin
@@ -2880,8 +2996,8 @@ implementation
     function get_variantequaltype(def: tdef): tvariantequaltype;
       const
         variantorddef_cl: array[tordtype] of tvariantequaltype =
-          (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,
-           tve_shortint,tve_smallint,tve_longint,tve_chari64,
+          (tve_incompatible,tve_byte,tve_word,tve_cardinal,tve_chari64,tve_incompatible,
+           tve_shortint,tve_smallint,tve_longint,tve_chari64,tve_incompatible,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);

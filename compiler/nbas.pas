@@ -48,12 +48,20 @@ interface
        end;
        terrornodeclass = class of terrornode;
 
+       tspecializenode = class(tunarynode)
+          sym:tsym;
+          getaddr:boolean;
+          constructor create(l:tnode;g:boolean;s:tsym);virtual;
+          function pass_1:tnode;override;
+          function pass_typecheck:tnode;override;
+       end;
+       tspecializenodeclass = class of tspecializenode;
+
        tasmnode = class(tnode)
           p_asm : TAsmList;
           currenttai : tai;
           { Used registers in assembler block }
-          used_regs_int,
-          used_regs_fpu : tcpuregisterset;
+          has_registerlist : boolean;
           constructor create(p : TAsmList);virtual;
           constructor create_get_position;
           destructor destroy;override;
@@ -249,6 +257,7 @@ interface
     var
        cnothingnode : tnothingnodeclass = tnothingnode;
        cerrornode : terrornodeclass = terrornode;
+       cspecializenode : tspecializenodeclass = tspecializenode;
        casmnode : tasmnodeclass = tasmnode;
        cstatementnode : tstatementnodeclass = tstatementnode;
        cblocknode : tblocknodeclass = tblocknode;
@@ -258,7 +267,7 @@ interface
 
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
-       function  internalstatements(var laststatement:tstatementnode):tblocknode;
+       function  internalstatements(out laststatement:tstatementnode):tblocknode;
        function  laststatement(block:tblocknode):tstatementnode;
        procedure addstatement(var laststatement:tstatementnode;n:tnode);
 
@@ -282,7 +291,7 @@ implementation
                                      Helpers
 *****************************************************************************}
 
-    function internalstatements(var laststatement:tstatementnode):tblocknode;
+    function internalstatements(out laststatement:tstatementnode):tblocknode;
       begin
         { create dummy initial statement }
         laststatement := cstatementnode.create(cnothingnode.create,nil);
@@ -379,6 +388,36 @@ implementation
     procedure terrornode.mark_write;
       begin
       end;
+
+
+{*****************************************************************************
+                             TSPECIALIZENODE
+*****************************************************************************}
+
+    constructor tspecializenode.create(l:tnode;g:boolean;s:tsym);
+      begin
+         inherited create(specializen,l);
+         sym:=s;
+         getaddr:=g;
+      end;
+
+
+    function tspecializenode.pass_typecheck:tnode;
+      begin
+         result:=nil;
+         resultdef:=cundefinedtype;
+      end;
+
+
+    function tspecializenode.pass_1:tnode;
+      begin
+         { such a node should not reach pass_1 }
+         internalerror(2015071704);
+         result:=nil;
+         expectloc:=LOC_VOID;
+         codegenerror:=true;
+      end;
+
 
 {*****************************************************************************
                             TSTATEMENTNODE
@@ -540,18 +579,30 @@ implementation
         {  main program body, and those nodes should always be blocknodes }
         {  since that's what the compiler expects elsewhere.              }
 
-        { if the current block contains only one statement, and   }
-        { this one statement only contains another block, replace }
-        { this block with that other block.                       }
         if assigned(left) and
-           not assigned(tstatementnode(left).right) and
-           (tstatementnode(left).left.nodetype = blockn) then
+           not assigned(tstatementnode(left).right) then
           begin
-            result:=tstatementnode(left).left;
-            tstatementnode(left).left:=nil;
-            { make sure the nf_block_with_exit flag is safeguarded }
-            result.flags:=result.flags+(flags*[nf_block_with_exit,nf_usercode_entry]);
-            exit;
+            case tstatementnode(left).left.nodetype of
+              blockn:
+                begin
+                  { if the current block contains only one statement, and
+                    this one statement only contains another block, replace
+                    this block with that other block.                       }
+                  result:=tstatementnode(left).left;
+                  tstatementnode(left).left:=nil;
+                  { make sure the nf_block_with_exit flag is safeguarded }
+                  result.flags:=result.flags+(flags*[nf_block_with_exit,nf_usercode_entry]);
+                  exit;
+                end;
+              nothingn:
+                begin
+                  { if the block contains only a statement with a nothing node,
+                    get rid of the statement }
+                  left.Free;
+                  left:=nil;
+                  exit;
+                end;
+            end;
           end;
       end;
 
@@ -630,8 +681,6 @@ implementation
         inherited create(asmn);
         p_asm:=p;
         currenttai:=nil;
-        used_regs_int:=[];
-        used_regs_fpu:=[];
       end;
 
 
@@ -739,6 +788,7 @@ implementation
           end
         else n.p_asm := nil;
         n.currenttai:=currenttai;
+        n.has_registerlist:=has_registerlist;
         result:=n;
       end;
 

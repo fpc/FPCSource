@@ -32,6 +32,7 @@ procedure SetPrinterDevice(const Device: string);
 implementation
 
 uses
+  sysutils, { used for SameFileName function }
   Dos,Objects,Drivers,
   FVConsts,
   Version,
@@ -102,10 +103,17 @@ const
   ieDebuggeeRedir    = 'DebugRedirection';
   ieRemoteMachine    = 'RemoteMachine';
   ieRemotePort       = 'RemotePort';
+  ieRemotePuttySession = 'RemotePuttySession';
   ieRemoteSendCommand = 'RemoteSendCommand';
+  ieRemoteExecCommand = 'RemoteExecCommand';
+  ieRemoteSshExecCommand = 'RemoteSshExecCommand';
   ieRemoteConfig     = 'RemoteSendConfig';
   ieRemoteIdent      = 'RemoteSendIdent';
   ieRemoteDirectory  = 'RemoteDirectory';
+  ieRemoteCopy       = 'RemoteCopy';
+  ieRemoteShell      = 'RemoteShell';
+  ieRemoteGdbServer  = 'gdbserver';
+
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
   iePalette          = 'Palette';
@@ -226,10 +234,17 @@ begin
                ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+IniName),nil)
              else
                IniFileName:=CurDir+IniName;
-             if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
-               ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
-             else
-               SwitchesPath:=CurDir+SwitchesName;
+             { copy also SwitchesPath to current dir, but only if
+               1) SwitchesPath exists
+               2) SwitchesPath is different from CurDir+SwitchesName }
+             if ExistsFile(SwitchesPath) and
+                not SameFileName(SwitchesPath,CurDir+SwitchesName) then
+               begin
+                 if CopyFile(SwitchesPath,CurDir+SwitchesName)=false then
+                   ErrorBox(FormatStrStr(msg_errorwritingfile,CurDir+SwitchesName),nil)
+                 else
+                   SwitchesPath:=CurDir+SwitchesName;
+               end;
            end;
        end
      else
@@ -416,14 +431,22 @@ begin
   { First read the primary file, which can also set the parameters which can
     be overruled with the parameter loading }
   SetPrimaryFile(INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile));
+{$ifndef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
   DebuggeeTTY := INIFile^.GetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$endif not GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
 {$ifdef SUPPORT_REMOTE}
   RemoteMachine :=INIFile^.GetEntry(secRun,ieRemoteMachine,RemoteMachine);
   RemotePort :=INIFile^.GetEntry(secRun,ieRemotePort,RemotePort);
+  RemotePuttySession :=INIFile^.GetEntry(secRun,ieRemotePuttySession,RemotePuttySession);
   RemoteSendCommand :=INIFile^.GetEntry(secRun,ieRemoteSendCommand,RemoteSendCommand);
+  RemoteExecCommand :=INIFile^.GetEntry(secRun,ieRemoteExecCommand,RemoteExecCommand);
+  RemoteSshExecCommand :=INIFile^.GetEntry(secRun,ieRemoteSshExecCommand,RemoteSshExecCommand);
   RemoteConfig :=INIFile^.GetEntry(secRun,ieRemoteConfig,RemoteConfig);
   RemoteIdent :=INIFile^.GetEntry(secRun,ieRemoteIdent,RemoteIdent);
   RemoteDir :=INIFile^.GetEntry(secRun,ieRemoteDirectory,RemoteDir);
+  RemoteGDBServer :=INIFile^.GetEntry(secRun,ieRemoteGDBServer,RemoteGDBServer);
+  RemoteCopy :=INIFile^.GetEntry(secRun,ieRemoteCopy,RemoteCopy);
+  RemoteShell :=INIFile^.GetEntry(secRun,ieRemoteShell,RemoteShell);
 {$endif SUPPORT_REMOTE}
   { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
@@ -591,7 +614,7 @@ begin
   { Files }
   { avoid keeping old files }
   INIFile^.DeleteSection(secFiles);
-  INIFile^.SetEntry(secFiles,ieOpenExts,'"'+OpenExts+'"');
+  INIFile^.SetEntry(secFiles,ieOpenExts,EscapeIniText(OpenExts));
   for I:=1 to High(RecentFiles) do
     begin
       if I<=RecentFileCount then
@@ -632,15 +655,26 @@ begin
   INIFile^.SetEntry(secRun,ieRunDir,GetRunDir);
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
   INIFile^.SetEntry(secFiles,iePrinterDevice,GetPrinterDevice);
+{$ifndef GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
   { If DebuggeeTTY<>'' then }
     INIFile^.SetEntry(secRun,ieDebuggeeRedir,DebuggeeTTY);
+{$endif not GDB_WINDOWS_ALWAYS_USE_ANOTHER_CONSOLE}
 {$ifdef SUPPORT_REMOTE}
     INIFile^.SetEntry(secRun,ieRemoteMachine,RemoteMachine);
     INIFile^.SetEntry(secRun,ieRemotePort,RemotePort);
+    INIFile^.SetEntry(secRun,ieRemotePuttySession,RemotePuttySession);
     INIFile^.SetEntry(secRun,ieRemoteSendCommand,RemoteSendCommand);
     INIFile^.SetEntry(secRun,ieRemoteConfig,RemoteConfig);
     INIFile^.SetEntry(secRun,ieRemoteIdent,RemoteIdent);
     INIFile^.SetEntry(secRun,ieRemoteDirectory,RemoteDir);
+    INIFile^.SetEntry(secRun,ieRemoteExecCommand,RemoteExecCommand);
+    INIFile^.SetEntry(secRun,ieRemoteSshExecCommand,RemoteSshExecCommand);
+    INIFile^.SetEntry(secRun,ieRemoteConfig,RemoteConfig);
+    INIFile^.SetEntry(secRun,ieRemoteIdent,RemoteIdent);
+    INIFile^.SetEntry(secRun,ieRemoteDirectory,RemoteDir);
+    INIFile^.SetEntry(secRun,ieRemoteGDBServer,RemoteGDBServer);
+    INIFile^.SetEntry(secRun,ieRemoteCopy,RemoteCopy);
+    INIFile^.SetEntry(secRun,ieRemoteShell,RemoteShell);
 {$endif SUPPORT_REMOTE}
   { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
@@ -648,17 +682,17 @@ begin
   { Help }
   S:='';
   HelpFiles^.ForEach(@ConcatName);
-  INIFile^.SetEntry(secHelp,ieHelpFiles,'"'+S+'"');
+  INIFile^.SetEntry(secHelp,ieHelpFiles,EscapeIniText(S));
   { Editor }
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultIndentSize,DefaultIndentSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
   { Highlight }
-  INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
-  INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
+  INIFile^.SetEntry(secHighlight,ieHighlightExts,EscapeIniText(HighlightExts));
+  INIFile^.SetEntry(secHighlight,ieTabsPattern,EscapeIniText(TabsPattern));
   { SourcePath }
-  INIFile^.SetEntry(secSourcePath,ieSourceList,'"'+SourceDirs+'"');
+  INIFile^.SetEntry(secSourcePath,ieSourceList,EscapeIniText(SourceDirs));
   { Mouse }
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
@@ -688,9 +722,9 @@ begin
     begin
       S:=IntToStr(I);
       GetToolParams(I-1,S1,S2,S3,W);
-      if S1<>'' then S1:='"'+S1+'"';
-      if S2<>'' then S2:='"'+S2+'"';
-      if S3<>'' then S3:='"'+S3+'"';
+      if S1<>'' then S1:=EscapeIniText(S1);
+      if S2<>'' then S2:=EscapeIniText(S2);
+      if S3<>'' then S3:=EscapeIniText(S3);
       INIFile^.SetEntry(secTools,ieToolName+S,S1);
       INIFile^.SetEntry(secTools,ieToolProgram+S,S2);
       INIFile^.SetEntry(secTools,ieToolParams+S,S3);

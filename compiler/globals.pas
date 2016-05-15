@@ -41,10 +41,12 @@ interface
 {$ELSE}
       fksysutl,
 {$ENDIF}
-
       { comphook pulls in sysutils anyways }
       cutils,cclasses,cfileutl,
       cpuinfo,
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+      llvminfo,
+{$endif LLVM and not GENERIC_CPU}
       globtype,version,systems;
 
     const
@@ -52,7 +54,7 @@ interface
          [m_delphi,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,
-          m_property,m_default_inline,m_except,m_advanced_records];
+          m_property,m_default_inline,m_except,m_advanced_records,m_type_helpers];
        delphiunicodemodeswitches = delphimodeswitches + [m_systemcodepage,m_default_unicodestring];
        fpcmodeswitches =
          [m_fpc,m_string_pchar,m_nested_comment,m_repeat_forward,
@@ -71,7 +73,13 @@ interface
        macmodeswitches =
          [m_mac,m_cvar_support,m_mac_procvar,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_default_inline];
        isomodeswitches =
-         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus];
+         [m_iso,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
+          m_isolike_program_para,
+          m_isolike_mod];
+       extpasmodeswitches =
+         [m_extpas,m_tp_procvar,m_duplicate_names,m_nested_procvars,m_non_local_goto,m_isolike_unary_minus,m_isolike_io,
+          m_isolike_program_para,
+          m_isolike_mod];
 
        { maximum nesting of routines }
        maxnesting = 32;
@@ -84,23 +92,23 @@ interface
        treelogfilename = 'tree.log';
 
 {$if defined(CPUARM) and defined(FPUFPA)}
-       MathQNaN : tdoublerec = (bytes : (0,0,252,255,0,0,0,0));
-       MathInf : tdoublerec = (bytes : (0,0,240,127,0,0,0,0));
-       MathNegInf : tdoublerec = (bytes : (0,0,240,255,0,0,0,0));
-       MathPi : tdoublerec =  (bytes : (251,33,9,64,24,45,68,84));
+       MathQNaN : tcompdoublerec = (bytes : (0,0,252,255,0,0,0,0));
+       MathInf : tcompdoublerec = (bytes : (0,0,240,127,0,0,0,0));
+       MathNegInf : tcompdoublerec = (bytes : (0,0,240,255,0,0,0,0));
+       MathPi : tcompdoublerec =  (bytes : (251,33,9,64,24,45,68,84));
 {$else}
 {$ifdef FPC_LITTLE_ENDIAN}
-       MathQNaN : tdoublerec = (bytes : (0,0,0,0,0,0,252,255));
-       MathInf : tdoublerec = (bytes : (0,0,0,0,0,0,240,127));
-       MathNegInf : tdoublerec = (bytes : (0,0,0,0,0,0,240,255));
-       MathPi : tdoublerec = (bytes : (24,45,68,84,251,33,9,64));
-       MathPiExtended : textendedrec = (bytes : (53,194,104,33,162,218,15,201,0,64));
+       MathQNaN : tcompdoublerec = (bytes : (0,0,0,0,0,0,252,255));
+       MathInf : tcompdoublerec = (bytes : (0,0,0,0,0,0,240,127));
+       MathNegInf : tcompdoublerec = (bytes : (0,0,0,0,0,0,240,255));
+       MathPi : tcompdoublerec = (bytes : (24,45,68,84,251,33,9,64));
+       MathPiExtended : tcompextendedrec = (bytes : (53,194,104,33,162,218,15,201,0,64));
 {$else FPC_LITTLE_ENDIAN}
-       MathQNaN : tdoublerec = (bytes : (255,252,0,0,0,0,0,0));
-       MathInf : tdoublerec = (bytes : (127,240,0,0,0,0,0,0));
-       MathNegInf : tdoublerec = (bytes : (255,240,0,0,0,0,0,0));
-       MathPi : tdoublerec =  (bytes : (64,9,33,251,84,68,45,24));
-       MathPiExtended : textendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
+       MathQNaN : tcompdoublerec = (bytes : (255,252,0,0,0,0,0,0));
+       MathInf : tcompdoublerec = (bytes : (127,240,0,0,0,0,0,0));
+       MathNegInf : tcompdoublerec = (bytes : (255,240,0,0,0,0,0,0));
+       MathPi : tcompdoublerec =  (bytes : (64,9,33,251,84,68,45,24));
+       MathPiExtended : tcompextendedrec = (bytes : (64,0,201,15,218,162,33,104,194,53));
 {$endif FPC_LITTLE_ENDIAN}
 {$endif}
 
@@ -143,7 +151,8 @@ interface
          maxfpuregisters : shortint;
 
          cputype,
-         optimizecputype : tcputype;
+         optimizecputype,
+         asmcputype      : tcputype;
          fputype         : tfputype;
          asmmode         : tasmmode;
          interfacetype   : tinterfacetypes;
@@ -162,10 +171,13 @@ interface
          instructionset : tinstructionset;
 {$endif defined(ARM)}
 
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+         llvmversion: tllvmversion;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
+
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
          controllertype   : tcontrollertype;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
+
          { WARNING: this pointer cannot be written as such in record token }
          pmessage : pmessagestaterecord;
        end;
@@ -232,13 +244,12 @@ interface
        asmextraopt       : string;
 
        { things specified with parameters }
-       paratarget        : tsystem;
-       paratargetdbg     : tdbg;
-       paratargetasm     : tasm;
        paralinkoptions   : TCmdStr;
        paradynamiclinker : string;
        paraprintnodetree : byte;
+{$ifdef PREPROCWRITE}
        parapreprocess    : boolean;
+{$endif PREPROCWRITE}
        printnodefile     : text;
 
        {  typical cross compiling params}
@@ -266,11 +277,12 @@ interface
        objectsearchpath,
        includesearchpath,
        frameworksearchpath  : TSearchPathList;
+       packagesearchpath     : TSearchPathList;
+       { contains tpackageentry entries }
+       packagelist : TFPHashList;
        autoloadunits      : string;
 
        { linking }
-       usegnubinutils : boolean;
-       forceforwardslash : boolean;
        usewindowapi  : boolean;
        description   : string;
        SetPEFlagsSetExplicity,
@@ -297,7 +309,6 @@ interface
        MacOSXVersionMin,
        iPhoneOSVersionMin: string[15];
        RelocSectionSetExplicitly : boolean;
-       LinkTypeSetExplicitly : boolean;
 
        current_tokenpos,                  { position of the last token }
        current_filepos : tfileposinfo;    { current position }
@@ -307,6 +318,7 @@ interface
        nwcopyright  : string;
 
        codegenerror : boolean;           { true if there is an error reported }
+       exception_raised : boolean;           { true if there is an exception reported }
 
        block_type : tblock_type;         { type of currently parsed block }
 
@@ -322,9 +334,8 @@ interface
        pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
-       stacksize,
-       jmp_buf_size,
-       jmp_buf_align : longint;
+       maxheapsize,
+       stacksize   : longint;
 
 {$Ifdef EXTDEBUG}
      { parameter switches }
@@ -344,13 +355,6 @@ interface
        prop_auto_setter_prefix : string;
 
     const
-       DLLsource : boolean = false;
-
-       { used to set all registers used for each global function
-         this should dramatically decrease the number of
-         recompilations needed PM }
-       simplify_ppu : boolean = true;
-
        Inside_asm_statement : boolean = false;
 
        global_unit_count : word = 0;
@@ -374,6 +378,7 @@ interface
        defaultmainaliasname = 'main';
        mainaliasname : string = defaultmainaliasname;
 
+
     const
       default_settings : TSettings = (
         alignment : (
@@ -393,12 +398,12 @@ interface
         globalswitches : [cs_check_unit_name,cs_link_static];
         targetswitches : [];
         moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath{$ifdef i8086},cs_force_far_calls{$endif}];
+        localswitches : [cs_check_io,cs_typed_const_writable,cs_pointermath,cs_imported_data{$ifdef i8086},cs_force_far_calls{$endif}];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
         genwpoptimizerswitches : [];
         dowpoptimizerswitches : [];
-        debugswitches : [];
+        debugswitches : [ds_dwarf_sets];
 
         setalloc : 0;
         packenum : 4;
@@ -410,82 +415,95 @@ interface
 {$endif i8086}
         maxfpuregisters : 0;
 
-{ Note: GENERIC_CPU is sued together with generic subdirectory to
+{ Note: GENERIC_CPU is used together with generic subdirectory to
   be able to compile some of the units without any real CPU.
   This is used to generate a CPU independant PPUDUMP utility. PM }
 {$ifdef GENERIC_CPU}
         cputype : cpu_none;
         optimizecputype : cpu_none;
+        asmcputype : cpu_none;
         fputype : fpu_none;
 {$else not GENERIC_CPU}
   {$ifdef i386}
         cputype : cpu_Pentium;
         optimizecputype : cpu_Pentium3;
+        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i386}
   {$ifdef m68k}
         cputype : cpu_MC68020;
         optimizecputype : cpu_MC68020;
+        asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif m68k}
   {$ifdef powerpc}
         cputype : cpu_PPC604;
         optimizecputype : cpu_ppc7400;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif powerpc}
   {$ifdef POWERPC64}
         cputype : cpu_PPC970;
         optimizecputype : cpu_ppc970;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif POWERPC64}
   {$ifdef sparc}
         cputype : cpu_SPARC_V9;
         optimizecputype : cpu_SPARC_V9;
+        asmcputype : cpu_none;
         fputype : fpu_hard;
   {$endif sparc}
   {$ifdef arm}
-        cputype : cpu_armv3;
-        optimizecputype : cpu_armv3;
+        cputype : cpu_armv4;
+        optimizecputype : cpu_armv4;
+        asmcputype : cpu_none;
         fputype : fpu_fpa;
   {$endif arm}
   {$ifdef x86_64}
         cputype : cpu_athlon64;
         optimizecputype : cpu_athlon64;
+        asmcputype : cpu_none;
         fputype : fpu_sse64;
   {$endif x86_64}
-  {$ifdef ia64}
-        cputype : cpu_itanium;
-        optimizecputype : cpu_itanium;
-        fputype : fpu_itanium;
-  {$endif ia64}
   {$ifdef avr}
         cputype : cpuinfo.cpu_avr5;
         optimizecputype : cpuinfo.cpu_avr5;
+        asmcputype : cpu_none;
         fputype : fpu_none;
   {$endif avr}
   {$ifdef mips}
         cputype : cpu_mips2;
         optimizecputype : cpu_mips2;
+        asmcputype : cpu_none;
         fputype : fpu_mips2;
   {$endif mips}
   {$ifdef jvm}
         cputype : cpu_none;
         optimizecputype : cpu_none;
+        asmcputype : cpu_none;
         fputype : fpu_standard;
   {$endif jvm}
   {$ifdef aarch64}
         cputype : cpu_armv8;
         optimizecputype : cpu_armv8;
+        asmcputype : cpu_none;
         fputype : fpu_vfp;
   {$endif aarch64}
   {$ifdef i8086}
         cputype : cpu_8086;
         optimizecputype : cpu_8086;
+        { Use cpu_none by default,
+        because using cpu_8086 by default means
+        that we reject any instruction above bare 8086 instruction set
+        for all assembler code PM }
+        asmcputype : cpu_none;
         fputype : fpu_x87;
   {$endif i8086}
   {$ifdef spc32}
         cputype : cpu_spc32v1;
         optimizecputype : cpu_spc32v1;
+        asmcputype : cpu_none;
         fputype : fpu_soft;
   {$endif spc32}
 {$endif not GENERIC_CPU}
@@ -506,9 +524,10 @@ interface
 {$if defined(ARM)}
         instructionset : is_arm;
 {$endif defined(ARM)}
-{$if defined(ARM) or defined(AVR) or defined(MIPSEL)}
+{$if defined(LLVM) and not defined(GENERIC_CPU)}
+        llvmversion    : llvmver_3_6_0;
+{$endif defined(LLVM) and not defined(GENERIC_CPU)}
         controllertype : ct_none;
-{$endif defined(ARM) or defined(AVR) or defined(MIPSEL)}
         pmessage : nil;
       );
 
@@ -531,6 +550,7 @@ interface
 
     procedure InitGlobals;
     procedure DoneGlobals;
+    procedure register_initdone_proc(init,done:tprocedure);
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
@@ -540,9 +560,7 @@ interface
     function Setoptimizecputype(const s:string;var a:tcputype):boolean;
     function Setcputype(const s:string;var a:tsettings):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
-{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
@@ -558,6 +576,7 @@ interface
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
     function floating_point_range_check_error : boolean;
+    function use_dotted_functions: boolean;
 
   { hide Sysutils.ExecuteProcess in units using this one after SysUtils}
   const
@@ -761,10 +780,10 @@ implementation
      get the current time in a string HH:MM:SS
    }
       var
-        hour,min,sec,hsec : word;
+        st: TSystemTime;
       begin
-        DecodeTime(Time,hour,min,sec,hsec);
-        gettimestr:=L0(Hour)+':'+L0(min)+':'+L0(sec);
+        GetLocalTime(st);
+        gettimestr:=L0(st.Hour)+':'+L0(st.Minute)+':'+L0(st.Second);
       end;
 
 
@@ -773,10 +792,10 @@ implementation
      get the current date in a string YY/MM/DD
    }
       var
-        Year,Month,Day: Word;
+        st: TSystemTime;
       begin
-        DecodeDate(Date,year,month,day);
-        getdatestr:=L0(Year)+'/'+L0(Month)+'/'+L0(Day);
+        GetLocalTime(st);
+        getdatestr:=L0(st.Year)+'/'+L0(st.Month)+'/'+L0(st.Day);
       end;
 
 
@@ -804,10 +823,10 @@ implementation
 
    function getrealtime : real;
      var
-       h,m,s,s1000 : word;
+       st:TSystemTime;
      begin
-       DecodeTime(Time,h,m,s,s1000);
-       result:=h*3600.0+m*60.0+s+s1000/1000.0;
+       GetLocalTime(st);
+       result:=st.Hour*3600.0+st.Minute*60.0+st.Second+st.MilliSecond/1000.0;
      end;
 
 {****************************************************************************
@@ -842,6 +861,13 @@ implementation
            Replace(s,'$FPCTARGET',target_os_string)
          else
            Replace(s,'$FPCTARGET',target_full_string);
+         Replace(s,'$FPCSUBARCH',lower(cputypestr[init_settings.cputype]));
+         Replace(s,'$FPCABI',lower(abiinfo[target_info.abi].name));
+{$ifdef i8086}
+         Replace(s,'$FPCMEMORYMODEL',lower(x86memorymodelstr[init_settings.x86memorymodel]));
+{$else i8086}
+         Replace(s,'$FPCMEMORYMODEL','flat');
+{$endif i8086}
 {$ifdef mswindows}
          ReplaceSpecialFolder('$LOCAL_APPDATA',CSIDL_LOCAL_APPDATA);
          ReplaceSpecialFolder('$APPDATA',CSIDL_APPDATA);
@@ -972,7 +998,7 @@ implementation
           result := -1;
       end;
 
-    function convertdoublerec(d : tdoublerec) : tdoublerec;{$ifdef USEINLINE}inline;{$endif}
+    function convertdoublerec(d : tcompdoublerec) : tcompdoublerec;{$ifdef USEINLINE}inline;{$endif}
 {$ifdef CPUARM}
       var
         i : longint;
@@ -1076,7 +1102,8 @@ implementation
          'STDCALL',
          'SOFTFLOAT',
          'MWPASCAL',
-         'INTERRUPT'
+         'INTERRUPT',
+         'HARDFLOAT'
         );
       var
         t  : tproccalloption;
@@ -1181,23 +1208,34 @@ implementation
       end;
 
 
-{$if defined(arm) or defined(avr) or defined(mipsel)}
     function SetControllerType(const s:string;var a:tcontrollertype):boolean;
       var
         t  : tcontrollertype;
         hs : string;
       begin
-        result:=false;
-        hs:=Upper(s);
-        for t:=low(tcontrollertype) to high(tcontrollertype) do
-          if embedded_controllers[t].controllertypestr=hs then
-            begin
-              a:=t;
-              result:=true;
-              break;
-            end;
+{ The following check allows to reduce amount of code for platforms  }
+{ not supporting microcontrollers due to evaluation at compile time. }
+{$PUSH}
+ {$WARN 6018 OFF} (* Unreachable code due to compile time evaluation *)
+        if ControllerSupport then
+         begin
+          result:=false;
+          hs:=Upper(s);
+          for t:=low(tcontrollertype) to high(tcontrollertype) do
+            if embedded_controllers[t].controllertypestr=hs then
+              begin
+                a:=t;
+                result:=true;
+                break;
+              end;
+         end
+        else
+         begin
+          a := ct_none;
+          Result := true;
+         end;
+{$POP}
       end;
-{$endif defined(arm) or defined(avr) or defined(mipsel)}
 
 
     function IncludeFeature(const s : string) : boolean;
@@ -1285,6 +1323,14 @@ implementation
         result:=cs_ieee_errors in current_settings.localswitches;
       end;
 
+
+    function use_dotted_functions: boolean;
+      begin
+        result:=
+          (target_info.system in systems_dotted_function_names) and
+          (target_info.abi<>abi_powerpc_elfv2);
+      end;
+
 {****************************************************************************
                                     Init
 ****************************************************************************}
@@ -1332,8 +1378,70 @@ implementation
 
 
 
+   type
+     tinitdoneentry=record
+       init:tprocedure;
+       done:tprocedure;
+     end;
+     pinitdoneentry=^tinitdoneentry;
+
+
+   var
+     initdoneprocs : TFPList;
+
+
+   procedure register_initdone_proc(init,done:tprocedure);
+     var
+       entry : pinitdoneentry;
+     begin
+       new(entry);
+       entry^.init:=init;
+       entry^.done:=done;
+       initdoneprocs.add(entry);
+     end;
+
+
+   procedure callinitprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(init) then
+             init();
+     end;
+
+
+   procedure calldoneprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         with pinitdoneentry(initdoneprocs[i])^ do
+           if assigned(done) then
+             done();
+     end;
+
+
+   procedure allocinitdoneprocs;
+     begin
+       initdoneprocs:=tfplist.create;
+     end;
+
+
+   procedure freeinitdoneprocs;
+     var
+       i : longint;
+     begin
+       for i:=0 to initdoneprocs.count-1 do
+         dispose(pinitdoneentry(initdoneprocs[i]));
+       initdoneprocs.free;
+     end;
+
+
    procedure DoneGlobals;
      begin
+       calldoneprocs;
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1341,6 +1449,7 @@ implementation
        frameworksearchpath.Free;
        LinkLibraryAliases.Free;
        LinkLibraryOrder.Free;
+       packagesearchpath.Free;
      end;
 
    procedure InitGlobals;
@@ -1353,10 +1462,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         codegenerror:=false;
-        DLLsource:=false;
-        paratarget:=system_none;
-        paratargetasm:=as_none;
-        paratargetdbg:=dbg_none;
 
         { Output }
         OutputFileName:='';
@@ -1380,6 +1485,7 @@ implementation
         includesearchpath:=TSearchPathList.Create;
         objectsearchpath:=TSearchPathList.Create;
         frameworksearchpath:=TSearchPathList.Create;
+        packagesearchpath:=TSearchPathList.Create;
 
         { Def file }
         usewindowapi:=false;
@@ -1403,18 +1509,12 @@ implementation
         GenerateImportSection:=false;
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
-        LinkTypeSetExplicitly:=false;
         MacOSXVersionMin:='';
         iPhoneOSVersionMin:='';
         { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;
         { not initialized yet }
-{$ifndef jvm}
-        jmp_buf_size:=-1;
-{$else}
-        jmp_buf_size:=0;
-{$endif}
         apptype:=app_cui;
 
         { Init values }
@@ -1427,6 +1527,12 @@ implementation
 
         { enable all features by default }
         features:=[low(Tfeature)..high(Tfeature)];
+
+        callinitprocs;
      end;
 
+initialization
+  allocinitdoneprocs;
+finalization
+  freeinitdoneprocs;
 end.

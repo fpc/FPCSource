@@ -30,13 +30,13 @@ unit rgx86;
     uses
       cclasses,globtype,
       cpubase,cpuinfo,cgbase,cgutils,
-      aasmbase,aasmtai,aasmdata,aasmcpu,
+      aasmbase,aasmtai,aasmdata,aasmsym,aasmcpu,
       rgobj;
 
     type
        trgx86 = class(trgobj)
          function  get_spill_subreg(r : tregister) : tsubregister;override;
-         function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
+         function  do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
        end;
 
        tpushedsavedloc = record
@@ -107,7 +107,7 @@ implementation
       end;
 
 
-    function trgx86.do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
+    function trgx86.do_spill_replace(list:TAsmList;instr:tai_cpu_abstract_sym;orgreg:tsuperregister;const spilltemp:treference):boolean;
 
     {Decide wether a "replace" spill is possible, i.e. wether we can replace a register
      in an instruction by a memory reference. For example, in "mov ireg26d,0", the imaginary
@@ -118,7 +118,7 @@ implementation
         is_subh: Boolean;
       begin
         result:=false;
-        with instr do
+        with taicpu(instr) do
           begin
             replaceoper:=-1;
             case ops of
@@ -223,7 +223,7 @@ implementation
                           begin
                             { Some instructions don't allow memory references
                               for source }
-                            case instr.opcode of
+                            case opcode of
                               A_BT,
                               A_BTS,
                               A_BTC,
@@ -240,7 +240,7 @@ implementation
                           begin
                             { Some instructions don't allow memory references
                               for destination }
-                            case instr.opcode of
+                            case opcode of
                               A_CMOVcc,
                               A_MOVZX,
                               A_MOVSX,
@@ -330,7 +330,7 @@ implementation
               zeroing the upper 32 bits of the register. This does not happen
               with memory operations, so we have to perform these calculations
               in registers.  }
-            if (instr.opsize=S_L) then
+            if (opsize=S_L) then
               replaceoper:=-1;
 {$endif x86_64}
 
