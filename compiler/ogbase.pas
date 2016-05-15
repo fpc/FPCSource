@@ -612,6 +612,7 @@ interface
         procedure AddObjData(ObjData:TObjData);
         procedure Load_Start;virtual;
         procedure Load_EntryName(const aname:string);virtual;
+        procedure Load_AbsSym(const aname:string);virtual;
         procedure Load_Symbol(const aname:string);virtual;
         procedure Load_ProvideSymbol(const aname:string);virtual;
         procedure Load_IsSharedLibrary;
@@ -624,6 +625,7 @@ interface
         procedure Order_Zeros(const avalue:string);virtual;
         procedure Order_Values(bytesize : aword; const avalue:string);virtual;
         procedure Order_Symbol(const aname:string);virtual;
+        procedure Order_AbsSym(const aname:string);virtual;
         procedure Order_ProvideSymbol(const aname:string);virtual;
         procedure Order_EndExeSection;virtual;
         procedure Order_ObjSection(const aname:string);virtual;
@@ -1954,6 +1956,23 @@ implementation
       end;
 
 
+    procedure TExeOutput.Load_AbsSym(const aname: string);
+      var
+        name, value: String;
+        asmsym: TObjSymbol;
+      begin
+        name:=Copy(aname,1, Pos(',',aname)-1);
+        value:=Copy(aname, pos(',',aname)+1, length(aname)-pos(',',aname));
+
+        if assigned(ExeSymbolList.Find(name)) then
+          exit;
+        internalObjData.createsection('*'+name,0,[]);
+        // Use AB_COMMON to avoid muliple defined complaints
+        asmsym:=internalObjData.SymbolDefine(name,AB_GLOBAL,AT_NONE);
+        asmsym.offset:=strtoint(value);
+      end;
+
+
     procedure TExeOutput.Load_IsSharedLibrary;
       begin
         IsSharedLibrary:=true;
@@ -2078,6 +2097,26 @@ implementation
         if (objsym=nil) or (objsym.ObjSection.ObjData<>internalObjData) then
           internalerror(200603041);
         CurrExeSec.AddObjSection(objsym.ObjSection,True);
+      end;
+
+    procedure TExeOutput.Order_AbsSym(const aname: string);
+      var
+        objsym: TObjSymbol;
+        name: String;
+        exesym: TExeSymbol;
+      begin
+        name:=Copy(aname,1,pos(',',aname)-1);
+
+        objsym:=TObjSymbol(internalObjData.ObjSymbolList.Find(name));
+        if (objsym=nil) or (objsym.ObjSection.ObjData<>internalObjData) then
+          internalerror(200603041);
+        exesym:=TExeSymbol(ExeSymbolList.Find(name));
+        if not assigned(exesym) then
+          internalerror(201206301);
+        { Only include this section if it actually resolves
+          the symbol }
+        if exesym.objsymbol=objsym then
+          CurrExeSec.AddObjSection(objsym.ObjSection,True);
       end;
 
     procedure TExeOutput.Order_ProvideSymbol(const aname:string);

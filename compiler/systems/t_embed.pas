@@ -82,6 +82,13 @@ begin
 
   with LinkScript do
     begin
+      if current_settings.controllertype<>ct_none then
+      begin
+        Concat('EXESECTION *globals');
+        Concat('  ABSSYM _stack_top,'+IntToStr(embedded_controllers[current_settings.controllertype].srambase+embedded_controllers[current_settings.controllertype].sramsize));
+        Concat('EXESECTION *globals');
+      end;
+
       Concat('HEADER');
       Concat('EXESECTION .interp');
       Concat('  OBJSECTION .interp');

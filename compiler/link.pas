@@ -1175,7 +1175,8 @@ Implementation
             {para:=}GetToken(s,' ');
             if Trim(s)<>'' then
               Comment(V_Warning,'Unknown part "'+s+'" in "'+hp.str+'" internal linker script');
-            if (keyword<>'SYMBOL') and
+            if (keyword<>'ABSSYM') and
+               (keyword<>'SYMBOL') and
                (keyword<>'SYMBOLS') and
                (keyword<>'STABS') and
                (keyword<>'PROVIDE') and
@@ -1264,7 +1265,9 @@ Implementation
             handled:=true;
             keyword:=Upper(GetToken(s,' '));
             para:=ParsePara(GetToken(s,' '));
-            if keyword='SYMBOL' then
+            if keyword='ABSSYM' then
+              ExeOutput.Load_AbsSym(para)
+            else if keyword='SYMBOL' then
               ExeOutput.Load_Symbol(para)
             else if keyword='PROVIDE' then
               ExeOutput.Load_ProvideSymbol(para)
@@ -1336,6 +1339,8 @@ Implementation
               ExeOutput.Order_Values(8,para)
             else if keyword='SYMBOL' then
               ExeOutput.Order_Symbol(para)
+            else if keyword='ABSSYM' then
+              ExeOutput.Order_AbsSym(para)
             else if keyword='PROVIDE' then
               ExeOutput.Order_ProvideSymbol(para)
             else
