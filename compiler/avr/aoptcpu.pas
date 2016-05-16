@@ -800,7 +800,7 @@ Implementation
                       mov rX,...
                       mov rX,...
                     }
-                    else if taicpu(hp1).opcode=A_MOV then
+                    else if (hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_MOV) then
                       while (hp1.typ=ait_instruction) and (taicpu(hp1).opcode=A_MOV) and
                             MatchOperand(taicpu(p).oper[0]^, taicpu(hp1).oper[0]^) and
                             { don't remove the first mov if the second is a mov rX,rX }
