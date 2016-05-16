@@ -2603,6 +2603,8 @@ packages/fcl-pdf/utils/ttfdump.lpr svneol=native#text/plain
 packages/fcl-process/Makefile svneol=native#text/plain
 packages/fcl-process/Makefile.fpc svneol=native#text/plain
 packages/fcl-process/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-process/examples/checkipcserver.lpi svneol=native#text/plain
+packages/fcl-process/examples/checkipcserver.lpr svneol=native#text/plain
 packages/fcl-process/examples/demoproject.ico -text
 packages/fcl-process/examples/demoproject.lpi svneol=native#text/plain
 packages/fcl-process/examples/demoproject.pp svneol=native#text/plain
@@ -2616,6 +2618,8 @@ packages/fcl-process/examples/ipcclient.lpi svneol=native#text/plain
 packages/fcl-process/examples/ipcclient.pp svneol=native#text/plain
 packages/fcl-process/examples/ipcserver.lpi svneol=native#text/plain
 packages/fcl-process/examples/ipcserver.pp svneol=native#text/plain
+packages/fcl-process/examples/simpleipcserver.lpi svneol=native#text/plain
+packages/fcl-process/examples/simpleipcserver.lpr svneol=native#text/plain
 packages/fcl-process/examples/waitonexit.pp svneol=native#text/pascal
 packages/fcl-process/fpmake.pp svneol=native#text/plain
 packages/fcl-process/src/amicommon/pipes.inc svneol=native#text/plain
