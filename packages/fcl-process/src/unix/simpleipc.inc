@@ -54,7 +54,6 @@ Type
 implementation
 {$endif}
 
-
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
 begin
   inherited Create(AOWner);
@@ -86,6 +85,7 @@ procedure TPipeClientComm.SendMessage(MsgType : TMessagetype; AStream: TStream);
 
 Var
   Hdr : TMsgHeader;
+
 begin
   Hdr.Version:=MsgVersion;
   Hdr.msgType:=MsgType;
@@ -203,10 +203,12 @@ begin
     M.Size := 0;
 end;
 
+
 function TPipeServerComm.GetInstanceID: String;
 begin
   Result:=IntToStr(fpGetPID);
 end;
+
 
 { ---------------------------------------------------------------------
     Set TSimpleIPCClient / TSimpleIPCServer defaults.
@@ -231,4 +233,5 @@ end;
 
 {$else ipcunit}
 
+end.
 {$endif}
