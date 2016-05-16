@@ -3111,3 +3111,41 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
         end;
       end;
    end;
+
+{$macro on}
+// Ansi version declaration
+{$UNDEF SBUNICODE}
+{$define SBChar:=AnsiChar}
+{$define SBString:=AnsiString}
+{$define TSBCharArray:=Array of SBChar}
+{$define PSBChar:=PAnsiChar}
+{$define SBRAWString:=RawByteString}
+{$define TStringBuilder:=TAnsiStringBuilder}
+
+{$i syssb.inc}
+{$undef SBChar}
+{$undef SBString}
+{$undef TSBCharArray}
+{$undef PSBChar}
+{$undef SBRAWString}
+{$undef TStringBuilder}
+
+// Unicode version declaration
+
+{$define SBUNICODE}
+{$define SBChar:=WideChar}
+{$define SBString:=UnicodeString}
+{$define TSBCharArray:=Array of SBChar}
+{$define PSBChar:=PWideChar}
+{$define SBRAWString:=UnicodeString}
+{$define TStringBuilder:=TUnicodeStringBuilder}
+{$i syssb.inc}
+{$undef SBChar}
+{$undef SBString}
+{$undef TSBCharArray}
+{$undef PSBChar}
+{$undef SBRAWString}
+{$undef TStringBuilder}
+{$undef SBUNICODE}
+
+

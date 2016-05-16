@@ -26,7 +26,9 @@ const
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 { from old str*.inc files }
-
+  SListIndexError        = 'List index (%d) out of bounds';
+  SParamIsNegative       = 'Parameter "%s" cannot be negative.';
+  SListCapacityError     = 'List capacity (%d) exceeded.';
   SAbortError            = 'Operation aborted';
   SAbstractError         = 'Abstract method called';
   SAccessDenied          = 'Access denied';
