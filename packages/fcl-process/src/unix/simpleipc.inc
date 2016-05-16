@@ -26,10 +26,6 @@ uses sysutils, classes, simpleipc, baseunix;
 uses baseunix;
 {$endif}
 
-{$DEFINE OSNEEDIPCINITDONE}
-
-
-
 
 ResourceString
   SErrFailedToCreatePipe = 'Failed to create named pipe: %s';
@@ -57,56 +53,6 @@ Type
 {$ifdef ipcunit}
 implementation
 {$endif}
-
-Var
-  SocketFiles : TStringList;
-
-Procedure IPCInit;
-
-begin
-end;
-
-Procedure IPCDone;
-
-Var
-  I : integer;
-  
-begin
-  if Assigned(SocketFiles) then
-    try
-      For I:=0 to SocketFiles.Count-1 do
-        DeleteFile(SocketFiles[i]);
-    finally  
-      FreeAndNil(SocketFiles);  
-    end;  
-end;
-
-
-Procedure RegisterSocketFile(Const AFileName : String);
-
-begin
-  If Not Assigned(SocketFiles) then
-    begin
-    SocketFiles:=TStringList.Create;
-    SocketFiles.Sorted:=True;
-    end;
-  SocketFiles.Add(AFileName);  
-end;
-
-Procedure UnRegisterSocketFile(Const AFileName : String);
-
-Var
-  I : Integer;
-begin
-  If Assigned(SocketFiles) then
-    begin
-    I:=SocketFiles.IndexOf(AFileName);  
-    If (I<>-1) then
-      SocketFiles.Delete(I);
-    If (SocketFiles.Count=0) then
-      FreeAndNil(SocketFiles);
-    end;
-end;
 
 
 constructor TPipeClientComm.Create(AOWner: TSimpleIPCClient);
@@ -140,8 +86,6 @@ procedure TPipeClientComm.SendMessage(MsgType : TMessagetype; AStream: TStream);
 
 Var
   Hdr : TMsgHeader;
-  P,L,Count : Integer;
-
 begin
   Hdr.Version:=MsgVersion;
   Hdr.msgType:=MsgType;
@@ -218,12 +162,10 @@ begin
     If (fpmkFifo(FFileName,438)<>0) then
       DoError(SErrFailedToCreatePipe,[FFileName]);
   FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone,Rights[Owner.Global]);
-  RegisterSocketFile(FFileName);
 end;
 
 procedure TPipeServerComm.StopServer;
 begin
-  UnregisterSocketFile(FFileName);
   FreeAndNil(FStream);
   if Not DeleteFile(FFileName) then
     DoError(SErrFailedtoRemovePipe,[FFileName]);
@@ -243,7 +185,7 @@ end;
 procedure TPipeServerComm.ReadMessage;
 
 Var
-  L,P,Count : Integer;
+  Count : Integer;
   Hdr : TMsgHeader;
   M : TStream;
 begin
@@ -288,10 +230,5 @@ begin
 end;
 
 {$else ipcunit}
-initialization
-  IPCInit;
-  
-Finalization
-  IPCDone;  
-end.
+
 {$endif}
