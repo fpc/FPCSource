@@ -42,7 +42,7 @@
     Function Append(const AValue: Currency): TStringBuilder;
     Function Append(const AValue: Double): TStringBuilder;
     Function Append(const AValue: Smallint): TStringBuilder;
-    Function Append(const AValue: Integer): TStringBuilder;
+    Function Append(const AValue: LongInt): TStringBuilder;
     Function Append(const AValue: Int64): TStringBuilder;
     Function Append(const AValue: TObject): TStringBuilder;
     Function Append(const AValue: Shortint): TStringBuilder;
@@ -77,7 +77,7 @@
     Function Insert(Index: Integer; const AValue: Currency): TStringBuilder;
     Function Insert(Index: Integer; const AValue: Double): TStringBuilder;
     Function Insert(Index: Integer; const AValue: Smallint): TStringBuilder;
-    Function Insert(Index: Integer; const AValue: Integer): TStringBuilder;
+    Function Insert(Index: Integer; const AValue: LongInt): TStringBuilder;
     Function Insert(Index: Integer; const AValue: TSBCharArray): TStringBuilder;
     Function Insert(Index: Integer; const AValue: Int64): TStringBuilder;
     Function Insert(Index: Integer; const AValue: TObject): TStringBuilder;

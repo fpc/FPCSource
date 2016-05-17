@@ -260,7 +260,7 @@ begin
   Result:=Self;
 end;
 
-function TStringBuilder.Append(const AValue: Integer): TStringBuilder;
+function TStringBuilder.Append(const AValue: LongInt): TStringBuilder;
 begin
   DoAppend(IntToStr(AValue));
   Result:=Self;
@@ -454,7 +454,7 @@ begin
   Result:=Self;
 end;
 
-function TStringBuilder.Insert(Index: Integer; const AValue: Integer
+function TStringBuilder.Insert(Index: Integer; const AValue: LongInt
   ): TStringBuilder;
 begin
   DoInsert(Index,IntToStr(AValue));
