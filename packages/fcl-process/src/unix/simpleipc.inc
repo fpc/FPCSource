@@ -124,10 +124,15 @@ end;
   ---------------------------------------------------------------------}
 
 Type
+
+  { TPipeServerComm }
+
   TPipeServerComm = Class(TIPCServerComm)
   Private
     FFileName: String;
     FStream: TFileStream;
+  Protected
+    Procedure DoReadMessage; virtual;
   Public
     Constructor Create(AOWner : TSimpleIPCServer); override;
     Procedure StartServer; override;
@@ -138,6 +143,16 @@ Type
     Property FileName : String Read FFileName;
     Property Stream : TFileStream Read FStream;
   end;
+
+procedure TPipeServerComm.DoReadMessage;
+
+Var
+  Hdr : TMsgHeader;
+
+begin
+  FStream.ReadBuffer(Hdr,SizeOf(Hdr));
+  PushMessage(Hdr,FStream);
+end;
 
 constructor TPipeServerComm.Create(AOWner: TSimpleIPCServer);
 begin
@@ -179,28 +194,18 @@ Var
 begin
   fpfd_zero(FDS);
   fpfd_set(FStream.Handle,FDS);
-  Result:=fpSelect(FStream.Handle+1,@FDS,Nil,Nil,TimeOut)>0;
+  Result:=False;
+  While fpSelect(FStream.Handle+1,@FDS,Nil,Nil,TimeOut)>0 do
+    begin
+    DoReadMessage;
+    Result:=True;
+    end;
 end;
 
 procedure TPipeServerComm.ReadMessage;
 
-Var
-  Count : Integer;
-  Hdr : TMsgHeader;
-  M : TStream;
 begin
-  FStream.ReadBuffer(Hdr,SizeOf(Hdr));
-  SetMsgType(Hdr.MsgType);
-  Count:=Hdr.MsgLen;
-  M:=MsgData;
-  if count > 0 then
-    begin
-    M.Size:=0;
-    M.Seek(0,soFrombeginning);
-    M.CopyFrom(FStream,Count);
-    end
-  else
-    M.Size := 0;
+  DoReadMessage;
 end;
 
 
@@ -213,14 +218,20 @@ end;
 { ---------------------------------------------------------------------
     Set TSimpleIPCClient / TSimpleIPCServer defaults.
   ---------------------------------------------------------------------}
+
 {$ifndef ipcunit}
-Function TSimpleIPCServer.CommClass : TIPCServerCommClass;
+function TSimpleIPCServer.CommClass: TIPCServerCommClass;
 
 begin
   if (DefaultIPCServerClass<>Nil) then
     Result:=DefaultIPCServerClass
   else
     Result:=TPipeServerComm;
+end;
+
+procedure TSimpleIPCServer.PushMessage(Msg: TIPCServerMsg);
+begin
+  Queue.Push(Msg);
 end;
 
 function TSimpleIPCClient.CommClass: TIPCClientCommClass;

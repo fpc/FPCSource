@@ -20,7 +20,7 @@ unit simpleipc;
 interface
 
 uses
-  Classes, SysUtils;
+  Contnrs, Classes, SysUtils;
 
 Const
   MsgVersion = 1;
@@ -49,6 +49,36 @@ Type
   TSimpleIPCServer = class;
   TSimpleIPCClient = class;
 
+  TIPCServerMsg = class
+  strict private
+    FStream: TStream;
+    FMsgType: TMessageType;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    property Stream: TStream read FStream;
+    property MsgType: TMessageType read FMsgType write FMsgType;
+  end;
+
+  TIPCServerMsgQueue = class
+  strict private
+    FList: TFPObjectList;
+    FMaxCount: Integer;
+    FMaxAction: TIPCMessageOverflowAction;
+    function GetCount: Integer;
+    procedure DeleteAndFree(Index: Integer);
+    function PrepareToPush: Boolean;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure Clear;
+    procedure Push(AItem: TIPCServerMsg);
+    function Pop: TIPCServerMsg;
+    property Count: Integer read GetCount;
+    property MaxCount: Integer read FMaxCount write FMaxCount;
+    property MaxAction: TIPCMessageOverflowAction read FMaxAction write FMaxAction;
+  end;
+
   { TIPCServerComm }
   
   TIPCServerComm = Class(TObject)
@@ -57,14 +87,16 @@ Type
   Protected  
     Function  GetInstanceID : String; virtual; abstract;
     Procedure DoError(const Msg : String; const Args : Array of const);
-    Procedure SetMsgType(AMsgType: TMessageType); 
-    Function MsgData : TStream;
+    Procedure PushMessage(Const Hdr : TMsgHeader; AStream : TStream);
+    Procedure PushMessage(Msg : TIPCServerMsg);
   Public
     Constructor Create(AOwner : TSimpleIPCServer); virtual;
     Property Owner : TSimpleIPCServer read FOwner;
     Procedure StartServer; virtual; Abstract;
     Procedure StopServer;virtual; Abstract;
+    // May push messages on the queue
     Function  PeekMessage(TimeOut : Integer) : Boolean;virtual; Abstract;
+    // Must put message on the queue.
     Procedure ReadMessage ;virtual; Abstract;
     Property InstanceID : String read GetInstanceID;
   end;
@@ -93,20 +125,28 @@ Type
 
   { TSimpleIPCServer }
 
+
   TSimpleIPCServer = Class(TSimpleIPC)
-  private
+  protected
+  Private
+    FQueue : TIPCServerMsgQueue;
     FGlobal: Boolean;
     FOnMessage: TNotifyEvent;
     FMsgType: TMessageType;
     FMsgData : TStream;
     function GetInstanceID: String;
+    function GetMaxAction: TIPCMessageOverflowAction;
     function GetStringMessage: String;
     procedure SetGlobal(const AValue: Boolean);
+    procedure SetMaxAction(AValue: TIPCMessageOverflowAction);
   Protected
     FIPCComm: TIPCServerComm;
     Function CommClass : TIPCServerCommClass; virtual;
+    Procedure PushMessage(Msg : TIPCServerMsg); virtual;
+    function PopMessage: Boolean; virtual;
     Procedure Activate; override;
     Procedure Deactivate; override;
+    Property Queue : TIPCServerMsgQueue Read FQueue;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -122,6 +162,7 @@ Type
   Published
     Property Global : Boolean Read FGlobal Write SetGlobal;
     Property OnMessage : TNotifyEvent Read FOnMessage Write FOnMessage;
+    property MaxAction: TIPCMessageOverflowAction read GetMaxAction write SetMaxAction;
   end;
 
 
@@ -194,6 +235,103 @@ implementation
 
 {$i simpleipc.inc}
 
+Resourcestring
+  SErrMessageQueueOverflow = 'Message queue overflow (limit %s)';
+
+{ ---------------------------------------------------------------------
+    TIPCServerMsg
+  ---------------------------------------------------------------------}
+
+
+constructor TIPCServerMsg.Create;
+begin
+  FMsgType := 0;
+  FStream := TMemoryStream.Create;
+end;
+
+destructor TIPCServerMsg.Destroy;
+begin
+  FStream.Free;
+end;
+
+{ ---------------------------------------------------------------------
+    TIPCServerMsgQueue
+  ---------------------------------------------------------------------}
+
+constructor TIPCServerMsgQueue.Create;
+begin
+  FMaxCount := DefaultIPCMessageQueueLimit;
+  FMaxAction := DefaultIPCMessageOverflowAction;
+  FList := TFPObjectList.Create(False); // FreeObjects = False!
+end;
+
+destructor TIPCServerMsgQueue.Destroy;
+begin
+  Clear;
+  FList.Free;
+end;
+
+procedure TIPCServerMsgQueue.Clear;
+begin
+  while FList.Count > 0 do
+    DeleteAndFree(FList.Count - 1);
+end;
+
+procedure TIPCServerMsgQueue.DeleteAndFree(Index: Integer);
+begin
+  FList[Index].Free; // Free objects manually!
+  FList.Delete(Index);
+end;
+
+function TIPCServerMsgQueue.GetCount: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TIPCServerMsgQueue.PrepareToPush: Boolean;
+begin
+  Result := True;
+  case FMaxAction of
+    ipcmoaDiscardOld:
+      begin
+        while (FList.Count >= FMaxCount) do
+          DeleteAndFree(FList.Count - 1);
+      end;
+    ipcmoaDiscardNew:
+      begin
+        Result := (FList.Count < FMaxCount);
+      end;
+    ipcmoaError:
+      begin
+        if (FList.Count >= FMaxCount) then
+          // Caller is expected to catch this exception, so not using Owner.DoError()
+          raise EIPCError.CreateFmt(SErrMessageQueueOverflow, [IntToStr(FMaxCount)]);
+      end;
+  end;
+end;
+
+procedure TIPCServerMsgQueue.Push(AItem: TIPCServerMsg);
+begin
+  if PrepareToPush then
+    FList.Insert(0, AItem);
+end;
+
+function TIPCServerMsgQueue.Pop: TIPCServerMsg;
+var
+  Index: Integer;
+begin
+  Index := FList.Count - 1;
+  if Index >= 0 then
+  begin
+    // Caller is responsible for freeing the object.
+    Result := TIPCServerMsg(FList[Index]);
+    FList.Delete(Index);
+  end
+  else
+    Result := nil;
+end;
+
+
 { ---------------------------------------------------------------------
     TIPCServerComm
   ---------------------------------------------------------------------}
@@ -203,22 +341,33 @@ begin
   FOwner:=AOWner;
 end;
 
-Procedure TIPCServerComm.DoError(const Msg : String; const Args : Array of const);
+procedure TIPCServerComm.DoError(const Msg: String; const Args: array of const);
 
 begin
   FOwner.DoError(Msg,Args);
-end;  
-
-Function TIPCServerComm.MsgData : TStream;
-
-begin
-  Result:=FOwner.FMsgData;
 end;
 
-Procedure TIPCServerComm.SetMsgType(AMsgType: TMessageType); 
+procedure TIPCServerComm.PushMessage(const Hdr: TMsgHeader; AStream: TStream);
+
+Var
+  M : TIPCServerMsg;
 
 begin
-  Fowner.FMsgType:=AMsgType;
+  M:=TIPCServerMsg.Create;
+  try
+    M.MsgType:=Hdr.MsgType;
+    if Hdr.MsgLen>0 then
+      M.Stream.CopyFrom(AStream,Hdr.MsgLen);
+  except
+    M.Free;
+    Raise;
+  end;
+  PushMessage(M);
+end;
+
+procedure TIPCServerComm.PushMessage(Msg: TIPCServerMsg);
+begin
+  FOwner.PushMessage(Msg);
 end;
 
 { ---------------------------------------------------------------------
@@ -314,10 +463,12 @@ begin
   FActive:=False;
   FBusy:=False;
   FMsgData:=TStringStream.Create('');
+  FQueue:=TIPCServerMsgQueue.Create;
 end;
 
 destructor TSimpleIPCServer.Destroy;
 begin
+  FreeAndNil(FQueue);
   Active:=False;
   FreeAndNil(FMsgData);
   inherited Destroy;
@@ -332,9 +483,19 @@ begin
     end;
 end;
 
+procedure TSimpleIPCServer.SetMaxAction(AValue: TIPCMessageOverflowAction);
+begin
+  FQueue.MaxAction:=AValue;
+end;
+
 function TSimpleIPCServer.GetInstanceID: String;
 begin
   Result:=FIPCComm.InstanceID;
+end;
+
+function TSimpleIPCServer.GetMaxAction: TIPCMessageOverflowAction;
+begin
+  Result:=FQueue.MaxAction;
 end;
 
 
@@ -363,38 +524,66 @@ begin
     FIPCComm.StopServer;
     FreeAndNil(FIPCComm);
     end;
+  FQueue.Clear;
   FActive:=False;
 end;
 
 // TimeOut values:
-//   >  0  -- number of milliseconds to wait
+//   >  0  -- umber of milliseconds to wait
 //   =  0  -- return immediately
 //   = -1  -- wait infinitely
 //   < -1  -- wait infinitely (force to -1)
 function TSimpleIPCServer.PeekMessage(TimeOut: Integer; DoReadMessage: Boolean): Boolean;
 begin
   CheckActive;
-  if TimeOut < -1 then
-    TimeOut := -1;
-  FBusy:=True;
-  Try
-    Result:=FIPCComm.PeekMessage(Timeout);
-  Finally
-    FBusy:=False;
-  end;
+  Result:=Queue.Count>0;
+  If Not Result then
+    begin
+    if TimeOut < -1 then
+      TimeOut := -1;
+    FBusy:=True;
+    Try
+      Result:=FIPCComm.PeekMessage(Timeout);
+    Finally
+      FBusy:=False;
+    end;
+    end;
   If Result then
     If DoReadMessage then
       Readmessage;
 end;
 
+function TSimpleIPCServer.PopMessage: Boolean;
+
+var
+  MsgItem: TIPCServerMsg;
+
+begin
+  MsgItem:=FQueue.Pop;
+  Result:=Assigned(MsgItem);
+  if Result then
+    try
+      FMsgType := MsgItem.MsgType;
+      MsgItem.Stream.Position := 0;
+      FMsgData.Size := 0;
+      FMsgData.CopyFrom(MsgItem.Stream, MsgItem.Stream.Size);
+    finally
+      MsgItem.Free;
+    end;
+end;
+
 procedure TSimpleIPCServer.ReadMessage;
+
 begin
   CheckActive;
   FBusy:=True;
   Try
-    FIPCComm.ReadMessage;
-    If Assigned(FOnMessage) then
-      FOnMessage(Self);
+    if (FQueue.Count=0) then
+      // Readmessage pushes a message to the queue
+      FIPCComm.ReadMessage;
+    if PopMessage then
+      If Assigned(FOnMessage) then
+        FOnMessage(Self);
   Finally
     FBusy:=False;
   end;

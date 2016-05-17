@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-uses Windows,messages,contnrs;
+uses Windows,messages;
 
 const
   MsgWndClassName: WideString = 'FPCMsgWindowCls';
@@ -38,43 +38,12 @@ var
     lpszClassName: nil);
 
 type
-  TWinMsgServerMsg = class
-  strict private
-    FStream: TStream;
-    FMsgType: TMessageType;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    property Stream: TStream read FStream;
-    property MsgType: TMessageType read FMsgType write FMsgType;
-  end;
-
-  TWinMsgServerMsgQueue = class
-  strict private
-    FList: TFPObjectList;
-    FMaxCount: Integer;
-    FMaxAction: TIPCMessageOverflowAction;
-    function GetCount: Integer;
-    procedure DeleteAndFree(Index: Integer);
-    function PrepareToPush: Boolean;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure Clear;
-    procedure Push(AItem: TWinMsgServerMsg);
-    function Pop: TWinMsgServerMsg;
-    property Count: Integer read GetCount;
-    property MaxCount: Integer read FMaxCount write FMaxCount;
-    property MaxAction: TIPCMessageOverflowAction read FMaxAction write FMaxAction;
-  end;
-
   TWinMsgServerComm = Class(TIPCServerComm)
   strict private
     FHWND : HWND;
     FWindowName : String;
     FWndProcException: Boolean;
     FWndProcExceptionMsg: String;
-    FMsgQueue: TWinMsgServerMsgQueue;
     function AllocateHWnd(const aWindowName: WideString) : HWND;
     procedure ProcessMessages;
     procedure ProcessMessagesWait(TimeOut: Integer);
@@ -96,95 +65,6 @@ type
     Function GetInstanceID : String;override;
     Property WindowName : String Read FWindowName;
   end;
-
-  { ---------------------------------------------------------------------
-      TWinMsgServerMsg / TWinMsgServerMsgQueue
-    ---------------------------------------------------------------------}
-
-constructor TWinMsgServerMsg.Create;
-begin
-  FMsgType := 0;
-  FStream := TMemoryStream.Create;
-end;
-
-destructor TWinMsgServerMsg.Destroy;
-begin
-  FStream.Free;
-end;
-
-
-constructor TWinMsgServerMsgQueue.Create;
-begin
-  FMaxCount := DefaultIPCMessageQueueLimit;
-  FMaxAction := DefaultIPCMessageOverflowAction;
-  FList := TFPObjectList.Create(False); // FreeObjects = False!
-end;
-
-destructor TWinMsgServerMsgQueue.Destroy;
-begin
-  Clear;
-  FList.Free;
-end;
-
-procedure TWinMsgServerMsgQueue.Clear;
-begin
-  while FList.Count > 0 do
-    DeleteAndFree(FList.Count - 1);
-end;
-
-procedure TWinMsgServerMsgQueue.DeleteAndFree(Index: Integer);
-begin
-  FList[Index].Free; // Free objects manually!
-  FList.Delete(Index);
-end;
-
-function TWinMsgServerMsgQueue.GetCount: Integer;
-begin
-  Result := FList.Count;
-end;
-
-function TWinMsgServerMsgQueue.PrepareToPush: Boolean;
-begin
-  Result := True;
-  case FMaxAction of
-    ipcmoaDiscardOld:
-      begin
-        while (FList.Count >= FMaxCount) do
-          DeleteAndFree(FList.Count - 1);
-      end;
-    ipcmoaDiscardNew:
-      begin
-        Result := (FList.Count < FMaxCount);
-      end;
-    ipcmoaError:
-      begin
-        if (FList.Count >= FMaxCount) then
-          // Caller is expected to catch this exception, so not using Owner.DoError()
-          raise EIPCError.CreateFmt(SErrMessageQueueOverflow, [IntToStr(FMaxCount)]);
-      end;
-  end;
-end;
-
-procedure TWinMsgServerMsgQueue.Push(AItem: TWinMsgServerMsg);
-begin
-  if PrepareToPush then
-    FList.Insert(0, AItem);
-end;
-
-function TWinMsgServerMsgQueue.Pop: TWinMsgServerMsg;
-var
-  Index: Integer;
-begin
-  Index := FList.Count - 1;
-  if Index >= 0 then
-  begin
-    // Caller is responsible for freeing the object.
-    Result := TWinMsgServerMsg(FList[Index]);
-    FList.Delete(Index);
-  end
-  else
-    Result := nil;
-end;
 
 { ---------------------------------------------------------------------
     MsgWndProc
@@ -257,13 +137,11 @@ begin
     FWindowName := FWindowName+'_'+InstanceID;
   FWndProcException := False;
   FWndProcExceptionMsg := '';
-  FMsgQueue := TWinMsgServerMsgQueue.Create;
 end;
 
 destructor TWinMsgServerComm.Destroy;
 begin
   StopServer;
-  FMsgQueue.Free;
   inherited;
 end;
 
@@ -275,7 +153,6 @@ end;
 
 procedure TWinMsgServerComm.StopServer;
 begin
-  FMsgQueue.Clear;
   if FHWND <> 0 then
   begin
     DestroyWindow(FHWND);
@@ -304,12 +181,12 @@ end;
 
 function TWinMsgServerComm.HaveQueuedMessages: Boolean; inline;
 begin
-  Result := (FMsgQueue.Count > 0);
+  Result := (Owner.Queue.Count > 0);
 end;
 
 function TWinMsgServerComm.CountQueuedMessages: Integer; inline;
 begin
-  Result := FMsgQueue.Count;
+  Result := Owner.Queue.Count;
 end;
 
 procedure TWinMsgServerComm.HandlePostedMessage(const Msg: TMsg); inline;
@@ -397,7 +274,8 @@ end;
 procedure TWinMsgServerComm.ReadMsgData(var Msg: TMsg);
 var
   CDS: PCopyDataStruct;
-  MsgItem: TWinMsgServerMsg;
+  MsgItem: TIPCServerMsg;
+  
 begin
   CDS := PCopyDataStruct(Msg.lParam);
   MsgItem := TWinMsgServerMsg.Create;
@@ -409,7 +287,7 @@ begin
     // Caller is expected to catch this exception, so not using Owner.DoError()
     raise;
   end;
-  FMsgQueue.Push(MsgItem);
+  PushMessage(MsgItem);
 end;
 
 function TWinMsgServerComm.TryReadMsgData(var Msg: TMsg; out Error: String): Boolean;
@@ -426,21 +304,8 @@ begin
 end;
 
 procedure TWinMsgServerComm.ReadMessage;
-var
-  MsgItem: TWinMsgServerMsg;
 begin
-  MsgItem := FMsgQueue.Pop;
-  if Assigned(MsgItem) then
-  try
-    // Load message from the queue into the owner's message data.
-    MsgItem.Stream.Position := 0;
-    Owner.FMsgData.Size := 0;
-    Owner.FMsgType := MsgItem.MsgType;
-    Owner.FMsgData.CopyFrom(MsgItem.Stream, MsgItem.Stream.Size);
-  finally
-    // We are responsible for freeing the message from the queue.
-    MsgItem.Free;
-  end;
+  // Do nothing, PeekMessages has pushed messages to the queue.
 end;
 
 function TWinMsgServerComm.GetInstanceID: String;
