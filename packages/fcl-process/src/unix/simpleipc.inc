@@ -229,11 +229,6 @@ begin
     Result:=TPipeServerComm;
 end;
 
-procedure TSimpleIPCServer.PushMessage(Msg: TIPCServerMsg);
-begin
-  Queue.Push(Msg);
-end;
-
 function TSimpleIPCClient.CommClass: TIPCClientCommClass;
 begin
   if (DefaultIPCClientClass<>Nil) then
