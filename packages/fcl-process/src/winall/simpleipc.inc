@@ -22,7 +22,6 @@ const
 resourcestring
   SErrFailedToRegisterWindowClass = 'Failed to register message window class';
   SErrFailedToCreateWindow = 'Failed to create message window %s';
-  SErrMessageQueueOverflow = 'Message queue overflow (limit %s)';
 
 var
   MsgWindowClass: TWndClassW = (
@@ -275,10 +274,10 @@ procedure TWinMsgServerComm.ReadMsgData(var Msg: TMsg);
 var
   CDS: PCopyDataStruct;
   MsgItem: TIPCServerMsg;
-  
+
 begin
   CDS := PCopyDataStruct(Msg.lParam);
-  MsgItem := TWinMsgServerMsg.Create;
+  MsgItem := TIPCServerMsg.Create;
   try
     MsgItem.MsgType := CDS^.dwData;
     MsgItem.Stream.WriteBuffer(CDS^.lpData^,CDS^.cbData);
@@ -316,7 +315,7 @@ end;
 { ---------------------------------------------------------------------
     TWinMsgClientComm
   ---------------------------------------------------------------------}
-  
+
 Type
   TWinMsgClientComm = Class(TIPCClientComm)
   Private
@@ -409,7 +408,7 @@ Function TSimpleIPCServer.CommClass : TIPCServerCommClass;
 begin
   if (DefaultIPCServerClass<>Nil) then
     Result:=DefaultIPCServerClass
-  else  
+  else
     Result:=TWinMsgServerComm;
 end;
 
@@ -418,7 +417,7 @@ Function TSimpleIPCClient.CommClass : TIPCClientCommClass;
 begin
   if (DefaultIPCClientClass<>Nil) then
     Result:=DefaultIPCClientClass
-  else  
+  else
     Result:=TWinMsgClientComm;
 end;
 
