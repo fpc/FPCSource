@@ -1,6 +1,6 @@
 {   UnicodeSet implementation.
 
-    Copyright (c) 2013 by Inoussa OUEDRAOGO
+    Copyright (c) 2013-2015 by Inoussa OUEDRAOGO
 
     The source code is distributed under the Library GNU
     General Public License with the following modification:
@@ -36,6 +36,8 @@ type
 
   TUnicodeSet = class;
 
+  { TPatternParser }
+
   TPatternParser = class
   private
     FBufferStr : UnicodeString;
@@ -43,6 +45,7 @@ type
     FBufferLength : Integer;
     FSet : TUnicodeSet;
     FPosition : Integer;
+    FSpecialChar: Boolean;
   private
     procedure Error(const AMsg : string; const AArgs : array of const);overload;inline;
     procedure Error(const AMsg : string);overload;inline;
@@ -58,6 +61,7 @@ type
     function NextChar() : TUnicodeCodePoint;
     procedure ParseItem();
     procedure DoParse();
+    property SpecialChar : Boolean read FSpecialChar;
   public
     procedure Parse(const APattern : PUnicodeChar; const ALength : Integer);overload;
     procedure Parse(const APattern : UnicodeString);overload;inline;
@@ -73,6 +77,8 @@ type
     class function Compare(const A, B : TUnicodeCodePointArray) : Integer;static;inline;
   end;
 
+  { TUnicodeSet }
+
   TUnicodeSet = class
   private type
       TItem = TUnicodeCodePointArray;
@@ -84,18 +90,22 @@ type
     FParser : TPatternParser;
   private
     procedure CreateParser();inline;
+    function InternalContains(const AString : UnicodeString) : Boolean;overload;
   public
     constructor Create();
     destructor Destroy;override;
     procedure Add(AChar : TUnicodeCodePoint);inline;overload;
     procedure Add(AString : TUnicodeCodePointArray);inline;overload;
     procedure AddRange(const AStart, AEnd : TUnicodeCodePoint);inline;
-    procedure AddPattern(const APattern : UnicodeString);inline;
+    procedure AddPattern(const APattern : UnicodeString);inline;overload;
+    procedure AddPattern(const APattern : RawByteString);inline;overload;
     function CreateIterator() : TIterator;
     function Contains(const AString : array of TUnicodeCodePoint) : Boolean;overload;
     function Contains(const AChar : TUnicodeCodePoint) : Boolean;inline;overload;
     function Contains(const AChar : UnicodeChar) : Boolean;inline;overload;
     function Contains(const AChar : AnsiChar) : Boolean;inline;overload;
+    function Contains(const AString : UnicodeString) : Boolean;overload;
+    function Contains(const AString : RawByteString) : Boolean;overload;
   end;
 
 resourcestring
@@ -267,7 +277,7 @@ begin
       CheckEOF(4);
       s := Copy(FBufferStr,(FPosition+1),4);
       Inc(FPosition,4);
-      if not TryStrToInt('$'+s,i) then
+      if not TryStrToInt(string('$'+s),i) then
         Error(SExpectedBut,['\uXXXX',s]);
       cp := i;
     end;
@@ -281,6 +291,7 @@ begin
       Inc(FPosition);
     end;
   end;
+  FSpecialChar := (cp = Ord('{')) or (cp = Ord('}'));
   Result := cp;
 end;
 
@@ -292,7 +303,8 @@ end;
 procedure TPatternParser.ParseItem();
 var
   cp, lastCp : TUnicodeCodePoint;
-  charCount : Integer;
+  charCount, k : Integer;
+  cpa : TUnicodeCodePointArray;
 begin
   SkipSpaces();
   Expect('[');
@@ -304,13 +316,31 @@ begin
     cp := NextChar();
     if CompareTo(cp,']') then
       Break;
-    if CompareTo(cp,'-') then begin
-      if (charCount = 0) then
-        Error(SExpectedBut,['<char>','-']);
-      cp := NextChar();
-      FSet.AddRange(lastCp,cp);
+    if SpecialChar and (cp = Ord('{')) then begin
+      SetLength(cpa,12);
+      k := 0;
+      while True do begin
+        cp := NextChar();
+        if SpecialChar and (cp = Ord('}')) then
+          break;
+        if (k >= Length(cpa)) then
+          SetLength(cpa,(2*k));
+        cpa[k] := cp;
+        k := k+1;
+      end;
+      if (k > 0) then begin
+        SetLength(cpa,k);
+        FSet.Add(cpa);
+      end;
     end else begin
-      FSet.Add(cp);
+      if CompareTo(cp,'-') then begin
+        if (charCount = 0) then
+          Error(SExpectedBut,['<char>','-']);
+        cp := NextChar();
+        FSet.AddRange(lastCp,cp);
+      end else begin
+        FSet.Add(cp);
+      end;
     end;
     Inc(charCount);
   end;
@@ -346,6 +376,22 @@ begin
     FParser := TPatternParser.Create();
     FParser.CurrentSet := Self;
   end;
+end;
+
+function TUnicodeSet.InternalContains(const AString: UnicodeString): Boolean;
+var
+  u4 : UCS4String;
+  c, i : Integer;
+  cpa : TUnicodeCodePointArray;
+begin
+  u4 := UnicodeStringToUCS4String(AString);
+  c := Length(u4)-1;
+  if (c = 1) then
+    exit(Contains(u4[0]));
+  SetLength(cpa,c);
+  for i := 0 to c-1 do
+    cpa[i] := u4[i];
+  Result := Contains(cpa);
 end;
 
 constructor TUnicodeSet.Create;
@@ -387,6 +433,14 @@ begin
   FParser.Parse(APattern);
 end;
 
+procedure TUnicodeSet.AddPattern(const APattern: RawByteString);
+var
+  us : UnicodeString;
+begin
+  us := UnicodeString(APattern);
+  AddPattern(us);
+end;
+
 function TUnicodeSet.CreateIterator() : TIterator;
 begin
   Result := FTree.CreateForwardIterator();
@@ -420,6 +474,23 @@ end;
 function TUnicodeSet.Contains(const AChar : AnsiChar) : Boolean;
 begin
   Result := Contains(TUnicodeCodePoint(Ord(AChar)));
+end;
+
+function TUnicodeSet.Contains(const AString: UnicodeString): Boolean;
+begin
+  if (AString = '') then
+    exit(Contains([]));
+  if (Length(AString) = 1) then
+    exit(Contains(AString[1]));
+  Result := InternalContains(AString);
+end;
+
+function TUnicodeSet.Contains(const AString: RawByteString): Boolean;
+var
+  us : UnicodeString;
+begin
+  us := UnicodeString(AString);
+  Result := Contains(us);
 end;
 
 end.
