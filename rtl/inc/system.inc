@@ -532,7 +532,7 @@ function aligntoptr(p : pointer) : pointer;inline;
  * OTHER DEALINGS IN THE SOFTWARE.
  *
  * For more information, please refer to <http://unlicense.org/>
- * 
+ *
  *}
 
 {$R-} {range checking off}
@@ -610,7 +610,7 @@ begin
     begin
       mtwist_init(RandSeed);
       { Detect resets of randseed
-      
+
         This will break if someone coincidentally uses not(randseed) as the
         next randseed, but it's much more common that you will reset randseed
         to the same value as before to regenerate the same sequence of numbers
@@ -1006,7 +1006,7 @@ Begin
   { Show runtime error and exit }
   if WriteErrorsToStdErr then
     pstdout:=@stderr
-  else  
+  else
     pstdout:=@stdout;
   If erroraddr<>nil Then
    Begin
@@ -1023,7 +1023,7 @@ Begin
   { Finalize units }
   FinalizeUnits;
 
-{$if defined(MSWINDOWS) or defined(OS2)}
+{$if (defined(MSWINDOWS) and not defined(win16)) or defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs.
     Reset the array to nil, and finally also argv itself to
