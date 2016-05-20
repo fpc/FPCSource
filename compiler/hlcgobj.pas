@@ -4979,6 +4979,7 @@ implementation
                            else
                              highloc.loc:=LOC_INVALID;
                            eldef:=tarraydef(tparavarsym(p).vardef).elementdef;
+                           g_ptrtypecast_ref(list,cpointerdef.getreusable(tparavarsym(p).vardef),cpointerdef.getreusable(eldef),href);
                            g_array_rtti_helper(list,eldef,href,highloc,'fpc_initialize_array');
                          end
                        else
