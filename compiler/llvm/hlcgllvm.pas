@@ -934,7 +934,7 @@ implementation
       tmpsrc1:=getintregister(list,calcsize);
       a_load_reg_reg(list,size,calcsize,dst,tmpsrc1);
       location_reset(ovloc,LOC_REGISTER,OS_8);
-      ovloc.register:=getintregister(list,pasbool8type);
+      ovloc.register:=getintregister(list,llvmbool1type);
       list.concat(taillvm.op_reg_cond_size_reg_reg(la_icmp,ovloc.register,OC_NE,calcsize,tmpsrc1,tmpdst));
     end;
 
@@ -950,6 +950,9 @@ implementation
       if (size=pasbool8type) and
          (cmp_op in [OC_EQ,OC_NE]) then
         begin
+          { convert to an llvmbool1type and use directly }
+          tmpreg:=getintregister(list,llvmbool1type);
+          a_load_reg_reg(list,size,llvmbool1type,reg,tmpreg);
           case cmp_op of
             OC_EQ:
               invert:=a=0;
@@ -967,7 +970,7 @@ implementation
               l:=falselab;
               falselab:=tmplab;
             end;
-          list.concat(taillvm.op_size_reg_lab_lab(la_br,pasbool8type,reg,l,falselab));
+          list.concat(taillvm.op_size_reg_lab_lab(la_br,llvmbool1type,tmpreg,l,falselab));
           a_label(list,fallthroughlab);
           exit;
         end;
@@ -984,13 +987,13 @@ implementation
     begin
       if getregtype(reg1)<>getregtype(reg2) then
         internalerror(2012111105);
-      resreg:=getintregister(list,pasbool8type);
+      resreg:=getintregister(list,llvmbool1type);
       current_asmdata.getjumplabel(falselab);
       { invert order of registers. In FPC, cmp_reg_reg(reg1,reg2) means that
         e.g. OC_GT is true if "subl %reg1,%reg2" in x86 AT&T is >0. In LLVM,
         OC_GT is true if op1>op2 }
       list.concat(taillvm.op_reg_cond_size_reg_reg(la_icmp,resreg,cmp_op,size,reg2,reg1));
-      list.concat(taillvm.op_size_reg_lab_lab(la_br,pasbool8type,resreg,l,falselab));
+      list.concat(taillvm.op_size_reg_lab_lab(la_br,llvmbool1type,resreg,l,falselab));
       a_label(list,falselab);
     end;
 
@@ -1037,7 +1040,7 @@ implementation
       a_load_const_cgpara(list,u32inttype,maxalign,alignpara);
       { we don't know anything about volatility here, should become an extra
         parameter to g_concatcopy }
-      a_load_const_cgpara(list,pasbool8type,0,volatilepara);
+      a_load_const_cgpara(list,llvmbool1type,0,volatilepara);
       g_call_system_proc(list,pd,[@destpara,@sourcepara,@sizepara,@alignpara,@volatilepara],nil).resetiftemp;
       sourcepara.done;
       destpara.done;
@@ -1292,7 +1295,7 @@ implementation
       if ovloc.size<>OS_8 then
         internalerror(2015122504);
       current_asmdata.getjumplabel(hl);
-      a_cmp_const_loc_label(list,pasbool8type,OC_EQ,0,ovloc,hl);
+      a_cmp_const_loc_label(list,llvmbool1type,OC_EQ,0,ovloc,hl);
       g_call_system_proc(list,'fpc_overflow',[],nil);
       a_label(list,hl);
     end;

@@ -50,7 +50,7 @@ interface
          { procedure second_cord_to_pointer;override; }
          procedure second_proc_to_procvar;override;
          procedure second_nil_to_methodprocvar; override;
-         procedure second_bool_to_int;override;
+         { procedure second_bool_to_int;override; }
          procedure second_int_to_bool;override;
          { procedure second_load_smallset;override;  }
          { procedure second_ansistring_to_pchar;override; }
@@ -199,39 +199,6 @@ procedure tllvmtypeconvnode.second_nil_to_methodprocvar;
     hlcg.g_ptrtypecast_ref(current_asmdata.CurrAsmList,cpointerdef.getreusable(resultdef),cpointerdef.getreusable(methodpointertype),href);
     hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'proc',href);
     hlcg.g_load_const_field_by_name(current_asmdata.CurrAsmList,trecorddef(methodpointertype),0,'self',href);
-  end;
-
-
-procedure tllvmtypeconvnode.second_bool_to_int;
-  var
-    pdef: tdef;
-    hreg: tregister;
-  begin
-    inherited;
-    { all boolean/integer of the same size are represented using the same type
-      by FPC in LLVM, except for Pascal booleans, which are i1 -> convert
-      the type if necessary. This never has to be done for registers on the
-      assignment side, because we make everything that's explicitly typecasted
-      on the assignment side non regable for llvm }
-    if is_pasbool(left.resultdef) and
-       (nf_explicit in flags) and
-       not(left.location.loc in [LOC_FLAGS,LOC_JUMP]) and
-       (resultdef.size=1) then
-      case location.loc of
-        LOC_REFERENCE,LOC_CREFERENCE:
-          begin
-            pdef:=cpointerdef.getreusable(resultdef);
-            hreg:=hlcg.getaddressregister(current_asmdata.CurrAsmList,pdef);
-            hlcg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.resultdef,pdef,location.reference,hreg);
-            hlcg.reference_reset_base(location.reference,pdef,hreg,0,location.reference.alignment);
-          end;
-        LOC_REGISTER,LOC_CREGISTER:
-          begin
-            hreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
-            hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,left.resultdef,resultdef,location.register,hreg);
-            location.register:=hreg;
-          end;
-      end;
   end;
 
 

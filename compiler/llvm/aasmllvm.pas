@@ -582,7 +582,7 @@ uses
           la_icmp, la_fcmp:
             begin
               case opnr of
-                0: result:=pasbool8type;
+                0: result:=llvmbool1type;
                 3,4: result:=oper[2]^.def;
                 else
                   internalerror(2013110801);

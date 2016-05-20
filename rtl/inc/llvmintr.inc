@@ -14,6 +14,6 @@
  **********************************************************************}
 
 
-procedure llvm_memcpy64(dest, source: pointer; len: qword; align: cardinal; isvolatile: boolean); compilerproc; external name 'llvm.memcpy.p0i8.p0i8.i64';
+procedure llvm_memcpy64(dest, source: pointer; len: qword; align: cardinal; isvolatile: LLVMBool1); compilerproc; external name 'llvm.memcpy.p0i8.p0i8.i64';
 
 function llvm_frameaddress(level: longint): pointer; compilerproc; external name 'llvm.frameaddress';

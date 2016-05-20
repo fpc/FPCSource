@@ -109,7 +109,7 @@ implementation
       pass_left_right;
 
       location_reset(location,LOC_REGISTER,OS_8);
-      location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,pasbool8type);
+      location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,llvmbool1type);
 
       force_reg_left_right(false,false);
 
@@ -143,11 +143,15 @@ implementation
         else
           internalerror(2012042701);
       end;
+      tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+      hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,llvmbool1type,resultdef,location.register,tmpreg);
+      location.register:=tmpreg;
     end;
 
 
   procedure tllvmaddnode.second_cmpordinal;
     var
+      tmpreg: tregister;
       cmpop: topcmp;
       unsigned : boolean;
     begin
@@ -189,7 +193,7 @@ implementation
         cmpop:=swap_opcmp(cmpop);
 
       location_reset(location,LOC_REGISTER,OS_8);
-      location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+      location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,llvmbool1type);
 
       if right.location.loc=LOC_CONSTANT then
         current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_const(la_icmp,
@@ -197,6 +201,10 @@ implementation
       else
         current_asmdata.CurrAsmList.concat(taillvm.op_reg_cond_size_reg_reg(la_icmp,
           location.register,cmpop,left.resultdef,left.location.register,right.location.register));
+
+      tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+      hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,llvmbool1type,resultdef,location.register,tmpreg);
+      location.register:=tmpreg;
     end;
 
 
@@ -214,6 +222,7 @@ implementation
 
   procedure tllvmaddnode.second_addfloat;
     var
+      tmpreg: tregister;
       op    : tllvmop;
       llvmfpcmp : tllvmfpcmp;
       size : tdef;
@@ -279,7 +288,7 @@ implementation
       else
         begin
           location_reset(location,LOC_REGISTER,OS_8);
-          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+          location.register:=hlcg.getintregister(current_asmdata.CurrAsmList,llvmbool1type);
         end;
 
       { see comment in thlcgllvm.a_loadfpu_ref_reg }
@@ -297,7 +306,10 @@ implementation
       else
         begin
           current_asmdata.CurrAsmList.concat(taillvm.op_reg_fpcond_size_reg_reg(op,
-            location.register,llvmfpcmp,size,left.location.register,right.location.register))
+            location.register,llvmfpcmp,size,left.location.register,right.location.register));
+          tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+          hlcg.a_load_reg_reg(current_asmdata.CurrAsmList,llvmbool1type,resultdef,location.register,tmpreg);
+          location.register:=tmpreg;
         end;
     end;
 
