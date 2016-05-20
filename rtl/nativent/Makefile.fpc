@@ -13,7 +13,7 @@ implicitunits=ndk ndkutils ddk \
       ctypes strings \
 #      heaptrc
 #      initc cmem dynlibs signals \
-#      dos \
+      dos \
       rtlconsts sysconst sysutils math types \
       typinfo fgl classes \
       $(CPU_UNITS) charset getopts \
