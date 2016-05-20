@@ -1047,18 +1047,7 @@ implementation
             begin
               writer.AsmWrite(LlvmAsmSymName(taillvmalias(hp).newsym));
               writer.AsmWrite(' = alias ');
-              if taillvmalias(hp).linkage<>lll_default then
-                begin
-                  str(taillvmalias(hp).linkage, s);
-                  writer.AsmWrite(copy(s, length('lll_')+1, 255));
-                  writer.AsmWrite(' ');
-                end;
-              if taillvmalias(hp).vis<>llv_default then
-                begin
-                  str(taillvmalias(hp).vis, s);
-                  writer.AsmWrite(copy(s, length('llv_')+1, 255));
-                  writer.AsmWrite(' ');
-                end;
+              WriteLinkageVibilityFlags(taillvmalias(hp).bind);
               if taillvmalias(hp).def.typ=procdef then
                 writer.AsmWrite(llvmencodeproctype(tabstractprocdef(taillvmalias(hp).def), '', lpd_alias))
               else
