@@ -731,13 +731,15 @@ implementation
       procedure WriteLinkageVibilityFlags(bind: TAsmSymBind);
         begin
           case bind of
-             AB_EXTERNAL:
+             AB_EXTERNAL,
+             AB_EXTERNAL_INDIRECT:
                writer.AsmWrite(' external');
              AB_COMMON:
                writer.AsmWrite(' common');
              AB_LOCAL:
                writer.AsmWrite(' internal');
-             AB_GLOBAL:
+             AB_GLOBAL,
+             AB_INDIRECT:
                writer.AsmWrite('');
              AB_WEAK_EXTERNAL:
                writer.AsmWrite(' extern_weak');
