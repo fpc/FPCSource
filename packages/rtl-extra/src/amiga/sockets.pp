@@ -339,7 +339,7 @@ begin
 end;
 
 initialization
-  {$ifdef AMIGA68K}
+  {$ifndef AMIGAOS4}
   AddThreadInitProc(@BSDSocketOpen);
   AddThreadExitProc(@BSDSocketClose);
   {$endif}
