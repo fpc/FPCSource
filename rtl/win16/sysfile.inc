@@ -43,7 +43,7 @@ begin
 {$ifdef SYSTEMDEBUG}
        if assigned(opennames[handle]) and free_closed_names then
          begin
-            sysfreememsize(opennames[handle],strlen(opennames[handle])+1);
+            freemem(opennames[handle],strlen(opennames[handle])+1);
             opennames[handle]:=nil;
          end;
 {$endif SYSTEMDEBUG}
@@ -378,12 +378,12 @@ begin
           assigned(opennames[regs.AX]) then
          begin
             Writeln(stderr,'file ',opennames[regs.AX],'(',regs.AX,') not closed but handle reused!');
-            sysfreememsize(opennames[regs.AX],strlen(opennames[regs.AX])+1);
+            freemem(opennames[regs.AX],strlen(opennames[regs.AX])+1);
          end;
 {$endif SYSTEMDEBUG}
        openfiles[regs.AX]:=true;
 {$ifdef SYSTEMDEBUG}
-       opennames[regs.AX] := sysgetmem(strlen(p)+1);
+       opennames[regs.AX] := getmem(strlen(p)+1);
        move(p^,opennames[regs.AX]^,strlen(p)+1);
 {$endif SYSTEMDEBUG}
     end;
