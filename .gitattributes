@@ -16286,6 +16286,7 @@ utils/unicode/cldrhelper.pas svneol=native#text/pascal
 utils/unicode/cldrparser.lpi svneol=native#text/plain
 utils/unicode/cldrparser.lpr svneol=native#text/pascal
 utils/unicode/cldrtest.pas svneol=native#text/pascal
+utils/unicode/cldrtxt.pas svneol=native#text/plain
 utils/unicode/cldrxml.pas svneol=native#text/pascal
 utils/unicode/data/readme.txt svneol=native#text/plain
 utils/unicode/fpmake.pp svneol=native#text/plain
