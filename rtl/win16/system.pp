@@ -3,6 +3,7 @@ unit system;
 interface
 
 {$DEFINE FPC_NO_DEFAULT_HEAP}
+{$DEFINE FPC_NO_DEFAULT_MEMORYMANAGER}
 
 {$DEFINE FPC_INCLUDE_SOFTWARE_MUL}
 {$DEFINE FPC_INCLUDE_SOFTWARE_MOD_DIV}
@@ -165,6 +166,15 @@ end;
 {$I glbheap.inc}
 {$ENDIF FPC_X86_DATA_NEAR}
 
+
+{*****************************************************************************
+                              FinalizeHeap
+   Dummy FinalizeHeap procedure added to fix compilation
+*****************************************************************************}
+
+procedure FinalizeHeap;
+begin
+end;
 
 {*****************************************************************************
                               ParamStr/Randomize
