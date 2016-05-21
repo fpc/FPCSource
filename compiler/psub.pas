@@ -936,8 +936,8 @@ implementation
                 final_used:=true;
               end;
           end;
-          if not final_used then
-            cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
+        if not final_used then
+          cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
         do_firstpass(newblock);
         code:=newblock;
         current_filepos:=oldfilepos;
