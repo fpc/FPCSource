@@ -1838,7 +1838,7 @@ implementation
 
           { one dimensional }
           addstatement(newstatement,cassignmentnode.create(
-              ctemprefnode.create_offset(temp2,0),
+              ctemprefnode.create(temp2),
               cordconstnode.create
                  (paracount,s32inttype,true)));
           { create call to fpc_dynarr_setlength }
