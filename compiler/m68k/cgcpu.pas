@@ -65,6 +65,7 @@ unit cgcpu;
         procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: tcgint; const ref: TReference); override;
         procedure a_op_reg_reg(list : TAsmList; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
         procedure a_op_reg_ref(list : TAsmList; Op: TOpCG; size: TCGSize; reg: TRegister; const ref: TReference); override;
+        procedure a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
 
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister; l : tasmlabel);override;
         procedure a_cmp_const_ref_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;const ref : treference; l : tasmlabel); override;
@@ -1292,14 +1293,19 @@ unit cgcpu;
           and addressing modes are limited }
         if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
           begin
+            //list.concat(tai_comment.create(strpnew('a_op_reg_ref: inherited #1')));
             inherited;
             exit;
           end;
 
         case op of
           OP_ADD,
-          OP_SUB :
+          OP_SUB,
+          OP_OR,
+          OP_XOR,
+          OP_AND:
             begin
+              //list.concat(tai_comment.create(strpnew('a_op_reg_ref: normal op')));
               href:=ref;
               fixref(list,href,false);
               { areg -> ref arithmetic operations are impossible on 68k }
@@ -1308,11 +1314,54 @@ unit cgcpu;
               list.concat(taicpu.op_reg_ref(opcode, opsize, hreg, href));
             end;
           else begin
-//            list.concat(tai_comment.create(strpnew('a_op_reg_ref inherited')));
+            //list.concat(tai_comment.create(strpnew('a_op_reg_ref inherited #2')));
             inherited;
           end;
         end;
       end;
+
+
+    procedure tcg68k.a_op_ref_reg(list : TAsmList; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
+      var
+        opcode : tasmop;
+        opsize : topsize;
+        href   : treference;
+        hreg   : tregister;
+      begin
+        opcode := topcg2tasmop[op];
+        opsize := TCGSize2OpSize[size];
+
+        { on ColdFire all arithmetic operations are only possible on 32bit 
+          and addressing modes are limited }
+        if ((current_settings.cputype in cpu_coldfire) and (opsize <> S_L)) then
+          begin
+            //list.concat(tai_comment.create(strpnew('a_op_ref_reg: inherited #1')));
+            inherited;
+            exit;
+          end;
+
+        case op of
+          OP_ADD,
+          OP_SUB,
+          OP_OR,
+          OP_AND,
+          OP_MUL,
+          OP_IMUL:
+            begin
+              //list.concat(tai_comment.create(strpnew('a_op_ref_reg: normal op')));
+              href:=ref;
+              { Coldfire doesn't support d(Ax,Dx) for long MULx... }
+              fixref(list,href,(op in [OP_MUL,OP_IMUL]) and 
+                               (current_settings.cputype in cpu_coldfire));
+              list.concat(taicpu.op_ref_reg(opcode, opsize, href, reg));
+            end;
+          else begin
+            //list.concat(tai_comment.create(strpnew('a_op_ref_reg inherited #2')));
+            inherited;
+          end;
+        end;
+      end;
+
 
     procedure tcg68k.a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : tcgint;reg : tregister;
             l : tasmlabel);
