@@ -7,7 +7,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  sysutils, Classes, fphttpserver, fpmimetypes;
+  sysutils, Classes, fphttpserver, fpmimetypes, wmecho;
 
 Type
 
@@ -21,13 +21,16 @@ Type
     FMimeTypesFile: String;
     procedure SetBaseDir(const AValue: String);
   Protected
+    Procedure DoIdle(Sender : TObject);
     procedure CheckMimeLoaded;
+
     Property MimeLoaded : Boolean Read FMimeLoaded;
   public
     procedure HandleRequest(Var ARequest: TFPHTTPConnectionRequest;
                             Var AResponse : TFPHTTPConnectionResponse); override;
     Property BaseDir : String Read FBaseDir Write SetBaseDir;
     Property MimeTypesFile : String Read FMimeTypesFile Write FMimeTypesFile;
+
   end;
 
 Var
@@ -40,6 +43,11 @@ begin
   FBaseDir:=AValue;
   If (FBaseDir<>'') then
     FBaseDir:=IncludeTrailingPathDelimiter(FBaseDir);
+end;
+
+procedure TTestHTTPServer.DoIdle(Sender: TObject);
+begin
+  Writeln('Idle, waiting for connections');
 end;
 
 procedure TTestHTTPServer.CheckMimeLoaded;
@@ -98,6 +106,8 @@ begin
 {$endif}
     Serv.Threaded:=False;
     Serv.Port:=8080;
+    Serv.AcceptIdleTimeout:=1000;
+    Serv.OnAcceptIdle:=@Serv.DoIdle;
     Serv.Active:=True;
   finally
     Serv.Free;
