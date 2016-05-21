@@ -855,8 +855,11 @@ begin
 {$endif}
   if (Result<0) or Not (FAccepting and FHandler.Accept) then
     begin
-    CloseSocket(Result);
-    Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError])
+    If (Result>=0) then
+      CloseSocket(Result);
+    // Do not raise an error if we've stopped accepting.
+    if FAccepting then
+      Raise ESocketError.Create(seAcceptFailed,[Socket,SocketError])
     end;
 end;
 
