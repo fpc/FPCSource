@@ -37,6 +37,17 @@ interface
       class function call_fail_node:tnode; virtual;
       class function initialize_data_node(p:tnode; force: boolean):tnode; virtual;
       class function finalize_data_node(p:tnode):tnode; virtual;
+     strict protected
+      class procedure sym_maybe_initialize(p: TObject; arg: pointer);
+      { generates the code for finalisation of local variables }
+      class procedure local_varsyms_finalize(p:TObject;arg:pointer);
+      { generates the code for finalization of static symtable and
+        all local (static) typed consts }
+      class procedure static_syms_finalize(p: TObject; arg: pointer);
+      class procedure sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
+     public
+      class procedure procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
+      class procedure procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
       { returns true if the unit requires an initialisation section (e.g.,
         to force class constructors for the JVM target to initialise global
         records/arrays) }
@@ -257,6 +268,149 @@ implementation
               ccallparanode.create(
                   caddrnode.create_internal(p),
               nil)));
+    end;
+
+
+  class procedure tnodeutils.sym_maybe_initialize(p: TObject; arg: pointer);
+    begin
+      if (tsym(p).typ = localvarsym) and
+         { local (procedure or unit) variables only need initialization if
+           they are used }
+         ((tabstractvarsym(p).refs>0) or
+          { managed return symbols must be inited }
+          ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
+         ) and
+         not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
+         not(vo_is_external in tabstractvarsym(p).varoptions) and
+         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
+         (is_managed_type(tabstractvarsym(p).vardef) or
+          ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
+         ) then
+        begin
+          addstatement(tstatementnode(arg^),initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner),false));
+        end;
+    end;
+
+
+  class procedure tnodeutils.local_varsyms_finalize(p: TObject; arg: pointer);
+    begin
+      if (tsym(p).typ=localvarsym) and
+         (tlocalvarsym(p).refs>0) and
+         not(vo_is_external in tlocalvarsym(p).varoptions) and
+         not(vo_is_funcret in tlocalvarsym(p).varoptions) and
+         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
+         is_managed_type(tlocalvarsym(p).vardef) then
+        sym_maybe_finalize(tstatementnode(arg^),tsym(p));
+    end;
+
+
+  class procedure tnodeutils.static_syms_finalize(p: TObject; arg: pointer);
+    var
+      i : longint;
+      pd : tprocdef;
+    begin
+      case tsym(p).typ of
+        staticvarsym :
+          begin
+            { local (procedure or unit) variables only need finalization
+              if they are used
+            }
+            if ((tstaticvarsym(p).refs>0) or
+                { global (unit) variables always need finalization, since
+                  they may also be used in another unit
+                }
+                (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
+                (
+                  (tstaticvarsym(p).varspez<>vs_const) or
+                  (vo_force_finalize in tstaticvarsym(p).varoptions)
+                ) and
+               not(vo_is_funcret in tstaticvarsym(p).varoptions) and
+               not(vo_is_external in tstaticvarsym(p).varoptions) and
+               is_managed_type(tstaticvarsym(p).vardef) and
+               not (
+                   assigned(tstaticvarsym(p).fieldvarsym) and
+                   assigned(tstaticvarsym(p).fieldvarsym.owner.defowner) and
+                   (df_generic in tdef(tstaticvarsym(p).fieldvarsym.owner.defowner).defoptions)
+                 )
+               then
+              sym_maybe_finalize(tstatementnode(arg^),tsym(p));
+          end;
+        procsym :
+          begin
+            for i:=0 to tprocsym(p).ProcdefList.Count-1 do
+              begin
+                pd:=tprocdef(tprocsym(p).ProcdefList[i]);
+                if assigned(pd.localst) and
+                   (pd.procsym=tprocsym(p)) and
+                   (pd.localst.symtabletype<>staticsymtable) then
+                  pd.localst.SymList.ForEachCall(@static_syms_finalize,arg);
+              end;
+          end;
+      end;
+    end;
+
+
+  class procedure tnodeutils.sym_maybe_finalize(var stat: tstatementnode; sym: tsym);
+    var
+      hp: tnode;
+    begin
+      include(current_procinfo.flags,pi_needs_implicit_finally);
+      hp:=cloadnode.create(sym,sym.owner);
+      if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
+        include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
+      addstatement(stat,finalize_data_node(hp));
+    end;
+
+
+  class procedure tnodeutils.procdef_block_add_implicit_initialize_nodes(pd: tprocdef; var stat: tstatementnode);
+    begin
+      { initialize local data like ansistrings }
+      case pd.proctypeoption of
+         potype_unitinit:
+           begin
+             { this is also used for initialization of variables in a
+               program which does not have a globalsymtable }
+             if assigned(current_module.globalsymtable) then
+               TSymtable(current_module.globalsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+             TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+             TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+           end;
+         { units have seperate code for initilization and finalization }
+         potype_unitfinalize: ;
+         { program init/final is generated in separate procedure }
+         potype_proginit:
+           begin
+             TSymtable(current_module.localsymtable).SymList.ForEachCall(@sym_maybe_initialize,@stat);
+           end;
+         else
+           current_procinfo.procdef.localst.SymList.ForEachCall(@sym_maybe_initialize,@stat);
+      end;
+    end;
+
+
+  class procedure tnodeutils.procdef_block_add_implicit_finalize_nodes(pd: tprocdef; var stat: tstatementnode);
+    begin
+      { no finalization in exceptfilters, they /are/ the finalization code }
+      if current_procinfo.procdef.proctypeoption=potype_exceptfilter then
+          exit;
+
+      { finalize local data like ansistrings}
+      case current_procinfo.procdef.proctypeoption of
+         potype_unitfinalize:
+           begin
+             { this is also used for initialization of variables in a
+               program which does not have a globalsymtable }
+             if assigned(current_module.globalsymtable) then
+               TSymtable(current_module.globalsymtable).SymList.ForEachCall(@static_syms_finalize,@stat);
+             TSymtable(current_module.localsymtable).SymList.ForEachCall(@static_syms_finalize,@stat);
+           end;
+         { units/progs have separate code for initialization and finalization }
+         potype_unitinit: ;
+         { program init/final is generated in separate procedure }
+         potype_proginit: ;
+         else
+           current_procinfo.procdef.localst.SymList.ForEachCall(@local_varsyms_finalize,@stat);
+      end;
     end;
 
 

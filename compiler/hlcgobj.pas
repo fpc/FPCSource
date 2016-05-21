@@ -598,15 +598,8 @@ unit hlcgobj;
          protected
           { helpers called by gen_initialize_code/gen_finalize_code }
           procedure inittempvariables(list:TAsmList);virtual;
-          procedure initialize_data(p:TObject;arg:pointer);virtual;
           procedure finalizetempvariables(list:TAsmList);virtual;
           procedure initialize_regvars(p:TObject;arg:pointer);virtual;
-          procedure finalize_sym(asmlist:TAsmList;sym:tsym);virtual;
-          { generates the code for finalisation of local variables }
-          procedure finalize_local_vars(p:TObject;arg:pointer);virtual;
-          { generates the code for finalization of static symtable and
-            all local (static) typed consts }
-          procedure finalize_static_data(p:TObject;arg:pointer);virtual;
           { generates the code for decrementing the reference count of parameters }
           procedure final_paras(p:TObject;arg:pointer);
          public
@@ -674,7 +667,7 @@ implementation
        fmodule,export,
        verbose,defutil,paramgr,
        symtable,
-       nbas,ncon,nld,ncgrtti,pass_1,pass_2,
+       nbas,ncon,nld,ncgrtti,pass_2,
        cpuinfo,cgobj,cutils,procinfo,
 {$ifdef x86}
        cgx86,
@@ -4515,26 +4508,12 @@ implementation
 
   procedure thlcgobj.gen_initialize_code(list: TAsmList);
     begin
-      { initialize local data like ansistrings }
+      { initialize register variables }
       case current_procinfo.procdef.proctypeoption of
          potype_unitinit:
-           begin
-              { this is also used for initialization of variables in a
-                program which does not have a globalsymtable }
-              if assigned(current_module.globalsymtable) then
-                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@initialize_data,list);
-              TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_data,list);
-              TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
-           end;
-         { units have seperate code for initilization and finalization }
-         potype_unitfinalize: ;
-         { program init/final is generated in separate procedure }
+           TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
          potype_proginit:
-           begin
-             TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
-           end;
-         else
-           current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
+           TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
       end;
 
       { initialises temp. ansi/wide string data }
@@ -4564,24 +4543,6 @@ implementation
 
       { finalize temporary data }
       finalizetempvariables(list);
-
-      { finalize local data like ansistrings}
-      case current_procinfo.procdef.proctypeoption of
-         potype_unitfinalize:
-           begin
-              { this is also used for initialization of variables in a
-                program which does not have a globalsymtable }
-              if assigned(current_module.globalsymtable) then
-                TSymtable(current_module.globalsymtable).SymList.ForEachCall(@finalize_static_data,list);
-              TSymtable(current_module.localsymtable).SymList.ForEachCall(@finalize_static_data,list);
-           end;
-         { units/progs have separate code for initialization and finalization }
-         potype_unitinit: ;
-         { program init/final is generated in separate procedure }
-         potype_proginit: ;
-         else
-           current_procinfo.procdef.localst.SymList.ForEachCall(@finalize_local_vars,list);
-      end;
 
       { finalize paras data }
       if assigned(current_procinfo.procdef.parast) and
@@ -4682,35 +4643,6 @@ implementation
        end;
     end;
 
-  procedure thlcgobj.initialize_data(p: TObject; arg: pointer);
-    var
-      OldAsmList : TAsmList;
-      hp : tnode;
-    begin
-      if (tsym(p).typ = localvarsym) and
-         { local (procedure or unit) variables only need initialization if
-           they are used }
-         ((tabstractvarsym(p).refs>0) or
-          { managed return symbols must be inited }
-          ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
-         ) and
-         not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
-         not(vo_is_external in tabstractvarsym(p).varoptions) and
-         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
-         (is_managed_type(tabstractvarsym(p).vardef) or
-          ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
-         ) then
-        begin
-          OldAsmList:=current_asmdata.CurrAsmList;
-          current_asmdata.CurrAsmList:=TAsmList(arg);
-          hp:=cnodeutils.initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner),false);
-          firstpass(hp);
-          secondpass(hp);
-          hp.free;
-          current_asmdata.CurrAsmList:=OldAsmList;
-        end;
-    end;
-
   procedure thlcgobj.finalizetempvariables(list: TAsmList);
     var
       hp : ptemprecord;
@@ -4775,80 +4707,6 @@ implementation
              internalerror(200410124);
          end;
        end;
-    end;
-
-  procedure thlcgobj.finalize_sym(asmlist: TAsmList; sym: tsym);
-    var
-      hp : tnode;
-      OldAsmList : TAsmList;
-    begin
-      include(current_procinfo.flags,pi_needs_implicit_finally);
-      OldAsmList:=current_asmdata.CurrAsmList;
-      current_asmdata.CurrAsmList:=asmlist;
-      hp:=cloadnode.create(sym,sym.owner);
-      if (sym.typ=staticvarsym) and (vo_force_finalize in tstaticvarsym(sym).varoptions) then
-        include(tloadnode(hp).loadnodeflags,loadnf_isinternal_ignoreconst);
-      hp:=cnodeutils.finalize_data_node(hp);
-      firstpass(hp);
-      secondpass(hp);
-      hp.free;
-      current_asmdata.CurrAsmList:=OldAsmList;
-    end;
-
-  procedure thlcgobj.finalize_local_vars(p: TObject; arg: pointer);
-    begin
-      if (tsym(p).typ=localvarsym) and
-         (tlocalvarsym(p).refs>0) and
-         not(vo_is_external in tlocalvarsym(p).varoptions) and
-         not(vo_is_funcret in tlocalvarsym(p).varoptions) and
-         not(vo_is_default_var in tabstractvarsym(p).varoptions) and
-         is_managed_type(tlocalvarsym(p).vardef) then
-        finalize_sym(TAsmList(arg),tsym(p));
-    end;
-
-  procedure thlcgobj.finalize_static_data(p: TObject; arg: pointer);
-    var
-      i : longint;
-      pd : tprocdef;
-    begin
-      case tsym(p).typ of
-        staticvarsym :
-          begin
-                { local (procedure or unit) variables only need finalization
-                  if they are used
-                }
-            if ((tstaticvarsym(p).refs>0) or
-                { global (unit) variables always need finalization, since
-                  they may also be used in another unit
-                }
-                (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
-                (
-                  (tstaticvarsym(p).varspez<>vs_const) or
-                  (vo_force_finalize in tstaticvarsym(p).varoptions)
-                ) and
-               not(vo_is_funcret in tstaticvarsym(p).varoptions) and
-               not(vo_is_external in tstaticvarsym(p).varoptions) and
-               is_managed_type(tstaticvarsym(p).vardef) and
-               not (
-                   assigned(tstaticvarsym(p).fieldvarsym) and
-                   assigned(tstaticvarsym(p).fieldvarsym.owner.defowner) and
-                   (df_generic in tdef(tstaticvarsym(p).fieldvarsym.owner.defowner).defoptions)
-                 )
-               then
-              finalize_sym(TAsmList(arg),tsym(p));
-          end;
-        procsym :
-          begin
-            for i:=0 to tprocsym(p).ProcdefList.Count-1 do
-              begin
-                pd:=tprocdef(tprocsym(p).ProcdefList[i]);
-                if assigned(pd.localst) and
-                   (pd.procsym=tprocsym(p)) and
-                   (pd.localst.symtabletype<>staticsymtable) then
-                  pd.localst.SymList.ForEachCall(@finalize_static_data,arg);
-              end;
-          end;
-      end;
     end;
 
   procedure thlcgobj.final_paras(p: TObject; arg: pointer);

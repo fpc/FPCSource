@@ -756,6 +756,7 @@ implementation
                       begin
                         include(tocode.flags,nf_block_with_exit);
                         addstatement(newstatement,final_asmnode);
+                        cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                         final_used:=true;
                       end;
 
@@ -875,6 +876,7 @@ implementation
         addstatement(newstatement,loadpara_asmnode);
         addstatement(newstatement,stackcheck_asmnode);
         addstatement(newstatement,entry_asmnode);
+        cnodeutils.procdef_block_add_implicit_initialize_nodes(procdef,newstatement);
         addstatement(newstatement,init_asmnode);
         addstatement(newstatement,bodyentrycode);
 
@@ -896,6 +898,7 @@ implementation
             { Generate code that will be in the try...finally }
             finalcode:=internalstatements(codestatement);
             addstatement(codestatement,final_asmnode);
+            cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,codestatement);
             final_used:=true;
 
             current_filepos:=entrypos;
@@ -929,9 +932,12 @@ implementation
             if not is_constructor then
               begin
                 addstatement(newstatement,final_asmnode);
+                cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
                 final_used:=true;
               end;
           end;
+          if not final_used then
+            cnodeutils.procdef_block_add_implicit_finalize_nodes(procdef,newstatement);
         do_firstpass(newblock);
         code:=newblock;
         current_filepos:=oldfilepos;
