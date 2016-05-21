@@ -37,6 +37,7 @@ interface
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
+          procedure second_addordinal;override;
           procedure second_cmpordinal;override;
           procedure second_cmpsmallset;override;
           procedure second_cmp64bit;override;
@@ -342,6 +343,100 @@ implementation
 {*****************************************************************************
                                 Ordinals
 *****************************************************************************}
+
+    procedure t68kaddnode.second_addordinal;
+      var
+        unsigned: boolean;
+        cgop   : topcg;
+        tmpreg : tregister;
+      begin
+        { if we need to handle overflow checking, fall back to the generic cg }
+        if (nodetype in [addn,subn,muln]) and
+           (left.resultdef.typ<>pointerdef) and
+           (right.resultdef.typ<>pointerdef) and
+           (cs_check_overflow in current_settings.localswitches) then
+          begin
+            inherited;
+            exit;
+          end;
+
+        { determine if the comparison will be unsigned }
+        unsigned:=not(is_signed(left.resultdef)) or
+                  not(is_signed(right.resultdef));
+
+        case nodetype of
+          addn: cgop:=OP_ADD;
+          xorn: cgop:=OP_XOR;
+          orn : cgop:=OP_OR;
+          andn: cgop:=OP_AND;
+          subn: cgop:=OP_SUB;
+          muln:
+            begin
+              if unsigned then
+                cgop:=OP_MUL
+              else
+                cgop:=OP_IMUL;
+            end;
+          else
+            internalerror(2013120104);
+        end;
+
+        pass_left_right;
+        hlcg.location_force_reg(current_asmdata.CurrAsmList,left.location,left.resultdef,left.resultdef,false);
+
+        { initialize the result }
+        location_reset(location,LOC_REGISTER,def_cgsize(resultdef));
+        location.register := cg.getintregister(current_asmdata.CurrAsmList,location.size);
+        cg.a_load_reg_reg(current_asmdata.CurrAsmlist,left.location.size,location.size,left.location.register,location.register);
+
+        if nodetype<>subn then
+          begin
+            if location.size <> right.location.size then
+              hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+
+            case right.location.loc of
+              LOC_REGISTER,
+              LOC_CREGISTER:
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.register,location.register);
+              LOC_CONSTANT:
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.value,location.register);
+              LOC_REFERENCE,
+              LOC_CREFERENCE:
+                  cg.a_op_ref_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.reference,location.register);
+              else
+                begin
+                  hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,cgop,def_cgsize(resultdef),right.location.register,location.register);
+                end;
+            end
+          end
+        else  { subtract is a special case since its not commutative }
+          begin
+            hlcg.location_force_reg(current_asmdata.CurrAsmList,right.location,right.resultdef,right.resultdef,true);
+            if (nf_swapped in flags) then
+              swapleftright;
+            if left.location.loc<>LOC_CONSTANT then
+              begin
+                if right.location.loc<>LOC_CONSTANT then
+                  hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                      right.location.register,left.location.register,
+                      location.register)
+                else
+                  hlcg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                    right.location.value,left.location.register,
+                    location.register);
+              end
+            else
+              begin
+                tmpreg:=hlcg.getintregister(current_asmdata.CurrAsmList,resultdef);
+                hlcg.a_load_const_reg(current_asmdata.CurrAsmList,resultdef,
+                  left.location.value,tmpreg);
+                hlcg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_SUB,resultdef,
+                  right.location.register,tmpreg,location.register);
+              end;
+          end;
+      end;
+
 
     procedure t68kaddnode.second_cmpordinal;
      var
