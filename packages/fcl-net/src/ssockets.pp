@@ -18,7 +18,8 @@ unit ssockets;
 interface
 
 uses
- SysUtils, Classes, ctypes, sockets;
+// This must be here, to prevent it from overriding the sockets definitions... :/
+  SysUtils, Classes, ctypes, sockets;
 
 type
 
@@ -111,6 +112,7 @@ type
 
   TSocketServer = Class(TObject)
   Private
+    FIdleTimeOut: Cardinal;
     FOnAcceptError: TOnAcceptError;
     FOnIdle : TNotifyEvent;
     FNonBlocking : Boolean;
@@ -139,6 +141,7 @@ type
     Function  SockToStream (ASocket : Longint) : TSocketStream;Virtual;Abstract;
     Procedure Close; Virtual;
     Procedure Abort;
+    Function RunIdleLoop : Boolean;
     function GetConnection: TSocketStream; virtual; abstract;
     Function HandleAcceptError(E : ESocketError) : TAcceptErrorAction;
     Property Handler : TSocketHandler Read FHandler;
@@ -166,6 +169,9 @@ type
     Property ReuseAddress : Boolean Read GetReuseAddress Write SetReuseAddress;
     // -1 means no linger. Any value >=0 sets linger on.
     Property Linger: Integer Read GetLinger Write Setlinger;
+    // Accept Timeout in milliseconds.
+    // If Different from 0, then there will be an idle loop before accepting new connections, Calling OnIdle if no new connection appeared in the specified timeout.
+    Property AcceptIdleTimeOut : Cardinal Read FIdleTimeOut Write FIdleTimeout;
   end;
 
   { TInetServer }
@@ -239,7 +245,10 @@ Implementation
 
 uses
 {$ifdef unix}
-  BaseUnix, Unix,
+  BaseUnix,Unix,
+{$endif}
+{$ifdef windows}
+  winsock2, windows,
 {$endif}
   resolve;
 
@@ -296,7 +305,8 @@ end;
 
 function TSocketHandler.Shutdown(BiDirectional: Boolean): boolean;
 begin
-  CheckSocket
+  CheckSocket ;
+  Result:=False;
 end;
 
 function TSocketHandler.Recv(Const Buffer; Count: Integer): Integer;
@@ -445,20 +455,20 @@ begin
   Result:=FHandler.Send(Buffer,Count);
 end;
 
-function TSocketStream.GetLocalAddress: TSockAddr;
+function TSocketStream.GetLocalAddress: sockets.TSockAddr;
 var
   len: LongInt;
 begin
-  len := SizeOf(TSockAddr);
+  len := SizeOf(sockets.TSockAddr);
   if fpGetSockName(Handle, @Result, @len) <> 0 then
     FillChar(Result, SizeOf(Result), 0);
 end;
 
-function TSocketStream.GetRemoteAddress: TSockAddr;
+function TSocketStream.GetRemoteAddress: sockets.TSockAddr;
 var
   len: LongInt;
 begin
-  len := SizeOf(TSockAddr);
+  len := SizeOf(sockets.TSockAddr);
   if fpGetPeerName(Handle, @Result, @len) <> 0 then
     FillChar(Result, SizeOf(Result), 0);
 end;
@@ -499,7 +509,7 @@ end;
     TSocketServer
   ---------------------------------------------------------------------}
 
-Constructor TSocketServer.Create(ASocket : Longint; AHandler : TSocketHandler);
+constructor TSocketServer.Create(ASocket: Longint; AHandler: TSocketHandler);
 
 begin
   FSocket:=ASocket;
@@ -510,7 +520,7 @@ begin
   FHandler:=AHandler;
 end;
 
-Destructor TSocketServer.Destroy;
+destructor TSocketServer.Destroy;
 
 begin
   Close;
@@ -518,7 +528,7 @@ begin
   Inherited;
 end;
 
-Procedure TSocketServer.Close;
+procedure TSocketServer.Close;
 
 begin
   If FSocket<>-1 Then
@@ -542,7 +552,37 @@ begin
 {$endif}
 end;
 
-Procedure TSocketServer.Listen;
+function TSocketServer.RunIdleLoop: Boolean;
+
+// Run Accept idle loop. Return True if there is a new connection waiting
+
+var
+  FDS: TFDSet;
+  TimeV: TTimeVal;
+begin
+  Repeat
+    Result:=False;
+    TimeV.tv_usec := (AcceptIdleTimeout mod 1000) * 1000;
+    TimeV.tv_sec := AcceptIdleTimeout div 1000;
+{$ifdef unix}
+    FDS := Default(TFDSet);
+    fpFD_Zero(FDS);
+    fpFD_Set(FSocket, FDS);
+    Result := fpSelect(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+{$else}
+{$ifdef windows}
+    FDS := Default(TFDSet);
+    FD_Zero(FDS);
+    FD_Set(FSocket, FDS);
+    Result := Select(FSocket + 1, @FDS, @FDS, @FDS, @TimeV) > 0;
+{$endif}
+{$endif}
+    If not Result then
+      DoOnIdle;
+  Until Result or (Not FAccepting);
+end;
+
+procedure TSocketServer.Listen;
 
 begin
   If Not FBound then
@@ -551,7 +591,7 @@ begin
     Raise ESocketError.Create(seListenFailed,[FSocket,SocketError]);
 end;
 
-function TSocketServer.GetSockopt(ALevel, AOptName: cint; Var optval;
+function TSocketServer.GetSockopt(ALevel, AOptName: cint; var optval;
   var optlen: tsocklen): Boolean;
 begin
   Result:=fpGetSockOpt(FSocket,ALevel,AOptName,@optval,@optlen)<>-1;
@@ -589,7 +629,7 @@ begin
     FOnAcceptError(Self,FSocket,E,Result);
 end;
 
-Procedure TSocketServer.StartAccepting;
+procedure TSocketServer.StartAccepting;
 
 Var
  NoConnections : Integer;
@@ -602,7 +642,10 @@ begin
   Repeat
     Repeat
       Try
-        Stream:=GetConnection;
+        If (AcceptIdleTimeOut=0) or RunIdleLoop then
+          Stream:=GetConnection
+        else
+          Stream:=Nil;
         if Assigned(Stream) then
           begin
           Inc (NoConnections);
@@ -633,7 +676,7 @@ begin
     Abort;
 end;
 
-Procedure TSocketServer.DoOnIdle;
+procedure TSocketServer.DoOnIdle;
 
 begin
   If Assigned(FOnIdle) then
@@ -689,14 +732,14 @@ begin
     Result:=l.l_linger;
 end;
 
-Procedure TSocketServer.DoConnect(ASocket : TSocketStream);
+procedure TSocketServer.DoConnect(ASocket: TSocketStream);
 
 begin
   If Assigned(FOnConnect) Then
     FOnConnect(Self,ASocket);
 end;
 
-Function TSocketServer.DoConnectQuery(ASocket : Longint) : Boolean;
+function TSocketServer.DoConnectQuery(ASocket: longint): Boolean;
 
 begin
   Result:=True;
@@ -704,7 +747,7 @@ begin
     FOnConnectQuery(Self,ASocket,Result);
 end;
 
-Procedure TSocketServer.SetNonBlocking;
+procedure TSocketServer.SetNonBlocking;
 
 begin
 {$ifdef Unix}
