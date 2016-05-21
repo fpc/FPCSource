@@ -261,7 +261,7 @@ interface
        { section Data }
        Size,
        DataPos    : PUInt;
-       MemPos     : PUInt;
+       MemPos     : qword;
        Group      : TObjSectionGroup;
        DataAlignBytes : shortint;
        { Relocations (=references) to other sections }
