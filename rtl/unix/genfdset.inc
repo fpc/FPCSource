@@ -46,7 +46,7 @@ function fpfdfillset(var nset : TFDSet):cint;
 var i :longint;
 
 Begin
-  for i:=0 to wordsinfdset-1 DO nset[i]:=Culong(NOT 0);
+  for i:=0 to wordsinfdset-1 DO nset[i]:=Culong((NOT 0) and ln2bitmask);
   fpfdfillset:=0;
 End;
 
