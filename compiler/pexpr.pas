@@ -66,7 +66,7 @@ implementation
 
     uses
        { common }
-       cutils,
+       cutils,cclasses,
        { global }
        verbose,
        systems,widestr,
@@ -1717,28 +1717,39 @@ implementation
          temp    : ttempcreatenode;
          paras : tcallparanode;
          newblock : tnode;
-         countindices : aint;
+         countindices : longint;
+         elements: tfplist;
+         arraydef: tdef;
        begin
          { create statements with call initialize the arguments and
            call fpc_dynarr_setlength }
          newblock:=internalstatements(newstatement);
 
-         { get temp for array of indicies,
-           we set the real size later }
-         temp:=ctempcreatenode.create(s32inttype,4,tt_persistent,false);
-         addstatement(newstatement,temp);
-
+         { store all indices in a temporary array }
          countindices:=0;
+         elements:=tfplist.Create;
          repeat
            p4:=comp_expr([ef_accept_equal]);
-
-           addstatement(newstatement,cassignmentnode.create(
-             ctemprefnode.create_offset(temp,countindices*s32inttype.size),p4));
-            inc(countindices);
+           elements.add(p4);
          until not try_to_consume(_COMMA);
 
-         { set real size }
-         temp.size:=countindices*s32inttype.size;
+         arraydef:=carraydef.getreusable(s32inttype,elements.count);
+         temp:=ctempcreatenode.create(arraydef,arraydef.size,tt_persistent,false);
+         addstatement(newstatement,temp);
+         for countindices:=0 to elements.count-1 do
+           begin
+             addstatement(newstatement,
+               cassignmentnode.create(
+                 cvecnode.create(
+                   ctemprefnode.create(temp),
+                   genintconstnode(countindices)
+                 ),
+                 tnode(elements[countindices])
+               )
+             );
+           end;
+         countindices:=elements.count;
+         elements.free;
 
          consume(_RECKKLAMMER);
 
@@ -1752,7 +1763,7 @@ implementation
              paras:=ccallparanode.create(cordconstnode.create
                    (countindices,s32inttype,true),
                 ccallparanode.create(caddrnode.create_internal
-               (ctemprefnode.create(temp)),
+               (cvecnode.create(ctemprefnode.create(temp),genintconstnode(0))),
                 ccallparanode.create(ctypeconvnode.create_internal(p4,cvarianttype),
                 ccallparanode.create(ctypeconvnode.create_internal(p1,cvarianttype)
                   ,nil))));
