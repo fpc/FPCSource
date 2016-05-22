@@ -50,8 +50,10 @@ unit cgcpu;
         procedure a_load_const_ref(list : TAsmList; tosize: tcgsize; a : tcgint;const ref : treference);override;
 
         procedure a_load_reg_ref(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
+        procedure a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);override;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize : tcgsize;reg1,reg2 : tregister);override;
         procedure a_load_ref_reg(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
+        procedure a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);override;
         procedure a_load_ref_ref(list : TAsmList;fromsize,tosize : tcgsize;const sref : treference;const dref : treference);override;
 
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
@@ -748,6 +750,17 @@ unit cgcpu;
         href : treference;
         hreg : tregister;
       begin
+        {
+        // FIX ME: experimental code, disabled for now. (KB)
+        if (current_settings.cputype = cpu_mc68000) and
+           (ref.alignment=1) and (tcgsize2size[tosize] > 1) then
+          begin
+            //list.concat(tai_comment.create(strpnew('a_load_reg_ref calling unaligned')));
+            a_load_reg_ref_unaligned(list,fromsize,tosize,register,ref);
+            exit;
+          end;
+        }
+
         href := ref;
         hreg := register;
         fixref(list,href,false);
@@ -758,6 +771,57 @@ unit cgcpu;
           end;
         { move to destination reference }
         list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[tosize],hreg,href));
+      end;
+
+
+    procedure tcg68k.a_load_reg_ref_unaligned(list : TAsmList;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
+      var
+        tmpref : treference;
+        tmpreg,
+        tmpreg2 : tregister;
+      begin
+        //list.concat(tai_comment.create(strpnew('a_load_reg_ref_unaligned')));
+        if (current_settings.cputype <> cpu_mc68000) or
+           (ref.alignment <> 1) or
+           (tcgsize2size[tosize] < 2) then
+          begin
+            a_load_reg_ref(list,fromsize,tosize,register,ref);
+            exit;
+          end;
+
+        tmpreg2:=getaddressregister(list);
+        tmpref:=ref;
+        inc(tmpref.offset,tcgsize2size[tosize]);
+        a_loadaddr_ref_reg(list,ref,tmpreg2);
+        reference_reset_base(tmpref,tmpreg2,0,1);
+        tmpref.direction:=dir_dec;
+
+        tmpreg:=getintregister(list,tosize);
+        a_load_reg_reg(list,fromsize,tosize,register,tmpreg);
+
+        case tosize of
+          OS_16,OS_S16:
+            begin
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
+              list.concat(taicpu.op_const_reg(A_LSR,S_W,8,tmpreg));
+              tmpref.direction:=dir_none;
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
+              sign_extend(list,fromsize,tmpreg);
+            end;
+          OS_32,OS_S32:
+            begin
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
+              list.concat(taicpu.op_const_reg(A_LSR,S_W,8,tmpreg));
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
+              list.concat(taicpu.op_reg(A_SWAP,S_L,tmpreg));
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
+              list.concat(taicpu.op_const_reg(A_LSR,S_W,8,tmpreg));
+              tmpref.direction:=dir_none;
+              list.concat(taicpu.op_reg_ref(A_MOVE,S_B,tmpreg,tmpref));
+            end
+          else
+            internalerror(2016052201);
+        end;
       end;
 
 
@@ -778,7 +842,7 @@ unit cgcpu;
           begin
             { if we will use a temp register, we don't need to fully resolve 
               the dest ref, not even on coldfire }
-            fixref(list,bref,false); 
+            fixref(list,bref,false);
             { if we need to change the size then always use a temporary register }
             hreg:=getintregister(list,fromsize);
             list.concat(taicpu.op_ref_reg(A_MOVE,TCGSize2OpSize[fromsize],aref,hreg));
@@ -831,8 +895,19 @@ unit cgcpu;
        opsize: topsize;
        needsext: boolean;
       begin
+         {
+         // FIX ME: experimental code, disabled for now. (KB)
+         if (current_settings.cputype = cpu_mc68000) and
+            (ref.alignment=1) and (tcgsize2size[fromsize] > 1) then
+           begin
+             //list.concat(tai_comment.create(strpnew('a_load_ref_reg calling unaligned')));
+             a_load_ref_reg_unaligned(list,fromsize,tosize,ref,register);
+             exit;
+           end;
+         }
          href:=ref;
          fixref(list,href,false);
+
          needsext:=tcgsize2size[fromsize]<tcgsize2size[tosize];
          if needsext then
            size:=fromsize
@@ -861,6 +936,59 @@ unit cgcpu;
 
          if hreg<>register then
            a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,register);
+      end;
+
+
+    procedure tcg68k.a_load_ref_reg_unaligned(list : TAsmList;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
+      var
+        tmpref : treference;
+        tmpreg,
+        tmpreg2 : tregister;
+      begin
+        //list.concat(tai_comment.create(strpnew('a_load_ref_reg_unaligned')));
+        if (current_settings.cputype <> cpu_mc68000) or
+           (ref.alignment <> 1) or
+           (tcgsize2size[fromsize] < 2) then
+          begin
+            a_load_ref_reg(list,fromsize,tosize,ref,register);
+            exit;
+          end;
+
+        tmpreg2:=getaddressregister(list);
+        a_loadaddr_ref_reg(list,ref,tmpreg2);
+        reference_reset_base(tmpref,tmpreg2,0,1);
+        tmpref.direction:=dir_inc;
+
+        if isaddressregister(register) then
+          tmpreg:=getintregister(list,OS_ADDR)
+        else
+          tmpreg:=register;
+
+        case fromsize of
+          OS_16,OS_S16:
+            begin
+              list.concat(taicpu.op_ref_reg(A_MOVE,S_B,tmpref,tmpreg));
+              list.concat(taicpu.op_const_reg(A_LSL,S_W,8,tmpreg));
+              tmpref.direction:=dir_none;
+              list.concat(taicpu.op_ref_reg(A_MOVE,S_B,tmpref,tmpreg));
+              sign_extend(list,fromsize,tmpreg);
+            end;
+          OS_32,OS_S32:
+            begin
+              list.concat(taicpu.op_ref_reg(A_MOVE,S_B,tmpref,tmpreg));
+              list.concat(taicpu.op_const_reg(A_LSL,S_W,8,tmpreg));
+              list.concat(taicpu.op_ref_reg(A_MOVE,S_B,tmpref,tmpreg));
+              list.concat(taicpu.op_reg(A_SWAP,S_L,tmpreg));
+              list.concat(taicpu.op_ref_reg(A_MOVE,S_B,tmpref,tmpreg));
+              list.concat(taicpu.op_const_reg(A_LSL,S_W,8,tmpreg));
+              tmpref.direction:=dir_none;
+              list.concat(taicpu.op_ref_reg(A_MOVE,S_B,tmpref,tmpreg));
+            end
+          else
+            internalerror(2016052103);
+        end;
+        if tmpreg<>register then
+          a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpreg,register);
       end;
 
 
