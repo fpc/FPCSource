@@ -609,6 +609,7 @@ type
     FUpdateCount: Integer;
     FAdapter: IStringsAdapter;
     FLBS : TTextLineBreakStyle;
+    FSkipLastLineBreak : Boolean;
     FStrictDelimiter : Boolean;
     FLineBreak : String;
     function GetCommaText: string;
@@ -630,6 +631,8 @@ type
     Function GetQuoteChar: Char;
     Function GetLineBreak : String;
     procedure SetLineBreak(const S : String);
+    Function GetSkipLastLineBreak : Boolean;
+    procedure SetSkipLastLineBreak(const AValue : Boolean);
   protected
     procedure DefineProperties(Filer: TFiler); override;
     procedure Error(const Msg: string; Data: Integer);
@@ -704,6 +707,7 @@ type
     property Strings[Index: Integer]: string read Get write Put; default;
     property Text: string read GetTextStr write SetTextStr;
     property StringsAdapter: IStringsAdapter read FAdapter write SetStringsAdapter;
+    Property SkipLastLineBreak : Boolean Read GetSkipLastLineBreak Write SetSkipLastLineBreak;
   end;
 
 { TStringList class }
