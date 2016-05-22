@@ -132,6 +132,8 @@ resourcestring
   SCHMUsageMakeSearch = 'Automatically generate a Search Index from filenames that match *.htm*';
   SCHMUsageChmTitle= 'Title of the chm. Defaults to the value from --package';
 
+  SXMLUsageSource  = 'Include source file and line info in generated XML';
+
   // Linear usage
   SLinearUsageDupLinkedDocsP1 = 'Duplicate linked element documentation in';
   SLinearUsageDupLinkedDocsP2 = 'descendant classes.';

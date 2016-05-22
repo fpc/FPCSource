@@ -78,6 +78,8 @@ type
   { TAssert }
 
   TAssert = class(TTest)
+  protected
+    Class var AssertCount : Integer;
   public
     class procedure Fail(const AMessage: string; AErrorAddrs: Pointer = nil);
     class procedure Fail(const AFmt: string; Args : Array of const;  AErrorAddrs: Pointer = nil);
@@ -206,7 +208,10 @@ type
     procedure SetTestName(const Value: string); virtual;
     procedure SetEnableIgnores(Value: boolean); override;
     procedure RunBare; virtual;
+  Public
+    Class Var CheckAssertCalled : Boolean;   
   public
+  
     constructor Create; virtual;
     constructor CreateWith(const ATestName: string; const ATestSuiteName: string); virtual;
     constructor CreateWithName(const AName: string); virtual;
@@ -330,7 +335,8 @@ Resourcestring
   SNoValidInheritance = ' does not inherit from TTestCase';
   SNoValidTests = 'No valid tests found in ';
   SNoException = 'no exception';
-
+  SAssertNotCalled = 'Assert not called during test.';
+  
 implementation
 
 uses
@@ -545,6 +551,7 @@ end;
 
 class procedure TAssert.Fail(const AMessage: string; AErrorAddrs: Pointer);
 begin
+  Inc(AssertCount);
   if AErrorAddrs = nil then
     raise EAssertionFailedError.Create(AMessage) at CallerAddr
   else
@@ -553,6 +560,7 @@ end;
 
 class procedure TAssert.Fail(const AFmt: string; Args: array of const; AErrorAddrs: Pointer = nil);
 begin
+  Inc(AssertCount);
   if AErrorAddrs = nil then
     raise EAssertionFailedError.CreateFmt(AFmt,Args) at CallerAddr
   else    
@@ -574,7 +582,9 @@ begin
   if AErrorAddrs=Nil then
     AErrorAddrs:=CallerAddr;
   if (not ACondition) then
-    Fail(AMessage,AErrorAddrs);
+    Fail(AMessage,AErrorAddrs)
+  else
+    Inc(AssertCount); // Fail will increae AssertCount
 end;
 
 
@@ -1013,10 +1023,13 @@ begin
     RunMethod := TRunMethod(m);
     ExpectException('',Nil,'',0);
     try
+      AssertCount:=0;
       FailMessage:='';
       RunMethod;
       if (FExpectedException<>Nil) then
-        FailMessage:=Format(SExceptionCompare, [FExpectedException.ClassName, SNoException])
+        FailMessage:=Format(SExceptionCompare, [FExpectedException.ClassName, SNoException]);
+      if CheckAssertCalled and (AssertCount=0) then  
+        FailMessage:=SAssertNotCalled;
     except
       On E : Exception do
         begin
@@ -1465,5 +1478,7 @@ begin
     ITestListener(FListeners[i]).EndTestSuite(ATestSuite);
 end;
 
+initialization
+  TTestCase.CheckAssertCalled:=False;
 end.
 
