@@ -1320,29 +1320,49 @@ begin
   if x.Kind<>pekSet then NextToken;
 
   try
-    if x.Kind=pekIdent then begin
+    if x.Kind=pekIdent then
+      begin
+      while CurToken in [tkDot] do
+        begin
+        NextToken;
+        if CurToken=tkIdentifier then
+          begin
+          b:=TBinaryExpr.Create(AParent,x, TPrimitiveExpr.Create(AParent,pekIdent, CurTokenText), eopSubIdent);
+          NextToken;
+          end
+        else
+          begin
+          UngetToken;
+          ParseExc(SParserExpectedIdentifier);
+          end;
+        x:=b;
+        end;
       while CurToken in [tkBraceOpen, tkSquaredBraceOpen, tkCaret] do
         case CurToken of
-          tkBraceOpen: begin
+          tkBraceOpen:
+            begin
             prm:=ParseParams(AParent,pekFuncParams);
             if not Assigned(prm) then Exit;
             prm.Value:=x;
             x:=prm;
-          end;
-          tkSquaredBraceOpen: begin
+            end;
+          tkSquaredBraceOpen:
+            begin
             prm:=ParseParams(AParent,pekArrayParams);
             if not Assigned(prm) then Exit;
             prm.Value:=x;
             x:=prm;
-          end;
-          tkCaret: begin
+            end;
+          tkCaret:
+            begin
             u:=TUnaryExpr.Create(AParent,x, TokenToExprOp(CurToken));
             x:=u;
             NextToken;
-          end;
+            end;
         end;
-
-      if CurToken in [tkDot, tkas] then begin
+      // Needed for TSDOBaseDataObjectClass(Self.ClassType).Create
+      if CurToken in [tkdot,tkas] then
+        begin
         optk:=CurToken;
         NextToken;
         b:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(optk));

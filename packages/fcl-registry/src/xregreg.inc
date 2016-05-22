@@ -55,6 +55,8 @@ class procedure TXMLRegistryInstance.FreeXMLRegistryCache;
 
 var i: integer;
 begin
+  if not Assigned(XMLRegistryCache) then
+    exit;
   for i := 0 to XMLRegistryCache.Count - 1 do
     TXMLRegistryInstance(XMLRegistryCache[i]).Free;
   FreeAndNil(XMLRegistryCache);
@@ -81,7 +83,7 @@ begin
   Dec(FRefCount);
 end;
 
-Procedure TRegistry.SysRegCreate;
+procedure TRegistry.SysRegCreate;
 var s : string;
 begin
   s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
@@ -90,7 +92,7 @@ begin
   TXmlRegistry(FSysData).AutoFlush:=False;
 end;
 
-Procedure TRegistry.SysRegFree;
+procedure TRegistry.SysRegFree;
 
 begin
   if Assigned(FSysData) then
@@ -104,13 +106,13 @@ begin
   Result:=TXmlRegistry(FSysData).CreateKey(Key);
 end;
 
-function TRegistry.DeleteKey(const Key: String): Boolean;
+function TRegistry.DeleteKey(const Key: string): Boolean;
 
 begin
   Result:=TXMLRegistry(FSysData).DeleteKey(Key);
 end;
 
-function TRegistry.DeleteValue(const Name: String): Boolean;
+function TRegistry.DeleteValue(const Name: string): Boolean;
 begin
   Result:=TXmlRegistry(FSysData).DeleteValue(Name);
 end;
@@ -136,7 +138,8 @@ begin
 end;
 
 
-function TRegistry.GetDataInfo(const ValueName: String; var Value: TRegDataInfo): Boolean;
+function TRegistry.GetDataInfo(const ValueName: string; var Value: TRegDataInfo
+  ): Boolean;
 
 Var
   Info : TDataInfo;
@@ -162,7 +165,7 @@ begin
       end;
 end;
 
-function TRegistry.GetKey(const Key: String): HKEY;
+function TRegistry.GetKey(const Key: string): HKEY;
 begin
   Result := 0;
 end;
@@ -239,7 +242,7 @@ begin
   Result := TXmlRegistry(FSysData).ValueExists(Name);
 end;
 
-procedure TRegistry.ChangeKey(Value: HKey; const Path: String);
+procedure TRegistry.ChangeKey(Value: HKey; const Path: string);
 begin
 
 end;
@@ -255,8 +258,8 @@ begin
 end;
 
 
-Function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
-  BufSize: Integer; RegData: TRegDataType) : Boolean;
+function TRegistry.SysPutData(const Name: string; Buffer: Pointer;
+  BufSize: Integer; RegData: TRegDataType): Boolean;
 
 Var
   DataType : TDataType;
@@ -305,6 +308,11 @@ begin
     S:=Format('Key%d',[Value]);
   TXmlRegistry(FSysData).SetRootKey(S);
   fRootKey := Value;
+end;
+
+function TRegistry.GetLastErrorMsg: string;
+begin
+  Result:='';
 end;
 
 procedure TRegistry.CloseKey;

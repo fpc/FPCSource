@@ -633,6 +633,7 @@ begin
   FreeAndNil(FSQL);
   FreeAndNil(FDirectives);
   FreeAndNil(FDefines);
+  FreeAndNil(FDollarStrings);
   inherited Destroy;
 end;
 
@@ -645,7 +646,6 @@ procedure TCustomSQLScript.DefaultDirectives;
 begin
   With FDirectives do
     begin
-  FreeAndNil(FDollarStrings);
     // Insertion order matters as testing for directives will be done with StartsWith
     if FUseSetTerm then
       Add('SET TERM');

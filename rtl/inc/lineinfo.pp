@@ -17,19 +17,28 @@
   dependent on objpas unit.
 }
 unit lineinfo;
+
 interface
 
 {$S-}
 {$Q-}
 
 {$IF FPC_VERSION<3}
-Type 
+type
   CodePointer = Pointer;
 {$ENDIF}
 
 function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
 function StabBackTraceStr(addr:CodePointer):string;
 procedure CloseStabs;
+
+var
+  // Allows more efficient operation by reusing previously loaded debug data
+  // when the target module filename is the same. However, if an invalid memory
+  // address is supplied then further calls may result in an undefined behaviour.
+  // In summary: enable for speed, disable for resilience.
+  AllowReuseOfLineInfoData: Boolean = True;
+
 
 implementation
 
@@ -104,8 +113,11 @@ begin
     exit;
 
   // If target filename same as previous, then re-use previous result
-  if filename = lastfilename then
+  if AllowReuseOfLineInfoData and (filename = lastfilename) then
   begin
+    {$ifdef DEBUG_LINEINFO}
+    writeln(stderr,'Reusing debug data');
+    {$endif DEBUG_LINEINFO}
     OpenStabs:=lastopenstabs;
     exit;
   end;
@@ -145,22 +157,17 @@ begin
       OpenStabs:=true;
     end
   else
-    begin
-      CloseExeFile(e);
-      exit;
-    end;
+    CloseExeFile(e);
 end;
 
 
 procedure CloseStabs;
 begin
   if e.isopen then
-  begin
     CloseExeFile(e);
 
-    // Reset last processed filename
-    lastfilename := '';
-  end;
+  // Reset last processed filename
+  lastfilename := '';
 end;
 
 
@@ -290,6 +297,9 @@ begin
       Delete(func,i,255);
    end;
 
+  if not AllowReuseOfLineInfoData then
+    CloseStabs;
+
   GetLineInfo:=true;
 end;
 
@@ -319,19 +329,22 @@ begin
 {$else}
   StabBackTraceStr:='  $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
 {$endif}
-  if func<>'' then
-    StabBackTraceStr:=StabBackTraceStr+'  '+func;
-  if source<>'' then
-   begin
-     if func<>'' then
-      StabBackTraceStr:=StabBackTraceStr+', ';
-     if line<>0 then
+  if Success then
+  begin
+    if func<>'' then
+      StabBackTraceStr:=StabBackTraceStr+'  '+func;
+    if source<>'' then
+    begin
+      if func<>'' then
+        StabBackTraceStr:=StabBackTraceStr+', ';
+      if line<>0 then
       begin
         str(line,hs);
         StabBackTraceStr:=StabBackTraceStr+' line '+hs;
       end;
-     StabBackTraceStr:=StabBackTraceStr+' of '+source;
-   end;
+      StabBackTraceStr:=StabBackTraceStr+' of '+source;
+    end;
+  end;
   BackTraceStrFunc:=Store;
 end;
 

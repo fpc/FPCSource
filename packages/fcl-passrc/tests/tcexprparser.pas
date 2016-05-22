@@ -86,6 +86,7 @@ type
     Procedure TestBinaryLargerThanEqual;
     procedure TestBinaryFullIdent;
     Procedure TestArrayElement;
+    Procedure TestArrayElementrecord;
     Procedure TestArrayElement2Dims;
     Procedure TestFunctionCall;
     Procedure TestFunctionCall2args;
@@ -119,6 +120,7 @@ type
     Procedure TestPrecedenceMultiplyDiv;
     Procedure TestPrecedenceDivMultiply;
     Procedure TestTypeCast;
+    procedure TestTypeCast2;
     Procedure TestCreate;
   end;
 
@@ -196,6 +198,23 @@ begin
   ParseExpression('b[1]');
   P:=TParamsExpr(AssertExpression('Simple identifier',theExpr,pekArrayParams,TParamsExpr));
   AssertExpression('Name of array',P.Value,pekIdent,'b');
+  AssertEquals('One dimension',1,Length(p.params));
+  AssertExpression('Simple identifier',p.params[0],pekNumber,'1');
+end;
+
+procedure TTestExpressions.TestArrayElementrecord;
+
+Var
+  P : TParamsExpr;
+  B : TBinaryExpr;
+begin
+  DeclareVar('record a : array[1..2] of integer; end ','b');
+  ParseExpression('b.a[1]');
+  P:=TParamsExpr(AssertExpression('Simple identifier',theExpr,pekArrayParams,TParamsExpr));
+  B:=AssertExpression('Name of array',P.Value,pekBinary,TBInaryExpr) as TBInaryExpr;
+  AssertEquals('name is Subident',eopSubIdent,B.Opcode);
+  AssertExpression('Name of array',B.Left,pekIdent,'b');
+  AssertExpression('Name of array',B.Right,pekIdent,'a');
   AssertEquals('One dimension',1,Length(p.params));
   AssertExpression('Simple identifier',p.params[0],pekNumber,'1');
 end;
@@ -469,6 +488,12 @@ procedure TTestExpressions.TestTypeCast;
 begin
   DeclareVar('TSDOBaseDataObjectClass');
   ParseExpression('TSDOBaseDataObjectClass(Self.ClassType).Create');
+end;
+
+procedure TTestExpressions.TestTypeCast2;
+begin
+  DeclareVar('TSDOBaseDataObjectClass');
+  ParseExpression('TSDOBaseDataObjectClass(Self.ClassType).Create.D');
 end;
 
 procedure TTestExpressions.TestCreate;
