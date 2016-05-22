@@ -64,7 +64,7 @@ type
   protected
     procedure InternalRead(Str: TStream; Img: TFPCustomImage); override;
     function  InternalCheck(Str: TStream): boolean; override;
-    function  InternalSize(Str:TStream): TPoint; override;
+    class function InternalSize(Str:TStream): TPoint; override;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -451,7 +451,7 @@ begin
   end;
 end;
 
-function TFPReaderJPEG.InternalSize(Str: TStream): TPoint;
+class function TFPReaderJPEG.InternalSize(Str: TStream): TPoint;
 var
   JInfo: jpeg_decompress_struct;
   JError: jpeg_error_mgr;
