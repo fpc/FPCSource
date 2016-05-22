@@ -5,16 +5,88 @@
 
 uses xmlreg;
 
+type
+
+  { TXMLRegistryInstance }
+
+  TXMLRegistryInstance = class(TXMLRegistry)
+  private
+    FRefCount: integer;
+    Class Var XMLRegistryCache: Tlist;
+    Class procedure FreeXMLRegistryCache;
+  public
+    constructor Create(AFileName : String);
+    Class Function GetXMLRegistry(aFileName: string): TXMLRegistry;
+    Class Procedure FreeXMLRegistry(XMLRegistry: TXMLRegistry);
+    procedure IncRefCount;
+    procedure DecRefCount;
+    property RefCount: integer read FRefCount;
+  end;
+
+Class function TXMLRegistryInstance.GetXMLRegistry(aFileName: string): TXMLRegistry;
+var i: integer;
+begin
+  if not assigned(XMLRegistryCache) then
+    XMLRegistryCache := TList.Create;
+
+  for i := 0 to XMLRegistryCache.Count - 1 do
+    if TXMLRegistryInstance(XMLRegistryCache[i]).FileName = aFileName then
+    begin
+      TXMLRegistryInstance(XMLRegistryCache[i]).IncRefCount;
+      Result :=  TXMLRegistry(XMLRegistryCache[i]);
+      Exit;
+    end;
+
+  Result := TXMLRegistryInstance.Create(aFileName);
+  XMLRegistryCache.Add(Result);
+end;
+
+Class procedure TXMLRegistryInstance.FreeXMLRegistry(XMLRegistry: TXMLRegistry);
+begin
+  TXMLRegistryInstance(XMLRegistry).DecRefCount;
+  if TXMLRegistryInstance(XMLRegistry).RefCount = 0 then
+  begin
+    XMLRegistryCache.Remove(XMLRegistry);
+    XMLRegistry.Free;
+  end;
+end;
+
+class procedure TXMLRegistryInstance.FreeXMLRegistryCache;
+
+var i: integer;
+begin
+  for i := 0 to XMLRegistryCache.Count - 1 do
+    TXMLRegistryInstance(XMLRegistryCache[i]).Free;
+  FreeAndNil(XMLRegistryCache);
+end;
 
 Const
   XFileName = 'reg.xml';
+
+{ TXMLRegistryInstance }
+
+constructor TXMLRegistryInstance.Create(AFileName: String);
+begin
+  inherited;
+  FRefCount := 1;
+end;
+
+procedure TXMLRegistryInstance.IncRefCount;
+begin
+  Inc(FRefCount);
+end;
+
+procedure TXMLRegistryInstance.DecRefCount;
+begin
+  Dec(FRefCount);
+end;
 
 Procedure TRegistry.SysRegCreate;
 var s : string;
 begin
   s:=includetrailingpathdelimiter(GetAppConfigDir(GlobalXMLFile));
   ForceDirectories(s);
-  FSysData:=TXMLRegistry.Create(s+XFileName);
+  FSysData:=TXMLRegistryInstance.GetXMLRegistry(s+XFileName);
   TXmlRegistry(FSysData).AutoFlush:=False;
 end;
 
@@ -23,7 +95,7 @@ Procedure TRegistry.SysRegFree;
 begin
   if Assigned(FSysData) then
     TXMLRegistry(FSysData).Flush;
-  TXMLRegistry(FSysData).Free;
+  TXMLRegistryInstance.	FreeXMLRegistry(TXMLRegistry(FSysData));
 end;
 
 function TRegistry.SysCreateKey(const Key: String): Boolean;

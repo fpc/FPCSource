@@ -74,3 +74,4 @@ testweb.pp   Test for fpcgi (MVC)
 daemon.pp    Test for daemonapp (MVC)
 testtimer.pp Test for TFPTimer (MVC)
 testini.pp   Test/Demo for inifiles, ReadSectionValues.
+contit.pp    Test/Demo for iterators in contnr.pp

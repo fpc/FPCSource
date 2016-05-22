@@ -241,6 +241,7 @@ type
     FTestSuiteName: string;
     FEnableIgnores: boolean;
     function GetTest(Index: integer): TTest;
+    function GetTestCount: Integer;
   protected
     Function DoAddTest(ATest : TTest) : Integer;
     function GetTestName: string; override;
@@ -263,9 +264,11 @@ type
     procedure AddTestSuiteFromClass(ATestClass: TClass); virtual;
     class function Warning(const aMessage: string): TTestCase;
     property Test[Index: integer]: TTest read GetTest; default;
+    Property ChildTestCount : Integer Read GetTestCount;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
     property TestName: string read GetTestName write SetTestName;
-    property Tests: TFPList read FTests;
+    // Only for backwards compatibility. Use Test and ChildTestCount.
+    property Tests: TFPList read FTests; deprecated;
   end;
   
   TProtect = procedure(aTest: TTest; aResult: TTestResult);
@@ -1197,6 +1200,11 @@ end;
 function TTestSuite.GetTest(Index: integer): TTest;
 begin
   Result := TTestItem(FTests[Index]).Test;
+end;
+
+function TTestSuite.GetTestCount: Integer;
+begin
+  Result:=FTests.Count;
 end;
 
 function TTestSuite.DoAddTest(ATest: TTest): Integer;
