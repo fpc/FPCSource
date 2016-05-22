@@ -693,6 +693,8 @@ type
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     property OnDirective: TSQLScriptDirectiveEvent read FOnDirective write FOnDirective;
+    Property UseDollarString; 
+    Property DollarStrings;     
     property Directives;
     property Defines;
     property Script;

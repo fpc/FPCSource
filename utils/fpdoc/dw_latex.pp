@@ -169,30 +169,30 @@ Function TLaTeXWriter.SplitLine (ALine : String): String;
      InString : Boolean;
     
   begin
-    Result:=0;
-    L:=Length(S);
-    if (L>MaxVerbatimLength) then
-      begin
-      InString:=False;
-      Result:=0;
-      I:=1;
-      C:=@S[1];
-      While (I<=MaxVerbatimLength) do
-        begin
-        If C^='''' then
-          InString:=Not Instring
-        else if Not InString then
-          begin
-          if Not (C^ in NonSplit) then  
-            Result:=I;
-          end;  
-        Inc(I);
-        Inc(C);
-        end;    
-      end;  
-    If Result=0 then
-      Result:=L+1;
-  end;
+     Result:=0;
+     L:=Length(S);
+     if (L>MaxVerbatimLength) then
+       begin
+       InString:=False;
+       Result:=0;
+       I:=1;
+       C:=@S[1];
+       While (I<=L) and (Result<=MaxVerbatimLength) do
+         begin
+         If C^='''' then
+           InString:=Not Instring
+         else if Not InString then
+           begin
+           if Not (C^ in NonSplit) then
+             Result:=I;
+           end;
+         Inc(I);
+         Inc(C);
+         end;
+       end;
+     If (Result=0) or (Result=1) then
+       Result:=L+1;
+   end;
    
 Var
   SP : Integer;   
