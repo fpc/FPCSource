@@ -2545,6 +2545,13 @@ packages/fcl-passrc/tests/testpassrc.lpr svneol=native#text/plain
 packages/fcl-process/Makefile svneol=native#text/plain
 packages/fcl-process/Makefile.fpc svneol=native#text/plain
 packages/fcl-process/Makefile.fpc.fpcmake svneol=native#text/plain
+packages/fcl-process/examples/demoproject.ico -text
+packages/fcl-process/examples/demoproject.lpi svneol=native#text/plain
+packages/fcl-process/examples/demoproject.pp svneol=native#text/plain
+packages/fcl-process/examples/demoproject.res -text
+packages/fcl-process/examples/demoruncommand.lpi svneol=native#text/plain
+packages/fcl-process/examples/demoruncommand.pp svneol=native#text/plain
+packages/fcl-process/examples/echoparams.pp svneol=native#text/plain
 packages/fcl-process/fpmake.pp svneol=native#text/plain
 packages/fcl-process/src/amicommon/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/amicommon/process.inc svneol=native#text/plain
@@ -6320,6 +6327,10 @@ packages/paszlib/examples/Makefile.fpc svneol=native#text/plain
 packages/paszlib/examples/example.pas svneol=native#text/plain
 packages/paszlib/examples/example2.pas svneol=native#text/plain
 packages/paszlib/examples/extractodt.pas svneol=native#text/plain
+packages/paszlib/examples/fpunzipper.lpi svneol=native#text/plain
+packages/paszlib/examples/fpunzipper.lpr svneol=native#text/plain
+packages/paszlib/examples/fpzipper.lpi svneol=native#text/plain
+packages/paszlib/examples/fpzipper.lpr svneol=native#text/plain
 packages/paszlib/examples/minigzip.pas svneol=native#text/plain
 packages/paszlib/examples/miniunz.pas svneol=native#text/plain
 packages/paszlib/examples/minizip.pas svneol=native#text/plain

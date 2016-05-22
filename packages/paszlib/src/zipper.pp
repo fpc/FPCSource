@@ -457,10 +457,12 @@ Type
 
   TFullZipFileEntry = Class(TZipFileEntry)
   private
+    FBitFlags: Word;
     FCompressedSize: QWord;
     FCompressMethod: Word;
     FCRC32: LongWord;
   Public
+    Property BitFlags : Word Read FBitFlags;
     Property CompressMethod : Word Read FCompressMethod;
     Property CompressedSize : QWord Read FCompressedSize;
     property CRC32: LongWord read FCRC32 write FCRC32;
@@ -566,6 +568,8 @@ ResourceString
   SErrPosTooLarge = 'Position/offset %d is larger than maximum supported %d.';
   SErrNoFileName = 'No archive filename for examine operation.';
   SErrNoStream = 'No stream is opened.';
+  SErrEncryptionNotSupported = 'Cannot unzip item "%s" : encryption is not supported.';
+  SErrPatchSetNotSupported = 'Cannot unzip item "%s" : Patch sets are not supported.';
 
 { ---------------------------------------------------------------------
     Auxiliary
@@ -1416,7 +1420,7 @@ Begin
   With LocalHdr do
     begin
     Signature := LOCAL_FILE_HEADER_SIGNATURE;
-    Extract_Version_Reqd := 10; //default value, v1.0
+    Extract_Version_Reqd := 20; //default value, v2.0
     Bit_Flag := 0;
     Compress_Method := 1;
     DateTimeToZipDateTime(Item.DateTime,Last_Mod_Date,Last_Mod_Time);
@@ -2044,6 +2048,7 @@ Begin
   FillChar(LocalZip64Fld,SizeOf(LocalZip64Fld),0); //ensure no erroneous info
   With LocalHdr do
     begin
+      Item.FBitFlags:=Bit_Flag;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
       Item.ArchiveFileName:=S;
@@ -2280,6 +2285,7 @@ Begin
       NewNode:=FEntries.Add as TFullZipFileEntry;
       // Header position will be corrected later with zip64 version, if needed..
       NewNode.HdrPos := Local_Header_Offset;
+      NewNode.FBitFlags:=Bit_Flag;
       SetLength(S,Filename_Length);
       FZipStream.ReadBuffer(S[1],Filename_Length);
       SavePos:=FZipStream.Position; //After fixed part of central directory...
@@ -2387,6 +2393,10 @@ Var
   end;
 Begin
   ReadZipHeader(Item, ZMethod);
+  if (Item.BitFlags and 1)<>0 then
+    Raise EZipError.CreateFmt(SErrEncryptionNotSupported,[Item.ArchiveFileName]);
+  if (Item.BitFlags and (1 shl 5))<>0 then
+    Raise EZipError.CreateFmt(SErrPatchSetNotSupported,[Item.ArchiveFileName]);
   // Normalize output filename to conventions of target platform.
   // Zip file always has / path separators
   OutputFileName:=StringReplace(Item.DiskFileName,'/',DirectorySeparator,[rfReplaceAll]);
