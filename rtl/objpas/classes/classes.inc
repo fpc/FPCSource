@@ -877,7 +877,7 @@ begin
   end;
 end;
 
-function IdentToInt(const Ident: String; var Int: LongInt;
+function IdentToInt(const Ident: String; out Int: LongInt;
   const Map: array of TIdentMapEntry): Boolean;
 var
   i: Integer;
