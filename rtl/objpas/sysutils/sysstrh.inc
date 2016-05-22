@@ -35,8 +35,8 @@ type
 const
   { For floattodatetime and VariantToDate }
 {$ifndef FPUNONE}
-  MinDateTime: TDateTime =  -693593.0;     { 01/01/0001 12:00:00.000 AM }
-  MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
+  MinDateTime: TDateTime =  -693593.0;        { 01/01/0001 12:00:00.000 AM }
+  MaxDateTime: TDateTime =  2958465.99999999; { 12/31/9999 11:59:59.999 PM }
 
 {$if defined(FPC_HAS_TYPE_EXTENDED) or defined(FPC_HAS_TYPE_FLOAT128)}
   MinCurrency: Currency = -922337203685477.5808;
@@ -103,7 +103,7 @@ function AnsiDequotedStr(const S: string; AQuote: Char): string;
 function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function AdjustLineBreaks(const S: string; Style: TTextLineBreakStyle): string;
-function IsValidIdent(const Ident: string): boolean;
+function IsValidIdent(const Ident: string; AllowDots : Boolean = False): boolean;
 function IntToStr(Value: Longint): string;
 function IntToStr(Value: Int64): string;
 function IntToStr(Value: QWord): string;

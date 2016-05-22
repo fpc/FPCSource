@@ -706,20 +706,35 @@ end;
     'A' to 'Z', 'a' to 'z' or '_' and the following characters are
     on of: 'A' to 'Z', 'a' to 'z', '0'..'9' or '_'    }
 
-function IsValidIdent(const Ident: string): boolean;
-var i, len: integer;
+function IsValidIdent(const Ident: string; AllowDots : Boolean = False): boolean;
+
+Const
+  Alpha = ['A'..'Z', 'a'..'z', '_'];
+  AlphaNum = Alpha + ['0'..'9'];
+  AlphaDot = AlphaNum + ['.'];
+  
+var 
+  i, len: integer;
+  allowed : Set of char;
+  
 begin
-result := false;
-len := length(Ident);
-if len <> 0 then begin
-   result := Ident[1] in ['A'..'Z', 'a'..'z', '_'];
-   i := 1;
-   while (result) and (i < len) do begin
-      i := i + 1;
-      result := result and (Ident[i] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-      end ;
-   end ;
-end ;
+  Len:=Length(Ident);
+  Result:=Len<>0;
+  if Result then 
+    begin
+    result:=Ident[1] in Alpha;
+    if AllowDots then
+      Allowed:=AlphaDot
+    else
+      Allowed:=AlphaNum;
+    I:=2;  
+    While Result and (I<=Len) do
+      begin
+      Result:=Ident[i] in Allowed;
+      Inc(I);
+      end;
+   end;
+end;
 
 {   IntToStr returns a string representing the value of Value    }
 
