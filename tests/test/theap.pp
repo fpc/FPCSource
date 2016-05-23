@@ -8,7 +8,7 @@ uses
   erroru;
 
 const
-{$ifdef cpusparc}
+{$if defined (cpusparc) or defined(cpui8086)}
   Blocks = 1000;
 {$else}
   Blocks = 10000;
