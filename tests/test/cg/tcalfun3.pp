@@ -38,6 +38,9 @@
 {$ifdef cpu8086}
   {$define cpusmall}
 {$endif}
+{$ifdef cpui8086}
+  {$define cpusmall}
+{$endif}
 
   { REAL should map to single or double }
   { so it is not checked, since single  }
