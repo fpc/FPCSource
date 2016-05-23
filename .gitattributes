@@ -1924,8 +1924,6 @@ packages/fcl-base/examples/intl/restest.pb.po svneol=native#text/plain
 packages/fcl-base/examples/intl/restest.ru.mo -text
 packages/fcl-base/examples/intl/restest.ru.po svneol=native#text/plain
 packages/fcl-base/examples/intl/resttest.po svneol=native#text/plain
-packages/fcl-base/examples/ipcclient.pp svneol=native#text/plain
-packages/fcl-base/examples/ipcserver.pp svneol=native#text/plain
 packages/fcl-base/examples/isockcli.pp svneol=native#text/plain
 packages/fcl-base/examples/isocksvr.pp svneol=native#text/plain
 packages/fcl-base/examples/istream.pp svneol=native#text/plain
@@ -2553,6 +2551,10 @@ packages/fcl-process/examples/demoproject.res -text
 packages/fcl-process/examples/demoruncommand.lpi svneol=native#text/plain
 packages/fcl-process/examples/demoruncommand.pp svneol=native#text/plain
 packages/fcl-process/examples/echoparams.pp svneol=native#text/plain
+packages/fcl-process/examples/ipcclient.lpi svneol=native#text/plain
+packages/fcl-process/examples/ipcclient.pp svneol=native#text/plain
+packages/fcl-process/examples/ipcserver.lpi svneol=native#text/plain
+packages/fcl-process/examples/ipcserver.pp svneol=native#text/plain
 packages/fcl-process/fpmake.pp svneol=native#text/plain
 packages/fcl-process/src/amicommon/pipes.inc svneol=native#text/plain
 packages/fcl-process/src/amicommon/process.inc svneol=native#text/plain

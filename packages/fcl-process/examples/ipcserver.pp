@@ -1,6 +1,6 @@
 {$mode objfpc}
 {$h+}
-program ipccerver;
+program ipcserver;
 
 {$APPTYPE CONSOLE}
 

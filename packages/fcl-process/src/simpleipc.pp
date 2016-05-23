@@ -294,6 +294,7 @@ Var
   B : Boolean;
 
 begin
+  Inherited;
   B:=FActive;
   if B then
     begin
