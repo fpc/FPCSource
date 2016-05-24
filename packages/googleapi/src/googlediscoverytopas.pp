@@ -280,6 +280,7 @@ Type
   private
     FDescription: String;
     FeTagrequired: Boolean;
+    FflatPath: string;
     FhttpMethod: string;
     Fid: string;
     fMediaUpload: TMediaUpload;
@@ -307,6 +308,7 @@ Type
     Property parameterOrder : TStringArray Read FParameterOrder Write FParameterOrder;
     Property parameters : TRestMethodParams read fparameters write fparameters;
     Property path : string read fpath Write fpath;
+    Property flatPath : string read FflatPath Write FflatPath;
     Property request : trequest read frequest write frequest;
     Property response : tresponse read fresponse write fresponse;
     property scopes : TStringArray Read Fscopes write Fscopes;
@@ -769,6 +771,8 @@ Var
   BaseArrayElement : Boolean;
 
 begin
+  if (S.Name='Component') and (NamePrefix='') then
+    NamePrefix:='_';
   dt:=GetSchemaDataType(S);
   BaseArrayElement:=(dt=dtArray) and S.Items.BaseType;
   DoLog('[%s] Examining : %s (Ref : %s type: %s) Toplevel %s',[NamePrefix,S.Name,S.ref,S._type,BoolToStr(IsTopLevel,'True','False')]);
@@ -1061,7 +1065,7 @@ begin
     begin
     N:=S.PropertyName;
     tn:=GetPropertyType(AClassName,S);
-    AddLn('Procedure Set%s(AIndex : Integer; Const AValue : %s); virtual;',[N,tn]);
+    AddLn('Procedure Set%s(AIndex : Integer; const AValue : %s); virtual;',[N,tn]);
     end;
   if NeedSetArrayLength and not UseListForArray then
     begin
@@ -1216,7 +1220,7 @@ begin
     NeedGetWritename:=NeedGetWritename or (CompareText(N,S.Name)<>0);
     TN:=GetPropertyType(AClassName,S);
     Addln('');
-    AddLn('Procedure %s.Set%s(AIndex : Integer; Const AValue : %s); ',[AClassName,N,tn]);
+    AddLn('Procedure %s.Set%s(AIndex : Integer; const AValue : %s); ',[AClassName,N,tn]);
     SimpleMethodBody([Format('If (F%s=AValue) then exit;',[N]),
                       Format('F%s:=AValue;',[N]),
                       'MarkPropertyChanged(AIndex);']);
@@ -1553,6 +1557,8 @@ begin
       Add('DefaultAPI');
       Add('API');
       Add('Notification');
+      Add('UpdateAction');
+      Add('ExecuteAction');
       end;
     // Actual paramters
     For P in M.parameters do
@@ -1921,8 +1927,15 @@ Procedure TDiscoveryJSONToPas.CreateAPIClassImplementation;
 
   Procedure StringRes(AValue : String);
 
+  Var
+    S : String;
+
   begin
-    SimpleMethodBody([Format('Result:=%s;',[MakePascalString(AValue,True)])]);
+    S:=MakePascalString(AValue,True);
+    S:=StringReplace(S,#13#10,'''#13#10''',[rfReplaceAll]);
+    S:=StringReplace(S,#10,'''#10''',[rfReplaceAll]);
+    S:=StringReplace(S,#13,'''#13''',[rfReplaceAll]);
+    SimpleMethodBody([Format('Result:=%s;',[S])]);
   end;
 
 Var
