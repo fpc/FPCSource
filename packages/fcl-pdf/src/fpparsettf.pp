@@ -31,28 +31,8 @@ type
   // Tables recognized in this unit.
   TTTFTableType = (ttUnknown,ttHead,tthhea,ttmaxp,tthmtx,ttcmap,ttname,ttOS2,ttpost);
 
-  TPDFFontDefinition = Record
-    FontType : String;
-    FontName : String;
-    Ascender : Integer;
-    Descender : Integer;
-    CapHeight : Integer;
-    Flags : Integer;
-    BBox : Array[0..3] of Integer;
-    ItalicAngle : Integer;
-    StemV : Integer;
-    MissingWidth : integer;
-    FontUp : Integer;
-    FontUt : Integer;
-    Encoding : String;
-    FontFile : String;
-    Diffs : String;
-    CharWidths : String;
-    OriginalSize : integer;
-  end;
-
-  TSmallintArray = Packed Array of Smallint;
-  TWordArray = Packed Array of Smallint;
+  TSmallintArray = Packed Array of Int16;
+  TWordArray = Packed Array of UInt16;
 
   TFixedVersionRec = packed record
     case Integer of
@@ -253,10 +233,11 @@ Type
     FWidths: TLongHorMetrics; // hmtx data
     // Needed to create PDF font def.
     FOriginalSize : Cardinal;
-    MissingWidth: Integer;
+    FMissingWidth: Integer;
     FNameEntries: TNameEntries;
     { This only applies to TFixedVersionRec values. }
     function FixMinorVersion(const AMinor: word): word;
+    function GetMissingWidth: integer;
   Protected
     // Stream reading functions.
     Function IsNativeData : Boolean; virtual;
@@ -273,25 +254,10 @@ Type
     procedure ParseOS2(AStream : TStream); virtual;
     procedure ParsePost(AStream : TStream); virtual;
     // Make differences for postscript fonts
-    procedure PrepareEncoding(Const AEnCoding : String);
+    procedure PrepareEncoding(Const AEncoding : String);
     function MakeDifferences: String; virtual;
     // Utility function to convert FShort to natural units
     Function ToNatural(AUnit: Smallint) : Smallint;
-    // Some utility functions to create the PDF font definition
-    Procedure MakePDFFontDefinitionFile(Const FontFile,Section,AEncoding: string); virtual;
-    Function Flags : Integer;
-    Function Bold: Boolean;
-    Function StemV: SmallInt;
-    Function Embeddable : Boolean;
-    Function Ascender: SmallInt;
-    Function Descender: SmallInt;
-    { Also know as the linegap. "Leading" is the gap between two lines. }
-    Function Leading: SmallInt;
-    Function CapHeight: SmallInt;
-    { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
-    function GetGlyphIndex(AValue: word): word;
-    { Returns the glyph advance width, based on the AIndex (glyph index) value. The result is in font units. }
-    function GetAdvanceWidth(AIndex: word): word;
   public
     Chars: TWordArray;
     CharWidth: array[0..255] of SmallInt;
@@ -301,20 +267,37 @@ Type
     PostScriptName: string;
     FamilyName: string;
     destructor Destroy; override;
+    { Returns the Glyph Index value in the TTF file, where AValue is the ordinal value of a character. }
+    function  GetGlyphIndex(AValue: word): word;
     // Load a TTF file from file or stream.
     Procedure LoadFromFile(const AFileName : String);
     Procedure LoadFromStream(AStream: TStream); virtual;
-    // Checks if Embedded is allowed, and also prepares CharWidths array
+    // Checks if Embedded is allowed, and also prepares CharWidths array. NOTE: this is possibly not needed any more.
     procedure PrepareFontDefinition(const Encoding:string; Embed: Boolean);
-    // Fill record with PDF Font definition data.
-    Procedure FillPDFFontDefinition(Out ADef: TPDFFontDefinition; Const AFontFile,AEncoding : String);
-    // Write Font Definition data to a file named FontFile.
-    procedure MakePDFFontDef(const FontFile: string; const Encoding: string; Embed: Boolean);
+
     // The following are only valid after the file was succesfully read.
-    // Font file header info.
+
+    Function Flags : Integer;
+    Function Bold: Boolean;
+    Function StemV: SmallInt;
+    Function Embeddable : Boolean;
+    Function Ascender: SmallInt;
+    Function Descender: SmallInt;
+    { Also know as the linegap. "Leading" is the gap between two lines. }
+    Function Leading: SmallInt;
+    Function CapHeight: SmallInt;
+    { Returns the glyph advance width, based on the AIndex (glyph index) value. The result is in font units. }
+    function GetAdvanceWidth(AIndex: word): word;
+    function ItalicAngle: LongWord;
+    { max glyph bounding box values - as space separated values }
+    function BBox: string;
+    property MissingWidth: Integer read GetMissingWidth;
+    { original font file size }
+    property OriginalSize: Cardinal read FOriginalSize;
+    property Filename: string read FFilename;
     Property Directory : TTableDirectory Read FTableDir;
     Property Tables : TTableDirectoryEntries Read FTables;
-    // The various tables as present in the font file.
+
     Property Head : THead Read FHead;
     Property HHead : THHead Read FHHead;
     property CmapH : TCMapHeader Read FCmapH;
@@ -338,12 +321,9 @@ type
 
 // Convert string to known table type
 Function GetTableType(Const AName : String) : TTTFTableType;
-// Utility functions for text encoding conversions
-function ConvertUTF8ToUTF16(Dest: PWideChar; DestWideCharCount: SizeUInt; Src: PChar; SrcCharCount: SizeUInt;
-                            Options: TConvertOptions; out ActualWideCharCount: SizeUInt): TConvertResult;
-function UTF8ToUTF16(const P: PChar; ByteCnt: SizeUInt): UnicodeString;
-function UTF8ToUTF16(const S: AnsiString): UnicodeString;
 function StrToUTF16Hex(const AValue: UnicodeString; AIncludeBOM: boolean = True): AnsiString;
+{ To overcome the annoying compiler hint: "Local variable does not seem to be initialized" }
+procedure FillMem(Dest: pointer; Size: longint; Data: Byte );
 
 
 Const
@@ -373,8 +353,6 @@ Const
 
 implementation
 
-uses
-  inifiles;
 
 resourcestring
   rsFontEmbeddingNotAllowed = 'Font licence does not allow embedding';
@@ -384,222 +362,6 @@ begin
   Result:=High(TTTFTableType);
   While (Result<>ttUnknown) and (CompareText(AName,TTFTableNames[Result])<>0) do
     Result:=Pred(Result);
-end;
-
-{------------------------------------------------------------------------------
-  Name:    ConvertUTF8ToUTF16
-  Params:  Dest                - Pointer to destination string
-           DestWideCharCount   - Wide char count allocated in destination string
-           Src                 - Pointer to source string
-           SrcCharCount        - Char count allocated in source string
-           Options             - Conversion options, if none is set, both
-             invalid and unfinished source chars are skipped
-
-             toInvalidCharError       - Stop on invalid source char and report
-                                      error
-             toInvalidCharToSymbol    - Replace invalid source chars with '?'
-             toUnfinishedCharError    - Stop on unfinished source char and
-                                      report error
-             toUnfinishedCharToSymbol - Replace unfinished source char with '?'
-
-           ActualWideCharCount - Actual wide char count converted from source
-                               string to destination string
-  Returns:
-    trNoError        - The string was successfully converted without
-                     any error
-    trNullSrc        - Pointer to source string is nil
-    trNullDest       - Pointer to destination string is nil
-    trDestExhausted  - Destination buffer size is not big enough to hold
-                     converted string
-    trInvalidChar    - Invalid source char has occured
-    trUnfinishedChar - Unfinished source char has occured
-
-  Converts the specified UTF-8 encoded string to UTF-16 encoded (system endian)
- ------------------------------------------------------------------------------}
-function ConvertUTF8ToUTF16(Dest: PWideChar; DestWideCharCount: SizeUInt;
-  Src: PChar; SrcCharCount: SizeUInt; Options: TConvertOptions;
-  out ActualWideCharCount: SizeUInt): TConvertResult;
-var
-  DestI, SrcI: SizeUInt;
-  B1, B2, B3, B4: Byte;
-  W: Word;
-  C: Cardinal;
-
-  function UnfinishedCharError: Boolean;
-  begin
-    if toUnfinishedCharToSymbol in Options then
-    begin
-      Dest[DestI] := System.WideChar('?');
-      Inc(DestI);
-      Result := False;
-    end
-    else
-      if toUnfinishedCharError in Options then
-      begin
-        ConvertUTF8ToUTF16 := trUnfinishedChar;
-        Result := True;
-      end
-      else Result := False;
-  end;
-
-  function InvalidCharError(Count: SizeUInt): Boolean; inline;
-  begin
-    if not (toInvalidCharError in Options) then
-    begin
-      if toInvalidCharToSymbol in Options then
-      begin
-        Dest[DestI] := System.WideChar('?');
-        Inc(DestI);
-      end;
-
-      Dec(SrcI, Count);
-
-      // skip trailing UTF-8 char bytes
-      while (Count > 0) do
-      begin
-        if (Byte(Src[SrcI]) and %11000000) <> %10000000 then Break;
-        Inc(SrcI);
-        Dec(Count);
-      end;
-
-      Result := False;
-    end
-    else
-      if toInvalidCharError in Options then
-      begin
-        ConvertUTF8ToUTF16 := trUnfinishedChar;
-        Result := True;
-      end;
-  end;
-
-begin
-  ActualWideCharCount := 0;
-
-  if not Assigned(Src) then
-  begin
-    Result := trNullSrc;
-    Exit;
-  end;
-
-  if not Assigned(Dest) then
-  begin
-    Result := trNullDest;
-    Exit;
-  end;
-  SrcI := 0;
-  DestI := 0;
-
-  while (DestI < DestWideCharCount) and (SrcI < SrcCharCount) do
-  begin
-    B1 := Byte(Src[SrcI]);
-    Inc(SrcI);
-
-    if B1 < 128 then // single byte UTF-8 char
-    begin
-      Dest[DestI] := System.WideChar(B1);
-      Inc(DestI);
-    end
-    else
-    begin
-      if SrcI >= SrcCharCount then
-        if UnfinishedCharError then Exit(trInvalidChar)
-        else Break;
-
-      B2 := Byte(Src[SrcI]);
-      Inc(SrcI);
-
-      if (B1 and %11100000) = %11000000 then // double byte UTF-8 char
-      begin
-        if (B2 and %11000000) = %10000000 then
-        begin
-          Dest[DestI] := System.WideChar(((B1 and %00011111) shl 6) or (B2 and %00111111));
-          Inc(DestI);
-        end
-        else // invalid character, assume single byte UTF-8 char
-          if InvalidCharError(1) then Exit(trInvalidChar);
-      end
-      else
-      begin
-        if SrcI >= SrcCharCount then
-          if UnfinishedCharError then Exit(trInvalidChar)
-          else Break;
-
-        B3 := Byte(Src[SrcI]);
-        Inc(SrcI);
-
-        if (B1 and %11110000) = %11100000 then // triple byte UTF-8 char
-        begin
-          if ((B2 and %11000000) = %10000000) and ((B3 and %11000000) = %10000000) then
-          begin
-            W := ((B1 and %00011111) shl 12) or ((B2 and %00111111) shl 6) or (B3 and %00111111);
-            if (W < $D800) or (W > $DFFF) then // to single wide char UTF-16 char
-            begin
-              Dest[DestI] := System.WideChar(W);
-              Inc(DestI);
-            end
-            else // invalid UTF-16 character, assume double byte UTF-8 char
-              if InvalidCharError(2) then Exit(trInvalidChar);
-          end
-          else // invalid character, assume double byte UTF-8 char
-            if InvalidCharError(2) then Exit(trInvalidChar);
-        end
-        else
-        begin
-          if SrcI >= SrcCharCount then
-            if UnfinishedCharError then Exit(trInvalidChar)
-            else Break;
-
-          B4 := Byte(Src[SrcI]);
-          Inc(SrcI);
-
-          if ((B1 and %11111000) = %11110000) and ((B2 and %11000000) = %10000000)
-            and ((B3 and %11000000) = %10000000) and ((B4 and %11000000) = %10000000) then
-          begin // 4 byte UTF-8 char
-            C := ((B1 and %00011111) shl 18) or ((B2 and %00111111) shl 12)
-              or ((B3 and %00111111) shl 6)  or (B4 and %00111111);
-            // to double wide char UTF-16 char
-            Dest[DestI] := System.WideChar($D800 or ((C - $10000) shr 10));
-            Inc(DestI);
-            if DestI >= DestWideCharCount then Break;
-            Dest[DestI] := System.WideChar($DC00 or ((C - $10000) and %0000001111111111));
-            Inc(DestI);
-          end
-          else // invalid character, assume triple byte UTF-8 char
-            if InvalidCharError(3) then Exit(trInvalidChar);
-        end;
-      end;
-    end;
-  end;
-
-  if DestI >= DestWideCharCount then
-  begin
-    DestI := DestWideCharCount - 1;
-    Result := trDestExhausted;
-  end
-  else
-    Result := trNoError;
-
-  Dest[DestI] := #0;
-  ActualWideCharCount := DestI + 1;
-end;
-
-function UTF8ToUTF16(const P: PChar; ByteCnt: SizeUInt): UnicodeString;
-var
-  L: SizeUInt;
-begin
-  if ByteCnt=0 then
-    exit('');
-  SetLength(Result, ByteCnt);
-  // wide chars of UTF-16 <= bytes of UTF-8 string
-  if ConvertUTF8ToUTF16(PWideChar(Result), Length(Result) + 1, P, ByteCnt,
-    [toInvalidCharToSymbol], L) = trNoError
-  then SetLength(Result, L - 1)
-  else Result := '';
-end;
-
-function UTF8ToUTF16(const S: AnsiString): UnicodeString;
-begin
-  Result:=UTF8ToUTF16(PChar(S),length(S));
 end;
 
 function StrToUTF16Hex(const AValue: UnicodeString; AIncludeBOM: boolean = True): AnsiString;
@@ -616,6 +378,11 @@ begin
     pc := @AValue[i];
     Result := Result + AnsiString(IntToHex(pc^, 4));
   end;
+end;
+
+procedure FillMem(Dest: pointer; Size: longint; Data: Byte );
+begin
+  FillChar(Dest^, Size, Data);
 end;
 
 function TTFFileInfo.ReadULong(AStream: TStream): Longword;inline;
@@ -653,16 +420,16 @@ begin
   FHead.Created := BEtoN(FHead.Created);
   FHead.Modified := BEtoN(FHead.Modified);
   For i:=0 to 3 do
-    FHead.BBox[i]:=betOn(FHead.BBox[i]);
-  FHead.CheckSumAdjustment:=beton(FHead.CheckSumAdjustment);
-  FHead.MagicNumber:=beton(FHead.MagicNumber);
-  FHead.Flags:=Beton(FHead.Flags);
-  FHead.UnitsPerEm:=beton(FHead.UnitsPerEm);
-  FHead.MacStyle:=Beton(FHead.MacStyle);
-  FHead.LowestRecPPEM:=Beton(FHead.LowestRecPPEM);
-  FHead.FontDirectionHint:=Beton(FHead.FontDirectionHint);
-  FHead.IndexToLocFormat:=Beton(FHead.IndexToLocFormat);
-  FHead.glyphDataFormat:=Beton(FHead.glyphDataFormat);
+    FHead.BBox[i]:=BEtoN(FHead.BBox[i]);
+  FHead.CheckSumAdjustment:=BEtoN(FHead.CheckSumAdjustment);
+  FHead.MagicNumber:=BEtoN(FHead.MagicNumber);
+  FHead.Flags:=BEtoN(FHead.Flags);
+  FHead.UnitsPerEm:=BEtoN(FHead.UnitsPerEm);
+  FHead.MacStyle:=BEtoN(FHead.MacStyle);
+  FHead.LowestRecPPEM:=BEtoN(FHead.LowestRecPPEM);
+  FHead.FontDirectionHint:=BEtoN(FHead.FontDirectionHint);
+  FHead.IndexToLocFormat:=BEtoN(FHead.IndexToLocFormat);
+  FHead.glyphDataFormat:=BEtoN(FHead.glyphDataFormat);
 end;
 
 procedure TTFFileInfo.ParseHhea(AStream : TStream);
@@ -671,19 +438,19 @@ begin
   AStream.ReadBuffer(FHHEad,SizeOf(FHHEad));
   if IsNativeData then
     exit;
-  FHHEad.TableVersion.Version := BeToN(FHHEad.TableVersion.Version);
+  FHHEad.TableVersion.Version := BEToN(FHHEad.TableVersion.Version);
   FHHEad.TableVersion.Minor := FixMinorVersion(FHHEad.TableVersion.Minor);
-  FHHEad.Ascender:=BeToN(FHHEad.Ascender);
-  FHHEad.Descender:=BeToN(FHHEad.Descender);
-  FHHEad.LineGap:=BeToN(FHHEad.LineGap);
-  FHHEad.MinLeftSideBearing:=BeToN(FHHEad.MinLeftSideBearing);
-  FHHEad.MinRightSideBearing:=BeToN(FHHEad.MinRightSideBearing);
-  FHHEad.XMaxExtent:=BeToN(FHHEad.XMaxExtent);
-  FHHEad.CaretSlopeRise:=BeToN(FHHEad.CaretSlopeRise);
-  FHHEad.CaretSlopeRun:=BeToN(FHHEad.CaretSlopeRun);
-  FHHEad.metricDataFormat:=BeToN(FHHEad.metricDataFormat);
-  FHHEad.numberOfHMetrics:=BeToN(FHHEad.numberOfHMetrics);
-  FHHead.AdvanceWidthMax := BeToN(FHHead.AdvanceWidthMax);
+  FHHEad.Ascender:=BEToN(FHHEad.Ascender);
+  FHHEad.Descender:=BEToN(FHHEad.Descender);
+  FHHEad.LineGap:=BEToN(FHHEad.LineGap);
+  FHHEad.MinLeftSideBearing:=BEToN(FHHEad.MinLeftSideBearing);
+  FHHEad.MinRightSideBearing:=BEToN(FHHEad.MinRightSideBearing);
+  FHHEad.XMaxExtent:=BEToN(FHHEad.XMaxExtent);
+  FHHEad.CaretSlopeRise:=BEToN(FHHEad.CaretSlopeRise);
+  FHHEad.CaretSlopeRun:=BEToN(FHHEad.CaretSlopeRun);
+  FHHEad.metricDataFormat:=BEToN(FHHEad.metricDataFormat);
+  FHHEad.numberOfHMetrics:=BEToN(FHHEad.numberOfHMetrics);
+  FHHead.AdvanceWidthMax := BEToN(FHHead.AdvanceWidthMax);
 end;
 
 procedure TTFFileInfo.ParseMaxp(AStream : TStream);
@@ -696,20 +463,20 @@ begin
     begin
     VersionNumber.Version := BEtoN(VersionNumber.Version);
     VersionNumber.Minor := FixMinorVersion(VersionNumber.Minor);
-    numGlyphs:=Beton(numGlyphs);
-    maxPoints:=Beton(maxPoints);
-    maxContours:=Beton(maxContours);
-    maxCompositePoints :=BeToN(maxCompositePoints);
-    maxCompositeContours :=BeToN(maxCompositeContours);
-    maxZones :=BeToN(maxZones);
-    maxTwilightPoints :=BeToN(maxTwilightPoints);
-    maxStorage :=BeToN(maxStorage);
-    maxFunctionDefs :=BeToN(maxFunctionDefs);
-    maxInstructionDefs :=BeToN(maxInstructionDefs);
-    maxStackElements :=BeToN(maxStackElements);
-    maxSizeOfInstructions :=BeToN(maxSizeOfInstructions);
-    maxComponentElements :=BeToN(maxComponentElements);
-    maxComponentDepth :=BeToN(maxComponentDepth);
+    numGlyphs:=BEtoN(numGlyphs);
+    maxPoints:=BEtoN(maxPoints);
+    maxContours:=BEtoN(maxContours);
+    maxCompositePoints :=BEtoN(maxCompositePoints);
+    maxCompositeContours :=BEtoN(maxCompositeContours);
+    maxZones :=BEtoN(maxZones);
+    maxTwilightPoints :=BEtoN(maxTwilightPoints);
+    maxStorage :=BEtoN(maxStorage);
+    maxFunctionDefs :=BEtoN(maxFunctionDefs);
+    maxInstructionDefs :=BEtoN(maxInstructionDefs);
+    maxStackElements :=BEtoN(maxStackElements);
+    maxSizeOfInstructions :=BEtoN(maxSizeOfInstructions);
+    maxComponentElements :=BEtoN(maxComponentElements);
+    maxComponentDepth :=BEtoN(maxComponentDepth);
     end;
 end;
 
@@ -725,8 +492,8 @@ begin
     exit;
   for I:=0 to FHHead.NumberOfHMetrics-1 do
     begin
-    FWidths[I].AdvanceWidth:=beton(FWidths[I].AdvanceWidth);
-    FWidths[I].LSB:=beton(FWidths[I].LSB);
+    FWidths[I].AdvanceWidth:=BEtoN(FWidths[I].AdvanceWidth);
+    FWidths[I].LSB:=BEtoN(FWidths[I].LSB);
     end;
 end;
 
@@ -755,7 +522,7 @@ begin
   While (UE>=0) and ((FSubtables[UE].PlatformID<>3) or (FSubtables[UE].EncodingID<> 1)) do
     Dec(UE);
   if (UE=-1) then
-    Raise ETTF.Create('No Format 4 map (unicode) table found');
+    Raise ETTF.Create('No Format 4 map (unicode) table found <'+FFileName + ' - ' + PostScriptName+'>');
   TT:=TableStartPos+FSubtables[UE].Offset;
   AStream.Position:=TT;
   FUnicodeMap.Format:= ReadUShort(AStream);               // 2 bytes - Format of subtable
@@ -765,7 +532,7 @@ begin
   S:=TMemoryStream.Create;
   try
     // Speed up the process, read everything in a single mem block.
-    S.CopyFrom(AStream,FUnicodeMap.Length-4);
+    S.CopyFrom(AStream,Int64(FUnicodeMap.Length)-4);
     S.Position:=0;
     FUnicodeMap.LanguageID:=ReadUShort(S);
     FUnicodeMap.SegmentCount2:=ReadUShort(S);            // 2 bytes - Segments count
@@ -828,18 +595,18 @@ var
   TableStartPos: LongWord;
   S : AnsiString;
   W : Widestring;
-  FMT : Word;
   N : TNameRecord;
   E : TNameEntries;
   WA : Array of word;
 
 begin
   TableStartPos:= AStream.Position;                   // memorize Table start position
-  Fmt:=ReadUShort(AStream);                  // skip 2 bytes - Format
+  ReadUShort(AStream);                  // skip 2 bytes - Format
   Count:=ReadUShort(AStream);                        // 2 bytes
   StringOffset:=ReadUShort(AStream);                 // 2 bytes
   E := FNameEntries;
   SetLength(E,Count);
+  FillMem(@N, SizeOf(TNameRecord), 0);
   //  Read Descriptors
   for I:=0 to Count-1 do
   begin
@@ -855,7 +622,7 @@ begin
   //  Read Values
   for I:=0 to Count-1 do
   begin
-    AStream.Position:=TableStartPos+StringOffset+E[i].Info.StringOffset;
+    AStream.Position:=Int64(TableStartPos)+StringOffset+E[i].Info.StringOffset;
     if E[i].Info.EncodingID=1 then
     begin
       SetLength(WA,E[i].Info.StringLength div 2);
@@ -863,7 +630,7 @@ begin
       AStream.Read(WA[0],SizeOf(Word)*Length(W));    // 1 byte
       For J:=0 to Length(WA)-1 do
         W[J+1]:=WideChar(Beton(WA[J]));
-      E[i].Value:=W;
+      E[i].Value:=string(W);
     end
     else
     begin
@@ -974,7 +741,7 @@ Var
   AStream: TFileStream;
 begin
   FFilename := AFilename;
-  AStream:= TFileStream.Create(AFileName,fmOpenRead);
+  AStream:= TFileStream.Create(AFileName,fmOpenRead or fmShareDenyNone);
   try
     LoadFromStream(AStream);
   finally
@@ -1023,7 +790,7 @@ begin
         ttcmap: ParseCmap(AStream);
         ttname: ParseName(AStream);
         ttos2 : ParseOS2(AStream);
-        ttPost: ParsePost(AStream);                                  // lecture table "Post"
+        ttPost: ParsePost(AStream);
       end;
       end;
     end;
@@ -1037,52 +804,18 @@ begin
     raise ETTF.Create(rsFontEmbeddingNotAllowed);
   PrepareEncoding(Encoding);
 //  MissingWidth:=ToNatural(Widths[Chars[CharCodes^[32]]].AdvanceWidth);  // Char(32) - Space character
-  MissingWidth:=Widths[Chars[CharCodes^[32]]].AdvanceWidth;  // Char(32) - Space character
+  FMissingWidth := Widths[Chars[CharCodes^[32]]].AdvanceWidth;  // Char(32) - Space character
   for I:=0 to 255 do
     begin
-    if (Widths[Chars[CharCodes^[i]]].AdvanceWidth> 0) and (CharNames^[i]<> '.notdef') then
+    if (CharCodes^[i]>=0) and (CharCodes^[i]<=High(Chars))
+    and (Widths[Chars[CharCodes^[i]]].AdvanceWidth> 0) and (CharNames^[i]<> '.notdef') then
       CharWidth[I]:= ToNatural(Widths[Chars[CharCodes^[I]]].AdvanceWidth)
     else
-      CharWidth[I]:= MissingWidth;
+      CharWidth[I]:= FMissingWidth;
     end;
 end;
 
-procedure TTFFileInfo.FillPDFFontDefinition(out ADef: TPDFFontDefinition; const AFontFile, AEncoding: String);
-
-Var
-  I : Integer;
-  S : String;
-
-begin
-  ADef.FontType:='TrueType';  // DON'T LOCALIZE
-  ADef.FontName:=PostScriptName;
-  ADef.Ascender:=Ascender;
-  ADef.Descender:=Descender;
-  ADef.CapHeight:=Capheight;
-  ADef.Flags:=Flags;
-  For I:=0 to 3 do
-    ADef.BBox[i]:=ToNatural(FHead.BBox[I]);
-  ADef.ItalicAngle:=FPostScript.ItalicAngle;
-  ADef.StemV:=StemV;
-  ADef.MissingWidth:=MissingWidth;
-  ADef.FontUp:=ToNatural(FPostScript.UnderlinePosition);
-  ADef.FontUt:=ToNatural(FPostScript.UnderlineThickness);
-  ADef.Encoding:=AEncoding;
-  ADef.OriginalSize:=FOriginalSize;
-  ADef.FontFile:=ChangeFileExt(AFontFile,'.z');
-  if (Lowercase(AEncoding)<>'cp1252') then
-    ADef.Diffs:=MakeDifferences;
-  S:='';
-  for I:=32 to 255 do
-    begin
-    if I>32 then
-      S:=S+' ';
-    S:=S+IntToStr(CharWidth[I]);
-    end;
-  ADef.CharWidths:=S;
-end;
-
-procedure TTFFileInfo.PrepareEncoding(const AEnCoding: String);
+procedure TTFFileInfo.PrepareEncoding(const AEncoding: String);
 var
   TE : TTTFEncoding;
   V : PTTFEncodingValues;
@@ -1090,51 +823,8 @@ begin
   TE:=GetEncoding(AEncoding);
   if (TE<>teUnknown) then
     GetEncodingTables(Te,CharNames,CharCodes);
-  // Needed to mak difference
+  // Needed to make difference
   GetEncodingTables(Te,CharBase,V);
-end;
-
-procedure TTFFileInfo.MakePDFFontDefinitionFile(const FontFile, Section, AEncoding: string);
-
-var
-  Ini : TMemIniFile;
-  S: String;
-  I : Integer;
-  Def : TPDFFontDefinition;
-
-begin
-  FillPDFFontDefinition(Def,FontFile,AEncoding);
-  Ini:=TMemIniFile.Create(FontFile);
-  With Ini Do
-    try
-      WriteString(Section,'FontType',Def.FontType);
-      WriteString(Section,'FontName',Def.FontName);
-      WriteInteger(Section,'Ascent',Def.Ascender);
-      WriteInteger(Section,'Descent',Def.Descender);
-      WriteInteger(Section,'CapHeight',Def.CapHeight);
-      WriteInteger(Section,'Flags',Def.Flags);
-      S:='';
-      for i:=0 to 3 do
-        begin
-        if I>0 then
-          S:=S+' ';
-        S:=S+IntToStr(Def.BBox[I]);
-        end;
-      WriteString(Section,'FontBBox',S);
-      WriteInteger(Section,'ItalicAngle',Def.ItalicAngle);
-      WriteInteger(Section,'StemV',Def.StemV);
-      WriteInteger(Section,'MissingWidth',Def.MissingWidth);
-      WriteInteger(Section,'FontUp',Def.FontUp);
-      WriteInteger(Section,'FontUt',Def.FontUt);
-      WriteString(Section,'Encoding',Def.Encoding);
-      WriteString(Section,'FontFile',Def.FontFile);
-      WriteInteger(Section,'OriginalSize',Def.OriginalSize);
-      WriteString(Section,'Diffs',Def.Diffs);
-      WriteString(Section,'CharWidth',Def.CharWidths);
-      UpdateFile;
-    finally
-      Ini.Free;
-    end;
 end;
 
 function TTFFileInfo.MakeDifferences: String;
@@ -1174,17 +864,17 @@ end;
 
 function TTFFileInfo.Ascender: SmallInt;
 begin
-  Result:=ToNatural(FOS2Data.sTypoAscender);         // 2 bytes
+  Result:=FOS2Data.sTypoAscender;
 end;
 
 function TTFFileInfo.Descender: SmallInt;
 begin
-  Result := ToNatural(FOS2Data.sTypoDescender);        // 2 bytes
+  Result := FOS2Data.sTypoDescender;
 end;
 
 function TTFFileInfo.Leading: SmallInt;
 begin
-  Result := ToNatural(FOS2Data.sTypoLineGap);
+  Result := FOS2Data.sTypoLineGap;
 end;
 
 function TTFFileInfo.CapHeight: SmallInt;
@@ -1192,7 +882,7 @@ begin
   With FOS2Data do
     begin
     if Version>= 2 then
-      Result:=ToNatural(sCapHeight)
+      Result:=sCapHeight
     else
       Result:=Ascender;
     end;
@@ -1206,6 +896,24 @@ end;
 function TTFFileInfo.GetAdvanceWidth(AIndex: word): word;
 begin
   Result := Widths[AIndex].AdvanceWidth;
+end;
+
+function TTFFileInfo.ItalicAngle: LongWord;
+begin
+  Result := FPostScript.ItalicAngle;
+end;
+
+function TTFFileInfo.BBox: string;
+var
+  i: integer;
+begin
+  Result := '';
+  for i := 0 to 3 do
+  begin
+    if i > 0 then
+      Result := Result + ' ';
+    Result := Result + IntToStr(ToNatural(FHead.BBox[I]));
+  end;
 end;
 
 destructor TTFFileInfo.Destroy;
@@ -1224,6 +932,15 @@ begin
   Result := round(d*10000);
 end;
 
+function TTFFileInfo.GetMissingWidth: integer;
+begin
+  if FMissingWidth = 0 then
+  begin
+    FMissingWidth := Widths[Chars[CharCodes^[32]]].AdvanceWidth;  // Char(32) - Space character
+  end;
+  Result := FMissingWidth;
+end;
+
 function TTFFileInfo.IsNativeData: Boolean;
 begin
   Result:=False;
@@ -1239,19 +956,11 @@ end;
 
 function TTFFileInfo.Flags: Integer;
 begin
-  Result:=32;
+  Result := 32;
   if FPostScript.IsFixedPitch<>0 then
-    Result:=Result+1;
+    Result := Result+1;
   if FPostScript.ItalicAngle<>0 then
-    Flags:= Flags+64;
+    Result := Result+64;
 end;
-
-procedure TTFFileInfo.MakePDFFontDef(const FontFile: string; const Encoding:string; Embed: Boolean);
-begin
-  PrepareFontDefinition(Encoding, Embed);
-  MakePDFFontDefinitionFile(FontFile,PostScriptName,Encoding);
-end;
-
 
 end.
-

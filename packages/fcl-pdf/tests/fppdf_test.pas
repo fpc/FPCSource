@@ -1,6 +1,7 @@
 unit fppdf_test;
 
 {$mode objfpc}{$H+}
+{$codepage utf8}
 
 interface
 
@@ -9,7 +10,7 @@ uses
   {$ifdef fptest}
   ,TestFramework
   {$else}
-  ,fpcunit, testutils, testregistry
+  ,fpcunit, testregistry
   {$endif}
   ,fppdf
   ;
@@ -26,6 +27,12 @@ type
   public
     property    PDF: TPDFDocument read FPDF;
     property    S: TStringStream read FStream;
+  end;
+
+
+  TGeneralPDFTests = class(TTestCase)
+  published
+    procedure   TestPDFCoord;
   end;
 
 
@@ -73,6 +80,13 @@ type
     procedure   TestWrite;
     procedure   TestValidNames1;
     procedure   TestValidNames2;
+    procedure   TestValidNames3;
+  end;
+
+
+  TTestPDFAbstractString = class(TBasePDFTest)
+  published
+    procedure   TestInsertEscape;
   end;
 
 
@@ -81,6 +95,13 @@ type
     procedure   TestWrite;
     procedure   TestWriteEscaped;
     procedure   TestWriteEscaped2;
+  end;
+
+
+  TTestPDFUTF8String = class(TBasePDFTest)
+  published
+    procedure   TestWrite;
+    procedure   TestWriteEscaped;
   end;
 
 
@@ -167,6 +188,8 @@ type
   TTestPDFImage = class(TBasePDFTest)
   published
     procedure   TestWrite;
+    procedure   TestPageDrawImage_Pixels;
+    procedure   TestPageDrawImage_UnitsOfMeasure;
   end;
 
 
@@ -227,13 +250,17 @@ type
 
   TTestTPDFImageItem = class(TTestCase)
   published
-    procedure TestCreateStreamedData;
+    procedure TestCreateStreamedData_Compressed;
+    procedure TestCreateStreamedData_Uncompressed;
   end;
 
 implementation
 
 uses
   FPImage;
+
+const
+  cFont1 = 'fonts' + PathDelim + 'LiberationSans-Regular.ttf';
 
 type
   // so we can access Protected methods in the tests
@@ -245,6 +272,7 @@ type
   TMockPDFReference = class(TPDFReference);
   TMockPDFName = class(TPDFName);
   TMockPDFString = class(TPDFString);
+  TMockPDFUTF8String = class(TPDFUTF8String);
   TMockPDFArray = class(TPDFArray);
   TMockPDFStream = class(TPDFStream);
   TMockPDFEmbeddedFont = class(TPDFEmbeddedFont);
@@ -281,14 +309,54 @@ begin
   inherited TearDown;
 end;
 
+{ TGeneralPDFTests }
+
+procedure TGeneralPDFTests.TestPDFCoord;
+var
+  c: TPDFCoord;
+begin
+  c.x := 0;
+  c.y := 0;
+  AssertEquals('Failed on 1', 0, c.x);
+  AssertEquals('Failed on 2', 0, c.y);
+  c := PDFCoord(10, 20);
+  AssertEquals('Failed on 3', 10, c.x);
+  AssertEquals('Failed on 4', 20, c.y);
+end;
+
+
 { TTestPDFObject }
 
 procedure TTestPDFObject.TestFloatStr;
+
+Var
+  C : Char;
+
 begin
   AssertEquals('Failed on 1', '0.12', TMockPDFObject.FloatStr(TPDFFLoat(0.12)));
-  AssertEquals('Failed on 2', '12', TMockPDFObject.FloatStr(TPDFFLoat(12.00)));
-  AssertEquals('Failed on 3', '12.3', TMockPDFObject.FloatStr(TPDFFLoat(12.30)));
+  AssertEquals('Failed on 2', '  12', TMockPDFObject.FloatStr(TPDFFLoat(12.00)));
+  AssertEquals('Failed on 3', '12.30', TMockPDFObject.FloatStr(TPDFFLoat(12.30)));
   AssertEquals('Failed on 4', '12.34', TMockPDFObject.FloatStr(TPDFFLoat(12.34)));
+  AssertEquals('Failed on 5', '123.45', TMockPDFObject.FloatStr(TPDFFLoat(123.45)));
+  AssertEquals('Failed on 6', '123.46', TMockPDFObject.FloatStr(TPDFFLoat(123.455)));
+  AssertEquals('Failed on 7', '123.46', TMockPDFObject.FloatStr(TPDFFLoat(123.456)));
+  AssertEquals('Failed on 8', '1234567.00', TMockPDFObject.FloatStr(TPDFFLoat(1234567)));
+  // Set DecimalSeparator
+  C:=FormatSettings.DecimalSeparator;
+  FormatSettings.DecimalSeparator:=',';
+  try
+    AssertEquals('Failed on 9', '12.34', TMockPDFObject.FloatStr(TPDFFLoat(12.34)));
+  finally
+    FormatSettings.DecimalSeparator:=C;
+  end;
+  // Set ThousandSeparator
+  C:=FormatSettings.ThousandSeparator;
+  FormatSettings.ThousandSeparator:=' ';
+  try
+    AssertEquals('Failed on 10', '1234567.00', TMockPDFObject.FloatStr(TPDFFLoat(1234567)));
+  finally
+    FormatSettings.ThousandSeparator:=C;
+  end;
 end;
 
 procedure TTestPDFObject.TestWriteString;
@@ -315,23 +383,23 @@ begin
     o.SetWidth(TPDFFloat(300.5), S);
     AssertEquals('Failed on 1',
       '1 J'+CRLF+
-      '300.5 w'+CRLF,             // line width
+      '300.50 w'+CRLF,             // line width
       s.DataString);
 
     // this shouldn't cause any change
     o.SetWidth(TPDFFloat(300.5), S);
-    AssertEquals('Failed on 1',
+    AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '300.5 w'+CRLF,             // line width
+      '300.50 w'+CRLF,             // line width
       s.DataString);
 
     // but this will
     o.SetWidth(TPDFFloat(123), S);
-    AssertEquals('Failed on 1',
+    AssertEquals('Failed on 3',
       '1 J'+CRLF+
-      '300.5 w'+CRLF+           // line width 300.5
+      '300.50 w'+CRLF+           // line width 300.5
       '1 J'+CRLF+
-      '123 w'+CRLF,             // line width 123
+      ' 123 w'+CRLF,             // line width 123
       s.DataString);
   finally
     o.Free;
@@ -378,7 +446,7 @@ begin
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFMoveTo(o).Write(S);
-    AssertEquals('Failed on 2', '10 20 m'+CRLF, S.DataString);
+    AssertEquals('Failed on 2', '  10   20 m'+CRLF, S.DataString);
   finally
     o.Free;
   end;
@@ -395,7 +463,7 @@ begin
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFMoveTo(o).Write(S);
-    AssertEquals('Failed on 2', '10 20 m'+CRLF, S.DataString);
+    AssertEquals('Failed on 2', '  10   20 m'+CRLF, S.DataString);
   finally
     o.Free;
   end;
@@ -483,12 +551,43 @@ begin
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFName(o).Write(S);
+    AssertEquals('Failed on 2', '/Adobe#20Green', S.DataString);
+  finally
+    o.Free;
+  end;
+end;
+
+procedure TTestPDFName.TestValidNames3;
+var
+  o: TPDFName;
+begin
+  o := TPDFName.Create(PDF, 'Adobe Green', False);
+  try
+    AssertEquals('Failed on 1', '', S.DataString);
+    TMockPDFName(o).Write(S);
     AssertEquals('Failed on 2', '/Adobe Green', S.DataString);
   finally
     o.Free;
   end;
 end;
 
+
+{ TTestPDFAbstractString }
+
+procedure TTestPDFAbstractString.TestInsertEscape;
+var
+  o: TPDFAbstractString;
+begin
+  o := TPDFAbstractString.Create(PDF);
+  try
+    AssertEquals('Failed on 1', 'abcdefg', TMockPDFString(o).InsertEscape('abcdefg'));
+    AssertEquals('Failed on 2', 'a\\b/cdefg', TMockPDFString(o).InsertEscape('a\b/cdefg'));
+    AssertEquals('Failed on 3', 'a\(b\)cdefg', TMockPDFString(o).InsertEscape('a(b)cdefg'));
+    AssertEquals('Failed on 4', 'a\(b\)c\\def/g', TMockPDFString(o).InsertEscape('a(b)c\def/g'));
+  finally
+    o.Free;
+  end;
+end;
 
 { TTestPDFString }
 
@@ -506,11 +605,13 @@ begin
     o.Free;
   end;
 
+  S.Size := 0;  // empty out the Stream data
+
   { Length1 seems to be a special case? }
   o := TPDFString.Create(PDF, #$C2#$A3+#$C2#$BB); //  UTF-8 text of "£»"
   try
     TMockPDFString(o).Write(S);  // write will convert UTF-8 to ANSI
-    AssertEquals('Failed on 3', '(Test)('+#163#187+')', S.DataString);
+    AssertEquals('Failed on 3', '('+#163#187+')', S.DataString);
   finally
     o.Free;
   end;
@@ -540,6 +641,57 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFString(o).Write(S);
     AssertEquals('Failed on 2', '(Special characters \(*!&}^% and so on\).)', S.DataString);
+  finally
+    o.Free;
+  end;
+end;
+
+{ TTestPDFUTF8String }
+
+procedure TTestPDFUTF8String.TestWrite;
+var
+  o: TPDFUTF8String;
+  fnt: integer;
+  s8: UTF8String;
+begin
+  PDF.Options := []; // disable all compression
+  fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
+  o := TPDFUTF8String.Create(PDF, 'TestT', fnt);
+  try
+    AssertEquals('Failed on 1', '', S.DataString);
+    TMockPDFUTF8String(o).Write(S);
+    //                             T | e | s | t | T |
+    AssertEquals('Failed on 2', '<00370048005600570037>', S.DataString);
+  finally
+    o.Free;
+  end;
+
+  S.Size := 0;  // empty out the Stream data
+
+  { Length1 seems to be a special case? }
+  s8 := #$C2#$A3+#$C2#$BB;
+  o := TPDFUTF8String.Create(PDF, s8, fnt); //  UTF-8 text of "£»"
+  try
+    TMockPDFUTF8String(o).Write(S);
+    //                             £ | » |
+    AssertEquals('Failed on 3', '<0065007D>', S.DataString);
+  finally
+    o.Free;
+  end;
+end;
+
+procedure TTestPDFUTF8String.TestWriteEscaped;
+var
+  o: TPDFUTF8String;
+  fnt: integer;
+begin
+  fnt := PDF.AddFont(cFont1, 'Liberation Sans', clBlack);
+  o := TPDFUTF8String.Create(PDF, 'a(b)c\def/g', fnt);
+  try
+    AssertEquals('Failed on 1', '', S.DataString);
+    TMockPDFUTF8String(o).Write(S);
+    //                              a| ( | b | ) | c | \ | d | e | f | / | g |
+    AssertEquals('Failed on 2', '<0044000B0045000C0046003F0047004800490012004A>', S.DataString);
   finally
     o.Free;
   end;
@@ -633,13 +785,13 @@ var
 begin
   x := 10.5;
   y := 20.0;
-  o := TPDFText.Create(PDF, x, y, 'Hello World!');
+  o := TPDFText.Create(PDF, x, y, 'Hello World!', 0);
   try
     AssertEquals('Failed on 1', '', S.DataString);
     TMockPDFText(o).Write(S);
     AssertEquals('Failed on 2',
       'BT'+CRLF+
-      '10.5 20 TD'+CRLF+
+      '10.50   20 TD'+CRLF+
       '(Hello World!) Tj'+CRLF+
       'ET'+CRLF,
       S.DataString);
@@ -656,7 +808,7 @@ var
 begin
   pos.X := 10.0;
   pos.Y := 55.5;
-  AssertEquals('Failed on 1', '10 55.5 l'+CRLF, TPDFLineSegment.Command(pos));
+  AssertEquals('Failed on 1', '  10 55.50 l'+CRLF, TPDFLineSegment.Command(pos));
 end;
 
 procedure TTestPDFLineSegment.TestWrite;
@@ -675,9 +827,9 @@ begin
     TMockPDFLineSegment(o).Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+             // line width
-      '10 15.5 m'+CRLF+       // moveto command
-      '50 55.5 l'+CRLF+       // line segment
+      '   2 w'+CRLF+             // line width
+      '  10 15.50 m'+CRLF+       // moveto command
+      '  50 55.50 l'+CRLF+       // line segment
       'S'+CRLF,               // end line segment
       S.DataString);
   finally
@@ -702,7 +854,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '10 11 100 200 re'+CRLF,
+      '  10   11  100  200 re'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -725,8 +877,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '10 11 100 200 re'+CRLF+
+      '   2 w'+CRLF+
+      '  10   11  100  200 re'+CRLF+
       'b'+CRLF,
       S.DataString);
   finally
@@ -750,8 +902,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '10 11 100 200 re'+CRLF+
+      '   2 w'+CRLF+
+      '  10   11  100  200 re'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -774,7 +926,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '10 11 100 200 re'+CRLF+
+      '  10   11  100  200 re'+CRLF+
       'f'+CRLF,
       S.DataString);
   finally
@@ -798,7 +950,7 @@ begin
   X3 := 200;
   Y3 := 250;
   s1 := TMockPDFCurveC.Command(x1, y1, x2, y2, x3, y3);
-  AssertEquals('Failed on 1', '10 11 100 9 200 250 c'+CRLF, s1);
+  AssertEquals('Failed on 1', '  10   11  100    9  200  250 c'+CRLF, s1);
 end;
 
 procedure TTestPDFCurveC.TestWrite_Stroke;
@@ -822,8 +974,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '10 11 100 9 200 250 c'+CRLF+
+      '   2 w'+CRLF+
+      '  10   11  100    9  200  250 c'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -851,7 +1003,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '10 11 100 9 200 250 c'+CRLF,
+      '  10   11  100    9  200  250 c'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -878,8 +1030,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '100 9 200 250 v'+CRLF+
+      '   2 w'+CRLF+
+      ' 100    9  200  250 v'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -904,7 +1056,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '100 9 200 250 v'+CRLF,
+      ' 100    9  200  250 v'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -931,8 +1083,8 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
-      '100 9 200 250 y'+CRLF+
+      '   2 w'+CRLF+
+      ' 100    9  200  250 y'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -957,7 +1109,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '100 9 200 250 y'+CRLF,
+      ' 100    9  200  250 y'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -982,15 +1134,15 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF,
+      '  55  270   10 213.75   10  145 c'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -1013,15 +1165,15 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF+
+      '  55  270   10 213.75   10  145 c'+CRLF+
       'f'+CRLF,
       S.DataString);
   finally
@@ -1045,17 +1197,17 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
+      '   2 w'+CRLF+
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF+
+      '  55  270   10 213.75   10  145 c'+CRLF+
       'S'+CRLF,
       S.DataString);
   finally
@@ -1079,17 +1231,17 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       '1 J'+CRLF+
-      '2 w'+CRLF+
+      '   2 w'+CRLF+
       // move to
-      '10 145 m'+CRLF+
+      '  10  145 m'+CRLF+
       // curveC 1
-      '10 76.25 55 20 110 20 c'+CRLF+
+      '  10 76.25   55   20  110   20 c'+CRLF+
       // curveC 2
-      '165 20 210 76.25 210 145 c'+CRLF+
+      ' 165   20  210 76.25  210  145 c'+CRLF+
       // curveC 3
-      '210 213.75 165 270 110 270 c'+CRLF+
+      ' 210 213.75  165  270  110  270 c'+CRLF+
       // curveC 4
-      '55 270 10 213.75 10 145 c'+CRLF+
+      '  55  270   10 213.75   10  145 c'+CRLF+
       'b'+CRLF,
       S.DataString);
   finally
@@ -1118,11 +1270,11 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to - p0
-      '10 20 m'+CRLF+
+      '  10   20 m'+CRLF+
       // line segment - p1
-      '30 40 l'+CRLF+
+      '  30   40 l'+CRLF+
       // line segment - p2
-      '50 60 l'+CRLF+
+      '  50   60 l'+CRLF+
       'h'+CRLF+   // close
       'f'+CRLF,   // fill
       S.DataString);
@@ -1151,11 +1303,11 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to - p0
-      '10 20 m'+CRLF+
+      '  10   20 m'+CRLF+
       // line segment - p1
-      '30 40 l'+CRLF+
+      '  30   40 l'+CRLF+
       // line segment - p2
-      '50 60 l'+CRLF+
+      '  50   60 l'+CRLF+
       'h'+CRLF,   // close
       S.DataString);
   finally
@@ -1183,11 +1335,11 @@ begin
     o.Write(S);
     AssertEquals('Failed on 2',
       // move to - p0
-      '10 20 m'+CRLF+
+      '  10   20 m'+CRLF+
       // line segment - p1
-      '30 40 l'+CRLF+
+      '  30   40 l'+CRLF+
       // line segment - p2
-      '50 60 l'+CRLF+
+      '  50   60 l'+CRLF+
       'f'+CRLF,   // fill
       S.DataString);
   finally
@@ -1201,7 +1353,6 @@ end;
 procedure TTestPDFImage.TestWrite;
 var
   o: TMockPDFImage;
-  ar: TPDFCoordArray;
   x, y: TPDFFLoat;
 begin
   x := 100;
@@ -1213,15 +1364,102 @@ begin
     AssertEquals('Failed on 2',
       // save graphics state
       'q'+CRLF+
-      '150 0 0 75 100 200 cm'+CRLF+
+      '150 0 0 75  100  200 cm'+CRLF+
       '/I1 Do'+CRLF+
       // restore graphics state
       'Q'+CRLF,
       S.DataString);
   finally
-    SetLength(ar, 0);
     o.Free;
   end;
+end;
+
+procedure TTestPDFImage.TestPageDrawImage_Pixels;
+var
+  p: TPDFPage;
+  img: TMockPDFImage;
+begin
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomMillimeters;
+  AssertEquals('Failed on 1', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 200, 100, 1);
+  AssertEquals('Failed on 2', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 3', img <> nil);
+  AssertEquals('Failed on 4', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 5',
+    // save graphics state
+    'q'+CRLF+
+    '200 0 0 100 28.35 785.31 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+
+  S.Size := 0;  // clear the stream data
+
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomCentimeters;
+  AssertEquals('Failed on 6', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 200, 100, 1);
+  AssertEquals('Failed on 7', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 8', img <> nil);
+  AssertEquals('Failed on 9', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 10',
+    // save graphics state
+    'q'+CRLF+
+    '200 0 0 100 283.46 275.07 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+end;
+
+procedure TTestPDFImage.TestPageDrawImage_UnitsOfMeasure;
+var
+  p: TPDFPage;
+  img: TMockPDFImage;
+begin
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomMillimeters;
+  AssertEquals('Failed on 1', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 20.0, 10.0, 1);
+  AssertEquals('Failed on 2', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 3', img <> nil);
+  AssertEquals('Failed on 4', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 5',
+    // save graphics state
+    'q'+CRLF+
+    '57 0 0 28 28.35 785.31 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
+
+  S.Size := 0;  // clear the stream data
+
+  p := PDF.Pages.AddPage;
+  p.UnitOfMeasure := uomCentimeters;
+  AssertEquals('Failed on 6', 0, p.ObjectCount);
+  p.DrawImage(10, 20, 20.0, 10.0, 1);
+  AssertEquals('Failed on 7', 1, p.ObjectCount);
+  img := TMockPDFImage(p.Objects[0]);
+  AssertTrue('Failed on 8', img <> nil);
+  AssertEquals('Failed on 9', '', S.DataString);
+  img.Write(S);
+  AssertEquals('Failed on 10',
+    // save graphics state
+    'q'+CRLF+
+    '567 0 0 283 283.46 275.07 cm'+CRLF+
+    '/I1 Do'+CRLF+
+    // restore graphics state
+    'Q'+CRLF,
+    S.DataString);
 end;
 
 { TTestPDFLineStyle }
@@ -1317,7 +1555,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '0.66 0.73 0.8 RG'+CRLF,
+      '0.66 0.73 0.80 RG'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -1333,7 +1571,7 @@ begin
     AssertEquals('Failed on 1', '', S.DataString);
     o.Write(S);
     AssertEquals('Failed on 2',
-      '0.66 0.73 0.8 rg'+CRLF,
+      '0.66 0.73 0.80 rg'+CRLF,
       S.DataString);
   finally
     o.Free;
@@ -1586,70 +1824,123 @@ end;
 
 { TTestTPDFImageItem }
 
-procedure TTestTPDFImageItem.TestCreateStreamedData;
+procedure TTestTPDFImageItem.TestCreateStreamedData_Compressed;
 var
+  list: TPDFImages;
   itm: TPDFImageItem;
   img: TFPMemoryImage;
   b: TBytes;
 begin
-  itm := TPDFImageItem.Create(nil);
+  list := TPDFImages.Create(nil, TPDFImageItem);
   try
-    itm.OwnsImage := True;
-    img := TFPMemoryImage.Create(5, 5);
-    itm.Image := img;
-    b := itm.StreamedData;
-    AssertEquals('Failed on 1', 75 {5*5*3}, Length(b));
-  finally
-    itm.Free;
-  end;
-
-  itm := TPDFImageItem.Create(nil);
-  try
-    itm.OwnsImage := True;
-    img := TFPMemoryImage.Create(10, 20);
-    itm.Image := img;
-    { this try..except as to prove that we had a bug before we fixed it. }
+    itm := list.AddImageItem;
     try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(5, 5);
+      itm.Image := img;
       b := itm.StreamedData;
-    except
-      Fail('Failed on 2 - itm.StreamedData raised an exception');
+      AssertEquals('Failed on 1', 12, Length(b));
+    finally
+      itm.Free;
     end;
-    AssertEquals('Failed on 3', 600 {10*20*3}, Length(b));
+
+    itm := list.AddImageItem;
+    try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(10, 20);
+      itm.Image := img;
+      { this try..except is to prove that we had a bug before, but fixed it. }
+      try
+        b := itm.StreamedData;
+      except
+        Fail('Failed on 2 - itm.StreamedData raised an exception');
+      end;
+      AssertEquals('Failed on 3', 15, Length(b));
+    finally
+      itm.Free;
+    end;
   finally
-    itm.Free;
+    list.Free;
+  end;
+end;
+
+procedure TTestTPDFImageItem.TestCreateStreamedData_Uncompressed;
+var
+  pdf: TPDFDocument;
+  list: TPDFImages;
+  itm: TPDFImageItem;
+  img: TFPMemoryImage;
+  b: TBytes;
+begin
+  pdf := TPDFDocument.Create(nil);
+  pdf.Options := [];  // disables the default image compression
+  list := TPDFImages.Create(pdf, TPDFImageItem);
+  try
+    itm := list.AddImageItem;
+    try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(5, 5);
+      itm.Image := img;
+      b := itm.StreamedData;
+      AssertEquals('Failed on 1', 75 {5*5*3}, Length(b));
+    finally
+      itm.Free;
+    end;
+
+    itm := list.AddImageItem;
+    try
+      itm.OwnsImage := True;
+      img := TFPMemoryImage.Create(10, 20);
+      itm.Image := img;
+      { this try..except is to prove that we had a bug before, but fixed it. }
+      try
+        b := itm.StreamedData;
+      except
+        Fail('Failed on 2 - itm.StreamedData raised an exception');
+      end;
+      AssertEquals('Failed on 3', 600 {10*20*3}, Length(b));
+    finally
+      itm.Free;
+    end;
+  finally
+    pdf.Free;
+    list.Free;
   end;
 end;
 
 
 initialization
-  RegisterTest(TTestPDFObject{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestTPDFDocumentObject{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFBoolean{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFMoveTo{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFInteger{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFReference{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFName{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFString{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFArray{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFStream{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFEmbeddedFont{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFText{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFLineSegment{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestTPDFRectangle{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFCurveC{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFCurveV{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFCurveY{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFEllipse{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFSurface{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFImage{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFLineStyle{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFColor{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFDictionaryItem{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFDictionary{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFXRef{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestPDFPage{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestCompressionDecompression{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TTestTPDFImageItem{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TGeneralPDFTests{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFObject{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFDocumentObject{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFBoolean{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFMoveTo{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFInteger{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFReference{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFName{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFAbstractString{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFString{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFUTF8String{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFArray{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFStream{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFEmbeddedFont{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFText{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFLineSegment{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFRectangle{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFCurveC{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFCurveV{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFCurveY{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFEllipse{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFSurface{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFImage{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFLineStyle{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFColor{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFDictionaryItem{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFDictionary{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFXRef{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestPDFPage{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestCompressionDecompression{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpPDF',{$endif}TTestTPDFImageItem{$ifdef fptest}.Suite{$endif});
 
 end.
 

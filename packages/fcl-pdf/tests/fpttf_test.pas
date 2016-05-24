@@ -9,7 +9,7 @@ uses
   {$ifdef fptest}
   ,TestFramework
   {$else}
-  ,fpcunit, testutils, testregistry
+  ,fpcunit, testregistry
   {$endif}
   ,fpttf
   ;
@@ -47,14 +47,20 @@ type
   published
     procedure TestCount;
     procedure TestBuildFontCache;
+    procedure TestBuildFontCache_tests_for_bug;
     procedure TestClear;
     procedure TestFind_FamilyName;
+    procedure TestFind_PostscriptName;
+    procedure TestAssignFontList;
   end;
 
 implementation
 
 uses
   fpparsettf;
+
+resourcestring
+  cErrFontCountWrong =   ' - make sure you only have the 4 test fonts in the "fonts" directory.';
 
 { TFPFontCacheItemTest }
 
@@ -72,87 +78,36 @@ end;
 
 procedure TFPFontCacheItemTest.TestIsRegular;
 begin
-  CheckEquals(True, CI.IsRegular, 'Failed on 1');
-  CI.IsRegular := True;
-  CI.IsRegular := True;  // to make sure bitwise masks work correctly
-  CheckEquals(True, CI.IsRegular, 'Failed on 2');
-  CI.IsItalic := True;
-  CheckEquals(True, CI.IsRegular, 'Failed on 3');
-  CI.IsRegular := False;
-  CheckEquals(False, CI.IsRegular, 'Failed on 4');
-  CI.IsRegular := False;  // to make sure bitwise masks work correctly. eg: xor usage
-  CheckEquals(False, CI.IsRegular, 'Failed on 5');
+  { regular should be the default flag set }
+  AssertEquals('Failed on 1', True, CI.IsRegular);
 end;
 
 procedure TFPFontCacheItemTest.TestIsBold;
 begin
-  CheckEquals(False, CI.IsBold, 'Failed on 1');
-  CI.IsBold := True;
-  CI.IsBold := True;  // to make sure bitwise masks work correctly
-  CheckEquals(True, CI.IsBold, 'Failed on 2');
-  CI.IsBold := True;
-  CI.IsItalic := True;
-  CheckEquals(True, CI.IsBold, 'Failed on 3');
-  CI.IsBold := False;
-  CheckEquals(False, CI.IsBold, 'Failed on 4');
-  CI.IsBold := False;  // to make sure bitwise masks work correctly. eg: xor usage
-  CheckEquals(False, CI.IsBold, 'Failed on 5');
+  AssertEquals('Failed on 1', False, CI.IsBold);
 end;
 
 procedure TFPFontCacheItemTest.TestIsItalic;
 begin
-  CheckEquals(False, CI.IsItalic, 'Failed on 1');
-  CI.IsItalic := True;
-  CI.IsItalic := True;  // to make sure bitwise masks work correctly
-  CheckEquals(True, CI.IsItalic, 'Failed on 2');
-  CI.IsBold := True;
-  CI.IsItalic := True;
-  CheckEquals(True, CI.IsItalic, 'Failed on 3');
-  CI.IsItalic := False;
-  CheckEquals(False, CI.IsItalic, 'Failed on 4');
-  CI.IsItalic := False;  // to make sure bitwise masks work correctly. eg: xor usage
-  CheckEquals(False, CI.IsItalic, 'Failed on 5');
+  AssertEquals('Failed on 1', False, CI.IsItalic);
 end;
 
 procedure TFPFontCacheItemTest.TestIsFixedWidth;
 begin
-  CheckEquals(False, CI.IsFixedWidth, 'Failed on 1');
-  CI.IsFixedWidth := True;
-  CheckEquals(True, CI.IsFixedWidth, 'Failed on 2');
-  CI.IsFixedWidth := True;  // to make sure bitwise masks work correctly
-  CheckEquals(True, CI.IsFixedWidth, 'Failed on 3');
-  CI.IsItalic := True;  // changing another bitmask doesn't affect IsFixedWidth
-  CheckEquals(True, CI.IsFixedWidth, 'Failed on 4');
-  CI.IsFixedWidth := False;
-  CheckEquals(False, CI.IsFixedWidth, 'Failed on 5');
-  CI.IsFixedWidth := False;  // to make sure bitwise masks work correctly. eg: xor usage
-  CheckEquals(False, CI.IsFixedWidth, 'Failed on 6');
+  AssertEquals('Failed on 1', False, CI.IsFixedWidth);
 end;
 
 procedure TFPFontCacheItemTest.TestRegularVsFixedWidth;
 begin
-  CheckEquals(True, CI.IsRegular, 'Failed on 1');
-  CheckEquals(False, CI.IsFixedWidth, 'Failed on 2');
-  CI.IsFixedWidth := True;  // this should toggle IsRegular's value
-  CheckEquals(False, CI.IsRegular, 'Failed on 3');
-  CheckEquals(True, CI.IsFixedWidth, 'Failed on 4');
-  CI.IsRegular := True;  // this should toggle IsFixedWidth's value
-  CheckEquals(True, CI.IsRegular, 'Failed on 5');
-  CheckEquals(False, CI.IsFixedWidth, 'Failed on 6');
+  AssertEquals('Failed on 1', True, CI.IsRegular);
+  AssertEquals('Failed on 2', False, CI.IsFixedWidth);
 end;
 
 procedure TFPFontCacheItemTest.TestFileName;
 begin
-  CI.FileName := '';
-  try
-    CI.GetFontData;
-    Fail('Failed on 1. GetFontData should work if FileName is empty.');
-  except
-    on e: Exception do
-      begin
-        CheckEquals(E.ClassName, 'ETTF', 'Failed on 2.');
-      end;
-  end;
+  AssertTrue('Failed on 1', CI.FileName <> '');
+  { FileName is a non-existing file though, so FontData should be nil }
+  AssertTrue('Failed on 2', CI.FontData = nil);
 end;
 
 procedure TFPFontCacheItemTest.TestTextWidth_FontUnits;
@@ -165,10 +120,10 @@ begin
     lFC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
     lFC.BuildFontCache;
 
-    lCI := lFC.Find('Liberation Sans');
+    lCI := lFC.Find('LiberationSans');
     AssertEquals('Failed on 1', 14684, round(lCI.TextWidth('Country Ppml01', 0.0)));
 
-    lCI := lFC.Find('DejaVu Sans');
+    lCI := lFC.Find('DejaVuSans');
     AssertEquals('Failed on 2', 16492, round(lCI.TextWidth('Country Ppml01', 0.0)));
 
     lCI := lFC.Find('Ubuntu'); // 7333 is the raw glyph width, but with kerning it is 7339
@@ -189,7 +144,7 @@ begin
     lFC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
     lFC.BuildFontCache;
 
-    lCI := lFC.Find('Liberation Sans');
+    lCI := lFC.Find('LiberationSans');
     px := 14684 * 10 * 96 / (72 * 2048);  // 95.599px
     AssertEquals('Failed on 1', px, lCI.TextWidth('Country Ppml01', 10.0));
     px := 14684 * 12 * 96 / (72 * 2048);  // 114.7188px
@@ -197,7 +152,7 @@ begin
     px := 14684 * 24 * 96 / (72 * 2048);  // 229.4375px
     AssertEquals('Failed on 3', px, lCI.TextWidth('Country Ppml01', 24.0));
 
-    lCI := lFC.Find('DejaVu Sans');
+    lCI := lFC.Find('DejaVuSans');
     px := 16492 * 10 * 96 / (72 * 2048);  // 107.369px
     AssertEquals('Failed on 4', px, lCI.TextWidth('Country Ppml01', 10.0));
     px := 16492 * 12 * 96 / (72 * 2048);  // 128.8438px
@@ -233,40 +188,48 @@ end;
 
 procedure TFPFontCacheListTest.TestCount;
 begin
-  CheckEquals(0, FC.Count, 'Failed on 1');
+  AssertEquals('Failed on 1', 0, FC.Count);
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
-  CheckEquals(0, FC.Count, 'Failed on 2');
+  AssertEquals('Failed on 2', 0, FC.Count);
   FC.BuildFontCache;
-  CheckEquals(4, FC.Count, 'Failed on 3');
+  AssertEquals('Failed on 3' + cErrFontCountWrong, 4, FC.Count);
 end;
 
 procedure TFPFontCacheListTest.TestBuildFontCache;
 begin
-  CheckEquals(0, FC.Count, 'Failed on 1');
+  AssertEquals('Failed on 1', 0, FC.Count);
   try
     FC.BuildFontCache;
     Fail('Failed on 2. We don''t have font paths, so BuildFontCache shouldn''t run.');
   except
     on e: Exception do
       begin
-        CheckEquals(E.ClassName, 'ETTF', 'Failed on 3.');
+        AssertEquals('Failed on 3', E.ClassName, 'ETTF');
       end;
   end;
 
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
-  CheckEquals(0, FC.Count, 'Failed on 4');
+  AssertEquals('Failed on 4', 0, FC.Count);
   FC.BuildFontCache;
-  CheckEquals(4, FC.Count, 'Failed on 5');
+  AssertEquals('Failed on 5' + cErrFontCountWrong, 4, FC.Count);
+end;
+
+procedure TFPFontCacheListTest.TestBuildFontCache_tests_for_bug;
+begin
+  AssertEquals('Failed on 1', 0, FC.Count);
+  FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'path_doesnt_exist');
+  FC.BuildFontCache;
+  AssertEquals('Failed on 2', 0, FC.Count);
 end;
 
 procedure TFPFontCacheListTest.TestClear;
 begin
-  CheckEquals(0, FC.Count, 'Failed on 1');
+  AssertEquals('Failed on 1', 0, FC.Count);
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   FC.BuildFontCache;
-  CheckEquals(4, FC.Count, 'Failed on 2');
+  AssertEquals('Failed on 2', 4, FC.Count);
   FC.Clear;
-  CheckEquals(0, FC.Count, 'Failed on 3');
+  AssertEquals('Failed on 3', 0, FC.Count);
 end;
 
 procedure TFPFontCacheListTest.TestFind_FamilyName;
@@ -274,35 +237,82 @@ var
   lCI: TFPFontCacheItem;
 begin
   lCI := nil;
-  CheckEquals(0, FC.Count, 'Failed on 1');
+  AssertEquals('Failed on 1', 0, FC.Count);
   lCI := FC.Find('Ubuntu');
-  CheckTrue(lCI = nil, 'Failed on 2');
+  AssertTrue('Failed on 2', lCI = nil);
   FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
   FC.BuildFontCache;
-  CheckEquals(4, FC.Count, 'Failed on 3');
+  AssertEquals('Failed on 3' + cErrFontCountWrong, 4, FC.Count);
   lCI := FC.Find('Ubuntu');
-  CheckTrue(Assigned(lCI), 'Failed on 4');
+  AssertTrue('Failed on 4', Assigned(lCI));
 
   { TODO: We should try and extend this to make font paths user configure
            thus the tests could be more flexible. }
 
-  lCI := FC.Find('Ubuntu', True); // bold font
-  CheckTrue(lCI = nil, 'Failed on 5');
+  lCI := FC.Find('Ubuntu', True, False); // bold font
+  AssertTrue('Failed on 5', lCI = nil);
   lCI := FC.Find('Ubuntu', False, True); // italic font
-  CheckTrue(lCI = nil, 'Failed on 6');
+  AssertTrue('Failed on 6', lCI = nil);
   lCI := FC.Find('Ubuntu', True, True); // bold+italic font
-  CheckTrue(lCI = nil, 'Failed on 7');
+  AssertTrue('Failed on 7', lCI = nil);
 
-  lCI := FC.Find('DejaVu Sans');
-  CheckTrue(Assigned(lCI), 'Failed on 8');
-  lCI := FC.Find('DejaVu Sans Bold');
-  CheckTrue(lCI = nil, 'Failed on 9');
+  lCI := FC.Find('DejaVu Sans', False, False);
+  AssertTrue('Failed on 8', Assigned(lCI));
+  lCI := FC.Find('DejaVu Sans', True, False);
+  AssertTrue('Failed on 9', lCI = nil);
+end;
+
+procedure TFPFontCacheListTest.TestFind_PostscriptName;
+var
+  lCI: TFPFontCacheItem;
+begin
+  lCI := nil;
+  AssertEquals('Failed on 1', 0, FC.Count);
+  lCI := FC.Find('Ubuntu');
+  AssertTrue('Failed on 2', lCI = nil);
+  FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
+  FC.BuildFontCache;
+  AssertEquals('Failed on 3' + cErrFontCountWrong, 4, FC.Count);
+  lCI := FC.Find('Ubuntu');
+  AssertTrue('Failed on 4', Assigned(lCI));
+
+  { TODO: We should try and extend this to make font paths user configure
+           thus the tests could be more flexible. }
+
+  lCI := FC.Find('Ubuntu-Bold');
+  AssertTrue('Failed on 5', lCI = nil);
+  lCI := FC.Find('Ubuntu-Italic');
+  AssertTrue('Failed on 6', lCI = nil);
+  lCI := FC.Find('Ubuntu-BoldItalic');
+  AssertTrue('Failed on 7', lCI = nil);
+
+  lCI := FC.Find('DejaVuSans');
+  AssertTrue('Failed on 8', Assigned(lCI));
+  lCI := FC.Find('DejaVuSans-Bold');
+  AssertTrue('Failed on 9', lCI = nil);
+end;
+
+procedure TFPFontCacheListTest.TestAssignFontList;
+var
+  sl: TStringList;
+begin
+  sl := TStringList.Create;
+  try
+    AssertEquals('Failed on 1', 0, FC.Count);
+    FC.SearchPath.Add(ExtractFilePath(ParamStr(0)) + 'fonts');
+    FC.BuildFontCache;
+    AssertEquals('Failed on 2', 4, FC.Count);
+    FC.AssignFontList(sl);
+    AssertEquals('Failed on 3', 4, sl.Count);
+  finally
+    sl.Free;
+  end;
 end;
 
 
 initialization
-  RegisterTest(TFPFontCacheItemTest{$ifdef fptest}.Suite{$endif});
-  RegisterTest(TFPFontCacheListTest{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpTTF', {$endif}TFPFontCacheItemTest{$ifdef fptest}.Suite{$endif});
+  RegisterTest({$ifdef fptest}'fpTTF', {$endif}TFPFontCacheListTest{$ifdef fptest}.Suite{$endif});
 
 end.
 

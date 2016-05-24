@@ -20,20 +20,12 @@ uses
   contnrs,
   fpparsettf;
 
-const
-  { constants to query FontCacheItem.StyleFlags with. }
-  FP_FONT_STYLE_REGULAR = 1 shl 0;     { Regular, Plain, Book }
-  FP_FONT_STYLE_ITALIC = 1 shl 1;      { Italic }
-  FP_FONT_STYLE_BOLD = 1 shl 2;        { Bold }
-  FP_FONT_STYLE_CONDENSED = 1 shl 3;   { Condensed }
-  FP_FONT_STYLE_EXTRALIGHT = 1 shl 4;  { ExtraLight }
-  FP_FONT_STYLE_LIGHT = 1 shl 5;       { Light }
-  FP_FONT_STYLE_SEMIBOLD = 1 shl 6;    { Semibold }
-  FP_FONT_STYLE_MEDIUM = 1 shl 7;      { Medium }
-  FP_FONT_STYLE_BLACK = 1 shl 8;       { Black }
-  FP_FONT_STYLE_FIXEDWIDTH = 1 shl 9;  { Fixedwidth }
-
 type
+
+  TTrueTypeFontStyle = (fsRegular, fsItalic, fsBold, fsCondensed, fsExtraLight, fsLight, fsSemibold, fsMedium, fsBlack, fsFixedWidth);
+  TTrueTypeFontStyles = set of TTrueTypeFontStyle;
+
+
   { Forward declaration }
   TFPFontCacheList = class;
 
@@ -42,31 +34,34 @@ type
   private
     FFamilyName: String;
     FFileName: String;
-    FStyleFlags: LongWord;
+    FStyleFlags: TTrueTypeFontStyles;
+    FFileInfo: TTFFileInfo;
     FOwner: TFPFontCacheList; // reference to FontCacheList that owns this instance
+    FPostScriptName: string;
+    procedure   BuildFontCacheItem;
+    procedure   SetStyleIfExists(var AText: string; var AStyleFlags: TTrueTypeFontStyles; const AStyleName: String; const AStyle: TTrueTypeFontStyle);
     function    GetIsBold: boolean;
     function    GetIsFixedWidth: boolean;
     function    GetIsItalic: boolean;
     function    GetIsRegular: boolean;
-    procedure   SetIsBold(AValue: boolean);
-    procedure   SetIsFixedWidth(AValue: boolean);
-    procedure   SetIsItalic(AValue: boolean);
-    procedure   SetIsRegular(AValue: boolean);
   public
     constructor Create(const AFilename: String);
-    { Returns the actual TTF font file information. Caller needs to free the returned instance. }
-    function    GetFontData: TTFFileInfo;
+    destructor  Destroy; override;
     { Result is in pixels }
-    function    TextWidth(AStr: string; APointSize: single): single;
-    property    FileName: String read FFileName write FFileName;
-    property    FamilyName: String read FFamilyName write FFamilyName;
+    function    TextWidth(const AStr: utf8string; const APointSize: single): single;
+    { Result is in pixels }
+    function    TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
+    property    FileName: String read FFileName;
+    property    FamilyName: String read FFamilyName;
+    property    PostScriptName: string read FPostScriptName;
+    property    FontData: TTFFileInfo read FFileInfo;
     { A bitmasked value describing the full font style }
-    property    StyleFlags: LongWord read FStyleFlags write FStyleFlags;
+    property    StyleFlags: TTrueTypeFontStyles read FStyleFlags;
     { IsXXX properties are convenience properties, internally querying StyleFlags. }
-    property    IsFixedWidth: boolean read GetIsFixedWidth write SetIsFixedWidth;
-    property    IsRegular: boolean read GetIsRegular write SetIsRegular;
-    property    IsItalic: boolean read GetIsItalic write SetIsItalic;
-    property    IsBold: boolean read GetIsBold write SetIsBold;
+    property    IsFixedWidth: boolean read GetIsFixedWidth;
+    property    IsRegular: boolean read GetIsRegular;
+    property    IsItalic: boolean read GetIsItalic;
+    property    IsBold: boolean read GetIsBold;
   end;
 
 
@@ -75,9 +70,7 @@ type
     FList: TObjectList;
     FSearchPath: TStringList;
     FDPI: integer;
-    procedure   SearchForFont(const AFontPath: String);
-    function    BuildFontCacheItem(const AFontFile: String): TFPFontCacheItem;
-    procedure   SetStyleIfExists(var AText: string; var AStyleFlags: integer; const AStyleName: String; const AStyleBit: integer);
+    procedure   SearchForFonts(const AFontPath: String);
     procedure   SetDPI(AValue: integer);
   protected
     function    GetCount: integer; virtual;
@@ -88,12 +81,14 @@ type
     destructor  Destroy; override;
     procedure   BuildFontCache;
     function    Add(const AObject: TFPFontCacheItem): integer;
+    procedure   AssignFontList(const AStrings: TStrings);
     procedure   Clear;
     property    Count: integer read GetCount;
     function    IndexOf(const AObject: TFPFontCacheItem): integer;
-    function    Find(const AFontCacheItem: TFPFontCacheItem): integer;
-    function    Find(const AFamilyName: string; ABold: boolean = False; AItalic: boolean = False): TFPFontCacheItem;
-    { not used: utility function doing a conversion for use. }
+    function    Find(const AFontCacheItem: TFPFontCacheItem): integer; overload;
+    function    Find(const AFamilyName: string; ABold: boolean; AItalic: boolean): TFPFontCacheItem; overload;
+    function    Find(const APostScriptName: string): TFPFontCacheItem; overload;
+    { not used: utility function doing a conversion for us. }
     function    PointSizeInPixels(const APointSize: single): single;
     property    Items[AIndex: Integer]: TFPFontCacheItem read GetItem write SetItem; default;
     property    SearchPath: TStringList read FSearchPath;
@@ -108,10 +103,7 @@ implementation
 resourcestring
   rsNoSearchPathDefined = 'No search path was defined';
   rsNoFontFileName = 'The FileName property is empty, so we can''t load font data.';
-
-type
-  { so we can get access to protected methods }
-  TFriendTTFFileInfo = class(TTFFileInfo);
+  rsCharAboveWord = 'TextWidth doesn''t support characters higher then High(Word) - %d.';
 
 var
   uFontCacheList: TFPFontCacheList;
@@ -129,86 +121,94 @@ end;
 
 function TFPFontCacheItem.GetIsBold: boolean;
 begin
-  Result := (FStyleFlags and FP_FONT_STYLE_BOLD) <> 0;
+  Result := fsBold in FStyleFlags;
 end;
 
 function TFPFontCacheItem.GetIsFixedWidth: boolean;
 begin
-  Result := (FStyleFlags and FP_FONT_STYLE_FIXEDWIDTH) <> 0;
+  Result := fsFixedWidth in FStyleFlags;
 end;
 
 function TFPFontCacheItem.GetIsItalic: boolean;
 begin
-  Result := (FStyleFlags and FP_FONT_STYLE_ITALIC) <> 0;
+  Result := fsItalic in FStyleFlags;
 end;
 
 function TFPFontCacheItem.GetIsRegular: boolean;
 begin
-  Result := (FStyleFlags and FP_FONT_STYLE_REGULAR) <> 0;
+  Result := fsRegular in FStyleFlags;
 end;
 
-procedure TFPFontCacheItem.SetIsBold(AValue: boolean);
+procedure TFPFontCacheItem.BuildFontCacheItem;
+var
+  s: string;
 begin
-  if AValue then
-    FStyleFlags := FStyleFlags or FP_FONT_STYLE_BOLD
-  else
-    FStyleFlags := FStyleFlags and (not FP_FONT_STYLE_BOLD);
+  s := FFileInfo.PostScriptName;
+  FPostScriptName := s;
+  FFamilyName := FFileInfo.FamilyName;
+  if Pos(s, FFamilyName) = 1 then
+    Delete(s, 1, Length(FFamilyName));
+
+  FStyleFlags := [fsRegular];
+
+  // extract simple styles first
+  if FFileInfo.PostScript.isFixedPitch > 0 then
+    FStyleFlags := [fsFixedWidth]; // this should overwrite Regular style
+
+  if FFileInfo.PostScript.ItalicAngle <> 0 then
+    FStyleFlags := FStyleFlags + [fsItalic];
+
+  // Now to more complex styles stored in StyleName field. eg: 'Condensed Medium'
+  SetStyleIfExists(s, FStyleFlags, 'Bold', fsBold);
+  SetStyleIfExists(s, FStyleFlags, 'Condensed', fsCondensed);
+  SetStyleIfExists(s, FStyleFlags, 'ExtraLight', fsExtraLight);
+  SetStyleIfExists(s, FStyleFlags, 'Light', fsLight);
+  SetStyleIfExists(s, FStyleFlags, 'Semibold', fsSemibold);
+  SetStyleIfExists(s, FStyleFlags, 'Medium', fsMedium);
+  SetStyleIfExists(s, FStyleFlags, 'Black', fsBlack);
+  SetStyleIfExists(s, FStyleFlags, 'Oblique', fsItalic);
 end;
 
-procedure TFPFontCacheItem.SetIsFixedWidth(AValue: boolean);
+procedure TFPFontCacheItem.SetStyleIfExists(var AText: string; var AStyleFlags: TTrueTypeFontStyles;
+  const AStyleName: String; const AStyle: TTrueTypeFontStyle);
+var
+  i: integer;
 begin
-  if AValue then
-    FStyleFlags := FStyleFlags or FP_FONT_STYLE_FIXEDWIDTH
-  else
-    FStyleFlags := FStyleFlags and (not FP_FONT_STYLE_FIXEDWIDTH);
-
-  // if we are FixedWidth, then Regular can't apply
-  FStyleFlags := FStyleFlags and (not FP_FONT_STYLE_REGULAR);
-end;
-
-procedure TFPFontCacheItem.SetIsItalic(AValue: boolean);
-begin
-  if AValue then
-    FStyleFlags := FStyleFlags or FP_FONT_STYLE_ITALIC
-  else
-    FStyleFlags := FStyleFlags and (not FP_FONT_STYLE_ITALIC);
-end;
-
-procedure TFPFontCacheItem.SetIsRegular(AValue: boolean);
-begin
-  if AValue then
-    FStyleFlags := FStyleFlags or FP_FONT_STYLE_REGULAR
-  else
-    FStyleFlags := FStyleFlags and (not FP_FONT_STYLE_REGULAR);
-
-  // if we are Regular, then FixedWidth can't apply
-  FStyleFlags := FStyleFlags and (not FP_FONT_STYLE_FIXEDWIDTH);
+  i := Pos(AStyleName, AText);
+  if i > 0 then
+  begin
+    AStyleFlags := AStyleFlags + [AStyle];
+    Delete(AText, i, Length(AStyleName));
+  end;
 end;
 
 constructor TFPFontCacheItem.Create(const AFilename: String);
 begin
   inherited Create;
   FFileName := AFilename;
-  FStyleFlags := FP_FONT_STYLE_REGULAR;
+  FStyleFlags := [fsRegular];
+
+  if AFileName = '' then
+    raise ETTF.Create(rsNoFontFileName);
+
+  if FileExists(AFilename) then
+  begin
+    FFileInfo := TTFFileInfo.Create;
+    FFileInfo.LoadFromFile(AFilename);
+    BuildFontCacheItem;
+  end;
 end;
 
-function TFPFontCacheItem.GetFontData: TTFFileInfo;
+destructor TFPFontCacheItem.Destroy;
 begin
-  if FileName = '' then
-    raise ETTF.Create(rsNoFontFileName);
-  if FileExists(FileName) then
-  begin
-    Result := TTFFileInfo.Create;
-    Result.LoadFromFile(FileName);
-  end
-  else
-    Result := nil;
+  FFileInfo.Free;
+  inherited Destroy;
 end;
 
 { TextWidth returns with width of the text. If APointSize = 0.0, then it returns
   the text width in Font Units. If APointSize > 0 then it returns the text width
   in Pixels. }
-function TFPFontCacheItem.TextWidth(AStr: string; APointSize: single): single;
+function TFPFontCacheItem.TextWidth(const AStr: utf8string; const APointSize: single): single;
 {
     From Microsoft's Typography website:
     Converting FUnits (font units) to pixels
@@ -229,11 +229,10 @@ function TFPFontCacheItem.TextWidth(AStr: string; APointSize: single): single;
     550 * 18 * 72 / ( 72 * 2048 ) = 4.83
 }
 var
-  lFntInfo: TFriendTTFFileInfo;
   i: integer;
   lWidth: integer;
   lGIndex: integer;
-  c: Char;
+  us: UnicodeString;
   {$IFDEF ttfdebug}
   sl: TStringList;
   s: string;
@@ -243,8 +242,7 @@ begin
   if Length(AStr) = 0 then
     Exit;
 
-  lFntInfo := TFriendTTFFileInfo(GetFontData);
-  if not Assigned(lFntInfo) then
+  if not Assigned(FFileInfo) then
     Exit;
 
   {$IFDEF ttfdebug}
@@ -252,41 +250,43 @@ begin
     s := '';
     for i := 0 to 255 do
     begin
-      lGIndex := lFntInfo.GetGlyphIndex(i);
-      lWidth := lFntInfo.GetAdvanceWidth(lGIndex);
+      lGIndex := FFileInfo.GetGlyphIndex(i);
+      lWidth := FFileInfo.GetAdvanceWidth(lGIndex);
       s := s + ',' + IntToStr(lWidth);
     end;
     sl.Add(s);
-    sl.Add('UnitsPerEm = ' + IntToStr(lFntInfo.Head.UnitsPerEm));
-    sl.SaveToFile('/tmp/' + lFntInfo.PostScriptName + '.txt');
+    sl.Add('UnitsPerEm = ' + IntToStr(FFileInfo.Head.UnitsPerEm));
+    sl.SaveToFile(GetTempDir(True) + FFileInfo.PostScriptName + '.txt');
     sl.Free;
   {$ENDIF}
 
-  try
-    lWidth := 0;
-    for i := 1 to Length(AStr) do
-    begin
-      c := AStr[i];
-      lGIndex := lFntInfo.GetGlyphIndex(Ord(c));
-      lWidth := lWidth + lFntInfo.GetAdvanceWidth(lGIndex);
-    end;
-
-    if APointSize = 0.0 then
-      Result := lWidth
-    else
-    begin
-      { Converting Font Units to Pixels. The formula is:
-        pixels = glyph_units * pointSize * resolution / ( 72 points per inch * THead.UnitsPerEm )  }
-      Result := lWidth * APointSize * FOwner.DPI / (72 * lFntInfo.Head.UnitsPerEm);
-    end;
-  finally
-    lFntInfo.Free;
+  lWidth := 0;
+  us := UTF8Decode(AStr);
+  for i := 1 to Length(us) do
+  begin
+    lGIndex := FFileInfo.GetGlyphIndex(Word(us[i]));
+    lWidth := lWidth + FFileInfo.GetAdvanceWidth(lGIndex);
   end;
+  if APointSize = 0.0 then
+    Result := lWidth
+  else
+  begin
+    { Converting Font Units to Pixels. The formula is:
+      pixels = glyph_units * pointSize * resolution / ( 72 points per inch * THead.UnitsPerEm )  }
+    Result := lWidth * APointSize * FOwner.DPI / (72 * FFileInfo.Head.UnitsPerEm);
+  end;
+end;
+
+function TFPFontCacheItem.TextHeight(const AText: utf8string; const APointSize: single; out ADescender: single): single;
+begin
+  { Both lHeight and lDescenderHeight are in pixels }
+  Result := FFileInfo.CapHeight * APointSize * gTTFontCache.DPI / (72 * FFileInfo.Head.UnitsPerEm);
+  ADescender := Abs(FFileInfo.Descender) * APointSize * gTTFontCache.DPI / (72 * FFileInfo.Head.UnitsPerEm);
 end;
 
 { TFPFontCacheList }
 
-procedure TFPFontCacheList.SearchForFont(const AFontPath: String);
+procedure TFPFontCacheList.SearchForFonts(const AFontPath: String);
 var
   sr: TSearchRec;
   lFont: TFPFontCacheItem;
@@ -301,68 +301,19 @@ begin
       // We got something, so lets continue
       s := sr.Name;
       if (sr.Attr and faDirectory) <> 0 then // found a directory
-        SearchForFont(IncludeTrailingPathDelimiter(AFontPath + s))
+        SearchForFonts(IncludeTrailingPathDelimiter(AFontPath + s))
       else
       begin // we have a file
         if (lowercase(ExtractFileExt(s)) = '.ttf') or
            (lowercase(ExtractFileExt(s)) = '.otf') then
         begin
-          lFont := BuildFontCacheItem(AFontPath + s);
+          lFont := TFPFontCacheItem.Create(AFontPath + s);
           Add(lFont);
         end;
       end;
     until FindNext(sr) <> 0;
   end;
   FindClose(sr);
-end;
-
-function TFPFontCacheList.BuildFontCacheItem(const AFontFile: String): TFPFontCacheItem;
-var
-  lFontInfo: TTFFileInfo;
-  s: string;
-  flags: integer;
-begin
-  lFontInfo := TTFFileInfo.Create;
-  try
-    lFontInfo.LoadFromFile(AFontFile);
-
-    Result := TFPFontCacheItem.Create(AFontFile);
-    s := lFontInfo.PostScriptName;
-    Result.FamilyName := lFontInfo.FamilyName;
-
-    // extract simple styles first
-    if lFontInfo.PostScript.isFixedPitch > 0 then
-      Result.StyleFlags := FP_FONT_STYLE_FIXEDWIDTH; // this should overwrite Regular style
-
-    if lFontInfo.PostScript.ItalicAngle <> 0 then
-      Result.StyleFlags := Result.StyleFlags or FP_FONT_STYLE_ITALIC;
-
-    // Now to more complex styles stored in StyleName field. eg: 'Condensed Medium'
-    flags := Result.StyleFlags;
-    SetStyleIfExists(s, flags, 'Bold', FP_FONT_STYLE_BOLD);
-    SetStyleIfExists(s, flags, 'Condensed', FP_FONT_STYLE_CONDENSED);
-    SetStyleIfExists(s, flags, 'ExtraLight', FP_FONT_STYLE_EXTRALIGHT);
-    SetStyleIfExists(s, flags, 'Light', FP_FONT_STYLE_LIGHT);
-    SetStyleIfExists(s, flags, 'Semibold', FP_FONT_STYLE_SEMIBOLD);
-    SetStyleIfExists(s, flags, 'Medium', FP_FONT_STYLE_MEDIUM);
-    SetStyleIfExists(s, flags, 'Black', FP_FONT_STYLE_BLACK);
-    Result.StyleFlags := flags;
-  finally
-    lFontInfo.Free;
-  end;
-end;
-
-procedure TFPFontCacheList.SetStyleIfExists(var AText: string; var AStyleFlags: integer; const AStyleName: String;
-  const AStyleBit: integer);
-var
-  i: integer;
-begin
-  i := Pos(AStyleName, AText);
-  if i > 0 then
-  begin
-    AStyleFlags := AStyleFlags or AStyleBit;
-    Delete(AText, Length(AStyleName), i);
-  end;
 end;
 
 procedure TFPFontCacheList.SetDPI(AValue: integer);
@@ -412,7 +363,8 @@ begin
   for i := 0 to FSearchPath.Count-1 do
   begin
     lPath := FSearchPath[i];
-    SearchForFont(IncludeTrailingPathDelimiter(lPath));
+    if DirectoryExists(lPath) then
+      SearchForFonts(IncludeTrailingPathDelimiter(lPath));
   end;
 end;
 
@@ -420,6 +372,17 @@ function TFPFontCacheList.Add(const AObject: TFPFontCacheItem): integer;
 begin
   Result := FList.Add(AObject);
   AObject.FOwner := self;
+end;
+
+procedure TFPFontCacheList.AssignFontList(const AStrings: TStrings);
+var
+  i: integer;
+begin
+  if not Assigned(AStrings) then
+    Exit;
+  AStrings.Clear;
+  for i := 0 to FList.Count-1 do
+    AStrings.Add(TFPFontCacheItem(FList.Items[i]).PostScriptName);
 end;
 
 procedure TFPFontCacheList.Clear;
@@ -452,16 +415,28 @@ function TFPFontCacheList.Find(const AFamilyName: string; ABold: boolean; AItali
 var
   i: integer;
 begin
-  Result := nil;
   for i := 0 to Count-1 do
   begin
-    if (Items[i].FamilyName = AFamilyName) and (items[i].IsItalic = AItalic)
-        and (items[i].IsBold = ABold) then
-    begin
-      Result := Items[i];
+    Result := Items[i];
+    if (Result.FamilyName = AFamilyName) and (Result.IsItalic = AItalic)
+        and (Result.IsBold = ABold)
+    then
       exit;
-    end;
   end;
+  Result := nil;
+end;
+
+function TFPFontCacheList.Find(const APostScriptName: string): TFPFontCacheItem;
+var
+  i: integer;
+begin
+  for i := 0 to Count-1 do
+  begin
+    Result := Items[i];
+    if (Result.PostScriptName = APostScriptName) then
+      Exit;
+  end;
+  Result := nil;
 end;
 
 function TFPFontCacheList.PointSizeInPixels(const APointSize: single): single;

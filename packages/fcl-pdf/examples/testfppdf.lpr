@@ -1,40 +1,103 @@
-{ This program generatesa multi-page PDF document and tests various
-  functionality on each of the 5 pages. }
-{$mode objfpc}
-{$H+}
+{ This program generates a multi-page PDF document and tests various
+  functionality on each of the 5 pages.
+
+  You can also specify to generate single pages by using the -p <n>
+  command line parameter.
+     eg:   testfppdf -p 1
+           testfppdf -p 2
+
+  Use -h to see more command line parameter options.
+}
 program testfppdf;
 
-uses
-  classes, sysutils, fpimage, fpreadjpeg, freetype, fppdf;
+{$mode objfpc}{$H+}
+{$codepage utf8}
 
-Function SetUpDocument : TPDFDocument;
-Var
-  P : TPDFPage;
-  S : TPDFSection;
+uses
+  {$ifdef unix}cwstring,{$endif}  // required for UnicodeString handling.
+  classes,
+  sysutils,
+  custapp,
+  fpimage,
+  fpreadjpeg,
+  fppdf,
+  fpparsettf;
+
+type
+
+  TPDFTestApp = class(TCustomApplication)
+  private
+    Fpg: integer;
+    FRawJPEG,
+    FImageCompression,
+    FTextCompression,
+    FFontCompression: boolean;
+    FDoc: TPDFDocument;
+    function    SetUpDocument: TPDFDocument;
+    procedure   SaveDocument(D: TPDFDocument);
+    procedure   EmptyPage;
+    procedure   SimpleText(D: TPDFDocument; APage: integer);
+    procedure   SimpleLinesRaw(D: TPDFDocument; APage: integer);
+    procedure   SimpleLines(D: TPDFDocument; APage: integer);
+    procedure   SimpleImage(D: TPDFDocument; APage: integer);
+    procedure   SimpleShapes(D: TPDFDocument; APage: integer);
+    procedure   SampleMatrixTransform(D: TPDFDocument; APage: integer);
+  protected
+    procedure   DoRun; override;
+  public
+    procedure   WriteHelp;
+  end;
+
+
+var
+  Application: TPDFTestApp;
+
+
+function TPDFTestApp.SetUpDocument: TPDFDocument;
+var
+  P: TPDFPage;
+  S: TPDFSection;
   i: integer;
+  lPageCount: integer;
+  lOpts: TPDFOptions;
 begin
-  Result:=TPDFDocument.Create(Nil);
-  Result.Infos.Title := 'Test Document';
-  Result.Infos.Author := ApplicationName;
-  Result.Infos.Producer:='fpGUI Toolkit 0.8';
-  Result.Infos.ApplicationName:='pdf_demo';
-  Result.Infos.CreationDate:=Now;
+  Result := TPDFDocument.Create(Nil);
+  Result.Infos.Title := Application.Title;
+  Result.Infos.Author := 'Graeme Geldenhuys';
+  Result.Infos.Producer := 'fpGUI Toolkit 0.8';
+  Result.Infos.ApplicationName := ApplicationName;
+  Result.Infos.CreationDate := Now;
+
+  lOpts := [];
+  if FFontCompression then
+    Include(lOpts, poCompressFonts);
+  if FTextCompression then
+    Include(lOpts,poCompressText);
+  if FImageCompression then
+    Include(lOpts,poCompressImages);
+  if FRawJPEG then
+    Include(lOpts,poUseRawJPEG);
+  Result.Options := lOpts;
+
   Result.StartDocument;
-  S:=Result.Sections.AddSection; // we always need at least one section
-  for i := 1 to 5 do
+  S := Result.Sections.AddSection; // we always need at least one section
+  lPageCount := 6;
+  if Fpg <> -1 then
+    lPageCount := 1;
+  for i := 1 to lPageCount do
   begin
-    P:=Result.Pages.AddPage;
+    P := Result.Pages.AddPage;
     P.PaperType := ptA4;
     P.UnitOfMeasure := uomMillimeters;
-    S.AddPage(P);
+    S.AddPage(P); // Add the Page to the Section
   end;
 end;
 
-Procedure SaveDocument(D : TPDFDocument);
-Var
-  F : TFileStream;
+procedure TPDFTestApp.SaveDocument(D : TPDFDocument);
+var
+  F: TFileStream;
 begin
-  F:=TFileStream.Create('test.pdf',fmCreate);
+  F := TFileStream.Create('test.pdf',fmCreate);
   try
     D.SaveToStream(F);
     Writeln('Document used ',D.ObjectCount,' PDF objects/commands');
@@ -43,11 +106,11 @@ begin
   end;
 end;
 
-Procedure EmptyPage;
-Var
-  D : TPDFDocument;
+procedure TPDFTestApp.EmptyPage;
+var
+  D: TPDFDocument;
 begin
-  D:=SetupDocument;
+  D := SetupDocument;
   try
     SaveDocument(D);
   finally
@@ -55,49 +118,60 @@ begin
   end;
 end;
 
-
 { all units of measure are in millimeters }
-Procedure SimpleText(D: TPDFDocument; APage: integer);
-Var
+procedure TPDFTestApp.SimpleText(D: TPDFDocument; APage: integer);
+var
   P : TPDFPage;
-  FtTitle, FtText1, FtText2: integer;
-  lPt1: TPDFCoord;
+  FtTitle, FtText1, FtText2, FtText3: integer;
 begin
-  P:=D.Pages[APage];
+  P := D.Pages[APage];
+
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clRed);
-  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans-12', clGreen); // TODO: this color value means nothing - not used at all
-  FtText2 := D.AddFont('times-8', clGreen);
+  FtTitle := D.AddFont('Helvetica', clRed);
+  FtText1 := D.AddFont('FreeSans.ttf', 'FreeSans', clGreen); // TODO: this color value means nothing - not used at all
+  FtText2 := D.AddFont('Times-BoldItalic', clBlack);
+  // FtText3 := D.AddFont('arial.ttf', 'Arial', clBlack);
+  FtText3 := FtText1; // to reduce font dependecies, but above works too if you have arial.ttf available
 
   { Page title }
-  P.SetFont(FtTitle,23);
+  P.SetFont(FtTitle, 23);
   P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Text');
+  P.WriteText(25, 20, 'Sample Text');
 
-  // Write text using FreeSans font
-  P.SetFont(ftText1,12);
-  P.SetColor(clBlack, false);
-  P.WriteText(25, P.GetPaperHeight-70, '(25mm,70mm) FreeSans: 0oO 1lL - wêreld çèûÎÐð£¢ß');
-  lPt1 := P.Matrix.Transform(25, 76);
-  P.WriteText(lPt1.X, lPt1.Y, '(25mm,76mm) - FreeSans font');
-
-  P.WriteUTF8Text(25, P.GetPaperHeight-200, 'Hello Graeme *'#$E2#$95#$AC'*'#$C3#$A4); // 0xE2 0x95 0xAC is UTF-8 for ╬   and   0xC3 0xA4 is UTF-8 for ä
-  lPt1 := P.Matrix.Transform(25, 210);
-  P.WriteUTF8Text(lPt1.X, lPt1.Y, 'В субботу двадцать третьего мая приезжает твоя любимая теща.');
-
-  // Write text using Helvetica font
-  P.SetFont(ftText2,12);
+  // -----------------------------------
+  // Write text using PDF standard fonts
+  P.SetFont(FtTitle, 12);
   P.SetColor(clBlue, false);
-  lPt1 := P.Matrix.Transform(25, 50);
-  P.WriteText(lPt1.X, lPt1.Y, '(25mm,50mm) - Times: 0oO 1lL - wêreld çèûÎÐð£¢ß');
+  P.WriteText(25, 50, '(25mm,50mm) Helvetica: The quick brown fox jumps over the lazy dog.');
+
   P.SetFont(ftText2,16);
   P.SetColor($c00000, false);
-  lPt1 := P.Matrix.Transform(75, 100);
-  P.WriteText(lPt1.X, lPt1.Y, '(75mm,100mm) - Big text at absolute position');
+  P.WriteText(60, 100, '(60mm,100mm) Times-BoldItalic: Big text at absolute position');
+
+  // -----------------------------------
+  // TrueType testing purposes
+  P.SetFont(ftText3, 13);
+  P.SetColor(clBlack, false);
+
+  P.WriteText(15, 120, 'Languages: English: Hello, World!');
+  P.WriteText(40, 130, 'Greek: Γειά σου κόσμος');
+  P.WriteText(40, 140, 'Polish: Witaj świecie');
+  P.WriteText(40, 150, 'Portuguese: Olá mundo');
+  P.WriteText(40, 160, 'Russian: Здравствуйте мир');
+  P.WriteText(40, 170, 'Vietnamese: Xin chào thế giới');
+
+  P.SetFont(ftText1, 13);
+  P.WriteText(15, 185, 'Box Drawing: ╠ ╣ ╦ ╩ ├ ┤ ┬ ┴');
+
+  P.WriteText(15, 200, 'Typography: “What’s wrong?”');
+  P.WriteText(40, 210, '£17.99 vs £17·99');
+  P.WriteText(40, 220, '€17.99 vs €17·99');
+  P.WriteText(40, 230, 'OK then…    (êçèûÎÐð£¢ß)  \\//{}()#<>');
+
+  P.WriteText(25, 280, 'B субботу двадцать третьего мая приезжает твоя любимая теща.');
 end;
 
-Procedure SimpleLinesRaw(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleLinesRaw(D: TPDFDocument; APage: integer);
 var
   P: TPDFPage;
   FtTitle: integer;
@@ -105,42 +179,41 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clBlack);
+  FtTitle := D.AddFont('Helvetica', clBlack);
 
   { Page title }
   P.SetFont(FtTitle,23);
-  P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Line Drawing (DrawLine)');
+  P.SetColor(clBlack, False);
+  P.WriteText(25, 20, 'Sample Line Drawing (DrawLine)');
 
-  P.SetColor(clBlack,False); // clblue
+  P.SetColor(clBlack, True);
   P.SetPenStyle(ppsSolid);
-  lPt1 := P.Matrix.Transform(30, 100);
-  lPt2 := P.Matrix.Transform(150, 150);
+  lPt1.X := 30;   lPt1.Y := 100;
+  lPt2.X := 150;  lPt2.Y := 150;
   P.DrawLine(lPt1, lPt2, 0.2);
-  P.SetColor($0000FF,False); // clblue
+
+  P.SetColor(clBlue, True);
   P.SetPenStyle(ppsDash);
-  lPt1 := P.Matrix.Transform(50, 70);
-  lPt2 := P.Matrix.Transform(180, 100);
+  lPt1.X := 50;   lPt1.Y := 70;
+  lPt2.X := 180;  lPt2.Y := 100;
   P.DrawLine(lPt1, lPt2, 0.1);
-  P.SetColor($FF0000,False); // clRed
+
+  { we can also use coordinates directly, without TPDFCoord variables }
+
+  P.SetColor(clRed, True);
   P.SetPenStyle(ppsDashDot);
-  lPt1 := P.Matrix.Transform(40, 140);
-  lPt2 := P.Matrix.Transform(160, 80);
-  P.DrawLine(lPt1, lPt2, 1);
-  P.SetColor(clBlack,False); // clBlack
+  P.DrawLine(40, 140, 160, 80, 1);
+
+  P.SetColor(clBlack, True);
   P.SetPenStyle(ppsDashDotDot);
-  lPt1 := P.Matrix.Transform(60, 50);
-  lPt2 := P.Matrix.Transform(60, 120);
-  P.DrawLine(lPt1, lPt2, 1.5);
-  P.SetColor(clBlack,False); // clBlack
+  P.DrawLine(60, 50, 60, 120, 1.5);
+
+  P.SetColor(clBlack, True);
   P.SetPenStyle(ppsDot);
-  lPt1 := P.Matrix.Transform(10, 80);
-  lPt2 := P.Matrix.Transform(130, 130);
-  P.DrawLine(lPt1, lPt2, 0.5);
+  P.DrawLine(10, 80, 130, 130, 0.5);
 end;
 
-Procedure SimpleLines(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleLines(D: TPDFDocument; APage: integer);
 var
   P: TPDFPage;
   FtTitle: integer;
@@ -149,13 +222,12 @@ var
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clRed);
+  FtTitle := D.AddFont('Helvetica', clRed);
 
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Line Drawing (DrawLineStyle)');
+  P.WriteText(25, 20, 'Sample Line Drawing (DrawLineStyle)');
 
   // write the text at position 100 mm from left and 120 mm from top
   TsThinBlack := D.AddLineStyleDef(0.2, clBlack, ppsSolid);
@@ -164,44 +236,36 @@ begin
   TsThick := D.AddLineStyleDef(1.5, clBlack, ppsDashDotDot);
   TsThinBlackDot := D.AddLineStyleDef(0.5, clBlack, ppsDot);
 
-  lPt1 := P.Matrix.Transform(30, 100);
-  lPt2 := P.Matrix.Transform(150, 150);
+  lPt1.X := 30;   lPt1.Y := 100;
+  lPt2.X := 150;  lPt2.Y := 150;
   P.DrawLineStyle(lPt1, lPt2, tsThinBlack);
 
-  lPt1 := P.Matrix.Transform(50, 70);
-  lPt2 := P.Matrix.Transform(180, 100);
+  lPt1.X := 50;   lPt1.Y := 70;
+  lPt2.X := 180;  lPt2.Y := 100;
   P.DrawLineStyle(lPt1, lPt2, tsThinBlue);
 
-  lPt1 := P.Matrix.Transform(40, 140);
-  lPt2 := P.Matrix.Transform(160, 80);
-  P.DrawLineStyle(lPt1, lPt2, tsThinRed);
+  { we can also use coordinates directly, without TPDFCoord variables }
 
-  lPt1 := P.Matrix.Transform(60, 50);
-  lPt2 := P.Matrix.Transform(60, 120);
-  P.DrawLineStyle(lPt1, lPt2, tsThick);
-
-  lPt1 := P.Matrix.Transform(10, 80);
-  lPt2 := P.Matrix.Transform(130, 130);
-  P.DrawLineStyle(lPt1.X, lPt1.Y, lPt2.X, lPt2.Y, tsThinBlackDot);  { just to test the other overloaded version too. }
+  P.DrawLineStyle(40, 140, 160, 80, tsThinRed);
+  P.DrawLineStyle(60, 50, 60, 120, tsThick);
+  P.DrawLineStyle(10, 80, 130, 130, tsThinBlackDot);
 end;
 
-Procedure SimpleImage(D: TPDFDocument; APage: integer);
+procedure TPDFTestApp.SimpleImage(D: TPDFDocument; APage: integer);
 Var
   P: TPDFPage;
   FtTitle: integer;
   IDX: Integer;
   W, H: Integer;
-  lPt1: TPDFCoord;
 begin
   P := D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clBlack);
+  FtTitle := D.AddFont('Helvetica', clBlack);
 
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack, false);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Sample Image Support');
+  P.WriteText(25, 20, 'Sample Image Support');
 
   P.SetFont(FtTitle,10);
   P.SetColor(clBlack, false);
@@ -209,247 +273,278 @@ begin
   IDX := D.Images.AddFromFile('poppy.jpg',False);
   W := D.Images[IDX].Width;
   H := D.Images[IDX].Height;
-  { scalled down image (small) }
-  lPt1 := P.Matrix.Transform(25, 100); // left-bottom coordinate of image
-  P.DrawImage(lPt1.X, lPt1.Y, W div 2, H div 2, IDX);
-  lPt1 := P.Matrix.Transform(90, 75);
-  P.WriteText(lPt1.X, lPt1.Y, '[Scaled image]');
+  { full size image }
+  P.DrawImage(25, 130, W, H, IDX);  // left-bottom coordinate of image
+  P.WriteText(145, 90, '[Full size (defined in pixels)]');
 
+  { half size image }
+  P.DrawImage(25, 190, W shr 1, H shr 1, IDX); // could also have used: Integer(W div 2), Integer(H div 2)
+  P.WriteText(90, 165, '[Quarter size (defined in pixels)]');
 
-  { large image }
-  lPt1 := P.Matrix.Transform(35, 190);  // left-bottom coordinate of image
-  P.DrawImage(lPt1.X, lPt1.Y, W, H, IDX);
-  lPt1 := P.Matrix.Transform(160, 150);
-  P.WriteText(lPt1.X, lPt1.Y, '[Default size]');
+  { scalled image to 2x2 centimeters }
+  P.DrawImage(25, 230, 20.0, 20.0, IDX); // left-bottom coordinate of image
+  P.WriteText(50, 220, '[2x2 cm scaled image]');
 end;
 
-Procedure SimpleShapes(D: TPDFDocument; APage: integer);
-Var
-  P : TPDFPage;
+procedure TPDFTestApp.SimpleShapes(D: TPDFDocument; APage: integer);
+var
+  P: TPDFPage;
   FtTitle: integer;
-//  FtText: integer;
-  lPt1, lPt2, lPt3: TPDFCoord;
+  lPt1: TPDFCoord;
 begin
   P:=D.Pages[APage];
   // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
-  FtTitle := D.AddFont('helvetica-12', clBlack);
+  FtTitle := D.AddFont('Helvetica', clBlack);
 
   { Page title }
   P.SetFont(FtTitle,23);
   P.SetColor(clBlack);
-  lPt1 := P.Matrix.Transform(25, 20);
-  P.WriteText(lPt1.X, lPt1.Y, 'Basic Shapes');
+  P.WriteText(25, 20, 'Basic Shapes');
 
   // ========== Rectangles ============
 
-  { Transform the origin point to the Cartesian coordinate system. }
+  { PDF origin coordinate is Bottom-Left, and we want to use Image Coordinate of Top-Left }
   lPt1.X := 30;
-  { PDF origin coordinate is Bottom-Left, and we want to use Image coordinate of Top-Left }
   lPt1.Y := 60+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetColor(clRed, true);
   P.SetColor($37b344, false); // some green color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 3, true, true);
+  P.DrawRect(lPt1.X, lPt1.Y, 40, 20, 3, true, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
   lPt1.X := 20;
-  { we need the Top-Left coordinate }
   lPt1.Y := 50+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetColor(clBlue, true);
   P.SetColor($b737b3, false); // some purple color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 1, true, true);
+  P.DrawRect(lPt1.X, lPt1.Y, 40, 20, 1, true, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 110;
-  { PDF origin coordinate is Bottom-Left, and we want to use Image cooridanet of Top-Left }
-  lPt1.Y := 70+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDashDot);
   P.SetColor(clBlue, true);
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 1, false, true);
+  P.DrawRect(110, 70+20 {origin+height}, 40, 20, 1, false, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  { PDF origin coordinate is Bottom-Left, and we want to use Image cooridanet of Top-Left }
-  lPt1.Y := 60+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDash);
   P.SetColor($37b344, true);  // some green color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 2, false, true);
+  P.DrawRect(100, 60+20 {origin+height}, 40, 20, 2, false, true);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 90;
-  { we need the Top-Left coordinate }
-  lPt1.Y := 50+20; // origin + height
-  lPt2 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsSolid);
   P.SetColor($b737b3, true);  // some purple color
-  P.DrawRect(lPt2.X, lPt2.Y, 40, 20, 4, false, true);
+  P.DrawRect(90, 50+20 {origin+height}, 40, 20, 4, false, true);
 
 
   // ========== Ellipses ============
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt2 := P.Matrix.Transform(60, 150);
   P.SetPenStyle(ppsSolid);
   P.SetColor($c00000, True);
-  P.DrawEllipse(lPt2.X, lPt2.Y, -40, 20, 3, False, True);
+  P.DrawEllipse(60, 150, -40, 20, 3, False, True);
 
+  lPt1.X := 60;
+  lPt1.Y := 150;
   P.SetColor(clBlue, true);
   P.SetColor($b737b3, false); // some purple color
-  P.DrawEllipse(lPt2, 10, 10, 1, True, True);
-(*
-  P.DrawRect(mmToPDF(lPt2.X), mmToPDF(lPt2.Y), 2, 2, 1, False, True);
-  FtText := D.AddFont('helvetica-8', clBlack);
-  P.SetFont(ftText,8);
-  P.SetColor(clblack);
-  P.WriteText(mmtoPDF(100), GetPaperHeight-mmToPDF(105),'^---(origin point)');
-*)
+  P.DrawEllipse(lPt1, 10, 10, 1, True, True);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt2 := P.Matrix.Transform(140, 150);
   P.SetPenStyle(ppsDashDot);
   P.SetColor($b737b3, True);
-  P.DrawEllipse(lPt2, 35, 20, 1, False, True);
+  P.DrawEllipse(140, 150, 35, 20, 1, False, True);
 
 
   // ========== Lines Pen Styles ============
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 30;
-  lPt1.Y := 200;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt1.Y := 200;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsSolid);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 200, 70, 200, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 210;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDash);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 210, 70, 210, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 220;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDot);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 220, 70, 220, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 230;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDashDot);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 230, 70, 230, 1);
 
-  lPt1.X := 30;
-  lPt1.Y := 240;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 70;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsDashDotDot);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
+  P.DrawLine(30, 240, 70, 240, 1);
 
 
   // ========== Line Attribute ============
 
-
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 170;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetPenStyle(ppsSolid);
   P.SetColor(clBlack, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 0.2);
+  P.DrawLine(100, 170, 140, 170, 0.2);
+  P.DrawLine(100, 180, 140, 180, 0.3);
+  P.DrawLine(100, 190, 140, 190, 0.5);
+  P.DrawLine(100, 200, 140, 200, 1);
 
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 180;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 0.3);
-
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 190;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 0.5);
-
-  { Transform the origin point to the Cartesian coordinate system. }
-  lPt1.X := 100;
-  lPt1.Y := 200;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 1);
-
-  lPt1.X := 100;
-  lPt1.Y := 210;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor(clRed, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 2);
+  P.DrawLine(100, 210, 140, 210, 2);
 
-  lPt1.X := 100;
-  lPt1.Y := 220;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor($37b344, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 3);
+  P.DrawLine(100, 220, 140, 220, 3);
 
-  lPt1.X := 100;
-  lPt1.Y := 230;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor(clBlue, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 4);
+  P.DrawLine(100, 230, 140, 230, 4);
 
-  lPt1.X := 100;
-  lPt1.Y := 240;
-  lPt2 := P.Matrix.Transform(lPt1);
-  lPt1.X := 140;
-  lPt3 := P.Matrix.Transform(lPt1);
   P.SetColor($b737b3, True);
-  P.DrawLine(lPt2.X, lPt2.Y, lPt3.X, lPt3.Y, 5);
+  P.DrawLine(100, 240, 140, 240, 5);
 end;
 
-Var
-  D: TPDFDocument;
-begin
-  D := SetupDocument;
-  try
-    D.FontDirectory := ExtractFIlePath(Paramstr(0))+'fonts'+PathDelim;
+procedure TPDFTestApp.SampleMatrixTransform(D: TPDFDocument; APage: integer);
+var
+  P: TPDFPage;
+  FtTitle: integer;
 
-    SimpleText(D, 0);
-    SimpleShapes(D, 1);
-    SimpleLines(D, 2);
-    SimpleLinesRaw(D, 3);
-    SimpleImage(D, 4);
-
-    SaveDocument(D);
-  finally
-    D.Free;
+  procedure OutputSample;
+  var
+    b: boolean;
+  begin
+    b := P.Matrix._11 = -1;
+    P.SetFont(FtTitle, 10);
+    P.WriteText(10, 10, 'Matrix transform: ' + BoolToStr(b, True));
+    P.DrawLine(0, 0, 100, 100, 1);
+    P.WriteText(100, 100, '(line end point)');
   end;
-end.
 
+begin
+  P:=D.Pages[APage];
+  // create the fonts to be used (use one of the 14 Adobe PDF standard fonts)
+  FtTitle := D.AddFont('Helvetica', clBlack);
+
+  { Page title }
+  P.SetFont(FtTitle,23);
+  P.SetColor(clBlack);
+  P.WriteText(75, 20, 'Matrix Transform');
+
+  OutputSample;
+
+  // enables Cartesian coordinate system for the page
+  P.Matrix.SetYScalation(1);
+  P.Matrix.SetYTranslation(0);
+
+  OutputSample;
+end;
+
+{ TPDFTestApp }
+
+procedure TPDFTestApp.DoRun;
+
+  Function BoolFlag(C : Char;ADefault : Boolean) : Boolean;
+
+  Var
+    V : Integer;
+
+  begin
+    Result:=ADefault;
+    if HasOption(C, '') then
+      begin
+      v := StrToIntDef(GetOptionValue(C,''),-1);
+      if Not (V in [0,1]) then
+        Raise Exception.Create('Error in -'+C+' parameter. Valid range is 0-1.');
+      Result:=(v=1);
+      end
+  end;
+
+var
+  ErrorMsg: String;
+
+begin
+  StopOnException:=True;
+  inherited DoRun;
+  // quick check parameters
+  ErrorMsg := CheckOptions('hp:f:t:i:j:', '');
+  if ErrorMsg <> '' then
+  begin
+    WriteLn('ERROR:  ' + ErrorMsg);
+    Writeln('');
+    Terminate;
+    Exit;
+  end;
+
+  // parse parameters
+  if HasOption('h', '') then
+  begin
+    WriteHelp;
+    Terminate;
+    Exit;
+  end;
+
+  Fpg := -1;
+  if HasOption('p', '') then
+  begin
+    Fpg := StrToInt(GetOptionValue('p', ''));
+    if (Fpg < 1) or (Fpg > 5) then
+    begin
+      Writeln('Error in -p parameter. Valid range is 1-5.');
+      Writeln('');
+      Terminate;
+      Exit;
+    end;
+  end;
+
+  FFontCompression := BoolFlag('f',true);
+  FTextCompression := BoolFlag('t',False);
+  FImageCompression := BoolFlag('i',False);
+  FRawJPEG:=BoolFlag('j',False);
+
+  FDoc := SetupDocument;
+  try
+    FDoc.FontDirectory := 'fonts';
+
+    if Fpg = -1 then
+    begin
+      SimpleText(FDoc, 0);
+      SimpleShapes(FDoc, 1);
+      SimpleLines(FDoc, 2);
+      SimpleLinesRaw(FDoc, 3);
+      SimpleImage(FDoc, 4);
+      SampleMatrixTransform(FDoc, 5);
+    end
+    else
+    begin
+      case Fpg of
+        1:  SimpleText(FDoc, 0);
+        2:  SimpleShapes(FDoc, 0);
+        3:  SimpleLines(FDoc, 0);
+        4:  SimpleLinesRaw(FDoc, 0);
+        5:  SimpleImage(FDoc, 0);
+        6:  SampleMatrixTransform(FDoc, 0);
+      end;
+    end;
+
+    SaveDocument(FDoc);
+  finally
+    FDoc.Free;
+  end;
+
+  // stop program loop
+  Terminate;
+end;
+
+procedure TPDFTestApp.WriteHelp;
+begin
+  writeln('Usage:');
+  writeln('    -h          Show this help.');
+  writeln('    -p <n>      Generate only one page. Valid range is 1-5.' + LineEnding +
+          '                If this option is not specified, then all 5 pages are' + LineEnding +
+          '                generated.');
+  writeln('    -f <0|1>    Toggle embedded font compression. A value of 0' + LineEnding +
+          '                disables compression. A value of 1 enables compression.');
+  writeln('    -t <0|1>    Toggle text compression. A value of 0' + LineEnding +
+          '                disables compression. A value of 1 enables compression.');
+  writeln('    -i <0|1>    Toggle image compression. A value of 0' + LineEnding +
+          '                disables compression. A value of 1 enables compression.');
+  writeln('    -j <0|1>    Toggle use of JPEG. A value of 0' + LineEnding +
+          '                disables use of JPEG images. A value of 1 writes jpeg file as-is');
+  writeln('');
+end;
+
+
+
+begin
+  Application := TPDFTestApp.Create(nil);
+  Application.Title := 'fpPDF Test Application';
+  Application.Run;
+  Application.Free;
+end.
