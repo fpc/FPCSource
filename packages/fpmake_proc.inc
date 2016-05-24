@@ -717,3 +717,6 @@ begin
   with Installer do
 {$include fcl-pdf/fpmake.pp}
 end;
+
+{$include googleapi/fpmake.pp}
+
