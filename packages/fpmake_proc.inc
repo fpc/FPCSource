@@ -712,3 +712,8 @@ begin
 {$include zorba/fpmake.pp}
 end;
 
+procedure add_fcl_pdf(const ADirectory: string);
+begin
+  with Installer do
+{$include fcl-pdf/fpmake.pp}
+end;
