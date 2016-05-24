@@ -285,7 +285,7 @@ begin
   except
     On E : Exception do
       Log(etError,Format('Error formatting message "%s" with %d arguments: %s',[Fmt,Length(Args),E.Message]));
-  end  
+  end
 end;
 
 constructor TCustomApplication.Create(AOwner: TComponent);
@@ -597,7 +597,7 @@ begin
     If (Length(O)=0) or (O[1]<>FOptionChar) then
       begin
       If Assigned(NonOpts) then
-        NonOpts.Add(O)
+        NonOpts.Add(O);
       end
     else
       begin
@@ -623,7 +623,7 @@ begin
           If FindLongopt(O) then
             begin
             If HaveArg then
-              AddToResult(Format(SErrNoOptionAllowed,[I,O]))
+              AddToResult(Format(SErrNoOptionAllowed,[I,O]));
             end
           else
             begin // Required argument
