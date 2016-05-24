@@ -1317,7 +1317,8 @@ implementation
       );
       tcb.free;
 
-      if not(tf_no_generic_stackcheck in target_info.flags) then
+      if (tf_emit_stklen in target_info.flags) or
+          not(tf_no_generic_stackcheck in target_info.flags) then
         begin
           { stacksize can be specified and is now simulated }
           tcb:=ctai_typedconstbuilder.create([tcalo_new_section,tcalo_make_dead_strippable]);

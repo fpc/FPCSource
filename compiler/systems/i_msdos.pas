@@ -42,7 +42,8 @@ unit i_msdos;
             name         : 'MS-DOS 16-bit real mode';
             shortname    : 'MSDOS';
             flags        : [tf_use_8_3,tf_smartlink_library,
-                            tf_no_objectfiles_when_smartlinking,tf_cld];
+                            tf_no_objectfiles_when_smartlinking,tf_cld,
+                            tf_no_generic_stackcheck,tf_emit_stklen];
             cpu          : cpu_i8086;
             unit_env     : 'MSDOSUNITS';
             extradefines : '';

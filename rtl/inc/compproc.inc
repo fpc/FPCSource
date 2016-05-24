@@ -756,6 +756,9 @@ function fpc_setjmp(var s : jmp_buf) : {$ifdef CPU16}smallint{$else}longint{$end
 procedure fpc_longjmp(var s : jmp_buf; value : {$ifdef CPU16}smallint{$else}longint{$endif}); compilerproc;
 
 {$ifdef cpui8086}
+{ i8086 stack checking }
+procedure fpc_stackcheck_i8086; compilerproc;
+
 { i8086 huge pointer helpers }
 function fpc_hugeptr_add_longint(p: HugePointer; n: LongInt): HugePointer; compilerproc;
 function fpc_hugeptr_add_longint_normalized(p: HugePointer; n: LongInt): HugePointer; compilerproc;

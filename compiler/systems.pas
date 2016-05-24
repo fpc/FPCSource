@@ -137,6 +137,7 @@ interface
             tf_pic_default,
             { the os does some kind of stack checking and it can be converted into a rte 202 }
             tf_no_generic_stackcheck,
+            tf_emit_stklen,                     // Means that the compiler should emit a _stklen variable with the stack size, even if tf_no_generic_stackcheck is specified
             tf_has_winlike_resources,
             tf_safecall_clearstack,             // With this flag set, after safecall calls the caller cleans up the stack
             tf_safecall_exceptions,             // Exceptions in safecall calls are not raised, but passed to the caller as an ordinal (hresult) in the function result.

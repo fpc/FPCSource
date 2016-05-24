@@ -1809,6 +1809,13 @@ unit cgcpu;
 
     procedure tcg8086.g_stackpointer_alloc(list : TAsmList;localsize: longint);
       begin
+        if cs_check_stack in current_settings.localswitches then
+          begin
+            cg.getcpuregister(list,NR_AX);
+            cg.a_load_const_reg(list,OS_16, localsize,NR_AX);
+            cg.a_call_name(list,'FPC_STACKCHECK_I8086',false);
+            cg.ungetcpuregister(list, NR_AX);
+          end;
         if localsize>0 then
           list.concat(Taicpu.Op_const_reg(A_SUB,S_W,localsize,NR_STACK_POINTER_REG));
       end;

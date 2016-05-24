@@ -3067,7 +3067,14 @@ unit cgx86;
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then
                   current_asmdata.asmcfi.cfa_def_cfa_offset(list,localsize+sizeof(pint));
                 current_procinfo.final_localsize:=localsize;
-              end;
+              end
+{$ifdef i8086}
+            else
+              { on i8086 we always call g_stackpointer_alloc, even with a zero size,
+                because it will generate code for stack checking, if stack checking is on }
+              g_stackpointer_alloc(list,0)
+{$endif i8086}
+              ;
 
 {$ifdef i8086}
               { win16 exported proc prologue follow-up (see the huge comment above for details) }
