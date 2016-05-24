@@ -1051,10 +1051,6 @@ implementation
             macrosymtablestack.free;
             macrosymtablestack:=nil;
           end;
-        extendeddefs.free;
-        extendeddefs:=nil;
-        genericdummysyms.free;
-        genericdummysyms:=nil;
         waitingforunit.free;
         waitingforunit:=nil;
         localmacrosymtable.free;
