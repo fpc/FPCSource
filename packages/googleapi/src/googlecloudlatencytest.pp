@@ -1,19 +1,4 @@
 unit googlecloudlatencytest;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:00
 {$MODE objfpc}
 {$H+}
 
@@ -53,7 +38,7 @@ type
     Fstats : TAggregatedStatsTypestatsArray;
   Protected
     //Property setters
-    Procedure Setstats(AIndex : Integer; AValue : TAggregatedStatsTypestatsArray); virtual;
+    Procedure Setstats(AIndex : Integer; const AValue : TAggregatedStatsTypestatsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -92,7 +77,7 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Set_label(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvalue(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setvalue(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property _label : String Index 0 Read F_label Write Set_label;
@@ -132,10 +117,10 @@ type
     Ftime : double;
   Protected
     //Property setters
-    Procedure SetdoubleValues(AIndex : Integer; AValue : TStatsTypedoubleValuesArray); virtual;
-    Procedure SetintValues(AIndex : Integer; AValue : TStatsTypeintValuesArray); virtual;
-    Procedure SetstringValues(AIndex : Integer; AValue : TStatsTypestringValuesArray); virtual;
-    Procedure Settime(AIndex : Integer; AValue : double); virtual;
+    Procedure SetdoubleValues(AIndex : Integer; const AValue : TStatsTypedoubleValuesArray); virtual;
+    Procedure SetintValues(AIndex : Integer; const AValue : TStatsTypeintValuesArray); virtual;
+    Procedure SetstringValues(AIndex : Integer; const AValue : TStatsTypestringValuesArray); virtual;
+    Procedure Settime(AIndex : Integer; const AValue : double); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -243,7 +228,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAggregatedStats.Setstats(AIndex : Integer; AValue : TAggregatedStatsTypestatsArray); 
+Procedure TAggregatedStats.Setstats(AIndex : Integer; const AValue : TAggregatedStatsTypestatsArray); 
 
 begin
   If (Fstats=AValue) then exit;
@@ -300,7 +285,7 @@ end;
 
 
 
-Procedure TDoubleValue.Setvalue(AIndex : Integer; AValue : integer); 
+Procedure TDoubleValue.Setvalue(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fvalue=AValue) then exit;
@@ -366,7 +351,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TStats.SetdoubleValues(AIndex : Integer; AValue : TStatsTypedoubleValuesArray); 
+Procedure TStats.SetdoubleValues(AIndex : Integer; const AValue : TStatsTypedoubleValuesArray); 
 
 begin
   If (FdoubleValues=AValue) then exit;
@@ -376,7 +361,7 @@ end;
 
 
 
-Procedure TStats.SetintValues(AIndex : Integer; AValue : TStatsTypeintValuesArray); 
+Procedure TStats.SetintValues(AIndex : Integer; const AValue : TStatsTypeintValuesArray); 
 
 begin
   If (FintValues=AValue) then exit;
@@ -386,7 +371,7 @@ end;
 
 
 
-Procedure TStats.SetstringValues(AIndex : Integer; AValue : TStatsTypestringValuesArray); 
+Procedure TStats.SetstringValues(AIndex : Integer; const AValue : TStatsTypestringValuesArray); 
 
 begin
   If (FstringValues=AValue) then exit;
@@ -396,7 +381,7 @@ end;
 
 
 
-Procedure TStats.Settime(AIndex : Integer; AValue : double); 
+Procedure TStats.Settime(AIndex : Integer; const AValue : double); 
 
 begin
   If (Ftime=AValue) then exit;
@@ -538,7 +523,7 @@ end;
 Class Function TCloudlatencytestAPI.APIRevision : String;
 
 begin
-  Result:='20150508';
+  Result:='20160309';
 end;
 
 Class Function TCloudlatencytestAPI.APIID : String;
@@ -556,7 +541,7 @@ end;
 Class Function TCloudlatencytestAPI.APIDescription : String;
 
 begin
-  Result:='A Test API to report latency data.';
+  Result:='Reports latency data.';
 end;
 
 Class Function TCloudlatencytestAPI.APIOwnerDomain : String;

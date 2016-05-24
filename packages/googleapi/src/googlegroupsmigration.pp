@@ -1,19 +1,4 @@
 unit googlegroupsmigration;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:05
 {$MODE objfpc}
 {$H+}
 
@@ -233,7 +218,7 @@ end;
 Class Function TGroupsmigrationAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TGroupsmigrationAPI.APIbasePath : string;
@@ -245,7 +230,7 @@ end;
 Class Function TGroupsmigrationAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/groups/v1/groups/';
+  Result:='https://www.googleapis.com/groups/v1/groups/';
 end;
 
 Class Function TGroupsmigrationAPI.APIProtocol : string;

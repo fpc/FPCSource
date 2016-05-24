@@ -1,19 +1,4 @@
 unit googlepagespeedonline;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:06
 {$MODE objfpc}
 {$H+}
 
@@ -56,10 +41,10 @@ type
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setleft(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Settop(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property height : integer Index 0 Read Fheight Write Setheight;
@@ -81,10 +66,10 @@ type
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setleft(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Settop(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property height : integer Index 0 Read Fheight Write Setheight;
@@ -109,8 +94,8 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); virtual;
-    Procedure Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); virtual;
+    Procedure Setrects(AIndex : Integer; const AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); virtual;
+    Procedure Setsecondary_rects(AIndex : Integer; const AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -137,7 +122,7 @@ type
     Fformat : String;
   Protected
     //Property setters
-    Procedure Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsArray); virtual;
+    Procedure Setargs(AIndex : Integer; const AValue : TPagespeedApiFormatStringV2TypeargsArray); virtual;
     Procedure Setformat(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -162,10 +147,10 @@ type
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setleft(AIndex : Integer; AValue : integer); virtual;
-    Procedure Settop(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setleft(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Settop(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property height : integer Index 0 Read Fheight Write Setheight;
@@ -190,11 +175,11 @@ type
   Protected
     //Property setters
     Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmime_type(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2Typepage_rect); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setpage_rect(AIndex : Integer; const AValue : TPagespeedApiImageV2Typepage_rect); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property data : String Index 0 Read Fdata Write Setdata;
@@ -231,7 +216,7 @@ type
   Protected
     //Property setters
     Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetruleResults(AIndex : Integer; AValue : TResultTypeformattedResultsTyperuleResults); virtual;
+    Procedure SetruleResults(AIndex : Integer; const AValue : TResultTypeformattedResultsTyperuleResults); virtual;
   Public
   Published
     Property locale : String Index 0 Read Flocale Write Setlocale;
@@ -265,11 +250,11 @@ type
     Procedure SethtmlResponseBytes(AIndex : Integer; const AValue : String); virtual;
     Procedure SetimageResponseBytes(AIndex : Integer; const AValue : String); virtual;
     Procedure SetjavascriptResponseBytes(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnumberCssResources(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumberHosts(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumberJsResources(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumberResources(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumberStaticResources(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetnumberCssResources(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumberHosts(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumberJsResources(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumberResources(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumberStaticResources(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetotherResponseBytes(AIndex : Integer; const AValue : String); virtual;
     Procedure SettextResponseBytes(AIndex : Integer; const AValue : String); virtual;
     Procedure SettotalRequestBytes(AIndex : Integer; const AValue : String); virtual;
@@ -315,8 +300,8 @@ type
     Fminor : integer;
   Protected
     //Property setters
-    Procedure Setmajor(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setminor(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setmajor(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setminor(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property major : integer Index 0 Read Fmajor Write Setmajor;
@@ -342,16 +327,16 @@ type
     Fversion : TResultTypeversion;
   Protected
     //Property setters
-    Procedure SetformattedResults(AIndex : Integer; AValue : TResultTypeformattedResults); virtual;
+    Procedure SetformattedResults(AIndex : Integer; const AValue : TResultTypeformattedResults); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetinvalidRules(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetinvalidRules(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpageStats(AIndex : Integer; AValue : TResultTypepageStats); virtual;
-    Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetruleGroups(AIndex : Integer; AValue : TResultTyperuleGroups); virtual;
-    Procedure Setscreenshot(AIndex : Integer; AValue : TPagespeedApiImageV2); virtual;
+    Procedure SetpageStats(AIndex : Integer; const AValue : TResultTypepageStats); virtual;
+    Procedure SetresponseCode(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetruleGroups(AIndex : Integer; const AValue : TResultTyperuleGroups); virtual;
+    Procedure Setscreenshot(AIndex : Integer; const AValue : TPagespeedApiImageV2); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setversion(AIndex : Integer; AValue : TResultTypeversion); virtual;
+    Procedure Setversion(AIndex : Integer; const AValue : TResultTypeversion); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -441,7 +426,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -451,7 +436,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setleft(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setleft(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fleft=AValue) then exit;
@@ -461,7 +446,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Settop(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Settop(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Ftop=AValue) then exit;
@@ -471,7 +456,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTyperectsItem.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -488,7 +473,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -498,7 +483,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setleft(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setleft(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fleft=AValue) then exit;
@@ -508,7 +493,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Settop(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Settop(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Ftop=AValue) then exit;
@@ -518,7 +503,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsItem.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -545,7 +530,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItem.Setrects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setrects(AIndex : Integer; const AValue : TPagespeedApiFormatStringV2TypeargsItemTyperectsArray); 
 
 begin
   If (Frects=AValue) then exit;
@@ -555,7 +540,7 @@ end;
 
 
 
-Procedure TPagespeedApiFormatStringV2TypeargsItem.Setsecondary_rects(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); 
+Procedure TPagespeedApiFormatStringV2TypeargsItem.Setsecondary_rects(AIndex : Integer; const AValue : TPagespeedApiFormatStringV2TypeargsItemTypesecondary_rectsArray); 
 
 begin
   If (Fsecondary_rects=AValue) then exit;
@@ -617,7 +602,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiFormatStringV2.Setargs(AIndex : Integer; AValue : TPagespeedApiFormatStringV2TypeargsArray); 
+Procedure TPagespeedApiFormatStringV2.Setargs(AIndex : Integer; const AValue : TPagespeedApiFormatStringV2TypeargsArray); 
 
 begin
   If (Fargs=AValue) then exit;
@@ -657,7 +642,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPagespeedApiImageV2Typepage_rect.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -667,7 +652,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2Typepage_rect.Setleft(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Setleft(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fleft=AValue) then exit;
@@ -677,7 +662,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2Typepage_rect.Settop(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Settop(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Ftop=AValue) then exit;
@@ -687,7 +672,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2Typepage_rect.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2Typepage_rect.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -714,7 +699,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -744,7 +729,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setpage_rect(AIndex : Integer; AValue : TPagespeedApiImageV2Typepage_rect); 
+Procedure TPagespeedApiImageV2.Setpage_rect(AIndex : Integer; const AValue : TPagespeedApiImageV2Typepage_rect); 
 
 begin
   If (Fpage_rect=AValue) then exit;
@@ -754,7 +739,7 @@ end;
 
 
 
-Procedure TPagespeedApiImageV2.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TPagespeedApiImageV2.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -794,7 +779,7 @@ end;
 
 
 
-Procedure TResultTypeformattedResults.SetruleResults(AIndex : Integer; AValue : TResultTypeformattedResultsTyperuleResults); 
+Procedure TResultTypeformattedResults.SetruleResults(AIndex : Integer; const AValue : TResultTypeformattedResultsTyperuleResults); 
 
 begin
   If (FruleResults=AValue) then exit;
@@ -861,7 +846,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetnumberCssResources(AIndex : Integer; AValue : integer); 
+Procedure TResultTypepageStats.SetnumberCssResources(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumberCssResources=AValue) then exit;
@@ -871,7 +856,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetnumberHosts(AIndex : Integer; AValue : integer); 
+Procedure TResultTypepageStats.SetnumberHosts(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumberHosts=AValue) then exit;
@@ -881,7 +866,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetnumberJsResources(AIndex : Integer; AValue : integer); 
+Procedure TResultTypepageStats.SetnumberJsResources(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumberJsResources=AValue) then exit;
@@ -891,7 +876,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetnumberResources(AIndex : Integer; AValue : integer); 
+Procedure TResultTypepageStats.SetnumberResources(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumberResources=AValue) then exit;
@@ -901,7 +886,7 @@ end;
 
 
 
-Procedure TResultTypepageStats.SetnumberStaticResources(AIndex : Integer; AValue : integer); 
+Procedure TResultTypepageStats.SetnumberStaticResources(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumberStaticResources=AValue) then exit;
@@ -961,7 +946,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResultTypeversion.Setmajor(AIndex : Integer; AValue : integer); 
+Procedure TResultTypeversion.Setmajor(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fmajor=AValue) then exit;
@@ -971,7 +956,7 @@ end;
 
 
 
-Procedure TResultTypeversion.Setminor(AIndex : Integer; AValue : integer); 
+Procedure TResultTypeversion.Setminor(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fminor=AValue) then exit;
@@ -988,7 +973,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TResult.SetformattedResults(AIndex : Integer; AValue : TResultTypeformattedResults); 
+Procedure TResult.SetformattedResults(AIndex : Integer; const AValue : TResultTypeformattedResults); 
 
 begin
   If (FformattedResults=AValue) then exit;
@@ -1008,7 +993,7 @@ end;
 
 
 
-Procedure TResult.SetinvalidRules(AIndex : Integer; AValue : TStringArray); 
+Procedure TResult.SetinvalidRules(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FinvalidRules=AValue) then exit;
@@ -1028,7 +1013,7 @@ end;
 
 
 
-Procedure TResult.SetpageStats(AIndex : Integer; AValue : TResultTypepageStats); 
+Procedure TResult.SetpageStats(AIndex : Integer; const AValue : TResultTypepageStats); 
 
 begin
   If (FpageStats=AValue) then exit;
@@ -1038,7 +1023,7 @@ end;
 
 
 
-Procedure TResult.SetresponseCode(AIndex : Integer; AValue : integer); 
+Procedure TResult.SetresponseCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FresponseCode=AValue) then exit;
@@ -1048,7 +1033,7 @@ end;
 
 
 
-Procedure TResult.SetruleGroups(AIndex : Integer; AValue : TResultTyperuleGroups); 
+Procedure TResult.SetruleGroups(AIndex : Integer; const AValue : TResultTyperuleGroups); 
 
 begin
   If (FruleGroups=AValue) then exit;
@@ -1058,7 +1043,7 @@ end;
 
 
 
-Procedure TResult.Setscreenshot(AIndex : Integer; AValue : TPagespeedApiImageV2); 
+Procedure TResult.Setscreenshot(AIndex : Integer; const AValue : TPagespeedApiImageV2); 
 
 begin
   If (Fscreenshot=AValue) then exit;
@@ -1078,7 +1063,7 @@ end;
 
 
 
-Procedure TResult.Setversion(AIndex : Integer; AValue : TResultTypeversion); 
+Procedure TResult.Setversion(AIndex : Integer; const AValue : TResultTypeversion); 
 
 begin
   If (Fversion=AValue) then exit;
@@ -1169,7 +1154,7 @@ end;
 Class Function TPagespeedonlineAPI.APIRevision : String;
 
 begin
-  Result:='20150317';
+  Result:='20160516';
 end;
 
 Class Function TPagespeedonlineAPI.APIID : String;
@@ -1187,7 +1172,7 @@ end;
 Class Function TPagespeedonlineAPI.APIDescription : String;
 
 begin
-  Result:='Lets you analyze the performance of a web page and get tailored suggestions to make that page faster.';
+  Result:='Analyzes the performance of a web page and provides tailored suggestions to make that page faster.';
 end;
 
 Class Function TPagespeedonlineAPI.APIOwnerDomain : String;
@@ -1223,7 +1208,7 @@ end;
 Class Function TPagespeedonlineAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TPagespeedonlineAPI.APIbasePath : string;
@@ -1235,7 +1220,7 @@ end;
 Class Function TPagespeedonlineAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/pagespeedonline/v2/';
+  Result:='https://www.googleapis.com/pagespeedonline/v2/';
 end;
 
 Class Function TPagespeedonlineAPI.APIProtocol : string;

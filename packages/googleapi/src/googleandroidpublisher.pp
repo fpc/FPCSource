@@ -1,19 +1,4 @@
 unit googleandroidpublisher;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -33,6 +18,8 @@ type
   TApksListResponse = Class;
   TAppDetails = Class;
   TAppEdit = Class;
+  TComment = Class;
+  TDeveloperComment = Class;
   TEntitlement = Class;
   TEntitlementsListResponse = Class;
   TExpansionFile = Class;
@@ -60,15 +47,23 @@ type
   TPageInfo = Class;
   TPrice = Class;
   TProductPurchase = Class;
+  TProrate = Class;
+  TReview = Class;
+  TReviewReplyResult = Class;
+  TReviewsListResponse = Class;
+  TReviewsReplyRequest = Class;
+  TReviewsReplyResponse = Class;
   TSeason = Class;
   TSubscriptionDeferralInfo = Class;
   TSubscriptionPurchase = Class;
   TSubscriptionPurchasesDeferRequest = Class;
   TSubscriptionPurchasesDeferResponse = Class;
   TTesters = Class;
+  TTimestamp = Class;
   TTokenPagination = Class;
   TTrack = Class;
   TTracksListResponse = Class;
+  TUserComment = Class;
   TApkArray = Array of TApk;
   TApkBinaryArray = Array of TApkBinary;
   TApkListingArray = Array of TApkListing;
@@ -78,6 +73,8 @@ type
   TApksListResponseArray = Array of TApksListResponse;
   TAppDetailsArray = Array of TAppDetails;
   TAppEditArray = Array of TAppEdit;
+  TCommentArray = Array of TComment;
+  TDeveloperCommentArray = Array of TDeveloperComment;
   TEntitlementArray = Array of TEntitlement;
   TEntitlementsListResponseArray = Array of TEntitlementsListResponse;
   TExpansionFileArray = Array of TExpansionFile;
@@ -105,15 +102,23 @@ type
   TPageInfoArray = Array of TPageInfo;
   TPriceArray = Array of TPrice;
   TProductPurchaseArray = Array of TProductPurchase;
+  TProrateArray = Array of TProrate;
+  TReviewArray = Array of TReview;
+  TReviewReplyResultArray = Array of TReviewReplyResult;
+  TReviewsListResponseArray = Array of TReviewsListResponse;
+  TReviewsReplyRequestArray = Array of TReviewsReplyRequest;
+  TReviewsReplyResponseArray = Array of TReviewsReplyResponse;
   TSeasonArray = Array of TSeason;
   TSubscriptionDeferralInfoArray = Array of TSubscriptionDeferralInfo;
   TSubscriptionPurchaseArray = Array of TSubscriptionPurchase;
   TSubscriptionPurchasesDeferRequestArray = Array of TSubscriptionPurchasesDeferRequest;
   TSubscriptionPurchasesDeferResponseArray = Array of TSubscriptionPurchasesDeferResponse;
   TTestersArray = Array of TTesters;
+  TTimestampArray = Array of TTimestamp;
   TTokenPaginationArray = Array of TTokenPagination;
   TTrackArray = Array of TTrack;
   TTracksListResponseArray = Array of TTracksListResponse;
+  TUserCommentArray = Array of TUserComment;
   //Anonymous types, using auto-generated names
   TInAppProductTypelistings = Class;
   TInAppProductTypeprices = Class;
@@ -127,6 +132,9 @@ type
   TInappproductsBatchResponseTypeentrysArray = Array of TInappproductsBatchResponseEntry;
   TInappproductsListResponseTypeinappproductArray = Array of TInAppProduct;
   TListingsListResponseTypelistingsArray = Array of TListing;
+  TReviewTypecommentsArray = Array of TComment;
+  TReviewsListResponseTypereviewsArray = Array of TReview;
+  TSeasonTypeprorationsArray = Array of TProrate;
   TTracksListResponseTypetracksArray = Array of TTrack;
   
   { --------------------------------------------------------------------
@@ -139,8 +147,8 @@ type
     FversionCode : integer;
   Protected
     //Property setters
-    Procedure Setbinary(AIndex : Integer; AValue : TApkBinary); virtual;
-    Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setbinary(AIndex : Integer; const AValue : TApkBinary); virtual;
+    Procedure SetversionCode(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property binary : TApkBinary Index 0 Read Fbinary Write Setbinary;
@@ -194,7 +202,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlistings(AIndex : Integer; AValue : TApkListingsListResponseTypelistingsArray); virtual;
+    Procedure Setlistings(AIndex : Integer; const AValue : TApkListingsListResponseTypelistingsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -215,7 +223,7 @@ type
     FexternallyHostedApk : TExternallyHostedApk;
   Protected
     //Property setters
-    Procedure SetexternallyHostedApk(AIndex : Integer; AValue : TExternallyHostedApk); virtual;
+    Procedure SetexternallyHostedApk(AIndex : Integer; const AValue : TExternallyHostedApk); virtual;
   Public
   Published
     Property externallyHostedApk : TExternallyHostedApk Index 0 Read FexternallyHostedApk Write SetexternallyHostedApk;
@@ -231,7 +239,7 @@ type
     FexternallyHostedApk : TExternallyHostedApk;
   Protected
     //Property setters
-    Procedure SetexternallyHostedApk(AIndex : Integer; AValue : TExternallyHostedApk); virtual;
+    Procedure SetexternallyHostedApk(AIndex : Integer; const AValue : TExternallyHostedApk); virtual;
   Public
   Published
     Property externallyHostedApk : TExternallyHostedApk Index 0 Read FexternallyHostedApk Write SetexternallyHostedApk;
@@ -248,7 +256,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setapks(AIndex : Integer; AValue : TApksListResponseTypeapksArray); virtual;
+    Procedure Setapks(AIndex : Integer; const AValue : TApksListResponseTypeapksArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -306,6 +314,44 @@ type
   TAppEditClass = Class of TAppEdit;
   
   { --------------------------------------------------------------------
+    TComment
+    --------------------------------------------------------------------}
+  
+  TComment = Class(TGoogleBaseObject)
+  Private
+    FdeveloperComment : TDeveloperComment;
+    FuserComment : TUserComment;
+  Protected
+    //Property setters
+    Procedure SetdeveloperComment(AIndex : Integer; const AValue : TDeveloperComment); virtual;
+    Procedure SetuserComment(AIndex : Integer; const AValue : TUserComment); virtual;
+  Public
+  Published
+    Property developerComment : TDeveloperComment Index 0 Read FdeveloperComment Write SetdeveloperComment;
+    Property userComment : TUserComment Index 8 Read FuserComment Write SetuserComment;
+  end;
+  TCommentClass = Class of TComment;
+  
+  { --------------------------------------------------------------------
+    TDeveloperComment
+    --------------------------------------------------------------------}
+  
+  TDeveloperComment = Class(TGoogleBaseObject)
+  Private
+    FlastModified : TTimestamp;
+    Ftext : String;
+  Protected
+    //Property setters
+    Procedure SetlastModified(AIndex : Integer; const AValue : TTimestamp); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property lastModified : TTimestamp Index 0 Read FlastModified Write SetlastModified;
+    Property text : String Index 8 Read Ftext Write Settext;
+  end;
+  TDeveloperCommentClass = Class of TDeveloperComment;
+  
+  { --------------------------------------------------------------------
     TEntitlement
     --------------------------------------------------------------------}
   
@@ -341,9 +387,9 @@ type
     FtokenPagination : TTokenPagination;
   Protected
     //Property setters
-    Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TEntitlementsListResponseTyperesourcesArray); virtual;
-    Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
+    Procedure SetpageInfo(AIndex : Integer; const AValue : TPageInfo); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TEntitlementsListResponseTyperesourcesArray); virtual;
+    Procedure SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -367,7 +413,7 @@ type
   Protected
     //Property setters
     Procedure SetfileSize(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetreferencesVersion(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetreferencesVersion(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property fileSize : String Index 0 Read FfileSize Write SetfileSize;
@@ -384,7 +430,7 @@ type
     FexpansionFile : TExpansionFile;
   Protected
     //Property setters
-    Procedure SetexpansionFile(AIndex : Integer; AValue : TExpansionFile); virtual;
+    Procedure SetexpansionFile(AIndex : Integer; const AValue : TExpansionFile); virtual;
   Public
   Published
     Property expansionFile : TExpansionFile Index 0 Read FexpansionFile Write SetexpansionFile;
@@ -415,19 +461,19 @@ type
   Protected
     //Property setters
     Procedure SetapplicationLabel(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcertificateBase64s(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetcertificateBase64s(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetexternallyHostedUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfileSha1Base64(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfileSha256Base64(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfileSize(AIndex : Integer; const AValue : String); virtual;
     Procedure SeticonBase64(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaximumSdk(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetminimumSdk(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnativeCodes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetmaximumSdk(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetminimumSdk(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnativeCodes(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetusesFeatures(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetusesPermissions(AIndex : Integer; AValue : TExternallyHostedApkTypeusesPermissionsArray); virtual;
-    Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetusesFeatures(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetusesPermissions(AIndex : Integer; const AValue : TExternallyHostedApkTypeusesPermissionsArray); virtual;
+    Procedure SetversionCode(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetversionName(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -463,7 +509,7 @@ type
     Fname : String;
   Protected
     //Property setters
-    Procedure SetmaxSdkVersion(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmaxSdkVersion(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -503,7 +549,7 @@ type
     Fdeleted : TImagesDeleteAllResponseTypedeletedArray;
   Protected
     //Property setters
-    Procedure Setdeleted(AIndex : Integer; AValue : TImagesDeleteAllResponseTypedeletedArray); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : TImagesDeleteAllResponseTypedeletedArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -523,7 +569,7 @@ type
     Fimages : TImagesListResponseTypeimagesArray;
   Protected
     //Property setters
-    Procedure Setimages(AIndex : Integer; AValue : TImagesListResponseTypeimagesArray); virtual;
+    Procedure Setimages(AIndex : Integer; const AValue : TImagesListResponseTypeimagesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -543,7 +589,7 @@ type
     Fimage : TImage;
   Protected
     //Property setters
-    Procedure Setimage(AIndex : Integer; AValue : TImage); virtual;
+    Procedure Setimage(AIndex : Integer; const AValue : TImage); virtual;
   Public
   Published
     Property image : TImage Index 0 Read Fimage Write Setimage;
@@ -598,12 +644,12 @@ type
   Protected
     //Property setters
     Procedure SetdefaultLanguage(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetdefaultPrice(AIndex : Integer; AValue : TPrice); virtual;
-    Procedure Setlistings(AIndex : Integer; AValue : TInAppProductTypelistings); virtual;
+    Procedure SetdefaultPrice(AIndex : Integer; const AValue : TPrice); virtual;
+    Procedure Setlistings(AIndex : Integer; const AValue : TInAppProductTypelistings); virtual;
     Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setprices(AIndex : Integer; AValue : TInAppProductTypeprices); virtual;
+    Procedure Setprices(AIndex : Integer; const AValue : TInAppProductTypeprices); virtual;
     Procedure SetpurchaseType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setseason(AIndex : Integer; AValue : TSeason); virtual;
+    Procedure Setseason(AIndex : Integer; const AValue : TSeason); virtual;
     Procedure Setsku(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsubscriptionPeriod(AIndex : Integer; const AValue : String); virtual;
@@ -652,7 +698,7 @@ type
     Fentrys : TInappproductsBatchRequestTypeentrysArray;
   Protected
     //Property setters
-    Procedure Setentrys(AIndex : Integer; AValue : TInappproductsBatchRequestTypeentrysArray); virtual;
+    Procedure Setentrys(AIndex : Integer; const AValue : TInappproductsBatchRequestTypeentrysArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -675,9 +721,9 @@ type
     FmethodName : String;
   Protected
     //Property setters
-    Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setinappproductsinsertrequest(AIndex : Integer; AValue : TInappproductsInsertRequest); virtual;
-    Procedure Setinappproductsupdaterequest(AIndex : Integer; AValue : TInappproductsUpdateRequest); virtual;
+    Procedure SetbatchId(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setinappproductsinsertrequest(AIndex : Integer; const AValue : TInappproductsInsertRequest); virtual;
+    Procedure Setinappproductsupdaterequest(AIndex : Integer; const AValue : TInappproductsUpdateRequest); virtual;
     Procedure SetmethodName(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -698,7 +744,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setentrys(AIndex : Integer; AValue : TInappproductsBatchResponseTypeentrysArray); virtual;
+    Procedure Setentrys(AIndex : Integer; const AValue : TInappproductsBatchResponseTypeentrysArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -722,9 +768,9 @@ type
     Finappproductsupdateresponse : TInappproductsUpdateResponse;
   Protected
     //Property setters
-    Procedure SetbatchId(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setinappproductsinsertresponse(AIndex : Integer; AValue : TInappproductsInsertResponse); virtual;
-    Procedure Setinappproductsupdateresponse(AIndex : Integer; AValue : TInappproductsUpdateResponse); virtual;
+    Procedure SetbatchId(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setinappproductsinsertresponse(AIndex : Integer; const AValue : TInappproductsInsertResponse); virtual;
+    Procedure Setinappproductsupdateresponse(AIndex : Integer; const AValue : TInappproductsUpdateResponse); virtual;
   Public
   Published
     Property batchId : integer Index 0 Read FbatchId Write SetbatchId;
@@ -742,7 +788,7 @@ type
     Finappproduct : TInAppProduct;
   Protected
     //Property setters
-    Procedure Setinappproduct(AIndex : Integer; AValue : TInAppProduct); virtual;
+    Procedure Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); virtual;
   Public
   Published
     Property inappproduct : TInAppProduct Index 0 Read Finappproduct Write Setinappproduct;
@@ -758,7 +804,7 @@ type
     Finappproduct : TInAppProduct;
   Protected
     //Property setters
-    Procedure Setinappproduct(AIndex : Integer; AValue : TInAppProduct); virtual;
+    Procedure Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); virtual;
   Public
   Published
     Property inappproduct : TInAppProduct Index 0 Read Finappproduct Write Setinappproduct;
@@ -777,10 +823,10 @@ type
     FtokenPagination : TTokenPagination;
   Protected
     //Property setters
-    Procedure Setinappproduct(AIndex : Integer; AValue : TInappproductsListResponseTypeinappproductArray); virtual;
+    Procedure Setinappproduct(AIndex : Integer; const AValue : TInappproductsListResponseTypeinappproductArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpageInfo(AIndex : Integer; AValue : TPageInfo); virtual;
-    Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
+    Procedure SetpageInfo(AIndex : Integer; const AValue : TPageInfo); virtual;
+    Procedure SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -803,7 +849,7 @@ type
     Finappproduct : TInAppProduct;
   Protected
     //Property setters
-    Procedure Setinappproduct(AIndex : Integer; AValue : TInAppProduct); virtual;
+    Procedure Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); virtual;
   Public
   Published
     Property inappproduct : TInAppProduct Index 0 Read Finappproduct Write Setinappproduct;
@@ -819,7 +865,7 @@ type
     Finappproduct : TInAppProduct;
   Protected
     //Property setters
-    Procedure Setinappproduct(AIndex : Integer; AValue : TInAppProduct); virtual;
+    Procedure Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); virtual;
   Public
   Published
     Property inappproduct : TInAppProduct Index 0 Read Finappproduct Write Setinappproduct;
@@ -865,7 +911,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlistings(AIndex : Integer; AValue : TListingsListResponseTypelistingsArray); virtual;
+    Procedure Setlistings(AIndex : Integer; const AValue : TListingsListResponseTypelistingsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -887,8 +933,8 @@ type
     Fmonth : integer;
   Protected
     //Property setters
-    Procedure Setday(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setmonth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setday(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setmonth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property day : integer Index 0 Read Fday Write Setday;
@@ -907,9 +953,9 @@ type
     FtotalResults : integer;
   Protected
     //Property setters
-    Procedure SetresultPerPage(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetstartIndex(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettotalResults(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetresultPerPage(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetstartIndex(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SettotalResults(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property resultPerPage : integer Index 0 Read FresultPerPage Write SetresultPerPage;
@@ -950,10 +996,10 @@ type
     FpurchaseTimeMillis : String;
   Protected
     //Property setters
-    Procedure SetconsumptionState(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetconsumptionState(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetdeveloperPayload(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpurchaseState(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetpurchaseState(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetpurchaseTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -966,22 +1012,151 @@ type
   TProductPurchaseClass = Class of TProductPurchase;
   
   { --------------------------------------------------------------------
+    TProrate
+    --------------------------------------------------------------------}
+  
+  TProrate = Class(TGoogleBaseObject)
+  Private
+    FdefaultPrice : TPrice;
+    Fstart : TMonthDay;
+  Protected
+    //Property setters
+    Procedure SetdefaultPrice(AIndex : Integer; const AValue : TPrice); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : TMonthDay); virtual;
+  Public
+  Published
+    Property defaultPrice : TPrice Index 0 Read FdefaultPrice Write SetdefaultPrice;
+    Property start : TMonthDay Index 8 Read Fstart Write Setstart;
+  end;
+  TProrateClass = Class of TProrate;
+  
+  { --------------------------------------------------------------------
+    TReview
+    --------------------------------------------------------------------}
+  
+  TReview = Class(TGoogleBaseObject)
+  Private
+    FauthorName : String;
+    Fcomments : TReviewTypecommentsArray;
+    FreviewId : String;
+  Protected
+    //Property setters
+    Procedure SetauthorName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setcomments(AIndex : Integer; const AValue : TReviewTypecommentsArray); virtual;
+    Procedure SetreviewId(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property authorName : String Index 0 Read FauthorName Write SetauthorName;
+    Property comments : TReviewTypecommentsArray Index 8 Read Fcomments Write Setcomments;
+    Property reviewId : String Index 16 Read FreviewId Write SetreviewId;
+  end;
+  TReviewClass = Class of TReview;
+  
+  { --------------------------------------------------------------------
+    TReviewReplyResult
+    --------------------------------------------------------------------}
+  
+  TReviewReplyResult = Class(TGoogleBaseObject)
+  Private
+    FlastEdited : TTimestamp;
+    FreplyText : String;
+  Protected
+    //Property setters
+    Procedure SetlastEdited(AIndex : Integer; const AValue : TTimestamp); virtual;
+    Procedure SetreplyText(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property lastEdited : TTimestamp Index 0 Read FlastEdited Write SetlastEdited;
+    Property replyText : String Index 8 Read FreplyText Write SetreplyText;
+  end;
+  TReviewReplyResultClass = Class of TReviewReplyResult;
+  
+  { --------------------------------------------------------------------
+    TReviewsListResponse
+    --------------------------------------------------------------------}
+  
+  TReviewsListResponse = Class(TGoogleBaseObject)
+  Private
+    FpageInfo : TPageInfo;
+    Freviews : TReviewsListResponseTypereviewsArray;
+    FtokenPagination : TTokenPagination;
+  Protected
+    //Property setters
+    Procedure SetpageInfo(AIndex : Integer; const AValue : TPageInfo); virtual;
+    Procedure Setreviews(AIndex : Integer; const AValue : TReviewsListResponseTypereviewsArray); virtual;
+    Procedure SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property pageInfo : TPageInfo Index 0 Read FpageInfo Write SetpageInfo;
+    Property reviews : TReviewsListResponseTypereviewsArray Index 8 Read Freviews Write Setreviews;
+    Property tokenPagination : TTokenPagination Index 16 Read FtokenPagination Write SettokenPagination;
+  end;
+  TReviewsListResponseClass = Class of TReviewsListResponse;
+  
+  { --------------------------------------------------------------------
+    TReviewsReplyRequest
+    --------------------------------------------------------------------}
+  
+  TReviewsReplyRequest = Class(TGoogleBaseObject)
+  Private
+    FreplyText : String;
+  Protected
+    //Property setters
+    Procedure SetreplyText(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property replyText : String Index 0 Read FreplyText Write SetreplyText;
+  end;
+  TReviewsReplyRequestClass = Class of TReviewsReplyRequest;
+  
+  { --------------------------------------------------------------------
+    TReviewsReplyResponse
+    --------------------------------------------------------------------}
+  
+  TReviewsReplyResponse = Class(TGoogleBaseObject)
+  Private
+    Fresult : TReviewReplyResult;
+  Protected
+    //Property setters
+    Procedure Setresult(AIndex : Integer; const AValue : TReviewReplyResult); virtual;
+  Public
+  Published
+    Property result : TReviewReplyResult Index 0 Read Fresult Write Setresult;
+  end;
+  TReviewsReplyResponseClass = Class of TReviewsReplyResponse;
+  
+  { --------------------------------------------------------------------
     TSeason
     --------------------------------------------------------------------}
   
   TSeason = Class(TGoogleBaseObject)
   Private
     F_end : TMonthDay;
+    Fprorations : TSeasonTypeprorationsArray;
     Fstart : TMonthDay;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_end(AIndex : Integer; AValue : TMonthDay); virtual;
-    Procedure Setstart(AIndex : Integer; AValue : TMonthDay); virtual;
+    Procedure Set_end(AIndex : Integer; const AValue : TMonthDay); virtual;
+    Procedure Setprorations(AIndex : Integer; const AValue : TSeasonTypeprorationsArray); virtual;
+    Procedure Setstart(AIndex : Integer; const AValue : TMonthDay); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
     Property _end : TMonthDay Index 0 Read F_end Write Set_end;
-    Property start : TMonthDay Index 8 Read Fstart Write Setstart;
+    Property prorations : TSeasonTypeprorationsArray Index 8 Read Fprorations Write Setprorations;
+    Property start : TMonthDay Index 16 Read Fstart Write Setstart;
   end;
   TSeasonClass = Class of TSeason;
   
@@ -1011,21 +1186,39 @@ type
   TSubscriptionPurchase = Class(TGoogleBaseObject)
   Private
     FautoRenewing : boolean;
+    FcancelReason : integer;
+    FcountryCode : String;
+    FdeveloperPayload : String;
     FexpiryTimeMillis : String;
     Fkind : String;
+    FpaymentState : integer;
+    FpriceAmountMicros : String;
+    FpriceCurrencyCode : String;
     FstartTimeMillis : String;
   Protected
     //Property setters
-    Procedure SetautoRenewing(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetautoRenewing(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcancelReason(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetcountryCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdeveloperPayload(AIndex : Integer; const AValue : String); virtual;
     Procedure SetexpiryTimeMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpaymentState(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetpriceAmountMicros(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpriceCurrencyCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property autoRenewing : boolean Index 0 Read FautoRenewing Write SetautoRenewing;
-    Property expiryTimeMillis : String Index 8 Read FexpiryTimeMillis Write SetexpiryTimeMillis;
-    Property kind : String Index 16 Read Fkind Write Setkind;
-    Property startTimeMillis : String Index 24 Read FstartTimeMillis Write SetstartTimeMillis;
+    Property cancelReason : integer Index 8 Read FcancelReason Write SetcancelReason;
+    Property countryCode : String Index 16 Read FcountryCode Write SetcountryCode;
+    Property developerPayload : String Index 24 Read FdeveloperPayload Write SetdeveloperPayload;
+    Property expiryTimeMillis : String Index 32 Read FexpiryTimeMillis Write SetexpiryTimeMillis;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property paymentState : integer Index 48 Read FpaymentState Write SetpaymentState;
+    Property priceAmountMicros : String Index 56 Read FpriceAmountMicros Write SetpriceAmountMicros;
+    Property priceCurrencyCode : String Index 64 Read FpriceCurrencyCode Write SetpriceCurrencyCode;
+    Property startTimeMillis : String Index 72 Read FstartTimeMillis Write SetstartTimeMillis;
   end;
   TSubscriptionPurchaseClass = Class of TSubscriptionPurchase;
   
@@ -1038,7 +1231,7 @@ type
     FdeferralInfo : TSubscriptionDeferralInfo;
   Protected
     //Property setters
-    Procedure SetdeferralInfo(AIndex : Integer; AValue : TSubscriptionDeferralInfo); virtual;
+    Procedure SetdeferralInfo(AIndex : Integer; const AValue : TSubscriptionDeferralInfo); virtual;
   Public
   Published
     Property deferralInfo : TSubscriptionDeferralInfo Index 0 Read FdeferralInfo Write SetdeferralInfo;
@@ -1071,8 +1264,8 @@ type
     FgooglePlusCommunities : TStringArray;
   Protected
     //Property setters
-    Procedure SetgoogleGroups(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetgooglePlusCommunities(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetgoogleGroups(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetgooglePlusCommunities(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1083,6 +1276,25 @@ type
     Property googlePlusCommunities : TStringArray Index 8 Read FgooglePlusCommunities Write SetgooglePlusCommunities;
   end;
   TTestersClass = Class of TTesters;
+  
+  { --------------------------------------------------------------------
+    TTimestamp
+    --------------------------------------------------------------------}
+  
+  TTimestamp = Class(TGoogleBaseObject)
+  Private
+    Fnanos : integer;
+    Fseconds : String;
+  Protected
+    //Property setters
+    Procedure Setnanos(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setseconds(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property nanos : integer Index 0 Read Fnanos Write Setnanos;
+    Property seconds : String Index 8 Read Fseconds Write Setseconds;
+  end;
+  TTimestampClass = Class of TTimestamp;
   
   { --------------------------------------------------------------------
     TTokenPagination
@@ -1115,8 +1327,8 @@ type
   Protected
     //Property setters
     Procedure Settrack(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetuserFraction(AIndex : Integer; AValue : double); virtual;
-    Procedure SetversionCodes(AIndex : Integer; AValue : TintegerArray); virtual;
+    Procedure SetuserFraction(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetversionCodes(AIndex : Integer; const AValue : TintegerArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1140,7 +1352,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settracks(AIndex : Integer; AValue : TTracksListResponseTypetracksArray); virtual;
+    Procedure Settracks(AIndex : Integer; const AValue : TTracksListResponseTypetracksArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1151,6 +1363,43 @@ type
     Property tracks : TTracksListResponseTypetracksArray Index 8 Read Ftracks Write Settracks;
   end;
   TTracksListResponseClass = Class of TTracksListResponse;
+  
+  { --------------------------------------------------------------------
+    TUserComment
+    --------------------------------------------------------------------}
+  
+  TUserComment = Class(TGoogleBaseObject)
+  Private
+    FandroidOsVersion : integer;
+    FappVersionCode : integer;
+    FappVersionName : String;
+    Fdevice : String;
+    FlastModified : TTimestamp;
+    FreviewerLanguage : String;
+    FstarRating : integer;
+    Ftext : String;
+  Protected
+    //Property setters
+    Procedure SetandroidOsVersion(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetappVersionCode(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetappVersionName(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdevice(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetlastModified(AIndex : Integer; const AValue : TTimestamp); virtual;
+    Procedure SetreviewerLanguage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstarRating(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property androidOsVersion : integer Index 0 Read FandroidOsVersion Write SetandroidOsVersion;
+    Property appVersionCode : integer Index 8 Read FappVersionCode Write SetappVersionCode;
+    Property appVersionName : String Index 16 Read FappVersionName Write SetappVersionName;
+    Property device : String Index 24 Read Fdevice Write Setdevice;
+    Property lastModified : TTimestamp Index 32 Read FlastModified Write SetlastModified;
+    Property reviewerLanguage : String Index 40 Read FreviewerLanguage Write SetreviewerLanguage;
+    Property starRating : integer Index 48 Read FstarRating Write SetstarRating;
+    Property text : String Index 56 Read Ftext Write Settext;
+  end;
+  TUserCommentClass = Class of TUserComment;
   
   { --------------------------------------------------------------------
     TEditsApklistingsResource
@@ -1456,6 +1705,30 @@ type
   
   
   { --------------------------------------------------------------------
+    TReviewsResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TReviewsResource, method List
+  
+  TReviewsListOptions = Record
+    maxResults : integer;
+    startIndex : integer;
+    token : String;
+  end;
+  
+  TReviewsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Get(packageName: string; reviewId: string) : TReview;
+    Function List(packageName: string; AQuery : string  = '') : TReviewsListResponse;
+    Function List(packageName: string; AQuery : TReviewslistOptions) : TReviewsListResponse;
+    Function Reply(packageName: string; reviewId: string; aReviewsReplyRequest : TReviewsReplyRequest) : TReviewsReplyResponse;
+  end;
+  
+  
+  { --------------------------------------------------------------------
     TAndroidpublisherAPI
     --------------------------------------------------------------------}
   
@@ -1475,6 +1748,7 @@ type
     FPurchasesProductsInstance : TPurchasesProductsResource;
     FPurchasesSubscriptionsInstance : TPurchasesSubscriptionsResource;
     FPurchasesInstance : TPurchasesResource;
+    FReviewsInstance : TReviewsResource;
     Function GetEditsApklistingsInstance : TEditsApklistingsResource;virtual;
     Function GetEditsApksInstance : TEditsApksResource;virtual;
     Function GetEditsDetailsInstance : TEditsDetailsResource;virtual;
@@ -1489,6 +1763,7 @@ type
     Function GetPurchasesProductsInstance : TPurchasesProductsResource;virtual;
     Function GetPurchasesSubscriptionsInstance : TPurchasesSubscriptionsResource;virtual;
     Function GetPurchasesInstance : TPurchasesResource;virtual;
+    Function GetReviewsInstance : TReviewsResource;virtual;
   Public
     //Override class functions with API info
     Class Function APIName : String; override;
@@ -1540,6 +1815,8 @@ type
     Function CreatePurchasesSubscriptionsResource : TPurchasesSubscriptionsResource;virtual;overload;
     Function CreatePurchasesResource(AOwner : TComponent) : TPurchasesResource;virtual;overload;
     Function CreatePurchasesResource : TPurchasesResource;virtual;overload;
+    Function CreateReviewsResource(AOwner : TComponent) : TReviewsResource;virtual;overload;
+    Function CreateReviewsResource : TReviewsResource;virtual;overload;
     //Add default on-demand instances for resources
     Property EditsApklistingsResource : TEditsApklistingsResource Read GetEditsApklistingsInstance;
     Property EditsApksResource : TEditsApksResource Read GetEditsApksInstance;
@@ -1555,6 +1832,7 @@ type
     Property PurchasesProductsResource : TPurchasesProductsResource Read GetPurchasesProductsInstance;
     Property PurchasesSubscriptionsResource : TPurchasesSubscriptionsResource Read GetPurchasesSubscriptionsInstance;
     Property PurchasesResource : TPurchasesResource Read GetPurchasesInstance;
+    Property ReviewsResource : TReviewsResource Read GetReviewsInstance;
   end;
 
 implementation
@@ -1565,7 +1843,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TApk.Setbinary(AIndex : Integer; AValue : TApkBinary); 
+Procedure TApk.Setbinary(AIndex : Integer; const AValue : TApkBinary); 
 
 begin
   If (Fbinary=AValue) then exit;
@@ -1575,7 +1853,7 @@ end;
 
 
 
-Procedure TApk.SetversionCode(AIndex : Integer; AValue : integer); 
+Procedure TApk.SetversionCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FversionCode=AValue) then exit;
@@ -1646,7 +1924,7 @@ end;
 
 
 
-Procedure TApkListingsListResponse.Setlistings(AIndex : Integer; AValue : TApkListingsListResponseTypelistingsArray); 
+Procedure TApkListingsListResponse.Setlistings(AIndex : Integer; const AValue : TApkListingsListResponseTypelistingsArray); 
 
 begin
   If (Flistings=AValue) then exit;
@@ -1676,7 +1954,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApksAddExternallyHostedRequest.SetexternallyHostedApk(AIndex : Integer; AValue : TExternallyHostedApk); 
+Procedure TApksAddExternallyHostedRequest.SetexternallyHostedApk(AIndex : Integer; const AValue : TExternallyHostedApk); 
 
 begin
   If (FexternallyHostedApk=AValue) then exit;
@@ -1693,7 +1971,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApksAddExternallyHostedResponse.SetexternallyHostedApk(AIndex : Integer; AValue : TExternallyHostedApk); 
+Procedure TApksAddExternallyHostedResponse.SetexternallyHostedApk(AIndex : Integer; const AValue : TExternallyHostedApk); 
 
 begin
   If (FexternallyHostedApk=AValue) then exit;
@@ -1710,7 +1988,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApksListResponse.Setapks(AIndex : Integer; AValue : TApksListResponseTypeapksArray); 
+Procedure TApksListResponse.Setapks(AIndex : Integer; const AValue : TApksListResponseTypeapksArray); 
 
 begin
   If (Fapks=AValue) then exit;
@@ -1820,6 +2098,60 @@ end;
 
 
 { --------------------------------------------------------------------
+  TComment
+  --------------------------------------------------------------------}
+
+
+Procedure TComment.SetdeveloperComment(AIndex : Integer; const AValue : TDeveloperComment); 
+
+begin
+  If (FdeveloperComment=AValue) then exit;
+  FdeveloperComment:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TComment.SetuserComment(AIndex : Integer; const AValue : TUserComment); 
+
+begin
+  If (FuserComment=AValue) then exit;
+  FuserComment:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TDeveloperComment
+  --------------------------------------------------------------------}
+
+
+Procedure TDeveloperComment.SetlastModified(AIndex : Integer; const AValue : TTimestamp); 
+
+begin
+  If (FlastModified=AValue) then exit;
+  FlastModified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDeveloperComment.Settext(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftext=AValue) then exit;
+  Ftext:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TEntitlement
   --------------------------------------------------------------------}
 
@@ -1871,7 +2203,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntitlementsListResponse.SetpageInfo(AIndex : Integer; AValue : TPageInfo); 
+Procedure TEntitlementsListResponse.SetpageInfo(AIndex : Integer; const AValue : TPageInfo); 
 
 begin
   If (FpageInfo=AValue) then exit;
@@ -1881,7 +2213,7 @@ end;
 
 
 
-Procedure TEntitlementsListResponse.Setresources(AIndex : Integer; AValue : TEntitlementsListResponseTyperesourcesArray); 
+Procedure TEntitlementsListResponse.Setresources(AIndex : Integer; const AValue : TEntitlementsListResponseTyperesourcesArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1891,7 +2223,7 @@ end;
 
 
 
-Procedure TEntitlementsListResponse.SettokenPagination(AIndex : Integer; AValue : TTokenPagination); 
+Procedure TEntitlementsListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
 
 begin
   If (FtokenPagination=AValue) then exit;
@@ -1931,7 +2263,7 @@ end;
 
 
 
-Procedure TExpansionFile.SetreferencesVersion(AIndex : Integer; AValue : integer); 
+Procedure TExpansionFile.SetreferencesVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FreferencesVersion=AValue) then exit;
@@ -1948,7 +2280,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExpansionFilesUploadResponse.SetexpansionFile(AIndex : Integer; AValue : TExpansionFile); 
+Procedure TExpansionFilesUploadResponse.SetexpansionFile(AIndex : Integer; const AValue : TExpansionFile); 
 
 begin
   If (FexpansionFile=AValue) then exit;
@@ -1975,7 +2307,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetcertificateBase64s(AIndex : Integer; AValue : TStringArray); 
+Procedure TExternallyHostedApk.SetcertificateBase64s(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FcertificateBase64s=AValue) then exit;
@@ -2035,7 +2367,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetmaximumSdk(AIndex : Integer; AValue : integer); 
+Procedure TExternallyHostedApk.SetmaximumSdk(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaximumSdk=AValue) then exit;
@@ -2045,7 +2377,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetminimumSdk(AIndex : Integer; AValue : integer); 
+Procedure TExternallyHostedApk.SetminimumSdk(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FminimumSdk=AValue) then exit;
@@ -2055,7 +2387,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetnativeCodes(AIndex : Integer; AValue : TStringArray); 
+Procedure TExternallyHostedApk.SetnativeCodes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FnativeCodes=AValue) then exit;
@@ -2075,7 +2407,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetusesFeatures(AIndex : Integer; AValue : TStringArray); 
+Procedure TExternallyHostedApk.SetusesFeatures(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FusesFeatures=AValue) then exit;
@@ -2085,7 +2417,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetusesPermissions(AIndex : Integer; AValue : TExternallyHostedApkTypeusesPermissionsArray); 
+Procedure TExternallyHostedApk.SetusesPermissions(AIndex : Integer; const AValue : TExternallyHostedApkTypeusesPermissionsArray); 
 
 begin
   If (FusesPermissions=AValue) then exit;
@@ -2095,7 +2427,7 @@ end;
 
 
 
-Procedure TExternallyHostedApk.SetversionCode(AIndex : Integer; AValue : integer); 
+Procedure TExternallyHostedApk.SetversionCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FversionCode=AValue) then exit;
@@ -2138,7 +2470,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExternallyHostedApkUsesPermission.SetmaxSdkVersion(AIndex : Integer; AValue : integer); 
+Procedure TExternallyHostedApkUsesPermission.SetmaxSdkVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxSdkVersion=AValue) then exit;
@@ -2202,7 +2534,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImagesDeleteAllResponse.Setdeleted(AIndex : Integer; AValue : TImagesDeleteAllResponseTypedeletedArray); 
+Procedure TImagesDeleteAllResponse.Setdeleted(AIndex : Integer; const AValue : TImagesDeleteAllResponseTypedeletedArray); 
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -2232,7 +2564,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImagesListResponse.Setimages(AIndex : Integer; AValue : TImagesListResponseTypeimagesArray); 
+Procedure TImagesListResponse.Setimages(AIndex : Integer; const AValue : TImagesListResponseTypeimagesArray); 
 
 begin
   If (Fimages=AValue) then exit;
@@ -2262,7 +2594,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImagesUploadResponse.Setimage(AIndex : Integer; AValue : TImage); 
+Procedure TImagesUploadResponse.Setimage(AIndex : Integer; const AValue : TImage); 
 
 begin
   If (Fimage=AValue) then exit;
@@ -2315,7 +2647,7 @@ end;
 
 
 
-Procedure TInAppProduct.SetdefaultPrice(AIndex : Integer; AValue : TPrice); 
+Procedure TInAppProduct.SetdefaultPrice(AIndex : Integer; const AValue : TPrice); 
 
 begin
   If (FdefaultPrice=AValue) then exit;
@@ -2325,7 +2657,7 @@ end;
 
 
 
-Procedure TInAppProduct.Setlistings(AIndex : Integer; AValue : TInAppProductTypelistings); 
+Procedure TInAppProduct.Setlistings(AIndex : Integer; const AValue : TInAppProductTypelistings); 
 
 begin
   If (Flistings=AValue) then exit;
@@ -2345,7 +2677,7 @@ end;
 
 
 
-Procedure TInAppProduct.Setprices(AIndex : Integer; AValue : TInAppProductTypeprices); 
+Procedure TInAppProduct.Setprices(AIndex : Integer; const AValue : TInAppProductTypeprices); 
 
 begin
   If (Fprices=AValue) then exit;
@@ -2365,7 +2697,7 @@ end;
 
 
 
-Procedure TInAppProduct.Setseason(AIndex : Integer; AValue : TSeason); 
+Procedure TInAppProduct.Setseason(AIndex : Integer; const AValue : TSeason); 
 
 begin
   If (Fseason=AValue) then exit;
@@ -2449,7 +2781,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsBatchRequest.Setentrys(AIndex : Integer; AValue : TInappproductsBatchRequestTypeentrysArray); 
+Procedure TInappproductsBatchRequest.Setentrys(AIndex : Integer; const AValue : TInappproductsBatchRequestTypeentrysArray); 
 
 begin
   If (Fentrys=AValue) then exit;
@@ -2479,7 +2811,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsBatchRequestEntry.SetbatchId(AIndex : Integer; AValue : integer); 
+Procedure TInappproductsBatchRequestEntry.SetbatchId(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FbatchId=AValue) then exit;
@@ -2489,7 +2821,7 @@ end;
 
 
 
-Procedure TInappproductsBatchRequestEntry.Setinappproductsinsertrequest(AIndex : Integer; AValue : TInappproductsInsertRequest); 
+Procedure TInappproductsBatchRequestEntry.Setinappproductsinsertrequest(AIndex : Integer; const AValue : TInappproductsInsertRequest); 
 
 begin
   If (Finappproductsinsertrequest=AValue) then exit;
@@ -2499,7 +2831,7 @@ end;
 
 
 
-Procedure TInappproductsBatchRequestEntry.Setinappproductsupdaterequest(AIndex : Integer; AValue : TInappproductsUpdateRequest); 
+Procedure TInappproductsBatchRequestEntry.Setinappproductsupdaterequest(AIndex : Integer; const AValue : TInappproductsUpdateRequest); 
 
 begin
   If (Finappproductsupdaterequest=AValue) then exit;
@@ -2526,7 +2858,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsBatchResponse.Setentrys(AIndex : Integer; AValue : TInappproductsBatchResponseTypeentrysArray); 
+Procedure TInappproductsBatchResponse.Setentrys(AIndex : Integer; const AValue : TInappproductsBatchResponseTypeentrysArray); 
 
 begin
   If (Fentrys=AValue) then exit;
@@ -2566,7 +2898,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsBatchResponseEntry.SetbatchId(AIndex : Integer; AValue : integer); 
+Procedure TInappproductsBatchResponseEntry.SetbatchId(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FbatchId=AValue) then exit;
@@ -2576,7 +2908,7 @@ end;
 
 
 
-Procedure TInappproductsBatchResponseEntry.Setinappproductsinsertresponse(AIndex : Integer; AValue : TInappproductsInsertResponse); 
+Procedure TInappproductsBatchResponseEntry.Setinappproductsinsertresponse(AIndex : Integer; const AValue : TInappproductsInsertResponse); 
 
 begin
   If (Finappproductsinsertresponse=AValue) then exit;
@@ -2586,7 +2918,7 @@ end;
 
 
 
-Procedure TInappproductsBatchResponseEntry.Setinappproductsupdateresponse(AIndex : Integer; AValue : TInappproductsUpdateResponse); 
+Procedure TInappproductsBatchResponseEntry.Setinappproductsupdateresponse(AIndex : Integer; const AValue : TInappproductsUpdateResponse); 
 
 begin
   If (Finappproductsupdateresponse=AValue) then exit;
@@ -2603,7 +2935,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsInsertRequest.Setinappproduct(AIndex : Integer; AValue : TInAppProduct); 
+Procedure TInappproductsInsertRequest.Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); 
 
 begin
   If (Finappproduct=AValue) then exit;
@@ -2620,7 +2952,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsInsertResponse.Setinappproduct(AIndex : Integer; AValue : TInAppProduct); 
+Procedure TInappproductsInsertResponse.Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); 
 
 begin
   If (Finappproduct=AValue) then exit;
@@ -2637,7 +2969,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsListResponse.Setinappproduct(AIndex : Integer; AValue : TInappproductsListResponseTypeinappproductArray); 
+Procedure TInappproductsListResponse.Setinappproduct(AIndex : Integer; const AValue : TInappproductsListResponseTypeinappproductArray); 
 
 begin
   If (Finappproduct=AValue) then exit;
@@ -2657,7 +2989,7 @@ end;
 
 
 
-Procedure TInappproductsListResponse.SetpageInfo(AIndex : Integer; AValue : TPageInfo); 
+Procedure TInappproductsListResponse.SetpageInfo(AIndex : Integer; const AValue : TPageInfo); 
 
 begin
   If (FpageInfo=AValue) then exit;
@@ -2667,7 +2999,7 @@ end;
 
 
 
-Procedure TInappproductsListResponse.SettokenPagination(AIndex : Integer; AValue : TTokenPagination); 
+Procedure TInappproductsListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
 
 begin
   If (FtokenPagination=AValue) then exit;
@@ -2697,7 +3029,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsUpdateRequest.Setinappproduct(AIndex : Integer; AValue : TInAppProduct); 
+Procedure TInappproductsUpdateRequest.Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); 
 
 begin
   If (Finappproduct=AValue) then exit;
@@ -2714,7 +3046,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInappproductsUpdateResponse.Setinappproduct(AIndex : Integer; AValue : TInAppProduct); 
+Procedure TInappproductsUpdateResponse.Setinappproduct(AIndex : Integer; const AValue : TInAppProduct); 
 
 begin
   If (Finappproduct=AValue) then exit;
@@ -2798,7 +3130,7 @@ end;
 
 
 
-Procedure TListingsListResponse.Setlistings(AIndex : Integer; AValue : TListingsListResponseTypelistingsArray); 
+Procedure TListingsListResponse.Setlistings(AIndex : Integer; const AValue : TListingsListResponseTypelistingsArray); 
 
 begin
   If (Flistings=AValue) then exit;
@@ -2828,7 +3160,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMonthDay.Setday(AIndex : Integer; AValue : integer); 
+Procedure TMonthDay.Setday(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fday=AValue) then exit;
@@ -2838,7 +3170,7 @@ end;
 
 
 
-Procedure TMonthDay.Setmonth(AIndex : Integer; AValue : integer); 
+Procedure TMonthDay.Setmonth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fmonth=AValue) then exit;
@@ -2855,7 +3187,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPageInfo.SetresultPerPage(AIndex : Integer; AValue : integer); 
+Procedure TPageInfo.SetresultPerPage(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FresultPerPage=AValue) then exit;
@@ -2865,7 +3197,7 @@ end;
 
 
 
-Procedure TPageInfo.SetstartIndex(AIndex : Integer; AValue : integer); 
+Procedure TPageInfo.SetstartIndex(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstartIndex=AValue) then exit;
@@ -2875,7 +3207,7 @@ end;
 
 
 
-Procedure TPageInfo.SettotalResults(AIndex : Integer; AValue : integer); 
+Procedure TPageInfo.SettotalResults(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalResults=AValue) then exit;
@@ -2919,7 +3251,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TProductPurchase.SetconsumptionState(AIndex : Integer; AValue : integer); 
+Procedure TProductPurchase.SetconsumptionState(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FconsumptionState=AValue) then exit;
@@ -2949,7 +3281,7 @@ end;
 
 
 
-Procedure TProductPurchase.SetpurchaseState(AIndex : Integer; AValue : integer); 
+Procedure TProductPurchase.SetpurchaseState(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FpurchaseState=AValue) then exit;
@@ -2972,11 +3304,199 @@ end;
 
 
 { --------------------------------------------------------------------
+  TProrate
+  --------------------------------------------------------------------}
+
+
+Procedure TProrate.SetdefaultPrice(AIndex : Integer; const AValue : TPrice); 
+
+begin
+  If (FdefaultPrice=AValue) then exit;
+  FdefaultPrice:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProrate.Setstart(AIndex : Integer; const AValue : TMonthDay); 
+
+begin
+  If (Fstart=AValue) then exit;
+  Fstart:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TReview
+  --------------------------------------------------------------------}
+
+
+Procedure TReview.SetauthorName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FauthorName=AValue) then exit;
+  FauthorName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReview.Setcomments(AIndex : Integer; const AValue : TReviewTypecommentsArray); 
+
+begin
+  If (Fcomments=AValue) then exit;
+  Fcomments:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReview.SetreviewId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreviewId=AValue) then exit;
+  FreviewId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReview.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'comments' : SetLength(Fcomments,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TReviewReplyResult
+  --------------------------------------------------------------------}
+
+
+Procedure TReviewReplyResult.SetlastEdited(AIndex : Integer; const AValue : TTimestamp); 
+
+begin
+  If (FlastEdited=AValue) then exit;
+  FlastEdited:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReviewReplyResult.SetreplyText(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreplyText=AValue) then exit;
+  FreplyText:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TReviewsListResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TReviewsListResponse.SetpageInfo(AIndex : Integer; const AValue : TPageInfo); 
+
+begin
+  If (FpageInfo=AValue) then exit;
+  FpageInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReviewsListResponse.Setreviews(AIndex : Integer; const AValue : TReviewsListResponseTypereviewsArray); 
+
+begin
+  If (Freviews=AValue) then exit;
+  Freviews:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TReviewsListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
+
+begin
+  If (FtokenPagination=AValue) then exit;
+  FtokenPagination:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TReviewsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'reviews' : SetLength(Freviews,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TReviewsReplyRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TReviewsReplyRequest.SetreplyText(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreplyText=AValue) then exit;
+  FreplyText:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TReviewsReplyResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TReviewsReplyResponse.Setresult(AIndex : Integer; const AValue : TReviewReplyResult); 
+
+begin
+  If (Fresult=AValue) then exit;
+  Fresult:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TSeason
   --------------------------------------------------------------------}
 
 
-Procedure TSeason.Set_end(AIndex : Integer; AValue : TMonthDay); 
+Procedure TSeason.Set_end(AIndex : Integer; const AValue : TMonthDay); 
 
 begin
   If (F_end=AValue) then exit;
@@ -2986,7 +3506,17 @@ end;
 
 
 
-Procedure TSeason.Setstart(AIndex : Integer; AValue : TMonthDay); 
+Procedure TSeason.Setprorations(AIndex : Integer; const AValue : TSeasonTypeprorationsArray); 
+
+begin
+  If (Fprorations=AValue) then exit;
+  Fprorations:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSeason.Setstart(AIndex : Integer; const AValue : TMonthDay); 
 
 begin
   If (Fstart=AValue) then exit;
@@ -3005,6 +3535,19 @@ begin
     Result:=Inherited ExportPropertyName(AName);
   end;
 end;
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSeason.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'prorations' : SetLength(Fprorations,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -3041,11 +3584,41 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionPurchase.SetautoRenewing(AIndex : Integer; AValue : boolean); 
+Procedure TSubscriptionPurchase.SetautoRenewing(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautoRenewing=AValue) then exit;
   FautoRenewing:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionPurchase.SetcancelReason(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FcancelReason=AValue) then exit;
+  FcancelReason:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionPurchase.SetcountryCode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcountryCode=AValue) then exit;
+  FcountryCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionPurchase.SetdeveloperPayload(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdeveloperPayload=AValue) then exit;
+  FdeveloperPayload:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3071,6 +3644,36 @@ end;
 
 
 
+Procedure TSubscriptionPurchase.SetpaymentState(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FpaymentState=AValue) then exit;
+  FpaymentState:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionPurchase.SetpriceAmountMicros(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FpriceAmountMicros=AValue) then exit;
+  FpriceAmountMicros:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSubscriptionPurchase.SetpriceCurrencyCode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FpriceCurrencyCode=AValue) then exit;
+  FpriceCurrencyCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TSubscriptionPurchase.SetstartTimeMillis(AIndex : Integer; const AValue : String); 
 
 begin
@@ -3088,7 +3691,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSubscriptionPurchasesDeferRequest.SetdeferralInfo(AIndex : Integer; AValue : TSubscriptionDeferralInfo); 
+Procedure TSubscriptionPurchasesDeferRequest.SetdeferralInfo(AIndex : Integer; const AValue : TSubscriptionDeferralInfo); 
 
 begin
   If (FdeferralInfo=AValue) then exit;
@@ -3122,7 +3725,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTesters.SetgoogleGroups(AIndex : Integer; AValue : TStringArray); 
+Procedure TTesters.SetgoogleGroups(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FgoogleGroups=AValue) then exit;
@@ -3132,7 +3735,7 @@ end;
 
 
 
-Procedure TTesters.SetgooglePlusCommunities(AIndex : Integer; AValue : TStringArray); 
+Procedure TTesters.SetgooglePlusCommunities(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FgooglePlusCommunities=AValue) then exit;
@@ -3154,6 +3757,33 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTimestamp
+  --------------------------------------------------------------------}
+
+
+Procedure TTimestamp.Setnanos(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fnanos=AValue) then exit;
+  Fnanos:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTimestamp.Setseconds(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fseconds=AValue) then exit;
+  Fseconds:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -3200,7 +3830,7 @@ end;
 
 
 
-Procedure TTrack.SetuserFraction(AIndex : Integer; AValue : double); 
+Procedure TTrack.SetuserFraction(AIndex : Integer; const AValue : double); 
 
 begin
   If (FuserFraction=AValue) then exit;
@@ -3210,7 +3840,7 @@ end;
 
 
 
-Procedure TTrack.SetversionCodes(AIndex : Integer; AValue : TintegerArray); 
+Procedure TTrack.SetversionCodes(AIndex : Integer; const AValue : TintegerArray); 
 
 begin
   If (FversionCodes=AValue) then exit;
@@ -3250,7 +3880,7 @@ end;
 
 
 
-Procedure TTracksListResponse.Settracks(AIndex : Integer; AValue : TTracksListResponseTypetracksArray); 
+Procedure TTracksListResponse.Settracks(AIndex : Integer; const AValue : TTracksListResponseTypetracksArray); 
 
 begin
   If (Ftracks=AValue) then exit;
@@ -3271,6 +3901,93 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TUserComment
+  --------------------------------------------------------------------}
+
+
+Procedure TUserComment.SetandroidOsVersion(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FandroidOsVersion=AValue) then exit;
+  FandroidOsVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.SetappVersionCode(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FappVersionCode=AValue) then exit;
+  FappVersionCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.SetappVersionName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FappVersionName=AValue) then exit;
+  FappVersionName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.Setdevice(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdevice=AValue) then exit;
+  Fdevice:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.SetlastModified(AIndex : Integer; const AValue : TTimestamp); 
+
+begin
+  If (FlastModified=AValue) then exit;
+  FlastModified:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.SetreviewerLanguage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FreviewerLanguage=AValue) then exit;
+  FreviewerLanguage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.SetstarRating(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FstarRating=AValue) then exit;
+  FstarRating:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUserComment.Settext(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftext=AValue) then exit;
+  Ftext:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -4623,6 +5340,84 @@ end;
 
 
 { --------------------------------------------------------------------
+  TReviewsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TReviewsResource.ResourceName : String;
+
+begin
+  Result:='reviews';
+end;
+
+Class Function TReviewsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidpublisherAPI;
+end;
+
+Function TReviewsResource.Get(packageName: string; reviewId: string) : TReview;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/reviews/{reviewId}';
+  _Methodid   = 'androidpublisher.reviews.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'reviewId',reviewId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TReview) as TReview;
+end;
+
+Function TReviewsResource.List(packageName: string; AQuery : string = '') : TReviewsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = '{packageName}/reviews';
+  _Methodid   = 'androidpublisher.reviews.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TReviewsListResponse) as TReviewsListResponse;
+end;
+
+
+Function TReviewsResource.List(packageName: string; AQuery : TReviewslistOptions) : TReviewsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'startIndex',AQuery.startIndex);
+  AddToQuery(_Q,'token',AQuery.token);
+  Result:=List(packageName,_Q);
+end;
+
+Function TReviewsResource.Reply(packageName: string; reviewId: string; aReviewsReplyRequest : TReviewsReplyRequest) : TReviewsReplyResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = '{packageName}/reviews/{reviewId}:reply';
+  _Methodid   = 'androidpublisher.reviews.reply';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['packageName',packageName,'reviewId',reviewId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aReviewsReplyRequest,TReviewsReplyResponse) as TReviewsReplyResponse;
+end;
+
+
+
+{ --------------------------------------------------------------------
   TAndroidpublisherAPI
   --------------------------------------------------------------------}
 
@@ -4641,7 +5436,7 @@ end;
 Class Function TAndroidpublisherAPI.APIRevision : String;
 
 begin
-  Result:='20150316';
+  Result:='20160516';
 end;
 
 Class Function TAndroidpublisherAPI.APIID : String;
@@ -4695,7 +5490,7 @@ end;
 Class Function TAndroidpublisherAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAndroidpublisherAPI.APIbasePath : string;
@@ -4707,7 +5502,7 @@ end;
 Class Function TAndroidpublisherAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/androidpublisher/v2/applications/';
+  Result:='https://www.googleapis.com/androidpublisher/v2/applications/';
 end;
 
 Class Function TAndroidpublisherAPI.APIProtocol : string;
@@ -4755,6 +5550,8 @@ begin
   TApksListResponse.RegisterObject;
   TAppDetails.RegisterObject;
   TAppEdit.RegisterObject;
+  TComment.RegisterObject;
+  TDeveloperComment.RegisterObject;
   TEntitlement.RegisterObject;
   TEntitlementsListResponse.RegisterObject;
   TExpansionFile.RegisterObject;
@@ -4784,15 +5581,23 @@ begin
   TPageInfo.RegisterObject;
   TPrice.RegisterObject;
   TProductPurchase.RegisterObject;
+  TProrate.RegisterObject;
+  TReview.RegisterObject;
+  TReviewReplyResult.RegisterObject;
+  TReviewsListResponse.RegisterObject;
+  TReviewsReplyRequest.RegisterObject;
+  TReviewsReplyResponse.RegisterObject;
   TSeason.RegisterObject;
   TSubscriptionDeferralInfo.RegisterObject;
   TSubscriptionPurchase.RegisterObject;
   TSubscriptionPurchasesDeferRequest.RegisterObject;
   TSubscriptionPurchasesDeferResponse.RegisterObject;
   TTesters.RegisterObject;
+  TTimestamp.RegisterObject;
   TTokenPagination.RegisterObject;
   TTrack.RegisterObject;
   TTracksListResponse.RegisterObject;
+  TUserComment.RegisterObject;
 end;
 
 
@@ -5127,6 +5932,30 @@ Function TAndroidpublisherAPI.CreatePurchasesResource(AOwner : TComponent) : TPu
 
 begin
   Result:=TPurchasesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidpublisherAPI.GetReviewsInstance : TReviewsResource;
+
+begin
+  if (FReviewsInstance=Nil) then
+    FReviewsInstance:=CreateReviewsResource;
+  Result:=FReviewsInstance;
+end;
+
+Function TAndroidpublisherAPI.CreateReviewsResource : TReviewsResource;
+
+begin
+  Result:=CreateReviewsResource(Self);
+end;
+
+
+Function TAndroidpublisherAPI.CreateReviewsResource(AOwner : TComponent) : TReviewsResource;
+
+begin
+  Result:=TReviewsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 

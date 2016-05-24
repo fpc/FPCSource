@@ -1,19 +1,4 @@
 unit googleresourceviews;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -108,7 +93,7 @@ type
     Fresource : String;
   Protected
     //Property setters
-    Procedure Setendpoints(AIndex : Integer; AValue : TListResourceResponseItemTypeendpoints); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TListResourceResponseItemTypeendpoints); virtual;
     Procedure Setresource(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -148,7 +133,7 @@ type
     Ferrors : TOperationTypeerrorTypeerrorsArray;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -190,7 +175,7 @@ type
   Protected
     //Property setters
     Procedure Setcode(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); virtual;
     Procedure Setmessage(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -237,15 +222,15 @@ type
     Procedure SetclientOperationId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationTypeerror); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationTypeerror); virtual;
     Procedure SethttpErrorMessage(AIndex : Integer; const AValue : String); virtual;
-    Procedure SethttpErrorStatusCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinsertTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setprogress(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setprogress(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
@@ -254,7 +239,7 @@ type
     Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setuser(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); virtual;
+    Procedure Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); virtual;
     Procedure Setzone(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -301,7 +286,7 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -341,16 +326,16 @@ type
     //Property setters
     Procedure SetcreationTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setendpoints(AIndex : Integer; AValue : TResourceViewTypeendpointsArray); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TResourceViewTypeendpointsArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlabels(AIndex : Integer; AValue : TResourceViewTypelabelsArray); virtual;
+    Procedure Setlabels(AIndex : Integer; const AValue : TResourceViewTypelabelsArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresources(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsize(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setsize(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -383,7 +368,7 @@ type
   Protected
     //Property setters
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setport(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setport(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -400,7 +385,7 @@ type
     Fresources : TStringArray;
   Protected
     //Property setters
-    Procedure Setresources(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -421,7 +406,7 @@ type
     Ffingerprint : String;
   Protected
     //Property setters
-    Procedure Setendpoints(AIndex : Integer; AValue : TZoneViewsGetServiceResponseTypeendpointsArray); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TZoneViewsGetServiceResponseTypeendpointsArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -446,7 +431,7 @@ type
     FselfLink : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TZoneViewsListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TZoneViewsListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -474,7 +459,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TZoneViewsListResourcesResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TZoneViewsListResourcesResponseTypeitemsArray); virtual;
     Procedure Setnetwork(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -498,7 +483,7 @@ type
     Fresources : TStringArray;
   Protected
     //Property setters
-    Procedure Setresources(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setresources(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -520,7 +505,7 @@ type
     FresourceName : String;
   Protected
     //Property setters
-    Procedure Setendpoints(AIndex : Integer; AValue : TZoneViewsSetServiceRequestTypeendpointsArray); virtual;
+    Procedure Setendpoints(AIndex : Integer; const AValue : TZoneViewsSetServiceRequestTypeendpointsArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure SetresourceName(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -697,7 +682,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListResourceResponseItem.Setendpoints(AIndex : Integer; AValue : TListResourceResponseItemTypeendpoints); 
+Procedure TListResourceResponseItem.Setendpoints(AIndex : Integer; const AValue : TListResourceResponseItemTypeendpoints); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -761,7 +746,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationTypeerror.Seterrors(AIndex : Integer; AValue : TOperationTypeerrorTypeerrorsArray); 
+Procedure TOperationTypeerror.Seterrors(AIndex : Integer; const AValue : TOperationTypeerrorTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -828,7 +813,7 @@ end;
 
 
 
-Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; AValue : TOperationTypewarningsItemTypedataArray); 
+Procedure TOperationTypewarningsItem.Setdata(AIndex : Integer; const AValue : TOperationTypewarningsItemTypedataArray); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -898,7 +883,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationTypeerror); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationTypeerror); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -918,7 +903,7 @@ end;
 
 
 
-Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; AValue : integer); 
+Procedure TOperation.SethttpErrorStatusCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FhttpErrorStatusCode=AValue) then exit;
@@ -978,7 +963,7 @@ end;
 
 
 
-Procedure TOperation.Setprogress(AIndex : Integer; AValue : integer); 
+Procedure TOperation.Setprogress(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fprogress=AValue) then exit;
@@ -1068,7 +1053,7 @@ end;
 
 
 
-Procedure TOperation.Setwarnings(AIndex : Integer; AValue : TOperationTypewarningsArray); 
+Procedure TOperation.Setwarnings(AIndex : Integer; const AValue : TOperationTypewarningsArray); 
 
 begin
   If (Fwarnings=AValue) then exit;
@@ -1118,7 +1103,7 @@ end;
 
 
 
-Procedure TOperationList.Setitems(AIndex : Integer; AValue : TOperationListTypeitemsArray); 
+Procedure TOperationList.Setitems(AIndex : Integer; const AValue : TOperationListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1198,7 +1183,7 @@ end;
 
 
 
-Procedure TResourceView.Setendpoints(AIndex : Integer; AValue : TResourceViewTypeendpointsArray); 
+Procedure TResourceView.Setendpoints(AIndex : Integer; const AValue : TResourceViewTypeendpointsArray); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -1238,7 +1223,7 @@ end;
 
 
 
-Procedure TResourceView.Setlabels(AIndex : Integer; AValue : TResourceViewTypelabelsArray); 
+Procedure TResourceView.Setlabels(AIndex : Integer; const AValue : TResourceViewTypelabelsArray); 
 
 begin
   If (Flabels=AValue) then exit;
@@ -1268,7 +1253,7 @@ end;
 
 
 
-Procedure TResourceView.Setresources(AIndex : Integer; AValue : TStringArray); 
+Procedure TResourceView.Setresources(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1288,7 +1273,7 @@ end;
 
 
 
-Procedure TResourceView.Setsize(AIndex : Integer; AValue : integer); 
+Procedure TResourceView.Setsize(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fsize=AValue) then exit;
@@ -1330,7 +1315,7 @@ end;
 
 
 
-Procedure TServiceEndpoint.Setport(AIndex : Integer; AValue : integer); 
+Procedure TServiceEndpoint.Setport(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fport=AValue) then exit;
@@ -1347,7 +1332,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsAddResourcesRequest.Setresources(AIndex : Integer; AValue : TStringArray); 
+Procedure TZoneViewsAddResourcesRequest.Setresources(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1377,7 +1362,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsGetServiceResponse.Setendpoints(AIndex : Integer; AValue : TZoneViewsGetServiceResponseTypeendpointsArray); 
+Procedure TZoneViewsGetServiceResponse.Setendpoints(AIndex : Integer; const AValue : TZoneViewsGetServiceResponseTypeendpointsArray); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -1417,7 +1402,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsList.Setitems(AIndex : Integer; AValue : TZoneViewsListTypeitemsArray); 
+Procedure TZoneViewsList.Setitems(AIndex : Integer; const AValue : TZoneViewsListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1477,7 +1462,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsListResourcesResponse.Setitems(AIndex : Integer; AValue : TZoneViewsListResourcesResponseTypeitemsArray); 
+Procedure TZoneViewsListResourcesResponse.Setitems(AIndex : Integer; const AValue : TZoneViewsListResourcesResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1527,7 +1512,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsRemoveResourcesRequest.Setresources(AIndex : Integer; AValue : TStringArray); 
+Procedure TZoneViewsRemoveResourcesRequest.Setresources(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fresources=AValue) then exit;
@@ -1557,7 +1542,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TZoneViewsSetServiceRequest.Setendpoints(AIndex : Integer; AValue : TZoneViewsSetServiceRequestTypeendpointsArray); 
+Procedure TZoneViewsSetServiceRequest.Setendpoints(AIndex : Integer; const AValue : TZoneViewsSetServiceRequestTypeendpointsArray); 
 
 begin
   If (Fendpoints=AValue) then exit;
@@ -1879,7 +1864,7 @@ end;
 Class Function TResourceviewsAPI.APIRevision : String;
 
 begin
-  Result:='20150302';
+  Result:='20160512';
 end;
 
 Class Function TResourceviewsAPI.APIID : String;
@@ -1933,7 +1918,7 @@ end;
 Class Function TResourceviewsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TResourceviewsAPI.APIbasePath : string;
@@ -1945,7 +1930,7 @@ end;
 Class Function TResourceviewsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/resourceviews/v1beta2/projects/';
+  Result:='https://www.googleapis.com/resourceviews/v1beta2/projects/';
 end;
 
 Class Function TResourceviewsAPI.APIProtocol : string;
@@ -1969,17 +1954,19 @@ end;
 Class Function TResourceviewsAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,5);
+  SetLength(Result,6);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  Result[1].Name:='https://www.googleapis.com/auth/compute';
-  Result[1].Description:='View and manage your Google Compute Engine resources';
-  Result[2].Name:='https://www.googleapis.com/auth/compute.readonly';
-  Result[2].Description:='View your Google Compute Engine resources';
-  Result[3].Name:='https://www.googleapis.com/auth/ndev.cloudman';
-  Result[3].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
-  Result[4].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
-  Result[4].Description:='View your Google Cloud Platform management resources and deployment status information';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
+  Result[1].Description:='View your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/compute';
+  Result[2].Description:='View and manage your Google Compute Engine resources';
+  Result[3].Name:='https://www.googleapis.com/auth/compute.readonly';
+  Result[3].Description:='View your Google Compute Engine resources';
+  Result[4].Name:='https://www.googleapis.com/auth/ndev.cloudman';
+  Result[4].Description:='View and manage your Google Cloud Platform management resources and deployment status information';
+  Result[5].Name:='https://www.googleapis.com/auth/ndev.cloudman.readonly';
+  Result[5].Description:='View your Google Cloud Platform management resources and deployment status information';
   
 end;
 

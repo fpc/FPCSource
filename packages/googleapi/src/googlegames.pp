@@ -1,19 +1,4 @@
 unit googlegames;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:03
 {$MODE objfpc}
 {$H+}
 
@@ -38,6 +23,7 @@ type
   TAnonymousPlayer = Class;
   TApplication = Class;
   TApplicationCategory = Class;
+  TApplicationVerifyResponse = Class;
   TCategory = Class;
   TCategoryListResponse = Class;
   TEventBatchRecordFailure = Class;
@@ -82,6 +68,7 @@ type
   TPlayerScoreListResponse = Class;
   TPlayerScoreResponse = Class;
   TPlayerScoreSubmissionList = Class;
+  TProfileSettings = Class;
   TPushToken = Class;
   TPushTokenId = Class;
   TQuest = Class;
@@ -134,6 +121,7 @@ type
   TAnonymousPlayerArray = Array of TAnonymousPlayer;
   TApplicationArray = Array of TApplication;
   TApplicationCategoryArray = Array of TApplicationCategory;
+  TApplicationVerifyResponseArray = Array of TApplicationVerifyResponse;
   TCategoryArray = Array of TCategory;
   TCategoryListResponseArray = Array of TCategoryListResponse;
   TEventBatchRecordFailureArray = Array of TEventBatchRecordFailure;
@@ -178,6 +166,7 @@ type
   TPlayerScoreListResponseArray = Array of TPlayerScoreListResponse;
   TPlayerScoreResponseArray = Array of TPlayerScoreResponse;
   TPlayerScoreSubmissionListArray = Array of TPlayerScoreSubmissionList;
+  TProfileSettingsArray = Array of TProfileSettings;
   TPushTokenArray = Array of TPushToken;
   TPushTokenIdArray = Array of TPushTokenId;
   TQuestArray = Array of TQuest;
@@ -285,12 +274,12 @@ type
     Procedure SetformattedTotalSteps(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinitialState(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisRevealedIconUrlDefault(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetisUnlockedIconUrlDefault(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisRevealedIconUrlDefault(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetisUnlockedIconUrlDefault(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrevealedIconUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalSteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalSteps(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetunlockedIconUrl(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -321,7 +310,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAchievementDefinitionsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAchievementDefinitionsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -347,9 +336,9 @@ type
     FnewlyUnlocked : boolean;
   Protected
     //Property setters
-    Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentSteps(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property currentSteps : integer Index 0 Read FcurrentSteps Write SetcurrentSteps;
@@ -388,9 +377,9 @@ type
     FnewlyUnlocked : boolean;
   Protected
     //Property setters
-    Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentSteps(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property currentSteps : integer Index 0 Read FcurrentSteps Write SetcurrentSteps;
@@ -410,7 +399,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -429,7 +418,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setupdates(AIndex : Integer; AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); virtual;
+    Procedure Setupdates(AIndex : Integer; const AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -452,7 +441,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetupdatedAchievements(AIndex : Integer; AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); virtual;
+    Procedure SetupdatedAchievements(AIndex : Integer; const AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -478,9 +467,9 @@ type
   Protected
     //Property setters
     Procedure SetachievementId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetincrementPayload(AIndex : Integer; AValue : TGamesAchievementIncrement); virtual;
+    Procedure SetincrementPayload(AIndex : Integer; const AValue : TGamesAchievementIncrement); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsetStepsAtLeastPayload(AIndex : Integer; AValue : TGamesAchievementSetStepsAtLeast); virtual;
+    Procedure SetsetStepsAtLeastPayload(AIndex : Integer; const AValue : TGamesAchievementSetStepsAtLeast); virtual;
     Procedure SetupdateType(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -508,10 +497,10 @@ type
     //Property setters
     Procedure SetachievementId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrentState(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentSteps(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnewlyUnlocked(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetupdateOccurred(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetupdateOccurred(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property achievementId : String Index 0 Read FachievementId Write SetachievementId;
@@ -594,17 +583,17 @@ type
     FthemeColor : String;
   Protected
     //Property setters
-    Procedure Setachievement_count(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setassets(AIndex : Integer; AValue : TApplicationTypeassetsArray); virtual;
+    Procedure Setachievement_count(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setassets(AIndex : Integer; const AValue : TApplicationTypeassetsArray); virtual;
     Procedure Setauthor(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcategory(AIndex : Integer; AValue : TApplicationCategory); virtual;
+    Procedure Setcategory(AIndex : Integer; const AValue : TApplicationCategory); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetenabledFeatures(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetenabledFeatures(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setinstances(AIndex : Integer; AValue : TApplicationTypeinstancesArray); virtual;
+    Procedure Setinstances(AIndex : Integer; const AValue : TApplicationTypeinstancesArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastUpdatedTimestamp(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setleaderboard_count(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setleaderboard_count(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetthemeColor(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -652,6 +641,28 @@ type
   TApplicationCategoryClass = Class of TApplicationCategory;
   
   { --------------------------------------------------------------------
+    TApplicationVerifyResponse
+    --------------------------------------------------------------------}
+  
+  TApplicationVerifyResponse = Class(TGoogleBaseObject)
+  Private
+    Falternate_player_id : String;
+    Fkind : String;
+    Fplayer_id : String;
+  Protected
+    //Property setters
+    Procedure Setalternate_player_id(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setplayer_id(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property alternate_player_id : String Index 0 Read Falternate_player_id Write Setalternate_player_id;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property player_id : String Index 16 Read Fplayer_id Write Setplayer_id;
+  end;
+  TApplicationVerifyResponseClass = Class of TApplicationVerifyResponse;
+  
+  { --------------------------------------------------------------------
     TCategory
     --------------------------------------------------------------------}
   
@@ -684,7 +695,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TCategoryListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TCategoryListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -712,7 +723,7 @@ type
     //Property setters
     Procedure SetfailureCause(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrange(AIndex : Integer; AValue : TEventPeriodRange); virtual;
+    Procedure Setrange(AIndex : Integer; const AValue : TEventPeriodRange); virtual;
   Public
   Published
     Property failureCause : String Index 0 Read FfailureCause Write SetfailureCause;
@@ -756,12 +767,12 @@ type
     Fvisibility : String;
   Protected
     //Property setters
-    Procedure SetchildEvents(AIndex : Integer; AValue : TEventDefinitionTypechildEventsArray); virtual;
+    Procedure SetchildEvents(AIndex : Integer; const AValue : TEventDefinitionTypechildEventsArray); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetimageUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisDefaultImageUrl(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisDefaultImageUrl(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -792,7 +803,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TEventDefinitionListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TEventDefinitionListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -841,8 +852,8 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimePeriod(AIndex : Integer; AValue : TEventPeriodRange); virtual;
-    Procedure Setupdates(AIndex : Integer; AValue : TEventPeriodUpdateTypeupdatesArray); virtual;
+    Procedure SettimePeriod(AIndex : Integer; const AValue : TEventPeriodRange); virtual;
+    Procedure Setupdates(AIndex : Integer; const AValue : TEventPeriodUpdateTypeupdatesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -892,7 +903,7 @@ type
     Procedure SetcurrentTimeMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimePeriods(AIndex : Integer; AValue : TEventRecordRequestTypetimePeriodsArray); virtual;
+    Procedure SettimePeriods(AIndex : Integer; const AValue : TEventRecordRequestTypetimePeriodsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -940,10 +951,10 @@ type
     FplayerEvents : TEventUpdateResponseTypeplayerEventsArray;
   Protected
     //Property setters
-    Procedure SetbatchFailures(AIndex : Integer; AValue : TEventUpdateResponseTypebatchFailuresArray); virtual;
-    Procedure SeteventFailures(AIndex : Integer; AValue : TEventUpdateResponseTypeeventFailuresArray); virtual;
+    Procedure SetbatchFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypebatchFailuresArray); virtual;
+    Procedure SeteventFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypeeventFailuresArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetplayerEvents(AIndex : Integer; AValue : TEventUpdateResponseTypeplayerEventsArray); virtual;
+    Procedure SetplayerEvents(AIndex : Integer; const AValue : TEventUpdateResponseTypeplayerEventsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -970,7 +981,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setsteps(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -990,7 +1001,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setsteps(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1011,11 +1022,11 @@ type
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property height : integer Index 0 Read Fheight Write Setheight;
@@ -1044,14 +1055,14 @@ type
   Protected
     //Property setters
     Procedure SetacquisitionUri(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetandroidInstance(AIndex : Integer; AValue : TInstanceAndroidDetails); virtual;
-    Procedure SetiosInstance(AIndex : Integer; AValue : TInstanceIosDetails); virtual;
+    Procedure SetandroidInstance(AIndex : Integer; const AValue : TInstanceAndroidDetails); virtual;
+    Procedure SetiosInstance(AIndex : Integer; const AValue : TInstanceIosDetails); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplatformType(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrealtimePlay(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetturnBasedPlay(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetwebInstance(AIndex : Integer; AValue : TInstanceWebDetails); virtual;
+    Procedure SetrealtimePlay(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetturnBasedPlay(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetwebInstance(AIndex : Integer; const AValue : TInstanceWebDetails); virtual;
   Public
   Published
     Property acquisitionUri : String Index 0 Read FacquisitionUri Write SetacquisitionUri;
@@ -1078,10 +1089,10 @@ type
     Fpreferred : boolean;
   Protected
     //Property setters
-    Procedure SetenablePiracyCheck(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetenablePiracyCheck(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpackageName(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpreferred(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setpreferred(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property enablePiracyCheck : boolean Index 0 Read FenablePiracyCheck Write SetenablePiracyCheck;
@@ -1109,10 +1120,10 @@ type
     Procedure SetbundleIdentifier(AIndex : Integer; const AValue : String); virtual;
     Procedure SetitunesAppId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpreferredForIpad(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetpreferredForIphone(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsupportIpad(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetsupportIphone(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetpreferredForIpad(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetpreferredForIphone(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetsupportIpad(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetsupportIphone(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property bundleIdentifier : String Index 0 Read FbundleIdentifier Write SetbundleIdentifier;
@@ -1138,7 +1149,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlaunchUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpreferred(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setpreferred(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1163,7 +1174,7 @@ type
     //Property setters
     Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisIconUrlDefault(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisIconUrlDefault(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setorder(AIndex : Integer; const AValue : String); virtual;
@@ -1198,7 +1209,7 @@ type
     Procedure SetformattedScore(AIndex : Integer; const AValue : String); virtual;
     Procedure SetformattedScoreRank(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
+    Procedure Setplayer(AIndex : Integer; const AValue : TPlayer); virtual;
     Procedure SetscoreRank(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreValue(AIndex : Integer; const AValue : String); virtual;
@@ -1229,7 +1240,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TLeaderboardListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLeaderboardListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1286,11 +1297,11 @@ type
     FprevPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TLeaderboardScoresTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLeaderboardScoresTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumScores(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetplayerScore(AIndex : Integer; AValue : TLeaderboardEntry); virtual;
+    Procedure SetplayerScore(AIndex : Integer; const AValue : TLeaderboardEntry); virtual;
     Procedure SetprevPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1318,9 +1329,9 @@ type
     FplayerLevels : TMetagameConfigTypeplayerLevelsArray;
   Protected
     //Property setters
-    Procedure SetcurrentVersion(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentVersion(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetplayerLevels(AIndex : Integer; AValue : TMetagameConfigTypeplayerLevelsArray); virtual;
+    Procedure SetplayerLevels(AIndex : Integer; const AValue : TMetagameConfigTypeplayerLevelsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1348,13 +1359,13 @@ type
     FregistrationLatencyMillis : integer;
   Protected
     //Property setters
-    Procedure SetandroidNetworkSubtype(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetandroidNetworkType(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetiosNetworkType(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetandroidNetworkType(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetiosNetworkType(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnetworkOperatorCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnetworkOperatorName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetregistrationLatencyMillis(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetregistrationLatencyMillis(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property androidNetworkSubtype : integer Index 0 Read FandroidNetworkSubtype Write SetandroidNetworkSubtype;
@@ -1381,7 +1392,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplacing(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setplacing(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setresult(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -1408,14 +1419,14 @@ type
     FroundtripLatencyMillis : TAggregateStats;
   Protected
     //Property setters
-    Procedure SetbytesReceived(AIndex : Integer; AValue : TAggregateStats); virtual;
-    Procedure SetbytesSent(AIndex : Integer; AValue : TAggregateStats); virtual;
+    Procedure SetbytesReceived(AIndex : Integer; const AValue : TAggregateStats); virtual;
+    Procedure SetbytesSent(AIndex : Integer; const AValue : TAggregateStats); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnumMessagesLost(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumMessagesReceived(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumMessagesSent(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumSendFailures(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetroundtripLatencyMillis(AIndex : Integer; AValue : TAggregateStats); virtual;
+    Procedure SetnumMessagesLost(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumMessagesReceived(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumMessagesSent(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumSendFailures(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetroundtripLatencyMillis(AIndex : Integer; const AValue : TAggregateStats); virtual;
   Public
   Published
     Property bytesReceived : TAggregateStats Index 0 Read FbytesReceived Write SetbytesReceived;
@@ -1445,8 +1456,8 @@ type
     Procedure SetconnectedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetreliableChannel(AIndex : Integer; AValue : TPeerChannelDiagnostics); virtual;
-    Procedure SetunreliableChannel(AIndex : Integer; AValue : TPeerChannelDiagnostics); virtual;
+    Procedure SetreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics); virtual;
+    Procedure SetunreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics); virtual;
   Public
   Published
     Property connectedTimestampMillis : String Index 0 Read FconnectedTimestampMillis Write SetconnectedTimestampMillis;
@@ -1468,7 +1479,7 @@ type
     FtimeMillis : String;
   Protected
     //Property setters
-    Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetautoMatched(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeMillis(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -1505,33 +1516,45 @@ type
   TPlayer = Class(TGoogleBaseObject)
   Private
     FavatarImageUrl : String;
+    FbannerUrlLandscape : String;
+    FbannerUrlPortrait : String;
     FdisplayName : String;
     FexperienceInfo : TPlayerExperienceInfo;
     Fkind : String;
     FlastPlayedWith : TPlayed;
     Fname : TPlayerTypename;
+    ForiginalPlayerId : String;
     FplayerId : String;
+    FprofileSettings : TProfileSettings;
     Ftitle : String;
   Protected
     //Property setters
     Procedure SetavatarImageUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerUrlLandscape(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetbannerUrlPortrait(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdisplayName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetexperienceInfo(AIndex : Integer; AValue : TPlayerExperienceInfo); virtual;
+    Procedure SetexperienceInfo(AIndex : Integer; const AValue : TPlayerExperienceInfo); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlastPlayedWith(AIndex : Integer; AValue : TPlayed); virtual;
-    Procedure Setname(AIndex : Integer; AValue : TPlayerTypename); virtual;
+    Procedure SetlastPlayedWith(AIndex : Integer; const AValue : TPlayed); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TPlayerTypename); virtual;
+    Procedure SetoriginalPlayerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetplayerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileSettings(AIndex : Integer; const AValue : TProfileSettings); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
     Property avatarImageUrl : String Index 0 Read FavatarImageUrl Write SetavatarImageUrl;
-    Property displayName : String Index 8 Read FdisplayName Write SetdisplayName;
-    Property experienceInfo : TPlayerExperienceInfo Index 16 Read FexperienceInfo Write SetexperienceInfo;
-    Property kind : String Index 24 Read Fkind Write Setkind;
-    Property lastPlayedWith : TPlayed Index 32 Read FlastPlayedWith Write SetlastPlayedWith;
-    Property name : TPlayerTypename Index 40 Read Fname Write Setname;
-    Property playerId : String Index 48 Read FplayerId Write SetplayerId;
-    Property title : String Index 56 Read Ftitle Write Settitle;
+    Property bannerUrlLandscape : String Index 8 Read FbannerUrlLandscape Write SetbannerUrlLandscape;
+    Property bannerUrlPortrait : String Index 16 Read FbannerUrlPortrait Write SetbannerUrlPortrait;
+    Property displayName : String Index 24 Read FdisplayName Write SetdisplayName;
+    Property experienceInfo : TPlayerExperienceInfo Index 32 Read FexperienceInfo Write SetexperienceInfo;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property lastPlayedWith : TPlayed Index 48 Read FlastPlayedWith Write SetlastPlayedWith;
+    Property name : TPlayerTypename Index 56 Read Fname Write Setname;
+    Property originalPlayerId : String Index 64 Read ForiginalPlayerId Write SetoriginalPlayerId;
+    Property playerId : String Index 72 Read FplayerId Write SetplayerId;
+    Property profileSettings : TProfileSettings Index 80 Read FprofileSettings Write SetprofileSettings;
+    Property title : String Index 88 Read Ftitle Write Settitle;
   end;
   TPlayerClass = Class of TPlayer;
   
@@ -1551,7 +1574,7 @@ type
   Protected
     //Property setters
     Procedure SetachievementState(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcurrentSteps(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetcurrentSteps(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetexperiencePoints(AIndex : Integer; const AValue : String); virtual;
     Procedure SetformattedCurrentStepsString(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
@@ -1580,7 +1603,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPlayerAchievementListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TPlayerAchievementListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1634,7 +1657,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPlayerEventListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TPlayerEventListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1663,10 +1686,10 @@ type
   Protected
     //Property setters
     Procedure SetcurrentExperiencePoints(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcurrentLevel(AIndex : Integer; AValue : TPlayerLevel); virtual;
+    Procedure SetcurrentLevel(AIndex : Integer; const AValue : TPlayerLevel); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastLevelUpTimestampMillis(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnextLevel(AIndex : Integer; AValue : TPlayerLevel); virtual;
+    Procedure SetnextLevel(AIndex : Integer; const AValue : TPlayerLevel); virtual;
   Public
   Published
     Property currentExperiencePoints : String Index 0 Read FcurrentExperiencePoints Write SetcurrentExperiencePoints;
@@ -1696,11 +1719,11 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setleaderboard_id(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpublicRank(AIndex : Integer; AValue : TLeaderboardScoreRank); virtual;
+    Procedure SetpublicRank(AIndex : Integer; const AValue : TLeaderboardScoreRank); virtual;
     Procedure SetscoreString(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreValue(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsocialRank(AIndex : Integer; AValue : TLeaderboardScoreRank); virtual;
+    Procedure SetsocialRank(AIndex : Integer; const AValue : TLeaderboardScoreRank); virtual;
     Procedure SettimeSpan(AIndex : Integer; const AValue : String); virtual;
     Procedure SetwriteTimestamp(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -1729,10 +1752,10 @@ type
     Fplayer : TPlayer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
+    Procedure Setplayer(AIndex : Integer; const AValue : TPlayer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1759,7 +1782,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlevel(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setlevel(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetmaxExperiencePoints(AIndex : Integer; const AValue : String); virtual;
     Procedure SetminExperiencePoints(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -1782,7 +1805,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TPlayerListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TPlayerListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1836,7 +1859,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsubmittedScores(AIndex : Integer; AValue : TPlayerScoreListResponseTypesubmittedScoresArray); virtual;
+    Procedure SetsubmittedScores(AIndex : Integer; const AValue : TPlayerScoreListResponseTypesubmittedScoresArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1862,12 +1885,12 @@ type
     FunbeatenScores : TPlayerScoreResponseTypeunbeatenScoresArray;
   Protected
     //Property setters
-    Procedure SetbeatenScoreTimeSpans(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetbeatenScoreTimeSpans(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetformattedScore(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetleaderboardId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreTag(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetunbeatenScores(AIndex : Integer; AValue : TPlayerScoreResponseTypeunbeatenScoresArray); virtual;
+    Procedure SetunbeatenScores(AIndex : Integer; const AValue : TPlayerScoreResponseTypeunbeatenScoresArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1894,7 +1917,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setscores(AIndex : Integer; AValue : TPlayerScoreSubmissionListTypescoresArray); virtual;
+    Procedure Setscores(AIndex : Integer; const AValue : TPlayerScoreSubmissionListTypescoresArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -1905,6 +1928,25 @@ type
     Property scores : TPlayerScoreSubmissionListTypescoresArray Index 8 Read Fscores Write Setscores;
   end;
   TPlayerScoreSubmissionListClass = Class of TPlayerScoreSubmissionList;
+  
+  { --------------------------------------------------------------------
+    TProfileSettings
+    --------------------------------------------------------------------}
+  
+  TProfileSettings = Class(TGoogleBaseObject)
+  Private
+    Fkind : String;
+    FprofileVisible : boolean;
+  Protected
+    //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetprofileVisible(AIndex : Integer; const AValue : boolean); virtual;
+  Public
+  Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property profileVisible : boolean Index 8 Read FprofileVisible Write SetprofileVisible;
+  end;
+  TProfileSettingsClass = Class of TProfileSettings;
   
   { --------------------------------------------------------------------
     TPushToken
@@ -1919,7 +1961,7 @@ type
   Protected
     //Property setters
     Procedure SetclientRevision(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setid(AIndex : Integer; AValue : TPushTokenId); virtual;
+    Procedure Setid(AIndex : Integer; const AValue : TPushTokenId); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setlanguage(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -1960,7 +2002,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setios(AIndex : Integer; AValue : TPushTokenIdTypeios); virtual;
+    Procedure Setios(AIndex : Integer; const AValue : TPushTokenIdTypeios); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -2000,11 +2042,11 @@ type
     Procedure SetendTimestampMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisDefaultBannerUrl(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetisDefaultIconUrl(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisDefaultBannerUrl(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetisDefaultIconUrl(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlastUpdatedTimestampMillis(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmilestones(AIndex : Integer; AValue : TQuestTypemilestonesArray); virtual;
+    Procedure Setmilestones(AIndex : Integer; const AValue : TQuestTypemilestonesArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnotifyTimestampMillis(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTimestampMillis(AIndex : Integer; const AValue : String); virtual;
@@ -2069,10 +2111,10 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetcompletionContribution(AIndex : Integer; AValue : TQuestContribution); virtual;
-    Procedure SetcurrentContribution(AIndex : Integer; AValue : TQuestContribution); virtual;
+    Procedure SetcompletionContribution(AIndex : Integer; const AValue : TQuestContribution); virtual;
+    Procedure SetcurrentContribution(AIndex : Integer; const AValue : TQuestContribution); virtual;
     Procedure SeteventId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetinitialPlayerProgress(AIndex : Integer; AValue : TQuestContribution); virtual;
+    Procedure SetinitialPlayerProgress(AIndex : Integer; const AValue : TQuestContribution); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -2095,7 +2137,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TQuestListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TQuestListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -2124,7 +2166,7 @@ type
   Protected
     //Property setters
     Procedure SetcompletionRewardData(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcriteria(AIndex : Integer; AValue : TQuestMilestoneTypecriteriaArray); virtual;
+    Procedure Setcriteria(AIndex : Integer; const AValue : TQuestMilestoneTypecriteriaArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
@@ -2186,18 +2228,18 @@ type
   Protected
     //Property setters
     Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TRoomAutoMatchingCriteria); virtual;
-    Procedure SetautoMatchingStatus(AIndex : Integer; AValue : TRoomAutoMatchStatus); virtual;
-    Procedure SetcreationDetails(AIndex : Integer; AValue : TRoomModification); virtual;
+    Procedure SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria); virtual;
+    Procedure SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus); virtual;
+    Procedure SetcreationDetails(AIndex : Integer; const AValue : TRoomModification); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinviterId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlastUpdateDetails(AIndex : Integer; AValue : TRoomModification); virtual;
-    Procedure Setparticipants(AIndex : Integer; AValue : TRoomTypeparticipantsArray); virtual;
+    Procedure SetlastUpdateDetails(AIndex : Integer; const AValue : TRoomModification); virtual;
+    Procedure Setparticipants(AIndex : Integer; const AValue : TRoomTypeparticipantsArray); virtual;
     Procedure SetroomId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetroomStatusVersion(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetroomStatusVersion(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setvariant(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2231,7 +2273,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetwaitEstimateSeconds(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetwaitEstimateSeconds(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -2253,8 +2295,8 @@ type
     //Property setters
     Procedure SetexclusiveBitmask(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetminAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property exclusiveBitmask : String Index 0 Read FexclusiveBitmask Write SetexclusiveBitmask;
@@ -2299,14 +2341,14 @@ type
     Fvariant : integer;
   Protected
     //Property setters
-    Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TRoomAutoMatchingCriteria); virtual;
-    Procedure Setcapabilities(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
-    Procedure SetinvitedPlayerIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria); virtual;
+    Procedure Setcapabilities(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); virtual;
+    Procedure SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); virtual;
+    Procedure SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics); virtual;
     Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setvariant(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2336,10 +2378,10 @@ type
     FnetworkDiagnostics : TNetworkDiagnostics;
   Protected
     //Property setters
-    Procedure Setcapabilities(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
+    Procedure Setcapabilities(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); virtual;
+    Procedure SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2369,14 +2411,14 @@ type
     FsocketsUsed : boolean;
   Protected
     //Property setters
-    Procedure SetandroidNetworkSubtype(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetandroidNetworkType(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetiosNetworkType(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetandroidNetworkType(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetiosNetworkType(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnetworkOperatorCode(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnetworkOperatorName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpeerSession(AIndex : Integer; AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); virtual;
-    Procedure SetsocketsUsed(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetpeerSession(AIndex : Integer; const AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); virtual;
+    Procedure SetsocketsUsed(AIndex : Integer; const AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2406,7 +2448,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetleaveDiagnostics(AIndex : Integer; AValue : TRoomLeaveDiagnostics); virtual;
+    Procedure SetleaveDiagnostics(AIndex : Integer; const AValue : TRoomLeaveDiagnostics); virtual;
     Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -2427,7 +2469,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TRoomListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TRoomListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -2479,13 +2521,13 @@ type
     FunreliableRoundtripLatencyMillis : integer;
   Protected
     //Property setters
-    Procedure SetconnectionSetupLatencyMillis(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetconnectionSetupLatencyMillis(AIndex : Integer; const AValue : integer); virtual;
     Procedure Seterror(AIndex : Integer; const AValue : String); virtual;
     Procedure Seterror_reason(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetparticipantId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetunreliableRoundtripLatencyMillis(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetunreliableRoundtripLatencyMillis(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property connectionSetupLatencyMillis : integer Index 0 Read FconnectionSetupLatencyMillis Write SetconnectionSetupLatencyMillis;
@@ -2509,7 +2551,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setupdates(AIndex : Integer; AValue : TRoomP2PStatusesTypeupdatesArray); virtual;
+    Procedure Setupdates(AIndex : Integer; const AValue : TRoomP2PStatusesTypeupdatesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2539,15 +2581,15 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetautoMatchedPlayer(AIndex : Integer; AValue : TAnonymousPlayer); virtual;
-    Procedure Setcapabilities(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); virtual;
-    Procedure Setconnected(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetautoMatched(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer); virtual;
+    Procedure Setcapabilities(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); virtual;
+    Procedure Setconnected(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetleaveReason(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
+    Procedure Setplayer(AIndex : Integer; const AValue : TPlayer); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2582,12 +2624,12 @@ type
     FstatusVersion : integer;
   Protected
     //Property setters
-    Procedure SetautoMatchingStatus(AIndex : Integer; AValue : TRoomAutoMatchStatus); virtual;
+    Procedure SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setparticipants(AIndex : Integer; AValue : TRoomStatusTypeparticipantsArray); virtual;
+    Procedure Setparticipants(AIndex : Integer; const AValue : TRoomStatusTypeparticipantsArray); virtual;
     Procedure SetroomId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstatusVersion(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetstatusVersion(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2651,7 +2693,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetcoverImage(AIndex : Integer; AValue : TSnapshotImage); virtual;
+    Procedure SetcoverImage(AIndex : Integer; const AValue : TSnapshotImage); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdriveId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdurationMillis(AIndex : Integer; const AValue : String); virtual;
@@ -2691,11 +2733,11 @@ type
     Fwidth : integer;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmime_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setwidth(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setwidth(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property height : integer Index 0 Read Fheight Write Setheight;
@@ -2717,7 +2759,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TSnapshotListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSnapshotListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -2746,8 +2788,8 @@ type
     //Property setters
     Procedure SetexclusiveBitmask(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetminAutoMatchingPlayers(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property exclusiveBitmask : String Index 0 Read FexclusiveBitmask Write SetexclusiveBitmask;
@@ -2786,24 +2828,24 @@ type
   Protected
     //Property setters
     Procedure SetapplicationId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TTurnBasedAutoMatchingCriteria); virtual;
-    Procedure SetcreationDetails(AIndex : Integer; AValue : TTurnBasedMatchModification); virtual;
-    Procedure Setdata(AIndex : Integer; AValue : TTurnBasedMatchData); virtual;
+    Procedure SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria); virtual;
+    Procedure SetcreationDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TTurnBasedMatchData); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinviterId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlastUpdateDetails(AIndex : Integer; AValue : TTurnBasedMatchModification); virtual;
+    Procedure SetlastUpdateDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification); virtual;
     Procedure SetmatchId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmatchNumber(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setparticipants(AIndex : Integer; AValue : TTurnBasedMatchTypeparticipantsArray); virtual;
+    Procedure SetmatchNumber(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmatchVersion(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setparticipants(AIndex : Integer; const AValue : TTurnBasedMatchTypeparticipantsArray); virtual;
     Procedure SetpendingParticipantId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpreviousMatchData(AIndex : Integer; AValue : TTurnBasedMatchData); virtual;
+    Procedure SetpreviousMatchData(AIndex : Integer; const AValue : TTurnBasedMatchData); virtual;
     Procedure SetrematchId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchTyperesultsArray); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTyperesultsArray); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SetuserMatchStatus(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setvariant(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetwithParticipantId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -2847,11 +2889,11 @@ type
     Fvariant : integer;
   Protected
     //Property setters
-    Procedure SetautoMatchingCriteria(AIndex : Integer; AValue : TTurnBasedAutoMatchingCriteria); virtual;
-    Procedure SetinvitedPlayerIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria); virtual;
+    Procedure SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setvariant(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setvariant(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -2878,7 +2920,7 @@ type
   Protected
     //Property setters
     Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetdataAvailable(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetdataAvailable(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -2918,7 +2960,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTurnBasedMatchListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTurnBasedMatchListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -2969,11 +3011,11 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure SetautoMatched(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetautoMatchedPlayer(AIndex : Integer; AValue : TAnonymousPlayer); virtual;
+    Procedure SetautoMatched(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setplayer(AIndex : Integer; AValue : TPlayer); virtual;
+    Procedure Setplayer(AIndex : Integer; const AValue : TPlayer); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -2998,8 +3040,8 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpreviousMatch(AIndex : Integer; AValue : TTurnBasedMatch); virtual;
-    Procedure Setrematch(AIndex : Integer; AValue : TTurnBasedMatch); virtual;
+    Procedure SetpreviousMatch(AIndex : Integer; const AValue : TTurnBasedMatch); virtual;
+    Procedure Setrematch(AIndex : Integer; const AValue : TTurnBasedMatch); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -3020,10 +3062,10 @@ type
     Fresults : TTurnBasedMatchResultsTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : TTurnBasedMatchDataRequest); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchResultsTyperesultsArray); virtual;
+    Procedure SetmatchVersion(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TTurnBasedMatchResultsTyperesultsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3049,9 +3091,9 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTurnBasedMatchSyncTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTurnBasedMatchSyncTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmoreAvailable(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetmoreAvailable(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -3079,11 +3121,11 @@ type
     Fresults : TTurnBasedMatchTurnTyperesultsArray;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : TTurnBasedMatchDataRequest); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmatchVersion(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmatchVersion(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetpendingParticipantId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setresults(AIndex : Integer; AValue : TTurnBasedMatchTurnTyperesultsArray); virtual;
+    Procedure Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTurnTyperesultsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -3106,6 +3148,7 @@ type
   //Optional query Options for TAchievementDefinitionsResource, method List
   
   TAchievementDefinitionsListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3128,6 +3171,7 @@ type
   //Optional query Options for TAchievementsResource, method Increment
   
   TAchievementsIncrementOptions = Record
+    consistencyToken : int64;
     requestId : int64;
     stepsToIncrement : integer;
   end;
@@ -3136,6 +3180,7 @@ type
   //Optional query Options for TAchievementsResource, method List
   
   TAchievementsListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3143,10 +3188,32 @@ type
   end;
   
   
+  //Optional query Options for TAchievementsResource, method Reveal
+  
+  TAchievementsRevealOptions = Record
+    consistencyToken : int64;
+  end;
+  
+  
   //Optional query Options for TAchievementsResource, method SetStepsAtLeast
   
   TAchievementsSetStepsAtLeastOptions = Record
+    consistencyToken : int64;
     steps : integer;
+  end;
+  
+  
+  //Optional query Options for TAchievementsResource, method Unlock
+  
+  TAchievementsUnlockOptions = Record
+    consistencyToken : int64;
+  end;
+  
+  
+  //Optional query Options for TAchievementsResource, method UpdateMultiple
+  
+  TAchievementsUpdateMultipleOptions = Record
+    consistencyToken : int64;
   end;
   
   TAchievementsResource = Class(TGoogleResource)
@@ -3157,11 +3224,14 @@ type
     Function Increment(achievementId: string; AQuery : TAchievementsincrementOptions) : TAchievementIncrementResponse;
     Function List(playerId: string; AQuery : string  = '') : TPlayerAchievementListResponse;
     Function List(playerId: string; AQuery : TAchievementslistOptions) : TPlayerAchievementListResponse;
-    Function Reveal(achievementId: string) : TAchievementRevealResponse;
+    Function Reveal(achievementId: string; AQuery : string  = '') : TAchievementRevealResponse;
+    Function Reveal(achievementId: string; AQuery : TAchievementsrevealOptions) : TAchievementRevealResponse;
     Function SetStepsAtLeast(achievementId: string; AQuery : string  = '') : TAchievementSetStepsAtLeastResponse;
     Function SetStepsAtLeast(achievementId: string; AQuery : TAchievementssetStepsAtLeastOptions) : TAchievementSetStepsAtLeastResponse;
-    Function Unlock(achievementId: string) : TAchievementUnlockResponse;
-    Function UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest) : TAchievementUpdateMultipleResponse;
+    Function Unlock(achievementId: string; AQuery : string  = '') : TAchievementUnlockResponse;
+    Function Unlock(achievementId: string; AQuery : TAchievementsunlockOptions) : TAchievementUnlockResponse;
+    Function UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest; AQuery : string  = '') : TAchievementUpdateMultipleResponse;
+    Function UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest; AQuery : TAchievementsupdateMultipleOptions) : TAchievementUpdateMultipleResponse;
   end;
   
   
@@ -3173,8 +3243,23 @@ type
   //Optional query Options for TApplicationsResource, method Get
   
   TApplicationsGetOptions = Record
+    consistencyToken : int64;
     language : String;
     platformType : String;
+  end;
+  
+  
+  //Optional query Options for TApplicationsResource, method Played
+  
+  TApplicationsPlayedOptions = Record
+    consistencyToken : int64;
+  end;
+  
+  
+  //Optional query Options for TApplicationsResource, method Verify
+  
+  TApplicationsVerifyOptions = Record
+    consistencyToken : int64;
   end;
   
   TApplicationsResource = Class(TGoogleResource)
@@ -3183,7 +3268,10 @@ type
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function Get(applicationId: string; AQuery : string  = '') : TApplication;
     Function Get(applicationId: string; AQuery : TApplicationsgetOptions) : TApplication;
-    Procedure Played;
+    Procedure Played(AQuery : string  = '');
+    Procedure Played(AQuery : TApplicationsplayedOptions);
+    Function Verify(applicationId: string; AQuery : string  = '') : TApplicationVerifyResponse;
+    Function Verify(applicationId: string; AQuery : TApplicationsverifyOptions) : TApplicationVerifyResponse;
   end;
   
   
@@ -3195,6 +3283,7 @@ type
   //Optional query Options for TEventsResource, method ListByPlayer
   
   TEventsListByPlayerOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3204,6 +3293,7 @@ type
   //Optional query Options for TEventsResource, method ListDefinitions
   
   TEventsListDefinitionsOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3213,6 +3303,7 @@ type
   //Optional query Options for TEventsResource, method Record
   
   TEventsRecordOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3237,6 +3328,7 @@ type
   //Optional query Options for TLeaderboardsResource, method Get
   
   TLeaderboardsGetOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3244,6 +3336,7 @@ type
   //Optional query Options for TLeaderboardsResource, method List
   
   TLeaderboardsListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3265,9 +3358,17 @@ type
     --------------------------------------------------------------------}
   
   
+  //Optional query Options for TMetagameResource, method GetMetagameConfig
+  
+  TMetagameGetMetagameConfigOptions = Record
+    consistencyToken : int64;
+  end;
+  
+  
   //Optional query Options for TMetagameResource, method ListCategoriesByPlayer
   
   TMetagameListCategoriesByPlayerOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3277,7 +3378,8 @@ type
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function GetMetagameConfig : TMetagameConfig;
+    Function GetMetagameConfig(AQuery : string  = '') : TMetagameConfig;
+    Function GetMetagameConfig(AQuery : TMetagamegetMetagameConfigOptions) : TMetagameConfig;
     Function ListCategoriesByPlayer(collection: string; playerId: string; AQuery : string  = '') : TCategoryListResponse;
     Function ListCategoriesByPlayer(collection: string; playerId: string; AQuery : TMetagamelistCategoriesByPlayerOptions) : TCategoryListResponse;
   end;
@@ -3291,6 +3393,7 @@ type
   //Optional query Options for TPlayersResource, method Get
   
   TPlayersGetOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3298,6 +3401,7 @@ type
   //Optional query Options for TPlayersResource, method List
   
   TPlayersListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3318,12 +3422,28 @@ type
     TPushtokensResource
     --------------------------------------------------------------------}
   
+  
+  //Optional query Options for TPushtokensResource, method Remove
+  
+  TPushtokensRemoveOptions = Record
+    consistencyToken : int64;
+  end;
+  
+  
+  //Optional query Options for TPushtokensResource, method Update
+  
+  TPushtokensUpdateOptions = Record
+    consistencyToken : int64;
+  end;
+  
   TPushtokensResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Procedure Remove(aPushTokenId : TPushTokenId);
-    Procedure Update(aPushToken : TPushToken);
+    Procedure Remove(aPushTokenId : TPushTokenId; AQuery : string  = '');
+    Procedure Remove(aPushTokenId : TPushTokenId; AQuery : TPushtokensremoveOptions);
+    Procedure Update(aPushToken : TPushToken; AQuery : string  = '');
+    Procedure Update(aPushToken : TPushToken; AQuery : TPushtokensupdateOptions);
   end;
   
   
@@ -3335,6 +3455,7 @@ type
   //Optional query Options for TQuestMilestonesResource, method Claim
   
   TQuestMilestonesClaimOptions = Record
+    consistencyToken : int64;
     requestId : int64;
   end;
   
@@ -3355,6 +3476,7 @@ type
   //Optional query Options for TQuestsResource, method Accept
   
   TQuestsAcceptOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3362,6 +3484,7 @@ type
   //Optional query Options for TQuestsResource, method List
   
   TQuestsListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3387,6 +3510,7 @@ type
   
   TRevisionsCheckOptions = Record
     clientRevision : String;
+    consistencyToken : int64;
   end;
   
   TRevisionsResource = Class(TGoogleResource)
@@ -3406,6 +3530,7 @@ type
   //Optional query Options for TRoomsResource, method Create
   
   TRoomsCreateOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3413,13 +3538,22 @@ type
   //Optional query Options for TRoomsResource, method Decline
   
   TRoomsDeclineOptions = Record
+    consistencyToken : int64;
     language : String;
+  end;
+  
+  
+  //Optional query Options for TRoomsResource, method Dismiss
+  
+  TRoomsDismissOptions = Record
+    consistencyToken : int64;
   end;
   
   
   //Optional query Options for TRoomsResource, method Get
   
   TRoomsGetOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3427,6 +3561,7 @@ type
   //Optional query Options for TRoomsResource, method Join
   
   TRoomsJoinOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3434,6 +3569,7 @@ type
   //Optional query Options for TRoomsResource, method Leave
   
   TRoomsLeaveOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3441,6 +3577,7 @@ type
   //Optional query Options for TRoomsResource, method List
   
   TRoomsListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3450,6 +3587,7 @@ type
   //Optional query Options for TRoomsResource, method ReportStatus
   
   TRoomsReportStatusOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3461,7 +3599,8 @@ type
     Function Create(aRoomCreateRequest : TRoomCreateRequest; AQuery : TRoomscreateOptions) : TRoom;overload;
     Function Decline(roomId: string; AQuery : string  = '') : TRoom;
     Function Decline(roomId: string; AQuery : TRoomsdeclineOptions) : TRoom;
-    Procedure Dismiss(roomId: string);
+    Procedure Dismiss(roomId: string; AQuery : string  = '');
+    Procedure Dismiss(roomId: string; AQuery : TRoomsdismissOptions);
     Function Get(roomId: string; AQuery : string  = '') : TRoom;
     Function Get(roomId: string; AQuery : TRoomsgetOptions) : TRoom;
     Function Join(roomId: string; aRoomJoinRequest : TRoomJoinRequest; AQuery : string  = '') : TRoom;
@@ -3483,6 +3622,7 @@ type
   //Optional query Options for TScoresResource, method Get
   
   TScoresGetOptions = Record
+    consistencyToken : int64;
     includeRankType : String;
     language : String;
     maxResults : integer;
@@ -3493,6 +3633,7 @@ type
   //Optional query Options for TScoresResource, method List
   
   TScoresListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3503,6 +3644,7 @@ type
   //Optional query Options for TScoresResource, method ListWindow
   
   TScoresListWindowOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3515,6 +3657,7 @@ type
   //Optional query Options for TScoresResource, method Submit
   
   TScoresSubmitOptions = Record
+    consistencyToken : int64;
     language : String;
     score : int64;
     scoreTag : String;
@@ -3524,6 +3667,7 @@ type
   //Optional query Options for TScoresResource, method SubmitMultiple
   
   TScoresSubmitMultipleOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3552,6 +3696,7 @@ type
   //Optional query Options for TSnapshotsResource, method Get
   
   TSnapshotsGetOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3559,6 +3704,7 @@ type
   //Optional query Options for TSnapshotsResource, method List
   
   TSnapshotsListOptions = Record
+    consistencyToken : int64;
     language : String;
     maxResults : integer;
     pageToken : String;
@@ -3580,9 +3726,17 @@ type
     --------------------------------------------------------------------}
   
   
+  //Optional query Options for TTurnBasedMatchesResource, method Cancel
+  
+  TTurnBasedMatchesCancelOptions = Record
+    consistencyToken : int64;
+  end;
+  
+  
   //Optional query Options for TTurnBasedMatchesResource, method Create
   
   TTurnBasedMatchesCreateOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3590,13 +3744,22 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method Decline
   
   TTurnBasedMatchesDeclineOptions = Record
+    consistencyToken : int64;
     language : String;
+  end;
+  
+  
+  //Optional query Options for TTurnBasedMatchesResource, method Dismiss
+  
+  TTurnBasedMatchesDismissOptions = Record
+    consistencyToken : int64;
   end;
   
   
   //Optional query Options for TTurnBasedMatchesResource, method Finish
   
   TTurnBasedMatchesFinishOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3604,6 +3767,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method Get
   
   TTurnBasedMatchesGetOptions = Record
+    consistencyToken : int64;
     includeMatchData : boolean;
     language : String;
   end;
@@ -3612,6 +3776,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method Join
   
   TTurnBasedMatchesJoinOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3619,6 +3784,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method Leave
   
   TTurnBasedMatchesLeaveOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3626,6 +3792,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method LeaveTurn
   
   TTurnBasedMatchesLeaveTurnOptions = Record
+    consistencyToken : int64;
     language : String;
     matchVersion : integer;
     pendingParticipantId : String;
@@ -3635,6 +3802,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method List
   
   TTurnBasedMatchesListOptions = Record
+    consistencyToken : int64;
     includeMatchData : boolean;
     language : String;
     maxCompletedMatches : integer;
@@ -3646,6 +3814,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method Rematch
   
   TTurnBasedMatchesRematchOptions = Record
+    consistencyToken : int64;
     language : String;
     requestId : int64;
   end;
@@ -3654,6 +3823,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method Sync
   
   TTurnBasedMatchesSyncOptions = Record
+    consistencyToken : int64;
     includeMatchData : boolean;
     language : String;
     maxCompletedMatches : integer;
@@ -3665,6 +3835,7 @@ type
   //Optional query Options for TTurnBasedMatchesResource, method TakeTurn
   
   TTurnBasedMatchesTakeTurnOptions = Record
+    consistencyToken : int64;
     language : String;
   end;
   
@@ -3672,12 +3843,14 @@ type
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Procedure Cancel(matchId: string);
+    Procedure Cancel(matchId: string; AQuery : string  = '');
+    Procedure Cancel(matchId: string; AQuery : TTurnBasedMatchescancelOptions);
     Function Create(aTurnBasedMatchCreateRequest : TTurnBasedMatchCreateRequest; AQuery : string  = '') : TTurnBasedMatch;overload;
     Function Create(aTurnBasedMatchCreateRequest : TTurnBasedMatchCreateRequest; AQuery : TTurnBasedMatchescreateOptions) : TTurnBasedMatch;overload;
     Function Decline(matchId: string; AQuery : string  = '') : TTurnBasedMatch;
     Function Decline(matchId: string; AQuery : TTurnBasedMatchesdeclineOptions) : TTurnBasedMatch;
-    Procedure Dismiss(matchId: string);
+    Procedure Dismiss(matchId: string; AQuery : string  = '');
+    Procedure Dismiss(matchId: string; AQuery : TTurnBasedMatchesdismissOptions);
     Function Finish(matchId: string; aTurnBasedMatchResults : TTurnBasedMatchResults; AQuery : string  = '') : TTurnBasedMatch;
     Function Finish(matchId: string; aTurnBasedMatchResults : TTurnBasedMatchResults; AQuery : TTurnBasedMatchesfinishOptions) : TTurnBasedMatch;
     Function Get(matchId: string; AQuery : string  = '') : TTurnBasedMatch;
@@ -3874,7 +4047,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetisRevealedIconUrlDefault(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementDefinition.SetisRevealedIconUrlDefault(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisRevealedIconUrlDefault=AValue) then exit;
@@ -3884,7 +4057,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SetisUnlockedIconUrlDefault(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementDefinition.SetisUnlockedIconUrlDefault(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisUnlockedIconUrlDefault=AValue) then exit;
@@ -3924,7 +4097,7 @@ end;
 
 
 
-Procedure TAchievementDefinition.SettotalSteps(AIndex : Integer; AValue : integer); 
+Procedure TAchievementDefinition.SettotalSteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalSteps=AValue) then exit;
@@ -3951,7 +4124,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementDefinitionsListResponse.Setitems(AIndex : Integer; AValue : TAchievementDefinitionsListResponseTypeitemsArray); 
+Procedure TAchievementDefinitionsListResponse.Setitems(AIndex : Integer; const AValue : TAchievementDefinitionsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -4001,7 +4174,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementIncrementResponse.SetcurrentSteps(AIndex : Integer; AValue : integer); 
+Procedure TAchievementIncrementResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -4021,7 +4194,7 @@ end;
 
 
 
-Procedure TAchievementIncrementResponse.SetnewlyUnlocked(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementIncrementResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4065,7 +4238,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementSetStepsAtLeastResponse.SetcurrentSteps(AIndex : Integer; AValue : integer); 
+Procedure TAchievementSetStepsAtLeastResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -4085,7 +4258,7 @@ end;
 
 
 
-Procedure TAchievementSetStepsAtLeastResponse.SetnewlyUnlocked(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementSetStepsAtLeastResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4112,7 +4285,7 @@ end;
 
 
 
-Procedure TAchievementUnlockResponse.SetnewlyUnlocked(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementUnlockResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4139,7 +4312,7 @@ end;
 
 
 
-Procedure TAchievementUpdateMultipleRequest.Setupdates(AIndex : Integer; AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); 
+Procedure TAchievementUpdateMultipleRequest.Setupdates(AIndex : Integer; const AValue : TAchievementUpdateMultipleRequestTypeupdatesArray); 
 
 begin
   If (Fupdates=AValue) then exit;
@@ -4179,7 +4352,7 @@ end;
 
 
 
-Procedure TAchievementUpdateMultipleResponse.SetupdatedAchievements(AIndex : Integer; AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); 
+Procedure TAchievementUpdateMultipleResponse.SetupdatedAchievements(AIndex : Integer; const AValue : TAchievementUpdateMultipleResponseTypeupdatedAchievementsArray); 
 
 begin
   If (FupdatedAchievements=AValue) then exit;
@@ -4219,7 +4392,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.SetincrementPayload(AIndex : Integer; AValue : TGamesAchievementIncrement); 
+Procedure TAchievementUpdateRequest.SetincrementPayload(AIndex : Integer; const AValue : TGamesAchievementIncrement); 
 
 begin
   If (FincrementPayload=AValue) then exit;
@@ -4239,7 +4412,7 @@ end;
 
 
 
-Procedure TAchievementUpdateRequest.SetsetStepsAtLeastPayload(AIndex : Integer; AValue : TGamesAchievementSetStepsAtLeast); 
+Procedure TAchievementUpdateRequest.SetsetStepsAtLeastPayload(AIndex : Integer; const AValue : TGamesAchievementSetStepsAtLeast); 
 
 begin
   If (FsetStepsAtLeastPayload=AValue) then exit;
@@ -4286,7 +4459,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetcurrentSteps(AIndex : Integer; AValue : integer); 
+Procedure TAchievementUpdateResponse.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -4306,7 +4479,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetnewlyUnlocked(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementUpdateResponse.SetnewlyUnlocked(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FnewlyUnlocked=AValue) then exit;
@@ -4316,7 +4489,7 @@ end;
 
 
 
-Procedure TAchievementUpdateResponse.SetupdateOccurred(AIndex : Integer; AValue : boolean); 
+Procedure TAchievementUpdateResponse.SetupdateOccurred(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FupdateOccurred=AValue) then exit;
@@ -4427,7 +4600,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TApplication.Setachievement_count(AIndex : Integer; AValue : integer); 
+Procedure TApplication.Setachievement_count(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fachievement_count=AValue) then exit;
@@ -4437,7 +4610,7 @@ end;
 
 
 
-Procedure TApplication.Setassets(AIndex : Integer; AValue : TApplicationTypeassetsArray); 
+Procedure TApplication.Setassets(AIndex : Integer; const AValue : TApplicationTypeassetsArray); 
 
 begin
   If (Fassets=AValue) then exit;
@@ -4457,7 +4630,7 @@ end;
 
 
 
-Procedure TApplication.Setcategory(AIndex : Integer; AValue : TApplicationCategory); 
+Procedure TApplication.Setcategory(AIndex : Integer; const AValue : TApplicationCategory); 
 
 begin
   If (Fcategory=AValue) then exit;
@@ -4477,7 +4650,7 @@ end;
 
 
 
-Procedure TApplication.SetenabledFeatures(AIndex : Integer; AValue : TStringArray); 
+Procedure TApplication.SetenabledFeatures(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FenabledFeatures=AValue) then exit;
@@ -4497,7 +4670,7 @@ end;
 
 
 
-Procedure TApplication.Setinstances(AIndex : Integer; AValue : TApplicationTypeinstancesArray); 
+Procedure TApplication.Setinstances(AIndex : Integer; const AValue : TApplicationTypeinstancesArray); 
 
 begin
   If (Finstances=AValue) then exit;
@@ -4527,7 +4700,7 @@ end;
 
 
 
-Procedure TApplication.Setleaderboard_count(AIndex : Integer; AValue : integer); 
+Procedure TApplication.Setleaderboard_count(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fleaderboard_count=AValue) then exit;
@@ -4612,6 +4785,43 @@ end;
 
 
 { --------------------------------------------------------------------
+  TApplicationVerifyResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TApplicationVerifyResponse.Setalternate_player_id(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Falternate_player_id=AValue) then exit;
+  Falternate_player_id:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApplicationVerifyResponse.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApplicationVerifyResponse.Setplayer_id(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fplayer_id=AValue) then exit;
+  Fplayer_id:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TCategory
   --------------------------------------------------------------------}
 
@@ -4653,7 +4863,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCategoryListResponse.Setitems(AIndex : Integer; AValue : TCategoryListResponseTypeitemsArray); 
+Procedure TCategoryListResponse.Setitems(AIndex : Integer; const AValue : TCategoryListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -4723,7 +4933,7 @@ end;
 
 
 
-Procedure TEventBatchRecordFailure.Setrange(AIndex : Integer; AValue : TEventPeriodRange); 
+Procedure TEventBatchRecordFailure.Setrange(AIndex : Integer; const AValue : TEventPeriodRange); 
 
 begin
   If (Frange=AValue) then exit;
@@ -4767,7 +4977,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventDefinition.SetchildEvents(AIndex : Integer; AValue : TEventDefinitionTypechildEventsArray); 
+Procedure TEventDefinition.SetchildEvents(AIndex : Integer; const AValue : TEventDefinitionTypechildEventsArray); 
 
 begin
   If (FchildEvents=AValue) then exit;
@@ -4817,7 +5027,7 @@ end;
 
 
 
-Procedure TEventDefinition.SetisDefaultImageUrl(AIndex : Integer; AValue : boolean); 
+Procedure TEventDefinition.SetisDefaultImageUrl(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisDefaultImageUrl=AValue) then exit;
@@ -4867,7 +5077,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventDefinitionListResponse.Setitems(AIndex : Integer; AValue : TEventDefinitionListResponseTypeitemsArray); 
+Procedure TEventDefinitionListResponse.Setitems(AIndex : Integer; const AValue : TEventDefinitionListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -4964,7 +5174,7 @@ end;
 
 
 
-Procedure TEventPeriodUpdate.SettimePeriod(AIndex : Integer; AValue : TEventPeriodRange); 
+Procedure TEventPeriodUpdate.SettimePeriod(AIndex : Integer; const AValue : TEventPeriodRange); 
 
 begin
   If (FtimePeriod=AValue) then exit;
@@ -4974,7 +5184,7 @@ end;
 
 
 
-Procedure TEventPeriodUpdate.Setupdates(AIndex : Integer; AValue : TEventPeriodUpdateTypeupdatesArray); 
+Procedure TEventPeriodUpdate.Setupdates(AIndex : Integer; const AValue : TEventPeriodUpdateTypeupdatesArray); 
 
 begin
   If (Fupdates=AValue) then exit;
@@ -5071,7 +5281,7 @@ end;
 
 
 
-Procedure TEventRecordRequest.SettimePeriods(AIndex : Integer; AValue : TEventRecordRequestTypetimePeriodsArray); 
+Procedure TEventRecordRequest.SettimePeriods(AIndex : Integer; const AValue : TEventRecordRequestTypetimePeriodsArray); 
 
 begin
   If (FtimePeriods=AValue) then exit;
@@ -5138,7 +5348,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEventUpdateResponse.SetbatchFailures(AIndex : Integer; AValue : TEventUpdateResponseTypebatchFailuresArray); 
+Procedure TEventUpdateResponse.SetbatchFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypebatchFailuresArray); 
 
 begin
   If (FbatchFailures=AValue) then exit;
@@ -5148,7 +5358,7 @@ end;
 
 
 
-Procedure TEventUpdateResponse.SeteventFailures(AIndex : Integer; AValue : TEventUpdateResponseTypeeventFailuresArray); 
+Procedure TEventUpdateResponse.SeteventFailures(AIndex : Integer; const AValue : TEventUpdateResponseTypeeventFailuresArray); 
 
 begin
   If (FeventFailures=AValue) then exit;
@@ -5168,7 +5378,7 @@ end;
 
 
 
-Procedure TEventUpdateResponse.SetplayerEvents(AIndex : Integer; AValue : TEventUpdateResponseTypeplayerEventsArray); 
+Procedure TEventUpdateResponse.SetplayerEvents(AIndex : Integer; const AValue : TEventUpdateResponseTypeplayerEventsArray); 
 
 begin
   If (FplayerEvents=AValue) then exit;
@@ -5220,7 +5430,7 @@ end;
 
 
 
-Procedure TGamesAchievementIncrement.Setsteps(AIndex : Integer; AValue : integer); 
+Procedure TGamesAchievementIncrement.Setsteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fsteps=AValue) then exit;
@@ -5247,7 +5457,7 @@ end;
 
 
 
-Procedure TGamesAchievementSetStepsAtLeast.Setsteps(AIndex : Integer; AValue : integer); 
+Procedure TGamesAchievementSetStepsAtLeast.Setsteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fsteps=AValue) then exit;
@@ -5264,7 +5474,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImageAsset.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TImageAsset.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -5304,7 +5514,7 @@ end;
 
 
 
-Procedure TImageAsset.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TImageAsset.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -5331,7 +5541,7 @@ end;
 
 
 
-Procedure TInstance.SetandroidInstance(AIndex : Integer; AValue : TInstanceAndroidDetails); 
+Procedure TInstance.SetandroidInstance(AIndex : Integer; const AValue : TInstanceAndroidDetails); 
 
 begin
   If (FandroidInstance=AValue) then exit;
@@ -5341,7 +5551,7 @@ end;
 
 
 
-Procedure TInstance.SetiosInstance(AIndex : Integer; AValue : TInstanceIosDetails); 
+Procedure TInstance.SetiosInstance(AIndex : Integer; const AValue : TInstanceIosDetails); 
 
 begin
   If (FiosInstance=AValue) then exit;
@@ -5381,7 +5591,7 @@ end;
 
 
 
-Procedure TInstance.SetrealtimePlay(AIndex : Integer; AValue : boolean); 
+Procedure TInstance.SetrealtimePlay(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FrealtimePlay=AValue) then exit;
@@ -5391,7 +5601,7 @@ end;
 
 
 
-Procedure TInstance.SetturnBasedPlay(AIndex : Integer; AValue : boolean); 
+Procedure TInstance.SetturnBasedPlay(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FturnBasedPlay=AValue) then exit;
@@ -5401,7 +5611,7 @@ end;
 
 
 
-Procedure TInstance.SetwebInstance(AIndex : Integer; AValue : TInstanceWebDetails); 
+Procedure TInstance.SetwebInstance(AIndex : Integer; const AValue : TInstanceWebDetails); 
 
 begin
   If (FwebInstance=AValue) then exit;
@@ -5418,7 +5628,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstanceAndroidDetails.SetenablePiracyCheck(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceAndroidDetails.SetenablePiracyCheck(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FenablePiracyCheck=AValue) then exit;
@@ -5448,7 +5658,7 @@ end;
 
 
 
-Procedure TInstanceAndroidDetails.Setpreferred(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceAndroidDetails.Setpreferred(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fpreferred=AValue) then exit;
@@ -5495,7 +5705,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetpreferredForIpad(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceIosDetails.SetpreferredForIpad(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FpreferredForIpad=AValue) then exit;
@@ -5505,7 +5715,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetpreferredForIphone(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceIosDetails.SetpreferredForIphone(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FpreferredForIphone=AValue) then exit;
@@ -5515,7 +5725,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetsupportIpad(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceIosDetails.SetsupportIpad(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsupportIpad=AValue) then exit;
@@ -5525,7 +5735,7 @@ end;
 
 
 
-Procedure TInstanceIosDetails.SetsupportIphone(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceIosDetails.SetsupportIphone(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsupportIphone=AValue) then exit;
@@ -5562,7 +5772,7 @@ end;
 
 
 
-Procedure TInstanceWebDetails.Setpreferred(AIndex : Integer; AValue : boolean); 
+Procedure TInstanceWebDetails.Setpreferred(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fpreferred=AValue) then exit;
@@ -5599,7 +5809,7 @@ end;
 
 
 
-Procedure TLeaderboard.SetisIconUrlDefault(AIndex : Integer; AValue : boolean); 
+Procedure TLeaderboard.SetisIconUrlDefault(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisIconUrlDefault=AValue) then exit;
@@ -5676,7 +5886,7 @@ end;
 
 
 
-Procedure TLeaderboardEntry.Setplayer(AIndex : Integer; AValue : TPlayer); 
+Procedure TLeaderboardEntry.Setplayer(AIndex : Integer; const AValue : TPlayer); 
 
 begin
   If (Fplayer=AValue) then exit;
@@ -5743,7 +5953,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardListResponse.Setitems(AIndex : Integer; AValue : TLeaderboardListResponseTypeitemsArray); 
+Procedure TLeaderboardListResponse.Setitems(AIndex : Integer; const AValue : TLeaderboardListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -5850,7 +6060,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardScores.Setitems(AIndex : Integer; AValue : TLeaderboardScoresTypeitemsArray); 
+Procedure TLeaderboardScores.Setitems(AIndex : Integer; const AValue : TLeaderboardScoresTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -5890,7 +6100,7 @@ end;
 
 
 
-Procedure TLeaderboardScores.SetplayerScore(AIndex : Integer; AValue : TLeaderboardEntry); 
+Procedure TLeaderboardScores.SetplayerScore(AIndex : Integer; const AValue : TLeaderboardEntry); 
 
 begin
   If (FplayerScore=AValue) then exit;
@@ -5930,7 +6140,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMetagameConfig.SetcurrentVersion(AIndex : Integer; AValue : integer); 
+Procedure TMetagameConfig.SetcurrentVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcurrentVersion=AValue) then exit;
@@ -5950,7 +6160,7 @@ end;
 
 
 
-Procedure TMetagameConfig.SetplayerLevels(AIndex : Integer; AValue : TMetagameConfigTypeplayerLevelsArray); 
+Procedure TMetagameConfig.SetplayerLevels(AIndex : Integer; const AValue : TMetagameConfigTypeplayerLevelsArray); 
 
 begin
   If (FplayerLevels=AValue) then exit;
@@ -5980,7 +6190,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TNetworkDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; AValue : integer); 
+Procedure TNetworkDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FandroidNetworkSubtype=AValue) then exit;
@@ -5990,7 +6200,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetandroidNetworkType(AIndex : Integer; AValue : integer); 
+Procedure TNetworkDiagnostics.SetandroidNetworkType(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FandroidNetworkType=AValue) then exit;
@@ -6000,7 +6210,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetiosNetworkType(AIndex : Integer; AValue : integer); 
+Procedure TNetworkDiagnostics.SetiosNetworkType(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FiosNetworkType=AValue) then exit;
@@ -6040,7 +6250,7 @@ end;
 
 
 
-Procedure TNetworkDiagnostics.SetregistrationLatencyMillis(AIndex : Integer; AValue : integer); 
+Procedure TNetworkDiagnostics.SetregistrationLatencyMillis(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FregistrationLatencyMillis=AValue) then exit;
@@ -6077,7 +6287,7 @@ end;
 
 
 
-Procedure TParticipantResult.Setplacing(AIndex : Integer; AValue : integer); 
+Procedure TParticipantResult.Setplacing(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fplacing=AValue) then exit;
@@ -6104,7 +6314,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPeerChannelDiagnostics.SetbytesReceived(AIndex : Integer; AValue : TAggregateStats); 
+Procedure TPeerChannelDiagnostics.SetbytesReceived(AIndex : Integer; const AValue : TAggregateStats); 
 
 begin
   If (FbytesReceived=AValue) then exit;
@@ -6114,7 +6324,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetbytesSent(AIndex : Integer; AValue : TAggregateStats); 
+Procedure TPeerChannelDiagnostics.SetbytesSent(AIndex : Integer; const AValue : TAggregateStats); 
 
 begin
   If (FbytesSent=AValue) then exit;
@@ -6134,7 +6344,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumMessagesLost(AIndex : Integer; AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumMessagesLost(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumMessagesLost=AValue) then exit;
@@ -6144,7 +6354,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumMessagesReceived(AIndex : Integer; AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumMessagesReceived(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumMessagesReceived=AValue) then exit;
@@ -6154,7 +6364,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumMessagesSent(AIndex : Integer; AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumMessagesSent(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumMessagesSent=AValue) then exit;
@@ -6164,7 +6374,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetnumSendFailures(AIndex : Integer; AValue : integer); 
+Procedure TPeerChannelDiagnostics.SetnumSendFailures(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumSendFailures=AValue) then exit;
@@ -6174,7 +6384,7 @@ end;
 
 
 
-Procedure TPeerChannelDiagnostics.SetroundtripLatencyMillis(AIndex : Integer; AValue : TAggregateStats); 
+Procedure TPeerChannelDiagnostics.SetroundtripLatencyMillis(AIndex : Integer; const AValue : TAggregateStats); 
 
 begin
   If (FroundtripLatencyMillis=AValue) then exit;
@@ -6221,7 +6431,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.SetreliableChannel(AIndex : Integer; AValue : TPeerChannelDiagnostics); 
+Procedure TPeerSessionDiagnostics.SetreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics); 
 
 begin
   If (FreliableChannel=AValue) then exit;
@@ -6231,7 +6441,7 @@ end;
 
 
 
-Procedure TPeerSessionDiagnostics.SetunreliableChannel(AIndex : Integer; AValue : TPeerChannelDiagnostics); 
+Procedure TPeerSessionDiagnostics.SetunreliableChannel(AIndex : Integer; const AValue : TPeerChannelDiagnostics); 
 
 begin
   If (FunreliableChannel=AValue) then exit;
@@ -6248,7 +6458,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayed.SetautoMatched(AIndex : Integer; AValue : boolean); 
+Procedure TPlayed.SetautoMatched(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -6322,6 +6532,26 @@ end;
 
 
 
+Procedure TPlayer.SetbannerUrlLandscape(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbannerUrlLandscape=AValue) then exit;
+  FbannerUrlLandscape:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetbannerUrlPortrait(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbannerUrlPortrait=AValue) then exit;
+  FbannerUrlPortrait:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TPlayer.SetdisplayName(AIndex : Integer; const AValue : String); 
 
 begin
@@ -6332,7 +6562,7 @@ end;
 
 
 
-Procedure TPlayer.SetexperienceInfo(AIndex : Integer; AValue : TPlayerExperienceInfo); 
+Procedure TPlayer.SetexperienceInfo(AIndex : Integer; const AValue : TPlayerExperienceInfo); 
 
 begin
   If (FexperienceInfo=AValue) then exit;
@@ -6352,7 +6582,7 @@ end;
 
 
 
-Procedure TPlayer.SetlastPlayedWith(AIndex : Integer; AValue : TPlayed); 
+Procedure TPlayer.SetlastPlayedWith(AIndex : Integer; const AValue : TPlayed); 
 
 begin
   If (FlastPlayedWith=AValue) then exit;
@@ -6362,11 +6592,21 @@ end;
 
 
 
-Procedure TPlayer.Setname(AIndex : Integer; AValue : TPlayerTypename); 
+Procedure TPlayer.Setname(AIndex : Integer; const AValue : TPlayerTypename); 
 
 begin
   If (Fname=AValue) then exit;
   Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetoriginalPlayerId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (ForiginalPlayerId=AValue) then exit;
+  ForiginalPlayerId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -6377,6 +6617,16 @@ Procedure TPlayer.SetplayerId(AIndex : Integer; const AValue : String);
 begin
   If (FplayerId=AValue) then exit;
   FplayerId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPlayer.SetprofileSettings(AIndex : Integer; const AValue : TProfileSettings); 
+
+begin
+  If (FprofileSettings=AValue) then exit;
+  FprofileSettings:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -6409,7 +6659,7 @@ end;
 
 
 
-Procedure TPlayerAchievement.SetcurrentSteps(AIndex : Integer; AValue : integer); 
+Procedure TPlayerAchievement.SetcurrentSteps(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FcurrentSteps=AValue) then exit;
@@ -6476,7 +6726,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerAchievementListResponse.Setitems(AIndex : Integer; AValue : TPlayerAchievementListResponseTypeitemsArray); 
+Procedure TPlayerAchievementListResponse.Setitems(AIndex : Integer; const AValue : TPlayerAchievementListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -6583,7 +6833,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerEventListResponse.Setitems(AIndex : Integer; AValue : TPlayerEventListResponseTypeitemsArray); 
+Procedure TPlayerEventListResponse.Setitems(AIndex : Integer; const AValue : TPlayerEventListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -6643,7 +6893,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.SetcurrentLevel(AIndex : Integer; AValue : TPlayerLevel); 
+Procedure TPlayerExperienceInfo.SetcurrentLevel(AIndex : Integer; const AValue : TPlayerLevel); 
 
 begin
   If (FcurrentLevel=AValue) then exit;
@@ -6673,7 +6923,7 @@ end;
 
 
 
-Procedure TPlayerExperienceInfo.SetnextLevel(AIndex : Integer; AValue : TPlayerLevel); 
+Procedure TPlayerExperienceInfo.SetnextLevel(AIndex : Integer; const AValue : TPlayerLevel); 
 
 begin
   If (FnextLevel=AValue) then exit;
@@ -6710,7 +6960,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetpublicRank(AIndex : Integer; AValue : TLeaderboardScoreRank); 
+Procedure TPlayerLeaderboardScore.SetpublicRank(AIndex : Integer; const AValue : TLeaderboardScoreRank); 
 
 begin
   If (FpublicRank=AValue) then exit;
@@ -6750,7 +7000,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScore.SetsocialRank(AIndex : Integer; AValue : TLeaderboardScoreRank); 
+Procedure TPlayerLeaderboardScore.SetsocialRank(AIndex : Integer; const AValue : TLeaderboardScoreRank); 
 
 begin
   If (FsocialRank=AValue) then exit;
@@ -6787,7 +7037,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerLeaderboardScoreListResponse.Setitems(AIndex : Integer; AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray); 
+Procedure TPlayerLeaderboardScoreListResponse.Setitems(AIndex : Integer; const AValue : TPlayerLeaderboardScoreListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -6817,7 +7067,7 @@ end;
 
 
 
-Procedure TPlayerLeaderboardScoreListResponse.Setplayer(AIndex : Integer; AValue : TPlayer); 
+Procedure TPlayerLeaderboardScoreListResponse.Setplayer(AIndex : Integer; const AValue : TPlayer); 
 
 begin
   If (Fplayer=AValue) then exit;
@@ -6857,7 +7107,7 @@ end;
 
 
 
-Procedure TPlayerLevel.Setlevel(AIndex : Integer; AValue : integer); 
+Procedure TPlayerLevel.Setlevel(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Flevel=AValue) then exit;
@@ -6894,7 +7144,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerListResponse.Setitems(AIndex : Integer; AValue : TPlayerListResponseTypeitemsArray); 
+Procedure TPlayerListResponse.Setitems(AIndex : Integer; const AValue : TPlayerListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -7011,7 +7261,7 @@ end;
 
 
 
-Procedure TPlayerScoreListResponse.SetsubmittedScores(AIndex : Integer; AValue : TPlayerScoreListResponseTypesubmittedScoresArray); 
+Procedure TPlayerScoreListResponse.SetsubmittedScores(AIndex : Integer; const AValue : TPlayerScoreListResponseTypesubmittedScoresArray); 
 
 begin
   If (FsubmittedScores=AValue) then exit;
@@ -7041,7 +7291,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPlayerScoreResponse.SetbeatenScoreTimeSpans(AIndex : Integer; AValue : TStringArray); 
+Procedure TPlayerScoreResponse.SetbeatenScoreTimeSpans(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FbeatenScoreTimeSpans=AValue) then exit;
@@ -7091,7 +7341,7 @@ end;
 
 
 
-Procedure TPlayerScoreResponse.SetunbeatenScores(AIndex : Integer; AValue : TPlayerScoreResponseTypeunbeatenScoresArray); 
+Procedure TPlayerScoreResponse.SetunbeatenScores(AIndex : Integer; const AValue : TPlayerScoreResponseTypeunbeatenScoresArray); 
 
 begin
   If (FunbeatenScores=AValue) then exit;
@@ -7132,7 +7382,7 @@ end;
 
 
 
-Procedure TPlayerScoreSubmissionList.Setscores(AIndex : Integer; AValue : TPlayerScoreSubmissionListTypescoresArray); 
+Procedure TPlayerScoreSubmissionList.Setscores(AIndex : Integer; const AValue : TPlayerScoreSubmissionListTypescoresArray); 
 
 begin
   If (Fscores=AValue) then exit;
@@ -7158,6 +7408,33 @@ end;
 
 
 { --------------------------------------------------------------------
+  TProfileSettings
+  --------------------------------------------------------------------}
+
+
+Procedure TProfileSettings.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProfileSettings.SetprofileVisible(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FprofileVisible=AValue) then exit;
+  FprofileVisible:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TPushToken
   --------------------------------------------------------------------}
 
@@ -7172,7 +7449,7 @@ end;
 
 
 
-Procedure TPushToken.Setid(AIndex : Integer; AValue : TPushTokenId); 
+Procedure TPushToken.Setid(AIndex : Integer; const AValue : TPushTokenId); 
 
 begin
   If (Fid=AValue) then exit;
@@ -7236,7 +7513,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPushTokenId.Setios(AIndex : Integer; AValue : TPushTokenIdTypeios); 
+Procedure TPushTokenId.Setios(AIndex : Integer; const AValue : TPushTokenIdTypeios); 
 
 begin
   If (Fios=AValue) then exit;
@@ -7333,7 +7610,7 @@ end;
 
 
 
-Procedure TQuest.SetisDefaultBannerUrl(AIndex : Integer; AValue : boolean); 
+Procedure TQuest.SetisDefaultBannerUrl(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisDefaultBannerUrl=AValue) then exit;
@@ -7343,7 +7620,7 @@ end;
 
 
 
-Procedure TQuest.SetisDefaultIconUrl(AIndex : Integer; AValue : boolean); 
+Procedure TQuest.SetisDefaultIconUrl(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisDefaultIconUrl=AValue) then exit;
@@ -7373,7 +7650,7 @@ end;
 
 
 
-Procedure TQuest.Setmilestones(AIndex : Integer; AValue : TQuestTypemilestonesArray); 
+Procedure TQuest.Setmilestones(AIndex : Integer; const AValue : TQuestTypemilestonesArray); 
 
 begin
   If (Fmilestones=AValue) then exit;
@@ -7480,7 +7757,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestCriterion.SetcompletionContribution(AIndex : Integer; AValue : TQuestContribution); 
+Procedure TQuestCriterion.SetcompletionContribution(AIndex : Integer; const AValue : TQuestContribution); 
 
 begin
   If (FcompletionContribution=AValue) then exit;
@@ -7490,7 +7767,7 @@ end;
 
 
 
-Procedure TQuestCriterion.SetcurrentContribution(AIndex : Integer; AValue : TQuestContribution); 
+Procedure TQuestCriterion.SetcurrentContribution(AIndex : Integer; const AValue : TQuestContribution); 
 
 begin
   If (FcurrentContribution=AValue) then exit;
@@ -7510,7 +7787,7 @@ end;
 
 
 
-Procedure TQuestCriterion.SetinitialPlayerProgress(AIndex : Integer; AValue : TQuestContribution); 
+Procedure TQuestCriterion.SetinitialPlayerProgress(AIndex : Integer; const AValue : TQuestContribution); 
 
 begin
   If (FinitialPlayerProgress=AValue) then exit;
@@ -7537,7 +7814,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TQuestListResponse.Setitems(AIndex : Integer; AValue : TQuestListResponseTypeitemsArray); 
+Procedure TQuestListResponse.Setitems(AIndex : Integer; const AValue : TQuestListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -7597,7 +7874,7 @@ end;
 
 
 
-Procedure TQuestMilestone.Setcriteria(AIndex : Integer; AValue : TQuestMilestoneTypecriteriaArray); 
+Procedure TQuestMilestone.Setcriteria(AIndex : Integer; const AValue : TQuestMilestoneTypecriteriaArray); 
 
 begin
   If (Fcriteria=AValue) then exit;
@@ -7704,7 +7981,7 @@ end;
 
 
 
-Procedure TRoom.SetautoMatchingCriteria(AIndex : Integer; AValue : TRoomAutoMatchingCriteria); 
+Procedure TRoom.SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria); 
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -7714,7 +7991,7 @@ end;
 
 
 
-Procedure TRoom.SetautoMatchingStatus(AIndex : Integer; AValue : TRoomAutoMatchStatus); 
+Procedure TRoom.SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus); 
 
 begin
   If (FautoMatchingStatus=AValue) then exit;
@@ -7724,7 +8001,7 @@ end;
 
 
 
-Procedure TRoom.SetcreationDetails(AIndex : Integer; AValue : TRoomModification); 
+Procedure TRoom.SetcreationDetails(AIndex : Integer; const AValue : TRoomModification); 
 
 begin
   If (FcreationDetails=AValue) then exit;
@@ -7764,7 +8041,7 @@ end;
 
 
 
-Procedure TRoom.SetlastUpdateDetails(AIndex : Integer; AValue : TRoomModification); 
+Procedure TRoom.SetlastUpdateDetails(AIndex : Integer; const AValue : TRoomModification); 
 
 begin
   If (FlastUpdateDetails=AValue) then exit;
@@ -7774,7 +8051,7 @@ end;
 
 
 
-Procedure TRoom.Setparticipants(AIndex : Integer; AValue : TRoomTypeparticipantsArray); 
+Procedure TRoom.Setparticipants(AIndex : Integer; const AValue : TRoomTypeparticipantsArray); 
 
 begin
   If (Fparticipants=AValue) then exit;
@@ -7794,7 +8071,7 @@ end;
 
 
 
-Procedure TRoom.SetroomStatusVersion(AIndex : Integer; AValue : integer); 
+Procedure TRoom.SetroomStatusVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FroomStatusVersion=AValue) then exit;
@@ -7814,7 +8091,7 @@ end;
 
 
 
-Procedure TRoom.Setvariant(AIndex : Integer; AValue : integer); 
+Procedure TRoom.Setvariant(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fvariant=AValue) then exit;
@@ -7854,7 +8131,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchStatus.SetwaitEstimateSeconds(AIndex : Integer; AValue : integer); 
+Procedure TRoomAutoMatchStatus.SetwaitEstimateSeconds(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FwaitEstimateSeconds=AValue) then exit;
@@ -7891,7 +8168,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; AValue : integer); 
+Procedure TRoomAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxAutoMatchingPlayers=AValue) then exit;
@@ -7901,7 +8178,7 @@ end;
 
 
 
-Procedure TRoomAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; AValue : integer); 
+Procedure TRoomAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FminAutoMatchingPlayers=AValue) then exit;
@@ -7945,7 +8222,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomCreateRequest.SetautoMatchingCriteria(AIndex : Integer; AValue : TRoomAutoMatchingCriteria); 
+Procedure TRoomCreateRequest.SetautoMatchingCriteria(AIndex : Integer; const AValue : TRoomAutoMatchingCriteria); 
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -7955,7 +8232,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.Setcapabilities(AIndex : Integer; AValue : TStringArray); 
+Procedure TRoomCreateRequest.Setcapabilities(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -7965,7 +8242,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); 
+Procedure TRoomCreateRequest.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); 
 
 begin
   If (FclientAddress=AValue) then exit;
@@ -7975,7 +8252,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetinvitedPlayerIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TRoomCreateRequest.SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FinvitedPlayerIds=AValue) then exit;
@@ -7995,7 +8272,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); 
+Procedure TRoomCreateRequest.SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics); 
 
 begin
   If (FnetworkDiagnostics=AValue) then exit;
@@ -8015,7 +8292,7 @@ end;
 
 
 
-Procedure TRoomCreateRequest.Setvariant(AIndex : Integer; AValue : integer); 
+Procedure TRoomCreateRequest.Setvariant(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fvariant=AValue) then exit;
@@ -8046,7 +8323,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomJoinRequest.Setcapabilities(AIndex : Integer; AValue : TStringArray); 
+Procedure TRoomJoinRequest.Setcapabilities(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -8056,7 +8333,7 @@ end;
 
 
 
-Procedure TRoomJoinRequest.SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); 
+Procedure TRoomJoinRequest.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); 
 
 begin
   If (FclientAddress=AValue) then exit;
@@ -8076,7 +8353,7 @@ end;
 
 
 
-Procedure TRoomJoinRequest.SetnetworkDiagnostics(AIndex : Integer; AValue : TNetworkDiagnostics); 
+Procedure TRoomJoinRequest.SetnetworkDiagnostics(AIndex : Integer; const AValue : TNetworkDiagnostics); 
 
 begin
   If (FnetworkDiagnostics=AValue) then exit;
@@ -8106,7 +8383,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomLeaveDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; AValue : integer); 
+Procedure TRoomLeaveDiagnostics.SetandroidNetworkSubtype(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FandroidNetworkSubtype=AValue) then exit;
@@ -8116,7 +8393,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetandroidNetworkType(AIndex : Integer; AValue : integer); 
+Procedure TRoomLeaveDiagnostics.SetandroidNetworkType(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FandroidNetworkType=AValue) then exit;
@@ -8126,7 +8403,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetiosNetworkType(AIndex : Integer; AValue : integer); 
+Procedure TRoomLeaveDiagnostics.SetiosNetworkType(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FiosNetworkType=AValue) then exit;
@@ -8166,7 +8443,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetpeerSession(AIndex : Integer; AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); 
+Procedure TRoomLeaveDiagnostics.SetpeerSession(AIndex : Integer; const AValue : TRoomLeaveDiagnosticsTypepeerSessionArray); 
 
 begin
   If (FpeerSession=AValue) then exit;
@@ -8176,7 +8453,7 @@ end;
 
 
 
-Procedure TRoomLeaveDiagnostics.SetsocketsUsed(AIndex : Integer; AValue : boolean); 
+Procedure TRoomLeaveDiagnostics.SetsocketsUsed(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsocketsUsed=AValue) then exit;
@@ -8216,7 +8493,7 @@ end;
 
 
 
-Procedure TRoomLeaveRequest.SetleaveDiagnostics(AIndex : Integer; AValue : TRoomLeaveDiagnostics); 
+Procedure TRoomLeaveRequest.SetleaveDiagnostics(AIndex : Integer; const AValue : TRoomLeaveDiagnostics); 
 
 begin
   If (FleaveDiagnostics=AValue) then exit;
@@ -8243,7 +8520,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomList.Setitems(AIndex : Integer; AValue : TRoomListTypeitemsArray); 
+Procedure TRoomList.Setitems(AIndex : Integer; const AValue : TRoomListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8330,7 +8607,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomP2PStatus.SetconnectionSetupLatencyMillis(AIndex : Integer; AValue : integer); 
+Procedure TRoomP2PStatus.SetconnectionSetupLatencyMillis(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FconnectionSetupLatencyMillis=AValue) then exit;
@@ -8390,7 +8667,7 @@ end;
 
 
 
-Procedure TRoomP2PStatus.SetunreliableRoundtripLatencyMillis(AIndex : Integer; AValue : integer); 
+Procedure TRoomP2PStatus.SetunreliableRoundtripLatencyMillis(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FunreliableRoundtripLatencyMillis=AValue) then exit;
@@ -8417,7 +8694,7 @@ end;
 
 
 
-Procedure TRoomP2PStatuses.Setupdates(AIndex : Integer; AValue : TRoomP2PStatusesTypeupdatesArray); 
+Procedure TRoomP2PStatuses.Setupdates(AIndex : Integer; const AValue : TRoomP2PStatusesTypeupdatesArray); 
 
 begin
   If (Fupdates=AValue) then exit;
@@ -8447,7 +8724,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomParticipant.SetautoMatched(AIndex : Integer; AValue : boolean); 
+Procedure TRoomParticipant.SetautoMatched(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -8457,7 +8734,7 @@ end;
 
 
 
-Procedure TRoomParticipant.SetautoMatchedPlayer(AIndex : Integer; AValue : TAnonymousPlayer); 
+Procedure TRoomParticipant.SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer); 
 
 begin
   If (FautoMatchedPlayer=AValue) then exit;
@@ -8467,7 +8744,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setcapabilities(AIndex : Integer; AValue : TStringArray); 
+Procedure TRoomParticipant.Setcapabilities(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -8477,7 +8754,7 @@ end;
 
 
 
-Procedure TRoomParticipant.SetclientAddress(AIndex : Integer; AValue : TRoomClientAddress); 
+Procedure TRoomParticipant.SetclientAddress(AIndex : Integer; const AValue : TRoomClientAddress); 
 
 begin
   If (FclientAddress=AValue) then exit;
@@ -8487,7 +8764,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setconnected(AIndex : Integer; AValue : boolean); 
+Procedure TRoomParticipant.Setconnected(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fconnected=AValue) then exit;
@@ -8527,7 +8804,7 @@ end;
 
 
 
-Procedure TRoomParticipant.Setplayer(AIndex : Integer; AValue : TPlayer); 
+Procedure TRoomParticipant.Setplayer(AIndex : Integer; const AValue : TPlayer); 
 
 begin
   If (Fplayer=AValue) then exit;
@@ -8567,7 +8844,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TRoomStatus.SetautoMatchingStatus(AIndex : Integer; AValue : TRoomAutoMatchStatus); 
+Procedure TRoomStatus.SetautoMatchingStatus(AIndex : Integer; const AValue : TRoomAutoMatchStatus); 
 
 begin
   If (FautoMatchingStatus=AValue) then exit;
@@ -8587,7 +8864,7 @@ end;
 
 
 
-Procedure TRoomStatus.Setparticipants(AIndex : Integer; AValue : TRoomStatusTypeparticipantsArray); 
+Procedure TRoomStatus.Setparticipants(AIndex : Integer; const AValue : TRoomStatusTypeparticipantsArray); 
 
 begin
   If (Fparticipants=AValue) then exit;
@@ -8617,7 +8894,7 @@ end;
 
 
 
-Procedure TRoomStatus.SetstatusVersion(AIndex : Integer; AValue : integer); 
+Procedure TRoomStatus.SetstatusVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstatusVersion=AValue) then exit;
@@ -8704,7 +8981,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshot.SetcoverImage(AIndex : Integer; AValue : TSnapshotImage); 
+Procedure TSnapshot.SetcoverImage(AIndex : Integer; const AValue : TSnapshotImage); 
 
 begin
   If (FcoverImage=AValue) then exit;
@@ -8832,7 +9109,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshotImage.Setheight(AIndex : Integer; AValue : integer); 
+Procedure TSnapshotImage.Setheight(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -8872,7 +9149,7 @@ end;
 
 
 
-Procedure TSnapshotImage.Setwidth(AIndex : Integer; AValue : integer); 
+Procedure TSnapshotImage.Setwidth(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fwidth=AValue) then exit;
@@ -8889,7 +9166,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSnapshotListResponse.Setitems(AIndex : Integer; AValue : TSnapshotListResponseTypeitemsArray); 
+Procedure TSnapshotListResponse.Setitems(AIndex : Integer; const AValue : TSnapshotListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -8959,7 +9236,7 @@ end;
 
 
 
-Procedure TTurnBasedAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedAutoMatchingCriteria.SetmaxAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxAutoMatchingPlayers=AValue) then exit;
@@ -8969,7 +9246,7 @@ end;
 
 
 
-Procedure TTurnBasedAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedAutoMatchingCriteria.SetminAutoMatchingPlayers(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FminAutoMatchingPlayers=AValue) then exit;
@@ -8996,7 +9273,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetautoMatchingCriteria(AIndex : Integer; AValue : TTurnBasedAutoMatchingCriteria); 
+Procedure TTurnBasedMatch.SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria); 
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -9006,7 +9283,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetcreationDetails(AIndex : Integer; AValue : TTurnBasedMatchModification); 
+Procedure TTurnBasedMatch.SetcreationDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification); 
 
 begin
   If (FcreationDetails=AValue) then exit;
@@ -9016,7 +9293,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setdata(AIndex : Integer; AValue : TTurnBasedMatchData); 
+Procedure TTurnBasedMatch.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchData); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -9056,7 +9333,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetlastUpdateDetails(AIndex : Integer; AValue : TTurnBasedMatchModification); 
+Procedure TTurnBasedMatch.SetlastUpdateDetails(AIndex : Integer; const AValue : TTurnBasedMatchModification); 
 
 begin
   If (FlastUpdateDetails=AValue) then exit;
@@ -9076,7 +9353,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetmatchNumber(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedMatch.SetmatchNumber(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmatchNumber=AValue) then exit;
@@ -9086,7 +9363,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetmatchVersion(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedMatch.SetmatchVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmatchVersion=AValue) then exit;
@@ -9096,7 +9373,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setparticipants(AIndex : Integer; AValue : TTurnBasedMatchTypeparticipantsArray); 
+Procedure TTurnBasedMatch.Setparticipants(AIndex : Integer; const AValue : TTurnBasedMatchTypeparticipantsArray); 
 
 begin
   If (Fparticipants=AValue) then exit;
@@ -9116,7 +9393,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.SetpreviousMatchData(AIndex : Integer; AValue : TTurnBasedMatchData); 
+Procedure TTurnBasedMatch.SetpreviousMatchData(AIndex : Integer; const AValue : TTurnBasedMatchData); 
 
 begin
   If (FpreviousMatchData=AValue) then exit;
@@ -9136,7 +9413,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setresults(AIndex : Integer; AValue : TTurnBasedMatchTyperesultsArray); 
+Procedure TTurnBasedMatch.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTyperesultsArray); 
 
 begin
   If (Fresults=AValue) then exit;
@@ -9166,7 +9443,7 @@ end;
 
 
 
-Procedure TTurnBasedMatch.Setvariant(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedMatch.Setvariant(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fvariant=AValue) then exit;
@@ -9207,7 +9484,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchCreateRequest.SetautoMatchingCriteria(AIndex : Integer; AValue : TTurnBasedAutoMatchingCriteria); 
+Procedure TTurnBasedMatchCreateRequest.SetautoMatchingCriteria(AIndex : Integer; const AValue : TTurnBasedAutoMatchingCriteria); 
 
 begin
   If (FautoMatchingCriteria=AValue) then exit;
@@ -9217,7 +9494,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.SetinvitedPlayerIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TTurnBasedMatchCreateRequest.SetinvitedPlayerIds(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FinvitedPlayerIds=AValue) then exit;
@@ -9247,7 +9524,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchCreateRequest.Setvariant(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedMatchCreateRequest.Setvariant(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fvariant=AValue) then exit;
@@ -9287,7 +9564,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchData.SetdataAvailable(AIndex : Integer; AValue : boolean); 
+Procedure TTurnBasedMatchData.SetdataAvailable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FdataAvailable=AValue) then exit;
@@ -9341,7 +9618,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchList.Setitems(AIndex : Integer; AValue : TTurnBasedMatchListTypeitemsArray); 
+Procedure TTurnBasedMatchList.Setitems(AIndex : Integer; const AValue : TTurnBasedMatchListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -9428,7 +9705,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchParticipant.SetautoMatched(AIndex : Integer; AValue : boolean); 
+Procedure TTurnBasedMatchParticipant.SetautoMatched(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FautoMatched=AValue) then exit;
@@ -9438,7 +9715,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.SetautoMatchedPlayer(AIndex : Integer; AValue : TAnonymousPlayer); 
+Procedure TTurnBasedMatchParticipant.SetautoMatchedPlayer(AIndex : Integer; const AValue : TAnonymousPlayer); 
 
 begin
   If (FautoMatchedPlayer=AValue) then exit;
@@ -9468,7 +9745,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchParticipant.Setplayer(AIndex : Integer; AValue : TPlayer); 
+Procedure TTurnBasedMatchParticipant.Setplayer(AIndex : Integer; const AValue : TPlayer); 
 
 begin
   If (Fplayer=AValue) then exit;
@@ -9505,7 +9782,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchRematch.SetpreviousMatch(AIndex : Integer; AValue : TTurnBasedMatch); 
+Procedure TTurnBasedMatchRematch.SetpreviousMatch(AIndex : Integer; const AValue : TTurnBasedMatch); 
 
 begin
   If (FpreviousMatch=AValue) then exit;
@@ -9515,7 +9792,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchRematch.Setrematch(AIndex : Integer; AValue : TTurnBasedMatch); 
+Procedure TTurnBasedMatchRematch.Setrematch(AIndex : Integer; const AValue : TTurnBasedMatch); 
 
 begin
   If (Frematch=AValue) then exit;
@@ -9532,7 +9809,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchResults.Setdata(AIndex : Integer; AValue : TTurnBasedMatchDataRequest); 
+Procedure TTurnBasedMatchResults.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -9552,7 +9829,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchResults.SetmatchVersion(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedMatchResults.SetmatchVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmatchVersion=AValue) then exit;
@@ -9562,7 +9839,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchResults.Setresults(AIndex : Integer; AValue : TTurnBasedMatchResultsTyperesultsArray); 
+Procedure TTurnBasedMatchResults.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchResultsTyperesultsArray); 
 
 begin
   If (Fresults=AValue) then exit;
@@ -9592,7 +9869,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchSync.Setitems(AIndex : Integer; AValue : TTurnBasedMatchSyncTypeitemsArray); 
+Procedure TTurnBasedMatchSync.Setitems(AIndex : Integer; const AValue : TTurnBasedMatchSyncTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -9612,7 +9889,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchSync.SetmoreAvailable(AIndex : Integer; AValue : boolean); 
+Procedure TTurnBasedMatchSync.SetmoreAvailable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FmoreAvailable=AValue) then exit;
@@ -9652,7 +9929,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTurnBasedMatchTurn.Setdata(AIndex : Integer; AValue : TTurnBasedMatchDataRequest); 
+Procedure TTurnBasedMatchTurn.Setdata(AIndex : Integer; const AValue : TTurnBasedMatchDataRequest); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -9672,7 +9949,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.SetmatchVersion(AIndex : Integer; AValue : integer); 
+Procedure TTurnBasedMatchTurn.SetmatchVersion(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmatchVersion=AValue) then exit;
@@ -9692,7 +9969,7 @@ end;
 
 
 
-Procedure TTurnBasedMatchTurn.Setresults(AIndex : Integer; AValue : TTurnBasedMatchTurnTyperesultsArray); 
+Procedure TTurnBasedMatchTurn.Setresults(AIndex : Integer; const AValue : TTurnBasedMatchTurnTyperesultsArray); 
 
 begin
   If (Fresults=AValue) then exit;
@@ -9753,6 +10030,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -9801,6 +10079,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'requestId',AQuery.requestId);
   AddToQuery(_Q,'stepsToIncrement',AQuery.stepsToIncrement);
   Result:=Increment(achievementId,_Q);
@@ -9829,6 +10108,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -9836,7 +10116,7 @@ begin
   Result:=List(playerId,_Q);
 end;
 
-Function TAchievementsResource.Reveal(achievementId: string) : TAchievementRevealResponse;
+Function TAchievementsResource.Reveal(achievementId: string; AQuery : string = '') : TAchievementRevealResponse;
 
 Const
   _HTTPMethod = 'POST';
@@ -9848,7 +10128,19 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['achievementId',achievementId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAchievementRevealResponse) as TAchievementRevealResponse;
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAchievementRevealResponse) as TAchievementRevealResponse;
+end;
+
+
+Function TAchievementsResource.Reveal(achievementId: string; AQuery : TAchievementsrevealOptions) : TAchievementRevealResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Result:=Reveal(achievementId,_Q);
 end;
 
 Function TAchievementsResource.SetStepsAtLeast(achievementId: string; AQuery : string = '') : TAchievementSetStepsAtLeastResponse;
@@ -9874,11 +10166,12 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'steps',AQuery.steps);
   Result:=SetStepsAtLeast(achievementId,_Q);
 end;
 
-Function TAchievementsResource.Unlock(achievementId: string) : TAchievementUnlockResponse;
+Function TAchievementsResource.Unlock(achievementId: string; AQuery : string = '') : TAchievementUnlockResponse;
 
 Const
   _HTTPMethod = 'POST';
@@ -9890,10 +10183,22 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['achievementId',achievementId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TAchievementUnlockResponse) as TAchievementUnlockResponse;
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TAchievementUnlockResponse) as TAchievementUnlockResponse;
 end;
 
-Function TAchievementsResource.UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest) : TAchievementUpdateMultipleResponse;
+
+Function TAchievementsResource.Unlock(achievementId: string; AQuery : TAchievementsunlockOptions) : TAchievementUnlockResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Result:=Unlock(achievementId,_Q);
+end;
+
+Function TAchievementsResource.UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest; AQuery : string = '') : TAchievementUpdateMultipleResponse;
 
 Const
   _HTTPMethod = 'POST';
@@ -9901,7 +10206,19 @@ Const
   _Methodid   = 'games.achievements.updateMultiple';
 
 begin
-  Result:=ServiceCall(_HTTPMethod,_Path,'',aAchievementUpdateMultipleRequest,TAchievementUpdateMultipleResponse) as TAchievementUpdateMultipleResponse;
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,aAchievementUpdateMultipleRequest,TAchievementUpdateMultipleResponse) as TAchievementUpdateMultipleResponse;
+end;
+
+
+Function TAchievementsResource.UpdateMultiple(aAchievementUpdateMultipleRequest : TAchievementUpdateMultipleRequest; AQuery : TAchievementsupdateMultipleOptions) : TAchievementUpdateMultipleResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Result:=UpdateMultiple(aAchievementUpdateMultipleRequest,_Q);
 end;
 
 
@@ -9946,12 +10263,13 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'platformType',AQuery.platformType);
   Result:=Get(applicationId,_Q);
 end;
 
-Procedure TApplicationsResource.Played;
+Procedure TApplicationsResource.Played(AQuery : string = '');
 
 Const
   _HTTPMethod = 'POST';
@@ -9959,7 +10277,46 @@ Const
   _Methodid   = 'games.applications.played';
 
 begin
-  ServiceCall(_HTTPMethod,_Path,'',Nil,Nil);
+  ServiceCall(_HTTPMethod,_Path,AQuery,Nil,Nil);
+end;
+
+
+Procedure TApplicationsResource.Played(AQuery : TApplicationsplayedOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Played(_Q);
+end;
+
+Function TApplicationsResource.Verify(applicationId: string; AQuery : string = '') : TApplicationVerifyResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'applications/{applicationId}/verify';
+  _Methodid   = 'games.applications.verify';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['applicationId',applicationId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TApplicationVerifyResponse) as TApplicationVerifyResponse;
+end;
+
+
+Function TApplicationsResource.Verify(applicationId: string; AQuery : TApplicationsverifyOptions) : TApplicationVerifyResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Result:=Verify(applicationId,_Q);
 end;
 
 
@@ -10000,6 +10357,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10025,6 +10383,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10050,6 +10409,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=_record(aEventRecordRequest,_Q);
 end;
@@ -10096,6 +10456,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Get(leaderboardId,_Q);
 end;
@@ -10119,6 +10480,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10144,7 +10506,7 @@ begin
   Result:=TgamesAPI;
 end;
 
-Function TMetagameResource.GetMetagameConfig : TMetagameConfig;
+Function TMetagameResource.GetMetagameConfig(AQuery : string = '') : TMetagameConfig;
 
 Const
   _HTTPMethod = 'GET';
@@ -10152,7 +10514,19 @@ Const
   _Methodid   = 'games.metagame.getMetagameConfig';
 
 begin
-  Result:=ServiceCall(_HTTPMethod,_Path,'',Nil,TMetagameConfig) as TMetagameConfig;
+  Result:=ServiceCall(_HTTPMethod,_Path,AQuery,Nil,TMetagameConfig) as TMetagameConfig;
+end;
+
+
+Function TMetagameResource.GetMetagameConfig(AQuery : TMetagamegetMetagameConfigOptions) : TMetagameConfig;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Result:=GetMetagameConfig(_Q);
 end;
 
 Function TMetagameResource.ListCategoriesByPlayer(collection: string; playerId: string; AQuery : string = '') : TCategoryListResponse;
@@ -10178,6 +10552,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10226,6 +10601,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Get(playerId,_Q);
 end;
@@ -10253,6 +10629,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10278,7 +10655,7 @@ begin
   Result:=TgamesAPI;
 end;
 
-Procedure TPushtokensResource.Remove(aPushTokenId : TPushTokenId);
+Procedure TPushtokensResource.Remove(aPushTokenId : TPushTokenId; AQuery : string = '');
 
 Const
   _HTTPMethod = 'POST';
@@ -10286,10 +10663,22 @@ Const
   _Methodid   = 'games.pushtokens.remove';
 
 begin
-  ServiceCall(_HTTPMethod,_Path,'',aPushTokenId,Nil);
+  ServiceCall(_HTTPMethod,_Path,AQuery,aPushTokenId,Nil);
 end;
 
-Procedure TPushtokensResource.Update(aPushToken : TPushToken);
+
+Procedure TPushtokensResource.Remove(aPushTokenId : TPushTokenId; AQuery : TPushtokensremoveOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Remove(aPushTokenId,_Q);
+end;
+
+Procedure TPushtokensResource.Update(aPushToken : TPushToken; AQuery : string = '');
 
 Const
   _HTTPMethod = 'PUT';
@@ -10297,7 +10686,19 @@ Const
   _Methodid   = 'games.pushtokens.update';
 
 begin
-  ServiceCall(_HTTPMethod,_Path,'',aPushToken,Nil);
+  ServiceCall(_HTTPMethod,_Path,AQuery,aPushToken,Nil);
+end;
+
+
+Procedure TPushtokensResource.Update(aPushToken : TPushToken; AQuery : TPushtokensupdateOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Update(aPushToken,_Q);
 end;
 
 
@@ -10342,6 +10743,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'requestId',AQuery.requestId);
   Claim(milestoneId,questId,_Q);
 end;
@@ -10388,6 +10790,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Accept(questId,_Q);
 end;
@@ -10415,6 +10818,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10460,6 +10864,7 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'clientRevision',AQuery.clientRevision);
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   Result:=Check(_Q);
 end;
 
@@ -10501,6 +10906,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Create(aRoomCreateRequest,_Q);
 end;
@@ -10528,11 +10934,12 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Decline(roomId,_Q);
 end;
 
-Procedure TRoomsResource.Dismiss(roomId: string);
+Procedure TRoomsResource.Dismiss(roomId: string; AQuery : string = '');
 
 Const
   _HTTPMethod = 'POST';
@@ -10544,7 +10951,19 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['roomId',roomId]);
-  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TRoomsResource.Dismiss(roomId: string; AQuery : TRoomsdismissOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Dismiss(roomId,_Q);
 end;
 
 Function TRoomsResource.Get(roomId: string; AQuery : string = '') : TRoom;
@@ -10570,6 +10989,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Get(roomId,_Q);
 end;
@@ -10597,6 +11017,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Join(roomId,aRoomJoinRequest,_Q);
 end;
@@ -10624,6 +11045,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Leave(roomId,aRoomLeaveRequest,_Q);
 end;
@@ -10647,6 +11069,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10676,6 +11099,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=ReportStatus(roomId,aRoomP2PStatuses,_Q);
 end;
@@ -10722,6 +11146,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'includeRankType',AQuery.includeRankType);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
@@ -10752,6 +11177,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10782,6 +11208,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10814,6 +11241,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'score',AQuery.score);
   AddToQuery(_Q,'scoreTag',AQuery.scoreTag);
@@ -10839,6 +11267,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=SubmitMultiple(aPlayerScoreSubmissionList,_Q);
 end;
@@ -10885,6 +11314,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Get(snapshotId,_Q);
 end;
@@ -10912,6 +11342,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
@@ -10937,7 +11368,7 @@ begin
   Result:=TgamesAPI;
 end;
 
-Procedure TTurnBasedMatchesResource.Cancel(matchId: string);
+Procedure TTurnBasedMatchesResource.Cancel(matchId: string; AQuery : string = '');
 
 Const
   _HTTPMethod = 'PUT';
@@ -10949,7 +11380,19 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['matchId',matchId]);
-  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TTurnBasedMatchesResource.Cancel(matchId: string; AQuery : TTurnBasedMatchescancelOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Cancel(matchId,_Q);
 end;
 
 Function TTurnBasedMatchesResource.Create(aTurnBasedMatchCreateRequest : TTurnBasedMatchCreateRequest; AQuery : string = '') : TTurnBasedMatch;
@@ -10971,6 +11414,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Create(aTurnBasedMatchCreateRequest,_Q);
 end;
@@ -10998,11 +11442,12 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Decline(matchId,_Q);
 end;
 
-Procedure TTurnBasedMatchesResource.Dismiss(matchId: string);
+Procedure TTurnBasedMatchesResource.Dismiss(matchId: string; AQuery : string = '');
 
 Const
   _HTTPMethod = 'PUT';
@@ -11014,7 +11459,19 @@ Var
 
 begin
   _P:=SubstitutePath(_Path,['matchId',matchId]);
-  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+  ServiceCall(_HTTPMethod,_P,AQuery,Nil,Nil);
+end;
+
+
+Procedure TTurnBasedMatchesResource.Dismiss(matchId: string; AQuery : TTurnBasedMatchesdismissOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
+  Dismiss(matchId,_Q);
 end;
 
 Function TTurnBasedMatchesResource.Finish(matchId: string; aTurnBasedMatchResults : TTurnBasedMatchResults; AQuery : string = '') : TTurnBasedMatch;
@@ -11040,6 +11497,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Finish(matchId,aTurnBasedMatchResults,_Q);
 end;
@@ -11067,6 +11525,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'includeMatchData',AQuery.includeMatchData);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Get(matchId,_Q);
@@ -11095,6 +11554,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Join(matchId,_Q);
 end;
@@ -11122,6 +11582,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=Leave(matchId,_Q);
 end;
@@ -11149,6 +11610,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'matchVersion',AQuery.matchVersion);
   AddToQuery(_Q,'pendingParticipantId',AQuery.pendingParticipantId);
@@ -11174,6 +11636,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'includeMatchData',AQuery.includeMatchData);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxCompletedMatches',AQuery.maxCompletedMatches);
@@ -11205,6 +11668,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'requestId',AQuery.requestId);
   Result:=Rematch(matchId,_Q);
@@ -11229,6 +11693,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'includeMatchData',AQuery.includeMatchData);
   AddToQuery(_Q,'language',AQuery.language);
   AddToQuery(_Q,'maxCompletedMatches',AQuery.maxCompletedMatches);
@@ -11260,6 +11725,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'consistencyToken',AQuery.consistencyToken);
   AddToQuery(_Q,'language',AQuery.language);
   Result:=TakeTurn(matchId,aTurnBasedMatchTurn,_Q);
 end;
@@ -11285,7 +11751,7 @@ end;
 Class Function TGamesAPI.APIRevision : String;
 
 begin
-  Result:='20150511';
+  Result:='20160519';
 end;
 
 Class Function TGamesAPI.APIID : String;
@@ -11339,7 +11805,7 @@ end;
 Class Function TGamesAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TGamesAPI.APIbasePath : string;
@@ -11351,7 +11817,7 @@ end;
 Class Function TGamesAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/games/v1/';
+  Result:='https://www.googleapis.com/games/v1/';
 end;
 
 Class Function TGamesAPI.APIProtocol : string;
@@ -11381,7 +11847,7 @@ begin
   Result[1].Name:='https://www.googleapis.com/auth/games';
   Result[1].Description:='Share your Google+ profile information and view and manage your game activity';
   Result[2].Name:='https://www.googleapis.com/auth/plus.login';
-  Result[2].Description:='Know your basic profile info and list of people in your circles.';
+  Result[2].Description:='Know the list of people in your circles, your age range, and language';
   
 end;
 
@@ -11408,6 +11874,7 @@ begin
   TAnonymousPlayer.RegisterObject;
   TApplication.RegisterObject;
   TApplicationCategory.RegisterObject;
+  TApplicationVerifyResponse.RegisterObject;
   TCategory.RegisterObject;
   TCategoryListResponse.RegisterObject;
   TEventBatchRecordFailure.RegisterObject;
@@ -11453,6 +11920,7 @@ begin
   TPlayerScoreListResponse.RegisterObject;
   TPlayerScoreResponse.RegisterObject;
   TPlayerScoreSubmissionList.RegisterObject;
+  TProfileSettings.RegisterObject;
   TPushToken.RegisterObject;
   TPushTokenIdTypeios.RegisterObject;
   TPushTokenId.RegisterObject;

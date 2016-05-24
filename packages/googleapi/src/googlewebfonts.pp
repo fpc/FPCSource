@@ -1,19 +1,4 @@
 unit googlewebfonts;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -64,11 +49,11 @@ type
     //Property setters
     Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfamily(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setfiles(AIndex : Integer; AValue : TWebfontTypefiles); virtual;
+    Procedure Setfiles(AIndex : Integer; const AValue : TWebfontTypefiles); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlastModified(AIndex : Integer; AValue : TDate); virtual;
-    Procedure Setsubsets(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setvariants(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetlastModified(AIndex : Integer; const AValue : TDate); virtual;
+    Procedure Setsubsets(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setvariants(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -97,7 +82,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TWebfontListTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TWebfontListTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -208,7 +193,7 @@ end;
 
 
 
-Procedure TWebfont.Setfiles(AIndex : Integer; AValue : TWebfontTypefiles); 
+Procedure TWebfont.Setfiles(AIndex : Integer; const AValue : TWebfontTypefiles); 
 
 begin
   If (Ffiles=AValue) then exit;
@@ -228,7 +213,7 @@ end;
 
 
 
-Procedure TWebfont.SetlastModified(AIndex : Integer; AValue : TDate); 
+Procedure TWebfont.SetlastModified(AIndex : Integer; const AValue : TDate); 
 
 begin
   If (FlastModified=AValue) then exit;
@@ -238,7 +223,7 @@ end;
 
 
 
-Procedure TWebfont.Setsubsets(AIndex : Integer; AValue : TStringArray); 
+Procedure TWebfont.Setsubsets(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fsubsets=AValue) then exit;
@@ -248,7 +233,7 @@ end;
 
 
 
-Procedure TWebfont.Setvariants(AIndex : Integer; AValue : TStringArray); 
+Procedure TWebfont.Setvariants(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fvariants=AValue) then exit;
@@ -289,7 +274,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWebfontList.Setitems(AIndex : Integer; AValue : TWebfontListTypeitemsArray); 
+Procedure TWebfontList.Setitems(AIndex : Integer; const AValue : TWebfontListTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -385,7 +370,7 @@ end;
 Class Function TWebfontsAPI.APIRevision : String;
 
 begin
-  Result:='20140210';
+  Result:='20160302';
 end;
 
 Class Function TWebfontsAPI.APIID : String;
@@ -403,7 +388,7 @@ end;
 Class Function TWebfontsAPI.APIDescription : String;
 
 begin
-  Result:='The Google Fonts Developer API.';
+  Result:='Accesses the metadata for all families served by Google Fonts, providing a list of families currently available (including available styles and a list of supported script subsets).';
 end;
 
 Class Function TWebfontsAPI.APIOwnerDomain : String;
@@ -421,13 +406,13 @@ end;
 Class Function TWebfontsAPI.APIIcon16 : String;
 
 begin
-  Result:='http://www.google.com/images/icons/feature/font_api-16.png';
+  Result:='https://www.google.com/images/icons/feature/font_api-16.png';
 end;
 
 Class Function TWebfontsAPI.APIIcon32 : String;
 
 begin
-  Result:='http://www.google.com/images/icons/feature/font_api-32.gif';
+  Result:='https://www.google.com/images/icons/feature/font_api-32.gif';
 end;
 
 Class Function TWebfontsAPI.APIdocumentationLink : String;
@@ -439,7 +424,7 @@ end;
 Class Function TWebfontsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TWebfontsAPI.APIbasePath : string;
@@ -451,7 +436,7 @@ end;
 Class Function TWebfontsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/webfonts/v1/';
+  Result:='https://www.googleapis.com/webfonts/v1/';
 end;
 
 Class Function TWebfontsAPI.APIProtocol : string;

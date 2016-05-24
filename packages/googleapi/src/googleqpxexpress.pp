@@ -1,19 +1,4 @@
 unit googleqpxExpress;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:07
 {$MODE objfpc}
 {$H+}
 
@@ -151,8 +136,8 @@ type
   Protected
     //Property setters
     Procedure SetcommercialName(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcount(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setdescription(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setcount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setsubcode(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -230,12 +215,12 @@ type
     Ftax : TDataTypetaxArray;
   Protected
     //Property setters
-    Procedure Setaircraft(AIndex : Integer; AValue : TDataTypeaircraftArray); virtual;
-    Procedure Setairport(AIndex : Integer; AValue : TDataTypeairportArray); virtual;
-    Procedure Setcarrier(AIndex : Integer; AValue : TDataTypecarrierArray); virtual;
-    Procedure Setcity(AIndex : Integer; AValue : TDataTypecityArray); virtual;
+    Procedure Setaircraft(AIndex : Integer; const AValue : TDataTypeaircraftArray); virtual;
+    Procedure Setairport(AIndex : Integer; const AValue : TDataTypeairportArray); virtual;
+    Procedure Setcarrier(AIndex : Integer; const AValue : TDataTypecarrierArray); virtual;
+    Procedure Setcity(AIndex : Integer; const AValue : TDataTypecityArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settax(AIndex : Integer; AValue : TDataTypetaxArray); virtual;
+    Procedure Settax(AIndex : Integer; const AValue : TDataTypetaxArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -273,7 +258,7 @@ type
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
-    Procedure Set_private(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Set_private(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property basisCode : String Index 0 Read FbasisCode Write SetbasisCode;
@@ -319,12 +304,12 @@ type
     Fpounds : integer;
   Protected
     //Property setters
-    Procedure SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowanceTypebagDescriptorArray); virtual;
-    Procedure Setkilos(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetkilosPerPiece(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetbagDescriptor(AIndex : Integer; const AValue : TFreeBaggageAllowanceTypebagDescriptorArray); virtual;
+    Procedure Setkilos(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetkilosPerPiece(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpieces(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setpounds(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setpieces(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setpounds(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -367,21 +352,21 @@ type
     //Property setters
     Procedure Setaircraft(AIndex : Integer; const AValue : String); virtual;
     Procedure SetarrivalTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetchangePlane(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetconnectionDuration(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetchangePlane(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetconnectionDuration(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetdepartureTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdestinationTerminal(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setduration(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setmeal(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmileage(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetonTimePerformance(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setmileage(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetonTimePerformance(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetoperatingDisclosure(AIndex : Integer; const AValue : String); virtual;
     Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoriginTerminal(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsecure(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setsecure(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property aircraft : String Index 0 Read Faircraft Write Setaircraft;
@@ -418,12 +403,12 @@ type
     FseniorCount : integer;
   Protected
     //Property setters
-    Procedure SetadultCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetchildCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetinfantInLapCount(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetinfantInSeatCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetadultCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetchildCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetinfantInLapCount(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetinfantInSeatCount(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetseniorCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetseniorCount(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property adultCount : integer Index 0 Read FadultCount Write SetadultCount;
@@ -457,18 +442,18 @@ type
   Protected
     //Property setters
     Procedure SetbaseFareTotal(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setfare(AIndex : Integer; AValue : TPricingInfoTypefareArray); virtual;
+    Procedure Setfare(AIndex : Integer; const AValue : TPricingInfoTypefareArray); virtual;
     Procedure SetfareCalculation(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetlatestTicketingTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpassengers(AIndex : Integer; AValue : TPassengerCounts); virtual;
+    Procedure Setpassengers(AIndex : Integer; const AValue : TPassengerCounts); virtual;
     Procedure Setptc(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrefundable(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setrefundable(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetsaleFareTotal(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsaleTaxTotal(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsaleTotal(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsegmentPricing(AIndex : Integer; AValue : TPricingInfoTypesegmentPricingArray); virtual;
-    Procedure Settax(AIndex : Integer; AValue : TPricingInfoTypetaxArray); virtual;
+    Procedure SetsegmentPricing(AIndex : Integer; const AValue : TPricingInfoTypesegmentPricingArray); virtual;
+    Procedure Settax(AIndex : Integer; const AValue : TPricingInfoTypetaxArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -511,16 +496,16 @@ type
   Protected
     //Property setters
     Procedure SetbookingCode(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetbookingCodeCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetbookingCodeCount(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setcabin(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetconnectionDuration(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setflight(AIndex : Integer; AValue : TFlightInfo); virtual;
+    Procedure SetconnectionDuration(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setduration(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setflight(AIndex : Integer; const AValue : TFlightInfo); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setleg(AIndex : Integer; AValue : TSegmentInfoTypelegArray); virtual;
+    Procedure Setleg(AIndex : Integer; const AValue : TSegmentInfoTypelegArray); virtual;
     Procedure SetmarriedSegmentGroup(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsubjectToGovernmentApproval(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetsubjectToGovernmentApproval(AIndex : Integer; const AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -554,7 +539,7 @@ type
   Protected
     //Property setters
     Procedure SetfareId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingTypefreeBaggageOptionArray); virtual;
+    Procedure SetfreeBaggageOption(AIndex : Integer; const AValue : TSegmentPricingTypefreeBaggageOptionArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsegmentId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -581,9 +566,9 @@ type
     Fsegment : TSliceInfoTypesegmentArray;
   Protected
     //Property setters
-    Procedure Setduration(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setduration(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsegment(AIndex : Integer; AValue : TSliceInfoTypesegmentArray); virtual;
+    Procedure Setsegment(AIndex : Integer; const AValue : TSliceInfoTypesegmentArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -619,13 +604,13 @@ type
     Procedure Setdate(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdestination(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxConnectionDuration(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetmaxStops(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmaxConnectionDuration(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetmaxStops(AIndex : Integer; const AValue : integer); virtual;
     Procedure Setorigin(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetpermittedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetpermittedDepartureTime(AIndex : Integer; AValue : TTimeOfDayRange); virtual;
+    Procedure SetpermittedCarrier(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetpermittedDepartureTime(AIndex : Integer; const AValue : TTimeOfDayRange); virtual;
     Procedure SetpreferredCabin(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetprohibitedCarrier(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetprohibitedCarrier(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -736,9 +721,9 @@ type
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpricing(AIndex : Integer; AValue : TTripOptionTypepricingArray); virtual;
+    Procedure Setpricing(AIndex : Integer; const AValue : TTripOptionTypepricingArray); virtual;
     Procedure SetsaleTotal(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setslice(AIndex : Integer; AValue : TTripOptionTypesliceArray); virtual;
+    Procedure Setslice(AIndex : Integer; const AValue : TTripOptionTypesliceArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -768,11 +753,11 @@ type
   Protected
     //Property setters
     Procedure SetmaxPrice(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpassengers(AIndex : Integer; AValue : TPassengerCounts); virtual;
-    Procedure Setrefundable(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setpassengers(AIndex : Integer; const AValue : TPassengerCounts); virtual;
+    Procedure Setrefundable(AIndex : Integer; const AValue : boolean); virtual;
     Procedure SetsaleCountry(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setslice(AIndex : Integer; AValue : TTripOptionsRequestTypesliceArray); virtual;
-    Procedure Setsolutions(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setslice(AIndex : Integer; const AValue : TTripOptionsRequestTypesliceArray); virtual;
+    Procedure Setsolutions(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -800,10 +785,10 @@ type
     FtripOption : TTripOptionsResponseTypetripOptionArray;
   Protected
     //Property setters
-    Procedure Setdata(AIndex : Integer; AValue : TData); virtual;
+    Procedure Setdata(AIndex : Integer; const AValue : TData); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrequestId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettripOption(AIndex : Integer; AValue : TTripOptionsResponseTypetripOptionArray); virtual;
+    Procedure SettripOption(AIndex : Integer; const AValue : TTripOptionsResponseTypetripOptionArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -826,7 +811,7 @@ type
     Frequest : TTripOptionsRequest;
   Protected
     //Property setters
-    Procedure Setrequest(AIndex : Integer; AValue : TTripOptionsRequest); virtual;
+    Procedure Setrequest(AIndex : Integer; const AValue : TTripOptionsRequest); virtual;
   Public
   Published
     Property request : TTripOptionsRequest Index 0 Read Frequest Write Setrequest;
@@ -844,7 +829,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settrips(AIndex : Integer; AValue : TTripOptionsResponse); virtual;
+    Procedure Settrips(AIndex : Integer; const AValue : TTripOptionsResponse); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -1003,7 +988,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setcount(AIndex : Integer; AValue : integer); 
+Procedure TBagDescriptor.Setcount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fcount=AValue) then exit;
@@ -1013,7 +998,7 @@ end;
 
 
 
-Procedure TBagDescriptor.Setdescription(AIndex : Integer; AValue : TStringArray); 
+Procedure TBagDescriptor.Setdescription(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -1147,7 +1132,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TData.Setaircraft(AIndex : Integer; AValue : TDataTypeaircraftArray); 
+Procedure TData.Setaircraft(AIndex : Integer; const AValue : TDataTypeaircraftArray); 
 
 begin
   If (Faircraft=AValue) then exit;
@@ -1157,7 +1142,7 @@ end;
 
 
 
-Procedure TData.Setairport(AIndex : Integer; AValue : TDataTypeairportArray); 
+Procedure TData.Setairport(AIndex : Integer; const AValue : TDataTypeairportArray); 
 
 begin
   If (Fairport=AValue) then exit;
@@ -1167,7 +1152,7 @@ end;
 
 
 
-Procedure TData.Setcarrier(AIndex : Integer; AValue : TDataTypecarrierArray); 
+Procedure TData.Setcarrier(AIndex : Integer; const AValue : TDataTypecarrierArray); 
 
 begin
   If (Fcarrier=AValue) then exit;
@@ -1177,7 +1162,7 @@ end;
 
 
 
-Procedure TData.Setcity(AIndex : Integer; AValue : TDataTypecityArray); 
+Procedure TData.Setcity(AIndex : Integer; const AValue : TDataTypecityArray); 
 
 begin
   If (Fcity=AValue) then exit;
@@ -1197,7 +1182,7 @@ end;
 
 
 
-Procedure TData.Settax(AIndex : Integer; AValue : TDataTypetaxArray); 
+Procedure TData.Settax(AIndex : Integer; const AValue : TDataTypetaxArray); 
 
 begin
   If (Ftax=AValue) then exit;
@@ -1291,7 +1276,7 @@ end;
 
 
 
-Procedure TFareInfo.Set_private(AIndex : Integer; AValue : boolean); 
+Procedure TFareInfo.Set_private(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (F_private=AValue) then exit;
@@ -1346,7 +1331,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFreeBaggageAllowance.SetbagDescriptor(AIndex : Integer; AValue : TFreeBaggageAllowanceTypebagDescriptorArray); 
+Procedure TFreeBaggageAllowance.SetbagDescriptor(AIndex : Integer; const AValue : TFreeBaggageAllowanceTypebagDescriptorArray); 
 
 begin
   If (FbagDescriptor=AValue) then exit;
@@ -1356,7 +1341,7 @@ end;
 
 
 
-Procedure TFreeBaggageAllowance.Setkilos(AIndex : Integer; AValue : integer); 
+Procedure TFreeBaggageAllowance.Setkilos(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fkilos=AValue) then exit;
@@ -1366,7 +1351,7 @@ end;
 
 
 
-Procedure TFreeBaggageAllowance.SetkilosPerPiece(AIndex : Integer; AValue : integer); 
+Procedure TFreeBaggageAllowance.SetkilosPerPiece(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FkilosPerPiece=AValue) then exit;
@@ -1386,7 +1371,7 @@ end;
 
 
 
-Procedure TFreeBaggageAllowance.Setpieces(AIndex : Integer; AValue : integer); 
+Procedure TFreeBaggageAllowance.Setpieces(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fpieces=AValue) then exit;
@@ -1396,7 +1381,7 @@ end;
 
 
 
-Procedure TFreeBaggageAllowance.Setpounds(AIndex : Integer; AValue : integer); 
+Procedure TFreeBaggageAllowance.Setpounds(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fpounds=AValue) then exit;
@@ -1446,7 +1431,7 @@ end;
 
 
 
-Procedure TLegInfo.SetchangePlane(AIndex : Integer; AValue : boolean); 
+Procedure TLegInfo.SetchangePlane(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FchangePlane=AValue) then exit;
@@ -1456,7 +1441,7 @@ end;
 
 
 
-Procedure TLegInfo.SetconnectionDuration(AIndex : Integer; AValue : integer); 
+Procedure TLegInfo.SetconnectionDuration(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FconnectionDuration=AValue) then exit;
@@ -1496,7 +1481,7 @@ end;
 
 
 
-Procedure TLegInfo.Setduration(AIndex : Integer; AValue : integer); 
+Procedure TLegInfo.Setduration(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -1536,7 +1521,7 @@ end;
 
 
 
-Procedure TLegInfo.Setmileage(AIndex : Integer; AValue : integer); 
+Procedure TLegInfo.Setmileage(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fmileage=AValue) then exit;
@@ -1546,7 +1531,7 @@ end;
 
 
 
-Procedure TLegInfo.SetonTimePerformance(AIndex : Integer; AValue : integer); 
+Procedure TLegInfo.SetonTimePerformance(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FonTimePerformance=AValue) then exit;
@@ -1586,7 +1571,7 @@ end;
 
 
 
-Procedure TLegInfo.Setsecure(AIndex : Integer; AValue : boolean); 
+Procedure TLegInfo.Setsecure(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fsecure=AValue) then exit;
@@ -1603,7 +1588,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPassengerCounts.SetadultCount(AIndex : Integer; AValue : integer); 
+Procedure TPassengerCounts.SetadultCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FadultCount=AValue) then exit;
@@ -1613,7 +1598,7 @@ end;
 
 
 
-Procedure TPassengerCounts.SetchildCount(AIndex : Integer; AValue : integer); 
+Procedure TPassengerCounts.SetchildCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FchildCount=AValue) then exit;
@@ -1623,7 +1608,7 @@ end;
 
 
 
-Procedure TPassengerCounts.SetinfantInLapCount(AIndex : Integer; AValue : integer); 
+Procedure TPassengerCounts.SetinfantInLapCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FinfantInLapCount=AValue) then exit;
@@ -1633,7 +1618,7 @@ end;
 
 
 
-Procedure TPassengerCounts.SetinfantInSeatCount(AIndex : Integer; AValue : integer); 
+Procedure TPassengerCounts.SetinfantInSeatCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FinfantInSeatCount=AValue) then exit;
@@ -1653,7 +1638,7 @@ end;
 
 
 
-Procedure TPassengerCounts.SetseniorCount(AIndex : Integer; AValue : integer); 
+Procedure TPassengerCounts.SetseniorCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FseniorCount=AValue) then exit;
@@ -1680,7 +1665,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setfare(AIndex : Integer; AValue : TPricingInfoTypefareArray); 
+Procedure TPricingInfo.Setfare(AIndex : Integer; const AValue : TPricingInfoTypefareArray); 
 
 begin
   If (Ffare=AValue) then exit;
@@ -1720,7 +1705,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setpassengers(AIndex : Integer; AValue : TPassengerCounts); 
+Procedure TPricingInfo.Setpassengers(AIndex : Integer; const AValue : TPassengerCounts); 
 
 begin
   If (Fpassengers=AValue) then exit;
@@ -1740,7 +1725,7 @@ end;
 
 
 
-Procedure TPricingInfo.Setrefundable(AIndex : Integer; AValue : boolean); 
+Procedure TPricingInfo.Setrefundable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Frefundable=AValue) then exit;
@@ -1780,7 +1765,7 @@ end;
 
 
 
-Procedure TPricingInfo.SetsegmentPricing(AIndex : Integer; AValue : TPricingInfoTypesegmentPricingArray); 
+Procedure TPricingInfo.SetsegmentPricing(AIndex : Integer; const AValue : TPricingInfoTypesegmentPricingArray); 
 
 begin
   If (FsegmentPricing=AValue) then exit;
@@ -1790,7 +1775,7 @@ end;
 
 
 
-Procedure TPricingInfo.Settax(AIndex : Integer; AValue : TPricingInfoTypetaxArray); 
+Procedure TPricingInfo.Settax(AIndex : Integer; const AValue : TPricingInfoTypetaxArray); 
 
 begin
   If (Ftax=AValue) then exit;
@@ -1832,7 +1817,7 @@ end;
 
 
 
-Procedure TSegmentInfo.SetbookingCodeCount(AIndex : Integer; AValue : integer); 
+Procedure TSegmentInfo.SetbookingCodeCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FbookingCodeCount=AValue) then exit;
@@ -1852,7 +1837,7 @@ end;
 
 
 
-Procedure TSegmentInfo.SetconnectionDuration(AIndex : Integer; AValue : integer); 
+Procedure TSegmentInfo.SetconnectionDuration(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FconnectionDuration=AValue) then exit;
@@ -1862,7 +1847,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setduration(AIndex : Integer; AValue : integer); 
+Procedure TSegmentInfo.Setduration(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -1872,7 +1857,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setflight(AIndex : Integer; AValue : TFlightInfo); 
+Procedure TSegmentInfo.Setflight(AIndex : Integer; const AValue : TFlightInfo); 
 
 begin
   If (Fflight=AValue) then exit;
@@ -1902,7 +1887,7 @@ end;
 
 
 
-Procedure TSegmentInfo.Setleg(AIndex : Integer; AValue : TSegmentInfoTypelegArray); 
+Procedure TSegmentInfo.Setleg(AIndex : Integer; const AValue : TSegmentInfoTypelegArray); 
 
 begin
   If (Fleg=AValue) then exit;
@@ -1922,7 +1907,7 @@ end;
 
 
 
-Procedure TSegmentInfo.SetsubjectToGovernmentApproval(AIndex : Integer; AValue : boolean); 
+Procedure TSegmentInfo.SetsubjectToGovernmentApproval(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FsubjectToGovernmentApproval=AValue) then exit;
@@ -1962,7 +1947,7 @@ end;
 
 
 
-Procedure TSegmentPricing.SetfreeBaggageOption(AIndex : Integer; AValue : TSegmentPricingTypefreeBaggageOptionArray); 
+Procedure TSegmentPricing.SetfreeBaggageOption(AIndex : Integer; const AValue : TSegmentPricingTypefreeBaggageOptionArray); 
 
 begin
   If (FfreeBaggageOption=AValue) then exit;
@@ -2012,7 +1997,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSliceInfo.Setduration(AIndex : Integer; AValue : integer); 
+Procedure TSliceInfo.Setduration(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fduration=AValue) then exit;
@@ -2032,7 +2017,7 @@ end;
 
 
 
-Procedure TSliceInfo.Setsegment(AIndex : Integer; AValue : TSliceInfoTypesegmentArray); 
+Procedure TSliceInfo.Setsegment(AIndex : Integer; const AValue : TSliceInfoTypesegmentArray); 
 
 begin
   If (Fsegment=AValue) then exit;
@@ -2102,7 +2087,7 @@ end;
 
 
 
-Procedure TSliceInput.SetmaxConnectionDuration(AIndex : Integer; AValue : integer); 
+Procedure TSliceInput.SetmaxConnectionDuration(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxConnectionDuration=AValue) then exit;
@@ -2112,7 +2097,7 @@ end;
 
 
 
-Procedure TSliceInput.SetmaxStops(AIndex : Integer; AValue : integer); 
+Procedure TSliceInput.SetmaxStops(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxStops=AValue) then exit;
@@ -2132,7 +2117,7 @@ end;
 
 
 
-Procedure TSliceInput.SetpermittedCarrier(AIndex : Integer; AValue : TStringArray); 
+Procedure TSliceInput.SetpermittedCarrier(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FpermittedCarrier=AValue) then exit;
@@ -2142,7 +2127,7 @@ end;
 
 
 
-Procedure TSliceInput.SetpermittedDepartureTime(AIndex : Integer; AValue : TTimeOfDayRange); 
+Procedure TSliceInput.SetpermittedDepartureTime(AIndex : Integer; const AValue : TTimeOfDayRange); 
 
 begin
   If (FpermittedDepartureTime=AValue) then exit;
@@ -2162,7 +2147,7 @@ end;
 
 
 
-Procedure TSliceInput.SetprohibitedCarrier(AIndex : Integer; AValue : TStringArray); 
+Procedure TSliceInput.SetprohibitedCarrier(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FprohibitedCarrier=AValue) then exit;
@@ -2354,7 +2339,7 @@ end;
 
 
 
-Procedure TTripOption.Setpricing(AIndex : Integer; AValue : TTripOptionTypepricingArray); 
+Procedure TTripOption.Setpricing(AIndex : Integer; const AValue : TTripOptionTypepricingArray); 
 
 begin
   If (Fpricing=AValue) then exit;
@@ -2374,7 +2359,7 @@ end;
 
 
 
-Procedure TTripOption.Setslice(AIndex : Integer; AValue : TTripOptionTypesliceArray); 
+Procedure TTripOption.Setslice(AIndex : Integer; const AValue : TTripOptionTypesliceArray); 
 
 begin
   If (Fslice=AValue) then exit;
@@ -2415,7 +2400,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.Setpassengers(AIndex : Integer; AValue : TPassengerCounts); 
+Procedure TTripOptionsRequest.Setpassengers(AIndex : Integer; const AValue : TPassengerCounts); 
 
 begin
   If (Fpassengers=AValue) then exit;
@@ -2425,7 +2410,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.Setrefundable(AIndex : Integer; AValue : boolean); 
+Procedure TTripOptionsRequest.Setrefundable(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Frefundable=AValue) then exit;
@@ -2445,7 +2430,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.Setslice(AIndex : Integer; AValue : TTripOptionsRequestTypesliceArray); 
+Procedure TTripOptionsRequest.Setslice(AIndex : Integer; const AValue : TTripOptionsRequestTypesliceArray); 
 
 begin
   If (Fslice=AValue) then exit;
@@ -2455,7 +2440,7 @@ end;
 
 
 
-Procedure TTripOptionsRequest.Setsolutions(AIndex : Integer; AValue : integer); 
+Procedure TTripOptionsRequest.Setsolutions(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fsolutions=AValue) then exit;
@@ -2485,7 +2470,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripOptionsResponse.Setdata(AIndex : Integer; AValue : TData); 
+Procedure TTripOptionsResponse.Setdata(AIndex : Integer; const AValue : TData); 
 
 begin
   If (Fdata=AValue) then exit;
@@ -2515,7 +2500,7 @@ end;
 
 
 
-Procedure TTripOptionsResponse.SettripOption(AIndex : Integer; AValue : TTripOptionsResponseTypetripOptionArray); 
+Procedure TTripOptionsResponse.SettripOption(AIndex : Integer; const AValue : TTripOptionsResponseTypetripOptionArray); 
 
 begin
   If (FtripOption=AValue) then exit;
@@ -2545,7 +2530,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTripsSearchRequest.Setrequest(AIndex : Integer; AValue : TTripOptionsRequest); 
+Procedure TTripsSearchRequest.Setrequest(AIndex : Integer; const AValue : TTripOptionsRequest); 
 
 begin
   If (Frequest=AValue) then exit;
@@ -2572,7 +2557,7 @@ end;
 
 
 
-Procedure TTripsSearchResponse.Settrips(AIndex : Integer; AValue : TTripOptionsResponse); 
+Procedure TTripsSearchResponse.Settrips(AIndex : Integer; const AValue : TTripOptionsResponse); 
 
 begin
   If (Ftrips=AValue) then exit;
@@ -2633,7 +2618,7 @@ end;
 Class Function TQpxExpressAPI.APIRevision : String;
 
 begin
-  Result:='20140321';
+  Result:='20160307';
 end;
 
 Class Function TQpxExpressAPI.APIID : String;
@@ -2651,7 +2636,7 @@ end;
 Class Function TQpxExpressAPI.APIDescription : String;
 
 begin
-  Result:='Lets you find the least expensive flights between an origin and a destination.';
+  Result:='Finds the least expensive flights between an origin and a destination.';
 end;
 
 Class Function TQpxExpressAPI.APIOwnerDomain : String;
@@ -2687,7 +2672,7 @@ end;
 Class Function TQpxExpressAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TQpxExpressAPI.APIbasePath : string;
@@ -2699,7 +2684,7 @@ end;
 Class Function TQpxExpressAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/qpxExpress/v1/trips/';
+  Result:='https://www.googleapis.com/qpxExpress/v1/trips/';
 end;
 
 Class Function TQpxExpressAPI.APIProtocol : string;

@@ -1,19 +1,4 @@
 unit googlegamesConfiguration;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:04
 {$MODE objfpc}
 {$H+}
 
@@ -69,12 +54,12 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetachievementType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdraft(AIndex : Integer; AValue : TAchievementConfigurationDetail); virtual;
+    Procedure Setdraft(AIndex : Integer; const AValue : TAchievementConfigurationDetail); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure SetinitialState(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Set_published(AIndex : Integer; AValue : TAchievementConfigurationDetail); virtual;
-    Procedure SetstepsToUnlock(AIndex : Integer; AValue : integer); virtual;
+    Procedure Set_published(AIndex : Integer; const AValue : TAchievementConfigurationDetail); virtual;
+    Procedure SetstepsToUnlock(AIndex : Integer; const AValue : integer); virtual;
     Procedure Settoken(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -103,12 +88,12 @@ type
     FsortRank : integer;
   Protected
     //Property setters
-    Procedure Setdescription(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
     Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure SetpointValue(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetsortRank(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure SetpointValue(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetsortRank(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property description : TLocalizedStringBundle Index 0 Read Fdescription Write Setdescription;
@@ -131,7 +116,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TAchievementConfigurationListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TAchievementConfigurationListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -160,12 +145,12 @@ type
     Fzero : TLocalizedStringBundle;
   Protected
     //Property setters
-    Procedure Setfew(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure Setmany(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure Setone(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure Setother(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure Settwo(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure Setzero(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
+    Procedure Setfew(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure Setmany(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure Setone(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure Setother(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure Settwo(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure Setzero(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
   Public
   Published
     Property few : TLocalizedStringBundle Index 0 Read Ffew Write Setfew;
@@ -190,9 +175,9 @@ type
   Protected
     //Property setters
     Procedure SetcurrencyCode(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnumDecimalPlaces(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetnumDecimalPlaces(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetnumberFormatType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsuffix(AIndex : Integer; AValue : TGamesNumberAffixConfiguration); virtual;
+    Procedure Setsuffix(AIndex : Integer; const AValue : TGamesNumberAffixConfiguration); virtual;
   Public
   Published
     Property currencyCode : String Index 0 Read FcurrencyCode Write SetcurrencyCode;
@@ -244,10 +229,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setdraft(AIndex : Integer; AValue : TLeaderboardConfigurationDetail); virtual;
+    Procedure Setdraft(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Set_published(AIndex : Integer; AValue : TLeaderboardConfigurationDetail); virtual;
+    Procedure Set_published(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail); virtual;
     Procedure SetscoreMax(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreMin(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscoreOrder(AIndex : Integer; const AValue : String); virtual;
@@ -280,9 +265,9 @@ type
     //Property setters
     Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setname(AIndex : Integer; AValue : TLocalizedStringBundle); virtual;
-    Procedure SetscoreFormat(AIndex : Integer; AValue : TGamesNumberFormatConfiguration); virtual;
-    Procedure SetsortRank(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TLocalizedStringBundle); virtual;
+    Procedure SetscoreFormat(AIndex : Integer; const AValue : TGamesNumberFormatConfiguration); virtual;
+    Procedure SetsortRank(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property iconUrl : String Index 0 Read FiconUrl Write SeticonUrl;
@@ -304,7 +289,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TLeaderboardConfigurationListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLeaderboardConfigurationListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -352,7 +337,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settranslations(AIndex : Integer; AValue : TLocalizedStringBundleTypetranslationsArray); virtual;
+    Procedure Settranslations(AIndex : Integer; const AValue : TLocalizedStringBundleTypetranslationsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -493,7 +478,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Setdraft(AIndex : Integer; AValue : TAchievementConfigurationDetail); 
+Procedure TAchievementConfiguration.Setdraft(AIndex : Integer; const AValue : TAchievementConfigurationDetail); 
 
 begin
   If (Fdraft=AValue) then exit;
@@ -533,7 +518,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.Set_published(AIndex : Integer; AValue : TAchievementConfigurationDetail); 
+Procedure TAchievementConfiguration.Set_published(AIndex : Integer; const AValue : TAchievementConfigurationDetail); 
 
 begin
   If (F_published=AValue) then exit;
@@ -543,7 +528,7 @@ end;
 
 
 
-Procedure TAchievementConfiguration.SetstepsToUnlock(AIndex : Integer; AValue : integer); 
+Procedure TAchievementConfiguration.SetstepsToUnlock(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstepsToUnlock=AValue) then exit;
@@ -581,7 +566,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementConfigurationDetail.Setdescription(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TAchievementConfigurationDetail.Setdescription(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fdescription=AValue) then exit;
@@ -611,7 +596,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.Setname(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TAchievementConfigurationDetail.Setname(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fname=AValue) then exit;
@@ -621,7 +606,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.SetpointValue(AIndex : Integer; AValue : integer); 
+Procedure TAchievementConfigurationDetail.SetpointValue(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FpointValue=AValue) then exit;
@@ -631,7 +616,7 @@ end;
 
 
 
-Procedure TAchievementConfigurationDetail.SetsortRank(AIndex : Integer; AValue : integer); 
+Procedure TAchievementConfigurationDetail.SetsortRank(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FsortRank=AValue) then exit;
@@ -648,7 +633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAchievementConfigurationListResponse.Setitems(AIndex : Integer; AValue : TAchievementConfigurationListResponseTypeitemsArray); 
+Procedure TAchievementConfigurationListResponse.Setitems(AIndex : Integer; const AValue : TAchievementConfigurationListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -698,7 +683,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGamesNumberAffixConfiguration.Setfew(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setfew(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Ffew=AValue) then exit;
@@ -708,7 +693,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setmany(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setmany(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fmany=AValue) then exit;
@@ -718,7 +703,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setone(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setone(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fone=AValue) then exit;
@@ -728,7 +713,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setother(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setother(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fother=AValue) then exit;
@@ -738,7 +723,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Settwo(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Settwo(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Ftwo=AValue) then exit;
@@ -748,7 +733,7 @@ end;
 
 
 
-Procedure TGamesNumberAffixConfiguration.Setzero(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TGamesNumberAffixConfiguration.Setzero(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fzero=AValue) then exit;
@@ -775,7 +760,7 @@ end;
 
 
 
-Procedure TGamesNumberFormatConfiguration.SetnumDecimalPlaces(AIndex : Integer; AValue : integer); 
+Procedure TGamesNumberFormatConfiguration.SetnumDecimalPlaces(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumDecimalPlaces=AValue) then exit;
@@ -795,7 +780,7 @@ end;
 
 
 
-Procedure TGamesNumberFormatConfiguration.Setsuffix(AIndex : Integer; AValue : TGamesNumberAffixConfiguration); 
+Procedure TGamesNumberFormatConfiguration.Setsuffix(AIndex : Integer; const AValue : TGamesNumberAffixConfiguration); 
 
 begin
   If (Fsuffix=AValue) then exit;
@@ -859,7 +844,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardConfiguration.Setdraft(AIndex : Integer; AValue : TLeaderboardConfigurationDetail); 
+Procedure TLeaderboardConfiguration.Setdraft(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail); 
 
 begin
   If (Fdraft=AValue) then exit;
@@ -889,7 +874,7 @@ end;
 
 
 
-Procedure TLeaderboardConfiguration.Set_published(AIndex : Integer; AValue : TLeaderboardConfigurationDetail); 
+Procedure TLeaderboardConfiguration.Set_published(AIndex : Integer; const AValue : TLeaderboardConfigurationDetail); 
 
 begin
   If (F_published=AValue) then exit;
@@ -977,7 +962,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.Setname(AIndex : Integer; AValue : TLocalizedStringBundle); 
+Procedure TLeaderboardConfigurationDetail.Setname(AIndex : Integer; const AValue : TLocalizedStringBundle); 
 
 begin
   If (Fname=AValue) then exit;
@@ -987,7 +972,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.SetscoreFormat(AIndex : Integer; AValue : TGamesNumberFormatConfiguration); 
+Procedure TLeaderboardConfigurationDetail.SetscoreFormat(AIndex : Integer; const AValue : TGamesNumberFormatConfiguration); 
 
 begin
   If (FscoreFormat=AValue) then exit;
@@ -997,7 +982,7 @@ end;
 
 
 
-Procedure TLeaderboardConfigurationDetail.SetsortRank(AIndex : Integer; AValue : integer); 
+Procedure TLeaderboardConfigurationDetail.SetsortRank(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FsortRank=AValue) then exit;
@@ -1014,7 +999,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLeaderboardConfigurationListResponse.Setitems(AIndex : Integer; AValue : TLeaderboardConfigurationListResponseTypeitemsArray); 
+Procedure TLeaderboardConfigurationListResponse.Setitems(AIndex : Integer; const AValue : TLeaderboardConfigurationListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1111,7 +1096,7 @@ end;
 
 
 
-Procedure TLocalizedStringBundle.Settranslations(AIndex : Integer; AValue : TLocalizedStringBundleTypetranslationsArray); 
+Procedure TLocalizedStringBundle.Settranslations(AIndex : Integer; const AValue : TLocalizedStringBundleTypetranslationsArray); 
 
 begin
   If (Ftranslations=AValue) then exit;
@@ -1433,7 +1418,7 @@ end;
 Class Function TGamesConfigurationAPI.APIRevision : String;
 
 begin
-  Result:='20150511';
+  Result:='20160519';
 end;
 
 Class Function TGamesConfigurationAPI.APIID : String;
@@ -1487,7 +1472,7 @@ end;
 Class Function TGamesConfigurationAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TGamesConfigurationAPI.APIbasePath : string;
@@ -1499,7 +1484,7 @@ end;
 Class Function TGamesConfigurationAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/games/v1configuration/';
+  Result:='https://www.googleapis.com/games/v1configuration/';
 end;
 
 Class Function TGamesConfigurationAPI.APIProtocol : string;

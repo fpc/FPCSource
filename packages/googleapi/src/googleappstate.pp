@@ -1,19 +1,4 @@
 unit googleappstate;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -50,7 +35,7 @@ type
     Procedure SetcurrentStateVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure Setdata(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstateKey(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetstateKey(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property currentStateVersion : String Index 0 Read FcurrentStateVersion Write SetcurrentStateVersion;
@@ -71,9 +56,9 @@ type
     FmaximumKeyCount : integer;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaximumKeyCount(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmaximumKeyCount(AIndex : Integer; const AValue : integer); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -118,7 +103,7 @@ type
     //Property setters
     Procedure SetcurrentStateVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstateKey(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetstateKey(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property currentStateVersion : String Index 0 Read FcurrentStateVersion Write SetcurrentStateVersion;
@@ -242,7 +227,7 @@ end;
 
 
 
-Procedure TGetResponse.SetstateKey(AIndex : Integer; AValue : integer); 
+Procedure TGetResponse.SetstateKey(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstateKey=AValue) then exit;
@@ -259,7 +244,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListResponse.Setitems(AIndex : Integer; AValue : TListResponseTypeitemsArray); 
+Procedure TListResponse.Setitems(AIndex : Integer; const AValue : TListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -279,7 +264,7 @@ end;
 
 
 
-Procedure TListResponse.SetmaximumKeyCount(AIndex : Integer; AValue : integer); 
+Procedure TListResponse.SetmaximumKeyCount(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaximumKeyCount=AValue) then exit;
@@ -356,7 +341,7 @@ end;
 
 
 
-Procedure TWriteResult.SetstateKey(AIndex : Integer; AValue : integer); 
+Procedure TWriteResult.SetstateKey(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FstateKey=AValue) then exit;
@@ -513,7 +498,7 @@ end;
 Class Function TAppstateAPI.APIRevision : String;
 
 begin
-  Result:='20150512';
+  Result:='20160519';
 end;
 
 Class Function TAppstateAPI.APIID : String;
@@ -567,7 +552,7 @@ end;
 Class Function TAppstateAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAppstateAPI.APIbasePath : string;
@@ -579,7 +564,7 @@ end;
 Class Function TAppstateAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/appstate/v1/';
+  Result:='https://www.googleapis.com/appstate/v1/';
 end;
 
 Class Function TAppstateAPI.APIProtocol : string;

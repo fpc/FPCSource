@@ -1,19 +1,4 @@
 unit googletasks;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -84,21 +69,21 @@ type
     Fupdated : TDatetime;
   Protected
     //Property setters
-    Procedure Setcompleted(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setdue(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setcompleted(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setdue(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Sethidden(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Sethidden(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlinks(AIndex : Integer; AValue : TTaskTypelinksArray); virtual;
+    Procedure Setlinks(AIndex : Integer; const AValue : TTaskTypelinksArray); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure Setparent(AIndex : Integer; const AValue : String); virtual;
     Procedure Setposition(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -142,7 +127,7 @@ type
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setupdated(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setupdated(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
     Property etag : String Index 0 Read Fetag Write Setetag;
@@ -167,7 +152,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTaskListsTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTaskListsTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -196,7 +181,7 @@ type
   Protected
     //Property setters
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -390,7 +375,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTask.Setcompleted(AIndex : Integer; AValue : TDatetime); 
+Procedure TTask.Setcompleted(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fcompleted=AValue) then exit;
@@ -400,7 +385,7 @@ end;
 
 
 
-Procedure TTask.Setdeleted(AIndex : Integer; AValue : boolean); 
+Procedure TTask.Setdeleted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -410,7 +395,7 @@ end;
 
 
 
-Procedure TTask.Setdue(AIndex : Integer; AValue : TDatetime); 
+Procedure TTask.Setdue(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fdue=AValue) then exit;
@@ -430,7 +415,7 @@ end;
 
 
 
-Procedure TTask.Sethidden(AIndex : Integer; AValue : boolean); 
+Procedure TTask.Sethidden(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fhidden=AValue) then exit;
@@ -460,7 +445,7 @@ end;
 
 
 
-Procedure TTask.Setlinks(AIndex : Integer; AValue : TTaskTypelinksArray); 
+Procedure TTask.Setlinks(AIndex : Integer; const AValue : TTaskTypelinksArray); 
 
 begin
   If (Flinks=AValue) then exit;
@@ -530,7 +515,7 @@ end;
 
 
 
-Procedure TTask.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TTask.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -610,7 +595,7 @@ end;
 
 
 
-Procedure TTaskList.Setupdated(AIndex : Integer; AValue : TDatetime); 
+Procedure TTaskList.Setupdated(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Fupdated=AValue) then exit;
@@ -637,7 +622,7 @@ end;
 
 
 
-Procedure TTaskLists.Setitems(AIndex : Integer; AValue : TTaskListsTypeitemsArray); 
+Procedure TTaskLists.Setitems(AIndex : Integer; const AValue : TTaskListsTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -697,7 +682,7 @@ end;
 
 
 
-Procedure TTasks.Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); 
+Procedure TTasks.Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1115,7 +1100,7 @@ end;
 Class Function TTasksAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TTasksAPI.APIbasePath : string;
@@ -1127,7 +1112,7 @@ end;
 Class Function TTasksAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/tasks/v1/';
+  Result:='https://www.googleapis.com/tasks/v1/';
 end;
 
 Class Function TTasksAPI.APIProtocol : string;

@@ -1,19 +1,4 @@
 unit googlesqladmin;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -35,17 +20,20 @@ type
   TDatabaseInstance = Class;
   TDatabasesListResponse = Class;
   TExportContext = Class;
+  TFailoverContext = Class;
   TFlag = Class;
   TFlagsListResponse = Class;
   TImportContext = Class;
   TInstancesCloneRequest = Class;
   TInstancesExportRequest = Class;
+  TInstancesFailoverRequest = Class;
   TInstancesImportRequest = Class;
   TInstancesListResponse = Class;
   TInstancesRestoreBackupRequest = Class;
   TIpConfiguration = Class;
   TIpMapping = Class;
   TLocationPreference = Class;
+  TMaintenanceWindow = Class;
   TMySqlReplicaConfiguration = Class;
   TOnPremisesConfiguration = Class;
   TOperation = Class;
@@ -57,6 +45,7 @@ type
   TSettings = Class;
   TSslCert = Class;
   TSslCertDetail = Class;
+  TSslCertsCreateEphemeralRequest = Class;
   TSslCertsInsertRequest = Class;
   TSslCertsInsertResponse = Class;
   TSslCertsListResponse = Class;
@@ -75,17 +64,20 @@ type
   TDatabaseInstanceArray = Array of TDatabaseInstance;
   TDatabasesListResponseArray = Array of TDatabasesListResponse;
   TExportContextArray = Array of TExportContext;
+  TFailoverContextArray = Array of TFailoverContext;
   TFlagArray = Array of TFlag;
   TFlagsListResponseArray = Array of TFlagsListResponse;
   TImportContextArray = Array of TImportContext;
   TInstancesCloneRequestArray = Array of TInstancesCloneRequest;
   TInstancesExportRequestArray = Array of TInstancesExportRequest;
+  TInstancesFailoverRequestArray = Array of TInstancesFailoverRequest;
   TInstancesImportRequestArray = Array of TInstancesImportRequest;
   TInstancesListResponseArray = Array of TInstancesListResponse;
   TInstancesRestoreBackupRequestArray = Array of TInstancesRestoreBackupRequest;
   TIpConfigurationArray = Array of TIpConfiguration;
   TIpMappingArray = Array of TIpMapping;
   TLocationPreferenceArray = Array of TLocationPreference;
+  TMaintenanceWindowArray = Array of TMaintenanceWindow;
   TMySqlReplicaConfigurationArray = Array of TMySqlReplicaConfiguration;
   TOnPremisesConfigurationArray = Array of TOnPremisesConfiguration;
   TOperationArray = Array of TOperation;
@@ -97,6 +89,7 @@ type
   TSettingsArray = Array of TSettings;
   TSslCertArray = Array of TSslCert;
   TSslCertDetailArray = Array of TSslCertDetail;
+  TSslCertsCreateEphemeralRequestArray = Array of TSslCertsCreateEphemeralRequest;
   TSslCertsInsertRequestArray = Array of TSslCertsInsertRequest;
   TSslCertsInsertResponseArray = Array of TSslCertsInsertResponse;
   TSslCertsListResponseArray = Array of TSslCertsListResponse;
@@ -105,6 +98,7 @@ type
   TUserArray = Array of TUser;
   TUsersListResponseArray = Array of TUsersListResponse;
   //Anonymous types, using auto-generated names
+  TDatabaseInstanceTypefailoverReplica = Class;
   TExportContextTypecsvExportOptions = Class;
   TExportContextTypesqlExportOptions = Class;
   TImportContextTypecsvImportOptions = Class;
@@ -133,7 +127,7 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure SetexpirationTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetexpirationTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
@@ -158,8 +152,8 @@ type
     FstartTime : String;
   Protected
     //Property setters
-    Procedure SetbinaryLogEnabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setenabled(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetbinaryLogEnabled(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setenabled(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -189,16 +183,16 @@ type
     FwindowStartTime : TDatetime;
   Protected
     //Property setters
-    Procedure SetendTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetenqueuedTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationError); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetenqueuedTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationError); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetwindowStartTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetwindowStartTime(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
     Property endTime : TDatetime Index 0 Read FendTime Write SetendTime;
@@ -225,7 +219,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TBackupRunsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TBackupRunsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -273,7 +267,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetbinLogCoordinates(AIndex : Integer; AValue : TBinLogCoordinates); virtual;
+    Procedure SetbinLogCoordinates(AIndex : Integer; const AValue : TBinLogCoordinates); virtual;
     Procedure SetdestinationInstanceName(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -341,14 +335,35 @@ type
   TDatabaseFlagsClass = Class of TDatabaseFlags;
   
   { --------------------------------------------------------------------
+    TDatabaseInstanceTypefailoverReplica
+    --------------------------------------------------------------------}
+  
+  TDatabaseInstanceTypefailoverReplica = Class(TGoogleBaseObject)
+  Private
+    Favailable : boolean;
+    Fname : String;
+  Protected
+    //Property setters
+    Procedure Setavailable(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property available : boolean Index 0 Read Favailable Write Setavailable;
+    Property name : String Index 8 Read Fname Write Setname;
+  end;
+  TDatabaseInstanceTypefailoverReplicaClass = Class of TDatabaseInstanceTypefailoverReplica;
+  
+  { --------------------------------------------------------------------
     TDatabaseInstance
     --------------------------------------------------------------------}
   
   TDatabaseInstance = Class(TGoogleBaseObject)
   Private
+    FbackendType : String;
     FcurrentDiskSize : String;
     FdatabaseVersion : String;
     Fetag : String;
+    FfailoverReplica : TDatabaseInstanceTypefailoverReplica;
     FinstanceType : String;
     FipAddresses : TDatabaseInstanceTypeipAddressesArray;
     Fipv6Address : String;
@@ -366,54 +381,61 @@ type
     FserviceAccountEmailAddress : String;
     Fsettings : TSettings;
     Fstate : String;
+    FsuspensionReason : TStringArray;
   Protected
     //Property setters
+    Procedure SetbackendType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcurrentDiskSize(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdatabaseVersion(AIndex : Integer; const AValue : String); virtual;
     Procedure Setetag(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfailoverReplica(AIndex : Integer; const AValue : TDatabaseInstanceTypefailoverReplica); virtual;
     Procedure SetinstanceType(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetipAddresses(AIndex : Integer; AValue : TDatabaseInstanceTypeipAddressesArray); virtual;
+    Procedure SetipAddresses(AIndex : Integer; const AValue : TDatabaseInstanceTypeipAddressesArray); virtual;
     Procedure Setipv6Address(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmasterInstanceName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxDiskSize(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetonPremisesConfiguration(AIndex : Integer; AValue : TOnPremisesConfiguration); virtual;
+    Procedure SetonPremisesConfiguration(AIndex : Integer; const AValue : TOnPremisesConfiguration); virtual;
     Procedure Setproject(AIndex : Integer; const AValue : String); virtual;
     Procedure Setregion(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetreplicaConfiguration(AIndex : Integer; AValue : TReplicaConfiguration); virtual;
-    Procedure SetreplicaNames(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetreplicaConfiguration(AIndex : Integer; const AValue : TReplicaConfiguration); virtual;
+    Procedure SetreplicaNames(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetserverCaCert(AIndex : Integer; AValue : TSslCert); virtual;
+    Procedure SetserverCaCert(AIndex : Integer; const AValue : TSslCert); virtual;
     Procedure SetserviceAccountEmailAddress(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setsettings(AIndex : Integer; AValue : TSettings); virtual;
+    Procedure Setsettings(AIndex : Integer; const AValue : TSettings); virtual;
     Procedure Setstate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsuspensionReason(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property currentDiskSize : String Index 0 Read FcurrentDiskSize Write SetcurrentDiskSize;
-    Property databaseVersion : String Index 8 Read FdatabaseVersion Write SetdatabaseVersion;
-    Property etag : String Index 16 Read Fetag Write Setetag;
-    Property instanceType : String Index 24 Read FinstanceType Write SetinstanceType;
-    Property ipAddresses : TDatabaseInstanceTypeipAddressesArray Index 32 Read FipAddresses Write SetipAddresses;
-    Property ipv6Address : String Index 40 Read Fipv6Address Write Setipv6Address;
-    Property kind : String Index 48 Read Fkind Write Setkind;
-    Property masterInstanceName : String Index 56 Read FmasterInstanceName Write SetmasterInstanceName;
-    Property maxDiskSize : String Index 64 Read FmaxDiskSize Write SetmaxDiskSize;
-    Property name : String Index 72 Read Fname Write Setname;
-    Property onPremisesConfiguration : TOnPremisesConfiguration Index 80 Read FonPremisesConfiguration Write SetonPremisesConfiguration;
-    Property project : String Index 88 Read Fproject Write Setproject;
-    Property region : String Index 96 Read Fregion Write Setregion;
-    Property replicaConfiguration : TReplicaConfiguration Index 104 Read FreplicaConfiguration Write SetreplicaConfiguration;
-    Property replicaNames : TStringArray Index 112 Read FreplicaNames Write SetreplicaNames;
-    Property selfLink : String Index 120 Read FselfLink Write SetselfLink;
-    Property serverCaCert : TSslCert Index 128 Read FserverCaCert Write SetserverCaCert;
-    Property serviceAccountEmailAddress : String Index 136 Read FserviceAccountEmailAddress Write SetserviceAccountEmailAddress;
-    Property settings : TSettings Index 144 Read Fsettings Write Setsettings;
-    Property state : String Index 152 Read Fstate Write Setstate;
+    Property backendType : String Index 0 Read FbackendType Write SetbackendType;
+    Property currentDiskSize : String Index 8 Read FcurrentDiskSize Write SetcurrentDiskSize;
+    Property databaseVersion : String Index 16 Read FdatabaseVersion Write SetdatabaseVersion;
+    Property etag : String Index 24 Read Fetag Write Setetag;
+    Property failoverReplica : TDatabaseInstanceTypefailoverReplica Index 32 Read FfailoverReplica Write SetfailoverReplica;
+    Property instanceType : String Index 40 Read FinstanceType Write SetinstanceType;
+    Property ipAddresses : TDatabaseInstanceTypeipAddressesArray Index 48 Read FipAddresses Write SetipAddresses;
+    Property ipv6Address : String Index 56 Read Fipv6Address Write Setipv6Address;
+    Property kind : String Index 64 Read Fkind Write Setkind;
+    Property masterInstanceName : String Index 72 Read FmasterInstanceName Write SetmasterInstanceName;
+    Property maxDiskSize : String Index 80 Read FmaxDiskSize Write SetmaxDiskSize;
+    Property name : String Index 88 Read Fname Write Setname;
+    Property onPremisesConfiguration : TOnPremisesConfiguration Index 96 Read FonPremisesConfiguration Write SetonPremisesConfiguration;
+    Property project : String Index 104 Read Fproject Write Setproject;
+    Property region : String Index 112 Read Fregion Write Setregion;
+    Property replicaConfiguration : TReplicaConfiguration Index 120 Read FreplicaConfiguration Write SetreplicaConfiguration;
+    Property replicaNames : TStringArray Index 128 Read FreplicaNames Write SetreplicaNames;
+    Property selfLink : String Index 136 Read FselfLink Write SetselfLink;
+    Property serverCaCert : TSslCert Index 144 Read FserverCaCert Write SetserverCaCert;
+    Property serviceAccountEmailAddress : String Index 152 Read FserviceAccountEmailAddress Write SetserviceAccountEmailAddress;
+    Property settings : TSettings Index 160 Read Fsettings Write Setsettings;
+    Property state : String Index 168 Read Fstate Write Setstate;
+    Property suspensionReason : TStringArray Index 176 Read FsuspensionReason Write SetsuspensionReason;
   end;
   TDatabaseInstanceClass = Class of TDatabaseInstance;
   
@@ -427,7 +449,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TDatabasesListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TDatabasesListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -462,17 +484,20 @@ type
   
   TExportContextTypesqlExportOptions = Class(TGoogleBaseObject)
   Private
+    FschemaOnly : boolean;
     Ftables : TStringArray;
   Protected
     //Property setters
-    Procedure Settables(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetschemaOnly(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Settables(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property tables : TStringArray Index 0 Read Ftables Write Settables;
+    Property schemaOnly : boolean Index 0 Read FschemaOnly Write SetschemaOnly;
+    Property tables : TStringArray Index 8 Read Ftables Write Settables;
   end;
   TExportContextTypesqlExportOptionsClass = Class of TExportContextTypesqlExportOptions;
   
@@ -490,11 +515,11 @@ type
     Furi : String;
   Protected
     //Property setters
-    Procedure SetcsvExportOptions(AIndex : Integer; AValue : TExportContextTypecsvExportOptions); virtual;
-    Procedure Setdatabases(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetcsvExportOptions(AIndex : Integer; const AValue : TExportContextTypecsvExportOptions); virtual;
+    Procedure Setdatabases(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetfileType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetsqlExportOptions(AIndex : Integer; AValue : TExportContextTypesqlExportOptions); virtual;
+    Procedure SetsqlExportOptions(AIndex : Integer; const AValue : TExportContextTypesqlExportOptions); virtual;
     Procedure Seturi(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -512,6 +537,25 @@ type
   TExportContextClass = Class of TExportContext;
   
   { --------------------------------------------------------------------
+    TFailoverContext
+    --------------------------------------------------------------------}
+  
+  TFailoverContext = Class(TGoogleBaseObject)
+  Private
+    Fkind : String;
+    FsettingsVersion : String;
+  Protected
+    //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsettingsVersion(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property settingsVersion : String Index 8 Read FsettingsVersion Write SetsettingsVersion;
+  end;
+  TFailoverContextClass = Class of TFailoverContext;
+  
+  { --------------------------------------------------------------------
     TFlag
     --------------------------------------------------------------------}
   
@@ -523,16 +567,18 @@ type
     FmaxValue : String;
     FminValue : String;
     Fname : String;
+    FrequiresRestart : boolean;
     F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetallowedStringValues(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetappliesTo(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetallowedStringValues(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetappliesTo(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmaxValue(AIndex : Integer; const AValue : String); virtual;
     Procedure SetminValue(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequiresRestart(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -546,7 +592,8 @@ type
     Property maxValue : String Index 24 Read FmaxValue Write SetmaxValue;
     Property minValue : String Index 32 Read FminValue Write SetminValue;
     Property name : String Index 40 Read Fname Write Setname;
-    Property _type : String Index 48 Read F_type Write Set_type;
+    Property requiresRestart : boolean Index 48 Read FrequiresRestart Write SetrequiresRestart;
+    Property _type : String Index 56 Read F_type Write Set_type;
   end;
   TFlagClass = Class of TFlag;
   
@@ -560,7 +607,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TFlagsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TFlagsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -583,7 +630,7 @@ type
     Ftable : String;
   Protected
     //Property setters
-    Procedure Setcolumns(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setcolumns(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Settable(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -609,7 +656,7 @@ type
     Furi : String;
   Protected
     //Property setters
-    Procedure SetcsvImportOptions(AIndex : Integer; AValue : TImportContextTypecsvImportOptions); virtual;
+    Procedure SetcsvImportOptions(AIndex : Integer; const AValue : TImportContextTypecsvImportOptions); virtual;
     Procedure Setdatabase(AIndex : Integer; const AValue : String); virtual;
     Procedure SetfileType(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
@@ -633,7 +680,7 @@ type
     FcloneContext : TCloneContext;
   Protected
     //Property setters
-    Procedure SetcloneContext(AIndex : Integer; AValue : TCloneContext); virtual;
+    Procedure SetcloneContext(AIndex : Integer; const AValue : TCloneContext); virtual;
   Public
   Published
     Property cloneContext : TCloneContext Index 0 Read FcloneContext Write SetcloneContext;
@@ -649,12 +696,28 @@ type
     FexportContext : TExportContext;
   Protected
     //Property setters
-    Procedure SetexportContext(AIndex : Integer; AValue : TExportContext); virtual;
+    Procedure SetexportContext(AIndex : Integer; const AValue : TExportContext); virtual;
   Public
   Published
     Property exportContext : TExportContext Index 0 Read FexportContext Write SetexportContext;
   end;
   TInstancesExportRequestClass = Class of TInstancesExportRequest;
+  
+  { --------------------------------------------------------------------
+    TInstancesFailoverRequest
+    --------------------------------------------------------------------}
+  
+  TInstancesFailoverRequest = Class(TGoogleBaseObject)
+  Private
+    FfailoverContext : TFailoverContext;
+  Protected
+    //Property setters
+    Procedure SetfailoverContext(AIndex : Integer; const AValue : TFailoverContext); virtual;
+  Public
+  Published
+    Property failoverContext : TFailoverContext Index 0 Read FfailoverContext Write SetfailoverContext;
+  end;
+  TInstancesFailoverRequestClass = Class of TInstancesFailoverRequest;
   
   { --------------------------------------------------------------------
     TInstancesImportRequest
@@ -665,7 +728,7 @@ type
     FimportContext : TImportContext;
   Protected
     //Property setters
-    Procedure SetimportContext(AIndex : Integer; AValue : TImportContext); virtual;
+    Procedure SetimportContext(AIndex : Integer; const AValue : TImportContext); virtual;
   Public
   Published
     Property importContext : TImportContext Index 0 Read FimportContext Write SetimportContext;
@@ -683,7 +746,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TInstancesListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TInstancesListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -707,7 +770,7 @@ type
     FrestoreBackupContext : TRestoreBackupContext;
   Protected
     //Property setters
-    Procedure SetrestoreBackupContext(AIndex : Integer; AValue : TRestoreBackupContext); virtual;
+    Procedure SetrestoreBackupContext(AIndex : Integer; const AValue : TRestoreBackupContext); virtual;
   Public
   Published
     Property restoreBackupContext : TRestoreBackupContext Index 0 Read FrestoreBackupContext Write SetrestoreBackupContext;
@@ -725,9 +788,9 @@ type
     FrequireSsl : boolean;
   Protected
     //Property setters
-    Procedure SetauthorizedNetworks(AIndex : Integer; AValue : TIpConfigurationTypeauthorizedNetworksArray); virtual;
-    Procedure Setipv4Enabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetrequireSsl(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetauthorizedNetworks(AIndex : Integer; const AValue : TIpConfigurationTypeauthorizedNetworksArray); virtual;
+    Procedure Setipv4Enabled(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetrequireSsl(AIndex : Integer; const AValue : boolean); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -751,7 +814,7 @@ type
   Protected
     //Property setters
     Procedure SetipAddress(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettimeToRetire(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SettimeToRetire(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
     Property ipAddress : String Index 0 Read FipAddress Write SetipAddress;
@@ -782,6 +845,31 @@ type
   TLocationPreferenceClass = Class of TLocationPreference;
   
   { --------------------------------------------------------------------
+    TMaintenanceWindow
+    --------------------------------------------------------------------}
+  
+  TMaintenanceWindow = Class(TGoogleBaseObject)
+  Private
+    Fday : integer;
+    Fhour : integer;
+    Fkind : String;
+    FupdateTrack : String;
+  Protected
+    //Property setters
+    Procedure Setday(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Sethour(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetupdateTrack(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property day : integer Index 0 Read Fday Write Setday;
+    Property hour : integer Index 8 Read Fhour Write Sethour;
+    Property kind : String Index 16 Read Fkind Write Setkind;
+    Property updateTrack : String Index 24 Read FupdateTrack Write SetupdateTrack;
+  end;
+  TMaintenanceWindowClass = Class of TMaintenanceWindow;
+  
+  { --------------------------------------------------------------------
     TMySqlReplicaConfiguration
     --------------------------------------------------------------------}
   
@@ -803,14 +891,14 @@ type
     Procedure SetcaCertificate(AIndex : Integer; const AValue : String); virtual;
     Procedure SetclientCertificate(AIndex : Integer; const AValue : String); virtual;
     Procedure SetclientKey(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetconnectRetryInterval(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetconnectRetryInterval(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetdumpFilePath(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmasterHeartbeatPeriod(AIndex : Integer; const AValue : String); virtual;
     Procedure Setpassword(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsslCipher(AIndex : Integer; const AValue : String); virtual;
     Procedure Setusername(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetverifyServerCertificate(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetverifyServerCertificate(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property caCertificate : String Index 0 Read FcaCertificate Write SetcaCertificate;
@@ -869,16 +957,16 @@ type
     Fuser : String;
   Protected
     //Property setters
-    Procedure SetendTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Seterror(AIndex : Integer; AValue : TOperationErrors); virtual;
-    Procedure SetexportContext(AIndex : Integer; AValue : TExportContext); virtual;
-    Procedure SetimportContext(AIndex : Integer; AValue : TImportContext); virtual;
-    Procedure SetinsertTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetendTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Seterror(AIndex : Integer; const AValue : TOperationErrors); virtual;
+    Procedure SetexportContext(AIndex : Integer; const AValue : TExportContext); virtual;
+    Procedure SetimportContext(AIndex : Integer; const AValue : TImportContext); virtual;
+    Procedure SetinsertTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoperationType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetstartTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetstartTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setstatus(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettargetLink(AIndex : Integer; const AValue : String); virtual;
@@ -936,7 +1024,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Seterrors(AIndex : Integer; AValue : TOperationErrorsTypeerrorsArray); virtual;
+    Procedure Seterrors(AIndex : Integer; const AValue : TOperationErrorsTypeerrorsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -960,7 +1048,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TOperationsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TOperationsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -981,16 +1069,19 @@ type
   
   TReplicaConfiguration = Class(TGoogleBaseObject)
   Private
+    FfailoverTarget : boolean;
     Fkind : String;
     FmysqlReplicaConfiguration : TMySqlReplicaConfiguration;
   Protected
     //Property setters
+    Procedure SetfailoverTarget(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmysqlReplicaConfiguration(AIndex : Integer; AValue : TMySqlReplicaConfiguration); virtual;
+    Procedure SetmysqlReplicaConfiguration(AIndex : Integer; const AValue : TMySqlReplicaConfiguration); virtual;
   Public
   Published
-    Property kind : String Index 0 Read Fkind Write Setkind;
-    Property mysqlReplicaConfiguration : TMySqlReplicaConfiguration Index 8 Read FmysqlReplicaConfiguration Write SetmysqlReplicaConfiguration;
+    Property failoverTarget : boolean Index 0 Read FfailoverTarget Write SetfailoverTarget;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property mysqlReplicaConfiguration : TMySqlReplicaConfiguration Index 16 Read FmysqlReplicaConfiguration Write SetmysqlReplicaConfiguration;
   end;
   TReplicaConfigurationClass = Class of TReplicaConfiguration;
   
@@ -1026,29 +1117,37 @@ type
     FauthorizedGaeApplications : TStringArray;
     FbackupConfiguration : TBackupConfiguration;
     FcrashSafeReplicationEnabled : boolean;
+    FdataDiskSizeGb : String;
+    FdataDiskType : String;
     FdatabaseFlags : TSettingsTypedatabaseFlagsArray;
     FdatabaseReplicationEnabled : boolean;
     FipConfiguration : TIpConfiguration;
     Fkind : String;
     FlocationPreference : TLocationPreference;
+    FmaintenanceWindow : TMaintenanceWindow;
     FpricingPlan : String;
     FreplicationType : String;
     FsettingsVersion : String;
+    FstorageAutoResize : boolean;
     Ftier : String;
   Protected
     //Property setters
     Procedure SetactivationPolicy(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetauthorizedGaeApplications(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetbackupConfiguration(AIndex : Integer; AValue : TBackupConfiguration); virtual;
-    Procedure SetcrashSafeReplicationEnabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetdatabaseFlags(AIndex : Integer; AValue : TSettingsTypedatabaseFlagsArray); virtual;
-    Procedure SetdatabaseReplicationEnabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetipConfiguration(AIndex : Integer; AValue : TIpConfiguration); virtual;
+    Procedure SetauthorizedGaeApplications(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetbackupConfiguration(AIndex : Integer; const AValue : TBackupConfiguration); virtual;
+    Procedure SetcrashSafeReplicationEnabled(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetdataDiskSizeGb(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdataDiskType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdatabaseFlags(AIndex : Integer; const AValue : TSettingsTypedatabaseFlagsArray); virtual;
+    Procedure SetdatabaseReplicationEnabled(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetipConfiguration(AIndex : Integer; const AValue : TIpConfiguration); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetlocationPreference(AIndex : Integer; AValue : TLocationPreference); virtual;
+    Procedure SetlocationPreference(AIndex : Integer; const AValue : TLocationPreference); virtual;
+    Procedure SetmaintenanceWindow(AIndex : Integer; const AValue : TMaintenanceWindow); virtual;
     Procedure SetpricingPlan(AIndex : Integer; const AValue : String); virtual;
     Procedure SetreplicationType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetsettingsVersion(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstorageAutoResize(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Settier(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1060,15 +1159,19 @@ type
     Property authorizedGaeApplications : TStringArray Index 8 Read FauthorizedGaeApplications Write SetauthorizedGaeApplications;
     Property backupConfiguration : TBackupConfiguration Index 16 Read FbackupConfiguration Write SetbackupConfiguration;
     Property crashSafeReplicationEnabled : boolean Index 24 Read FcrashSafeReplicationEnabled Write SetcrashSafeReplicationEnabled;
-    Property databaseFlags : TSettingsTypedatabaseFlagsArray Index 32 Read FdatabaseFlags Write SetdatabaseFlags;
-    Property databaseReplicationEnabled : boolean Index 40 Read FdatabaseReplicationEnabled Write SetdatabaseReplicationEnabled;
-    Property ipConfiguration : TIpConfiguration Index 48 Read FipConfiguration Write SetipConfiguration;
-    Property kind : String Index 56 Read Fkind Write Setkind;
-    Property locationPreference : TLocationPreference Index 64 Read FlocationPreference Write SetlocationPreference;
-    Property pricingPlan : String Index 72 Read FpricingPlan Write SetpricingPlan;
-    Property replicationType : String Index 80 Read FreplicationType Write SetreplicationType;
-    Property settingsVersion : String Index 88 Read FsettingsVersion Write SetsettingsVersion;
-    Property tier : String Index 96 Read Ftier Write Settier;
+    Property dataDiskSizeGb : String Index 32 Read FdataDiskSizeGb Write SetdataDiskSizeGb;
+    Property dataDiskType : String Index 40 Read FdataDiskType Write SetdataDiskType;
+    Property databaseFlags : TSettingsTypedatabaseFlagsArray Index 48 Read FdatabaseFlags Write SetdatabaseFlags;
+    Property databaseReplicationEnabled : boolean Index 56 Read FdatabaseReplicationEnabled Write SetdatabaseReplicationEnabled;
+    Property ipConfiguration : TIpConfiguration Index 64 Read FipConfiguration Write SetipConfiguration;
+    Property kind : String Index 72 Read Fkind Write Setkind;
+    Property locationPreference : TLocationPreference Index 80 Read FlocationPreference Write SetlocationPreference;
+    Property maintenanceWindow : TMaintenanceWindow Index 88 Read FmaintenanceWindow Write SetmaintenanceWindow;
+    Property pricingPlan : String Index 96 Read FpricingPlan Write SetpricingPlan;
+    Property replicationType : String Index 104 Read FreplicationType Write SetreplicationType;
+    Property settingsVersion : String Index 112 Read FsettingsVersion Write SetsettingsVersion;
+    Property storageAutoResize : boolean Index 120 Read FstorageAutoResize Write SetstorageAutoResize;
+    Property tier : String Index 128 Read Ftier Write Settier;
   end;
   TSettingsClass = Class of TSettings;
   
@@ -1092,8 +1195,8 @@ type
     Procedure Setcert(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcertSerialNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcommonName(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcreateTime(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetexpirationTime(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetcreateTime(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetexpirationTime(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setinstance(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetselfLink(AIndex : Integer; const AValue : String); virtual;
@@ -1122,7 +1225,7 @@ type
     FcertPrivateKey : String;
   Protected
     //Property setters
-    Procedure SetcertInfo(AIndex : Integer; AValue : TSslCert); virtual;
+    Procedure SetcertInfo(AIndex : Integer; const AValue : TSslCert); virtual;
     Procedure SetcertPrivateKey(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -1130,6 +1233,22 @@ type
     Property certPrivateKey : String Index 8 Read FcertPrivateKey Write SetcertPrivateKey;
   end;
   TSslCertDetailClass = Class of TSslCertDetail;
+  
+  { --------------------------------------------------------------------
+    TSslCertsCreateEphemeralRequest
+    --------------------------------------------------------------------}
+  
+  TSslCertsCreateEphemeralRequest = Class(TGoogleBaseObject)
+  Private
+    Fpublic_key : String;
+  Protected
+    //Property setters
+    Procedure Setpublic_key(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property public_key : String Index 0 Read Fpublic_key Write Setpublic_key;
+  end;
+  TSslCertsCreateEphemeralRequestClass = Class of TSslCertsCreateEphemeralRequest;
   
   { --------------------------------------------------------------------
     TSslCertsInsertRequest
@@ -1155,17 +1274,20 @@ type
   Private
     FclientCert : TSslCertDetail;
     Fkind : String;
+    Foperation : TOperation;
     FserverCaCert : TSslCert;
   Protected
     //Property setters
-    Procedure SetclientCert(AIndex : Integer; AValue : TSslCertDetail); virtual;
+    Procedure SetclientCert(AIndex : Integer; const AValue : TSslCertDetail); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetserverCaCert(AIndex : Integer; AValue : TSslCert); virtual;
+    Procedure Setoperation(AIndex : Integer; const AValue : TOperation); virtual;
+    Procedure SetserverCaCert(AIndex : Integer; const AValue : TSslCert); virtual;
   Public
   Published
     Property clientCert : TSslCertDetail Index 0 Read FclientCert Write SetclientCert;
     Property kind : String Index 8 Read Fkind Write Setkind;
-    Property serverCaCert : TSslCert Index 16 Read FserverCaCert Write SetserverCaCert;
+    Property operation : TOperation Index 16 Read Foperation Write Setoperation;
+    Property serverCaCert : TSslCert Index 24 Read FserverCaCert Write SetserverCaCert;
   end;
   TSslCertsInsertResponseClass = Class of TSslCertsInsertResponse;
   
@@ -1179,7 +1301,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TSslCertsListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TSslCertsListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1208,7 +1330,7 @@ type
     Procedure SetDiskQuota(AIndex : Integer; const AValue : String); virtual;
     Procedure SetRAM(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Settier(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1234,7 +1356,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTiersListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTiersListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -1292,7 +1414,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TUsersListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TUsersListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -1323,6 +1445,7 @@ type
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Delete(id: string; instance: string; project: string) : TOperation;
     Function Get(id: string; instance: string; project: string) : TBackupRun;
     Function List(instance: string; project: string; AQuery : string  = '') : TBackupRunsListResponse;
     Function List(instance: string; project: string; AQuery : TBackupRunslistOptions) : TBackupRunsListResponse;
@@ -1377,6 +1500,7 @@ type
     Function Clone(instance: string; project: string; aInstancesCloneRequest : TInstancesCloneRequest) : TOperation;
     Function Delete(instance: string; project: string) : TOperation;
     Function Export(instance: string; project: string; aInstancesExportRequest : TInstancesExportRequest) : TOperation;
+    Function Failover(instance: string; project: string; aInstancesFailoverRequest : TInstancesFailoverRequest) : TOperation;
     Function Get(instance: string; project: string) : TDatabaseInstance;
     Function Import(instance: string; project: string; aInstancesImportRequest : TInstancesImportRequest) : TOperation;
     Function Insert(project: string; aDatabaseInstance : TDatabaseInstance) : TOperation;
@@ -1424,6 +1548,7 @@ type
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function CreateEphemeral(instance: string; project: string; aSslCertsCreateEphemeralRequest : TSslCertsCreateEphemeralRequest) : TSslCert;
     Function Delete(instance: string; project: string; sha1Fingerprint: string) : TOperation;
     Function Get(instance: string; project: string; sha1Fingerprint: string) : TSslCert;
     Function Insert(instance: string; project: string; aSslCertsInsertRequest : TSslCertsInsertRequest) : TSslCertsInsertResponse;
@@ -1556,7 +1681,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAclEntry.SetexpirationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TAclEntry.SetexpirationTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FexpirationTime=AValue) then exit;
@@ -1603,7 +1728,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBackupConfiguration.SetbinaryLogEnabled(AIndex : Integer; AValue : boolean); 
+Procedure TBackupConfiguration.SetbinaryLogEnabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FbinaryLogEnabled=AValue) then exit;
@@ -1613,7 +1738,7 @@ end;
 
 
 
-Procedure TBackupConfiguration.Setenabled(AIndex : Integer; AValue : boolean); 
+Procedure TBackupConfiguration.Setenabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fenabled=AValue) then exit;
@@ -1650,7 +1775,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBackupRun.SetendTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBackupRun.SetendTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -1660,7 +1785,7 @@ end;
 
 
 
-Procedure TBackupRun.SetenqueuedTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBackupRun.SetenqueuedTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FenqueuedTime=AValue) then exit;
@@ -1670,7 +1795,7 @@ end;
 
 
 
-Procedure TBackupRun.Seterror(AIndex : Integer; AValue : TOperationError); 
+Procedure TBackupRun.Seterror(AIndex : Integer; const AValue : TOperationError); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -1720,7 +1845,7 @@ end;
 
 
 
-Procedure TBackupRun.SetstartTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBackupRun.SetstartTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -1740,7 +1865,7 @@ end;
 
 
 
-Procedure TBackupRun.SetwindowStartTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TBackupRun.SetwindowStartTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FwindowStartTime=AValue) then exit;
@@ -1757,7 +1882,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TBackupRunsListResponse.Setitems(AIndex : Integer; AValue : TBackupRunsListResponseTypeitemsArray); 
+Procedure TBackupRunsListResponse.Setitems(AIndex : Integer; const AValue : TBackupRunsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1844,7 +1969,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCloneContext.SetbinLogCoordinates(AIndex : Integer; AValue : TBinLogCoordinates); 
+Procedure TCloneContext.SetbinLogCoordinates(AIndex : Integer; const AValue : TBinLogCoordinates); 
 
 begin
   If (FbinLogCoordinates=AValue) then exit;
@@ -1991,8 +2116,45 @@ end;
 
 
 { --------------------------------------------------------------------
+  TDatabaseInstanceTypefailoverReplica
+  --------------------------------------------------------------------}
+
+
+Procedure TDatabaseInstanceTypefailoverReplica.Setavailable(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (Favailable=AValue) then exit;
+  Favailable:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TDatabaseInstanceTypefailoverReplica.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TDatabaseInstance
   --------------------------------------------------------------------}
+
+
+Procedure TDatabaseInstance.SetbackendType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FbackendType=AValue) then exit;
+  FbackendType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 Procedure TDatabaseInstance.SetcurrentDiskSize(AIndex : Integer; const AValue : String); 
@@ -2025,6 +2187,16 @@ end;
 
 
 
+Procedure TDatabaseInstance.SetfailoverReplica(AIndex : Integer; const AValue : TDatabaseInstanceTypefailoverReplica); 
+
+begin
+  If (FfailoverReplica=AValue) then exit;
+  FfailoverReplica:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TDatabaseInstance.SetinstanceType(AIndex : Integer; const AValue : String); 
 
 begin
@@ -2035,7 +2207,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetipAddresses(AIndex : Integer; AValue : TDatabaseInstanceTypeipAddressesArray); 
+Procedure TDatabaseInstance.SetipAddresses(AIndex : Integer; const AValue : TDatabaseInstanceTypeipAddressesArray); 
 
 begin
   If (FipAddresses=AValue) then exit;
@@ -2095,7 +2267,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetonPremisesConfiguration(AIndex : Integer; AValue : TOnPremisesConfiguration); 
+Procedure TDatabaseInstance.SetonPremisesConfiguration(AIndex : Integer; const AValue : TOnPremisesConfiguration); 
 
 begin
   If (FonPremisesConfiguration=AValue) then exit;
@@ -2125,7 +2297,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetreplicaConfiguration(AIndex : Integer; AValue : TReplicaConfiguration); 
+Procedure TDatabaseInstance.SetreplicaConfiguration(AIndex : Integer; const AValue : TReplicaConfiguration); 
 
 begin
   If (FreplicaConfiguration=AValue) then exit;
@@ -2135,7 +2307,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetreplicaNames(AIndex : Integer; AValue : TStringArray); 
+Procedure TDatabaseInstance.SetreplicaNames(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FreplicaNames=AValue) then exit;
@@ -2155,7 +2327,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.SetserverCaCert(AIndex : Integer; AValue : TSslCert); 
+Procedure TDatabaseInstance.SetserverCaCert(AIndex : Integer; const AValue : TSslCert); 
 
 begin
   If (FserverCaCert=AValue) then exit;
@@ -2175,7 +2347,7 @@ end;
 
 
 
-Procedure TDatabaseInstance.Setsettings(AIndex : Integer; AValue : TSettings); 
+Procedure TDatabaseInstance.Setsettings(AIndex : Integer; const AValue : TSettings); 
 
 begin
   If (Fsettings=AValue) then exit;
@@ -2194,6 +2366,16 @@ begin
 end;
 
 
+
+Procedure TDatabaseInstance.SetsuspensionReason(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FsuspensionReason=AValue) then exit;
+  FsuspensionReason:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
 Procedure TDatabaseInstance.SetArrayLength(Const AName : String; ALength : Longint); 
@@ -2202,6 +2384,7 @@ begin
   Case AName of
   'ipaddresses' : SetLength(FipAddresses,ALength);
   'replicanames' : SetLength(FreplicaNames,ALength);
+  'suspensionreason' : SetLength(FsuspensionReason,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -2216,7 +2399,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDatabasesListResponse.Setitems(AIndex : Integer; AValue : TDatabasesListResponseTypeitemsArray); 
+Procedure TDatabasesListResponse.Setitems(AIndex : Integer; const AValue : TDatabasesListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2273,7 +2456,17 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportContextTypesqlExportOptions.Settables(AIndex : Integer; AValue : TStringArray); 
+Procedure TExportContextTypesqlExportOptions.SetschemaOnly(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FschemaOnly=AValue) then exit;
+  FschemaOnly:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TExportContextTypesqlExportOptions.Settables(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Ftables=AValue) then exit;
@@ -2303,7 +2496,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TExportContext.SetcsvExportOptions(AIndex : Integer; AValue : TExportContextTypecsvExportOptions); 
+Procedure TExportContext.SetcsvExportOptions(AIndex : Integer; const AValue : TExportContextTypecsvExportOptions); 
 
 begin
   If (FcsvExportOptions=AValue) then exit;
@@ -2313,7 +2506,7 @@ end;
 
 
 
-Procedure TExportContext.Setdatabases(AIndex : Integer; AValue : TStringArray); 
+Procedure TExportContext.Setdatabases(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fdatabases=AValue) then exit;
@@ -2343,7 +2536,7 @@ end;
 
 
 
-Procedure TExportContext.SetsqlExportOptions(AIndex : Integer; AValue : TExportContextTypesqlExportOptions); 
+Procedure TExportContext.SetsqlExportOptions(AIndex : Integer; const AValue : TExportContextTypesqlExportOptions); 
 
 begin
   If (FsqlExportOptions=AValue) then exit;
@@ -2379,11 +2572,38 @@ end;
 
 
 { --------------------------------------------------------------------
+  TFailoverContext
+  --------------------------------------------------------------------}
+
+
+Procedure TFailoverContext.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFailoverContext.SetsettingsVersion(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FsettingsVersion=AValue) then exit;
+  FsettingsVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TFlag
   --------------------------------------------------------------------}
 
 
-Procedure TFlag.SetallowedStringValues(AIndex : Integer; AValue : TStringArray); 
+Procedure TFlag.SetallowedStringValues(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FallowedStringValues=AValue) then exit;
@@ -2393,7 +2613,7 @@ end;
 
 
 
-Procedure TFlag.SetappliesTo(AIndex : Integer; AValue : TStringArray); 
+Procedure TFlag.SetappliesTo(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FappliesTo=AValue) then exit;
@@ -2443,6 +2663,16 @@ end;
 
 
 
+Procedure TFlag.SetrequiresRestart(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FrequiresRestart=AValue) then exit;
+  FrequiresRestart:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TFlag.Set_type(AIndex : Integer; const AValue : String); 
 
 begin
@@ -2485,7 +2715,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TFlagsListResponse.Setitems(AIndex : Integer; AValue : TFlagsListResponseTypeitemsArray); 
+Procedure TFlagsListResponse.Setitems(AIndex : Integer; const AValue : TFlagsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2525,7 +2755,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportContextTypecsvImportOptions.Setcolumns(AIndex : Integer; AValue : TStringArray); 
+Procedure TImportContextTypecsvImportOptions.Setcolumns(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fcolumns=AValue) then exit;
@@ -2565,7 +2795,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TImportContext.SetcsvImportOptions(AIndex : Integer; AValue : TImportContextTypecsvImportOptions); 
+Procedure TImportContext.SetcsvImportOptions(AIndex : Integer; const AValue : TImportContextTypecsvImportOptions); 
 
 begin
   If (FcsvImportOptions=AValue) then exit;
@@ -2622,7 +2852,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstancesCloneRequest.SetcloneContext(AIndex : Integer; AValue : TCloneContext); 
+Procedure TInstancesCloneRequest.SetcloneContext(AIndex : Integer; const AValue : TCloneContext); 
 
 begin
   If (FcloneContext=AValue) then exit;
@@ -2639,7 +2869,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstancesExportRequest.SetexportContext(AIndex : Integer; AValue : TExportContext); 
+Procedure TInstancesExportRequest.SetexportContext(AIndex : Integer; const AValue : TExportContext); 
 
 begin
   If (FexportContext=AValue) then exit;
@@ -2652,11 +2882,28 @@ end;
 
 
 { --------------------------------------------------------------------
+  TInstancesFailoverRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TInstancesFailoverRequest.SetfailoverContext(AIndex : Integer; const AValue : TFailoverContext); 
+
+begin
+  If (FfailoverContext=AValue) then exit;
+  FfailoverContext:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TInstancesImportRequest
   --------------------------------------------------------------------}
 
 
-Procedure TInstancesImportRequest.SetimportContext(AIndex : Integer; AValue : TImportContext); 
+Procedure TInstancesImportRequest.SetimportContext(AIndex : Integer; const AValue : TImportContext); 
 
 begin
   If (FimportContext=AValue) then exit;
@@ -2673,7 +2920,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstancesListResponse.Setitems(AIndex : Integer; AValue : TInstancesListResponseTypeitemsArray); 
+Procedure TInstancesListResponse.Setitems(AIndex : Integer; const AValue : TInstancesListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -2723,7 +2970,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstancesRestoreBackupRequest.SetrestoreBackupContext(AIndex : Integer; AValue : TRestoreBackupContext); 
+Procedure TInstancesRestoreBackupRequest.SetrestoreBackupContext(AIndex : Integer; const AValue : TRestoreBackupContext); 
 
 begin
   If (FrestoreBackupContext=AValue) then exit;
@@ -2740,7 +2987,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TIpConfiguration.SetauthorizedNetworks(AIndex : Integer; AValue : TIpConfigurationTypeauthorizedNetworksArray); 
+Procedure TIpConfiguration.SetauthorizedNetworks(AIndex : Integer; const AValue : TIpConfigurationTypeauthorizedNetworksArray); 
 
 begin
   If (FauthorizedNetworks=AValue) then exit;
@@ -2750,7 +2997,7 @@ end;
 
 
 
-Procedure TIpConfiguration.Setipv4Enabled(AIndex : Integer; AValue : boolean); 
+Procedure TIpConfiguration.Setipv4Enabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fipv4Enabled=AValue) then exit;
@@ -2760,7 +3007,7 @@ end;
 
 
 
-Procedure TIpConfiguration.SetrequireSsl(AIndex : Integer; AValue : boolean); 
+Procedure TIpConfiguration.SetrequireSsl(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FrequireSsl=AValue) then exit;
@@ -2800,7 +3047,7 @@ end;
 
 
 
-Procedure TIpMapping.SettimeToRetire(AIndex : Integer; AValue : TDatetime); 
+Procedure TIpMapping.SettimeToRetire(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FtimeToRetire=AValue) then exit;
@@ -2850,6 +3097,53 @@ end;
 
 
 { --------------------------------------------------------------------
+  TMaintenanceWindow
+  --------------------------------------------------------------------}
+
+
+Procedure TMaintenanceWindow.Setday(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fday=AValue) then exit;
+  Fday:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMaintenanceWindow.Sethour(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (Fhour=AValue) then exit;
+  Fhour:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMaintenanceWindow.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMaintenanceWindow.SetupdateTrack(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FupdateTrack=AValue) then exit;
+  FupdateTrack:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TMySqlReplicaConfiguration
   --------------------------------------------------------------------}
 
@@ -2884,7 +3178,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetconnectRetryInterval(AIndex : Integer; AValue : integer); 
+Procedure TMySqlReplicaConfiguration.SetconnectRetryInterval(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FconnectRetryInterval=AValue) then exit;
@@ -2954,7 +3248,7 @@ end;
 
 
 
-Procedure TMySqlReplicaConfiguration.SetverifyServerCertificate(AIndex : Integer; AValue : boolean); 
+Procedure TMySqlReplicaConfiguration.SetverifyServerCertificate(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FverifyServerCertificate=AValue) then exit;
@@ -2998,7 +3292,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperation.SetendTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TOperation.SetendTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FendTime=AValue) then exit;
@@ -3008,7 +3302,7 @@ end;
 
 
 
-Procedure TOperation.Seterror(AIndex : Integer; AValue : TOperationErrors); 
+Procedure TOperation.Seterror(AIndex : Integer; const AValue : TOperationErrors); 
 
 begin
   If (Ferror=AValue) then exit;
@@ -3018,7 +3312,7 @@ end;
 
 
 
-Procedure TOperation.SetexportContext(AIndex : Integer; AValue : TExportContext); 
+Procedure TOperation.SetexportContext(AIndex : Integer; const AValue : TExportContext); 
 
 begin
   If (FexportContext=AValue) then exit;
@@ -3028,7 +3322,7 @@ end;
 
 
 
-Procedure TOperation.SetimportContext(AIndex : Integer; AValue : TImportContext); 
+Procedure TOperation.SetimportContext(AIndex : Integer; const AValue : TImportContext); 
 
 begin
   If (FimportContext=AValue) then exit;
@@ -3038,7 +3332,7 @@ end;
 
 
 
-Procedure TOperation.SetinsertTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TOperation.SetinsertTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FinsertTime=AValue) then exit;
@@ -3088,7 +3382,7 @@ end;
 
 
 
-Procedure TOperation.SetstartTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TOperation.SetstartTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FstartTime=AValue) then exit;
@@ -3192,7 +3486,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationErrors.Seterrors(AIndex : Integer; AValue : TOperationErrorsTypeerrorsArray); 
+Procedure TOperationErrors.Seterrors(AIndex : Integer; const AValue : TOperationErrorsTypeerrorsArray); 
 
 begin
   If (Ferrors=AValue) then exit;
@@ -3232,7 +3526,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TOperationsListResponse.Setitems(AIndex : Integer; AValue : TOperationsListResponseTypeitemsArray); 
+Procedure TOperationsListResponse.Setitems(AIndex : Integer; const AValue : TOperationsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3282,6 +3576,16 @@ end;
   --------------------------------------------------------------------}
 
 
+Procedure TReplicaConfiguration.SetfailoverTarget(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FfailoverTarget=AValue) then exit;
+  FfailoverTarget:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TReplicaConfiguration.Setkind(AIndex : Integer; const AValue : String); 
 
 begin
@@ -3292,7 +3596,7 @@ end;
 
 
 
-Procedure TReplicaConfiguration.SetmysqlReplicaConfiguration(AIndex : Integer; AValue : TMySqlReplicaConfiguration); 
+Procedure TReplicaConfiguration.SetmysqlReplicaConfiguration(AIndex : Integer; const AValue : TMySqlReplicaConfiguration); 
 
 begin
   If (FmysqlReplicaConfiguration=AValue) then exit;
@@ -3356,7 +3660,7 @@ end;
 
 
 
-Procedure TSettings.SetauthorizedGaeApplications(AIndex : Integer; AValue : TStringArray); 
+Procedure TSettings.SetauthorizedGaeApplications(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FauthorizedGaeApplications=AValue) then exit;
@@ -3366,7 +3670,7 @@ end;
 
 
 
-Procedure TSettings.SetbackupConfiguration(AIndex : Integer; AValue : TBackupConfiguration); 
+Procedure TSettings.SetbackupConfiguration(AIndex : Integer; const AValue : TBackupConfiguration); 
 
 begin
   If (FbackupConfiguration=AValue) then exit;
@@ -3376,7 +3680,7 @@ end;
 
 
 
-Procedure TSettings.SetcrashSafeReplicationEnabled(AIndex : Integer; AValue : boolean); 
+Procedure TSettings.SetcrashSafeReplicationEnabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FcrashSafeReplicationEnabled=AValue) then exit;
@@ -3386,7 +3690,27 @@ end;
 
 
 
-Procedure TSettings.SetdatabaseFlags(AIndex : Integer; AValue : TSettingsTypedatabaseFlagsArray); 
+Procedure TSettings.SetdataDiskSizeGb(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdataDiskSizeGb=AValue) then exit;
+  FdataDiskSizeGb:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSettings.SetdataDiskType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdataDiskType=AValue) then exit;
+  FdataDiskType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSettings.SetdatabaseFlags(AIndex : Integer; const AValue : TSettingsTypedatabaseFlagsArray); 
 
 begin
   If (FdatabaseFlags=AValue) then exit;
@@ -3396,7 +3720,7 @@ end;
 
 
 
-Procedure TSettings.SetdatabaseReplicationEnabled(AIndex : Integer; AValue : boolean); 
+Procedure TSettings.SetdatabaseReplicationEnabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FdatabaseReplicationEnabled=AValue) then exit;
@@ -3406,7 +3730,7 @@ end;
 
 
 
-Procedure TSettings.SetipConfiguration(AIndex : Integer; AValue : TIpConfiguration); 
+Procedure TSettings.SetipConfiguration(AIndex : Integer; const AValue : TIpConfiguration); 
 
 begin
   If (FipConfiguration=AValue) then exit;
@@ -3426,11 +3750,21 @@ end;
 
 
 
-Procedure TSettings.SetlocationPreference(AIndex : Integer; AValue : TLocationPreference); 
+Procedure TSettings.SetlocationPreference(AIndex : Integer; const AValue : TLocationPreference); 
 
 begin
   If (FlocationPreference=AValue) then exit;
   FlocationPreference:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSettings.SetmaintenanceWindow(AIndex : Integer; const AValue : TMaintenanceWindow); 
+
+begin
+  If (FmaintenanceWindow=AValue) then exit;
+  FmaintenanceWindow:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3461,6 +3795,16 @@ Procedure TSettings.SetsettingsVersion(AIndex : Integer; const AValue : String);
 begin
   If (FsettingsVersion=AValue) then exit;
   FsettingsVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSettings.SetstorageAutoResize(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FstorageAutoResize=AValue) then exit;
+  FstorageAutoResize:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3527,7 +3871,7 @@ end;
 
 
 
-Procedure TSslCert.SetcreateTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TSslCert.SetcreateTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FcreateTime=AValue) then exit;
@@ -3537,7 +3881,7 @@ end;
 
 
 
-Procedure TSslCert.SetexpirationTime(AIndex : Integer; AValue : TDatetime); 
+Procedure TSslCert.SetexpirationTime(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FexpirationTime=AValue) then exit;
@@ -3594,7 +3938,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSslCertDetail.SetcertInfo(AIndex : Integer; AValue : TSslCert); 
+Procedure TSslCertDetail.SetcertInfo(AIndex : Integer; const AValue : TSslCert); 
 
 begin
   If (FcertInfo=AValue) then exit;
@@ -3609,6 +3953,23 @@ Procedure TSslCertDetail.SetcertPrivateKey(AIndex : Integer; const AValue : Stri
 begin
   If (FcertPrivateKey=AValue) then exit;
   FcertPrivateKey:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TSslCertsCreateEphemeralRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TSslCertsCreateEphemeralRequest.Setpublic_key(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fpublic_key=AValue) then exit;
+  Fpublic_key:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3638,7 +3999,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSslCertsInsertResponse.SetclientCert(AIndex : Integer; AValue : TSslCertDetail); 
+Procedure TSslCertsInsertResponse.SetclientCert(AIndex : Integer; const AValue : TSslCertDetail); 
 
 begin
   If (FclientCert=AValue) then exit;
@@ -3658,7 +4019,17 @@ end;
 
 
 
-Procedure TSslCertsInsertResponse.SetserverCaCert(AIndex : Integer; AValue : TSslCert); 
+Procedure TSslCertsInsertResponse.Setoperation(AIndex : Integer; const AValue : TOperation); 
+
+begin
+  If (Foperation=AValue) then exit;
+  Foperation:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSslCertsInsertResponse.SetserverCaCert(AIndex : Integer; const AValue : TSslCert); 
 
 begin
   If (FserverCaCert=AValue) then exit;
@@ -3675,7 +4046,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSslCertsListResponse.Setitems(AIndex : Integer; AValue : TSslCertsListResponseTypeitemsArray); 
+Procedure TSslCertsListResponse.Setitems(AIndex : Integer; const AValue : TSslCertsListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3745,7 +4116,7 @@ end;
 
 
 
-Procedure TTier.Setregion(AIndex : Integer; AValue : TStringArray); 
+Procedure TTier.Setregion(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -3785,7 +4156,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTiersListResponse.Setitems(AIndex : Integer; AValue : TTiersListResponseTypeitemsArray); 
+Procedure TTiersListResponse.Setitems(AIndex : Integer; const AValue : TTiersListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3902,7 +4273,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUsersListResponse.Setitems(AIndex : Integer; AValue : TUsersListResponseTypeitemsArray); 
+Procedure TUsersListResponse.Setitems(AIndex : Integer; const AValue : TUsersListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -3962,6 +4333,21 @@ Class Function TBackupRunsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TsqladminAPI;
+end;
+
+Function TBackupRunsResource.Delete(id: string; instance: string; project: string) : TOperation;
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'projects/{project}/instances/{instance}/backupRuns/{id}';
+  _Methodid   = 'sql.backupRuns.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['id',id,'instance',instance,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TOperation) as TOperation;
 end;
 
 Function TBackupRunsResource.Get(id: string; instance: string; project: string) : TBackupRun;
@@ -4208,6 +4594,21 @@ Var
 begin
   _P:=SubstitutePath(_Path,['instance',instance,'project',project]);
   Result:=ServiceCall(_HTTPMethod,_P,'',aInstancesExportRequest,TOperation) as TOperation;
+end;
+
+Function TInstancesResource.Failover(instance: string; project: string; aInstancesFailoverRequest : TInstancesFailoverRequest) : TOperation;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'projects/{project}/instances/{instance}/failover';
+  _Methodid   = 'sql.instances.failover';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instance',instance,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aInstancesFailoverRequest,TOperation) as TOperation;
 end;
 
 Function TInstancesResource.Get(instance: string; project: string) : TDatabaseInstance;
@@ -4485,6 +4886,21 @@ begin
   Result:=TsqladminAPI;
 end;
 
+Function TSslCertsResource.CreateEphemeral(instance: string; project: string; aSslCertsCreateEphemeralRequest : TSslCertsCreateEphemeralRequest) : TSslCert;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'projects/{project}/instances/{instance}/createEphemeral';
+  _Methodid   = 'sql.sslCerts.createEphemeral';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['instance',instance,'project',project]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aSslCertsCreateEphemeralRequest,TSslCert) as TSslCert;
+end;
+
 Function TSslCertsResource.Delete(instance: string; project: string; sha1Fingerprint: string) : TOperation;
 
 Const
@@ -4705,7 +5121,7 @@ end;
 Class Function TSqladminAPI.APIRevision : String;
 
 begin
-  Result:='20150325';
+  Result:='20160509';
 end;
 
 Class Function TSqladminAPI.APIID : String;
@@ -4723,7 +5139,7 @@ end;
 Class Function TSqladminAPI.APIDescription : String;
 
 begin
-  Result:='API for Cloud SQL database instance management.';
+  Result:='Creates and configures Cloud SQL instances, which provide fully-managed MySQL databases.';
 end;
 
 Class Function TSqladminAPI.APIOwnerDomain : String;
@@ -4753,13 +5169,13 @@ end;
 Class Function TSqladminAPI.APIdocumentationLink : String;
 
 begin
-  Result:='https://developers.google.com/cloud-sql/docs/admin-api/';
+  Result:='https://cloud.google.com/sql/docs/reference/latest';
 end;
 
 Class Function TSqladminAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TSqladminAPI.APIbasePath : string;
@@ -4771,7 +5187,7 @@ end;
 Class Function TSqladminAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/sql/v1beta4/';
+  Result:='https://www.googleapis.com/sql/v1beta4/';
 end;
 
 Class Function TSqladminAPI.APIProtocol : string;
@@ -4820,23 +5236,27 @@ begin
   TCloneContext.RegisterObject;
   TDatabase.RegisterObject;
   TDatabaseFlags.RegisterObject;
+  TDatabaseInstanceTypefailoverReplica.RegisterObject;
   TDatabaseInstance.RegisterObject;
   TDatabasesListResponse.RegisterObject;
   TExportContextTypecsvExportOptions.RegisterObject;
   TExportContextTypesqlExportOptions.RegisterObject;
   TExportContext.RegisterObject;
+  TFailoverContext.RegisterObject;
   TFlag.RegisterObject;
   TFlagsListResponse.RegisterObject;
   TImportContextTypecsvImportOptions.RegisterObject;
   TImportContext.RegisterObject;
   TInstancesCloneRequest.RegisterObject;
   TInstancesExportRequest.RegisterObject;
+  TInstancesFailoverRequest.RegisterObject;
   TInstancesImportRequest.RegisterObject;
   TInstancesListResponse.RegisterObject;
   TInstancesRestoreBackupRequest.RegisterObject;
   TIpConfiguration.RegisterObject;
   TIpMapping.RegisterObject;
   TLocationPreference.RegisterObject;
+  TMaintenanceWindow.RegisterObject;
   TMySqlReplicaConfiguration.RegisterObject;
   TOnPremisesConfiguration.RegisterObject;
   TOperation.RegisterObject;
@@ -4848,6 +5268,7 @@ begin
   TSettings.RegisterObject;
   TSslCert.RegisterObject;
   TSslCertDetail.RegisterObject;
+  TSslCertsCreateEphemeralRequest.RegisterObject;
   TSslCertsInsertRequest.RegisterObject;
   TSslCertsInsertResponse.RegisterObject;
   TSslCertsListResponse.RegisterObject;

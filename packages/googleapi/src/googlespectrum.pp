@@ -1,19 +1,4 @@
 unit googlespectrum;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -115,9 +100,9 @@ type
     FheightUncertainty : double;
   Protected
     //Property setters
-    Procedure Setheight(AIndex : Integer; AValue : double); virtual;
+    Procedure Setheight(AIndex : Integer; const AValue : double); virtual;
     Procedure SetheightType(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetheightUncertainty(AIndex : Integer; AValue : double); virtual;
+    Procedure SetheightUncertainty(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property height : double Index 0 Read Fheight Write Setheight;
@@ -154,7 +139,7 @@ type
     Fdatabases : TDbUpdateSpecTypedatabasesArray;
   Protected
     //Property setters
-    Procedure Setdatabases(AIndex : Integer; AValue : TDbUpdateSpecTypedatabasesArray); virtual;
+    Procedure Setdatabases(AIndex : Integer; const AValue : TDbUpdateSpecTypedatabasesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -174,7 +159,7 @@ type
     FfrequencyRanges : TDeviceCapabilitiesTypefrequencyRangesArray;
   Protected
     //Property setters
-    Procedure SetfrequencyRanges(AIndex : Integer; AValue : TDeviceCapabilitiesTypefrequencyRangesArray); virtual;
+    Procedure SetfrequencyRanges(AIndex : Integer; const AValue : TDeviceCapabilitiesTypefrequencyRangesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -211,7 +196,7 @@ type
     Procedure SetfccTvbdDeviceType(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmanufacturerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmodelId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrulesetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetrulesetIds(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetserialNumber(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -243,8 +228,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Set_operator(AIndex : Integer; AValue : TVcard); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TVcard); virtual;
+    Procedure Set_operator(AIndex : Integer; const AValue : TVcard); virtual;
+    Procedure Setowner(AIndex : Integer; const AValue : TVcard); virtual;
   Public
   Published
     Property _operator : TVcard Index 0 Read F_operator Write Set_operator;
@@ -263,8 +248,8 @@ type
     Freason : String;
   Protected
     //Property setters
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure SetisValid(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure SetisValid(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setreason(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -306,9 +291,9 @@ type
   Protected
     //Property setters
     Procedure SetchannelId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxPowerDBm(AIndex : Integer; AValue : double); virtual;
-    Procedure SetstartHz(AIndex : Integer; AValue : double); virtual;
-    Procedure SetstopHz(AIndex : Integer; AValue : double); virtual;
+    Procedure SetmaxPowerDBm(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetstartHz(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetstopHz(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property channelId : String Index 0 Read FchannelId Write SetchannelId;
@@ -329,9 +314,9 @@ type
     Fregion : TGeoLocationPolygon;
   Protected
     //Property setters
-    Procedure Setconfidence(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setpoint(AIndex : Integer; AValue : TGeoLocationEllipse); virtual;
-    Procedure Setregion(AIndex : Integer; AValue : TGeoLocationPolygon); virtual;
+    Procedure Setconfidence(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setpoint(AIndex : Integer; const AValue : TGeoLocationEllipse); virtual;
+    Procedure Setregion(AIndex : Integer; const AValue : TGeoLocationPolygon); virtual;
   Public
   Published
     Property confidence : integer Index 0 Read Fconfidence Write Setconfidence;
@@ -352,10 +337,10 @@ type
     FsemiMinorAxis : double;
   Protected
     //Property setters
-    Procedure Setcenter(AIndex : Integer; AValue : TGeoLocationPoint); virtual;
-    Procedure Setorientation(AIndex : Integer; AValue : double); virtual;
-    Procedure SetsemiMajorAxis(AIndex : Integer; AValue : double); virtual;
-    Procedure SetsemiMinorAxis(AIndex : Integer; AValue : double); virtual;
+    Procedure Setcenter(AIndex : Integer; const AValue : TGeoLocationPoint); virtual;
+    Procedure Setorientation(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetsemiMajorAxis(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetsemiMinorAxis(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property center : TGeoLocationPoint Index 0 Read Fcenter Write Setcenter;
@@ -375,8 +360,8 @@ type
     Flongitude : double;
   Protected
     //Property setters
-    Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
+    Procedure Setlatitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlongitude(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property latitude : double Index 0 Read Flatitude Write Setlatitude;
@@ -393,7 +378,7 @@ type
     Fexterior : TGeoLocationPolygonTypeexteriorArray;
   Protected
     //Property setters
-    Procedure Setexterior(AIndex : Integer; AValue : TGeoLocationPolygonTypeexteriorArray); virtual;
+    Procedure Setexterior(AIndex : Integer; const AValue : TGeoLocationPolygonTypeexteriorArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -414,8 +399,8 @@ type
     FspectrumSchedules : TGeoSpectrumScheduleTypespectrumSchedulesArray;
   Protected
     //Property setters
-    Procedure Setlocation(AIndex : Integer; AValue : TGeoLocation); virtual;
-    Procedure SetspectrumSchedules(AIndex : Integer; AValue : TGeoSpectrumScheduleTypespectrumSchedulesArray); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TGeoLocation); virtual;
+    Procedure SetspectrumSchedules(AIndex : Integer; const AValue : TGeoSpectrumScheduleTypespectrumSchedulesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -445,12 +430,12 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setantenna(AIndex : Integer; AValue : TAntennaCharacteristics); virtual;
-    Procedure Setcapabilities(AIndex : Integer; AValue : TDeviceCapabilities); virtual;
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure Setlocations(AIndex : Integer; AValue : TPawsGetSpectrumBatchRequestTypelocationsArray); virtual;
-    Procedure SetmasterDeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TDeviceOwner); virtual;
+    Procedure Setantenna(AIndex : Integer; const AValue : TAntennaCharacteristics); virtual;
+    Procedure Setcapabilities(AIndex : Integer; const AValue : TDeviceCapabilities); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure Setlocations(AIndex : Integer; const AValue : TPawsGetSpectrumBatchRequestTypelocationsArray); virtual;
+    Procedure SetmasterDeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure Setowner(AIndex : Integer; const AValue : TDeviceOwner); virtual;
     Procedure SetrequestType(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
@@ -492,14 +477,14 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); virtual;
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure SetgeoSpectrumSchedules(AIndex : Integer; AValue : TPawsGetSpectrumBatchResponseTypegeoSpectrumSchedulesArray); virtual;
+    Procedure SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure SetgeoSpectrumSchedules(AIndex : Integer; const AValue : TPawsGetSpectrumBatchResponseTypegeoSpectrumSchedulesArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxContiguousBwHz(AIndex : Integer; AValue : double); virtual;
-    Procedure SetmaxTotalBwHz(AIndex : Integer; AValue : double); virtual;
-    Procedure SetneedsSpectrumReport(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetrulesetInfo(AIndex : Integer; AValue : TRulesetInfo); virtual;
+    Procedure SetmaxContiguousBwHz(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetmaxTotalBwHz(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetneedsSpectrumReport(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetrulesetInfo(AIndex : Integer; const AValue : TRulesetInfo); virtual;
     Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
@@ -541,12 +526,12 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setantenna(AIndex : Integer; AValue : TAntennaCharacteristics); virtual;
-    Procedure Setcapabilities(AIndex : Integer; AValue : TDeviceCapabilities); virtual;
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TGeoLocation); virtual;
-    Procedure SetmasterDeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure Setowner(AIndex : Integer; AValue : TDeviceOwner); virtual;
+    Procedure Setantenna(AIndex : Integer; const AValue : TAntennaCharacteristics); virtual;
+    Procedure Setcapabilities(AIndex : Integer; const AValue : TDeviceCapabilities); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TGeoLocation); virtual;
+    Procedure SetmasterDeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure Setowner(AIndex : Integer; const AValue : TDeviceOwner); virtual;
     Procedure SetrequestType(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
@@ -584,14 +569,14 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); virtual;
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
+    Procedure SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxContiguousBwHz(AIndex : Integer; AValue : double); virtual;
-    Procedure SetmaxTotalBwHz(AIndex : Integer; AValue : double); virtual;
-    Procedure SetneedsSpectrumReport(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetrulesetInfo(AIndex : Integer; AValue : TRulesetInfo); virtual;
-    Procedure SetspectrumSchedules(AIndex : Integer; AValue : TPawsGetSpectrumResponseTypespectrumSchedulesArray); virtual;
+    Procedure SetmaxContiguousBwHz(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetmaxTotalBwHz(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetneedsSpectrumReport(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetrulesetInfo(AIndex : Integer; const AValue : TRulesetInfo); virtual;
+    Procedure SetspectrumSchedules(AIndex : Integer; const AValue : TPawsGetSpectrumResponseTypespectrumSchedulesArray); virtual;
     Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
@@ -628,8 +613,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TGeoLocation); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TGeoLocation); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -655,9 +640,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); virtual;
+    Procedure SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrulesetInfo(AIndex : Integer; AValue : TRulesetInfo); virtual;
+    Procedure SetrulesetInfo(AIndex : Integer; const AValue : TRulesetInfo); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -684,9 +669,9 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TGeoLocation); virtual;
-    Procedure Setspectra(AIndex : Integer; AValue : TPawsNotifySpectrumUseRequestTypespectraArray); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TGeoLocation); virtual;
+    Procedure Setspectra(AIndex : Integer; const AValue : TPawsNotifySpectrumUseRequestTypespectraArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -741,10 +726,10 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setantenna(AIndex : Integer; AValue : TAntennaCharacteristics); virtual;
-    Procedure SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); virtual;
-    Procedure SetdeviceOwner(AIndex : Integer; AValue : TDeviceOwner); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TGeoLocation); virtual;
+    Procedure Setantenna(AIndex : Integer; const AValue : TAntennaCharacteristics); virtual;
+    Procedure SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); virtual;
+    Procedure SetdeviceOwner(AIndex : Integer; const AValue : TDeviceOwner); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TGeoLocation); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -771,7 +756,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); virtual;
+    Procedure SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
@@ -796,7 +781,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdeviceDescs(AIndex : Integer; AValue : TPawsVerifyDeviceRequestTypedeviceDescsArray); virtual;
+    Procedure SetdeviceDescs(AIndex : Integer; const AValue : TPawsVerifyDeviceRequestTypedeviceDescsArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -825,8 +810,8 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); virtual;
-    Procedure SetdeviceValidities(AIndex : Integer; AValue : TPawsVerifyDeviceResponseTypedeviceValiditiesArray); virtual;
+    Procedure SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); virtual;
+    Procedure SetdeviceValidities(AIndex : Integer; const AValue : TPawsVerifyDeviceResponseTypedeviceValiditiesArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setversion(AIndex : Integer; const AValue : String); virtual;
@@ -857,9 +842,9 @@ type
   Protected
     //Property setters
     Procedure Setauthority(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxLocationChange(AIndex : Integer; AValue : double); virtual;
-    Procedure SetmaxPollingSecs(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetrulesetIds(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetmaxLocationChange(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetmaxPollingSecs(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrulesetIds(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -883,8 +868,8 @@ type
     FfrequencyRanges : TSpectrumMessageTypefrequencyRangesArray;
   Protected
     //Property setters
-    Procedure Setbandwidth(AIndex : Integer; AValue : double); virtual;
-    Procedure SetfrequencyRanges(AIndex : Integer; AValue : TSpectrumMessageTypefrequencyRangesArray); virtual;
+    Procedure Setbandwidth(AIndex : Integer; const AValue : double); virtual;
+    Procedure SetfrequencyRanges(AIndex : Integer; const AValue : TSpectrumMessageTypefrequencyRangesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -906,8 +891,8 @@ type
     Fspectra : TSpectrumScheduleTypespectraArray;
   Protected
     //Property setters
-    Procedure SeteventTime(AIndex : Integer; AValue : TEventTime); virtual;
-    Procedure Setspectra(AIndex : Integer; AValue : TSpectrumScheduleTypespectraArray); virtual;
+    Procedure SeteventTime(AIndex : Integer; const AValue : TEventTime); virtual;
+    Procedure Setspectra(AIndex : Integer; const AValue : TSpectrumScheduleTypespectraArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -932,11 +917,11 @@ type
     Ftel : TVcardTelephone;
   Protected
     //Property setters
-    Procedure Setadr(AIndex : Integer; AValue : TVcardAddress); virtual;
-    Procedure Setemail(AIndex : Integer; AValue : TVcardTypedText); virtual;
+    Procedure Setadr(AIndex : Integer; const AValue : TVcardAddress); virtual;
+    Procedure Setemail(AIndex : Integer; const AValue : TVcardTypedText); virtual;
     Procedure Setfn(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setorg(AIndex : Integer; AValue : TVcardTypedText); virtual;
-    Procedure Settel(AIndex : Integer; AValue : TVcardTelephone); virtual;
+    Procedure Setorg(AIndex : Integer; const AValue : TVcardTypedText); virtual;
+    Procedure Settel(AIndex : Integer; const AValue : TVcardTelephone); virtual;
   Public
   Published
     Property adr : TVcardAddress Index 0 Read Fadr Write Setadr;
@@ -1072,7 +1057,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAntennaCharacteristics.Setheight(AIndex : Integer; AValue : double); 
+Procedure TAntennaCharacteristics.Setheight(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fheight=AValue) then exit;
@@ -1092,7 +1077,7 @@ end;
 
 
 
-Procedure TAntennaCharacteristics.SetheightUncertainty(AIndex : Integer; AValue : double); 
+Procedure TAntennaCharacteristics.SetheightUncertainty(AIndex : Integer; const AValue : double); 
 
 begin
   If (FheightUncertainty=AValue) then exit;
@@ -1136,7 +1121,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDbUpdateSpec.Setdatabases(AIndex : Integer; AValue : TDbUpdateSpecTypedatabasesArray); 
+Procedure TDbUpdateSpec.Setdatabases(AIndex : Integer; const AValue : TDbUpdateSpecTypedatabasesArray); 
 
 begin
   If (Fdatabases=AValue) then exit;
@@ -1166,7 +1151,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeviceCapabilities.SetfrequencyRanges(AIndex : Integer; AValue : TDeviceCapabilitiesTypefrequencyRangesArray); 
+Procedure TDeviceCapabilities.SetfrequencyRanges(AIndex : Integer; const AValue : TDeviceCapabilitiesTypefrequencyRangesArray); 
 
 begin
   If (FfrequencyRanges=AValue) then exit;
@@ -1276,7 +1261,7 @@ end;
 
 
 
-Procedure TDeviceDescriptor.SetrulesetIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TDeviceDescriptor.SetrulesetIds(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FrulesetIds=AValue) then exit;
@@ -1316,7 +1301,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeviceOwner.Set_operator(AIndex : Integer; AValue : TVcard); 
+Procedure TDeviceOwner.Set_operator(AIndex : Integer; const AValue : TVcard); 
 
 begin
   If (F_operator=AValue) then exit;
@@ -1326,7 +1311,7 @@ end;
 
 
 
-Procedure TDeviceOwner.Setowner(AIndex : Integer; AValue : TVcard); 
+Procedure TDeviceOwner.Setowner(AIndex : Integer; const AValue : TVcard); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -1354,7 +1339,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDeviceValidity.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TDeviceValidity.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -1364,7 +1349,7 @@ end;
 
 
 
-Procedure TDeviceValidity.SetisValid(AIndex : Integer; AValue : boolean); 
+Procedure TDeviceValidity.SetisValid(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisValid=AValue) then exit;
@@ -1428,7 +1413,7 @@ end;
 
 
 
-Procedure TFrequencyRange.SetmaxPowerDBm(AIndex : Integer; AValue : double); 
+Procedure TFrequencyRange.SetmaxPowerDBm(AIndex : Integer; const AValue : double); 
 
 begin
   If (FmaxPowerDBm=AValue) then exit;
@@ -1438,7 +1423,7 @@ end;
 
 
 
-Procedure TFrequencyRange.SetstartHz(AIndex : Integer; AValue : double); 
+Procedure TFrequencyRange.SetstartHz(AIndex : Integer; const AValue : double); 
 
 begin
   If (FstartHz=AValue) then exit;
@@ -1448,7 +1433,7 @@ end;
 
 
 
-Procedure TFrequencyRange.SetstopHz(AIndex : Integer; AValue : double); 
+Procedure TFrequencyRange.SetstopHz(AIndex : Integer; const AValue : double); 
 
 begin
   If (FstopHz=AValue) then exit;
@@ -1465,7 +1450,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoLocation.Setconfidence(AIndex : Integer; AValue : integer); 
+Procedure TGeoLocation.Setconfidence(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fconfidence=AValue) then exit;
@@ -1475,7 +1460,7 @@ end;
 
 
 
-Procedure TGeoLocation.Setpoint(AIndex : Integer; AValue : TGeoLocationEllipse); 
+Procedure TGeoLocation.Setpoint(AIndex : Integer; const AValue : TGeoLocationEllipse); 
 
 begin
   If (Fpoint=AValue) then exit;
@@ -1485,7 +1470,7 @@ end;
 
 
 
-Procedure TGeoLocation.Setregion(AIndex : Integer; AValue : TGeoLocationPolygon); 
+Procedure TGeoLocation.Setregion(AIndex : Integer; const AValue : TGeoLocationPolygon); 
 
 begin
   If (Fregion=AValue) then exit;
@@ -1502,7 +1487,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoLocationEllipse.Setcenter(AIndex : Integer; AValue : TGeoLocationPoint); 
+Procedure TGeoLocationEllipse.Setcenter(AIndex : Integer; const AValue : TGeoLocationPoint); 
 
 begin
   If (Fcenter=AValue) then exit;
@@ -1512,7 +1497,7 @@ end;
 
 
 
-Procedure TGeoLocationEllipse.Setorientation(AIndex : Integer; AValue : double); 
+Procedure TGeoLocationEllipse.Setorientation(AIndex : Integer; const AValue : double); 
 
 begin
   If (Forientation=AValue) then exit;
@@ -1522,7 +1507,7 @@ end;
 
 
 
-Procedure TGeoLocationEllipse.SetsemiMajorAxis(AIndex : Integer; AValue : double); 
+Procedure TGeoLocationEllipse.SetsemiMajorAxis(AIndex : Integer; const AValue : double); 
 
 begin
   If (FsemiMajorAxis=AValue) then exit;
@@ -1532,7 +1517,7 @@ end;
 
 
 
-Procedure TGeoLocationEllipse.SetsemiMinorAxis(AIndex : Integer; AValue : double); 
+Procedure TGeoLocationEllipse.SetsemiMinorAxis(AIndex : Integer; const AValue : double); 
 
 begin
   If (FsemiMinorAxis=AValue) then exit;
@@ -1549,7 +1534,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoLocationPoint.Setlatitude(AIndex : Integer; AValue : double); 
+Procedure TGeoLocationPoint.Setlatitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1559,7 +1544,7 @@ end;
 
 
 
-Procedure TGeoLocationPoint.Setlongitude(AIndex : Integer; AValue : double); 
+Procedure TGeoLocationPoint.Setlongitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1576,7 +1561,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoLocationPolygon.Setexterior(AIndex : Integer; AValue : TGeoLocationPolygonTypeexteriorArray); 
+Procedure TGeoLocationPolygon.Setexterior(AIndex : Integer; const AValue : TGeoLocationPolygonTypeexteriorArray); 
 
 begin
   If (Fexterior=AValue) then exit;
@@ -1606,7 +1591,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGeoSpectrumSchedule.Setlocation(AIndex : Integer; AValue : TGeoLocation); 
+Procedure TGeoSpectrumSchedule.Setlocation(AIndex : Integer; const AValue : TGeoLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1616,7 +1601,7 @@ end;
 
 
 
-Procedure TGeoSpectrumSchedule.SetspectrumSchedules(AIndex : Integer; AValue : TGeoSpectrumScheduleTypespectrumSchedulesArray); 
+Procedure TGeoSpectrumSchedule.SetspectrumSchedules(AIndex : Integer; const AValue : TGeoSpectrumScheduleTypespectrumSchedulesArray); 
 
 begin
   If (FspectrumSchedules=AValue) then exit;
@@ -1646,7 +1631,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsGetSpectrumBatchRequest.Setantenna(AIndex : Integer; AValue : TAntennaCharacteristics); 
+Procedure TPawsGetSpectrumBatchRequest.Setantenna(AIndex : Integer; const AValue : TAntennaCharacteristics); 
 
 begin
   If (Fantenna=AValue) then exit;
@@ -1656,7 +1641,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchRequest.Setcapabilities(AIndex : Integer; AValue : TDeviceCapabilities); 
+Procedure TPawsGetSpectrumBatchRequest.Setcapabilities(AIndex : Integer; const AValue : TDeviceCapabilities); 
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -1666,7 +1651,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchRequest.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsGetSpectrumBatchRequest.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -1676,7 +1661,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchRequest.Setlocations(AIndex : Integer; AValue : TPawsGetSpectrumBatchRequestTypelocationsArray); 
+Procedure TPawsGetSpectrumBatchRequest.Setlocations(AIndex : Integer; const AValue : TPawsGetSpectrumBatchRequestTypelocationsArray); 
 
 begin
   If (Flocations=AValue) then exit;
@@ -1686,7 +1671,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchRequest.SetmasterDeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsGetSpectrumBatchRequest.SetmasterDeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FmasterDeviceDesc=AValue) then exit;
@@ -1696,7 +1681,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchRequest.Setowner(AIndex : Integer; AValue : TDeviceOwner); 
+Procedure TPawsGetSpectrumBatchRequest.Setowner(AIndex : Integer; const AValue : TDeviceOwner); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -1767,7 +1752,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); 
+Procedure TPawsGetSpectrumBatchResponse.SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); 
 
 begin
   If (FdatabaseChange=AValue) then exit;
@@ -1777,7 +1762,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsGetSpectrumBatchResponse.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -1787,7 +1772,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetgeoSpectrumSchedules(AIndex : Integer; AValue : TPawsGetSpectrumBatchResponseTypegeoSpectrumSchedulesArray); 
+Procedure TPawsGetSpectrumBatchResponse.SetgeoSpectrumSchedules(AIndex : Integer; const AValue : TPawsGetSpectrumBatchResponseTypegeoSpectrumSchedulesArray); 
 
 begin
   If (FgeoSpectrumSchedules=AValue) then exit;
@@ -1807,7 +1792,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetmaxContiguousBwHz(AIndex : Integer; AValue : double); 
+Procedure TPawsGetSpectrumBatchResponse.SetmaxContiguousBwHz(AIndex : Integer; const AValue : double); 
 
 begin
   If (FmaxContiguousBwHz=AValue) then exit;
@@ -1817,7 +1802,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetmaxTotalBwHz(AIndex : Integer; AValue : double); 
+Procedure TPawsGetSpectrumBatchResponse.SetmaxTotalBwHz(AIndex : Integer; const AValue : double); 
 
 begin
   If (FmaxTotalBwHz=AValue) then exit;
@@ -1827,7 +1812,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetneedsSpectrumReport(AIndex : Integer; AValue : boolean); 
+Procedure TPawsGetSpectrumBatchResponse.SetneedsSpectrumReport(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FneedsSpectrumReport=AValue) then exit;
@@ -1837,7 +1822,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumBatchResponse.SetrulesetInfo(AIndex : Integer; AValue : TRulesetInfo); 
+Procedure TPawsGetSpectrumBatchResponse.SetrulesetInfo(AIndex : Integer; const AValue : TRulesetInfo); 
 
 begin
   If (FrulesetInfo=AValue) then exit;
@@ -1908,7 +1893,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsGetSpectrumRequest.Setantenna(AIndex : Integer; AValue : TAntennaCharacteristics); 
+Procedure TPawsGetSpectrumRequest.Setantenna(AIndex : Integer; const AValue : TAntennaCharacteristics); 
 
 begin
   If (Fantenna=AValue) then exit;
@@ -1918,7 +1903,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumRequest.Setcapabilities(AIndex : Integer; AValue : TDeviceCapabilities); 
+Procedure TPawsGetSpectrumRequest.Setcapabilities(AIndex : Integer; const AValue : TDeviceCapabilities); 
 
 begin
   If (Fcapabilities=AValue) then exit;
@@ -1928,7 +1913,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumRequest.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsGetSpectrumRequest.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -1938,7 +1923,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumRequest.Setlocation(AIndex : Integer; AValue : TGeoLocation); 
+Procedure TPawsGetSpectrumRequest.Setlocation(AIndex : Integer; const AValue : TGeoLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1948,7 +1933,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumRequest.SetmasterDeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsGetSpectrumRequest.SetmasterDeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FmasterDeviceDesc=AValue) then exit;
@@ -1958,7 +1943,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumRequest.Setowner(AIndex : Integer; AValue : TDeviceOwner); 
+Procedure TPawsGetSpectrumRequest.Setowner(AIndex : Integer; const AValue : TDeviceOwner); 
 
 begin
   If (Fowner=AValue) then exit;
@@ -2016,7 +2001,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsGetSpectrumResponse.SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); 
+Procedure TPawsGetSpectrumResponse.SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); 
 
 begin
   If (FdatabaseChange=AValue) then exit;
@@ -2026,7 +2011,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumResponse.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsGetSpectrumResponse.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -2046,7 +2031,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumResponse.SetmaxContiguousBwHz(AIndex : Integer; AValue : double); 
+Procedure TPawsGetSpectrumResponse.SetmaxContiguousBwHz(AIndex : Integer; const AValue : double); 
 
 begin
   If (FmaxContiguousBwHz=AValue) then exit;
@@ -2056,7 +2041,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumResponse.SetmaxTotalBwHz(AIndex : Integer; AValue : double); 
+Procedure TPawsGetSpectrumResponse.SetmaxTotalBwHz(AIndex : Integer; const AValue : double); 
 
 begin
   If (FmaxTotalBwHz=AValue) then exit;
@@ -2066,7 +2051,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumResponse.SetneedsSpectrumReport(AIndex : Integer; AValue : boolean); 
+Procedure TPawsGetSpectrumResponse.SetneedsSpectrumReport(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FneedsSpectrumReport=AValue) then exit;
@@ -2076,7 +2061,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumResponse.SetrulesetInfo(AIndex : Integer; AValue : TRulesetInfo); 
+Procedure TPawsGetSpectrumResponse.SetrulesetInfo(AIndex : Integer; const AValue : TRulesetInfo); 
 
 begin
   If (FrulesetInfo=AValue) then exit;
@@ -2086,7 +2071,7 @@ end;
 
 
 
-Procedure TPawsGetSpectrumResponse.SetspectrumSchedules(AIndex : Integer; AValue : TPawsGetSpectrumResponseTypespectrumSchedulesArray); 
+Procedure TPawsGetSpectrumResponse.SetspectrumSchedules(AIndex : Integer; const AValue : TPawsGetSpectrumResponseTypespectrumSchedulesArray); 
 
 begin
   If (FspectrumSchedules=AValue) then exit;
@@ -2157,7 +2142,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsInitRequest.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsInitRequest.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -2167,7 +2152,7 @@ end;
 
 
 
-Procedure TPawsInitRequest.Setlocation(AIndex : Integer; AValue : TGeoLocation); 
+Procedure TPawsInitRequest.Setlocation(AIndex : Integer; const AValue : TGeoLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2215,7 +2200,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsInitResponse.SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); 
+Procedure TPawsInitResponse.SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); 
 
 begin
   If (FdatabaseChange=AValue) then exit;
@@ -2235,7 +2220,7 @@ end;
 
 
 
-Procedure TPawsInitResponse.SetrulesetInfo(AIndex : Integer; AValue : TRulesetInfo); 
+Procedure TPawsInitResponse.SetrulesetInfo(AIndex : Integer; const AValue : TRulesetInfo); 
 
 begin
   If (FrulesetInfo=AValue) then exit;
@@ -2283,7 +2268,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsNotifySpectrumUseRequest.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsNotifySpectrumUseRequest.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -2293,7 +2278,7 @@ end;
 
 
 
-Procedure TPawsNotifySpectrumUseRequest.Setlocation(AIndex : Integer; AValue : TGeoLocation); 
+Procedure TPawsNotifySpectrumUseRequest.Setlocation(AIndex : Integer; const AValue : TGeoLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2303,7 +2288,7 @@ end;
 
 
 
-Procedure TPawsNotifySpectrumUseRequest.Setspectra(AIndex : Integer; AValue : TPawsNotifySpectrumUseRequestTypespectraArray); 
+Procedure TPawsNotifySpectrumUseRequest.Setspectra(AIndex : Integer; const AValue : TPawsNotifySpectrumUseRequestTypespectraArray); 
 
 begin
   If (Fspectra=AValue) then exit;
@@ -2412,7 +2397,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsRegisterRequest.Setantenna(AIndex : Integer; AValue : TAntennaCharacteristics); 
+Procedure TPawsRegisterRequest.Setantenna(AIndex : Integer; const AValue : TAntennaCharacteristics); 
 
 begin
   If (Fantenna=AValue) then exit;
@@ -2422,7 +2407,7 @@ end;
 
 
 
-Procedure TPawsRegisterRequest.SetdeviceDesc(AIndex : Integer; AValue : TDeviceDescriptor); 
+Procedure TPawsRegisterRequest.SetdeviceDesc(AIndex : Integer; const AValue : TDeviceDescriptor); 
 
 begin
   If (FdeviceDesc=AValue) then exit;
@@ -2432,7 +2417,7 @@ end;
 
 
 
-Procedure TPawsRegisterRequest.SetdeviceOwner(AIndex : Integer; AValue : TDeviceOwner); 
+Procedure TPawsRegisterRequest.SetdeviceOwner(AIndex : Integer; const AValue : TDeviceOwner); 
 
 begin
   If (FdeviceOwner=AValue) then exit;
@@ -2442,7 +2427,7 @@ end;
 
 
 
-Procedure TPawsRegisterRequest.Setlocation(AIndex : Integer; AValue : TGeoLocation); 
+Procedure TPawsRegisterRequest.Setlocation(AIndex : Integer; const AValue : TGeoLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -2490,7 +2475,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsRegisterResponse.SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); 
+Procedure TPawsRegisterResponse.SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); 
 
 begin
   If (FdatabaseChange=AValue) then exit;
@@ -2548,7 +2533,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsVerifyDeviceRequest.SetdeviceDescs(AIndex : Integer; AValue : TPawsVerifyDeviceRequestTypedeviceDescsArray); 
+Procedure TPawsVerifyDeviceRequest.SetdeviceDescs(AIndex : Integer; const AValue : TPawsVerifyDeviceRequestTypedeviceDescsArray); 
 
 begin
   If (FdeviceDescs=AValue) then exit;
@@ -2609,7 +2594,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPawsVerifyDeviceResponse.SetdatabaseChange(AIndex : Integer; AValue : TDbUpdateSpec); 
+Procedure TPawsVerifyDeviceResponse.SetdatabaseChange(AIndex : Integer; const AValue : TDbUpdateSpec); 
 
 begin
   If (FdatabaseChange=AValue) then exit;
@@ -2619,7 +2604,7 @@ end;
 
 
 
-Procedure TPawsVerifyDeviceResponse.SetdeviceValidities(AIndex : Integer; AValue : TPawsVerifyDeviceResponseTypedeviceValiditiesArray); 
+Procedure TPawsVerifyDeviceResponse.SetdeviceValidities(AIndex : Integer; const AValue : TPawsVerifyDeviceResponseTypedeviceValiditiesArray); 
 
 begin
   If (FdeviceValidities=AValue) then exit;
@@ -2700,7 +2685,7 @@ end;
 
 
 
-Procedure TRulesetInfo.SetmaxLocationChange(AIndex : Integer; AValue : double); 
+Procedure TRulesetInfo.SetmaxLocationChange(AIndex : Integer; const AValue : double); 
 
 begin
   If (FmaxLocationChange=AValue) then exit;
@@ -2710,7 +2695,7 @@ end;
 
 
 
-Procedure TRulesetInfo.SetmaxPollingSecs(AIndex : Integer; AValue : integer); 
+Procedure TRulesetInfo.SetmaxPollingSecs(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxPollingSecs=AValue) then exit;
@@ -2720,7 +2705,7 @@ end;
 
 
 
-Procedure TRulesetInfo.SetrulesetIds(AIndex : Integer; AValue : TStringArray); 
+Procedure TRulesetInfo.SetrulesetIds(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FrulesetIds=AValue) then exit;
@@ -2750,7 +2735,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSpectrumMessage.Setbandwidth(AIndex : Integer; AValue : double); 
+Procedure TSpectrumMessage.Setbandwidth(AIndex : Integer; const AValue : double); 
 
 begin
   If (Fbandwidth=AValue) then exit;
@@ -2760,7 +2745,7 @@ end;
 
 
 
-Procedure TSpectrumMessage.SetfrequencyRanges(AIndex : Integer; AValue : TSpectrumMessageTypefrequencyRangesArray); 
+Procedure TSpectrumMessage.SetfrequencyRanges(AIndex : Integer; const AValue : TSpectrumMessageTypefrequencyRangesArray); 
 
 begin
   If (FfrequencyRanges=AValue) then exit;
@@ -2790,7 +2775,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSpectrumSchedule.SeteventTime(AIndex : Integer; AValue : TEventTime); 
+Procedure TSpectrumSchedule.SeteventTime(AIndex : Integer; const AValue : TEventTime); 
 
 begin
   If (FeventTime=AValue) then exit;
@@ -2800,7 +2785,7 @@ end;
 
 
 
-Procedure TSpectrumSchedule.Setspectra(AIndex : Integer; AValue : TSpectrumScheduleTypespectraArray); 
+Procedure TSpectrumSchedule.Setspectra(AIndex : Integer; const AValue : TSpectrumScheduleTypespectraArray); 
 
 begin
   If (Fspectra=AValue) then exit;
@@ -2830,7 +2815,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TVcard.Setadr(AIndex : Integer; AValue : TVcardAddress); 
+Procedure TVcard.Setadr(AIndex : Integer; const AValue : TVcardAddress); 
 
 begin
   If (Fadr=AValue) then exit;
@@ -2840,7 +2825,7 @@ end;
 
 
 
-Procedure TVcard.Setemail(AIndex : Integer; AValue : TVcardTypedText); 
+Procedure TVcard.Setemail(AIndex : Integer; const AValue : TVcardTypedText); 
 
 begin
   If (Femail=AValue) then exit;
@@ -2860,7 +2845,7 @@ end;
 
 
 
-Procedure TVcard.Setorg(AIndex : Integer; AValue : TVcardTypedText); 
+Procedure TVcard.Setorg(AIndex : Integer; const AValue : TVcardTypedText); 
 
 begin
   If (Forg=AValue) then exit;
@@ -2870,7 +2855,7 @@ end;
 
 
 
-Procedure TVcard.Settel(AIndex : Integer; AValue : TVcardTelephone); 
+Procedure TVcard.Settel(AIndex : Integer; const AValue : TVcardTelephone); 
 
 begin
   If (Ftel=AValue) then exit;
@@ -3087,7 +3072,7 @@ end;
 Class Function TSpectrumAPI.APIRevision : String;
 
 begin
-  Result:='20150112';
+  Result:='20160404';
 end;
 
 Class Function TSpectrumAPI.APIID : String;
@@ -3141,7 +3126,7 @@ end;
 Class Function TSpectrumAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TSpectrumAPI.APIbasePath : string;
@@ -3153,7 +3138,7 @@ end;
 Class Function TSpectrumAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/spectrum/v1explorer/paws/';
+  Result:='https://www.googleapis.com/spectrum/v1explorer/paws/';
 end;
 
 Class Function TSpectrumAPI.APIProtocol : string;

@@ -1,19 +1,4 @@
 unit googleandroidenterprise;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -27,6 +12,8 @@ type
   TAppRestrictionsSchema = Class;
   TAppRestrictionsSchemaRestriction = Class;
   TAppRestrictionsSchemaRestrictionRestrictionValue = Class;
+  TAppVersion = Class;
+  TApprovalUrlInfo = Class;
   TCollection = Class;
   TCollectionViewersListResponse = Class;
   TCollectionsListResponse = Class;
@@ -36,6 +23,7 @@ type
   TEnterprise = Class;
   TEnterpriseAccount = Class;
   TEnterprisesListResponse = Class;
+  TEnterprisesSendTestPushNotificationResponse = Class;
   TEntitlement = Class;
   TEntitlementsListResponse = Class;
   TGroupLicense = Class;
@@ -43,16 +31,30 @@ type
   TGroupLicensesListResponse = Class;
   TInstall = Class;
   TInstallsListResponse = Class;
+  TLocalizedText = Class;
+  TPageInfo = Class;
   TPermission = Class;
   TProduct = Class;
   TProductPermission = Class;
   TProductPermissions = Class;
+  TProductSet = Class;
+  TProductsApproveRequest = Class;
+  TProductsGenerateApprovalUrlResponse = Class;
+  TProductsListResponse = Class;
+  TStoreCluster = Class;
+  TStoreLayout = Class;
+  TStoreLayoutClustersListResponse = Class;
+  TStoreLayoutPagesListResponse = Class;
+  TStorePage = Class;
+  TTokenPagination = Class;
   TUser = Class;
   TUserToken = Class;
   TUsersListResponse = Class;
   TAppRestrictionsSchemaArray = Array of TAppRestrictionsSchema;
   TAppRestrictionsSchemaRestrictionArray = Array of TAppRestrictionsSchemaRestriction;
   TAppRestrictionsSchemaRestrictionRestrictionValueArray = Array of TAppRestrictionsSchemaRestrictionRestrictionValue;
+  TAppVersionArray = Array of TAppVersion;
+  TApprovalUrlInfoArray = Array of TApprovalUrlInfo;
   TCollectionArray = Array of TCollection;
   TCollectionViewersListResponseArray = Array of TCollectionViewersListResponse;
   TCollectionsListResponseArray = Array of TCollectionsListResponse;
@@ -62,6 +64,7 @@ type
   TEnterpriseArray = Array of TEnterprise;
   TEnterpriseAccountArray = Array of TEnterpriseAccount;
   TEnterprisesListResponseArray = Array of TEnterprisesListResponse;
+  TEnterprisesSendTestPushNotificationResponseArray = Array of TEnterprisesSendTestPushNotificationResponse;
   TEntitlementArray = Array of TEntitlement;
   TEntitlementsListResponseArray = Array of TEntitlementsListResponse;
   TGroupLicenseArray = Array of TGroupLicense;
@@ -69,10 +72,22 @@ type
   TGroupLicensesListResponseArray = Array of TGroupLicensesListResponse;
   TInstallArray = Array of TInstall;
   TInstallsListResponseArray = Array of TInstallsListResponse;
+  TLocalizedTextArray = Array of TLocalizedText;
+  TPageInfoArray = Array of TPageInfo;
   TPermissionArray = Array of TPermission;
   TProductArray = Array of TProduct;
   TProductPermissionArray = Array of TProductPermission;
   TProductPermissionsArray = Array of TProductPermissions;
+  TProductSetArray = Array of TProductSet;
+  TProductsApproveRequestArray = Array of TProductsApproveRequest;
+  TProductsGenerateApprovalUrlResponseArray = Array of TProductsGenerateApprovalUrlResponse;
+  TProductsListResponseArray = Array of TProductsListResponse;
+  TStoreClusterArray = Array of TStoreCluster;
+  TStoreLayoutArray = Array of TStoreLayout;
+  TStoreLayoutClustersListResponseArray = Array of TStoreLayoutClustersListResponse;
+  TStoreLayoutPagesListResponseArray = Array of TStoreLayoutPagesListResponse;
+  TStorePageArray = Array of TStorePage;
+  TTokenPaginationArray = Array of TTokenPagination;
   TUserArray = Array of TUser;
   TUserTokenArray = Array of TUserToken;
   TUsersListResponseArray = Array of TUsersListResponse;
@@ -86,7 +101,13 @@ type
   TGroupLicenseUsersListResponseTypeuserArray = Array of TUser;
   TGroupLicensesListResponseTypegroupLicenseArray = Array of TGroupLicense;
   TInstallsListResponseTypeinstallArray = Array of TInstall;
+  TProductTypeappVersionArray = Array of TAppVersion;
   TProductPermissionsTypepermissionArray = Array of TProductPermission;
+  TProductsListResponseTypeproductArray = Array of TProduct;
+  TStoreClusterTypenameArray = Array of TLocalizedText;
+  TStoreLayoutClustersListResponseTypeclusterArray = Array of TStoreCluster;
+  TStoreLayoutPagesListResponseTypepageArray = Array of TStorePage;
+  TStorePageTypenameArray = Array of TLocalizedText;
   TUsersListResponseTypeuserArray = Array of TUser;
   
   { --------------------------------------------------------------------
@@ -95,17 +116,20 @@ type
   
   TAppRestrictionsSchema = Class(TGoogleBaseObject)
   Private
+    Fkind : String;
     Frestrictions : TAppRestrictionsSchemaTyperestrictionsArray;
   Protected
     //Property setters
-    Procedure Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemaTyperestrictionsArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrestrictions(AIndex : Integer; const AValue : TAppRestrictionsSchemaTyperestrictionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property restrictions : TAppRestrictionsSchemaTyperestrictionsArray Index 0 Read Frestrictions Write Setrestrictions;
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property restrictions : TAppRestrictionsSchemaTyperestrictionsArray Index 8 Read Frestrictions Write Setrestrictions;
   end;
   TAppRestrictionsSchemaClass = Class of TAppRestrictionsSchema;
   
@@ -124,10 +148,10 @@ type
     Ftitle : String;
   Protected
     //Property setters
-    Procedure SetdefaultValue(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionRestrictionValue); virtual;
+    Procedure SetdefaultValue(AIndex : Integer; const AValue : TAppRestrictionsSchemaRestrictionRestrictionValue); virtual;
     Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setentry(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetentryValue(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setentry(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetentryValue(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
     Procedure SetrestrictionType(AIndex : Integer; const AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
@@ -162,9 +186,9 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetvalueBool(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetvalueInteger(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetvalueMultiselect(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetvalueBool(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetvalueInteger(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetvalueMultiselect(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetvalueString(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -179,6 +203,44 @@ type
     Property valueString : String Index 32 Read FvalueString Write SetvalueString;
   end;
   TAppRestrictionsSchemaRestrictionRestrictionValueClass = Class of TAppRestrictionsSchemaRestrictionRestrictionValue;
+  
+  { --------------------------------------------------------------------
+    TAppVersion
+    --------------------------------------------------------------------}
+  
+  TAppVersion = Class(TGoogleBaseObject)
+  Private
+    FversionCode : integer;
+    FversionString : String;
+  Protected
+    //Property setters
+    Procedure SetversionCode(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetversionString(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property versionCode : integer Index 0 Read FversionCode Write SetversionCode;
+    Property versionString : String Index 8 Read FversionString Write SetversionString;
+  end;
+  TAppVersionClass = Class of TAppVersion;
+  
+  { --------------------------------------------------------------------
+    TApprovalUrlInfo
+    --------------------------------------------------------------------}
+  
+  TApprovalUrlInfo = Class(TGoogleBaseObject)
+  Private
+    FapprovalUrl : String;
+    Fkind : String;
+  Protected
+    //Property setters
+    Procedure SetapprovalUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property approvalUrl : String Index 0 Read FapprovalUrl Write SetapprovalUrl;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+  end;
+  TApprovalUrlInfoClass = Class of TApprovalUrlInfo;
   
   { --------------------------------------------------------------------
     TCollection
@@ -196,7 +258,7 @@ type
     Procedure SetcollectionId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetproductId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setvisibility(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -223,7 +285,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseTypeuserArray); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : TCollectionViewersListResponseTypeuserArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -245,7 +307,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setcollection(AIndex : Integer; AValue : TCollectionsListResponseTypecollectionArray); virtual;
+    Procedure Setcollection(AIndex : Integer; const AValue : TCollectionsListResponseTypecollectionArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -309,7 +371,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setdevice(AIndex : Integer; AValue : TDevicesListResponseTypedeviceArray); virtual;
+    Procedure Setdevice(AIndex : Integer; const AValue : TDevicesListResponseTypedeviceArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -376,7 +438,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseTypeenterpriseArray); virtual;
+    Procedure Setenterprise(AIndex : Integer; const AValue : TEnterprisesListResponseTypeenterpriseArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -388,6 +450,25 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TEnterprisesListResponseClass = Class of TEnterprisesListResponse;
+  
+  { --------------------------------------------------------------------
+    TEnterprisesSendTestPushNotificationResponse
+    --------------------------------------------------------------------}
+  
+  TEnterprisesSendTestPushNotificationResponse = Class(TGoogleBaseObject)
+  Private
+    FmessageId : String;
+    FtopicName : String;
+  Protected
+    //Property setters
+    Procedure SetmessageId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SettopicName(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property messageId : String Index 0 Read FmessageId Write SetmessageId;
+    Property topicName : String Index 8 Read FtopicName Write SettopicName;
+  end;
+  TEnterprisesSendTestPushNotificationResponseClass = Class of TEnterprisesSendTestPushNotificationResponse;
   
   { --------------------------------------------------------------------
     TEntitlement
@@ -421,7 +502,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseTypeentitlementArray); virtual;
+    Procedure Setentitlement(AIndex : Integer; const AValue : TEntitlementsListResponseTypeentitlementArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -451,8 +532,8 @@ type
     Procedure SetacquisitionKind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setapproval(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnumProvisioned(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetnumPurchased(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetnumProvisioned(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetnumPurchased(AIndex : Integer; const AValue : integer); virtual;
     Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -476,7 +557,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseTypeuserArray); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : TGroupLicenseUsersListResponseTypeuserArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -498,7 +579,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponseTypegroupLicenseArray); virtual;
+    Procedure SetgroupLicense(AIndex : Integer; const AValue : TGroupLicensesListResponseTypegroupLicenseArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -526,7 +607,7 @@ type
     Procedure SetinstallState(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetversionCode(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetversionCode(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property installState : String Index 0 Read FinstallState Write SetinstallState;
@@ -546,7 +627,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setinstall(AIndex : Integer; AValue : TInstallsListResponseTypeinstallArray); virtual;
+    Procedure Setinstall(AIndex : Integer; const AValue : TInstallsListResponseTypeinstallArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -558,6 +639,47 @@ type
     Property kind : String Index 8 Read Fkind Write Setkind;
   end;
   TInstallsListResponseClass = Class of TInstallsListResponse;
+  
+  { --------------------------------------------------------------------
+    TLocalizedText
+    --------------------------------------------------------------------}
+  
+  TLocalizedText = Class(TGoogleBaseObject)
+  Private
+    Flocale : String;
+    Ftext : String;
+  Protected
+    //Property setters
+    Procedure Setlocale(AIndex : Integer; const AValue : String); virtual;
+    Procedure Settext(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property locale : String Index 0 Read Flocale Write Setlocale;
+    Property text : String Index 8 Read Ftext Write Settext;
+  end;
+  TLocalizedTextClass = Class of TLocalizedText;
+  
+  { --------------------------------------------------------------------
+    TPageInfo
+    --------------------------------------------------------------------}
+  
+  TPageInfo = Class(TGoogleBaseObject)
+  Private
+    FresultPerPage : integer;
+    FstartIndex : integer;
+    FtotalResults : integer;
+  Protected
+    //Property setters
+    Procedure SetresultPerPage(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetstartIndex(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SettotalResults(AIndex : Integer; const AValue : integer); virtual;
+  Public
+  Published
+    Property resultPerPage : integer Index 0 Read FresultPerPage Write SetresultPerPage;
+    Property startIndex : integer Index 8 Read FstartIndex Write SetstartIndex;
+    Property totalResults : integer Index 16 Read FtotalResults Write SettotalResults;
+  end;
+  TPageInfoClass = Class of TPageInfo;
   
   { --------------------------------------------------------------------
     TPermission
@@ -590,34 +712,50 @@ type
   
   TProduct = Class(TGoogleBaseObject)
   Private
+    FappVersion : TProductTypeappVersionArray;
     FauthorName : String;
     FdetailsUrl : String;
+    FdistributionChannel : String;
     FiconUrl : String;
     Fkind : String;
     FproductId : String;
+    FproductPricing : String;
     FrequiresContainerApp : boolean;
+    FsmallIconUrl : String;
     Ftitle : String;
     FworkDetailsUrl : String;
   Protected
     //Property setters
+    Procedure SetappVersion(AIndex : Integer; const AValue : TProductTypeappVersionArray); virtual;
     Procedure SetauthorName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetdetailsUrl(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdistributionChannel(AIndex : Integer; const AValue : String); virtual;
     Procedure SeticonUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrequiresContainerApp(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetproductPricing(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrequiresContainerApp(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetsmallIconUrl(AIndex : Integer; const AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     Procedure SetworkDetailsUrl(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
   Public
   Published
-    Property authorName : String Index 0 Read FauthorName Write SetauthorName;
-    Property detailsUrl : String Index 8 Read FdetailsUrl Write SetdetailsUrl;
-    Property iconUrl : String Index 16 Read FiconUrl Write SeticonUrl;
-    Property kind : String Index 24 Read Fkind Write Setkind;
-    Property productId : String Index 32 Read FproductId Write SetproductId;
-    Property requiresContainerApp : boolean Index 40 Read FrequiresContainerApp Write SetrequiresContainerApp;
-    Property title : String Index 48 Read Ftitle Write Settitle;
-    Property workDetailsUrl : String Index 56 Read FworkDetailsUrl Write SetworkDetailsUrl;
+    Property appVersion : TProductTypeappVersionArray Index 0 Read FappVersion Write SetappVersion;
+    Property authorName : String Index 8 Read FauthorName Write SetauthorName;
+    Property detailsUrl : String Index 16 Read FdetailsUrl Write SetdetailsUrl;
+    Property distributionChannel : String Index 24 Read FdistributionChannel Write SetdistributionChannel;
+    Property iconUrl : String Index 32 Read FiconUrl Write SeticonUrl;
+    Property kind : String Index 40 Read Fkind Write Setkind;
+    Property productId : String Index 48 Read FproductId Write SetproductId;
+    Property productPricing : String Index 56 Read FproductPricing Write SetproductPricing;
+    Property requiresContainerApp : boolean Index 64 Read FrequiresContainerApp Write SetrequiresContainerApp;
+    Property smallIconUrl : String Index 72 Read FsmallIconUrl Write SetsmallIconUrl;
+    Property title : String Index 80 Read Ftitle Write Settitle;
+    Property workDetailsUrl : String Index 88 Read FworkDetailsUrl Write SetworkDetailsUrl;
   end;
   TProductClass = Class of TProduct;
   
@@ -652,7 +790,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpermission(AIndex : Integer; AValue : TProductPermissionsTypepermissionArray); virtual;
+    Procedure Setpermission(AIndex : Integer; const AValue : TProductPermissionsTypepermissionArray); virtual;
     Procedure SetproductId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -665,6 +803,235 @@ type
     Property productId : String Index 16 Read FproductId Write SetproductId;
   end;
   TProductPermissionsClass = Class of TProductPermissions;
+  
+  { --------------------------------------------------------------------
+    TProductSet
+    --------------------------------------------------------------------}
+  
+  TProductSet = Class(TGoogleBaseObject)
+  Private
+    Fkind : String;
+    FproductId : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property productId : TStringArray Index 8 Read FproductId Write SetproductId;
+  end;
+  TProductSetClass = Class of TProductSet;
+  
+  { --------------------------------------------------------------------
+    TProductsApproveRequest
+    --------------------------------------------------------------------}
+  
+  TProductsApproveRequest = Class(TGoogleBaseObject)
+  Private
+    FapprovalUrlInfo : TApprovalUrlInfo;
+  Protected
+    //Property setters
+    Procedure SetapprovalUrlInfo(AIndex : Integer; const AValue : TApprovalUrlInfo); virtual;
+  Public
+  Published
+    Property approvalUrlInfo : TApprovalUrlInfo Index 0 Read FapprovalUrlInfo Write SetapprovalUrlInfo;
+  end;
+  TProductsApproveRequestClass = Class of TProductsApproveRequest;
+  
+  { --------------------------------------------------------------------
+    TProductsGenerateApprovalUrlResponse
+    --------------------------------------------------------------------}
+  
+  TProductsGenerateApprovalUrlResponse = Class(TGoogleBaseObject)
+  Private
+    Furl : String;
+  Protected
+    //Property setters
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property url : String Index 0 Read Furl Write Seturl;
+  end;
+  TProductsGenerateApprovalUrlResponseClass = Class of TProductsGenerateApprovalUrlResponse;
+  
+  { --------------------------------------------------------------------
+    TProductsListResponse
+    --------------------------------------------------------------------}
+  
+  TProductsListResponse = Class(TGoogleBaseObject)
+  Private
+    Fkind : String;
+    FpageInfo : TPageInfo;
+    Fproduct : TProductsListResponseTypeproductArray;
+    FtokenPagination : TTokenPagination;
+  Protected
+    //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpageInfo(AIndex : Integer; const AValue : TPageInfo); virtual;
+    Procedure Setproduct(AIndex : Integer; const AValue : TProductsListResponseTypeproductArray); virtual;
+    Procedure SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property pageInfo : TPageInfo Index 8 Read FpageInfo Write SetpageInfo;
+    Property product : TProductsListResponseTypeproductArray Index 16 Read Fproduct Write Setproduct;
+    Property tokenPagination : TTokenPagination Index 24 Read FtokenPagination Write SettokenPagination;
+  end;
+  TProductsListResponseClass = Class of TProductsListResponse;
+  
+  { --------------------------------------------------------------------
+    TStoreCluster
+    --------------------------------------------------------------------}
+  
+  TStoreCluster = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fkind : String;
+    Fname : TStoreClusterTypenameArray;
+    ForderInPage : String;
+    FproductId : TStringArray;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TStoreClusterTypenameArray); virtual;
+    Procedure SetorderInPage(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetproductId(AIndex : Integer; const AValue : TStringArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property name : TStoreClusterTypenameArray Index 16 Read Fname Write Setname;
+    Property orderInPage : String Index 24 Read ForderInPage Write SetorderInPage;
+    Property productId : TStringArray Index 32 Read FproductId Write SetproductId;
+  end;
+  TStoreClusterClass = Class of TStoreCluster;
+  
+  { --------------------------------------------------------------------
+    TStoreLayout
+    --------------------------------------------------------------------}
+  
+  TStoreLayout = Class(TGoogleBaseObject)
+  Private
+    FhomepageId : String;
+    Fkind : String;
+  Protected
+    //Property setters
+    Procedure SethomepageId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property homepageId : String Index 0 Read FhomepageId Write SethomepageId;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+  end;
+  TStoreLayoutClass = Class of TStoreLayout;
+  
+  { --------------------------------------------------------------------
+    TStoreLayoutClustersListResponse
+    --------------------------------------------------------------------}
+  
+  TStoreLayoutClustersListResponse = Class(TGoogleBaseObject)
+  Private
+    Fcluster : TStoreLayoutClustersListResponseTypeclusterArray;
+    Fkind : String;
+  Protected
+    //Property setters
+    Procedure Setcluster(AIndex : Integer; const AValue : TStoreLayoutClustersListResponseTypeclusterArray); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property cluster : TStoreLayoutClustersListResponseTypeclusterArray Index 0 Read Fcluster Write Setcluster;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+  end;
+  TStoreLayoutClustersListResponseClass = Class of TStoreLayoutClustersListResponse;
+  
+  { --------------------------------------------------------------------
+    TStoreLayoutPagesListResponse
+    --------------------------------------------------------------------}
+  
+  TStoreLayoutPagesListResponse = Class(TGoogleBaseObject)
+  Private
+    Fkind : String;
+    Fpage : TStoreLayoutPagesListResponseTypepageArray;
+  Protected
+    //Property setters
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpage(AIndex : Integer; const AValue : TStoreLayoutPagesListResponseTypepageArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property kind : String Index 0 Read Fkind Write Setkind;
+    Property page : TStoreLayoutPagesListResponseTypepageArray Index 8 Read Fpage Write Setpage;
+  end;
+  TStoreLayoutPagesListResponseClass = Class of TStoreLayoutPagesListResponse;
+  
+  { --------------------------------------------------------------------
+    TStorePage
+    --------------------------------------------------------------------}
+  
+  TStorePage = Class(TGoogleBaseObject)
+  Private
+    Fid : String;
+    Fkind : String;
+    Flink : TStringArray;
+    Fname : TStorePageTypenameArray;
+  Protected
+    //Property setters
+    Procedure Setid(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setlink(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : TStorePageTypenameArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property id : String Index 0 Read Fid Write Setid;
+    Property kind : String Index 8 Read Fkind Write Setkind;
+    Property link : TStringArray Index 16 Read Flink Write Setlink;
+    Property name : TStorePageTypenameArray Index 24 Read Fname Write Setname;
+  end;
+  TStorePageClass = Class of TStorePage;
+  
+  { --------------------------------------------------------------------
+    TTokenPagination
+    --------------------------------------------------------------------}
+  
+  TTokenPagination = Class(TGoogleBaseObject)
+  Private
+    FnextPageToken : String;
+    FpreviousPageToken : String;
+  Protected
+    //Property setters
+    Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetpreviousPageToken(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property nextPageToken : String Index 0 Read FnextPageToken Write SetnextPageToken;
+    Property previousPageToken : String Index 8 Read FpreviousPageToken Write SetpreviousPageToken;
+  end;
+  TTokenPaginationClass = Class of TTokenPagination;
   
   { --------------------------------------------------------------------
     TUser
@@ -721,7 +1088,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TUsersListResponseTypeuserArray); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : TUsersListResponseTypeuserArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -814,11 +1181,14 @@ type
     Function Enroll(aEnterprise : TEnterprise; AQuery : string  = '') : TEnterprise;
     Function Enroll(aEnterprise : TEnterprise; AQuery : TEnterprisesenrollOptions) : TEnterprise;
     Function Get(enterpriseId: string) : TEnterprise;
+    Function GetStoreLayout(enterpriseId: string) : TStoreLayout;
     Function Insert(aEnterprise : TEnterprise; AQuery : string  = '') : TEnterprise;
     Function Insert(aEnterprise : TEnterprise; AQuery : TEnterprisesinsertOptions) : TEnterprise;
     Function List(AQuery : string  = '') : TEnterprisesListResponse;
     Function List(AQuery : TEnterpriseslistOptions) : TEnterprisesListResponse;
+    Function SendTestPushNotification(enterpriseId: string) : TEnterprisesSendTestPushNotificationResponse;
     Function SetAccount(enterpriseId: string; aEnterpriseAccount : TEnterpriseAccount) : TEnterpriseAccount;
+    Function SetStoreLayout(enterpriseId: string; aStoreLayout : TStoreLayout) : TStoreLayout;
     Procedure Unenroll(enterpriseId: string);
   end;
   
@@ -921,6 +1291,13 @@ type
     --------------------------------------------------------------------}
   
   
+  //Optional query Options for TProductsResource, method GenerateApprovalUrl
+  
+  TProductsGenerateApprovalUrlOptions = Record
+    languageCode : String;
+  end;
+  
+  
   //Optional query Options for TProductsResource, method Get
   
   TProductsGetOptions = Record
@@ -934,16 +1311,66 @@ type
     language : String;
   end;
   
+  
+  //Optional query Options for TProductsResource, method List
+  
+  TProductsListOptions = Record
+    approved : boolean;
+    language : String;
+    maxResults : integer;
+    query : String;
+    token : String;
+  end;
+  
   TProductsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Approve(enterpriseId: string; productId: string; aProductsApproveRequest : TProductsApproveRequest);
+    Function GenerateApprovalUrl(enterpriseId: string; productId: string; AQuery : string  = '') : TProductsGenerateApprovalUrlResponse;
+    Function GenerateApprovalUrl(enterpriseId: string; productId: string; AQuery : TProductsgenerateApprovalUrlOptions) : TProductsGenerateApprovalUrlResponse;
     Function Get(enterpriseId: string; productId: string; AQuery : string  = '') : TProduct;
     Function Get(enterpriseId: string; productId: string; AQuery : TProductsgetOptions) : TProduct;
     Function GetAppRestrictionsSchema(enterpriseId: string; productId: string; AQuery : string  = '') : TAppRestrictionsSchema;
     Function GetAppRestrictionsSchema(enterpriseId: string; productId: string; AQuery : TProductsgetAppRestrictionsSchemaOptions) : TAppRestrictionsSchema;
     Function GetPermissions(enterpriseId: string; productId: string) : TProductPermissions;
+    Function List(enterpriseId: string; AQuery : string  = '') : TProductsListResponse;
+    Function List(enterpriseId: string; AQuery : TProductslistOptions) : TProductsListResponse;
     Function UpdatePermissions(enterpriseId: string; productId: string; aProductPermissions : TProductPermissions) : TProductPermissions;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TStorelayoutclustersResource
+    --------------------------------------------------------------------}
+  
+  TStorelayoutclustersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(clusterId: string; enterpriseId: string; pageId: string);
+    Function Get(clusterId: string; enterpriseId: string; pageId: string) : TStoreCluster;
+    Function Insert(enterpriseId: string; pageId: string; aStoreCluster : TStoreCluster) : TStoreCluster;
+    Function List(enterpriseId: string; pageId: string) : TStoreLayoutClustersListResponse;
+    Function Patch(clusterId: string; enterpriseId: string; pageId: string; aStoreCluster : TStoreCluster) : TStoreCluster;
+    Function Update(clusterId: string; enterpriseId: string; pageId: string; aStoreCluster : TStoreCluster) : TStoreCluster;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TStorelayoutpagesResource
+    --------------------------------------------------------------------}
+  
+  TStorelayoutpagesResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Delete(enterpriseId: string; pageId: string);
+    Function Get(enterpriseId: string; pageId: string) : TStorePage;
+    Function Insert(enterpriseId: string; aStorePage : TStorePage) : TStorePage;
+    Function List(enterpriseId: string) : TStoreLayoutPagesListResponse;
+    Function Patch(enterpriseId: string; pageId: string; aStorePage : TStorePage) : TStorePage;
+    Function Update(enterpriseId: string; pageId: string; aStorePage : TStorePage) : TStorePage;
   end;
   
   
@@ -964,9 +1391,11 @@ type
     Class Function DefaultAPI : TGoogleAPIClass; override;
     Function GenerateToken(enterpriseId: string; userId: string) : TUserToken;
     Function Get(enterpriseId: string; userId: string) : TUser;
+    Function GetAvailableProductSet(enterpriseId: string; userId: string) : TProductSet;
     Function List(enterpriseId: string; AQuery : string  = '') : TUsersListResponse;
     Function List(enterpriseId: string; AQuery : TUserslistOptions) : TUsersListResponse;
     Procedure RevokeToken(enterpriseId: string; userId: string);
+    Function SetAvailableProductSet(enterpriseId: string; userId: string; aProductSet : TProductSet) : TProductSet;
   end;
   
   
@@ -986,6 +1415,8 @@ type
     FInstallsInstance : TInstallsResource;
     FPermissionsInstance : TPermissionsResource;
     FProductsInstance : TProductsResource;
+    FStorelayoutclustersInstance : TStorelayoutclustersResource;
+    FStorelayoutpagesInstance : TStorelayoutpagesResource;
     FUsersInstance : TUsersResource;
     Function GetCollectionsInstance : TCollectionsResource;virtual;
     Function GetCollectionviewersInstance : TCollectionviewersResource;virtual;
@@ -997,6 +1428,8 @@ type
     Function GetInstallsInstance : TInstallsResource;virtual;
     Function GetPermissionsInstance : TPermissionsResource;virtual;
     Function GetProductsInstance : TProductsResource;virtual;
+    Function GetStorelayoutclustersInstance : TStorelayoutclustersResource;virtual;
+    Function GetStorelayoutpagesInstance : TStorelayoutpagesResource;virtual;
     Function GetUsersInstance : TUsersResource;virtual;
   Public
     //Override class functions with API info
@@ -1041,6 +1474,10 @@ type
     Function CreatePermissionsResource : TPermissionsResource;virtual;overload;
     Function CreateProductsResource(AOwner : TComponent) : TProductsResource;virtual;overload;
     Function CreateProductsResource : TProductsResource;virtual;overload;
+    Function CreateStorelayoutclustersResource(AOwner : TComponent) : TStorelayoutclustersResource;virtual;overload;
+    Function CreateStorelayoutclustersResource : TStorelayoutclustersResource;virtual;overload;
+    Function CreateStorelayoutpagesResource(AOwner : TComponent) : TStorelayoutpagesResource;virtual;overload;
+    Function CreateStorelayoutpagesResource : TStorelayoutpagesResource;virtual;overload;
     Function CreateUsersResource(AOwner : TComponent) : TUsersResource;virtual;overload;
     Function CreateUsersResource : TUsersResource;virtual;overload;
     //Add default on-demand instances for resources
@@ -1054,6 +1491,8 @@ type
     Property InstallsResource : TInstallsResource Read GetInstallsInstance;
     Property PermissionsResource : TPermissionsResource Read GetPermissionsInstance;
     Property ProductsResource : TProductsResource Read GetProductsInstance;
+    Property StorelayoutclustersResource : TStorelayoutclustersResource Read GetStorelayoutclustersInstance;
+    Property StorelayoutpagesResource : TStorelayoutpagesResource Read GetStorelayoutpagesInstance;
     Property UsersResource : TUsersResource Read GetUsersInstance;
   end;
 
@@ -1065,7 +1504,17 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TAppRestrictionsSchema.Setrestrictions(AIndex : Integer; AValue : TAppRestrictionsSchemaTyperestrictionsArray); 
+Procedure TAppRestrictionsSchema.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAppRestrictionsSchema.Setrestrictions(AIndex : Integer; const AValue : TAppRestrictionsSchemaTyperestrictionsArray); 
 
 begin
   If (Frestrictions=AValue) then exit;
@@ -1095,7 +1544,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAppRestrictionsSchemaRestriction.SetdefaultValue(AIndex : Integer; AValue : TAppRestrictionsSchemaRestrictionRestrictionValue); 
+Procedure TAppRestrictionsSchemaRestriction.SetdefaultValue(AIndex : Integer; const AValue : TAppRestrictionsSchemaRestrictionRestrictionValue); 
 
 begin
   If (FdefaultValue=AValue) then exit;
@@ -1115,7 +1564,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.Setentry(AIndex : Integer; AValue : TStringArray); 
+Procedure TAppRestrictionsSchemaRestriction.Setentry(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fentry=AValue) then exit;
@@ -1125,7 +1574,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestriction.SetentryValue(AIndex : Integer; AValue : TStringArray); 
+Procedure TAppRestrictionsSchemaRestriction.SetentryValue(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FentryValue=AValue) then exit;
@@ -1196,7 +1645,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueBool(AIndex : Integer; AValue : boolean); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueBool(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FvalueBool=AValue) then exit;
@@ -1206,7 +1655,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueInteger(AIndex : Integer; AValue : integer); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueInteger(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FvalueInteger=AValue) then exit;
@@ -1216,7 +1665,7 @@ end;
 
 
 
-Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueMultiselect(AIndex : Integer; AValue : TStringArray); 
+Procedure TAppRestrictionsSchemaRestrictionRestrictionValue.SetvalueMultiselect(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FvalueMultiselect=AValue) then exit;
@@ -1263,6 +1712,60 @@ end;
 
 
 { --------------------------------------------------------------------
+  TAppVersion
+  --------------------------------------------------------------------}
+
+
+Procedure TAppVersion.SetversionCode(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FversionCode=AValue) then exit;
+  FversionCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TAppVersion.SetversionString(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FversionString=AValue) then exit;
+  FversionString:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TApprovalUrlInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TApprovalUrlInfo.SetapprovalUrl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FapprovalUrl=AValue) then exit;
+  FapprovalUrl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApprovalUrlInfo.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TCollection
   --------------------------------------------------------------------}
 
@@ -1297,7 +1800,7 @@ end;
 
 
 
-Procedure TCollection.SetproductId(AIndex : Integer; AValue : TStringArray); 
+Procedure TCollection.SetproductId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FproductId=AValue) then exit;
@@ -1347,7 +1850,7 @@ end;
 
 
 
-Procedure TCollectionViewersListResponse.Setuser(AIndex : Integer; AValue : TCollectionViewersListResponseTypeuserArray); 
+Procedure TCollectionViewersListResponse.Setuser(AIndex : Integer; const AValue : TCollectionViewersListResponseTypeuserArray); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1377,7 +1880,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCollectionsListResponse.Setcollection(AIndex : Integer; AValue : TCollectionsListResponseTypecollectionArray); 
+Procedure TCollectionsListResponse.Setcollection(AIndex : Integer; const AValue : TCollectionsListResponseTypecollectionArray); 
 
 begin
   If (Fcollection=AValue) then exit;
@@ -1481,7 +1984,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TDevicesListResponse.Setdevice(AIndex : Integer; AValue : TDevicesListResponseTypedeviceArray); 
+Procedure TDevicesListResponse.Setdevice(AIndex : Integer; const AValue : TDevicesListResponseTypedeviceArray); 
 
 begin
   If (Fdevice=AValue) then exit;
@@ -1595,7 +2098,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnterprisesListResponse.Setenterprise(AIndex : Integer; AValue : TEnterprisesListResponseTypeenterpriseArray); 
+Procedure TEnterprisesListResponse.Setenterprise(AIndex : Integer; const AValue : TEnterprisesListResponseTypeenterpriseArray); 
 
 begin
   If (Fenterprise=AValue) then exit;
@@ -1626,6 +2129,33 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TEnterprisesSendTestPushNotificationResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TEnterprisesSendTestPushNotificationResponse.SetmessageId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FmessageId=AValue) then exit;
+  FmessageId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnterprisesSendTestPushNotificationResponse.SettopicName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtopicName=AValue) then exit;
+  FtopicName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1672,7 +2202,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEntitlementsListResponse.Setentitlement(AIndex : Integer; AValue : TEntitlementsListResponseTypeentitlementArray); 
+Procedure TEntitlementsListResponse.Setentitlement(AIndex : Integer; const AValue : TEntitlementsListResponseTypeentitlementArray); 
 
 begin
   If (Fentitlement=AValue) then exit;
@@ -1742,7 +2272,7 @@ end;
 
 
 
-Procedure TGroupLicense.SetnumProvisioned(AIndex : Integer; AValue : integer); 
+Procedure TGroupLicense.SetnumProvisioned(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumProvisioned=AValue) then exit;
@@ -1752,7 +2282,7 @@ end;
 
 
 
-Procedure TGroupLicense.SetnumPurchased(AIndex : Integer; AValue : integer); 
+Procedure TGroupLicense.SetnumPurchased(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FnumPurchased=AValue) then exit;
@@ -1789,7 +2319,7 @@ end;
 
 
 
-Procedure TGroupLicenseUsersListResponse.Setuser(AIndex : Integer; AValue : TGroupLicenseUsersListResponseTypeuserArray); 
+Procedure TGroupLicenseUsersListResponse.Setuser(AIndex : Integer; const AValue : TGroupLicenseUsersListResponseTypeuserArray); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -1819,7 +2349,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TGroupLicensesListResponse.SetgroupLicense(AIndex : Integer; AValue : TGroupLicensesListResponseTypegroupLicenseArray); 
+Procedure TGroupLicensesListResponse.SetgroupLicense(AIndex : Integer; const AValue : TGroupLicensesListResponseTypegroupLicenseArray); 
 
 begin
   If (FgroupLicense=AValue) then exit;
@@ -1889,7 +2419,7 @@ end;
 
 
 
-Procedure TInstall.SetversionCode(AIndex : Integer; AValue : integer); 
+Procedure TInstall.SetversionCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FversionCode=AValue) then exit;
@@ -1906,7 +2436,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TInstallsListResponse.Setinstall(AIndex : Integer; AValue : TInstallsListResponseTypeinstallArray); 
+Procedure TInstallsListResponse.Setinstall(AIndex : Integer; const AValue : TInstallsListResponseTypeinstallArray); 
 
 begin
   If (Finstall=AValue) then exit;
@@ -1937,6 +2467,70 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TLocalizedText
+  --------------------------------------------------------------------}
+
+
+Procedure TLocalizedText.Setlocale(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Flocale=AValue) then exit;
+  Flocale:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TLocalizedText.Settext(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ftext=AValue) then exit;
+  Ftext:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TPageInfo
+  --------------------------------------------------------------------}
+
+
+Procedure TPageInfo.SetresultPerPage(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FresultPerPage=AValue) then exit;
+  FresultPerPage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPageInfo.SetstartIndex(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FstartIndex=AValue) then exit;
+  FstartIndex:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TPageInfo.SettotalResults(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FtotalResults=AValue) then exit;
+  FtotalResults:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -1993,6 +2587,16 @@ end;
   --------------------------------------------------------------------}
 
 
+Procedure TProduct.SetappVersion(AIndex : Integer; const AValue : TProductTypeappVersionArray); 
+
+begin
+  If (FappVersion=AValue) then exit;
+  FappVersion:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TProduct.SetauthorName(AIndex : Integer; const AValue : String); 
 
 begin
@@ -2008,6 +2612,16 @@ Procedure TProduct.SetdetailsUrl(AIndex : Integer; const AValue : String);
 begin
   If (FdetailsUrl=AValue) then exit;
   FdetailsUrl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProduct.SetdistributionChannel(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FdistributionChannel=AValue) then exit;
+  FdistributionChannel:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2043,11 +2657,31 @@ end;
 
 
 
-Procedure TProduct.SetrequiresContainerApp(AIndex : Integer; AValue : boolean); 
+Procedure TProduct.SetproductPricing(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FproductPricing=AValue) then exit;
+  FproductPricing:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProduct.SetrequiresContainerApp(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FrequiresContainerApp=AValue) then exit;
   FrequiresContainerApp:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProduct.SetsmallIconUrl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FsmallIconUrl=AValue) then exit;
+  FsmallIconUrl:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2071,6 +2705,19 @@ begin
   MarkPropertyChanged(AIndex);
 end;
 
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProduct.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'appversion' : SetLength(FappVersion,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
 
 
 
@@ -2117,7 +2764,7 @@ end;
 
 
 
-Procedure TProductPermissions.Setpermission(AIndex : Integer; AValue : TProductPermissionsTypepermissionArray); 
+Procedure TProductPermissions.Setpermission(AIndex : Integer; const AValue : TProductPermissionsTypepermissionArray); 
 
 begin
   If (Fpermission=AValue) then exit;
@@ -2148,6 +2795,406 @@ begin
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TProductSet
+  --------------------------------------------------------------------}
+
+
+Procedure TProductSet.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductSet.SetproductId(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FproductId=AValue) then exit;
+  FproductId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductSet.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'productid' : SetLength(FproductId,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TProductsApproveRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TProductsApproveRequest.SetapprovalUrlInfo(AIndex : Integer; const AValue : TApprovalUrlInfo); 
+
+begin
+  If (FapprovalUrlInfo=AValue) then exit;
+  FapprovalUrlInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TProductsGenerateApprovalUrlResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TProductsGenerateApprovalUrlResponse.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TProductsListResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TProductsListResponse.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductsListResponse.SetpageInfo(AIndex : Integer; const AValue : TPageInfo); 
+
+begin
+  If (FpageInfo=AValue) then exit;
+  FpageInfo:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductsListResponse.Setproduct(AIndex : Integer; const AValue : TProductsListResponseTypeproductArray); 
+
+begin
+  If (Fproduct=AValue) then exit;
+  Fproduct:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TProductsListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
+
+begin
+  If (FtokenPagination=AValue) then exit;
+  FtokenPagination:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TProductsListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'product' : SetLength(Fproduct,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TStoreCluster
+  --------------------------------------------------------------------}
+
+
+Procedure TStoreCluster.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreCluster.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreCluster.Setname(AIndex : Integer; const AValue : TStoreClusterTypenameArray); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreCluster.SetorderInPage(AIndex : Integer; const AValue : String); 
+
+begin
+  If (ForderInPage=AValue) then exit;
+  ForderInPage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreCluster.SetproductId(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (FproductId=AValue) then exit;
+  FproductId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStoreCluster.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'name' : SetLength(Fname,ALength);
+  'productid' : SetLength(FproductId,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TStoreLayout
+  --------------------------------------------------------------------}
+
+
+Procedure TStoreLayout.SethomepageId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FhomepageId=AValue) then exit;
+  FhomepageId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreLayout.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TStoreLayoutClustersListResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TStoreLayoutClustersListResponse.Setcluster(AIndex : Integer; const AValue : TStoreLayoutClustersListResponseTypeclusterArray); 
+
+begin
+  If (Fcluster=AValue) then exit;
+  Fcluster:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreLayoutClustersListResponse.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStoreLayoutClustersListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'cluster' : SetLength(Fcluster,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TStoreLayoutPagesListResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TStoreLayoutPagesListResponse.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStoreLayoutPagesListResponse.Setpage(AIndex : Integer; const AValue : TStoreLayoutPagesListResponseTypepageArray); 
+
+begin
+  If (Fpage=AValue) then exit;
+  Fpage:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStoreLayoutPagesListResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'page' : SetLength(Fpage,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TStorePage
+  --------------------------------------------------------------------}
+
+
+Procedure TStorePage.Setid(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fid=AValue) then exit;
+  Fid:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStorePage.Setkind(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fkind=AValue) then exit;
+  Fkind:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStorePage.Setlink(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Flink=AValue) then exit;
+  Flink:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TStorePage.Setname(AIndex : Integer; const AValue : TStorePageTypenameArray); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TStorePage.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'link' : SetLength(Flink,ALength);
+  'name' : SetLength(Fname,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTokenPagination
+  --------------------------------------------------------------------}
+
+
+Procedure TTokenPagination.SetnextPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FnextPageToken=AValue) then exit;
+  FnextPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTokenPagination.SetpreviousPageToken(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FpreviousPageToken=AValue) then exit;
+  FpreviousPageToken:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -2241,7 +3288,7 @@ end;
 
 
 
-Procedure TUsersListResponse.Setuser(AIndex : Integer; AValue : TUsersListResponseTypeuserArray); 
+Procedure TUsersListResponse.Setuser(AIndex : Integer; const AValue : TUsersListResponseTypeuserArray); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -2618,6 +3665,21 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEnterprise) as TEnterprise;
 end;
 
+Function TEnterprisesResource.GetStoreLayout(enterpriseId: string) : TStoreLayout;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout';
+  _Methodid   = 'androidenterprise.enterprises.getStoreLayout';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TStoreLayout) as TStoreLayout;
+end;
+
 Function TEnterprisesResource.Insert(aEnterprise : TEnterprise; AQuery : string = '') : TEnterprise;
 
 Const
@@ -2664,6 +3726,21 @@ begin
   Result:=List(_Q);
 end;
 
+Function TEnterprisesResource.SendTestPushNotification(enterpriseId: string) : TEnterprisesSendTestPushNotificationResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'enterprises/{enterpriseId}/sendTestPushNotification';
+  _Methodid   = 'androidenterprise.enterprises.sendTestPushNotification';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEnterprisesSendTestPushNotificationResponse) as TEnterprisesSendTestPushNotificationResponse;
+end;
+
 Function TEnterprisesResource.SetAccount(enterpriseId: string; aEnterpriseAccount : TEnterpriseAccount) : TEnterpriseAccount;
 
 Const
@@ -2677,6 +3754,21 @@ Var
 begin
   _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
   Result:=ServiceCall(_HTTPMethod,_P,'',aEnterpriseAccount,TEnterpriseAccount) as TEnterpriseAccount;
+end;
+
+Function TEnterprisesResource.SetStoreLayout(enterpriseId: string; aStoreLayout : TStoreLayout) : TStoreLayout;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout';
+  _Methodid   = 'androidenterprise.enterprises.setStoreLayout';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStoreLayout,TStoreLayout) as TStoreLayout;
 end;
 
 Procedure TEnterprisesResource.Unenroll(enterpriseId: string);
@@ -3054,6 +4146,48 @@ begin
   Result:=TandroidenterpriseAPI;
 end;
 
+Procedure TProductsResource.Approve(enterpriseId: string; productId: string; aProductsApproveRequest : TProductsApproveRequest);
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'enterprises/{enterpriseId}/products/{productId}/approve';
+  _Methodid   = 'androidenterprise.products.approve';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'productId',productId]);
+  ServiceCall(_HTTPMethod,_P,'',aProductsApproveRequest,Nil);
+end;
+
+Function TProductsResource.GenerateApprovalUrl(enterpriseId: string; productId: string; AQuery : string = '') : TProductsGenerateApprovalUrlResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl';
+  _Methodid   = 'androidenterprise.products.generateApprovalUrl';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'productId',productId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TProductsGenerateApprovalUrlResponse) as TProductsGenerateApprovalUrlResponse;
+end;
+
+
+Function TProductsResource.GenerateApprovalUrl(enterpriseId: string; productId: string; AQuery : TProductsgenerateApprovalUrlOptions) : TProductsGenerateApprovalUrlResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'languageCode',AQuery.languageCode);
+  Result:=GenerateApprovalUrl(enterpriseId,productId,_Q);
+end;
+
 Function TProductsResource.Get(enterpriseId: string; productId: string; AQuery : string = '') : TProduct;
 
 Const
@@ -3123,6 +4257,37 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TProductPermissions) as TProductPermissions;
 end;
 
+Function TProductsResource.List(enterpriseId: string; AQuery : string = '') : TProductsListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/products';
+  _Methodid   = 'androidenterprise.products.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,Nil,TProductsListResponse) as TProductsListResponse;
+end;
+
+
+Function TProductsResource.List(enterpriseId: string; AQuery : TProductslistOptions) : TProductsListResponse;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'approved',AQuery.approved);
+  AddToQuery(_Q,'language',AQuery.language);
+  AddToQuery(_Q,'maxResults',AQuery.maxResults);
+  AddToQuery(_Q,'query',AQuery.query);
+  AddToQuery(_Q,'token',AQuery.token);
+  Result:=List(enterpriseId,_Q);
+end;
+
 Function TProductsResource.UpdatePermissions(enterpriseId: string; productId: string; aProductPermissions : TProductPermissions) : TProductPermissions;
 
 Const
@@ -3136,6 +4301,224 @@ Var
 begin
   _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'productId',productId]);
   Result:=ServiceCall(_HTTPMethod,_P,'',aProductPermissions,TProductPermissions) as TProductPermissions;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TStorelayoutclustersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TStorelayoutclustersResource.ResourceName : String;
+
+begin
+  Result:='storelayoutclusters';
+end;
+
+Class Function TStorelayoutclustersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidenterpriseAPI;
+end;
+
+Procedure TStorelayoutclustersResource.Delete(clusterId: string; enterpriseId: string; pageId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}';
+  _Methodid   = 'androidenterprise.storelayoutclusters.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['clusterId',clusterId,'enterpriseId',enterpriseId,'pageId',pageId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TStorelayoutclustersResource.Get(clusterId: string; enterpriseId: string; pageId: string) : TStoreCluster;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}';
+  _Methodid   = 'androidenterprise.storelayoutclusters.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['clusterId',clusterId,'enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TStoreCluster) as TStoreCluster;
+end;
+
+Function TStorelayoutclustersResource.Insert(enterpriseId: string; pageId: string; aStoreCluster : TStoreCluster) : TStoreCluster;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters';
+  _Methodid   = 'androidenterprise.storelayoutclusters.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStoreCluster,TStoreCluster) as TStoreCluster;
+end;
+
+Function TStorelayoutclustersResource.List(enterpriseId: string; pageId: string) : TStoreLayoutClustersListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters';
+  _Methodid   = 'androidenterprise.storelayoutclusters.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TStoreLayoutClustersListResponse) as TStoreLayoutClustersListResponse;
+end;
+
+Function TStorelayoutclustersResource.Patch(clusterId: string; enterpriseId: string; pageId: string; aStoreCluster : TStoreCluster) : TStoreCluster;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}';
+  _Methodid   = 'androidenterprise.storelayoutclusters.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['clusterId',clusterId,'enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStoreCluster,TStoreCluster) as TStoreCluster;
+end;
+
+Function TStorelayoutclustersResource.Update(clusterId: string; enterpriseId: string; pageId: string; aStoreCluster : TStoreCluster) : TStoreCluster;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}/clusters/{clusterId}';
+  _Methodid   = 'androidenterprise.storelayoutclusters.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['clusterId',clusterId,'enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStoreCluster,TStoreCluster) as TStoreCluster;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TStorelayoutpagesResource
+  --------------------------------------------------------------------}
+
+
+Class Function TStorelayoutpagesResource.ResourceName : String;
+
+begin
+  Result:='storelayoutpages';
+end;
+
+Class Function TStorelayoutpagesResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TandroidenterpriseAPI;
+end;
+
+Procedure TStorelayoutpagesResource.Delete(enterpriseId: string; pageId: string);
+
+Const
+  _HTTPMethod = 'DELETE';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}';
+  _Methodid   = 'androidenterprise.storelayoutpages.delete';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'pageId',pageId]);
+  ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
+end;
+
+Function TStorelayoutpagesResource.Get(enterpriseId: string; pageId: string) : TStorePage;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}';
+  _Methodid   = 'androidenterprise.storelayoutpages.get';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TStorePage) as TStorePage;
+end;
+
+Function TStorelayoutpagesResource.Insert(enterpriseId: string; aStorePage : TStorePage) : TStorePage;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages';
+  _Methodid   = 'androidenterprise.storelayoutpages.insert';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStorePage,TStorePage) as TStorePage;
+end;
+
+Function TStorelayoutpagesResource.List(enterpriseId: string) : TStoreLayoutPagesListResponse;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages';
+  _Methodid   = 'androidenterprise.storelayoutpages.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TStoreLayoutPagesListResponse) as TStoreLayoutPagesListResponse;
+end;
+
+Function TStorelayoutpagesResource.Patch(enterpriseId: string; pageId: string; aStorePage : TStorePage) : TStorePage;
+
+Const
+  _HTTPMethod = 'PATCH';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}';
+  _Methodid   = 'androidenterprise.storelayoutpages.patch';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStorePage,TStorePage) as TStorePage;
+end;
+
+Function TStorelayoutpagesResource.Update(enterpriseId: string; pageId: string; aStorePage : TStorePage) : TStorePage;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'enterprises/{enterpriseId}/storeLayout/pages/{pageId}';
+  _Methodid   = 'androidenterprise.storelayoutpages.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'pageId',pageId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aStorePage,TStorePage) as TStorePage;
 end;
 
 
@@ -3187,6 +4570,21 @@ begin
   Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TUser) as TUser;
 end;
 
+Function TUsersResource.GetAvailableProductSet(enterpriseId: string; userId: string) : TProductSet;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'enterprises/{enterpriseId}/users/{userId}/availableProductSet';
+  _Methodid   = 'androidenterprise.users.getAvailableProductSet';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TProductSet) as TProductSet;
+end;
+
 Function TUsersResource.List(enterpriseId: string; AQuery : string = '') : TUsersListResponse;
 
 Const
@@ -3229,6 +4627,21 @@ begin
   ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
 end;
 
+Function TUsersResource.SetAvailableProductSet(enterpriseId: string; userId: string; aProductSet : TProductSet) : TProductSet;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'enterprises/{enterpriseId}/users/{userId}/availableProductSet';
+  _Methodid   = 'androidenterprise.users.setAvailableProductSet';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['enterpriseId',enterpriseId,'userId',userId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aProductSet,TProductSet) as TProductSet;
+end;
+
 
 
 { --------------------------------------------------------------------
@@ -3250,7 +4663,7 @@ end;
 Class Function TAndroidenterpriseAPI.APIRevision : String;
 
 begin
-  Result:='20141112';
+  Result:='20160511';
 end;
 
 Class Function TAndroidenterpriseAPI.APIID : String;
@@ -3268,7 +4681,7 @@ end;
 Class Function TAndroidenterpriseAPI.APIDescription : String;
 
 begin
-  Result:='Allows MDMs/EMMs and enterprises to manage the deployment of apps to Android for Work users.';
+  Result:='Manages the deployment of apps to Android for Work users.';
 end;
 
 Class Function TAndroidenterpriseAPI.APIOwnerDomain : String;
@@ -3298,13 +4711,13 @@ end;
 Class Function TAndroidenterpriseAPI.APIdocumentationLink : String;
 
 begin
-  Result:='';
+  Result:='https://developers.google.com/android/work/play/emm-api';
 end;
 
 Class Function TAndroidenterpriseAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAndroidenterpriseAPI.APIbasePath : string;
@@ -3316,7 +4729,7 @@ end;
 Class Function TAndroidenterpriseAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/androidenterprise/v1/';
+  Result:='https://www.googleapis.com/androidenterprise/v1/';
 end;
 
 Class Function TAndroidenterpriseAPI.APIProtocol : string;
@@ -3358,6 +4771,8 @@ begin
   TAppRestrictionsSchema.RegisterObject;
   TAppRestrictionsSchemaRestriction.RegisterObject;
   TAppRestrictionsSchemaRestrictionRestrictionValue.RegisterObject;
+  TAppVersion.RegisterObject;
+  TApprovalUrlInfo.RegisterObject;
   TCollection.RegisterObject;
   TCollectionViewersListResponse.RegisterObject;
   TCollectionsListResponse.RegisterObject;
@@ -3367,6 +4782,7 @@ begin
   TEnterprise.RegisterObject;
   TEnterpriseAccount.RegisterObject;
   TEnterprisesListResponse.RegisterObject;
+  TEnterprisesSendTestPushNotificationResponse.RegisterObject;
   TEntitlement.RegisterObject;
   TEntitlementsListResponse.RegisterObject;
   TGroupLicense.RegisterObject;
@@ -3374,10 +4790,22 @@ begin
   TGroupLicensesListResponse.RegisterObject;
   TInstall.RegisterObject;
   TInstallsListResponse.RegisterObject;
+  TLocalizedText.RegisterObject;
+  TPageInfo.RegisterObject;
   TPermission.RegisterObject;
   TProduct.RegisterObject;
   TProductPermission.RegisterObject;
   TProductPermissions.RegisterObject;
+  TProductSet.RegisterObject;
+  TProductsApproveRequest.RegisterObject;
+  TProductsGenerateApprovalUrlResponse.RegisterObject;
+  TProductsListResponse.RegisterObject;
+  TStoreCluster.RegisterObject;
+  TStoreLayout.RegisterObject;
+  TStoreLayoutClustersListResponse.RegisterObject;
+  TStoreLayoutPagesListResponse.RegisterObject;
+  TStorePage.RegisterObject;
+  TTokenPagination.RegisterObject;
   TUser.RegisterObject;
   TUserToken.RegisterObject;
   TUsersListResponse.RegisterObject;
@@ -3619,6 +5047,54 @@ Function TAndroidenterpriseAPI.CreateProductsResource(AOwner : TComponent) : TPr
 
 begin
   Result:=TProductsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidenterpriseAPI.GetStorelayoutclustersInstance : TStorelayoutclustersResource;
+
+begin
+  if (FStorelayoutclustersInstance=Nil) then
+    FStorelayoutclustersInstance:=CreateStorelayoutclustersResource;
+  Result:=FStorelayoutclustersInstance;
+end;
+
+Function TAndroidenterpriseAPI.CreateStorelayoutclustersResource : TStorelayoutclustersResource;
+
+begin
+  Result:=CreateStorelayoutclustersResource(Self);
+end;
+
+
+Function TAndroidenterpriseAPI.CreateStorelayoutclustersResource(AOwner : TComponent) : TStorelayoutclustersResource;
+
+begin
+  Result:=TStorelayoutclustersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAndroidenterpriseAPI.GetStorelayoutpagesInstance : TStorelayoutpagesResource;
+
+begin
+  if (FStorelayoutpagesInstance=Nil) then
+    FStorelayoutpagesInstance:=CreateStorelayoutpagesResource;
+  Result:=FStorelayoutpagesInstance;
+end;
+
+Function TAndroidenterpriseAPI.CreateStorelayoutpagesResource : TStorelayoutpagesResource;
+
+begin
+  Result:=CreateStorelayoutpagesResource(Self);
+end;
+
+
+Function TAndroidenterpriseAPI.CreateStorelayoutpagesResource(AOwner : TComponent) : TStorelayoutpagesResource;
+
+begin
+  Result:=TStorelayoutpagesResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 

@@ -1,19 +1,4 @@
 unit googletaskqueue;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -60,7 +45,7 @@ type
     Procedure SetleaseTimestamp(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpayloadBase64(AIndex : Integer; const AValue : String); virtual;
     Procedure SetqueueName(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setretry_count(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setretry_count(AIndex : Integer; const AValue : integer); virtual;
     Procedure Settag(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -86,9 +71,9 @@ type
     FproducerEmails : TStringArray;
   Protected
     //Property setters
-    Procedure SetadminEmails(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetconsumerEmails(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetproducerEmails(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetadminEmails(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetconsumerEmails(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetproducerEmails(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -116,7 +101,7 @@ type
     Procedure SetleasedLastHour(AIndex : Integer; const AValue : String); virtual;
     Procedure SetleasedLastMinute(AIndex : Integer; const AValue : String); virtual;
     Procedure SetoldestTask(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettotalTasks(AIndex : Integer; AValue : integer); virtual;
+    Procedure SettotalTasks(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property leasedLastHour : String Index 0 Read FleasedLastHour Write SetleasedLastHour;
@@ -139,11 +124,11 @@ type
     Fstats : TTaskQueueTypestats;
   Protected
     //Property setters
-    Procedure Setacl(AIndex : Integer; AValue : TTaskQueueTypeacl); virtual;
+    Procedure Setacl(AIndex : Integer; const AValue : TTaskQueueTypeacl); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmaxLeases(AIndex : Integer; AValue : integer); virtual;
-    Procedure Setstats(AIndex : Integer; AValue : TTaskQueueTypestats); virtual;
+    Procedure SetmaxLeases(AIndex : Integer; const AValue : integer); virtual;
+    Procedure Setstats(AIndex : Integer; const AValue : TTaskQueueTypestats); virtual;
   Public
   Published
     Property acl : TTaskQueueTypeacl Index 0 Read Facl Write Setacl;
@@ -164,7 +149,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -187,7 +172,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTasks2TypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTasks2TypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -375,7 +360,7 @@ end;
 
 
 
-Procedure TTask.Setretry_count(AIndex : Integer; AValue : integer); 
+Procedure TTask.Setretry_count(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fretry_count=AValue) then exit;
@@ -402,7 +387,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueueTypeacl.SetadminEmails(AIndex : Integer; AValue : TStringArray); 
+Procedure TTaskQueueTypeacl.SetadminEmails(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FadminEmails=AValue) then exit;
@@ -412,7 +397,7 @@ end;
 
 
 
-Procedure TTaskQueueTypeacl.SetconsumerEmails(AIndex : Integer; AValue : TStringArray); 
+Procedure TTaskQueueTypeacl.SetconsumerEmails(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FconsumerEmails=AValue) then exit;
@@ -422,7 +407,7 @@ end;
 
 
 
-Procedure TTaskQueueTypeacl.SetproducerEmails(AIndex : Integer; AValue : TStringArray); 
+Procedure TTaskQueueTypeacl.SetproducerEmails(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FproducerEmails=AValue) then exit;
@@ -484,7 +469,7 @@ end;
 
 
 
-Procedure TTaskQueueTypestats.SettotalTasks(AIndex : Integer; AValue : integer); 
+Procedure TTaskQueueTypestats.SettotalTasks(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalTasks=AValue) then exit;
@@ -501,7 +486,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTaskQueue.Setacl(AIndex : Integer; AValue : TTaskQueueTypeacl); 
+Procedure TTaskQueue.Setacl(AIndex : Integer; const AValue : TTaskQueueTypeacl); 
 
 begin
   If (Facl=AValue) then exit;
@@ -531,7 +516,7 @@ end;
 
 
 
-Procedure TTaskQueue.SetmaxLeases(AIndex : Integer; AValue : integer); 
+Procedure TTaskQueue.SetmaxLeases(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmaxLeases=AValue) then exit;
@@ -541,7 +526,7 @@ end;
 
 
 
-Procedure TTaskQueue.Setstats(AIndex : Integer; AValue : TTaskQueueTypestats); 
+Procedure TTaskQueue.Setstats(AIndex : Integer; const AValue : TTaskQueueTypestats); 
 
 begin
   If (Fstats=AValue) then exit;
@@ -558,7 +543,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks.Setitems(AIndex : Integer; AValue : TTasksTypeitemsArray); 
+Procedure TTasks.Setitems(AIndex : Integer; const AValue : TTasksTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -598,7 +583,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTasks2.Setitems(AIndex : Integer; AValue : TTasks2TypeitemsArray); 
+Procedure TTasks2.Setitems(AIndex : Integer; const AValue : TTasks2TypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -861,7 +846,7 @@ end;
 Class Function TTaskqueueAPI.APIRevision : String;
 
 begin
-  Result:='20141111';
+  Result:='20160428';
 end;
 
 Class Function TTaskqueueAPI.APIID : String;
@@ -879,7 +864,7 @@ end;
 Class Function TTaskqueueAPI.APIDescription : String;
 
 begin
-  Result:='Lets you access a Google App Engine Pull Task Queue over REST.';
+  Result:='Accesses a Google App Engine Pull Task Queue over REST.';
 end;
 
 Class Function TTaskqueueAPI.APIOwnerDomain : String;
@@ -915,7 +900,7 @@ end;
 Class Function TTaskqueueAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TTaskqueueAPI.APIbasePath : string;
@@ -927,7 +912,7 @@ end;
 Class Function TTaskqueueAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/taskqueue/v1beta2/projects/';
+  Result:='https://www.googleapis.com/taskqueue/v1beta2/projects/';
 end;
 
 Class Function TTaskqueueAPI.APIProtocol : string;

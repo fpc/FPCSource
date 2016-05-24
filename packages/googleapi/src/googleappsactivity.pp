@@ -1,19 +1,4 @@
 unit googleappsactivity;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:52:58
 {$MODE objfpc}
 {$H+}
 
@@ -65,8 +50,8 @@ type
     FsingleEvents : TActivityTypesingleEventsArray;
   Protected
     //Property setters
-    Procedure SetcombinedEvent(AIndex : Integer; AValue : TEvent); virtual;
-    Procedure SetsingleEvents(AIndex : Integer; AValue : TActivityTypesingleEventsArray); virtual;
+    Procedure SetcombinedEvent(AIndex : Integer; const AValue : TEvent); virtual;
+    Procedure SetsingleEvents(AIndex : Integer; const AValue : TActivityTypesingleEventsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -95,15 +80,15 @@ type
     Fuser : TUser;
   Protected
     //Property setters
-    Procedure SetadditionalEventTypes(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetadditionalEventTypes(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SeteventTimeMillis(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetfromUserDeletion(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setmove(AIndex : Integer; AValue : TMove); virtual;
-    Procedure SetpermissionChanges(AIndex : Integer; AValue : TEventTypepermissionChangesArray); virtual;
+    Procedure SetfromUserDeletion(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setmove(AIndex : Integer; const AValue : TMove); virtual;
+    Procedure SetpermissionChanges(AIndex : Integer; const AValue : TEventTypepermissionChangesArray); virtual;
     Procedure SetprimaryEventType(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrename(AIndex : Integer; AValue : TRename); virtual;
-    Procedure Settarget(AIndex : Integer; AValue : TTarget); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
+    Procedure Setrename(AIndex : Integer; const AValue : TRename); virtual;
+    Procedure Settarget(AIndex : Integer; const AValue : TTarget); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : TUser); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -132,7 +117,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setactivities(AIndex : Integer; AValue : TListActivitiesResponseTypeactivitiesArray); virtual;
+    Procedure Setactivities(AIndex : Integer; const AValue : TListActivitiesResponseTypeactivitiesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -155,8 +140,8 @@ type
     FremovedParents : TMoveTyperemovedParentsArray;
   Protected
     //Property setters
-    Procedure SetaddedParents(AIndex : Integer; AValue : TMoveTypeaddedParentsArray); virtual;
-    Procedure SetremovedParents(AIndex : Integer; AValue : TMoveTyperemovedParentsArray); virtual;
+    Procedure SetaddedParents(AIndex : Integer; const AValue : TMoveTypeaddedParentsArray); virtual;
+    Procedure SetremovedParents(AIndex : Integer; const AValue : TMoveTyperemovedParentsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -180,7 +165,7 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisRoot(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetisRoot(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -209,8 +194,8 @@ type
     Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setrole(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setuser(AIndex : Integer; AValue : TUser); virtual;
-    Procedure SetwithLink(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setuser(AIndex : Integer; const AValue : TUser); virtual;
+    Procedure SetwithLink(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -232,8 +217,8 @@ type
     FremovedPermissions : TPermissionChangeTyperemovedPermissionsArray;
   Protected
     //Property setters
-    Procedure SetaddedPermissions(AIndex : Integer; AValue : TPermissionChangeTypeaddedPermissionsArray); virtual;
-    Procedure SetremovedPermissions(AIndex : Integer; AValue : TPermissionChangeTyperemovedPermissionsArray); virtual;
+    Procedure SetaddedPermissions(AIndex : Integer; const AValue : TPermissionChangeTypeaddedPermissionsArray); virtual;
+    Procedure SetremovedPermissions(AIndex : Integer; const AValue : TPermissionChangeTyperemovedPermissionsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -308,16 +293,22 @@ type
   
   TUser = Class(TGoogleBaseObject)
   Private
+    FisDeleted : boolean;
     Fname : String;
+    FpermissionId : String;
     Fphoto : TPhoto;
   Protected
     //Property setters
+    Procedure SetisDeleted(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setphoto(AIndex : Integer; AValue : TPhoto); virtual;
+    Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setphoto(AIndex : Integer; const AValue : TPhoto); virtual;
   Public
   Published
-    Property name : String Index 0 Read Fname Write Setname;
-    Property photo : TPhoto Index 8 Read Fphoto Write Setphoto;
+    Property isDeleted : boolean Index 0 Read FisDeleted Write SetisDeleted;
+    Property name : String Index 8 Read Fname Write Setname;
+    Property permissionId : String Index 16 Read FpermissionId Write SetpermissionId;
+    Property photo : TPhoto Index 24 Read Fphoto Write Setphoto;
   end;
   TUserClass = Class of TUser;
   
@@ -392,7 +383,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TActivity.SetcombinedEvent(AIndex : Integer; AValue : TEvent); 
+Procedure TActivity.SetcombinedEvent(AIndex : Integer; const AValue : TEvent); 
 
 begin
   If (FcombinedEvent=AValue) then exit;
@@ -402,7 +393,7 @@ end;
 
 
 
-Procedure TActivity.SetsingleEvents(AIndex : Integer; AValue : TActivityTypesingleEventsArray); 
+Procedure TActivity.SetsingleEvents(AIndex : Integer; const AValue : TActivityTypesingleEventsArray); 
 
 begin
   If (FsingleEvents=AValue) then exit;
@@ -432,7 +423,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEvent.SetadditionalEventTypes(AIndex : Integer; AValue : TStringArray); 
+Procedure TEvent.SetadditionalEventTypes(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FadditionalEventTypes=AValue) then exit;
@@ -452,7 +443,7 @@ end;
 
 
 
-Procedure TEvent.SetfromUserDeletion(AIndex : Integer; AValue : boolean); 
+Procedure TEvent.SetfromUserDeletion(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FfromUserDeletion=AValue) then exit;
@@ -462,7 +453,7 @@ end;
 
 
 
-Procedure TEvent.Setmove(AIndex : Integer; AValue : TMove); 
+Procedure TEvent.Setmove(AIndex : Integer; const AValue : TMove); 
 
 begin
   If (Fmove=AValue) then exit;
@@ -472,7 +463,7 @@ end;
 
 
 
-Procedure TEvent.SetpermissionChanges(AIndex : Integer; AValue : TEventTypepermissionChangesArray); 
+Procedure TEvent.SetpermissionChanges(AIndex : Integer; const AValue : TEventTypepermissionChangesArray); 
 
 begin
   If (FpermissionChanges=AValue) then exit;
@@ -492,7 +483,7 @@ end;
 
 
 
-Procedure TEvent.Setrename(AIndex : Integer; AValue : TRename); 
+Procedure TEvent.Setrename(AIndex : Integer; const AValue : TRename); 
 
 begin
   If (Frename=AValue) then exit;
@@ -502,7 +493,7 @@ end;
 
 
 
-Procedure TEvent.Settarget(AIndex : Integer; AValue : TTarget); 
+Procedure TEvent.Settarget(AIndex : Integer; const AValue : TTarget); 
 
 begin
   If (Ftarget=AValue) then exit;
@@ -512,7 +503,7 @@ end;
 
 
 
-Procedure TEvent.Setuser(AIndex : Integer; AValue : TUser); 
+Procedure TEvent.Setuser(AIndex : Integer; const AValue : TUser); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -543,7 +534,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListActivitiesResponse.Setactivities(AIndex : Integer; AValue : TListActivitiesResponseTypeactivitiesArray); 
+Procedure TListActivitiesResponse.Setactivities(AIndex : Integer; const AValue : TListActivitiesResponseTypeactivitiesArray); 
 
 begin
   If (Factivities=AValue) then exit;
@@ -583,7 +574,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TMove.SetaddedParents(AIndex : Integer; AValue : TMoveTypeaddedParentsArray); 
+Procedure TMove.SetaddedParents(AIndex : Integer; const AValue : TMoveTypeaddedParentsArray); 
 
 begin
   If (FaddedParents=AValue) then exit;
@@ -593,7 +584,7 @@ end;
 
 
 
-Procedure TMove.SetremovedParents(AIndex : Integer; AValue : TMoveTyperemovedParentsArray); 
+Procedure TMove.SetremovedParents(AIndex : Integer; const AValue : TMoveTyperemovedParentsArray); 
 
 begin
   If (FremovedParents=AValue) then exit;
@@ -634,7 +625,7 @@ end;
 
 
 
-Procedure TParent.SetisRoot(AIndex : Integer; AValue : boolean); 
+Procedure TParent.SetisRoot(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisRoot=AValue) then exit;
@@ -701,7 +692,7 @@ end;
 
 
 
-Procedure TPermission.Setuser(AIndex : Integer; AValue : TUser); 
+Procedure TPermission.Setuser(AIndex : Integer; const AValue : TUser); 
 
 begin
   If (Fuser=AValue) then exit;
@@ -711,7 +702,7 @@ end;
 
 
 
-Procedure TPermission.SetwithLink(AIndex : Integer; AValue : boolean); 
+Procedure TPermission.SetwithLink(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FwithLink=AValue) then exit;
@@ -739,7 +730,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPermissionChange.SetaddedPermissions(AIndex : Integer; AValue : TPermissionChangeTypeaddedPermissionsArray); 
+Procedure TPermissionChange.SetaddedPermissions(AIndex : Integer; const AValue : TPermissionChangeTypeaddedPermissionsArray); 
 
 begin
   If (FaddedPermissions=AValue) then exit;
@@ -749,7 +740,7 @@ end;
 
 
 
-Procedure TPermissionChange.SetremovedPermissions(AIndex : Integer; AValue : TPermissionChangeTyperemovedPermissionsArray); 
+Procedure TPermissionChange.SetremovedPermissions(AIndex : Integer; const AValue : TPermissionChangeTyperemovedPermissionsArray); 
 
 begin
   If (FremovedPermissions=AValue) then exit;
@@ -861,6 +852,16 @@ end;
   --------------------------------------------------------------------}
 
 
+Procedure TUser.SetisDeleted(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FisDeleted=AValue) then exit;
+  FisDeleted:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TUser.Setname(AIndex : Integer; const AValue : String); 
 
 begin
@@ -871,7 +872,17 @@ end;
 
 
 
-Procedure TUser.Setphoto(AIndex : Integer; AValue : TPhoto); 
+Procedure TUser.SetpermissionId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FpermissionId=AValue) then exit;
+  FpermissionId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TUser.Setphoto(AIndex : Integer; const AValue : TPhoto); 
 
 begin
   If (Fphoto=AValue) then exit;
@@ -950,7 +961,7 @@ end;
 Class Function TAppsactivityAPI.APIRevision : String;
 
 begin
-  Result:='20150326';
+  Result:='20160129';
 end;
 
 Class Function TAppsactivityAPI.APIID : String;
@@ -1004,7 +1015,7 @@ end;
 Class Function TAppsactivityAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TAppsactivityAPI.APIbasePath : string;
@@ -1016,7 +1027,7 @@ end;
 Class Function TAppsactivityAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/appsactivity/v1/';
+  Result:='https://www.googleapis.com/appsactivity/v1/';
 end;
 
 Class Function TAppsactivityAPI.APIProtocol : string;

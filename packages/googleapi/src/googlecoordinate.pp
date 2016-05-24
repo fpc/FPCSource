@@ -1,19 +1,4 @@
 unit googlecoordinate;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:01
 {$MODE objfpc}
 {$H+}
 
@@ -108,12 +93,12 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setenabled(AIndex : Integer; AValue : boolean); virtual;
-    Procedure Setenumitems(AIndex : Integer; AValue : TCustomFieldDefTypeenumitemsArray); virtual;
+    Procedure Setenabled(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure Setenumitems(AIndex : Integer; const AValue : TCustomFieldDefTypeenumitemsArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetrequiredForCheckout(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetrequiredForCheckout(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -141,7 +126,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TCustomFieldDefListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -164,7 +149,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure SetcustomField(AIndex : Integer; AValue : TCustomFieldsTypecustomFieldArray); virtual;
+    Procedure SetcustomField(AIndex : Integer; const AValue : TCustomFieldsTypecustomFieldArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -188,7 +173,7 @@ type
     Fvalue : String;
   Protected
     //Property setters
-    Procedure Setactive(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setactive(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
   Public
@@ -212,9 +197,9 @@ type
   Protected
     //Property setters
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetjobChange(AIndex : Integer; AValue : TJobTypejobChangeArray); virtual;
+    Procedure SetjobChange(AIndex : Integer; const AValue : TJobTypejobChangeArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : TJobState); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -240,7 +225,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setstate(AIndex : Integer; AValue : TJobState); virtual;
+    Procedure Setstate(AIndex : Integer; const AValue : TJobState); virtual;
     Procedure Settimestamp(AIndex : Integer; const AValue : String); virtual;
   Public
   Published
@@ -261,7 +246,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TJobListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TJobListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -294,12 +279,12 @@ type
   Protected
     //Property setters
     Procedure Setassignee(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcustomFields(AIndex : Integer; AValue : TCustomFields); virtual;
+    Procedure SetcustomFields(AIndex : Integer; const AValue : TCustomFields); virtual;
     Procedure SetcustomerName(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcustomerPhoneNumber(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlocation(AIndex : Integer; AValue : TLocation); virtual;
-    Procedure Setnote(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setlocation(AIndex : Integer; const AValue : TLocation); virtual;
+    Procedure Setnote(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setprogress(AIndex : Integer; const AValue : String); virtual;
     Procedure Settitle(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -332,10 +317,10 @@ type
     Flng : double;
   Protected
     //Property setters
-    Procedure SetaddressLine(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetaddressLine(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlat(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlng(AIndex : Integer; AValue : double); virtual;
+    Procedure Setlat(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlng(AIndex : Integer; const AValue : double); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -361,10 +346,10 @@ type
     FtokenPagination : TTokenPagination;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TLocationListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TLocationListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure SettokenPagination(AIndex : Integer; AValue : TTokenPagination); virtual;
+    Procedure SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -392,10 +377,10 @@ type
   Protected
     //Property setters
     Procedure SetcollectionTime(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetconfidenceRadius(AIndex : Integer; AValue : double); virtual;
+    Procedure SetconfidenceRadius(AIndex : Integer; const AValue : double); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlatitude(AIndex : Integer; AValue : double); virtual;
-    Procedure Setlongitude(AIndex : Integer; AValue : double); virtual;
+    Procedure Setlatitude(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setlongitude(AIndex : Integer; const AValue : double); virtual;
   Public
   Published
     Property collectionTime : String Index 0 Read FcollectionTime Write SetcollectionTime;
@@ -419,7 +404,7 @@ type
     FstartTime : String;
   Protected
     //Property setters
-    Procedure SetallDay(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetallDay(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setduration(AIndex : Integer; const AValue : String); virtual;
     Procedure SetendTime(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
@@ -466,7 +451,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TTeamListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TTeamListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -530,7 +515,7 @@ type
     Fkind : String;
   Protected
     //Property setters
-    Procedure Setitems(AIndex : Integer; AValue : TWorkerListResponseTypeitemsArray); virtual;
+    Procedure Setitems(AIndex : Integer; const AValue : TWorkerListResponseTypeitemsArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -580,6 +565,7 @@ type
   TJobsListOptions = Record
     maxResults : integer;
     minModifiedTimestampMs : String;
+    omitJobChanges : boolean;
     pageToken : String;
   end;
   
@@ -830,7 +816,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFieldDef.Setenabled(AIndex : Integer; AValue : boolean); 
+Procedure TCustomFieldDef.Setenabled(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fenabled=AValue) then exit;
@@ -840,7 +826,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.Setenumitems(AIndex : Integer; AValue : TCustomFieldDefTypeenumitemsArray); 
+Procedure TCustomFieldDef.Setenumitems(AIndex : Integer; const AValue : TCustomFieldDefTypeenumitemsArray); 
 
 begin
   If (Fenumitems=AValue) then exit;
@@ -880,7 +866,7 @@ end;
 
 
 
-Procedure TCustomFieldDef.SetrequiredForCheckout(AIndex : Integer; AValue : boolean); 
+Procedure TCustomFieldDef.SetrequiredForCheckout(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FrequiredForCheckout=AValue) then exit;
@@ -931,7 +917,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFieldDefListResponse.Setitems(AIndex : Integer; AValue : TCustomFieldDefListResponseTypeitemsArray); 
+Procedure TCustomFieldDefListResponse.Setitems(AIndex : Integer; const AValue : TCustomFieldDefListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -971,7 +957,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCustomFields.SetcustomField(AIndex : Integer; AValue : TCustomFieldsTypecustomFieldArray); 
+Procedure TCustomFields.SetcustomField(AIndex : Integer; const AValue : TCustomFieldsTypecustomFieldArray); 
 
 begin
   If (FcustomField=AValue) then exit;
@@ -1011,7 +997,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TEnumItemDef.Setactive(AIndex : Integer; AValue : boolean); 
+Procedure TEnumItemDef.Setactive(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Factive=AValue) then exit;
@@ -1058,7 +1044,7 @@ end;
 
 
 
-Procedure TJob.SetjobChange(AIndex : Integer; AValue : TJobTypejobChangeArray); 
+Procedure TJob.SetjobChange(AIndex : Integer; const AValue : TJobTypejobChangeArray); 
 
 begin
   If (FjobChange=AValue) then exit;
@@ -1078,7 +1064,7 @@ end;
 
 
 
-Procedure TJob.Setstate(AIndex : Integer; AValue : TJobState); 
+Procedure TJob.Setstate(AIndex : Integer; const AValue : TJobState); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -1118,7 +1104,7 @@ end;
 
 
 
-Procedure TJobChange.Setstate(AIndex : Integer; AValue : TJobState); 
+Procedure TJobChange.Setstate(AIndex : Integer; const AValue : TJobState); 
 
 begin
   If (Fstate=AValue) then exit;
@@ -1145,7 +1131,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TJobListResponse.Setitems(AIndex : Integer; AValue : TJobListResponseTypeitemsArray); 
+Procedure TJobListResponse.Setitems(AIndex : Integer; const AValue : TJobListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1205,7 +1191,7 @@ end;
 
 
 
-Procedure TJobState.SetcustomFields(AIndex : Integer; AValue : TCustomFields); 
+Procedure TJobState.SetcustomFields(AIndex : Integer; const AValue : TCustomFields); 
 
 begin
   If (FcustomFields=AValue) then exit;
@@ -1245,7 +1231,7 @@ end;
 
 
 
-Procedure TJobState.Setlocation(AIndex : Integer; AValue : TLocation); 
+Procedure TJobState.Setlocation(AIndex : Integer; const AValue : TLocation); 
 
 begin
   If (Flocation=AValue) then exit;
@@ -1255,7 +1241,7 @@ end;
 
 
 
-Procedure TJobState.Setnote(AIndex : Integer; AValue : TStringArray); 
+Procedure TJobState.Setnote(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fnote=AValue) then exit;
@@ -1305,7 +1291,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocation.SetaddressLine(AIndex : Integer; AValue : TStringArray); 
+Procedure TLocation.SetaddressLine(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FaddressLine=AValue) then exit;
@@ -1325,7 +1311,7 @@ end;
 
 
 
-Procedure TLocation.Setlat(AIndex : Integer; AValue : double); 
+Procedure TLocation.Setlat(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flat=AValue) then exit;
@@ -1335,7 +1321,7 @@ end;
 
 
 
-Procedure TLocation.Setlng(AIndex : Integer; AValue : double); 
+Procedure TLocation.Setlng(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flng=AValue) then exit;
@@ -1365,7 +1351,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TLocationListResponse.Setitems(AIndex : Integer; AValue : TLocationListResponseTypeitemsArray); 
+Procedure TLocationListResponse.Setitems(AIndex : Integer; const AValue : TLocationListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1395,7 +1381,7 @@ end;
 
 
 
-Procedure TLocationListResponse.SettokenPagination(AIndex : Integer; AValue : TTokenPagination); 
+Procedure TLocationListResponse.SettokenPagination(AIndex : Integer; const AValue : TTokenPagination); 
 
 begin
   If (FtokenPagination=AValue) then exit;
@@ -1435,7 +1421,7 @@ end;
 
 
 
-Procedure TLocationRecord.SetconfidenceRadius(AIndex : Integer; AValue : double); 
+Procedure TLocationRecord.SetconfidenceRadius(AIndex : Integer; const AValue : double); 
 
 begin
   If (FconfidenceRadius=AValue) then exit;
@@ -1455,7 +1441,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setlatitude(AIndex : Integer; AValue : double); 
+Procedure TLocationRecord.Setlatitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flatitude=AValue) then exit;
@@ -1465,7 +1451,7 @@ end;
 
 
 
-Procedure TLocationRecord.Setlongitude(AIndex : Integer; AValue : double); 
+Procedure TLocationRecord.Setlongitude(AIndex : Integer; const AValue : double); 
 
 begin
   If (Flongitude=AValue) then exit;
@@ -1482,7 +1468,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSchedule.SetallDay(AIndex : Integer; AValue : boolean); 
+Procedure TSchedule.SetallDay(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FallDay=AValue) then exit;
@@ -1576,7 +1562,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TTeamListResponse.Setitems(AIndex : Integer; AValue : TTeamListResponseTypeitemsArray); 
+Procedure TTeamListResponse.Setitems(AIndex : Integer; const AValue : TTeamListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1680,7 +1666,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWorkerListResponse.Setitems(AIndex : Integer; AValue : TWorkerListResponseTypeitemsArray); 
+Procedure TWorkerListResponse.Setitems(AIndex : Integer; const AValue : TWorkerListResponseTypeitemsArray); 
 
 begin
   If (Fitems=AValue) then exit;
@@ -1841,6 +1827,7 @@ begin
   _Q:='';
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'minModifiedTimestampMs',AQuery.minModifiedTimestampMs);
+  AddToQuery(_Q,'omitJobChanges',AQuery.omitJobChanges);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(teamId,_Q);
 end;
@@ -2158,7 +2145,7 @@ end;
 Class Function TCoordinateAPI.APIRevision : String;
 
 begin
-  Result:='20141215';
+  Result:='20150811';
 end;
 
 Class Function TCoordinateAPI.APIID : String;
@@ -2212,7 +2199,7 @@ end;
 Class Function TCoordinateAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TCoordinateAPI.APIbasePath : string;
@@ -2224,7 +2211,7 @@ end;
 Class Function TCoordinateAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/coordinate/v1/';
+  Result:='https://www.googleapis.com/coordinate/v1/';
 end;
 
 Class Function TCoordinateAPI.APIProtocol : string;

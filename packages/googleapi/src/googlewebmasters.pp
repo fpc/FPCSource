@@ -1,19 +1,4 @@
 unit googlewebmasters;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:09
 {$MODE objfpc}
 {$H+}
 
@@ -24,6 +9,11 @@ uses sysutils, classes, googleservice, restbase, googlebase;
 type
   
   //Top-level schema types
+  TApiDataRow = Class;
+  TApiDimensionFilter = Class;
+  TApiDimensionFilterGroup = Class;
+  TSearchAnalyticsQueryRequest = Class;
+  TSearchAnalyticsQueryResponse = Class;
   TSitemapsListResponse = Class;
   TSitesListResponse = Class;
   TUrlCrawlErrorCount = Class;
@@ -35,6 +25,11 @@ type
   TWmxSite = Class;
   TWmxSitemap = Class;
   TWmxSitemapContent = Class;
+  TApiDataRowArray = Array of TApiDataRow;
+  TApiDimensionFilterArray = Array of TApiDimensionFilter;
+  TApiDimensionFilterGroupArray = Array of TApiDimensionFilterGroup;
+  TSearchAnalyticsQueryRequestArray = Array of TSearchAnalyticsQueryRequest;
+  TSearchAnalyticsQueryResponseArray = Array of TSearchAnalyticsQueryResponse;
   TSitemapsListResponseArray = Array of TSitemapsListResponse;
   TSitesListResponseArray = Array of TSitesListResponse;
   TUrlCrawlErrorCountArray = Array of TUrlCrawlErrorCount;
@@ -47,12 +42,157 @@ type
   TWmxSitemapArray = Array of TWmxSitemap;
   TWmxSitemapContentArray = Array of TWmxSitemapContent;
   //Anonymous types, using auto-generated names
+  TApiDimensionFilterGroupTypefiltersArray = Array of TApiDimensionFilter;
+  TSearchAnalyticsQueryRequestTypedimensionFilterGroupsArray = Array of TApiDimensionFilterGroup;
+  TSearchAnalyticsQueryResponseTyperowsArray = Array of TApiDataRow;
   TSitemapsListResponseTypesitemapArray = Array of TWmxSitemap;
   TSitesListResponseTypesiteEntryArray = Array of TWmxSite;
   TUrlCrawlErrorCountsPerTypeTypeentriesArray = Array of TUrlCrawlErrorCount;
   TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray = Array of TUrlCrawlErrorCountsPerType;
   TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray = Array of TUrlCrawlErrorsSample;
   TWmxSitemapTypecontentsArray = Array of TWmxSitemapContent;
+  
+  { --------------------------------------------------------------------
+    TApiDataRow
+    --------------------------------------------------------------------}
+  
+  TApiDataRow = Class(TGoogleBaseObject)
+  Private
+    Fclicks : double;
+    Fctr : double;
+    Fimpressions : double;
+    Fkeys : TStringArray;
+    Fposition : double;
+  Protected
+    //Property setters
+    Procedure Setclicks(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setctr(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setimpressions(AIndex : Integer; const AValue : double); virtual;
+    Procedure Setkeys(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setposition(AIndex : Integer; const AValue : double); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property clicks : double Index 0 Read Fclicks Write Setclicks;
+    Property ctr : double Index 8 Read Fctr Write Setctr;
+    Property impressions : double Index 16 Read Fimpressions Write Setimpressions;
+    Property keys : TStringArray Index 24 Read Fkeys Write Setkeys;
+    Property position : double Index 32 Read Fposition Write Setposition;
+  end;
+  TApiDataRowClass = Class of TApiDataRow;
+  
+  { --------------------------------------------------------------------
+    TApiDimensionFilter
+    --------------------------------------------------------------------}
+  
+  TApiDimensionFilter = Class(TGoogleBaseObject)
+  Private
+    Fdimension : String;
+    Fexpression : String;
+    F_operator : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure Setdimension(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setexpression(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_operator(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property dimension : String Index 0 Read Fdimension Write Setdimension;
+    Property expression : String Index 8 Read Fexpression Write Setexpression;
+    Property _operator : String Index 16 Read F_operator Write Set_operator;
+  end;
+  TApiDimensionFilterClass = Class of TApiDimensionFilter;
+  
+  { --------------------------------------------------------------------
+    TApiDimensionFilterGroup
+    --------------------------------------------------------------------}
+  
+  TApiDimensionFilterGroup = Class(TGoogleBaseObject)
+  Private
+    Ffilters : TApiDimensionFilterGroupTypefiltersArray;
+    FgroupType : String;
+  Protected
+    //Property setters
+    Procedure Setfilters(AIndex : Integer; const AValue : TApiDimensionFilterGroupTypefiltersArray); virtual;
+    Procedure SetgroupType(AIndex : Integer; const AValue : String); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property filters : TApiDimensionFilterGroupTypefiltersArray Index 0 Read Ffilters Write Setfilters;
+    Property groupType : String Index 8 Read FgroupType Write SetgroupType;
+  end;
+  TApiDimensionFilterGroupClass = Class of TApiDimensionFilterGroup;
+  
+  { --------------------------------------------------------------------
+    TSearchAnalyticsQueryRequest
+    --------------------------------------------------------------------}
+  
+  TSearchAnalyticsQueryRequest = Class(TGoogleBaseObject)
+  Private
+    FaggregationType : String;
+    FdimensionFilterGroups : TSearchAnalyticsQueryRequestTypedimensionFilterGroupsArray;
+    Fdimensions : TStringArray;
+    FendDate : String;
+    FrowLimit : integer;
+    FsearchType : String;
+    FstartDate : String;
+    FstartRow : integer;
+  Protected
+    //Property setters
+    Procedure SetaggregationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetdimensionFilterGroups(AIndex : Integer; const AValue : TSearchAnalyticsQueryRequestTypedimensionFilterGroupsArray); virtual;
+    Procedure Setdimensions(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetendDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetrowLimit(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetsearchType(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartDate(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetstartRow(AIndex : Integer; const AValue : integer); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property aggregationType : String Index 0 Read FaggregationType Write SetaggregationType;
+    Property dimensionFilterGroups : TSearchAnalyticsQueryRequestTypedimensionFilterGroupsArray Index 8 Read FdimensionFilterGroups Write SetdimensionFilterGroups;
+    Property dimensions : TStringArray Index 16 Read Fdimensions Write Setdimensions;
+    Property endDate : String Index 24 Read FendDate Write SetendDate;
+    Property rowLimit : integer Index 32 Read FrowLimit Write SetrowLimit;
+    Property searchType : String Index 40 Read FsearchType Write SetsearchType;
+    Property startDate : String Index 48 Read FstartDate Write SetstartDate;
+    Property startRow : integer Index 56 Read FstartRow Write SetstartRow;
+  end;
+  TSearchAnalyticsQueryRequestClass = Class of TSearchAnalyticsQueryRequest;
+  
+  { --------------------------------------------------------------------
+    TSearchAnalyticsQueryResponse
+    --------------------------------------------------------------------}
+  
+  TSearchAnalyticsQueryResponse = Class(TGoogleBaseObject)
+  Private
+    FresponseAggregationType : String;
+    Frows : TSearchAnalyticsQueryResponseTyperowsArray;
+  Protected
+    //Property setters
+    Procedure SetresponseAggregationType(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setrows(AIndex : Integer; const AValue : TSearchAnalyticsQueryResponseTyperowsArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property responseAggregationType : String Index 0 Read FresponseAggregationType Write SetresponseAggregationType;
+    Property rows : TSearchAnalyticsQueryResponseTyperowsArray Index 8 Read Frows Write Setrows;
+  end;
+  TSearchAnalyticsQueryResponseClass = Class of TSearchAnalyticsQueryResponse;
   
   { --------------------------------------------------------------------
     TSitemapsListResponse
@@ -63,7 +203,7 @@ type
     Fsitemap : TSitemapsListResponseTypesitemapArray;
   Protected
     //Property setters
-    Procedure Setsitemap(AIndex : Integer; AValue : TSitemapsListResponseTypesitemapArray); virtual;
+    Procedure Setsitemap(AIndex : Integer; const AValue : TSitemapsListResponseTypesitemapArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -83,7 +223,7 @@ type
     FsiteEntry : TSitesListResponseTypesiteEntryArray;
   Protected
     //Property setters
-    Procedure SetsiteEntry(AIndex : Integer; AValue : TSitesListResponseTypesiteEntryArray); virtual;
+    Procedure SetsiteEntry(AIndex : Integer; const AValue : TSitesListResponseTypesiteEntryArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -105,7 +245,7 @@ type
   Protected
     //Property setters
     Procedure Setcount(AIndex : Integer; const AValue : String); virtual;
-    Procedure Settimestamp(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Settimestamp(AIndex : Integer; const AValue : TDatetime); virtual;
   Public
   Published
     Property count : String Index 0 Read Fcount Write Setcount;
@@ -125,7 +265,7 @@ type
   Protected
     //Property setters
     Procedure Setcategory(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); virtual;
+    Procedure Setentries(AIndex : Integer; const AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); virtual;
     Procedure Setplatform(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -148,7 +288,7 @@ type
     FcountPerTypes : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray;
   Protected
     //Property setters
-    Procedure SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); virtual;
+    Procedure SetcountPerTypes(AIndex : Integer; const AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -172,11 +312,11 @@ type
     FurlDetails : TUrlSampleDetails;
   Protected
     //Property setters
-    Procedure Setfirst_detected(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure Setlast_crawled(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure Setfirst_detected(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure Setlast_crawled(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure SetpageUrl(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetresponseCode(AIndex : Integer; AValue : integer); virtual;
-    Procedure SeturlDetails(AIndex : Integer; AValue : TUrlSampleDetails); virtual;
+    Procedure SetresponseCode(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SeturlDetails(AIndex : Integer; const AValue : TUrlSampleDetails); virtual;
   Public
   Published
     Property first_detected : TDatetime Index 0 Read Ffirst_detected Write Setfirst_detected;
@@ -196,7 +336,7 @@ type
     FurlCrawlErrorSample : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray;
   Protected
     //Property setters
-    Procedure SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); virtual;
+    Procedure SeturlCrawlErrorSample(AIndex : Integer; const AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -217,8 +357,8 @@ type
     FlinkedFromUrls : TStringArray;
   Protected
     //Property setters
-    Procedure SetcontainingSitemaps(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetlinkedFromUrls(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetcontainingSitemaps(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetlinkedFromUrls(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -267,12 +407,12 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setcontents(AIndex : Integer; AValue : TWmxSitemapTypecontentsArray); virtual;
+    Procedure Setcontents(AIndex : Integer; const AValue : TWmxSitemapTypecontentsArray); virtual;
     Procedure Seterrors(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetisPending(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetisSitemapsIndex(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetlastDownloaded(AIndex : Integer; AValue : TDatetime); virtual;
-    Procedure SetlastSubmitted(AIndex : Integer; AValue : TDatetime); virtual;
+    Procedure SetisPending(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetisSitemapsIndex(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetlastDownloaded(AIndex : Integer; const AValue : TDatetime); virtual;
+    Procedure SetlastSubmitted(AIndex : Integer; const AValue : TDatetime); virtual;
     Procedure Setpath(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setwarnings(AIndex : Integer; const AValue : String); virtual;
@@ -316,6 +456,18 @@ type
     Property _type : String Index 16 Read F_type Write Set_type;
   end;
   TWmxSitemapContentClass = Class of TWmxSitemapContent;
+  
+  { --------------------------------------------------------------------
+    TSearchanalyticsResource
+    --------------------------------------------------------------------}
+  
+  TSearchanalyticsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Query(siteUrl: string; aSearchAnalyticsQueryRequest : TSearchAnalyticsQueryRequest) : TSearchAnalyticsQueryResponse;
+  end;
+  
   
   { --------------------------------------------------------------------
     TSitemapsResource
@@ -424,10 +576,12 @@ type
   
   TWebmastersAPI = Class(TGoogleAPI)
   Private
+    FSearchanalyticsInstance : TSearchanalyticsResource;
     FSitemapsInstance : TSitemapsResource;
     FSitesInstance : TSitesResource;
     FUrlcrawlerrorscountsInstance : TUrlcrawlerrorscountsResource;
     FUrlcrawlerrorssamplesInstance : TUrlcrawlerrorssamplesResource;
+    Function GetSearchanalyticsInstance : TSearchanalyticsResource;virtual;
     Function GetSitemapsInstance : TSitemapsResource;virtual;
     Function GetSitesInstance : TSitesResource;virtual;
     Function GetUrlcrawlerrorscountsInstance : TUrlcrawlerrorscountsResource;virtual;
@@ -455,6 +609,8 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
+    Function CreateSearchanalyticsResource(AOwner : TComponent) : TSearchanalyticsResource;virtual;overload;
+    Function CreateSearchanalyticsResource : TSearchanalyticsResource;virtual;overload;
     Function CreateSitemapsResource(AOwner : TComponent) : TSitemapsResource;virtual;overload;
     Function CreateSitemapsResource : TSitemapsResource;virtual;overload;
     Function CreateSitesResource(AOwner : TComponent) : TSitesResource;virtual;overload;
@@ -464,6 +620,7 @@ type
     Function CreateUrlcrawlerrorssamplesResource(AOwner : TComponent) : TUrlcrawlerrorssamplesResource;virtual;overload;
     Function CreateUrlcrawlerrorssamplesResource : TUrlcrawlerrorssamplesResource;virtual;overload;
     //Add default on-demand instances for resources
+    Property SearchanalyticsResource : TSearchanalyticsResource Read GetSearchanalyticsInstance;
     Property SitemapsResource : TSitemapsResource Read GetSitemapsInstance;
     Property SitesResource : TSitesResource Read GetSitesInstance;
     Property UrlcrawlerrorscountsResource : TUrlcrawlerrorscountsResource Read GetUrlcrawlerrorscountsInstance;
@@ -474,11 +631,310 @@ implementation
 
 
 { --------------------------------------------------------------------
+  TApiDataRow
+  --------------------------------------------------------------------}
+
+
+Procedure TApiDataRow.Setclicks(AIndex : Integer; const AValue : double); 
+
+begin
+  If (Fclicks=AValue) then exit;
+  Fclicks:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDataRow.Setctr(AIndex : Integer; const AValue : double); 
+
+begin
+  If (Fctr=AValue) then exit;
+  Fctr:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDataRow.Setimpressions(AIndex : Integer; const AValue : double); 
+
+begin
+  If (Fimpressions=AValue) then exit;
+  Fimpressions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDataRow.Setkeys(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fkeys=AValue) then exit;
+  Fkeys:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDataRow.Setposition(AIndex : Integer; const AValue : double); 
+
+begin
+  If (Fposition=AValue) then exit;
+  Fposition:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TApiDataRow.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'keys' : SetLength(Fkeys,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TApiDimensionFilter
+  --------------------------------------------------------------------}
+
+
+Procedure TApiDimensionFilter.Setdimension(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdimension=AValue) then exit;
+  Fdimension:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDimensionFilter.Setexpression(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fexpression=AValue) then exit;
+  Fexpression:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDimensionFilter.Set_operator(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_operator=AValue) then exit;
+  F_operator:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TApiDimensionFilter.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_operator' : Result:='operator';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TApiDimensionFilterGroup
+  --------------------------------------------------------------------}
+
+
+Procedure TApiDimensionFilterGroup.Setfilters(AIndex : Integer; const AValue : TApiDimensionFilterGroupTypefiltersArray); 
+
+begin
+  If (Ffilters=AValue) then exit;
+  Ffilters:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TApiDimensionFilterGroup.SetgroupType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FgroupType=AValue) then exit;
+  FgroupType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TApiDimensionFilterGroup.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'filters' : SetLength(Ffilters,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TSearchAnalyticsQueryRequest
+  --------------------------------------------------------------------}
+
+
+Procedure TSearchAnalyticsQueryRequest.SetaggregationType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FaggregationType=AValue) then exit;
+  FaggregationType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.SetdimensionFilterGroups(AIndex : Integer; const AValue : TSearchAnalyticsQueryRequestTypedimensionFilterGroupsArray); 
+
+begin
+  If (FdimensionFilterGroups=AValue) then exit;
+  FdimensionFilterGroups:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.Setdimensions(AIndex : Integer; const AValue : TStringArray); 
+
+begin
+  If (Fdimensions=AValue) then exit;
+  Fdimensions:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.SetendDate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FendDate=AValue) then exit;
+  FendDate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.SetrowLimit(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FrowLimit=AValue) then exit;
+  FrowLimit:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.SetsearchType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FsearchType=AValue) then exit;
+  FsearchType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.SetstartDate(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FstartDate=AValue) then exit;
+  FstartDate:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryRequest.SetstartRow(AIndex : Integer; const AValue : integer); 
+
+begin
+  If (FstartRow=AValue) then exit;
+  FstartRow:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchAnalyticsQueryRequest.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'dimensionfiltergroups' : SetLength(FdimensionFilterGroups,ALength);
+  'dimensions' : SetLength(Fdimensions,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TSearchAnalyticsQueryResponse
+  --------------------------------------------------------------------}
+
+
+Procedure TSearchAnalyticsQueryResponse.SetresponseAggregationType(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FresponseAggregationType=AValue) then exit;
+  FresponseAggregationType:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSearchAnalyticsQueryResponse.Setrows(AIndex : Integer; const AValue : TSearchAnalyticsQueryResponseTyperowsArray); 
+
+begin
+  If (Frows=AValue) then exit;
+  Frows:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TSearchAnalyticsQueryResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'rows' : SetLength(Frows,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TSitemapsListResponse
   --------------------------------------------------------------------}
 
 
-Procedure TSitemapsListResponse.Setsitemap(AIndex : Integer; AValue : TSitemapsListResponseTypesitemapArray); 
+Procedure TSitemapsListResponse.Setsitemap(AIndex : Integer; const AValue : TSitemapsListResponseTypesitemapArray); 
 
 begin
   If (Fsitemap=AValue) then exit;
@@ -508,7 +964,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TSitesListResponse.SetsiteEntry(AIndex : Integer; AValue : TSitesListResponseTypesiteEntryArray); 
+Procedure TSitesListResponse.SetsiteEntry(AIndex : Integer; const AValue : TSitesListResponseTypesiteEntryArray); 
 
 begin
   If (FsiteEntry=AValue) then exit;
@@ -548,7 +1004,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorCount.Settimestamp(AIndex : Integer; AValue : TDatetime); 
+Procedure TUrlCrawlErrorCount.Settimestamp(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Ftimestamp=AValue) then exit;
@@ -575,7 +1031,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorCountsPerType.Setentries(AIndex : Integer; AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); 
+Procedure TUrlCrawlErrorCountsPerType.Setentries(AIndex : Integer; const AValue : TUrlCrawlErrorCountsPerTypeTypeentriesArray); 
 
 begin
   If (Fentries=AValue) then exit;
@@ -615,7 +1071,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorsCountsQueryResponse.SetcountPerTypes(AIndex : Integer; AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); 
+Procedure TUrlCrawlErrorsCountsQueryResponse.SetcountPerTypes(AIndex : Integer; const AValue : TUrlCrawlErrorsCountsQueryResponseTypecountPerTypesArray); 
 
 begin
   If (FcountPerTypes=AValue) then exit;
@@ -645,7 +1101,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorsSample.Setfirst_detected(AIndex : Integer; AValue : TDatetime); 
+Procedure TUrlCrawlErrorsSample.Setfirst_detected(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Ffirst_detected=AValue) then exit;
@@ -655,7 +1111,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorsSample.Setlast_crawled(AIndex : Integer; AValue : TDatetime); 
+Procedure TUrlCrawlErrorsSample.Setlast_crawled(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (Flast_crawled=AValue) then exit;
@@ -675,7 +1131,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorsSample.SetresponseCode(AIndex : Integer; AValue : integer); 
+Procedure TUrlCrawlErrorsSample.SetresponseCode(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FresponseCode=AValue) then exit;
@@ -685,7 +1141,7 @@ end;
 
 
 
-Procedure TUrlCrawlErrorsSample.SeturlDetails(AIndex : Integer; AValue : TUrlSampleDetails); 
+Procedure TUrlCrawlErrorsSample.SeturlDetails(AIndex : Integer; const AValue : TUrlSampleDetails); 
 
 begin
   If (FurlDetails=AValue) then exit;
@@ -702,7 +1158,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlCrawlErrorsSamplesListResponse.SeturlCrawlErrorSample(AIndex : Integer; AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); 
+Procedure TUrlCrawlErrorsSamplesListResponse.SeturlCrawlErrorSample(AIndex : Integer; const AValue : TUrlCrawlErrorsSamplesListResponseTypeurlCrawlErrorSampleArray); 
 
 begin
   If (FurlCrawlErrorSample=AValue) then exit;
@@ -732,7 +1188,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUrlSampleDetails.SetcontainingSitemaps(AIndex : Integer; AValue : TStringArray); 
+Procedure TUrlSampleDetails.SetcontainingSitemaps(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FcontainingSitemaps=AValue) then exit;
@@ -742,7 +1198,7 @@ end;
 
 
 
-Procedure TUrlSampleDetails.SetlinkedFromUrls(AIndex : Integer; AValue : TStringArray); 
+Procedure TUrlSampleDetails.SetlinkedFromUrls(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FlinkedFromUrls=AValue) then exit;
@@ -800,7 +1256,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TWmxSitemap.Setcontents(AIndex : Integer; AValue : TWmxSitemapTypecontentsArray); 
+Procedure TWmxSitemap.Setcontents(AIndex : Integer; const AValue : TWmxSitemapTypecontentsArray); 
 
 begin
   If (Fcontents=AValue) then exit;
@@ -820,7 +1276,7 @@ end;
 
 
 
-Procedure TWmxSitemap.SetisPending(AIndex : Integer; AValue : boolean); 
+Procedure TWmxSitemap.SetisPending(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisPending=AValue) then exit;
@@ -830,7 +1286,7 @@ end;
 
 
 
-Procedure TWmxSitemap.SetisSitemapsIndex(AIndex : Integer; AValue : boolean); 
+Procedure TWmxSitemap.SetisSitemapsIndex(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FisSitemapsIndex=AValue) then exit;
@@ -840,7 +1296,7 @@ end;
 
 
 
-Procedure TWmxSitemap.SetlastDownloaded(AIndex : Integer; AValue : TDatetime); 
+Procedure TWmxSitemap.SetlastDownloaded(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FlastDownloaded=AValue) then exit;
@@ -850,7 +1306,7 @@ end;
 
 
 
-Procedure TWmxSitemap.SetlastSubmitted(AIndex : Integer; AValue : TDatetime); 
+Procedure TWmxSitemap.SetlastSubmitted(AIndex : Integer; const AValue : TDatetime); 
 
 begin
   If (FlastSubmitted=AValue) then exit;
@@ -961,6 +1417,40 @@ begin
   end;
 end;
 
+
+
+
+{ --------------------------------------------------------------------
+  TSearchanalyticsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TSearchanalyticsResource.ResourceName : String;
+
+begin
+  Result:='searchanalytics';
+end;
+
+Class Function TSearchanalyticsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TwebmastersAPI;
+end;
+
+Function TSearchanalyticsResource.Query(siteUrl: string; aSearchAnalyticsQueryRequest : TSearchAnalyticsQueryRequest) : TSearchAnalyticsQueryResponse;
+
+Const
+  _HTTPMethod = 'POST';
+  _Path       = 'sites/{siteUrl}/searchAnalytics/query';
+  _Methodid   = 'webmasters.searchanalytics.query';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['siteUrl',siteUrl]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aSearchAnalyticsQueryRequest,TSearchAnalyticsQueryResponse) as TSearchAnalyticsQueryResponse;
+end;
 
 
 
@@ -1300,7 +1790,7 @@ end;
 Class Function TWebmastersAPI.APIRevision : String;
 
 begin
-  Result:='20140908';
+  Result:='20160317';
 end;
 
 Class Function TWebmastersAPI.APIID : String;
@@ -1312,13 +1802,13 @@ end;
 Class Function TWebmastersAPI.APITitle : String;
 
 begin
-  Result:='Webmaster Tools API';
+  Result:='Search Console API';
 end;
 
 Class Function TWebmastersAPI.APIDescription : String;
 
 begin
-  Result:='Lets you view Google Webmaster Tools data for your verified sites.';
+  Result:='View Google Search Console data for your verified sites.';
 end;
 
 Class Function TWebmastersAPI.APIOwnerDomain : String;
@@ -1348,13 +1838,13 @@ end;
 Class Function TWebmastersAPI.APIdocumentationLink : String;
 
 begin
-  Result:='https://developers.google.com/webmaster-tools/v3/welcome';
+  Result:='https://developers.google.com/webmaster-tools/';
 end;
 
 Class Function TWebmastersAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TWebmastersAPI.APIbasePath : string;
@@ -1366,7 +1856,7 @@ end;
 Class Function TWebmastersAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/webmasters/v3/';
+  Result:='https://www.googleapis.com/webmasters/v3/';
 end;
 
 Class Function TWebmastersAPI.APIProtocol : string;
@@ -1392,9 +1882,9 @@ Class Function TWebmastersAPI.APIAuthScopes : TScopeInfoArray;
 begin
   SetLength(Result,2);
   Result[0].Name:='https://www.googleapis.com/auth/webmasters';
-  Result[0].Description:='View and modify Webmaster Tools data for your verified sites';
+  Result[0].Description:='View and manage Search Console data for your verified sites';
   Result[1].Name:='https://www.googleapis.com/auth/webmasters.readonly';
-  Result[1].Description:='View Webmaster Tools data for your verified sites';
+  Result[1].Description:='View Search Console data for your verified sites';
   
 end;
 
@@ -1407,6 +1897,11 @@ end;
 Class Procedure TWebmastersAPI.RegisterAPIResources;
 
 begin
+  TApiDataRow.RegisterObject;
+  TApiDimensionFilter.RegisterObject;
+  TApiDimensionFilterGroup.RegisterObject;
+  TSearchAnalyticsQueryRequest.RegisterObject;
+  TSearchAnalyticsQueryResponse.RegisterObject;
   TSitemapsListResponse.RegisterObject;
   TSitesListResponse.RegisterObject;
   TUrlCrawlErrorCount.RegisterObject;
@@ -1419,6 +1914,30 @@ begin
   TWmxSitemap.RegisterObject;
   TWmxSitemapContent.RegisterObject;
 end;
+
+
+Function TWebmastersAPI.GetSearchanalyticsInstance : TSearchanalyticsResource;
+
+begin
+  if (FSearchanalyticsInstance=Nil) then
+    FSearchanalyticsInstance:=CreateSearchanalyticsResource;
+  Result:=FSearchanalyticsInstance;
+end;
+
+Function TWebmastersAPI.CreateSearchanalyticsResource : TSearchanalyticsResource;
+
+begin
+  Result:=CreateSearchanalyticsResource(Self);
+end;
+
+
+Function TWebmastersAPI.CreateSearchanalyticsResource(AOwner : TComponent) : TSearchanalyticsResource;
+
+begin
+  Result:=TSearchanalyticsResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
 
 
 Function TWebmastersAPI.GetSitemapsInstance : TSitemapsResource;

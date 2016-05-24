@@ -1,19 +1,4 @@
 unit googletagmanager;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:08
 {$MODE objfpc}
 {$H+}
 
@@ -33,12 +18,15 @@ type
   TContainerVersionHeader = Class;
   TCreateContainerVersionRequestVersionOptions = Class;
   TCreateContainerVersionResponse = Class;
+  TEnvironment = Class;
+  TFolder = Class;
+  TFolderEntities = Class;
   TListAccountUsersResponse = Class;
   TListAccountsResponse = Class;
   TListContainerVersionsResponse = Class;
   TListContainersResponse = Class;
-  TListMacrosResponse = Class;
-  TListRulesResponse = Class;
+  TListEnvironmentsResponse = Class;
+  TListFoldersResponse = Class;
   TListTagsResponse = Class;
   TListTriggersResponse = Class;
   TListVariablesResponse = Class;
@@ -46,7 +34,9 @@ type
   TParameter = Class;
   TPublishContainerVersionResponse = Class;
   TRule = Class;
+  TSetupTag = Class;
   TTag = Class;
+  TTeardownTag = Class;
   TTrigger = Class;
   TUserAccess = Class;
   TVariable = Class;
@@ -59,12 +49,15 @@ type
   TContainerVersionHeaderArray = Array of TContainerVersionHeader;
   TCreateContainerVersionRequestVersionOptionsArray = Array of TCreateContainerVersionRequestVersionOptions;
   TCreateContainerVersionResponseArray = Array of TCreateContainerVersionResponse;
+  TEnvironmentArray = Array of TEnvironment;
+  TFolderArray = Array of TFolder;
+  TFolderEntitiesArray = Array of TFolderEntities;
   TListAccountUsersResponseArray = Array of TListAccountUsersResponse;
   TListAccountsResponseArray = Array of TListAccountsResponse;
   TListContainerVersionsResponseArray = Array of TListContainerVersionsResponse;
   TListContainersResponseArray = Array of TListContainersResponse;
-  TListMacrosResponseArray = Array of TListMacrosResponse;
-  TListRulesResponseArray = Array of TListRulesResponse;
+  TListEnvironmentsResponseArray = Array of TListEnvironmentsResponse;
+  TListFoldersResponseArray = Array of TListFoldersResponse;
   TListTagsResponseArray = Array of TListTagsResponse;
   TListTriggersResponseArray = Array of TListTriggersResponse;
   TListVariablesResponseArray = Array of TListVariablesResponse;
@@ -72,24 +65,30 @@ type
   TParameterArray = Array of TParameter;
   TPublishContainerVersionResponseArray = Array of TPublishContainerVersionResponse;
   TRuleArray = Array of TRule;
+  TSetupTagArray = Array of TSetupTag;
   TTagArray = Array of TTag;
+  TTeardownTagArray = Array of TTeardownTag;
   TTriggerArray = Array of TTrigger;
   TUserAccessArray = Array of TUserAccess;
   TVariableArray = Array of TVariable;
   //Anonymous types, using auto-generated names
   TConditionTypeparameterArray = Array of TParameter;
+  TContainerVersionTypefolderArray = Array of TFolder;
   TContainerVersionTypemacroArray = Array of TMacro;
   TContainerVersionTyperuleArray = Array of TRule;
   TContainerVersionTypetagArray = Array of TTag;
   TContainerVersionTypetriggerArray = Array of TTrigger;
   TContainerVersionTypevariableArray = Array of TVariable;
+  TFolderEntitiesTypetagArray = Array of TTag;
+  TFolderEntitiesTypetriggerArray = Array of TTrigger;
+  TFolderEntitiesTypevariableArray = Array of TVariable;
   TListAccountUsersResponseTypeuserAccessArray = Array of TUserAccess;
   TListAccountsResponseTypeaccountsArray = Array of TAccount;
   TListContainerVersionsResponseTypecontainerVersionArray = Array of TContainerVersion;
   TListContainerVersionsResponseTypecontainerVersionHeaderArray = Array of TContainerVersionHeader;
   TListContainersResponseTypecontainersArray = Array of TContainer;
-  TListMacrosResponseTypemacrosArray = Array of TMacro;
-  TListRulesResponseTyperulesArray = Array of TRule;
+  TListEnvironmentsResponseTypeenvironmentsArray = Array of TEnvironment;
+  TListFoldersResponseTypefoldersArray = Array of TFolder;
   TListTagsResponseTypetagsArray = Array of TTag;
   TListTriggersResponseTypetriggersArray = Array of TTrigger;
   TListVariablesResponseTypevariablesArray = Array of TVariable;
@@ -98,6 +97,8 @@ type
   TParameterTypemapArray = Array of TParameter;
   TRuleTypeconditionArray = Array of TCondition;
   TTagTypeparameterArray = Array of TParameter;
+  TTagTypesetupTagArray = Array of TSetupTag;
+  TTagTypeteardownTagArray = Array of TTeardownTag;
   TTriggerTypeautoEventFilterArray = Array of TCondition;
   TTriggerTypecustomEventFilterArray = Array of TCondition;
   TTriggerTypefilterArray = Array of TCondition;
@@ -119,7 +120,7 @@ type
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetshareData(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetshareData(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property accountId : String Index 0 Read FaccountId Write SetaccountId;
@@ -138,7 +139,7 @@ type
     Fpermission : TStringArray;
   Protected
     //Property setters
-    Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setpermission(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -160,7 +161,7 @@ type
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
-    Procedure Setparameter(AIndex : Integer; AValue : TConditionTypeparameterArray); virtual;
+    Procedure Setparameter(AIndex : Integer; const AValue : TConditionTypeparameterArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -194,15 +195,15 @@ type
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetdomainName(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetenabledBuiltInVariable(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetdomainName(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetenabledBuiltInVariable(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpublicId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeZoneCountryId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettimeZoneId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetusageContext(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetusageContext(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -234,7 +235,7 @@ type
   Protected
     //Property setters
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setpermission(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure Setpermission(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -258,6 +259,7 @@ type
     FcontainerVersionId : String;
     Fdeleted : boolean;
     Ffingerprint : String;
+    Ffolder : TContainerVersionTypefolderArray;
     Fmacro : TContainerVersionTypemacroArray;
     Fname : String;
     Fnotes : String;
@@ -268,18 +270,19 @@ type
   Protected
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcontainer(AIndex : Integer; AValue : TContainer); virtual;
+    Procedure Setcontainer(AIndex : Integer; const AValue : TContainer); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerVersionId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setmacro(AIndex : Integer; AValue : TContainerVersionTypemacroArray); virtual;
+    Procedure Setfolder(AIndex : Integer; const AValue : TContainerVersionTypefolderArray); virtual;
+    Procedure Setmacro(AIndex : Integer; const AValue : TContainerVersionTypemacroArray); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrule(AIndex : Integer; AValue : TContainerVersionTyperuleArray); virtual;
-    Procedure Settag(AIndex : Integer; AValue : TContainerVersionTypetagArray); virtual;
-    Procedure Settrigger(AIndex : Integer; AValue : TContainerVersionTypetriggerArray); virtual;
-    Procedure Setvariable(AIndex : Integer; AValue : TContainerVersionTypevariableArray); virtual;
+    Procedure Setrule(AIndex : Integer; const AValue : TContainerVersionTyperuleArray); virtual;
+    Procedure Settag(AIndex : Integer; const AValue : TContainerVersionTypetagArray); virtual;
+    Procedure Settrigger(AIndex : Integer; const AValue : TContainerVersionTypetriggerArray); virtual;
+    Procedure Setvariable(AIndex : Integer; const AValue : TContainerVersionTypevariableArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -292,13 +295,14 @@ type
     Property containerVersionId : String Index 24 Read FcontainerVersionId Write SetcontainerVersionId;
     Property deleted : boolean Index 32 Read Fdeleted Write Setdeleted;
     Property fingerprint : String Index 40 Read Ffingerprint Write Setfingerprint;
-    Property macro : TContainerVersionTypemacroArray Index 48 Read Fmacro Write Setmacro;
-    Property name : String Index 56 Read Fname Write Setname;
-    Property notes : String Index 64 Read Fnotes Write Setnotes;
-    Property rule : TContainerVersionTyperuleArray Index 72 Read Frule Write Setrule;
-    Property tag : TContainerVersionTypetagArray Index 80 Read Ftag Write Settag;
-    Property trigger : TContainerVersionTypetriggerArray Index 88 Read Ftrigger Write Settrigger;
-    Property variable : TContainerVersionTypevariableArray Index 96 Read Fvariable Write Setvariable;
+    Property folder : TContainerVersionTypefolderArray Index 48 Read Ffolder Write Setfolder;
+    Property macro : TContainerVersionTypemacroArray Index 56 Read Fmacro Write Setmacro;
+    Property name : String Index 64 Read Fname Write Setname;
+    Property notes : String Index 72 Read Fnotes Write Setnotes;
+    Property rule : TContainerVersionTyperuleArray Index 80 Read Frule Write Setrule;
+    Property tag : TContainerVersionTypetagArray Index 88 Read Ftag Write Settag;
+    Property trigger : TContainerVersionTypetriggerArray Index 96 Read Ftrigger Write Settrigger;
+    Property variable : TContainerVersionTypevariableArray Index 104 Read Fvariable Write Setvariable;
   end;
   TContainerVersionClass = Class of TContainerVersion;
   
@@ -323,7 +327,7 @@ type
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerVersionId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setdeleted(AIndex : Integer; AValue : boolean); virtual;
+    Procedure Setdeleted(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumMacros(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnumRules(AIndex : Integer; const AValue : String); virtual;
@@ -358,7 +362,7 @@ type
     //Property setters
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetquickPreview(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetquickPreview(AIndex : Integer; const AValue : boolean); virtual;
   Public
   Published
     Property name : String Index 0 Read Fname Write Setname;
@@ -377,14 +381,118 @@ type
     FcontainerVersion : TContainerVersion;
   Protected
     //Property setters
-    Procedure SetcompilerError(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcontainerVersion(AIndex : Integer; AValue : TContainerVersion); virtual;
+    Procedure SetcompilerError(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion); virtual;
   Public
   Published
     Property compilerError : boolean Index 0 Read FcompilerError Write SetcompilerError;
     Property containerVersion : TContainerVersion Index 8 Read FcontainerVersion Write SetcontainerVersion;
   end;
   TCreateContainerVersionResponseClass = Class of TCreateContainerVersionResponse;
+  
+  { --------------------------------------------------------------------
+    TEnvironment
+    --------------------------------------------------------------------}
+  
+  TEnvironment = Class(TGoogleBaseObject)
+  Private
+    FaccountId : String;
+    FauthorizationCode : String;
+    FauthorizationTimestampMs : String;
+    FcontainerId : String;
+    FcontainerVersionId : String;
+    Fdescription : String;
+    FenableDebug : boolean;
+    FenvironmentId : String;
+    Ffingerprint : String;
+    Fname : String;
+    F_type : String;
+    Furl : String;
+  Protected
+    Class Function ExportPropertyName(Const AName : String) : string; override;
+    //Property setters
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetauthorizationCode(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetauthorizationTimestampMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerVersionId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setdescription(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetenableDebug(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetenvironmentId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
+    Procedure Seturl(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property authorizationCode : String Index 8 Read FauthorizationCode Write SetauthorizationCode;
+    Property authorizationTimestampMs : String Index 16 Read FauthorizationTimestampMs Write SetauthorizationTimestampMs;
+    Property containerId : String Index 24 Read FcontainerId Write SetcontainerId;
+    Property containerVersionId : String Index 32 Read FcontainerVersionId Write SetcontainerVersionId;
+    Property description : String Index 40 Read Fdescription Write Setdescription;
+    Property enableDebug : boolean Index 48 Read FenableDebug Write SetenableDebug;
+    Property environmentId : String Index 56 Read FenvironmentId Write SetenvironmentId;
+    Property fingerprint : String Index 64 Read Ffingerprint Write Setfingerprint;
+    Property name : String Index 72 Read Fname Write Setname;
+    Property _type : String Index 80 Read F_type Write Set_type;
+    Property url : String Index 88 Read Furl Write Seturl;
+  end;
+  TEnvironmentClass = Class of TEnvironment;
+  
+  { --------------------------------------------------------------------
+    TFolder
+    --------------------------------------------------------------------}
+  
+  TFolder = Class(TGoogleBaseObject)
+  Private
+    FaccountId : String;
+    FcontainerId : String;
+    Ffingerprint : String;
+    FfolderId : String;
+    Fname : String;
+  Protected
+    //Property setters
+    Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetfolderId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property accountId : String Index 0 Read FaccountId Write SetaccountId;
+    Property containerId : String Index 8 Read FcontainerId Write SetcontainerId;
+    Property fingerprint : String Index 16 Read Ffingerprint Write Setfingerprint;
+    Property folderId : String Index 24 Read FfolderId Write SetfolderId;
+    Property name : String Index 32 Read Fname Write Setname;
+  end;
+  TFolderClass = Class of TFolder;
+  
+  { --------------------------------------------------------------------
+    TFolderEntities
+    --------------------------------------------------------------------}
+  
+  TFolderEntities = Class(TGoogleBaseObject)
+  Private
+    Ftag : TFolderEntitiesTypetagArray;
+    Ftrigger : TFolderEntitiesTypetriggerArray;
+    Fvariable : TFolderEntitiesTypevariableArray;
+  Protected
+    //Property setters
+    Procedure Settag(AIndex : Integer; const AValue : TFolderEntitiesTypetagArray); virtual;
+    Procedure Settrigger(AIndex : Integer; const AValue : TFolderEntitiesTypetriggerArray); virtual;
+    Procedure Setvariable(AIndex : Integer; const AValue : TFolderEntitiesTypevariableArray); virtual;
+    //2.6.4. bug workaround
+    {$IFDEF VER2_6}
+    Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
+    {$ENDIF VER2_6}
+  Public
+  Published
+    Property tag : TFolderEntitiesTypetagArray Index 0 Read Ftag Write Settag;
+    Property trigger : TFolderEntitiesTypetriggerArray Index 8 Read Ftrigger Write Settrigger;
+    Property variable : TFolderEntitiesTypevariableArray Index 16 Read Fvariable Write Setvariable;
+  end;
+  TFolderEntitiesClass = Class of TFolderEntities;
   
   { --------------------------------------------------------------------
     TListAccountUsersResponse
@@ -395,7 +503,7 @@ type
     FuserAccess : TListAccountUsersResponseTypeuserAccessArray;
   Protected
     //Property setters
-    Procedure SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseTypeuserAccessArray); virtual;
+    Procedure SetuserAccess(AIndex : Integer; const AValue : TListAccountUsersResponseTypeuserAccessArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -415,7 +523,7 @@ type
     Faccounts : TListAccountsResponseTypeaccountsArray;
   Protected
     //Property setters
-    Procedure Setaccounts(AIndex : Integer; AValue : TListAccountsResponseTypeaccountsArray); virtual;
+    Procedure Setaccounts(AIndex : Integer; const AValue : TListAccountsResponseTypeaccountsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -436,8 +544,8 @@ type
     FcontainerVersionHeader : TListContainerVersionsResponseTypecontainerVersionHeaderArray;
   Protected
     //Property setters
-    Procedure SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionArray); virtual;
-    Procedure SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); virtual;
+    Procedure SetcontainerVersion(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionArray); virtual;
+    Procedure SetcontainerVersionHeader(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -458,7 +566,7 @@ type
     Fcontainers : TListContainersResponseTypecontainersArray;
   Protected
     //Property setters
-    Procedure Setcontainers(AIndex : Integer; AValue : TListContainersResponseTypecontainersArray); virtual;
+    Procedure Setcontainers(AIndex : Integer; const AValue : TListContainersResponseTypecontainersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -470,44 +578,44 @@ type
   TListContainersResponseClass = Class of TListContainersResponse;
   
   { --------------------------------------------------------------------
-    TListMacrosResponse
+    TListEnvironmentsResponse
     --------------------------------------------------------------------}
   
-  TListMacrosResponse = Class(TGoogleBaseObject)
+  TListEnvironmentsResponse = Class(TGoogleBaseObject)
   Private
-    Fmacros : TListMacrosResponseTypemacrosArray;
+    Fenvironments : TListEnvironmentsResponseTypeenvironmentsArray;
   Protected
     //Property setters
-    Procedure Setmacros(AIndex : Integer; AValue : TListMacrosResponseTypemacrosArray); virtual;
+    Procedure Setenvironments(AIndex : Integer; const AValue : TListEnvironmentsResponseTypeenvironmentsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property macros : TListMacrosResponseTypemacrosArray Index 0 Read Fmacros Write Setmacros;
+    Property environments : TListEnvironmentsResponseTypeenvironmentsArray Index 0 Read Fenvironments Write Setenvironments;
   end;
-  TListMacrosResponseClass = Class of TListMacrosResponse;
+  TListEnvironmentsResponseClass = Class of TListEnvironmentsResponse;
   
   { --------------------------------------------------------------------
-    TListRulesResponse
+    TListFoldersResponse
     --------------------------------------------------------------------}
   
-  TListRulesResponse = Class(TGoogleBaseObject)
+  TListFoldersResponse = Class(TGoogleBaseObject)
   Private
-    Frules : TListRulesResponseTyperulesArray;
+    Ffolders : TListFoldersResponseTypefoldersArray;
   Protected
     //Property setters
-    Procedure Setrules(AIndex : Integer; AValue : TListRulesResponseTyperulesArray); virtual;
+    Procedure Setfolders(AIndex : Integer; const AValue : TListFoldersResponseTypefoldersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
     {$ENDIF VER2_6}
   Public
   Published
-    Property rules : TListRulesResponseTyperulesArray Index 0 Read Frules Write Setrules;
+    Property folders : TListFoldersResponseTypefoldersArray Index 0 Read Ffolders Write Setfolders;
   end;
-  TListRulesResponseClass = Class of TListRulesResponse;
+  TListFoldersResponseClass = Class of TListFoldersResponse;
   
   { --------------------------------------------------------------------
     TListTagsResponse
@@ -518,7 +626,7 @@ type
     Ftags : TListTagsResponseTypetagsArray;
   Protected
     //Property setters
-    Procedure Settags(AIndex : Integer; AValue : TListTagsResponseTypetagsArray); virtual;
+    Procedure Settags(AIndex : Integer; const AValue : TListTagsResponseTypetagsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -538,7 +646,7 @@ type
     Ftriggers : TListTriggersResponseTypetriggersArray;
   Protected
     //Property setters
-    Procedure Settriggers(AIndex : Integer; AValue : TListTriggersResponseTypetriggersArray); virtual;
+    Procedure Settriggers(AIndex : Integer; const AValue : TListTriggersResponseTypetriggersArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -558,7 +666,7 @@ type
     Fvariables : TListVariablesResponseTypevariablesArray;
   Protected
     //Property setters
-    Procedure Setvariables(AIndex : Integer; AValue : TListVariablesResponseTypevariablesArray); virtual;
+    Procedure Setvariables(AIndex : Integer; const AValue : TListVariablesResponseTypevariablesArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -584,6 +692,7 @@ type
     Fname : String;
     Fnotes : String;
     Fparameter : TMacroTypeparameterArray;
+    FparentFolderId : String;
     FscheduleEndMs : String;
     FscheduleStartMs : String;
     F_type : String;
@@ -592,13 +701,14 @@ type
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetdisablingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetenablingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetdisablingRuleId(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetenablingRuleId(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure SetmacroId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setparameter(AIndex : Integer; AValue : TMacroTypeparameterArray); virtual;
+    Procedure Setparameter(AIndex : Integer; const AValue : TMacroTypeparameterArray); virtual;
+    Procedure SetparentFolderId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscheduleEndMs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscheduleStartMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
@@ -617,9 +727,10 @@ type
     Property name : String Index 48 Read Fname Write Setname;
     Property notes : String Index 56 Read Fnotes Write Setnotes;
     Property parameter : TMacroTypeparameterArray Index 64 Read Fparameter Write Setparameter;
-    Property scheduleEndMs : String Index 72 Read FscheduleEndMs Write SetscheduleEndMs;
-    Property scheduleStartMs : String Index 80 Read FscheduleStartMs Write SetscheduleStartMs;
-    Property _type : String Index 88 Read F_type Write Set_type;
+    Property parentFolderId : String Index 72 Read FparentFolderId Write SetparentFolderId;
+    Property scheduleEndMs : String Index 80 Read FscheduleEndMs Write SetscheduleEndMs;
+    Property scheduleStartMs : String Index 88 Read FscheduleStartMs Write SetscheduleStartMs;
+    Property _type : String Index 96 Read F_type Write Set_type;
   end;
   TMacroClass = Class of TMacro;
   
@@ -638,8 +749,8 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure Setkey(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setlist(AIndex : Integer; AValue : TParameterTypelistArray); virtual;
-    Procedure Setmap(AIndex : Integer; AValue : TParameterTypemapArray); virtual;
+    Procedure Setlist(AIndex : Integer; const AValue : TParameterTypelistArray); virtual;
+    Procedure Setmap(AIndex : Integer; const AValue : TParameterTypemapArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     Procedure Setvalue(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -666,8 +777,8 @@ type
     FcontainerVersion : TContainerVersion;
   Protected
     //Property setters
-    Procedure SetcompilerError(AIndex : Integer; AValue : boolean); virtual;
-    Procedure SetcontainerVersion(AIndex : Integer; AValue : TContainerVersion); virtual;
+    Procedure SetcompilerError(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion); virtual;
   Public
   Published
     Property compilerError : boolean Index 0 Read FcompilerError Write SetcompilerError;
@@ -691,7 +802,7 @@ type
   Protected
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setcondition(AIndex : Integer; AValue : TRuleTypeconditionArray); virtual;
+    Procedure Setcondition(AIndex : Integer; const AValue : TRuleTypeconditionArray); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
@@ -714,6 +825,25 @@ type
   TRuleClass = Class of TRule;
   
   { --------------------------------------------------------------------
+    TSetupTag
+    --------------------------------------------------------------------}
+  
+  TSetupTag = Class(TGoogleBaseObject)
+  Private
+    FstopOnSetupFailure : boolean;
+    FtagName : String;
+  Protected
+    //Property setters
+    Procedure SetstopOnSetupFailure(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SettagName(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property stopOnSetupFailure : boolean Index 0 Read FstopOnSetupFailure Write SetstopOnSetupFailure;
+    Property tagName : String Index 8 Read FtagName Write SettagName;
+  end;
+  TSetupTagClass = Class of TSetupTag;
+  
+  { --------------------------------------------------------------------
     TTag
     --------------------------------------------------------------------}
   
@@ -730,29 +860,37 @@ type
     Fname : String;
     Fnotes : String;
     Fparameter : TTagTypeparameterArray;
+    FparentFolderId : String;
     Fpriority : TParameter;
     FscheduleEndMs : String;
     FscheduleStartMs : String;
+    FsetupTag : TTagTypesetupTagArray;
+    FtagFiringOption : String;
     FtagId : String;
+    FteardownTag : TTagTypeteardownTagArray;
     F_type : String;
   Protected
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetblockingRuleId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetblockingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetblockingRuleId(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetblockingTriggerId(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetfiringRuleId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetfiringTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetliveOnly(AIndex : Integer; AValue : boolean); virtual;
+    Procedure SetfiringRuleId(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetfiringTriggerId(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetliveOnly(AIndex : Integer; const AValue : boolean); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setparameter(AIndex : Integer; AValue : TTagTypeparameterArray); virtual;
-    Procedure Setpriority(AIndex : Integer; AValue : TParameter); virtual;
+    Procedure Setparameter(AIndex : Integer; const AValue : TTagTypeparameterArray); virtual;
+    Procedure SetparentFolderId(AIndex : Integer; const AValue : String); virtual;
+    Procedure Setpriority(AIndex : Integer; const AValue : TParameter); virtual;
     Procedure SetscheduleEndMs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscheduleStartMs(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetsetupTag(AIndex : Integer; const AValue : TTagTypesetupTagArray); virtual;
+    Procedure SettagFiringOption(AIndex : Integer; const AValue : String); virtual;
     Procedure SettagId(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetteardownTag(AIndex : Integer; const AValue : TTagTypeteardownTagArray); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -771,13 +909,36 @@ type
     Property name : String Index 64 Read Fname Write Setname;
     Property notes : String Index 72 Read Fnotes Write Setnotes;
     Property parameter : TTagTypeparameterArray Index 80 Read Fparameter Write Setparameter;
-    Property priority : TParameter Index 88 Read Fpriority Write Setpriority;
-    Property scheduleEndMs : String Index 96 Read FscheduleEndMs Write SetscheduleEndMs;
-    Property scheduleStartMs : String Index 104 Read FscheduleStartMs Write SetscheduleStartMs;
-    Property tagId : String Index 112 Read FtagId Write SettagId;
-    Property _type : String Index 120 Read F_type Write Set_type;
+    Property parentFolderId : String Index 88 Read FparentFolderId Write SetparentFolderId;
+    Property priority : TParameter Index 96 Read Fpriority Write Setpriority;
+    Property scheduleEndMs : String Index 104 Read FscheduleEndMs Write SetscheduleEndMs;
+    Property scheduleStartMs : String Index 112 Read FscheduleStartMs Write SetscheduleStartMs;
+    Property setupTag : TTagTypesetupTagArray Index 120 Read FsetupTag Write SetsetupTag;
+    Property tagFiringOption : String Index 128 Read FtagFiringOption Write SettagFiringOption;
+    Property tagId : String Index 136 Read FtagId Write SettagId;
+    Property teardownTag : TTagTypeteardownTagArray Index 144 Read FteardownTag Write SetteardownTag;
+    Property _type : String Index 152 Read F_type Write Set_type;
   end;
   TTagClass = Class of TTag;
+  
+  { --------------------------------------------------------------------
+    TTeardownTag
+    --------------------------------------------------------------------}
+  
+  TTeardownTag = Class(TGoogleBaseObject)
+  Private
+    FstopTeardownOnFailure : boolean;
+    FtagName : String;
+  Protected
+    //Property setters
+    Procedure SetstopTeardownOnFailure(AIndex : Integer; const AValue : boolean); virtual;
+    Procedure SettagName(AIndex : Integer; const AValue : String); virtual;
+  Public
+  Published
+    Property stopTeardownOnFailure : boolean Index 0 Read FstopTeardownOnFailure Write SetstopTeardownOnFailure;
+    Property tagName : String Index 8 Read FtagName Write SettagName;
+  end;
+  TTeardownTagClass = Class of TTeardownTag;
   
   { --------------------------------------------------------------------
     TTrigger
@@ -797,6 +958,7 @@ type
     Finterval : TParameter;
     Flimit : TParameter;
     Fname : String;
+    FparentFolderId : String;
     FtriggerId : String;
     F_type : String;
     FuniqueTriggerId : TParameter;
@@ -807,23 +969,24 @@ type
     Class Function ExportPropertyName(Const AName : String) : string; override;
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetautoEventFilter(AIndex : Integer; AValue : TTriggerTypeautoEventFilterArray); virtual;
-    Procedure SetcheckValidation(AIndex : Integer; AValue : TParameter); virtual;
+    Procedure SetautoEventFilter(AIndex : Integer; const AValue : TTriggerTypeautoEventFilterArray); virtual;
+    Procedure SetcheckValidation(AIndex : Integer; const AValue : TParameter); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcustomEventFilter(AIndex : Integer; AValue : TTriggerTypecustomEventFilterArray); virtual;
-    Procedure SetenableAllVideos(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SeteventName(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure Setfilter(AIndex : Integer; AValue : TTriggerTypefilterArray); virtual;
+    Procedure SetcustomEventFilter(AIndex : Integer; const AValue : TTriggerTypecustomEventFilterArray); virtual;
+    Procedure SetenableAllVideos(AIndex : Integer; const AValue : TParameter); virtual;
+    Procedure SeteventName(AIndex : Integer; const AValue : TParameter); virtual;
+    Procedure Setfilter(AIndex : Integer; const AValue : TTriggerTypefilterArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setinterval(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure Setlimit(AIndex : Integer; AValue : TParameter); virtual;
+    Procedure Setinterval(AIndex : Integer; const AValue : TParameter); virtual;
+    Procedure Setlimit(AIndex : Integer; const AValue : TParameter); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
+    Procedure SetparentFolderId(AIndex : Integer; const AValue : String); virtual;
     Procedure SettriggerId(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetuniqueTriggerId(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetvideoPercentageList(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetwaitForTags(AIndex : Integer; AValue : TParameter); virtual;
-    Procedure SetwaitForTagsTimeout(AIndex : Integer; AValue : TParameter); virtual;
+    Procedure SetuniqueTriggerId(AIndex : Integer; const AValue : TParameter); virtual;
+    Procedure SetvideoPercentageList(AIndex : Integer; const AValue : TParameter); virtual;
+    Procedure SetwaitForTags(AIndex : Integer; const AValue : TParameter); virtual;
+    Procedure SetwaitForTagsTimeout(AIndex : Integer; const AValue : TParameter); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -842,12 +1005,13 @@ type
     Property interval : TParameter Index 72 Read Finterval Write Setinterval;
     Property limit : TParameter Index 80 Read Flimit Write Setlimit;
     Property name : String Index 88 Read Fname Write Setname;
-    Property triggerId : String Index 96 Read FtriggerId Write SettriggerId;
-    Property _type : String Index 104 Read F_type Write Set_type;
-    Property uniqueTriggerId : TParameter Index 112 Read FuniqueTriggerId Write SetuniqueTriggerId;
-    Property videoPercentageList : TParameter Index 120 Read FvideoPercentageList Write SetvideoPercentageList;
-    Property waitForTags : TParameter Index 128 Read FwaitForTags Write SetwaitForTags;
-    Property waitForTagsTimeout : TParameter Index 136 Read FwaitForTagsTimeout Write SetwaitForTagsTimeout;
+    Property parentFolderId : String Index 96 Read FparentFolderId Write SetparentFolderId;
+    Property triggerId : String Index 104 Read FtriggerId Write SettriggerId;
+    Property _type : String Index 112 Read F_type Write Set_type;
+    Property uniqueTriggerId : TParameter Index 120 Read FuniqueTriggerId Write SetuniqueTriggerId;
+    Property videoPercentageList : TParameter Index 128 Read FvideoPercentageList Write SetvideoPercentageList;
+    Property waitForTags : TParameter Index 136 Read FwaitForTags Write SetwaitForTags;
+    Property waitForTagsTimeout : TParameter Index 144 Read FwaitForTagsTimeout Write SetwaitForTagsTimeout;
   end;
   TTriggerClass = Class of TTrigger;
   
@@ -864,9 +1028,9 @@ type
     FpermissionId : String;
   Protected
     //Property setters
-    Procedure SetaccountAccess(AIndex : Integer; AValue : TAccountAccess); virtual;
+    Procedure SetaccountAccess(AIndex : Integer; const AValue : TAccountAccess); virtual;
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetcontainerAccess(AIndex : Integer; AValue : TUserAccessTypecontainerAccessArray); virtual;
+    Procedure SetcontainerAccess(AIndex : Integer; const AValue : TUserAccessTypecontainerAccessArray); virtual;
     Procedure SetemailAddress(AIndex : Integer; const AValue : String); virtual;
     Procedure SetpermissionId(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -897,6 +1061,7 @@ type
     Fname : String;
     Fnotes : String;
     Fparameter : TVariableTypeparameterArray;
+    FparentFolderId : String;
     FscheduleEndMs : String;
     FscheduleStartMs : String;
     F_type : String;
@@ -906,12 +1071,13 @@ type
     //Property setters
     Procedure SetaccountId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetcontainerId(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetdisablingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure SetenablingTriggerId(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetdisablingTriggerId(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure SetenablingTriggerId(AIndex : Integer; const AValue : TStringArray); virtual;
     Procedure Setfingerprint(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnotes(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setparameter(AIndex : Integer; AValue : TVariableTypeparameterArray); virtual;
+    Procedure Setparameter(AIndex : Integer; const AValue : TVariableTypeparameterArray); virtual;
+    Procedure SetparentFolderId(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscheduleEndMs(AIndex : Integer; const AValue : String); virtual;
     Procedure SetscheduleStartMs(AIndex : Integer; const AValue : String); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
@@ -930,58 +1096,120 @@ type
     Property name : String Index 40 Read Fname Write Setname;
     Property notes : String Index 48 Read Fnotes Write Setnotes;
     Property parameter : TVariableTypeparameterArray Index 56 Read Fparameter Write Setparameter;
-    Property scheduleEndMs : String Index 64 Read FscheduleEndMs Write SetscheduleEndMs;
-    Property scheduleStartMs : String Index 72 Read FscheduleStartMs Write SetscheduleStartMs;
-    Property _type : String Index 80 Read F_type Write Set_type;
-    Property variableId : String Index 88 Read FvariableId Write SetvariableId;
+    Property parentFolderId : String Index 64 Read FparentFolderId Write SetparentFolderId;
+    Property scheduleEndMs : String Index 72 Read FscheduleEndMs Write SetscheduleEndMs;
+    Property scheduleStartMs : String Index 80 Read FscheduleStartMs Write SetscheduleStartMs;
+    Property _type : String Index 88 Read F_type Write Set_type;
+    Property variableId : String Index 96 Read FvariableId Write SetvariableId;
   end;
   TVariableClass = Class of TVariable;
   
   { --------------------------------------------------------------------
-    TAccountsContainersMacrosResource
+    TAccountsContainersEnvironmentsResource
     --------------------------------------------------------------------}
   
   
-  //Optional query Options for TAccountsContainersMacrosResource, method Update
+  //Optional query Options for TAccountsContainersEnvironmentsResource, method Patch
   
-  TAccountsContainersMacrosUpdateOptions = Record
+  TAccountsContainersEnvironmentsPatchOptions = Record
     fingerprint : String;
   end;
   
-  TAccountsContainersMacrosResource = Class(TGoogleResource)
+  
+  //Optional query Options for TAccountsContainersEnvironmentsResource, method Update
+  
+  TAccountsContainersEnvironmentsUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersEnvironmentsResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Create(accountId: string; containerId: string; aMacro : TMacro) : TMacro;overload;
-    Procedure Delete(accountId: string; containerId: string; macroId: string);
-    Function Get(accountId: string; containerId: string; macroId: string) : TMacro;
-    Function List(accountId: string; containerId: string) : TListMacrosResponse;
-    Function Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : string  = '') : TMacro;
-    Function Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : TAccountsContainersMacrosupdateOptions) : TMacro;
+    Function Create(accountId: string; containerId: string; aEnvironment : TEnvironment) : TEnvironment;overload;
+    Procedure Delete(accountId: string; containerId: string; environmentId: string);
+    Function Get(accountId: string; containerId: string; environmentId: string) : TEnvironment;
+    Function List(accountId: string; containerId: string) : TListEnvironmentsResponse;
+    Function Patch(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : string  = '') : TEnvironment;
+    Function Patch(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : TAccountsContainersEnvironmentspatchOptions) : TEnvironment;
+    Function Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : string  = '') : TEnvironment;
+    Function Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : TAccountsContainersEnvironmentsupdateOptions) : TEnvironment;
   end;
   
   
   { --------------------------------------------------------------------
-    TAccountsContainersRulesResource
+    TAccountsContainersFoldersEntitiesResource
     --------------------------------------------------------------------}
   
-  
-  //Optional query Options for TAccountsContainersRulesResource, method Update
-  
-  TAccountsContainersRulesUpdateOptions = Record
-    fingerprint : String;
-  end;
-  
-  TAccountsContainersRulesResource = Class(TGoogleResource)
+  TAccountsContainersFoldersEntitiesResource = Class(TGoogleResource)
   Public
     Class Function ResourceName : String; override;
     Class Function DefaultAPI : TGoogleAPIClass; override;
-    Function Create(accountId: string; containerId: string; aRule : TRule) : TRule;overload;
-    Procedure Delete(accountId: string; containerId: string; ruleId: string);
-    Function Get(accountId: string; containerId: string; ruleId: string) : TRule;
-    Function List(accountId: string; containerId: string) : TListRulesResponse;
-    Function Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : string  = '') : TRule;
-    Function Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : TAccountsContainersRulesupdateOptions) : TRule;
+    Function List(accountId: string; containerId: string; folderId: string) : TFolderEntities;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersFoldersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersFoldersResource, method Update
+  
+  TAccountsContainersFoldersUpdateOptions = Record
+    fingerprint : String;
+  end;
+  
+  TAccountsContainersFoldersResource = Class(TGoogleResource)
+  Private
+    FEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
+    Function GetEntitiesInstance : TAccountsContainersFoldersEntitiesResource;virtual;
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Create(accountId: string; containerId: string; aFolder : TFolder) : TFolder;overload;
+    Procedure Delete(accountId: string; containerId: string; folderId: string);
+    Function Get(accountId: string; containerId: string; folderId: string) : TFolder;
+    Function List(accountId: string; containerId: string) : TListFoldersResponse;
+    Function Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : string  = '') : TFolder;
+    Function Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : TAccountsContainersFoldersupdateOptions) : TFolder;
+    Function CreateEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateEntitiesResource : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Property EntitiesResource : TAccountsContainersFoldersEntitiesResource Read GetEntitiesInstance;
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersMove_foldersResource
+    --------------------------------------------------------------------}
+  
+  
+  //Optional query Options for TAccountsContainersMove_foldersResource, method Update
+  
+  TAccountsContainersMove_foldersUpdateOptions = Record
+    tagId : String;
+    triggerId : String;
+    variableId : String;
+  end;
+  
+  TAccountsContainersMove_foldersResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Procedure Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : string  = '');
+    Procedure Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : TAccountsContainersMove_foldersupdateOptions);
+  end;
+  
+  
+  { --------------------------------------------------------------------
+    TAccountsContainersReauthorize_environmentsResource
+    --------------------------------------------------------------------}
+  
+  TAccountsContainersReauthorize_environmentsResource = Class(TGoogleResource)
+  Public
+    Class Function ResourceName : String; override;
+    Class Function DefaultAPI : TGoogleAPIClass; override;
+    Function Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment) : TEnvironment;
   end;
   
   
@@ -1066,6 +1294,7 @@ type
   
   TAccountsContainersVersionsListOptions = Record
     headers : boolean;
+    includeDeleted : boolean;
   end;
   
   
@@ -1113,14 +1342,20 @@ type
   
   TAccountsContainersResource = Class(TGoogleResource)
   Private
-    FMacrosInstance : TAccountsContainersMacrosResource;
-    FRulesInstance : TAccountsContainersRulesResource;
+    FEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
+    FFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
+    FFoldersInstance : TAccountsContainersFoldersResource;
+    FMove_foldersInstance : TAccountsContainersMove_foldersResource;
+    FReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;
     FTagsInstance : TAccountsContainersTagsResource;
     FTriggersInstance : TAccountsContainersTriggersResource;
     FVariablesInstance : TAccountsContainersVariablesResource;
     FVersionsInstance : TAccountsContainersVersionsResource;
-    Function GetMacrosInstance : TAccountsContainersMacrosResource;virtual;
-    Function GetRulesInstance : TAccountsContainersRulesResource;virtual;
+    Function GetEnvironmentsInstance : TAccountsContainersEnvironmentsResource;virtual;
+    Function GetFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;virtual;
+    Function GetFoldersInstance : TAccountsContainersFoldersResource;virtual;
+    Function GetMove_foldersInstance : TAccountsContainersMove_foldersResource;virtual;
+    Function GetReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;virtual;
     Function GetTagsInstance : TAccountsContainersTagsResource;virtual;
     Function GetTriggersInstance : TAccountsContainersTriggersResource;virtual;
     Function GetVariablesInstance : TAccountsContainersVariablesResource;virtual;
@@ -1134,10 +1369,16 @@ type
     Function List(accountId: string) : TListContainersResponse;
     Function Update(accountId: string; containerId: string; aContainer : TContainer; AQuery : string  = '') : TContainer;
     Function Update(accountId: string; containerId: string; aContainer : TContainer; AQuery : TAccountsContainersupdateOptions) : TContainer;
-    Function CreateMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;virtual;overload;
-    Function CreateMacrosResource : TAccountsContainersMacrosResource;virtual;overload;
-    Function CreateRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;virtual;overload;
-    Function CreateRulesResource : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateEnvironmentsResource(AOwner : TComponent) : TAccountsContainersEnvironmentsResource;virtual;overload;
+    Function CreateEnvironmentsResource : TAccountsContainersEnvironmentsResource;virtual;overload;
+    Function CreateFoldersEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateFoldersResource(AOwner : TComponent) : TAccountsContainersFoldersResource;virtual;overload;
+    Function CreateFoldersResource : TAccountsContainersFoldersResource;virtual;overload;
+    Function CreateMove_foldersResource(AOwner : TComponent) : TAccountsContainersMove_foldersResource;virtual;overload;
+    Function CreateMove_foldersResource : TAccountsContainersMove_foldersResource;virtual;overload;
+    Function CreateReauthorize_environmentsResource(AOwner : TComponent) : TAccountsContainersReauthorize_environmentsResource;virtual;overload;
+    Function CreateReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource;virtual;overload;
     Function CreateTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;virtual;overload;
     Function CreateTagsResource : TAccountsContainersTagsResource;virtual;overload;
     Function CreateTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;virtual;overload;
@@ -1146,8 +1387,11 @@ type
     Function CreateVariablesResource : TAccountsContainersVariablesResource;virtual;overload;
     Function CreateVersionsResource(AOwner : TComponent) : TAccountsContainersVersionsResource;virtual;overload;
     Function CreateVersionsResource : TAccountsContainersVersionsResource;virtual;overload;
-    Property MacrosResource : TAccountsContainersMacrosResource Read GetMacrosInstance;
-    Property RulesResource : TAccountsContainersRulesResource Read GetRulesInstance;
+    Property EnvironmentsResource : TAccountsContainersEnvironmentsResource Read GetEnvironmentsInstance;
+    Property FoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource Read GetFoldersEntitiesInstance;
+    Property FoldersResource : TAccountsContainersFoldersResource Read GetFoldersInstance;
+    Property Move_foldersResource : TAccountsContainersMove_foldersResource Read GetMove_foldersInstance;
+    Property Reauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource Read GetReauthorize_environmentsInstance;
     Property TagsResource : TAccountsContainersTagsResource Read GetTagsInstance;
     Property TriggersResource : TAccountsContainersTriggersResource Read GetTriggersInstance;
     Property VariablesResource : TAccountsContainersVariablesResource Read GetVariablesInstance;
@@ -1184,16 +1428,22 @@ type
   
   TAccountsResource = Class(TGoogleResource)
   Private
-    FContainersMacrosInstance : TAccountsContainersMacrosResource;
-    FContainersRulesInstance : TAccountsContainersRulesResource;
+    FContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
+    FContainersFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
+    FContainersFoldersInstance : TAccountsContainersFoldersResource;
+    FContainersMove_foldersInstance : TAccountsContainersMove_foldersResource;
+    FContainersReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;
     FContainersTagsInstance : TAccountsContainersTagsResource;
     FContainersTriggersInstance : TAccountsContainersTriggersResource;
     FContainersVariablesInstance : TAccountsContainersVariablesResource;
     FContainersVersionsInstance : TAccountsContainersVersionsResource;
     FContainersInstance : TAccountsContainersResource;
     FPermissionsInstance : TAccountsPermissionsResource;
-    Function GetContainersMacrosInstance : TAccountsContainersMacrosResource;virtual;
-    Function GetContainersRulesInstance : TAccountsContainersRulesResource;virtual;
+    Function GetContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;virtual;
+    Function GetContainersFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;virtual;
+    Function GetContainersFoldersInstance : TAccountsContainersFoldersResource;virtual;
+    Function GetContainersMove_foldersInstance : TAccountsContainersMove_foldersResource;virtual;
+    Function GetContainersReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;virtual;
     Function GetContainersTagsInstance : TAccountsContainersTagsResource;virtual;
     Function GetContainersTriggersInstance : TAccountsContainersTriggersResource;virtual;
     Function GetContainersVariablesInstance : TAccountsContainersVariablesResource;virtual;
@@ -1207,10 +1457,16 @@ type
     Function List : TListAccountsResponse;
     Function Update(accountId: string; aAccount : TAccount; AQuery : string  = '') : TAccount;
     Function Update(accountId: string; aAccount : TAccount; AQuery : TAccountsupdateOptions) : TAccount;
-    Function CreateContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;virtual;overload;
-    Function CreateContainersMacrosResource : TAccountsContainersMacrosResource;virtual;overload;
-    Function CreateContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;virtual;overload;
-    Function CreateContainersRulesResource : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateContainersEnvironmentsResource(AOwner : TComponent) : TAccountsContainersEnvironmentsResource;virtual;overload;
+    Function CreateContainersEnvironmentsResource : TAccountsContainersEnvironmentsResource;virtual;overload;
+    Function CreateContainersFoldersEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateContainersFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateContainersFoldersResource(AOwner : TComponent) : TAccountsContainersFoldersResource;virtual;overload;
+    Function CreateContainersFoldersResource : TAccountsContainersFoldersResource;virtual;overload;
+    Function CreateContainersMove_foldersResource(AOwner : TComponent) : TAccountsContainersMove_foldersResource;virtual;overload;
+    Function CreateContainersMove_foldersResource : TAccountsContainersMove_foldersResource;virtual;overload;
+    Function CreateContainersReauthorize_environmentsResource(AOwner : TComponent) : TAccountsContainersReauthorize_environmentsResource;virtual;overload;
+    Function CreateContainersReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource;virtual;overload;
     Function CreateContainersTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;virtual;overload;
     Function CreateContainersTagsResource : TAccountsContainersTagsResource;virtual;overload;
     Function CreateContainersTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;virtual;overload;
@@ -1223,8 +1479,11 @@ type
     Function CreateContainersResource : TAccountsContainersResource;virtual;overload;
     Function CreatePermissionsResource(AOwner : TComponent) : TAccountsPermissionsResource;virtual;overload;
     Function CreatePermissionsResource : TAccountsPermissionsResource;virtual;overload;
-    Property ContainersMacrosResource : TAccountsContainersMacrosResource Read GetContainersMacrosInstance;
-    Property ContainersRulesResource : TAccountsContainersRulesResource Read GetContainersRulesInstance;
+    Property ContainersEnvironmentsResource : TAccountsContainersEnvironmentsResource Read GetContainersEnvironmentsInstance;
+    Property ContainersFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource Read GetContainersFoldersEntitiesInstance;
+    Property ContainersFoldersResource : TAccountsContainersFoldersResource Read GetContainersFoldersInstance;
+    Property ContainersMove_foldersResource : TAccountsContainersMove_foldersResource Read GetContainersMove_foldersInstance;
+    Property ContainersReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource Read GetContainersReauthorize_environmentsInstance;
     Property ContainersTagsResource : TAccountsContainersTagsResource Read GetContainersTagsInstance;
     Property ContainersTriggersResource : TAccountsContainersTriggersResource Read GetContainersTriggersInstance;
     Property ContainersVariablesResource : TAccountsContainersVariablesResource Read GetContainersVariablesInstance;
@@ -1240,8 +1499,11 @@ type
   
   TTagmanagerAPI = Class(TGoogleAPI)
   Private
-    FAccountsContainersMacrosInstance : TAccountsContainersMacrosResource;
-    FAccountsContainersRulesInstance : TAccountsContainersRulesResource;
+    FAccountsContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
+    FAccountsContainersFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
+    FAccountsContainersFoldersInstance : TAccountsContainersFoldersResource;
+    FAccountsContainersMove_foldersInstance : TAccountsContainersMove_foldersResource;
+    FAccountsContainersReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;
     FAccountsContainersTagsInstance : TAccountsContainersTagsResource;
     FAccountsContainersTriggersInstance : TAccountsContainersTriggersResource;
     FAccountsContainersVariablesInstance : TAccountsContainersVariablesResource;
@@ -1249,8 +1511,11 @@ type
     FAccountsContainersInstance : TAccountsContainersResource;
     FAccountsPermissionsInstance : TAccountsPermissionsResource;
     FAccountsInstance : TAccountsResource;
-    Function GetAccountsContainersMacrosInstance : TAccountsContainersMacrosResource;virtual;
-    Function GetAccountsContainersRulesInstance : TAccountsContainersRulesResource;virtual;
+    Function GetAccountsContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;virtual;
+    Function GetAccountsContainersFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;virtual;
+    Function GetAccountsContainersFoldersInstance : TAccountsContainersFoldersResource;virtual;
+    Function GetAccountsContainersMove_foldersInstance : TAccountsContainersMove_foldersResource;virtual;
+    Function GetAccountsContainersReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;virtual;
     Function GetAccountsContainersTagsInstance : TAccountsContainersTagsResource;virtual;
     Function GetAccountsContainersTriggersInstance : TAccountsContainersTriggersResource;virtual;
     Function GetAccountsContainersVariablesInstance : TAccountsContainersVariablesResource;virtual;
@@ -1281,10 +1546,16 @@ type
     Class Function APINeedsAuth : Boolean;override;
     Class Procedure RegisterAPIResources; override;
     //Add create function for resources
-    Function CreateAccountsContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;virtual;overload;
-    Function CreateAccountsContainersMacrosResource : TAccountsContainersMacrosResource;virtual;overload;
-    Function CreateAccountsContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;virtual;overload;
-    Function CreateAccountsContainersRulesResource : TAccountsContainersRulesResource;virtual;overload;
+    Function CreateAccountsContainersEnvironmentsResource(AOwner : TComponent) : TAccountsContainersEnvironmentsResource;virtual;overload;
+    Function CreateAccountsContainersEnvironmentsResource : TAccountsContainersEnvironmentsResource;virtual;overload;
+    Function CreateAccountsContainersFoldersEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateAccountsContainersFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource;virtual;overload;
+    Function CreateAccountsContainersFoldersResource(AOwner : TComponent) : TAccountsContainersFoldersResource;virtual;overload;
+    Function CreateAccountsContainersFoldersResource : TAccountsContainersFoldersResource;virtual;overload;
+    Function CreateAccountsContainersMove_foldersResource(AOwner : TComponent) : TAccountsContainersMove_foldersResource;virtual;overload;
+    Function CreateAccountsContainersMove_foldersResource : TAccountsContainersMove_foldersResource;virtual;overload;
+    Function CreateAccountsContainersReauthorize_environmentsResource(AOwner : TComponent) : TAccountsContainersReauthorize_environmentsResource;virtual;overload;
+    Function CreateAccountsContainersReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource;virtual;overload;
     Function CreateAccountsContainersTagsResource(AOwner : TComponent) : TAccountsContainersTagsResource;virtual;overload;
     Function CreateAccountsContainersTagsResource : TAccountsContainersTagsResource;virtual;overload;
     Function CreateAccountsContainersTriggersResource(AOwner : TComponent) : TAccountsContainersTriggersResource;virtual;overload;
@@ -1300,8 +1571,11 @@ type
     Function CreateAccountsResource(AOwner : TComponent) : TAccountsResource;virtual;overload;
     Function CreateAccountsResource : TAccountsResource;virtual;overload;
     //Add default on-demand instances for resources
-    Property AccountsContainersMacrosResource : TAccountsContainersMacrosResource Read GetAccountsContainersMacrosInstance;
-    Property AccountsContainersRulesResource : TAccountsContainersRulesResource Read GetAccountsContainersRulesInstance;
+    Property AccountsContainersEnvironmentsResource : TAccountsContainersEnvironmentsResource Read GetAccountsContainersEnvironmentsInstance;
+    Property AccountsContainersFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource Read GetAccountsContainersFoldersEntitiesInstance;
+    Property AccountsContainersFoldersResource : TAccountsContainersFoldersResource Read GetAccountsContainersFoldersInstance;
+    Property AccountsContainersMove_foldersResource : TAccountsContainersMove_foldersResource Read GetAccountsContainersMove_foldersInstance;
+    Property AccountsContainersReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource Read GetAccountsContainersReauthorize_environmentsInstance;
     Property AccountsContainersTagsResource : TAccountsContainersTagsResource Read GetAccountsContainersTagsInstance;
     Property AccountsContainersTriggersResource : TAccountsContainersTriggersResource Read GetAccountsContainersTriggersInstance;
     Property AccountsContainersVariablesResource : TAccountsContainersVariablesResource Read GetAccountsContainersVariablesInstance;
@@ -1349,7 +1623,7 @@ end;
 
 
 
-Procedure TAccount.SetshareData(AIndex : Integer; AValue : boolean); 
+Procedure TAccount.SetshareData(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FshareData=AValue) then exit;
@@ -1366,7 +1640,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TAccountAccess.Setpermission(AIndex : Integer; AValue : TStringArray); 
+Procedure TAccountAccess.Setpermission(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fpermission=AValue) then exit;
@@ -1396,7 +1670,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCondition.Setparameter(AIndex : Integer; AValue : TConditionTypeparameterArray); 
+Procedure TCondition.Setparameter(AIndex : Integer; const AValue : TConditionTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
@@ -1467,7 +1741,7 @@ end;
 
 
 
-Procedure TContainer.SetdomainName(AIndex : Integer; AValue : TStringArray); 
+Procedure TContainer.SetdomainName(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FdomainName=AValue) then exit;
@@ -1477,7 +1751,7 @@ end;
 
 
 
-Procedure TContainer.SetenabledBuiltInVariable(AIndex : Integer; AValue : TStringArray); 
+Procedure TContainer.SetenabledBuiltInVariable(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FenabledBuiltInVariable=AValue) then exit;
@@ -1547,7 +1821,7 @@ end;
 
 
 
-Procedure TContainer.SetusageContext(AIndex : Integer; AValue : TStringArray); 
+Procedure TContainer.SetusageContext(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FusageContext=AValue) then exit;
@@ -1589,7 +1863,7 @@ end;
 
 
 
-Procedure TContainerAccess.Setpermission(AIndex : Integer; AValue : TStringArray); 
+Procedure TContainerAccess.Setpermission(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Fpermission=AValue) then exit;
@@ -1629,7 +1903,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setcontainer(AIndex : Integer; AValue : TContainer); 
+Procedure TContainerVersion.Setcontainer(AIndex : Integer; const AValue : TContainer); 
 
 begin
   If (Fcontainer=AValue) then exit;
@@ -1659,7 +1933,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setdeleted(AIndex : Integer; AValue : boolean); 
+Procedure TContainerVersion.Setdeleted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -1679,7 +1953,17 @@ end;
 
 
 
-Procedure TContainerVersion.Setmacro(AIndex : Integer; AValue : TContainerVersionTypemacroArray); 
+Procedure TContainerVersion.Setfolder(AIndex : Integer; const AValue : TContainerVersionTypefolderArray); 
+
+begin
+  If (Ffolder=AValue) then exit;
+  Ffolder:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TContainerVersion.Setmacro(AIndex : Integer; const AValue : TContainerVersionTypemacroArray); 
 
 begin
   If (Fmacro=AValue) then exit;
@@ -1709,7 +1993,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setrule(AIndex : Integer; AValue : TContainerVersionTyperuleArray); 
+Procedure TContainerVersion.Setrule(AIndex : Integer; const AValue : TContainerVersionTyperuleArray); 
 
 begin
   If (Frule=AValue) then exit;
@@ -1719,7 +2003,7 @@ end;
 
 
 
-Procedure TContainerVersion.Settag(AIndex : Integer; AValue : TContainerVersionTypetagArray); 
+Procedure TContainerVersion.Settag(AIndex : Integer; const AValue : TContainerVersionTypetagArray); 
 
 begin
   If (Ftag=AValue) then exit;
@@ -1729,7 +2013,7 @@ end;
 
 
 
-Procedure TContainerVersion.Settrigger(AIndex : Integer; AValue : TContainerVersionTypetriggerArray); 
+Procedure TContainerVersion.Settrigger(AIndex : Integer; const AValue : TContainerVersionTypetriggerArray); 
 
 begin
   If (Ftrigger=AValue) then exit;
@@ -1739,7 +2023,7 @@ end;
 
 
 
-Procedure TContainerVersion.Setvariable(AIndex : Integer; AValue : TContainerVersionTypevariableArray); 
+Procedure TContainerVersion.Setvariable(AIndex : Integer; const AValue : TContainerVersionTypevariableArray); 
 
 begin
   If (Fvariable=AValue) then exit;
@@ -1754,6 +2038,7 @@ Procedure TContainerVersion.SetArrayLength(Const AName : String; ALength : Longi
 
 begin
   Case AName of
+  'folder' : SetLength(Ffolder,ALength);
   'macro' : SetLength(Fmacro,ALength);
   'rule' : SetLength(Frule,ALength);
   'tag' : SetLength(Ftag,ALength);
@@ -1803,7 +2088,7 @@ end;
 
 
 
-Procedure TContainerVersionHeader.Setdeleted(AIndex : Integer; AValue : boolean); 
+Procedure TContainerVersionHeader.Setdeleted(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (Fdeleted=AValue) then exit;
@@ -1900,7 +2185,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionRequestVersionOptions.SetquickPreview(AIndex : Integer; AValue : boolean); 
+Procedure TCreateContainerVersionRequestVersionOptions.SetquickPreview(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FquickPreview=AValue) then exit;
@@ -1917,7 +2202,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TCreateContainerVersionResponse.SetcompilerError(AIndex : Integer; AValue : boolean); 
+Procedure TCreateContainerVersionResponse.SetcompilerError(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FcompilerError=AValue) then exit;
@@ -1927,7 +2212,7 @@ end;
 
 
 
-Procedure TCreateContainerVersionResponse.SetcontainerVersion(AIndex : Integer; AValue : TContainerVersion); 
+Procedure TCreateContainerVersionResponse.SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion); 
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -1940,11 +2225,258 @@ end;
 
 
 { --------------------------------------------------------------------
+  TEnvironment
+  --------------------------------------------------------------------}
+
+
+Procedure TEnvironment.SetaccountId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FaccountId=AValue) then exit;
+  FaccountId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.SetauthorizationCode(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FauthorizationCode=AValue) then exit;
+  FauthorizationCode:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.SetauthorizationTimestampMs(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FauthorizationTimestampMs=AValue) then exit;
+  FauthorizationTimestampMs:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.SetcontainerId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcontainerId=AValue) then exit;
+  FcontainerId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.SetcontainerVersionId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcontainerVersionId=AValue) then exit;
+  FcontainerVersionId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.Setdescription(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fdescription=AValue) then exit;
+  Fdescription:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.SetenableDebug(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FenableDebug=AValue) then exit;
+  FenableDebug:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.SetenvironmentId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FenvironmentId=AValue) then exit;
+  FenvironmentId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.Set_type(AIndex : Integer; const AValue : String); 
+
+begin
+  If (F_type=AValue) then exit;
+  F_type:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TEnvironment.Seturl(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Furl=AValue) then exit;
+  Furl:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Class Function TEnvironment.ExportPropertyName(Const AName : String) :String;
+
+begin
+  Case AName of
+  '_type' : Result:='type';
+  else
+    Result:=Inherited ExportPropertyName(AName);
+  end;
+end;
+
+
+
+
+{ --------------------------------------------------------------------
+  TFolder
+  --------------------------------------------------------------------}
+
+
+Procedure TFolder.SetaccountId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FaccountId=AValue) then exit;
+  FaccountId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFolder.SetcontainerId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FcontainerId=AValue) then exit;
+  FcontainerId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFolder.Setfingerprint(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Ffingerprint=AValue) then exit;
+  Ffingerprint:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFolder.SetfolderId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FfolderId=AValue) then exit;
+  FfolderId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFolder.Setname(AIndex : Integer; const AValue : String); 
+
+begin
+  If (Fname=AValue) then exit;
+  Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
+  TFolderEntities
+  --------------------------------------------------------------------}
+
+
+Procedure TFolderEntities.Settag(AIndex : Integer; const AValue : TFolderEntitiesTypetagArray); 
+
+begin
+  If (Ftag=AValue) then exit;
+  Ftag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFolderEntities.Settrigger(AIndex : Integer; const AValue : TFolderEntitiesTypetriggerArray); 
+
+begin
+  If (Ftrigger=AValue) then exit;
+  Ftrigger:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TFolderEntities.Setvariable(AIndex : Integer; const AValue : TFolderEntitiesTypevariableArray); 
+
+begin
+  If (Fvariable=AValue) then exit;
+  Fvariable:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+//2.6.4. bug workaround
+{$IFDEF VER2_6}
+Procedure TFolderEntities.SetArrayLength(Const AName : String; ALength : Longint); 
+
+begin
+  Case AName of
+  'tag' : SetLength(Ftag,ALength);
+  'trigger' : SetLength(Ftrigger,ALength);
+  'variable' : SetLength(Fvariable,ALength);
+  else
+    Inherited SetArrayLength(AName,ALength);
+  end;
+end;
+{$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
   TListAccountUsersResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListAccountUsersResponse.SetuserAccess(AIndex : Integer; AValue : TListAccountUsersResponseTypeuserAccessArray); 
+Procedure TListAccountUsersResponse.SetuserAccess(AIndex : Integer; const AValue : TListAccountUsersResponseTypeuserAccessArray); 
 
 begin
   If (FuserAccess=AValue) then exit;
@@ -1974,7 +2506,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListAccountsResponse.Setaccounts(AIndex : Integer; AValue : TListAccountsResponseTypeaccountsArray); 
+Procedure TListAccountsResponse.Setaccounts(AIndex : Integer; const AValue : TListAccountsResponseTypeaccountsArray); 
 
 begin
   If (Faccounts=AValue) then exit;
@@ -2004,7 +2536,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListContainerVersionsResponse.SetcontainerVersion(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionArray); 
+Procedure TListContainerVersionsResponse.SetcontainerVersion(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionArray); 
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -2014,7 +2546,7 @@ end;
 
 
 
-Procedure TListContainerVersionsResponse.SetcontainerVersionHeader(AIndex : Integer; AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); 
+Procedure TListContainerVersionsResponse.SetcontainerVersionHeader(AIndex : Integer; const AValue : TListContainerVersionsResponseTypecontainerVersionHeaderArray); 
 
 begin
   If (FcontainerVersionHeader=AValue) then exit;
@@ -2045,7 +2577,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListContainersResponse.Setcontainers(AIndex : Integer; AValue : TListContainersResponseTypecontainersArray); 
+Procedure TListContainersResponse.Setcontainers(AIndex : Integer; const AValue : TListContainersResponseTypecontainersArray); 
 
 begin
   If (Fcontainers=AValue) then exit;
@@ -2071,26 +2603,26 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListMacrosResponse
+  TListEnvironmentsResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListMacrosResponse.Setmacros(AIndex : Integer; AValue : TListMacrosResponseTypemacrosArray); 
+Procedure TListEnvironmentsResponse.Setenvironments(AIndex : Integer; const AValue : TListEnvironmentsResponseTypeenvironmentsArray); 
 
 begin
-  If (Fmacros=AValue) then exit;
-  Fmacros:=AValue;
+  If (Fenvironments=AValue) then exit;
+  Fenvironments:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListMacrosResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListEnvironmentsResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  'macros' : SetLength(Fmacros,ALength);
+  'environments' : SetLength(Fenvironments,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -2101,26 +2633,26 @@ end;
 
 
 { --------------------------------------------------------------------
-  TListRulesResponse
+  TListFoldersResponse
   --------------------------------------------------------------------}
 
 
-Procedure TListRulesResponse.Setrules(AIndex : Integer; AValue : TListRulesResponseTyperulesArray); 
+Procedure TListFoldersResponse.Setfolders(AIndex : Integer; const AValue : TListFoldersResponseTypefoldersArray); 
 
 begin
-  If (Frules=AValue) then exit;
-  Frules:=AValue;
+  If (Ffolders=AValue) then exit;
+  Ffolders:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
 
 //2.6.4. bug workaround
 {$IFDEF VER2_6}
-Procedure TListRulesResponse.SetArrayLength(Const AName : String; ALength : Longint); 
+Procedure TListFoldersResponse.SetArrayLength(Const AName : String; ALength : Longint); 
 
 begin
   Case AName of
-  'rules' : SetLength(Frules,ALength);
+  'folders' : SetLength(Ffolders,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
@@ -2135,7 +2667,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTagsResponse.Settags(AIndex : Integer; AValue : TListTagsResponseTypetagsArray); 
+Procedure TListTagsResponse.Settags(AIndex : Integer; const AValue : TListTagsResponseTypetagsArray); 
 
 begin
   If (Ftags=AValue) then exit;
@@ -2165,7 +2697,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListTriggersResponse.Settriggers(AIndex : Integer; AValue : TListTriggersResponseTypetriggersArray); 
+Procedure TListTriggersResponse.Settriggers(AIndex : Integer; const AValue : TListTriggersResponseTypetriggersArray); 
 
 begin
   If (Ftriggers=AValue) then exit;
@@ -2195,7 +2727,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TListVariablesResponse.Setvariables(AIndex : Integer; AValue : TListVariablesResponseTypevariablesArray); 
+Procedure TListVariablesResponse.Setvariables(AIndex : Integer; const AValue : TListVariablesResponseTypevariablesArray); 
 
 begin
   If (Fvariables=AValue) then exit;
@@ -2245,7 +2777,7 @@ end;
 
 
 
-Procedure TMacro.SetdisablingRuleId(AIndex : Integer; AValue : TStringArray); 
+Procedure TMacro.SetdisablingRuleId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FdisablingRuleId=AValue) then exit;
@@ -2255,7 +2787,7 @@ end;
 
 
 
-Procedure TMacro.SetenablingRuleId(AIndex : Integer; AValue : TStringArray); 
+Procedure TMacro.SetenablingRuleId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FenablingRuleId=AValue) then exit;
@@ -2305,11 +2837,21 @@ end;
 
 
 
-Procedure TMacro.Setparameter(AIndex : Integer; AValue : TMacroTypeparameterArray); 
+Procedure TMacro.Setparameter(AIndex : Integer; const AValue : TMacroTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
   Fparameter:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TMacro.SetparentFolderId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FparentFolderId=AValue) then exit;
+  FparentFolderId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2388,7 +2930,7 @@ end;
 
 
 
-Procedure TParameter.Setlist(AIndex : Integer; AValue : TParameterTypelistArray); 
+Procedure TParameter.Setlist(AIndex : Integer; const AValue : TParameterTypelistArray); 
 
 begin
   If (Flist=AValue) then exit;
@@ -2398,7 +2940,7 @@ end;
 
 
 
-Procedure TParameter.Setmap(AIndex : Integer; AValue : TParameterTypemapArray); 
+Procedure TParameter.Setmap(AIndex : Integer; const AValue : TParameterTypemapArray); 
 
 begin
   If (Fmap=AValue) then exit;
@@ -2460,7 +3002,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TPublishContainerVersionResponse.SetcompilerError(AIndex : Integer; AValue : boolean); 
+Procedure TPublishContainerVersionResponse.SetcompilerError(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FcompilerError=AValue) then exit;
@@ -2470,7 +3012,7 @@ end;
 
 
 
-Procedure TPublishContainerVersionResponse.SetcontainerVersion(AIndex : Integer; AValue : TContainerVersion); 
+Procedure TPublishContainerVersionResponse.SetcontainerVersion(AIndex : Integer; const AValue : TContainerVersion); 
 
 begin
   If (FcontainerVersion=AValue) then exit;
@@ -2497,7 +3039,7 @@ end;
 
 
 
-Procedure TRule.Setcondition(AIndex : Integer; AValue : TRuleTypeconditionArray); 
+Procedure TRule.Setcondition(AIndex : Integer; const AValue : TRuleTypeconditionArray); 
 
 begin
   If (Fcondition=AValue) then exit;
@@ -2573,6 +3115,33 @@ end;
 
 
 { --------------------------------------------------------------------
+  TSetupTag
+  --------------------------------------------------------------------}
+
+
+Procedure TSetupTag.SetstopOnSetupFailure(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FstopOnSetupFailure=AValue) then exit;
+  FstopOnSetupFailure:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TSetupTag.SettagName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtagName=AValue) then exit;
+  FtagName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+
+
+{ --------------------------------------------------------------------
   TTag
   --------------------------------------------------------------------}
 
@@ -2587,7 +3156,7 @@ end;
 
 
 
-Procedure TTag.SetblockingRuleId(AIndex : Integer; AValue : TStringArray); 
+Procedure TTag.SetblockingRuleId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FblockingRuleId=AValue) then exit;
@@ -2597,7 +3166,7 @@ end;
 
 
 
-Procedure TTag.SetblockingTriggerId(AIndex : Integer; AValue : TStringArray); 
+Procedure TTag.SetblockingTriggerId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FblockingTriggerId=AValue) then exit;
@@ -2627,7 +3196,7 @@ end;
 
 
 
-Procedure TTag.SetfiringRuleId(AIndex : Integer; AValue : TStringArray); 
+Procedure TTag.SetfiringRuleId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FfiringRuleId=AValue) then exit;
@@ -2637,7 +3206,7 @@ end;
 
 
 
-Procedure TTag.SetfiringTriggerId(AIndex : Integer; AValue : TStringArray); 
+Procedure TTag.SetfiringTriggerId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FfiringTriggerId=AValue) then exit;
@@ -2647,7 +3216,7 @@ end;
 
 
 
-Procedure TTag.SetliveOnly(AIndex : Integer; AValue : boolean); 
+Procedure TTag.SetliveOnly(AIndex : Integer; const AValue : boolean); 
 
 begin
   If (FliveOnly=AValue) then exit;
@@ -2677,7 +3246,7 @@ end;
 
 
 
-Procedure TTag.Setparameter(AIndex : Integer; AValue : TTagTypeparameterArray); 
+Procedure TTag.Setparameter(AIndex : Integer; const AValue : TTagTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
@@ -2687,7 +3256,17 @@ end;
 
 
 
-Procedure TTag.Setpriority(AIndex : Integer; AValue : TParameter); 
+Procedure TTag.SetparentFolderId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FparentFolderId=AValue) then exit;
+  FparentFolderId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTag.Setpriority(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (Fpriority=AValue) then exit;
@@ -2717,11 +3296,41 @@ end;
 
 
 
+Procedure TTag.SetsetupTag(AIndex : Integer; const AValue : TTagTypesetupTagArray); 
+
+begin
+  If (FsetupTag=AValue) then exit;
+  FsetupTag:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTag.SettagFiringOption(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtagFiringOption=AValue) then exit;
+  FtagFiringOption:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
 Procedure TTag.SettagId(AIndex : Integer; const AValue : String); 
 
 begin
   If (FtagId=AValue) then exit;
   FtagId:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTag.SetteardownTag(AIndex : Integer; const AValue : TTagTypeteardownTagArray); 
+
+begin
+  If (FteardownTag=AValue) then exit;
+  FteardownTag:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2758,11 +3367,40 @@ begin
   'firingruleid' : SetLength(FfiringRuleId,ALength);
   'firingtriggerid' : SetLength(FfiringTriggerId,ALength);
   'parameter' : SetLength(Fparameter,ALength);
+  'setuptag' : SetLength(FsetupTag,ALength);
+  'teardowntag' : SetLength(FteardownTag,ALength);
   else
     Inherited SetArrayLength(AName,ALength);
   end;
 end;
 {$ENDIF VER2_6}
+
+
+
+
+{ --------------------------------------------------------------------
+  TTeardownTag
+  --------------------------------------------------------------------}
+
+
+Procedure TTeardownTag.SetstopTeardownOnFailure(AIndex : Integer; const AValue : boolean); 
+
+begin
+  If (FstopTeardownOnFailure=AValue) then exit;
+  FstopTeardownOnFailure:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTeardownTag.SettagName(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FtagName=AValue) then exit;
+  FtagName:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
 
 
 
@@ -2782,7 +3420,7 @@ end;
 
 
 
-Procedure TTrigger.SetautoEventFilter(AIndex : Integer; AValue : TTriggerTypeautoEventFilterArray); 
+Procedure TTrigger.SetautoEventFilter(AIndex : Integer; const AValue : TTriggerTypeautoEventFilterArray); 
 
 begin
   If (FautoEventFilter=AValue) then exit;
@@ -2792,7 +3430,7 @@ end;
 
 
 
-Procedure TTrigger.SetcheckValidation(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SetcheckValidation(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FcheckValidation=AValue) then exit;
@@ -2812,7 +3450,7 @@ end;
 
 
 
-Procedure TTrigger.SetcustomEventFilter(AIndex : Integer; AValue : TTriggerTypecustomEventFilterArray); 
+Procedure TTrigger.SetcustomEventFilter(AIndex : Integer; const AValue : TTriggerTypecustomEventFilterArray); 
 
 begin
   If (FcustomEventFilter=AValue) then exit;
@@ -2822,7 +3460,7 @@ end;
 
 
 
-Procedure TTrigger.SetenableAllVideos(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SetenableAllVideos(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FenableAllVideos=AValue) then exit;
@@ -2832,7 +3470,7 @@ end;
 
 
 
-Procedure TTrigger.SeteventName(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SeteventName(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FeventName=AValue) then exit;
@@ -2842,7 +3480,7 @@ end;
 
 
 
-Procedure TTrigger.Setfilter(AIndex : Integer; AValue : TTriggerTypefilterArray); 
+Procedure TTrigger.Setfilter(AIndex : Integer; const AValue : TTriggerTypefilterArray); 
 
 begin
   If (Ffilter=AValue) then exit;
@@ -2862,7 +3500,7 @@ end;
 
 
 
-Procedure TTrigger.Setinterval(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.Setinterval(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (Finterval=AValue) then exit;
@@ -2872,7 +3510,7 @@ end;
 
 
 
-Procedure TTrigger.Setlimit(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.Setlimit(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (Flimit=AValue) then exit;
@@ -2887,6 +3525,16 @@ Procedure TTrigger.Setname(AIndex : Integer; const AValue : String);
 begin
   If (Fname=AValue) then exit;
   Fname:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TTrigger.SetparentFolderId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FparentFolderId=AValue) then exit;
+  FparentFolderId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -2912,7 +3560,7 @@ end;
 
 
 
-Procedure TTrigger.SetuniqueTriggerId(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SetuniqueTriggerId(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FuniqueTriggerId=AValue) then exit;
@@ -2922,7 +3570,7 @@ end;
 
 
 
-Procedure TTrigger.SetvideoPercentageList(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SetvideoPercentageList(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FvideoPercentageList=AValue) then exit;
@@ -2932,7 +3580,7 @@ end;
 
 
 
-Procedure TTrigger.SetwaitForTags(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SetwaitForTags(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FwaitForTags=AValue) then exit;
@@ -2942,7 +3590,7 @@ end;
 
 
 
-Procedure TTrigger.SetwaitForTagsTimeout(AIndex : Integer; AValue : TParameter); 
+Procedure TTrigger.SetwaitForTagsTimeout(AIndex : Integer; const AValue : TParameter); 
 
 begin
   If (FwaitForTagsTimeout=AValue) then exit;
@@ -2985,7 +3633,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TUserAccess.SetaccountAccess(AIndex : Integer; AValue : TAccountAccess); 
+Procedure TUserAccess.SetaccountAccess(AIndex : Integer; const AValue : TAccountAccess); 
 
 begin
   If (FaccountAccess=AValue) then exit;
@@ -3005,7 +3653,7 @@ end;
 
 
 
-Procedure TUserAccess.SetcontainerAccess(AIndex : Integer; AValue : TUserAccessTypecontainerAccessArray); 
+Procedure TUserAccess.SetcontainerAccess(AIndex : Integer; const AValue : TUserAccessTypecontainerAccessArray); 
 
 begin
   If (FcontainerAccess=AValue) then exit;
@@ -3075,7 +3723,7 @@ end;
 
 
 
-Procedure TVariable.SetdisablingTriggerId(AIndex : Integer; AValue : TStringArray); 
+Procedure TVariable.SetdisablingTriggerId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FdisablingTriggerId=AValue) then exit;
@@ -3085,7 +3733,7 @@ end;
 
 
 
-Procedure TVariable.SetenablingTriggerId(AIndex : Integer; AValue : TStringArray); 
+Procedure TVariable.SetenablingTriggerId(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FenablingTriggerId=AValue) then exit;
@@ -3125,11 +3773,21 @@ end;
 
 
 
-Procedure TVariable.Setparameter(AIndex : Integer; AValue : TVariableTypeparameterArray); 
+Procedure TVariable.Setparameter(AIndex : Integer; const AValue : TVariableTypeparameterArray); 
 
 begin
   If (Fparameter=AValue) then exit;
   Fparameter:=AValue;
+  MarkPropertyChanged(AIndex);
+end;
+
+
+
+Procedure TVariable.SetparentFolderId(AIndex : Integer; const AValue : String); 
+
+begin
+  If (FparentFolderId=AValue) then exit;
+  FparentFolderId:=AValue;
   MarkPropertyChanged(AIndex);
 end;
 
@@ -3204,99 +3862,99 @@ end;
 
 
 { --------------------------------------------------------------------
-  TAccountsContainersMacrosResource
+  TAccountsContainersEnvironmentsResource
   --------------------------------------------------------------------}
 
 
-Class Function TAccountsContainersMacrosResource.ResourceName : String;
+Class Function TAccountsContainersEnvironmentsResource.ResourceName : String;
 
 begin
-  Result:='macros';
+  Result:='environments';
 end;
 
-Class Function TAccountsContainersMacrosResource.DefaultAPI : TGoogleAPIClass;
+Class Function TAccountsContainersEnvironmentsResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TtagmanagerAPI;
 end;
 
-Function TAccountsContainersMacrosResource.Create(accountId: string; containerId: string; aMacro : TMacro) : TMacro;
+Function TAccountsContainersEnvironmentsResource.Create(accountId: string; containerId: string; aEnvironment : TEnvironment) : TEnvironment;
 
 Const
   _HTTPMethod = 'POST';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/macros';
-  _Methodid   = 'tagmanager.accounts.containers.macros.create';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/environments';
+  _Methodid   = 'tagmanager.accounts.containers.environments.create';
 
 Var
   _P : String;
 
 begin
   _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aMacro,TMacro) as TMacro;
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEnvironment,TEnvironment) as TEnvironment;
 end;
 
-Procedure TAccountsContainersMacrosResource.Delete(accountId: string; containerId: string; macroId: string);
+Procedure TAccountsContainersEnvironmentsResource.Delete(accountId: string; containerId: string; environmentId: string);
 
 Const
   _HTTPMethod = 'DELETE';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/macros/{macroId}';
-  _Methodid   = 'tagmanager.accounts.containers.macros.delete';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/environments/{environmentId}';
+  _Methodid   = 'tagmanager.accounts.containers.environments.delete';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'macroId',macroId]);
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'environmentId',environmentId]);
   ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
 end;
 
-Function TAccountsContainersMacrosResource.Get(accountId: string; containerId: string; macroId: string) : TMacro;
+Function TAccountsContainersEnvironmentsResource.Get(accountId: string; containerId: string; environmentId: string) : TEnvironment;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/macros/{macroId}';
-  _Methodid   = 'tagmanager.accounts.containers.macros.get';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/environments/{environmentId}';
+  _Methodid   = 'tagmanager.accounts.containers.environments.get';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'macroId',macroId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TMacro) as TMacro;
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'environmentId',environmentId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TEnvironment) as TEnvironment;
 end;
 
-Function TAccountsContainersMacrosResource.List(accountId: string; containerId: string) : TListMacrosResponse;
+Function TAccountsContainersEnvironmentsResource.List(accountId: string; containerId: string) : TListEnvironmentsResponse;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/macros';
-  _Methodid   = 'tagmanager.accounts.containers.macros.list';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/environments';
+  _Methodid   = 'tagmanager.accounts.containers.environments.list';
 
 Var
   _P : String;
 
 begin
   _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListMacrosResponse) as TListMacrosResponse;
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListEnvironmentsResponse) as TListEnvironmentsResponse;
 end;
 
-Function TAccountsContainersMacrosResource.Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : string = '') : TMacro;
+Function TAccountsContainersEnvironmentsResource.Patch(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : string = '') : TEnvironment;
 
 Const
-  _HTTPMethod = 'PUT';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/macros/{macroId}';
-  _Methodid   = 'tagmanager.accounts.containers.macros.update';
+  _HTTPMethod = 'PATCH';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/environments/{environmentId}';
+  _Methodid   = 'tagmanager.accounts.containers.environments.patch';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'macroId',macroId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aMacro,TMacro) as TMacro;
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'environmentId',environmentId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aEnvironment,TEnvironment) as TEnvironment;
 end;
 
 
-Function TAccountsContainersMacrosResource.Update(accountId: string; containerId: string; macroId: string; aMacro : TMacro; AQuery : TAccountsContainersMacrosupdateOptions) : TMacro;
+Function TAccountsContainersEnvironmentsResource.Patch(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : TAccountsContainersEnvironmentspatchOptions) : TEnvironment;
 
 Var
   _Q : String;
@@ -3304,105 +3962,166 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
-  Result:=Update(accountId,containerId,macroId,aMacro,_Q);
+  Result:=Patch(accountId,containerId,environmentId,aEnvironment,_Q);
+end;
+
+Function TAccountsContainersEnvironmentsResource.Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : string = '') : TEnvironment;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/environments/{environmentId}';
+  _Methodid   = 'tagmanager.accounts.containers.environments.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'environmentId',environmentId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aEnvironment,TEnvironment) as TEnvironment;
+end;
+
+
+Function TAccountsContainersEnvironmentsResource.Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment; AQuery : TAccountsContainersEnvironmentsupdateOptions) : TEnvironment;
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
+  Result:=Update(accountId,containerId,environmentId,aEnvironment,_Q);
 end;
 
 
 
 { --------------------------------------------------------------------
-  TAccountsContainersRulesResource
+  TAccountsContainersFoldersEntitiesResource
   --------------------------------------------------------------------}
 
 
-Class Function TAccountsContainersRulesResource.ResourceName : String;
+Class Function TAccountsContainersFoldersEntitiesResource.ResourceName : String;
 
 begin
-  Result:='rules';
+  Result:='entities';
 end;
 
-Class Function TAccountsContainersRulesResource.DefaultAPI : TGoogleAPIClass;
+Class Function TAccountsContainersFoldersEntitiesResource.DefaultAPI : TGoogleAPIClass;
 
 begin
   Result:=TtagmanagerAPI;
 end;
 
-Function TAccountsContainersRulesResource.Create(accountId: string; containerId: string; aRule : TRule) : TRule;
+Function TAccountsContainersFoldersEntitiesResource.List(accountId: string; containerId: string; folderId: string) : TFolderEntities;
+
+Const
+  _HTTPMethod = 'GET';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/folders/{folderId}/entities';
+  _Methodid   = 'tagmanager.accounts.containers.folders.entities.list';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'folderId',folderId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFolderEntities) as TFolderEntities;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersFoldersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersFoldersResource.ResourceName : String;
+
+begin
+  Result:='folders';
+end;
+
+Class Function TAccountsContainersFoldersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersFoldersResource.Create(accountId: string; containerId: string; aFolder : TFolder) : TFolder;
 
 Const
   _HTTPMethod = 'POST';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/rules';
-  _Methodid   = 'tagmanager.accounts.containers.rules.create';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/folders';
+  _Methodid   = 'tagmanager.accounts.containers.folders.create';
 
 Var
   _P : String;
 
 begin
   _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',aRule,TRule) as TRule;
+  Result:=ServiceCall(_HTTPMethod,_P,'',aFolder,TFolder) as TFolder;
 end;
 
-Procedure TAccountsContainersRulesResource.Delete(accountId: string; containerId: string; ruleId: string);
+Procedure TAccountsContainersFoldersResource.Delete(accountId: string; containerId: string; folderId: string);
 
 Const
   _HTTPMethod = 'DELETE';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/rules/{ruleId}';
-  _Methodid   = 'tagmanager.accounts.containers.rules.delete';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/folders/{folderId}';
+  _Methodid   = 'tagmanager.accounts.containers.folders.delete';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'ruleId',ruleId]);
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'folderId',folderId]);
   ServiceCall(_HTTPMethod,_P,'',Nil,Nil);
 end;
 
-Function TAccountsContainersRulesResource.Get(accountId: string; containerId: string; ruleId: string) : TRule;
+Function TAccountsContainersFoldersResource.Get(accountId: string; containerId: string; folderId: string) : TFolder;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/rules/{ruleId}';
-  _Methodid   = 'tagmanager.accounts.containers.rules.get';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/folders/{folderId}';
+  _Methodid   = 'tagmanager.accounts.containers.folders.get';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'ruleId',ruleId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TRule) as TRule;
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'folderId',folderId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TFolder) as TFolder;
 end;
 
-Function TAccountsContainersRulesResource.List(accountId: string; containerId: string) : TListRulesResponse;
+Function TAccountsContainersFoldersResource.List(accountId: string; containerId: string) : TListFoldersResponse;
 
 Const
   _HTTPMethod = 'GET';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/rules';
-  _Methodid   = 'tagmanager.accounts.containers.rules.list';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/folders';
+  _Methodid   = 'tagmanager.accounts.containers.folders.list';
 
 Var
   _P : String;
 
 begin
   _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId]);
-  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListRulesResponse) as TListRulesResponse;
+  Result:=ServiceCall(_HTTPMethod,_P,'',Nil,TListFoldersResponse) as TListFoldersResponse;
 end;
 
-Function TAccountsContainersRulesResource.Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : string = '') : TRule;
+Function TAccountsContainersFoldersResource.Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : string = '') : TFolder;
 
 Const
   _HTTPMethod = 'PUT';
-  _Path       = 'accounts/{accountId}/containers/{containerId}/rules/{ruleId}';
-  _Methodid   = 'tagmanager.accounts.containers.rules.update';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/folders/{folderId}';
+  _Methodid   = 'tagmanager.accounts.containers.folders.update';
 
 Var
   _P : String;
 
 begin
-  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'ruleId',ruleId]);
-  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aRule,TRule) as TRule;
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'folderId',folderId]);
+  Result:=ServiceCall(_HTTPMethod,_P,AQuery,aFolder,TFolder) as TFolder;
 end;
 
 
-Function TAccountsContainersRulesResource.Update(accountId: string; containerId: string; ruleId: string; aRule : TRule; AQuery : TAccountsContainersRulesupdateOptions) : TRule;
+Function TAccountsContainersFoldersResource.Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : TAccountsContainersFoldersupdateOptions) : TFolder;
 
 Var
   _Q : String;
@@ -3410,7 +4129,113 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'fingerprint',AQuery.fingerprint);
-  Result:=Update(accountId,containerId,ruleId,aRule,_Q);
+  Result:=Update(accountId,containerId,folderId,aFolder,_Q);
+end;
+
+
+
+Function TAccountsContainersFoldersResource.GetEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
+
+begin
+  if (FEntitiesInstance=Nil) then
+    FEntitiesInstance:=CreateEntitiesResource;
+  Result:=FEntitiesInstance;
+end;
+
+Function TAccountsContainersFoldersResource.CreateEntitiesResource : TAccountsContainersFoldersEntitiesResource;
+
+begin
+  Result:=CreateEntitiesResource(Self);
+end;
+
+
+Function TAccountsContainersFoldersResource.CreateEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;
+
+begin
+  Result:=TAccountsContainersFoldersEntitiesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersMove_foldersResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersMove_foldersResource.ResourceName : String;
+
+begin
+  Result:='move_folders';
+end;
+
+Class Function TAccountsContainersMove_foldersResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Procedure TAccountsContainersMove_foldersResource.Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : string = '');
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/move_folders/{folderId}';
+  _Methodid   = 'tagmanager.accounts.containers.move_folders.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'folderId',folderId]);
+  ServiceCall(_HTTPMethod,_P,AQuery,aFolder,Nil);
+end;
+
+
+Procedure TAccountsContainersMove_foldersResource.Update(accountId: string; containerId: string; folderId: string; aFolder : TFolder; AQuery : TAccountsContainersMove_foldersupdateOptions);
+
+Var
+  _Q : String;
+
+begin
+  _Q:='';
+  AddToQuery(_Q,'tagId',AQuery.tagId);
+  AddToQuery(_Q,'triggerId',AQuery.triggerId);
+  AddToQuery(_Q,'variableId',AQuery.variableId);
+  Update(accountId,containerId,folderId,aFolder,_Q);
+end;
+
+
+
+{ --------------------------------------------------------------------
+  TAccountsContainersReauthorize_environmentsResource
+  --------------------------------------------------------------------}
+
+
+Class Function TAccountsContainersReauthorize_environmentsResource.ResourceName : String;
+
+begin
+  Result:='reauthorize_environments';
+end;
+
+Class Function TAccountsContainersReauthorize_environmentsResource.DefaultAPI : TGoogleAPIClass;
+
+begin
+  Result:=TtagmanagerAPI;
+end;
+
+Function TAccountsContainersReauthorize_environmentsResource.Update(accountId: string; containerId: string; environmentId: string; aEnvironment : TEnvironment) : TEnvironment;
+
+Const
+  _HTTPMethod = 'PUT';
+  _Path       = 'accounts/{accountId}/containers/{containerId}/reauthorize_environments/{environmentId}';
+  _Methodid   = 'tagmanager.accounts.containers.reauthorize_environments.update';
+
+Var
+  _P : String;
+
+begin
+  _P:=SubstitutePath(_Path,['accountId',accountId,'containerId',containerId,'environmentId',environmentId]);
+  Result:=ServiceCall(_HTTPMethod,_P,'',aEnvironment,TEnvironment) as TEnvironment;
 end;
 
 
@@ -3819,6 +4644,7 @@ Var
 begin
   _Q:='';
   AddToQuery(_Q,'headers',AQuery.headers);
+  AddToQuery(_Q,'includeDeleted',AQuery.includeDeleted);
   Result:=List(accountId,containerId,_Q);
 end;
 
@@ -4014,49 +4840,121 @@ end;
 
 
 
-Function TAccountsContainersResource.GetMacrosInstance : TAccountsContainersMacrosResource;
+Function TAccountsContainersResource.GetEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
 
 begin
-  if (FMacrosInstance=Nil) then
-    FMacrosInstance:=CreateMacrosResource;
-  Result:=FMacrosInstance;
+  if (FEnvironmentsInstance=Nil) then
+    FEnvironmentsInstance:=CreateEnvironmentsResource;
+  Result:=FEnvironmentsInstance;
 end;
 
-Function TAccountsContainersResource.CreateMacrosResource : TAccountsContainersMacrosResource;
+Function TAccountsContainersResource.CreateEnvironmentsResource : TAccountsContainersEnvironmentsResource;
 
 begin
-  Result:=CreateMacrosResource(Self);
+  Result:=CreateEnvironmentsResource(Self);
 end;
 
 
-Function TAccountsContainersResource.CreateMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;
+Function TAccountsContainersResource.CreateEnvironmentsResource(AOwner : TComponent) : TAccountsContainersEnvironmentsResource;
 
 begin
-  Result:=TAccountsContainersMacrosResource.Create(AOwner);
+  Result:=TAccountsContainersEnvironmentsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 
 
 
-Function TAccountsContainersResource.GetRulesInstance : TAccountsContainersRulesResource;
+Function TAccountsContainersResource.GetFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  if (FRulesInstance=Nil) then
-    FRulesInstance:=CreateRulesResource;
-  Result:=FRulesInstance;
+  if (FFoldersEntitiesInstance=Nil) then
+    FFoldersEntitiesInstance:=CreateFoldersEntitiesResource;
+  Result:=FFoldersEntitiesInstance;
 end;
 
-Function TAccountsContainersResource.CreateRulesResource : TAccountsContainersRulesResource;
+Function TAccountsContainersResource.CreateFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  Result:=CreateRulesResource(Self);
+  Result:=CreateFoldersEntitiesResource(Self);
 end;
 
 
-Function TAccountsContainersResource.CreateRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;
+Function TAccountsContainersResource.CreateFoldersEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  Result:=TAccountsContainersRulesResource.Create(AOwner);
+  Result:=TAccountsContainersFoldersEntitiesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetFoldersInstance : TAccountsContainersFoldersResource;
+
+begin
+  if (FFoldersInstance=Nil) then
+    FFoldersInstance:=CreateFoldersResource;
+  Result:=FFoldersInstance;
+end;
+
+Function TAccountsContainersResource.CreateFoldersResource : TAccountsContainersFoldersResource;
+
+begin
+  Result:=CreateFoldersResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateFoldersResource(AOwner : TComponent) : TAccountsContainersFoldersResource;
+
+begin
+  Result:=TAccountsContainersFoldersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetMove_foldersInstance : TAccountsContainersMove_foldersResource;
+
+begin
+  if (FMove_foldersInstance=Nil) then
+    FMove_foldersInstance:=CreateMove_foldersResource;
+  Result:=FMove_foldersInstance;
+end;
+
+Function TAccountsContainersResource.CreateMove_foldersResource : TAccountsContainersMove_foldersResource;
+
+begin
+  Result:=CreateMove_foldersResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateMove_foldersResource(AOwner : TComponent) : TAccountsContainersMove_foldersResource;
+
+begin
+  Result:=TAccountsContainersMove_foldersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsContainersResource.GetReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  if (FReauthorize_environmentsInstance=Nil) then
+    FReauthorize_environmentsInstance:=CreateReauthorize_environmentsResource;
+  Result:=FReauthorize_environmentsInstance;
+end;
+
+Function TAccountsContainersResource.CreateReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  Result:=CreateReauthorize_environmentsResource(Self);
+end;
+
+
+Function TAccountsContainersResource.CreateReauthorize_environmentsResource(AOwner : TComponent) : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  Result:=TAccountsContainersReauthorize_environmentsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 
@@ -4324,49 +5222,121 @@ end;
 
 
 
-Function TAccountsResource.GetContainersMacrosInstance : TAccountsContainersMacrosResource;
+Function TAccountsResource.GetContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
 
 begin
-  if (FContainersMacrosInstance=Nil) then
-    FContainersMacrosInstance:=CreateContainersMacrosResource;
-  Result:=FContainersMacrosInstance;
+  if (FContainersEnvironmentsInstance=Nil) then
+    FContainersEnvironmentsInstance:=CreateContainersEnvironmentsResource;
+  Result:=FContainersEnvironmentsInstance;
 end;
 
-Function TAccountsResource.CreateContainersMacrosResource : TAccountsContainersMacrosResource;
+Function TAccountsResource.CreateContainersEnvironmentsResource : TAccountsContainersEnvironmentsResource;
 
 begin
-  Result:=CreateContainersMacrosResource(Self);
+  Result:=CreateContainersEnvironmentsResource(Self);
 end;
 
 
-Function TAccountsResource.CreateContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;
+Function TAccountsResource.CreateContainersEnvironmentsResource(AOwner : TComponent) : TAccountsContainersEnvironmentsResource;
 
 begin
-  Result:=TAccountsContainersMacrosResource.Create(AOwner);
+  Result:=TAccountsContainersEnvironmentsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 
 
 
-Function TAccountsResource.GetContainersRulesInstance : TAccountsContainersRulesResource;
+Function TAccountsResource.GetContainersFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  if (FContainersRulesInstance=Nil) then
-    FContainersRulesInstance:=CreateContainersRulesResource;
-  Result:=FContainersRulesInstance;
+  if (FContainersFoldersEntitiesInstance=Nil) then
+    FContainersFoldersEntitiesInstance:=CreateContainersFoldersEntitiesResource;
+  Result:=FContainersFoldersEntitiesInstance;
 end;
 
-Function TAccountsResource.CreateContainersRulesResource : TAccountsContainersRulesResource;
+Function TAccountsResource.CreateContainersFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  Result:=CreateContainersRulesResource(Self);
+  Result:=CreateContainersFoldersEntitiesResource(Self);
 end;
 
 
-Function TAccountsResource.CreateContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;
+Function TAccountsResource.CreateContainersFoldersEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  Result:=TAccountsContainersRulesResource.Create(AOwner);
+  Result:=TAccountsContainersFoldersEntitiesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersFoldersInstance : TAccountsContainersFoldersResource;
+
+begin
+  if (FContainersFoldersInstance=Nil) then
+    FContainersFoldersInstance:=CreateContainersFoldersResource;
+  Result:=FContainersFoldersInstance;
+end;
+
+Function TAccountsResource.CreateContainersFoldersResource : TAccountsContainersFoldersResource;
+
+begin
+  Result:=CreateContainersFoldersResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersFoldersResource(AOwner : TComponent) : TAccountsContainersFoldersResource;
+
+begin
+  Result:=TAccountsContainersFoldersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersMove_foldersInstance : TAccountsContainersMove_foldersResource;
+
+begin
+  if (FContainersMove_foldersInstance=Nil) then
+    FContainersMove_foldersInstance:=CreateContainersMove_foldersResource;
+  Result:=FContainersMove_foldersInstance;
+end;
+
+Function TAccountsResource.CreateContainersMove_foldersResource : TAccountsContainersMove_foldersResource;
+
+begin
+  Result:=CreateContainersMove_foldersResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersMove_foldersResource(AOwner : TComponent) : TAccountsContainersMove_foldersResource;
+
+begin
+  Result:=TAccountsContainersMove_foldersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TAccountsResource.GetContainersReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  if (FContainersReauthorize_environmentsInstance=Nil) then
+    FContainersReauthorize_environmentsInstance:=CreateContainersReauthorize_environmentsResource;
+  Result:=FContainersReauthorize_environmentsInstance;
+end;
+
+Function TAccountsResource.CreateContainersReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  Result:=CreateContainersReauthorize_environmentsResource(Self);
+end;
+
+
+Function TAccountsResource.CreateContainersReauthorize_environmentsResource(AOwner : TComponent) : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  Result:=TAccountsContainersReauthorize_environmentsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 
@@ -4535,7 +5505,7 @@ end;
 Class Function TTagmanagerAPI.APIRevision : String;
 
 begin
-  Result:='20150121';
+  Result:='20160310';
 end;
 
 Class Function TTagmanagerAPI.APIID : String;
@@ -4553,7 +5523,7 @@ end;
 Class Function TTagmanagerAPI.APIDescription : String;
 
 begin
-  Result:='API for accessing Tag Manager accounts and containers.';
+  Result:='Accesses Tag Manager accounts and containers.';
 end;
 
 Class Function TTagmanagerAPI.APIOwnerDomain : String;
@@ -4589,7 +5559,7 @@ end;
 Class Function TTagmanagerAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TTagmanagerAPI.APIbasePath : string;
@@ -4601,7 +5571,7 @@ end;
 Class Function TTagmanagerAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/tagmanager/v1/';
+  Result:='https://www.googleapis.com/tagmanager/v1/';
 end;
 
 Class Function TTagmanagerAPI.APIProtocol : string;
@@ -4661,12 +5631,15 @@ begin
   TContainerVersionHeader.RegisterObject;
   TCreateContainerVersionRequestVersionOptions.RegisterObject;
   TCreateContainerVersionResponse.RegisterObject;
+  TEnvironment.RegisterObject;
+  TFolder.RegisterObject;
+  TFolderEntities.RegisterObject;
   TListAccountUsersResponse.RegisterObject;
   TListAccountsResponse.RegisterObject;
   TListContainerVersionsResponse.RegisterObject;
   TListContainersResponse.RegisterObject;
-  TListMacrosResponse.RegisterObject;
-  TListRulesResponse.RegisterObject;
+  TListEnvironmentsResponse.RegisterObject;
+  TListFoldersResponse.RegisterObject;
   TListTagsResponse.RegisterObject;
   TListTriggersResponse.RegisterObject;
   TListVariablesResponse.RegisterObject;
@@ -4674,56 +5647,130 @@ begin
   TParameter.RegisterObject;
   TPublishContainerVersionResponse.RegisterObject;
   TRule.RegisterObject;
+  TSetupTag.RegisterObject;
   TTag.RegisterObject;
+  TTeardownTag.RegisterObject;
   TTrigger.RegisterObject;
   TUserAccess.RegisterObject;
   TVariable.RegisterObject;
 end;
 
 
-Function TTagmanagerAPI.GetAccountsContainersMacrosInstance : TAccountsContainersMacrosResource;
+Function TTagmanagerAPI.GetAccountsContainersEnvironmentsInstance : TAccountsContainersEnvironmentsResource;
 
 begin
-  if (FAccountsContainersMacrosInstance=Nil) then
-    FAccountsContainersMacrosInstance:=CreateAccountsContainersMacrosResource;
-  Result:=FAccountsContainersMacrosInstance;
+  if (FAccountsContainersEnvironmentsInstance=Nil) then
+    FAccountsContainersEnvironmentsInstance:=CreateAccountsContainersEnvironmentsResource;
+  Result:=FAccountsContainersEnvironmentsInstance;
 end;
 
-Function TTagmanagerAPI.CreateAccountsContainersMacrosResource : TAccountsContainersMacrosResource;
+Function TTagmanagerAPI.CreateAccountsContainersEnvironmentsResource : TAccountsContainersEnvironmentsResource;
 
 begin
-  Result:=CreateAccountsContainersMacrosResource(Self);
+  Result:=CreateAccountsContainersEnvironmentsResource(Self);
 end;
 
 
-Function TTagmanagerAPI.CreateAccountsContainersMacrosResource(AOwner : TComponent) : TAccountsContainersMacrosResource;
+Function TTagmanagerAPI.CreateAccountsContainersEnvironmentsResource(AOwner : TComponent) : TAccountsContainersEnvironmentsResource;
 
 begin
-  Result:=TAccountsContainersMacrosResource.Create(AOwner);
+  Result:=TAccountsContainersEnvironmentsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 
 
 
-Function TTagmanagerAPI.GetAccountsContainersRulesInstance : TAccountsContainersRulesResource;
+Function TTagmanagerAPI.GetAccountsContainersFoldersEntitiesInstance : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  if (FAccountsContainersRulesInstance=Nil) then
-    FAccountsContainersRulesInstance:=CreateAccountsContainersRulesResource;
-  Result:=FAccountsContainersRulesInstance;
+  if (FAccountsContainersFoldersEntitiesInstance=Nil) then
+    FAccountsContainersFoldersEntitiesInstance:=CreateAccountsContainersFoldersEntitiesResource;
+  Result:=FAccountsContainersFoldersEntitiesInstance;
 end;
 
-Function TTagmanagerAPI.CreateAccountsContainersRulesResource : TAccountsContainersRulesResource;
+Function TTagmanagerAPI.CreateAccountsContainersFoldersEntitiesResource : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  Result:=CreateAccountsContainersRulesResource(Self);
+  Result:=CreateAccountsContainersFoldersEntitiesResource(Self);
 end;
 
 
-Function TTagmanagerAPI.CreateAccountsContainersRulesResource(AOwner : TComponent) : TAccountsContainersRulesResource;
+Function TTagmanagerAPI.CreateAccountsContainersFoldersEntitiesResource(AOwner : TComponent) : TAccountsContainersFoldersEntitiesResource;
 
 begin
-  Result:=TAccountsContainersRulesResource.Create(AOwner);
+  Result:=TAccountsContainersFoldersEntitiesResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersFoldersInstance : TAccountsContainersFoldersResource;
+
+begin
+  if (FAccountsContainersFoldersInstance=Nil) then
+    FAccountsContainersFoldersInstance:=CreateAccountsContainersFoldersResource;
+  Result:=FAccountsContainersFoldersInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersFoldersResource : TAccountsContainersFoldersResource;
+
+begin
+  Result:=CreateAccountsContainersFoldersResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersFoldersResource(AOwner : TComponent) : TAccountsContainersFoldersResource;
+
+begin
+  Result:=TAccountsContainersFoldersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersMove_foldersInstance : TAccountsContainersMove_foldersResource;
+
+begin
+  if (FAccountsContainersMove_foldersInstance=Nil) then
+    FAccountsContainersMove_foldersInstance:=CreateAccountsContainersMove_foldersResource;
+  Result:=FAccountsContainersMove_foldersInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersMove_foldersResource : TAccountsContainersMove_foldersResource;
+
+begin
+  Result:=CreateAccountsContainersMove_foldersResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersMove_foldersResource(AOwner : TComponent) : TAccountsContainersMove_foldersResource;
+
+begin
+  Result:=TAccountsContainersMove_foldersResource.Create(AOwner);
+  Result.API:=Self.API;
+end;
+
+
+
+Function TTagmanagerAPI.GetAccountsContainersReauthorize_environmentsInstance : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  if (FAccountsContainersReauthorize_environmentsInstance=Nil) then
+    FAccountsContainersReauthorize_environmentsInstance:=CreateAccountsContainersReauthorize_environmentsResource;
+  Result:=FAccountsContainersReauthorize_environmentsInstance;
+end;
+
+Function TTagmanagerAPI.CreateAccountsContainersReauthorize_environmentsResource : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  Result:=CreateAccountsContainersReauthorize_environmentsResource(Self);
+end;
+
+
+Function TTagmanagerAPI.CreateAccountsContainersReauthorize_environmentsResource(AOwner : TComponent) : TAccountsContainersReauthorize_environmentsResource;
+
+begin
+  Result:=TAccountsContainersReauthorize_environmentsResource.Create(AOwner);
   Result.API:=Self.API;
 end;
 

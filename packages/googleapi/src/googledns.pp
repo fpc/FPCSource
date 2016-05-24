@@ -1,19 +1,4 @@
 unit googledns;
-{
-   **********************************************************************
-      This file is part of the Free Component Library (FCL)
-      Copyright (c) 2015 The free pascal team.
-  
-      See the file COPYING.FPC, included in this distribution,
-      for details about the copyright.
-  
-      This program is distributed in the hope that it will be useful,
-      but WITHOUT ANY WARRANTY; without even the implied warranty of
-      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-  
-   **********************************************************************
-}
-//Generated on: 16-5-15 08:53:02
 {$MODE objfpc}
 {$H+}
 
@@ -61,8 +46,8 @@ type
     Fstatus : String;
   Protected
     //Property setters
-    Procedure Setadditions(AIndex : Integer; AValue : TChangeTypeadditionsArray); virtual;
-    Procedure Setdeletions(AIndex : Integer; AValue : TChangeTypedeletionsArray); virtual;
+    Procedure Setadditions(AIndex : Integer; const AValue : TChangeTypeadditionsArray); virtual;
+    Procedure Setdeletions(AIndex : Integer; const AValue : TChangeTypedeletionsArray); virtual;
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetstartTime(AIndex : Integer; const AValue : String); virtual;
@@ -93,7 +78,7 @@ type
     FnextPageToken : String;
   Protected
     //Property setters
-    Procedure Setchanges(AIndex : Integer; AValue : TChangesListResponseTypechangesArray); virtual;
+    Procedure Setchanges(AIndex : Integer; const AValue : TChangesListResponseTypechangesArray); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
@@ -131,7 +116,7 @@ type
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnameServerSet(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetnameServers(AIndex : Integer; AValue : TStringArray); virtual;
+    Procedure SetnameServers(AIndex : Integer; const AValue : TStringArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -161,7 +146,7 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponseTypemanagedZonesArray); virtual;
+    Procedure SetmanagedZones(AIndex : Integer; const AValue : TManagedZonesListResponseTypemanagedZonesArray); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -190,7 +175,7 @@ type
     Procedure Setid(AIndex : Integer; const AValue : String); virtual;
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setnumber(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setquota(AIndex : Integer; AValue : TQuota); virtual;
+    Procedure Setquota(AIndex : Integer; const AValue : TQuota); virtual;
   Public
   Published
     Property id : String Index 0 Read Fid Write Setid;
@@ -216,12 +201,12 @@ type
   Protected
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
-    Procedure SetmanagedZones(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetresourceRecordsPerRrset(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetrrsetAdditionsPerChange(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetrrsetDeletionsPerChange(AIndex : Integer; AValue : integer); virtual;
-    Procedure SetrrsetsPerManagedZone(AIndex : Integer; AValue : integer); virtual;
-    Procedure SettotalRrdataSizePerChange(AIndex : Integer; AValue : integer); virtual;
+    Procedure SetmanagedZones(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetresourceRecordsPerRrset(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrrsetAdditionsPerChange(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrrsetDeletionsPerChange(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SetrrsetsPerManagedZone(AIndex : Integer; const AValue : integer); virtual;
+    Procedure SettotalRrdataSizePerChange(AIndex : Integer; const AValue : integer); virtual;
   Public
   Published
     Property kind : String Index 0 Read Fkind Write Setkind;
@@ -250,8 +235,8 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure Setname(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrrdatas(AIndex : Integer; AValue : TStringArray); virtual;
-    Procedure Setttl(AIndex : Integer; AValue : integer); virtual;
+    Procedure Setrrdatas(AIndex : Integer; const AValue : TStringArray); virtual;
+    Procedure Setttl(AIndex : Integer; const AValue : integer); virtual;
     Procedure Set_type(AIndex : Integer; const AValue : String); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
@@ -280,7 +265,7 @@ type
     //Property setters
     Procedure Setkind(AIndex : Integer; const AValue : String); virtual;
     Procedure SetnextPageToken(AIndex : Integer; const AValue : String); virtual;
-    Procedure Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponseTyperrsetsArray); virtual;
+    Procedure Setrrsets(AIndex : Integer; const AValue : TResourceRecordSetsListResponseTyperrsetsArray); virtual;
     //2.6.4. bug workaround
     {$IFDEF VER2_6}
     Procedure SetArrayLength(Const AName : String; ALength : Longint); override;
@@ -326,6 +311,7 @@ type
   //Optional query Options for TManagedZonesResource, method List
   
   TManagedZonesListOptions = Record
+    dnsName : String;
     maxResults : integer;
     pageToken : String;
   end;
@@ -437,7 +423,7 @@ implementation
   --------------------------------------------------------------------}
 
 
-Procedure TChange.Setadditions(AIndex : Integer; AValue : TChangeTypeadditionsArray); 
+Procedure TChange.Setadditions(AIndex : Integer; const AValue : TChangeTypeadditionsArray); 
 
 begin
   If (Fadditions=AValue) then exit;
@@ -447,7 +433,7 @@ end;
 
 
 
-Procedure TChange.Setdeletions(AIndex : Integer; AValue : TChangeTypedeletionsArray); 
+Procedure TChange.Setdeletions(AIndex : Integer; const AValue : TChangeTypedeletionsArray); 
 
 begin
   If (Fdeletions=AValue) then exit;
@@ -518,7 +504,7 @@ end;
   --------------------------------------------------------------------}
 
 
-Procedure TChangesListResponse.Setchanges(AIndex : Integer; AValue : TChangesListResponseTypechangesArray); 
+Procedure TChangesListResponse.Setchanges(AIndex : Integer; const AValue : TChangesListResponseTypechangesArray); 
 
 begin
   If (Fchanges=AValue) then exit;
@@ -638,7 +624,7 @@ end;
 
 
 
-Procedure TManagedZone.SetnameServers(AIndex : Integer; AValue : TStringArray); 
+Procedure TManagedZone.SetnameServers(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (FnameServers=AValue) then exit;
@@ -678,7 +664,7 @@ end;
 
 
 
-Procedure TManagedZonesListResponse.SetmanagedZones(AIndex : Integer; AValue : TManagedZonesListResponseTypemanagedZonesArray); 
+Procedure TManagedZonesListResponse.SetmanagedZones(AIndex : Integer; const AValue : TManagedZonesListResponseTypemanagedZonesArray); 
 
 begin
   If (FmanagedZones=AValue) then exit;
@@ -748,7 +734,7 @@ end;
 
 
 
-Procedure TProject.Setquota(AIndex : Integer; AValue : TQuota); 
+Procedure TProject.Setquota(AIndex : Integer; const AValue : TQuota); 
 
 begin
   If (Fquota=AValue) then exit;
@@ -775,7 +761,7 @@ end;
 
 
 
-Procedure TQuota.SetmanagedZones(AIndex : Integer; AValue : integer); 
+Procedure TQuota.SetmanagedZones(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FmanagedZones=AValue) then exit;
@@ -785,7 +771,7 @@ end;
 
 
 
-Procedure TQuota.SetresourceRecordsPerRrset(AIndex : Integer; AValue : integer); 
+Procedure TQuota.SetresourceRecordsPerRrset(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FresourceRecordsPerRrset=AValue) then exit;
@@ -795,7 +781,7 @@ end;
 
 
 
-Procedure TQuota.SetrrsetAdditionsPerChange(AIndex : Integer; AValue : integer); 
+Procedure TQuota.SetrrsetAdditionsPerChange(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FrrsetAdditionsPerChange=AValue) then exit;
@@ -805,7 +791,7 @@ end;
 
 
 
-Procedure TQuota.SetrrsetDeletionsPerChange(AIndex : Integer; AValue : integer); 
+Procedure TQuota.SetrrsetDeletionsPerChange(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FrrsetDeletionsPerChange=AValue) then exit;
@@ -815,7 +801,7 @@ end;
 
 
 
-Procedure TQuota.SetrrsetsPerManagedZone(AIndex : Integer; AValue : integer); 
+Procedure TQuota.SetrrsetsPerManagedZone(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FrrsetsPerManagedZone=AValue) then exit;
@@ -825,7 +811,7 @@ end;
 
 
 
-Procedure TQuota.SettotalRrdataSizePerChange(AIndex : Integer; AValue : integer); 
+Procedure TQuota.SettotalRrdataSizePerChange(AIndex : Integer; const AValue : integer); 
 
 begin
   If (FtotalRrdataSizePerChange=AValue) then exit;
@@ -862,7 +848,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setrrdatas(AIndex : Integer; AValue : TStringArray); 
+Procedure TResourceRecordSet.Setrrdatas(AIndex : Integer; const AValue : TStringArray); 
 
 begin
   If (Frrdatas=AValue) then exit;
@@ -872,7 +858,7 @@ end;
 
 
 
-Procedure TResourceRecordSet.Setttl(AIndex : Integer; AValue : integer); 
+Procedure TResourceRecordSet.Setttl(AIndex : Integer; const AValue : integer); 
 
 begin
   If (Fttl=AValue) then exit;
@@ -943,7 +929,7 @@ end;
 
 
 
-Procedure TResourceRecordSetsListResponse.Setrrsets(AIndex : Integer; AValue : TResourceRecordSetsListResponseTyperrsetsArray); 
+Procedure TResourceRecordSetsListResponse.Setrrsets(AIndex : Integer; const AValue : TResourceRecordSetsListResponseTyperrsetsArray); 
 
 begin
   If (Frrsets=AValue) then exit;
@@ -1132,6 +1118,7 @@ Var
 
 begin
   _Q:='';
+  AddToQuery(_Q,'dnsName',AQuery.dnsName);
   AddToQuery(_Q,'maxResults',AQuery.maxResults);
   AddToQuery(_Q,'pageToken',AQuery.pageToken);
   Result:=List(project,_Q);
@@ -1241,7 +1228,7 @@ end;
 Class Function TDnsAPI.APIRevision : String;
 
 begin
-  Result:='20150218';
+  Result:='20160513';
 end;
 
 Class Function TDnsAPI.APIID : String;
@@ -1259,7 +1246,7 @@ end;
 Class Function TDnsAPI.APIDescription : String;
 
 begin
-  Result:='The Google Cloud DNS API provides services for configuring and serving authoritative DNS records.';
+  Result:='Configures and serves authoritative DNS records.';
 end;
 
 Class Function TDnsAPI.APIOwnerDomain : String;
@@ -1295,7 +1282,7 @@ end;
 Class Function TDnsAPI.APIrootUrl : string;
 
 begin
-  Result:='https://www.googleapis.com:443/';
+  Result:='https://www.googleapis.com/';
 end;
 
 Class Function TDnsAPI.APIbasePath : string;
@@ -1307,7 +1294,7 @@ end;
 Class Function TDnsAPI.APIbaseURL : String;
 
 begin
-  Result:='https://www.googleapis.com:443/dns/v1/projects/';
+  Result:='https://www.googleapis.com/dns/v1/projects/';
 end;
 
 Class Function TDnsAPI.APIProtocol : string;
@@ -1331,13 +1318,15 @@ end;
 Class Function TDnsAPI.APIAuthScopes : TScopeInfoArray;
 
 begin
-  SetLength(Result,3);
+  SetLength(Result,4);
   Result[0].Name:='https://www.googleapis.com/auth/cloud-platform';
   Result[0].Description:='View and manage your data across Google Cloud Platform services';
-  Result[1].Name:='https://www.googleapis.com/auth/ndev.clouddns.readonly';
-  Result[1].Description:='View your DNS records hosted by Google Cloud DNS';
-  Result[2].Name:='https://www.googleapis.com/auth/ndev.clouddns.readwrite';
-  Result[2].Description:='View and manage your DNS records hosted by Google Cloud DNS';
+  Result[1].Name:='https://www.googleapis.com/auth/cloud-platform.read-only';
+  Result[1].Description:='View your data across Google Cloud Platform services';
+  Result[2].Name:='https://www.googleapis.com/auth/ndev.clouddns.readonly';
+  Result[2].Description:='View your DNS records hosted by Google Cloud DNS';
+  Result[3].Name:='https://www.googleapis.com/auth/ndev.clouddns.readwrite';
+  Result[3].Description:='View and manage your DNS records hosted by Google Cloud DNS';
   
 end;
 
