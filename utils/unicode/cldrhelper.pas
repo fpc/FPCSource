@@ -1,6 +1,6 @@
 {   CLDR collation helper unit.
 
-    Copyright (c) 2013 by Inoussa OUEDRAOGO
+    Copyright (c) 2013-2015 by Inoussa OUEDRAOGO
 
     The source code is distributed under the Library GNU
     General Public License with the following modification:
@@ -47,9 +47,6 @@ type
 
   TUCA_LineRecArray = array of TUCA_LineRec;
 
-
-//----------------------------------------------------
-
   ECldrException = class(Exception)
   end;
 
@@ -66,12 +63,23 @@ type
     FirstNonIgnorable, LastNonIgnorable,
     FirstTrailing, LastTrailing
   );
+const
+  FixableReorderLogicalSet = [
+    TReorderLogicalReset.LastRegular,TReorderLogicalReset.FirstTrailing,
+    TReorderLogicalReset.LastTrailing
+  ];
+
+type
   TCollationField = (BackWard, VariableLowLimit, VariableHighLimit);
   TCollationFields = set of TCollationField;
+
+  PReorderUnit = ^TReorderUnit;
 
   { TReorderUnit }
 
   TReorderUnit = X_PACKED record
+  private
+    FVirtualPosition : TReorderLogicalReset;
   public
     Context         : TUnicodeCodePointArray;
     ExpansionChars  : TUnicodeCodePointArray;
@@ -79,6 +87,9 @@ type
     WeigthKind      : TReorderWeigthKind;
     InitialPosition : Integer;
     Changed         : Boolean;
+  public
+    property VirtualPosition : TReorderLogicalReset read FVirtualPosition;
+    function IsVirtual() : Boolean;inline;
   public
     class function From(
       const AChars,
@@ -102,15 +113,19 @@ type
       const AWeigthKind      : TReorderWeigthKind;
       const AInitialPosition : Integer
     ) : TReorderUnit;static;overload;
+    class function From(
+      const AReset : TReorderLogicalReset
+    ) : TReorderUnit;static;overload;
     procedure SetExpansion(const AChars : array of TUnicodeCodePoint);
     procedure SetExpansion(const AChar : TUnicodeCodePoint);
     procedure Clear();
-    procedure Assign(const AItem : TReorderUnit);
+    procedure Assign(const AItem : PReorderUnit);
     function HasContext() : Boolean;
     function IsExpansion() : Boolean;
   end;
 
-  PReorderUnit = ^TReorderUnit;
+
+  PReorderSequence = ^TReorderSequence;
 
   { TReorderSequence }
 
@@ -122,8 +137,9 @@ type
     Before          : Boolean;
   public
     procedure Clear();
+    procedure SetElementCount(const ALength : Integer);
+    procedure Assign(ASource : PReorderSequence);
   end;
-  PReorderSequence = ^TReorderSequence;
   TReorderSequenceArray = array of TReorderSequence;
 
   { TOrderedCharacters }
@@ -150,27 +166,67 @@ type
   end;
   POrderedCharacters = ^TOrderedCharacters;
 
+  { TCldrImport }
+
+  TCldrImport = class
+  private
+    FSource: string;
+    FTypeName: string;
+  public
+    property Source : string read FSource;
+    property TypeName : string read FTypeName;
+  end;
+
+  { TCldrImportList }
+
+  TCldrImportList = class
+  private
+    FItems : array of TCldrImport;
+  private
+    function GetCount: Integer;
+    function GetItem(AIndex : Integer): TCldrImport;
+  public
+    destructor Destroy();override;
+    procedure Clear();
+    function IndexOf(const ASource, AType : string) : Integer;
+    function Find(const ASource, AType : string) : TCldrImport;
+    function Add(const ASource, AType : string) : TCldrImport;
+    property Count : Integer read GetCount;
+    property Item[AIndex : Integer] : TCldrImport read GetItem;default;
+  end;
+
   TCldrCollation = class;
 
   { TCldrCollationItem }
 
   TCldrCollationItem = class
   private
+    FAlt: string;
     FBackwards: Boolean;
     FBase: string;
     FChangedFields: TCollationFields;
+    FImports: TCldrImportList;
     FParent: TCldrCollation;
     FRules: TReorderSequenceArray;
     FTypeName: string;
   public
+    constructor Create();
+    destructor Destroy;override;
     procedure Clear();
+    function IsPrivate() : Boolean;
     property Parent : TCldrCollation read FParent;
     property TypeName : string read FTypeName write FTypeName;
+    property Alt : string read FAlt write FAlt;
     property Base : string read FBase write FBase;
     property Backwards : Boolean read FBackwards write FBackwards;
     property Rules : TReorderSequenceArray read FRules write FRules;
     property ChangedFields : TCollationFields read FChangedFields write FChangedFields;
+    property Imports : TCldrImportList read FImports;
   end;
+
+  TCldrParserMode = (HeaderParsing, FullParsing);
+
+  TCldrCollationRepository = class;
 
   { TCldrCollation }
 
@@ -181,24 +237,81 @@ type
     FDefaultType: string;
     FVersion: string;
     FLanguage: string;
+    FMode: TCldrParserMode;
+    FRepository: TCldrCollationRepository;
   private
     function GetItem(Index : Integer): TCldrCollationItem;
     function GetItemCount: Integer;
   public
     destructor Destroy();override;
     procedure Clear();
-    function IndexOf(const AItemName : string) : Integer;
-    function Find(const AItemName : string) : TCldrCollationItem;
+    function IndexOf(const AItemName : string) : Integer;overload;
+    function IndexOf(const AItemName, AItemAlt : string) : Integer;overload;
+    function Find(const AItemName : string) : TCldrCollationItem;overload;
+    function Find(const AItemName, AItemAlt : string) : TCldrCollationItem;overload;
     function Add(AItem : TCldrCollationItem) : Integer;
+    function FindPublicItemCount() : Integer;
     property Language : string read FLanguage write FLanguage;
     property LocalID : string read FLocalID write FLocalID;
     property Version : string read FVersion write FVersion;
     property DefaultType : string read FDefaultType write FDefaultType;
     property ItemCount : Integer read GetItemCount;
     property Items[Index : Integer] : TCldrCollationItem read GetItem;
+    property Mode : TCldrParserMode read FMode write FMode;
+    property Repository : TCldrCollationRepository read FRepository;
   end;
 
-  TCldrParserMode = (HeaderParsing, FullParsing);
+  ICldrCollationLoader = interface
+    ['{117AAC84-06CE-4EC8-9B07-4E81EC23930C}']
+    procedure LoadCollation(
+      const ALanguage  : string;
+            ACollation : TCldrCollation;
+            AMode      : TCldrParserMode
+    );
+    procedure LoadCollationType(
+      const ALanguage,
+            ATypeName : string;
+            AType     : TCldrCollationItem
+    );
+  end;
+
+  { TCldrCollationRepository }
+
+  TCldrCollationRepository = class
+  private
+    FItems : array of TCldrCollation;
+    FLoader: ICldrCollationLoader;
+  private
+    function GetItem(const AIndex : Integer): TCldrCollation;
+    function GetItemCount: Integer;
+    function IndexOfItem(AItem : TCldrCollation) : Integer;
+    procedure Add(AItem : TCldrCollation);
+  public
+    constructor Create(ALoader : ICldrCollationLoader);
+    destructor Destroy;override;
+    procedure FreeItems();
+    procedure Clear();
+    procedure SetLoader(AValue : ICldrCollationLoader);
+    function IndexOf(const ALanguage : string) : Integer;
+    function Find(const ALanguage : string) : TCldrCollation;
+    function Load(const ALanguage : string; const AMode : TCldrParserMode) : TCldrCollation;
+    property ItemCount : Integer read GetItemCount;
+    property Items[const AIndex : Integer] : TCldrCollation read GetItem;
+    property Loader : ICldrCollationLoader read FLoader;
+  end;
+
+  TRuleVisiterFunction =
+    function(
+      ARule  : PReorderSequence;
+      AOwner : TCldrCollationItem;
+      AData  : Pointer
+    ) : Boolean;
+
+  function ForEachRule(
+    ACollationType : TCldrCollationItem;
+    AVisitFunc     : TRuleVisiterFunction;
+    ACustomData    : Pointer
+  ) : Boolean;
 
   function ComputeWeigths(
     const AData        : PReorderUnit;
@@ -240,9 +353,46 @@ type
     const ASequenceLength : Integer
   ) : Integer;
 
+  function TryStrToLogicalReorder(
+    const AValue  : string;
+    out   AResult : TReorderLogicalReset
+  ) : Boolean;
+
+
+resourcestring
+  sCaseNothandled = 'This case is not handled : "%s", Position = %d.';
+  sCodePointExpected = 'Code Point node expected as child at this position "%d".';
+  sCollationsExistsAlready = 'This collation already exists : "%s"';
+  sCollationsNodeNotFound = '"collations" node not found.';
+  sCollationTypeNotFound = 'collation "Type" not found : "%s".';
+  sHexAttributeExpected = '"hex" attribute expected at this position "%d".';
+  sInvalidResetClause = 'Invalid "Reset" clause.';
+  sNodeNameAssertMessage = 'Expected NodeName "%s", got "%s".';
+  sRulesNodeNotFound = '"rules" node not found.';
+  sTextNodeChildExpected = '(Child) text node expected at this position "%d", but got "%s".';
+  sUniqueChildNodeExpected = 'Unique child node expected at this position "%d".';
+  sUnknownResetLogicalPosition = 'Unknown reset logical position : "%s".';
+  sVirtualIsReadOnly = 'Virtual logical "Reset" items are read only.';
+
 implementation
 uses
   RtlConsts, typinfo;
+
+function TryStrToLogicalReorder(
+  const AValue  : string;
+  out   AResult : TReorderLogicalReset
+) : Boolean;
+var
+  s : string;
+  i : Integer;
+begin
+  s := StringReplace(AValue,' ','',[rfReplaceAll]);
+  s := StringReplace(s,'_','',[rfReplaceAll]);
+  i := GetEnumValue(TypeInfo(TReorderLogicalReset),s);
+  Result := (i > -1);
+  if Result then
+    AResult := TReorderLogicalReset(i);
+end;
 
 function ToStr(const ACharacters : array of TUnicodeCodePoint): string;
 var
@@ -457,6 +607,11 @@ begin
   end;
   if (APosition = TReorderLogicalReset.LastNonIgnorable) then
     exit(c);
+  for i := 0 to c - 1 do begin
+    if (p^.VirtualPosition = APosition) then
+      exit(i);
+    Inc(p);
+  end;
 end;
 
 procedure ApplyStatementToSequence(
@@ -491,6 +646,12 @@ var
     end else begin
       if (kr = 0) then
         exit(0);
+      pd := @ASequence.Data[kr];
+      if pd^.IsVirtual() and (pd^.VirtualPosition in FixableReorderLogicalSet) then begin
+        kr := kr-1;
+        if (kr = 0) then
+          exit;
+      end;
       kk := kr;
       pd := @ASequence.Data[kk];
       if (pd^.WeigthKind = TReorderWeigthKind.Primary) then begin
@@ -518,8 +679,8 @@ begin
   pst := AStatement;
   for h := 0 to AStatementCount - 1 do begin
     locResetPos := -1;
-    if (AStatement^.LogicalPosition > TReorderLogicalReset.None) then
-      locResetPos := FindLogicalPos(@ASequence,AStatement^.LogicalPosition)
+    if (pst^.LogicalPosition > TReorderLogicalReset.None) then
+      locResetPos := FindLogicalPos(@ASequence,pst^.LogicalPosition)
     else if (Length(pst^.Reset) > 0) then begin
       locResetPos := IndexOf(pst^.Reset,[],@ASequence.Data[0],ASequence.ActualLength);
       {if (locResetPos = -1) then
@@ -527,6 +688,15 @@ begin
       if (locResetPos = -1) then
         locResetPos := ASequence.ActualLength;
     end;
+    if (pst^.LogicalPosition in FixableReorderLogicalSet) then begin
+      if (locResetPos < 0) or
+         (locResetPos >= ASequence.ActualLength) or
+         not(ASequence.Data[locResetPos].VirtualPosition in FixableReorderLogicalSet)
+      then begin
+        locResetPos := ASequence.Append(TReorderUnit.From(pst^.LogicalPosition));
+      end;
+    end;
+
     pse := @pst^.Elements[0];
     kr := locResetPos;
     k := GetNextInsertPos();
@@ -718,6 +888,47 @@ begin
   end;
 end;
 
+function IsIgnorable(AWeight : TUCA_WeightRecArray) : Boolean;
+var
+  i : Integer;
+begin
+  if (Length(AWeight) = 0) then
+    exit(True);
+  for i := Low(AWeight) to High(AWeight) do begin
+    if (AWeight[i].Weights[0] <> 0) or
+       (AWeight[i].Weights[1] <> 0) or
+       (AWeight[i].Weights[2] <> 0)
+    then begin
+      exit(False);
+    end;
+  end;
+  Result := True;
+end;
+
+function RemoveIgnorables(
+        AItem    : TUnicodeCodePointArray;
+  const AList    : PUCA_LineRec;
+  const AListLen : Integer
+) : TUnicodeCodePointArray;
+var
+  i, c, k : Integer;
+begin
+  SetLength(Result,Length(AItem));
+  c := 0;
+  for i := 0 to Length(AItem) - 1 do begin
+    k := IndexOf([AItem[i]],AList,AListLen);
+    if (k >= 0) and
+       IsIgnorable(AList[k].Weights)
+    then
+      k := -1;
+    if (k >= 0) then begin
+      Result[c] := AItem[i];
+      c := c+1;
+    end;
+  end;
+  SetLength(Result,c);
+end;
+
 function Compress(
   const AData   : TUCA_LineRecArray;
   out   AResult : TUCA_LineRecArray
@@ -806,7 +1017,7 @@ begin
   q := AData;
   p := AData;
   for i := 0 to ADataLen - 1 do begin
-    if p^.Changed then begin
+    if not(p^.IsVirtual()) and p^.Changed then begin
       suffixChar := p^.Characters[0];
       for k := 0 to ADataLen - 1 do begin
         if not(q[k].Changed) and (q[k].Characters[0] = suffixChar) then begin
@@ -821,7 +1032,7 @@ end;
 
 {$include weight_derivation.inc}
 
-function ComputeWeigths(
+function InternalComputeWeigths(
   const AData        : PReorderUnit;
   const ADataLen     : Integer;
   const ADataWeigths : TUCA_LineRecArray;
@@ -1116,6 +1327,41 @@ begin
   Result := Length(AResult);
 end;
 
+function ComputeWeigths(
+  const AData        : PReorderUnit;
+  const ADataLen     : Integer;
+  const ADataWeigths : TUCA_LineRecArray;
+  out   AResult      : TUCA_LineRecArray
+) : Integer;
+var
+  locData : array of TReorderUnit;
+  i, actualLength : Integer;
+  p : PReorderUnit;
+begin
+  SetLength(locData,ADataLen);
+  actualLength := 0;
+  p := AData;
+  for i := 0 to ADataLen-1 do begin
+    if not p^.IsVirtual() then begin
+      locData[actualLength].Assign(p);
+      actualLength := actualLength+1;
+    end;
+    Inc(p);
+  end;
+  if (Length(locData) <> actualLength) then
+    SetLength(locData,actualLength);
+  Result := InternalComputeWeigths(@locData[0],actualLength,ADataWeigths,AResult);
+
+  p := AData;
+  for i := 0 to actualLength-1 do begin
+    while p^.IsVirtual() do begin
+      Inc(p);
+    end;
+    p^.Assign(@locData[i]);
+    Inc(p);
+  end;
+end;
+
 function FillInitialPositions(
         AData        : PReorderUnit;
   const ADataLen     : Integer;
@@ -1125,6 +1371,7 @@ var
   locNotFound, i, cw : Integer;
   p : PReorderUnit;
   pw : PUCA_LineRec;
+  chars : TUnicodeCodePointArray;
 begin
   locNotFound := 0;
   cw := Length(ADataWeigths);
@@ -1135,6 +1382,10 @@ begin
   p := AData;
   for i := 0 to ADataLen - 1 do begin
     p^.InitialPosition := IndexOf(p^.Characters,pw,cw) + 1;
+    if (p^.InitialPosition = 0) then begin
+      chars := RemoveIgnorables(p^.Characters,pw,cw);
+      p^.InitialPosition := IndexOf(chars,pw,cw) + 1;
+    end;
     if (p^.InitialPosition = 0) then
       Inc(locNotFound);
     Inc(p);
@@ -1142,7 +1393,211 @@ begin
   Result := locNotFound;
 end;
 
+{ TCldrImportList }
+
+function TCldrImportList.GetCount: Integer;
+begin
+  Result := Length(FItems);
+end;
+
+function TCldrImportList.GetItem(AIndex : Integer): TCldrImport;
+begin
+  if (AIndex < 0) or (AIndex >= Length(FItems)) then
+    raise ERangeError.CreateFmt(SListIndexError,[AIndex]);
+  Result := FItems[AIndex];
+end;
+
+destructor TCldrImportList.Destroy();
+begin
+  Clear();
+  inherited;
+end;
+
+procedure TCldrImportList.Clear();
+var
+  i : Integer;
+begin
+  for i := Low(FItems) to High(FItems) do
+    FreeAndNil(FItems[i]);
+  SetLength(FItems,0);
+end;
+
+function TCldrImportList.IndexOf(const ASource, AType: string): Integer;
+var
+  i : Integer;
+begin
+  for i := Low(FItems) to High(FItems) do begin
+    if (FItems[i].Source = ASource) and (FItems[i].TypeName = AType) then begin
+      Result := i;
+      exit;
+    end;
+  end;
+  Result := -1;
+end;
+
+function TCldrImportList.Find(const ASource, AType: string): TCldrImport;
+var
+  i : Integer;
+begin
+  i := IndexOf(ASource,AType);
+  if (i >= 0) then
+    Result := FItems[i]
+  else
+    Result := nil;
+end;
+
+function TCldrImportList.Add(const ASource, AType: string): TCldrImport;
+var
+  i : Integer;
+begin
+  i := IndexOf(ASource,AType);
+  if (i >= 0) then begin
+    Result := FItems[i];
+  end else begin
+    Result := TCldrImport.Create();
+    Result.FSource := ASource;
+    Result.FTypeName := AType;
+    i := Length(FItems);
+    SetLength(FItems,(i+1));
+    FItems[i] := Result;
+  end;
+end;
+
+{ TCldrCollationRepository }
+
+function TCldrCollationRepository.GetItem(const AIndex : Integer): TCldrCollation;
+begin
+  if (AIndex < 0) or (AIndex >= Length(FItems)) then
+    raise ERangeError.CreateFmt(SListIndexError,[AIndex]);
+  Result := FItems[AIndex];
+end;
+
+function TCldrCollationRepository.GetItemCount: Integer;
+begin
+  Result := Length(FItems);
+end;
+
+function TCldrCollationRepository.IndexOfItem(AItem: TCldrCollation): Integer;
+var
+  i : Integer;
+begin
+  for i := Low(FItems) to High(FItems) do begin
+    if (FItems[i] = AItem) then begin
+      Result := i;
+      exit;
+    end;
+  end;
+  Result := -1;
+end;
+
+procedure TCldrCollationRepository.Add(AItem: TCldrCollation);
+var
+  i : Integer;
+begin
+  if (AItem = nil) then
+    raise EArgumentException.CreateFmt(SParamIsNil,['AItem: TCldrCollation']);
+  if (IndexOfItem(AItem) >= 0) then
+    raise EArgumentException.CreateFmt(sCollationsExistsAlready,[AItem.Language]);
+  i := Length(FItems);
+  SetLength(FItems,(i+1));
+  AItem.FRepository := Self;
+  FItems[i] := AItem;
+end;
+
+constructor TCldrCollationRepository.Create(ALoader: ICldrCollationLoader);
+begin
+  if (ALoader = nil) then
+    raise EArgumentException.CreateFmt(SInvalidPropertyElement,['Loader']);
+  SetLoader(ALoader);
+end;
+
+destructor TCldrCollationRepository.Destroy;
+begin
+  Clear();
+  inherited Destroy;
+end;
+
+procedure TCldrCollationRepository.FreeItems();
+var
+  i : Integer;
+begin
+  for i := 0 to Length(FItems) - 1 do
+    FreeAndNil(FItems[i]);
+  SetLength(FItems,0);
+end;
+
+procedure TCldrCollationRepository.Clear();
+begin
+  FreeItems();
+end;
+
+procedure TCldrCollationRepository.SetLoader(AValue: ICldrCollationLoader);
+begin
+  if (FLoader <> AValue) then
+    FLoader := AValue;
+end;
+
+function TCldrCollationRepository.IndexOf(const ALanguage: string): Integer;
+var
+  i : Integer;
+begin
+  for i := Low(FItems) to High(FItems) do begin
+    if (FItems[i].Language = ALanguage) then begin
+      Result := i;
+      exit;
+    end
+  end;
+  Result := -1;
+end;
+
+function TCldrCollationRepository.Find(const ALanguage: string): TCldrCollation;
+var
+  i : Integer;
+begin
+  i := IndexOf(ALanguage);
+  if (i >= 0) then
+    Result := FItems[i]
+  else
+    Result := nil;
+end;
+
+function TCldrCollationRepository.Load(
+  const ALanguage : string;
+  const AMode     : TCldrParserMode
+) : TCldrCollation;
+var
+  isnew : Boolean;
+begin
+  Result := Find(ALanguage);
+  if (Result <> nil) then begin
+    if (Result.Mode = TCldrParserMode.FullParsing) or (Result.Mode = AMode) then
+      exit;
+  end;
+  isnew := (Result = nil);
+  if isnew then
+    Result := TCldrCollation.Create();
+  try
+    Loader.LoadCollation(ALanguage,Result,AMode);
+    Add(Result);
+  except
+    if isnew then
+      FreeAndNil(Result);
+    raise;
+  end;
+end;
+
 { TCldrCollationItem }
+
+constructor TCldrCollationItem.Create;
+begin
+  FImports := TCldrImportList.Create();
+end;
+
+destructor TCldrCollationItem.Destroy;
+begin
+  FImports.Free();
+  inherited Destroy;
+end;
 
 procedure TCldrCollationItem.Clear();
 begin
@@ -1151,6 +1606,12 @@ begin
   FChangedFields := [];
   SetLength(FRules,0);
   FTypeName := '';
+  FImports.Clear();
+end;
+
+function TCldrCollationItem.IsPrivate() : Boolean;
+begin
+  Result := (Pos('private-',TypeName) = 1);
 end;
 
 { TCldrCollation }
@@ -1195,11 +1656,36 @@ begin
   Result := -1;
 end;
 
+function TCldrCollation.IndexOf(const AItemName, AItemAlt: string): Integer;
+var
+  i : Integer;
+begin
+  for i := 0 to ItemCount - 1 do begin
+    if SameText(AItemName,Items[i].TypeName) and
+       SameText(AItemAlt,Items[i].Alt)
+    then begin
+      exit(i);
+    end;
+  end;
+  Result := -1;
+end;
+
 function TCldrCollation.Find(const AItemName: string): TCldrCollationItem;
 var
   i : Integer;
 begin
   i := IndexOf(AItemName);
+  if (i = - 1) then
+    Result := nil
+  else
+    Result := Items[i];
+end;
+
+function TCldrCollation.Find(const AItemName, AItemAlt: string): TCldrCollationItem;
+var
+  i : Integer;
+begin
+  i := IndexOf(AItemName,AItemAlt);
   if (i = - 1) then
     Result := nil
   else
@@ -1214,6 +1700,18 @@ begin
   AItem.FParent := Self;
 end;
 
+function TCldrCollation.FindPublicItemCount() : Integer;
+var
+  r, i : Integer;
+begin
+  r := 0;
+  for i := 0 to ItemCount-1 do begin
+    if not Items[i].IsPrivate() then
+      r := r+1;
+  end;
+  Result := r;
+end;
+
 { TReorderSequence }
 
 procedure TReorderSequence.Clear();
@@ -1224,7 +1722,33 @@ begin
   Before   := False;
 end;
 
+procedure TReorderSequence.SetElementCount(const ALength: Integer);
+begin
+  SetLength(Elements,ALength);
+end;
+
+procedure TReorderSequence.Assign(ASource: PReorderSequence);
+var
+  c, i : Integer;
+begin
+  if (ASource = nil) then begin
+    Self.Clear();
+    exit;
+  end;
+  Self.Reset := Copy(ASource^.Reset);
+  c := Length(ASource^.Elements);
+  SetLength(Self.Elements,c);
+  for i := 0 to c-1 do
+    Self.Elements[i].Assign(@ASource^.Elements[i]);
+  Self.Before := ASource^.Before;
+end;
+
 { TReorderUnit }
+
+function TReorderUnit.IsVirtual() : Boolean;
+begin
+  Result := (FVirtualPosition > TReorderLogicalReset.None);
+end;
 
 class function TReorderUnit.From(
   const AChars,
@@ -1235,6 +1759,7 @@ class function TReorderUnit.From(
 var
   c : Integer;
 begin
+  Result.Clear();
   c := Length(AChars);
   SetLength(Result.Characters,c);
   if (c > 0) then
@@ -1276,10 +1801,19 @@ begin
   Result := From([AChar],AContext,AWeigthKind,AInitialPosition);
 end;
 
+class function TReorderUnit.From(const AReset: TReorderLogicalReset): TReorderUnit;
+begin
+  Result.Clear();
+  Result.FVirtualPosition := AReset;
+end;
+
 procedure TReorderUnit.SetExpansion(const AChars: array of TUnicodeCodePoint);
 var
   c : Integer;
 begin
+  if IsVirtual() then
+    raise ECldrException.Create(sVirtualIsReadOnly);
+
   c := Length(AChars);
   SetLength(ExpansionChars,c);
   if (c > 0) then
@@ -1288,11 +1822,15 @@ end;
 
 procedure TReorderUnit.SetExpansion(const AChar: TUnicodeCodePoint);
 begin
+  if IsVirtual() then
+    raise ECldrException.Create(sVirtualIsReadOnly);
+
   SetExpansion([AChar]);
 end;
 
 procedure TReorderUnit.Clear();
 begin
+  Self.FVirtualPosition := TReorderLogicalReset(0);
   Self.Characters := nil;
   Self.Context := nil;
   Self.ExpansionChars := nil;
@@ -1301,16 +1839,19 @@ begin
   Self.Changed := False;
 end;
 
-procedure TReorderUnit.Assign(const AItem : TReorderUnit);
+procedure TReorderUnit.Assign(const AItem : PReorderUnit);
 begin
   Clear();
-  Self.Characters := Copy(AItem.Characters);
-  //SetLength(Self.Context,Length(AItem.Context));
-  Self.Context := Copy(AItem.Context);
-  Self.ExpansionChars := Copy(AItem.ExpansionChars);
-  Self.WeigthKind := AItem.WeigthKind;
-  Self.InitialPosition := AItem.InitialPosition;
-  Self.Changed := AItem.Changed;
+  if (AItem <> nil) then begin
+    Self.FVirtualPosition := AItem^.VirtualPosition;
+    Self.Characters := Copy(AItem^.Characters);
+    //SetLength(Self.Context,Length(AItem^.Context));
+    Self.Context := Copy(AItem^.Context);
+    Self.ExpansionChars := Copy(AItem^.ExpansionChars);
+    Self.WeigthKind := AItem^.WeigthKind;
+    Self.InitialPosition := AItem^.InitialPosition;
+    Self.Changed := AItem^.Changed;
+  end;
 end;
 
 function TReorderUnit.HasContext() : Boolean;
@@ -1365,7 +1906,7 @@ begin
   Result.Clear();
   SetLength(Result.Data,Self.ActualLength);
   for i := 0 to Length(Result.Data) - 1 do
-    Result.Data[i].Assign(Self.Data[i]);
+    Result.Data[i].Assign(@Self.Data[i]);
   Result.FActualLength := Self.FActualLength;
 end;
 
@@ -1381,13 +1922,13 @@ begin
   if (ActualLength=0) then begin
     EnsureSize(ActualLength + 1);
     p := @Data[0];
-    p^.Assign(AItem);
+    p^.Assign(@AItem);
     p^.Changed := True;
     exit(0);
   end;
   k := IndexOf(AItem.Characters,AItem.Context,@Data[0],ActualLength);
   if (k = ADestPos) then begin
-    Data[ADestPos].Assign(AItem);
+    Data[ADestPos].Assign(@AItem);
     Data[ADestPos].Changed := True;
     exit(k);
   end;
@@ -1399,7 +1940,7 @@ begin
   Data[c].Clear();
   p := @Data[finalPos];
   if (finalPos = ActualLength) then begin
-    p^.Assign(AItem);
+    p^.Assign(@AItem);
     p^.Changed := True;
   end else begin
     if (c > 0) then begin
@@ -1416,7 +1957,7 @@ begin
       (ActualLength-(finalPos+1))*SizeOf(TReorderUnit)
     );}
     FillChar(Pointer(p)^,SizeOf(TReorderUnit),0);
-    p^.Assign(AItem);
+    p^.Assign(@AItem);
     p^.Changed := True;
   end;
   if (k >= 0) then begin
@@ -1634,6 +2175,42 @@ begin
   ReverseToNativeEndian(px,ASource^.ItemSize,py);
   if not CompareMem(ASource^.Items,@y[0],Length(x)) then
     CompareProps(ASource^.Items, PUCA_PropItemRec(@y[0]),ASource^.ItemSize);
+end;
+
+function ForEachRule(
+  ACollationType : TCldrCollationItem;
+  AVisitFunc     : TRuleVisiterFunction;
+  ACustomData    : Pointer
+) : Boolean;
+var
+  i : Integer;
+  locImport : TCldrImport;
+  locRep : TCldrCollationRepository;
+  locCollation : TCldrCollation;
+  locType : TCldrCollationItem;
+  locRules : TReorderSequenceArray;
+begin
+  Result := False;
+  if not Assigned(AVisitFunc) then
+    exit;
+  if (ACollationType.Imports.Count > 0) then begin
+    locRep := ACollationType.Parent.Repository;
+    for i := 0 to ACollationType.Imports.Count-1 do begin
+      locImport := ACollationType.Imports[i];
+      locCollation := locRep.Load(locImport.Source,TCldrParserMode.FullParsing);
+      locType := locCollation.Find(locImport.TypeName);
+      if (locType = nil) then
+        raise ECldrException.CreateFmt(sCollationTypeNotFound,[locImport.TypeName]);
+      if not ForEachRule(locType,AVisitFunc,ACustomData) then
+        exit;
+    end;
+  end;
+  locRules := ACollationType.Rules;
+  for i := Low(locRules) to High(locRules) do begin
+    if not AVisitFunc(@locRules[i],ACollationType,ACustomData) then
+      exit;
+  end;
+  Result := True;
 end;
 
 procedure GenerateCdlrCollation(

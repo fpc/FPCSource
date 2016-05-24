@@ -419,8 +419,10 @@ begin
       end;
 
       // Stop if found
-      if (cp.Compare(q^.Data,AData) = 0) then
+      if (cp.Compare(q^.Data,AData) = 0) then begin
+        Result := q;
         break;
+      end;
 
       last := dir;
       dir := (cp.Compare(q^.Data,AData) < 0);

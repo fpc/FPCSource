@@ -92,6 +92,10 @@ begin
       OnPassword:=@DoPassword;
       OnDataReceived:=@DoProgress;
       OnHeaders:=@DoHeaders;
+      { Set this if you want to try a proxy.
+      Proxy.Host:='195.207.46.20';
+      Proxy.Port:=8080;
+      }
       Get(ParamStr(1),ParamStr(2));
     finally
       Free;
