@@ -33,7 +33,7 @@ program tcalcst5;
 {$ifdef cpu68k}
   {$define cpusmall}
 {$endif}
-{$ifdef cpu8086}
+{$ifdef cpui8086}
   {$define cpusmall}
 {$endif}
 
